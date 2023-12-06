@@ -83,6 +83,11 @@ describe('DataTypes.ARRAY', () => {
     postgres: 'CITEXT[]',
   });
 
+  testDataTypeSql('ARRAY(UUID)', DataTypes.ARRAY(DataTypes.UUID), {
+    default: unsupportedError,
+    postgres: 'UUID[]',
+  });
+
   it('raises an error if no values are defined', () => {
     expect(() => {
       sequelize.define('omnomnom', {
