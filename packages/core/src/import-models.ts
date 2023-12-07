@@ -35,7 +35,8 @@ export async function importModels(globPaths: string | string[], modelMatch?: Mo
 
 async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<ModelStatic[]> {
   const { default: _default, ...args } = await import(url);
-  const module = { ..._default, ...args }; 
+  const module = { ..._default, ...args };
+
   return Object.keys(module)
     .filter(exportName => {
       if (!isModelStatic(module[exportName])) {
