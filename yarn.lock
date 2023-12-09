@@ -2247,7 +2247,7 @@ __metadata:
     husky: "npm:8.0.3"
     lerna: "npm:8.0.0"
     lint-staged: "npm:15.2.0"
-    markdownlint-cli: "npm:0.37.0"
+    markdownlint-cli: "npm:0.38.0"
     mocha: "npm:10.2.0"
     node-gyp: "npm:10.0.1"
     node-hook: "npm:1.0.0"
@@ -4700,17 +4700,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:11.1.0":
+"commander@npm:11.1.0, commander@npm:~11.1.0":
   version: 11.1.0
   resolution: "commander@npm:11.1.0"
   checksum: 13cc6ac875e48780250f723fb81c1c1178d35c5decb1abb1b628b3177af08a8554e76b2c0f29de72d69eef7c864d12613272a71fabef8047922bc622ab75a179
-  languageName: node
-  linkType: hard
-
-"commander@npm:~11.0.0":
-  version: 11.0.0
-  resolution: "commander@npm:11.0.0"
-  checksum: 471c44cd2d31dee556753df6ceb5ef52ccded0ba6308d3ba7a76251aa0edeedf5ac66ca86cb6096cc8fe20997064233c476983d346265f85180e86312724de0c
   languageName: node
   linkType: hard
 
@@ -6934,7 +6927,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.3.7, glob@npm:~10.3.4":
+"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.3.7, glob@npm:~10.3.10":
   version: 10.3.10
   resolution: "glob@npm:10.3.10"
   dependencies:
@@ -7419,17 +7412,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ignore@npm:^5.0.4, ignore@npm:^5.0.5, ignore@npm:^5.2.0":
+"ignore@npm:^5.0.4, ignore@npm:^5.0.5, ignore@npm:^5.2.0, ignore@npm:~5.3.0":
   version: 5.3.0
   resolution: "ignore@npm:5.3.0"
   checksum: dc06bea5c23aae65d0725a957a0638b57e235ae4568dda51ca142053ed2c352de7e3bc93a69b2b32ac31966a1952e9a93c5ef2e2ab7c6b06aef9808f6b55b571
-  languageName: node
-  linkType: hard
-
-"ignore@npm:~5.2.4":
-  version: 5.2.4
-  resolution: "ignore@npm:5.2.4"
-  checksum: 7c7cd90edd9fea6e037f9b9da4b01bf0a86b198ce78345f9bbd983929d68ff14830be31111edc5d70c264921f4962404d75b7262b4d9cc3bc12381eccbd03096
   languageName: node
   linkType: hard
 
@@ -9101,9 +9087,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdown-it@npm:13.0.1":
-  version: 13.0.1
-  resolution: "markdown-it@npm:13.0.1"
+"markdown-it@npm:13.0.2":
+  version: 13.0.2
+  resolution: "markdown-it@npm:13.0.2"
   dependencies:
     argparse: "npm:^2.0.1"
     entities: "npm:~3.0.1"
@@ -9112,26 +9098,26 @@ __metadata:
     uc.micro: "npm:^1.0.5"
   bin:
     markdown-it: bin/markdown-it.js
-  checksum: 3e21f9782cc5c7af55d0c822b1d938fb918ad3397653dee746a33ad6a245fb31068fcc5f719e66ebc579d01dd47ea9e3e019c398650e592d7ce5e613147f4f1d
+  checksum: 4fe0c41bc4c318c2901dc2923470c259cab137a4ab870001038877b942c9cc65072923e2d957f785de69a9da27c55657bd531607ccfd258246bd72a8deb8c2ee
   languageName: node
   linkType: hard
 
-"markdownlint-cli@npm:0.37.0":
-  version: 0.37.0
-  resolution: "markdownlint-cli@npm:0.37.0"
+"markdownlint-cli@npm:0.38.0":
+  version: 0.38.0
+  resolution: "markdownlint-cli@npm:0.38.0"
   dependencies:
-    commander: "npm:~11.0.0"
+    commander: "npm:~11.1.0"
     get-stdin: "npm:~9.0.0"
-    glob: "npm:~10.3.4"
-    ignore: "npm:~5.2.4"
+    glob: "npm:~10.3.10"
+    ignore: "npm:~5.3.0"
     js-yaml: "npm:^4.1.0"
     jsonc-parser: "npm:~3.2.0"
-    markdownlint: "npm:~0.31.1"
+    markdownlint: "npm:~0.32.1"
     minimatch: "npm:~9.0.3"
     run-con: "npm:~1.3.2"
   bin:
     markdownlint: markdownlint.js
-  checksum: eca64f2b3949dc7354862aa19e133eaef9a8f3bd2b94ce44396e5cd1c425ac92442eb3244ee800f1479e982276fbd3a91b8a2328aba8210fd0f1d9d50652e44e
+  checksum: 5d1f379bc018496d0b61bdea9c2882d8f08435d372a5cddc5c45e0a77c27bbf8b9655d8820ecb67cdac8372376b4aacdf1969387dc85852da938e7c58989a929
   languageName: node
   linkType: hard
 
@@ -9142,13 +9128,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"markdownlint@npm:~0.31.1":
-  version: 0.31.1
-  resolution: "markdownlint@npm:0.31.1"
+"markdownlint@npm:~0.32.1":
+  version: 0.32.1
+  resolution: "markdownlint@npm:0.32.1"
   dependencies:
-    markdown-it: "npm:13.0.1"
+    markdown-it: "npm:13.0.2"
     markdownlint-micromark: "npm:0.1.7"
-  checksum: ac032bcbe290217b44e5a98a629737b505fb148bbaf7fc74570d9e713837f003b6b7d8dc49aa1e049142c43266ea92461f332da61429afa86f123a00ffc891cc
+  checksum: be2fbb409daaab8916deefafcc4d4d1a3e7dad6d602c03f4bd14cfb762b41de335da181bae11340a1db57b74844cfbb3bcafe05d92a69c5f809b689d8c1bd4b2
   languageName: node
   linkType: hard
 
