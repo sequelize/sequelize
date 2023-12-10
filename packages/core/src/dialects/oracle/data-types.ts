@@ -5,6 +5,15 @@ import type { Lib } from './connection-manager.js';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 import dayjs from 'dayjs';
 
+let Moment: any;
+try {
+  Moment = require('moment');
+} catch { /* ignore */ }
+
+function isMoment(value: any): boolean {
+  return Moment?.isMoment(value) ?? false;
+}
+
 export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -19,7 +28,7 @@ export class STRING extends BaseTypes.STRING {
       return `NVARCHAR2(${this.options.length ?? 255})`;
     }
 
-    return `RAW${this.options.length ?? 255}`;
+    return `RAW(${this.options.length ?? 255})`;
   }
 
   _getBindDef(oracledb: Lib) {
@@ -145,9 +154,15 @@ export class DATE extends BaseTypes.DATE {
      * @override
      */
   getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
+    if (dayjs.isDayjs(value) || isMoment(value)) {
+      return options.bindParam(this._sanitize(value));
+    }
     return options.bindParam(value);
   }
-  // TODO: parse() and override _applyTimeZone()
+  // TODO: parse()
+  _sanitize(value : any) {
+    return new Date(value);
+  }
 }
 
 type AcceptedNumber =
