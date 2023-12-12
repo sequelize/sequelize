@@ -99,6 +99,10 @@ export class MysqlDialect extends AbstractDialect {
     return escapeMysqlString(value);
   }
 
+  escapeJson(value: unknown): string {
+    return `CAST(${super.escapeJson(value)} AS JSON)`;
+  }
+
   canBackslashEscape() {
     return true;
   }

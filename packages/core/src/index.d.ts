@@ -87,9 +87,10 @@ export { Identifier } from './expression-builders/identifier.js';
 export { Attribute } from './expression-builders/attribute.js';
 export { JsonPath, jsonPath } from './expression-builders/json-path.js';
 export { AssociationPath } from './expression-builders/association-path.js';
+export { JSON_NULL } from './expression-builders/dialect-aware-fn.js';
 
 // All functions are available on sql.x, but these are exported for backwards compatibility
-export { literal, Literal } from './expression-builders/literal.js';
+export { literal, Literal, SQL_NULL } from './expression-builders/literal.js';
 export { fn, Fn } from './expression-builders/fn.js';
 export { col, Col } from './expression-builders/col.js';
 export { cast, Cast } from './expression-builders/cast.js';

@@ -4,7 +4,7 @@ import type { AbstractConnectionManager } from './dialects/abstract/connection-m
 import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import type { ColumnsDescription, RawConstraintDescription } from './dialects/abstract/query-interface.types';
-import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type { BaseSqlExpression, DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { cast } from './expression-builders/cast.js';
 import type { col } from './expression-builders/col.js';
 import type { Fn, fn } from './expression-builders/fn.js';
@@ -338,11 +338,31 @@ export interface Options extends Logging {
   models?: ModelStatic[];
 
   /**
-   * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
+   * A flag that defines if the native library shall be used or not.
+   * Currently only has an effect for postgres
    *
    * @default false
    */
   native?: boolean;
+
+  /**
+   * When representing the JavaScript null primitive in a JSON column, Sequelize can
+   * use either the SQL NULL value, or a JSON 'null'.
+   *
+   * Set this to "json" if you want the null to be stored as a JSON 'null'.
+   * Set this to "sql" if you want the null to be stored as the SQL NULL value.
+   * Set this to "explicit" if you don't want Sequelize to make any assumptions.
+   * This means that you won't be able to use the JavaScript null primitive as the top level value of a JSON column,
+   * you will have to use {@link SQL_NULL} or {@link JSON_NULL} instead.
+   *
+   * This only impacts serialization when inserting or updating values.
+   * Comparing always requires to be explicit.
+   *
+   * Read more: https://sequelize.org/docs/v7/querying/json/
+   *
+   * @default json
+   */
+  nullJsonStringification?: 'explicit' | 'json' | 'sql';
 
   /**
    * Use read / write replication. To enable replication, pass an object, with two properties, read and write.
@@ -549,10 +569,6 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
 }
 
 export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
   type: T;
 }
 
@@ -575,10 +591,6 @@ export interface QueryOptions extends QueryRawOptions {
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
   type: T;
 }
 
@@ -939,20 +951,20 @@ export class Sequelize extends SequelizeTypeScript {
    * @param options Query options
    */
   /* eslint-disable max-len -- these signatures are more readable if they are all aligned */
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
-  query(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
-  query<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
-  query<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithModel<M>): Promise<M[]>;
-  query<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
-  query<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  query(sql: string | { query: string, values: unknown[] }, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
-  query(sql: string | { query: string, values: unknown[] }, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
+  query<M extends Model>(sql: string | BaseSqlExpression, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
+  query<M extends Model>(sql: string | BaseSqlExpression, options: QueryOptionsWithModel<M>): Promise<M[]>;
+  query<T extends object>(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
+  query<T extends object>(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  query(sql: string | BaseSqlExpression, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
+  query(sql: string | BaseSqlExpression, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
   /**
    * Works like {@link Sequelize#query}, but does not inline replacements. Only bind parameters are supported.
@@ -960,20 +972,20 @@ export class Sequelize extends SequelizeTypeScript {
    * @param sql The SQL to execute
    * @param options The options for the query. See {@link QueryRawOptions} for details.
    */
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
-  queryRaw<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;
-  queryRaw<M extends Model>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithModel<M>): Promise<M[]>;
-  queryRaw<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
-  queryRaw<T extends object>(sql: string | { query: string, values: unknown[] }, options: QueryRawOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options: (QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
-  queryRaw(sql: string | { query: string, values: unknown[] }, options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
+  queryRaw<M extends Model>(sql: string, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;
+  queryRaw<M extends Model>(sql: string, options: QueryRawOptionsWithModel<M>): Promise<M[]>;
+  queryRaw<T extends object>(sql: string, options: QueryRawOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
+  queryRaw<T extends object>(sql: string, options: QueryRawOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  queryRaw(sql: string, options: (QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
+  queryRaw(sql: string, options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
   /* eslint-enable max-len */
 
   /**

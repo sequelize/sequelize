@@ -37,12 +37,6 @@ export class TEXT extends BaseTypes.TEXT {
   }
 }
 
-export class JSON extends BaseTypes.JSON {
-  escape(value: unknown) {
-    return globalThis.JSON.stringify(value);
-  }
-}
-
 /** @deprecated */
 export class REAL extends BaseTypes.REAL {
   toSql(): string {
