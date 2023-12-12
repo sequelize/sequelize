@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { Sequelize, sql } from '@sequelize/core';
 import { createSequelizeInstance, sequelize } from '../support';
@@ -19,9 +20,19 @@ describe('Sequelize', () => {
   });
 
   describe('query', () => {
+    let stubs: Array<SinonStub<any>> = [];
+
+    afterEach(() => {
+      for (const stub of stubs) {
+        stub.restore();
+      }
+
+      stubs = [];
+    });
+
     it('supports sql expressions', async () => {
       // mock sequelize.queryRaw using sinon
-      sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+      stubs.push(sinon.stub(sequelize, 'queryRaw').resolves([[], 0]));
 
       await sequelize.query(sql`SELECT * FROM "users" WHERE id = ${1} AND id2 = :id2`, {
         replacements: {
