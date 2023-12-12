@@ -37,7 +37,7 @@ async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<
   const module = await import(url);
   // when importing a CJS file, sometimes only the default export is available, as named exports depend on the file's exports being statically analyzable by node. The default exports contains the contents of the file's `module.exports`
   if (module.default && !isModelStatic(module.default) && typeof module.default === 'object') {
-    Object.assign(module, module.default);
+    module = { ...module, ...module.default };
   }
 
   return Object.keys(module)
