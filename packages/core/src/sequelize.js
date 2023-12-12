@@ -4,6 +4,7 @@ import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { JSON_NULL } from './expression-builders/dialect-aware-fn.js';
 import { Identifier } from './expression-builders/identifier';
 import { JsonPath } from './expression-builders/json-path';
@@ -591,6 +592,10 @@ export class Sequelize extends SequelizeTypeScript {
    */
   async query(sql, options) {
     options = { ...this.options.query, ...options };
+
+    if (sql instanceof BaseSqlExpression) {
+      sql = this.queryGenerator.formatSqlExpression(sql, options);
+    }
 
     if (typeof sql === 'object') {
       throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
