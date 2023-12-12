@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.34](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.33...v7.0.0-alpha.34) (2023-12-12)
+
+
+### Bug Fixes
+
+* correct link to data types docs ([#16674](https://github.com/sequelize/sequelize/issues/16674)) ([48dbd6f](https://github.com/sequelize/sequelize/commit/48dbd6f96388140c39b3063215da582e8ac0e4df))
+* **mssql:** error when calling describeTable a table with a dot in its name ([#16771](https://github.com/sequelize/sequelize/issues/16771)) ([579338e](https://github.com/sequelize/sequelize/commit/579338e0be434e7bddfee84248fa368a5a8b53ad))
+* sort keys by depth in groupJoinData ([#16788](https://github.com/sequelize/sequelize/issues/16788)) ([4959e0d](https://github.com/sequelize/sequelize/commit/4959e0db520128414f4e3960e5178f2208bd13ab))
+
+
+### Features
+
+* add an option to control the behavior of `null` in JSON attributes ([#16861](https://github.com/sequelize/sequelize/issues/16861)) ([aff8f64](https://github.com/sequelize/sequelize/commit/aff8f64c7e987c9614267ebe29dbb07a517911da))
+* add support for `sql` tag & functions in `sequelize.query` ([#16863](https://github.com/sequelize/sequelize/issues/16863)) ([7129200](https://github.com/sequelize/sequelize/commit/7129200091f4e8cfa46fbece381d6a44a40baf79))
+
+
+
+
+
 # [7.0.0-alpha.33](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.32...v7.0.0-alpha.33) (2023-10-11)
 
 
