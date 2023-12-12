@@ -5,6 +5,7 @@ import { v1 as uuidv1 } from 'uuid';
 import * as DataTypes from '../dialects/abstract/data-types.js';
 import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { isString } from './check.js';
+import { noDataTypesUuid } from './deprecations.js';
 
 export function toDefaultValue(value: unknown): unknown {
   if (value instanceof DialectAwareFn) {
@@ -25,10 +26,14 @@ export function toDefaultValue(value: unknown): unknown {
   }
 
   if (value instanceof DataTypes.UUIDV1) {
+    noDataTypesUuid();
+
     return uuidv1();
   }
 
   if (value instanceof DataTypes.UUIDV4) {
+    noDataTypesUuid();
+
     return randomUUID();
   }
 
