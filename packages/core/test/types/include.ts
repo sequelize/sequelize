@@ -1,9 +1,9 @@
-import type { HasMany } from '@sequelize/core';
+import type { HasManyAssociation } from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
 
 class MyModel extends Model {
   static associations: {
-    relation: HasMany,
+    relation: HasManyAssociation,
   };
 }
 

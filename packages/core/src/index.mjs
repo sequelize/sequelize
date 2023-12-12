@@ -40,10 +40,10 @@ export const IsolationLevel = Pkg.IsolationLevel;
 
 // export * from './lib/associations/index';
 export const Association = Pkg.Association;
-export const BelongsTo = Pkg.BelongsTo;
-export const HasOne = Pkg.HasOne;
-export const HasMany = Pkg.HasMany;
-export const BelongsToMany = Pkg.BelongsToMany;
+export const BelongsToAssociation = Pkg.BelongsToAssociation;
+export const HasOneAssociation = Pkg.HasOneAssociation;
+export const HasManyAssociation = Pkg.HasManyAssociation;
+export const BelongsToManyAssociation = Pkg.BelongsToManyAssociation;
 
 // export * from './lib/errors';
 export const BaseError = Pkg.BaseError;
