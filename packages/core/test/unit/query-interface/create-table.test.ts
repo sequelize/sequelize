@@ -49,7 +49,7 @@ describe('QueryInterface#createTable', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       postgres: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v1(), PRIMARY KEY ("id"));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT UUID(), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT (UUID()), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER, PRIMARY KEY ([id]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',

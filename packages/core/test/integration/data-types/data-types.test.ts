@@ -1230,6 +1230,12 @@ describe('DataTypes', () => {
   });
 
   describe('UUID default values', () => {
+    beforeAll2(async () => {
+      if (dialect.name === 'postgres') {
+        await sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+      }
+    });
+
     it('supports sql.uuidV1', async () => {
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
         declare attr: CreationOptional<string>;
