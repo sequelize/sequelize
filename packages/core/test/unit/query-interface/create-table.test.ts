@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes, JSON_NULL, sql } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -35,9 +35,12 @@ describe('QueryInterface#createTable', () => {
   });
 
   it('supports sql.uuidV1 default values', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw');
+    const localSequelize = dialect.name === 'mysql' ? createSequelizeInstance({
+      databaseVersion: '8.0.13',
+    }) : sequelize;
+    const stub = sinon.stub(localSequelize, 'queryRaw');
 
-    await sequelize.queryInterface.createTable('table', {
+    await localSequelize.queryInterface.createTable('table', {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,
@@ -49,7 +52,8 @@ describe('QueryInterface#createTable', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       postgres: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v1(), PRIMARY KEY ("id"));',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT (UUID()), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
+      mysql: 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT (UUID()), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
+      mariadb: 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT UUID(), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER, PRIMARY KEY ([id]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
