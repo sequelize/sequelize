@@ -35,6 +35,7 @@ import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpe
  * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
  * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasOneSetAssociationMixin}.
  */
+// Note: this class is named HasOneAssociation instead of HasOne to prevent naming conflicts with the HasOne decorator
 export class HasOneAssociation<
   S extends Model = Model,
   T extends Model = Model,

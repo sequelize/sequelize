@@ -33,7 +33,7 @@ import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpe
  * One-to-many association.
  * See {@link Model.hasMany}
  *
- * Like with {@link HasOne}, the foreign key will be defined on the target model.
+ * Like with {@link HasOneAssociation}, the foreign key will be defined on the target model.
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
  * If the association is aliased, use the alias instead, e.g. `User.hasMany(Project, { as: 'jobs' })` will be `user.getJobs()`.
@@ -44,6 +44,7 @@ import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpe
  * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
  * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasManySetAssociationsMixin} & others.
  */
+// Note: this class is named HasManyAssociation instead of HasMany to prevent naming conflicts with the HasMany decorator
 export class HasManyAssociation<
   S extends Model = Model,
   T extends Model = Model,

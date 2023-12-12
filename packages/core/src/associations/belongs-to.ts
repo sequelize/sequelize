@@ -41,6 +41,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
  * @typeParam SourceKey The name of the Foreign Key attribute on the Source model.
  * @typeParam TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
  */
+// Note: this class is named BelongsToAssociation instead of BelongsTo to prevent naming conflicts with the BelongsTo decorator
 export class BelongsToAssociation<
   S extends Model = Model,
   T extends Model = Model,

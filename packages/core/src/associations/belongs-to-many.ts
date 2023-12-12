@@ -107,6 +107,7 @@ function addInclude(findOptions: FindOptions, include: Includeable) {
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
  */
+// Note: this class is named BelongsToManyAssociation instead of BelongsToMany to prevent naming conflicts with the BelongsToMany decorator
 export class BelongsToManyAssociation<
   SourceModel extends Model = Model,
   TargetModel extends Model = Model,
