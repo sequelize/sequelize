@@ -34,7 +34,7 @@ describe('QueryInterface#upsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
       mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
       mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
@@ -112,7 +112,7 @@ describe('QueryInterface#upsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
       mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
@@ -169,7 +169,7 @@ describe('QueryInterface#upsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
       mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
@@ -226,7 +226,7 @@ describe('QueryInterface#upsert', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
       postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
       mssql: `
