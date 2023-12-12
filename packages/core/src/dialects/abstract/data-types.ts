@@ -1925,9 +1925,13 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   }
 }
 
+export interface UuidOptions {
+ version: 1 | 4 | 'all';
+}
+
 /**
  * A column storing a unique universal identifier.
- * Use with `UUIDV1` or `UUIDV4` for default values.
+ * Use with `sql.uuidV1` or `sql.uuidV4` for default values.
  *
  * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
@@ -1936,7 +1940,8 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * ```ts
  * const User = sequelize.define('User', {
  *   id: {
- *     type: DataTypes.UUID,
+ *     type: DataTypes.UUID.V4,
+ *     defaultValue: sql.uuidV4,
  *   },
  * });
  * ```
@@ -1947,10 +1952,42 @@ export class UUID extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUID';
 
+  readonly options: UuidOptions;
+
+  constructor(options?: Partial<UuidOptions>) {
+    super();
+
+    this.options = {
+      version: options?.version ?? 'all',
+    };
+  }
+
+  get V4() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 4,
+    });
+  }
+
+  static get V4() {
+    return new this({ version: 4 });
+  }
+
+  get V1() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 1,
+    });
+  }
+
+  static get V1() {
+    return new this({ version: 1 });
+  }
+
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isUUID(value)) {
+    if (typeof value !== 'string' || !Validator.isUUID(value, this.options.version)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid uuid', value),
+        util.format(`%O is not a valid uuid (version: ${this.options.version})`, value),
       );
     }
   }
@@ -1964,19 +2001,9 @@ export class UUID extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v1 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV1,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V1` (data type) & `sql.uuidV1` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV1 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
@@ -1998,19 +2025,9 @@ export class UUIDV1 extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v4 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV4,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V4` (data type) & `sql.uuidV4` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV4 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
