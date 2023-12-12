@@ -236,7 +236,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getUuidV4FunctionCall(): string {
-    return 'uuid_generate_v4()';
+    // uuid_generate_v4 requires the uuid-ossp extension, which is not installed by default.
+    // This has broader support, as it is part of the core Postgres distribution.
+    return 'gen_random_uuid()';
   }
 
   versionQuery() {
