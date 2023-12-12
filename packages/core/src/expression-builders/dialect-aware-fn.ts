@@ -7,7 +7,7 @@ import { JsonPath } from './json-path.js';
 
 /**
  * Unlike {@link Fn}, this class does not accept a function name.
- * It must instead be extended by a class that implements the {@link apply} method, in which
+ * It must instead be extended by a class that implements the {@link applyForDialect} method, in which
  * the function name is provided.
  *
  * The goal of this class is to allow dialect-specific functions to be used in a cross-dialect way.
