@@ -599,7 +599,7 @@ export class OracleQuery extends AbstractQuery {
         acc[indexRecord.INDEX_NAME] = {
           unique: indexRecord.UNIQUENESS === 'UNIQUE' ? true : false,
           primary: indexRecord.CONSTRAINT_TYPE === 'P',
-          name: indexRecord.INDEX_NAME.toLowerCase(),
+          name: indexRecord.INDEX_NAME,
           tableName: indexRecord.TABLE_NAME.toLowerCase(),
           type: undefined
         };
@@ -623,7 +623,7 @@ export class OracleQuery extends AbstractQuery {
       columns.unique = acc[accKey].unique;
       // We are generating index field name in the format sequelize expects
       // to avoid creating a unique index on auto-generated index name
-      if (acc[accKey].name.match(/sys_c[0-9]*/)) {
+      if (acc[accKey].name.match(/SYS_C[0-9]*/)) {
         acc[accKey].name = nameIndex(columns, acc[accKey].tableName).name;
       }
       acc[accKey].fields.map(field => {

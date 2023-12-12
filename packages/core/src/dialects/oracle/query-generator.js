@@ -80,7 +80,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   listSchemasQuery() {
-    return 'SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE COMMON = (\'NO\') AND USERNAME != user';
+    return 'SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = (\'NO\') AND USERNAME != user';
   }
 
   dropSchemaQuery(schema) {

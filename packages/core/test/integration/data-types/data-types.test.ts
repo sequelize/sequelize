@@ -110,7 +110,7 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    it('accepts strings', async () => {
+    (dialect.name !== 'oracle'? it : it.skip)('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
@@ -143,7 +143,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite') {
+    if (dialect.name !== 'sqlite' && dialect.name !== 'oracle') {
       it('throws if the string is too long', async () => {
         await expect(vars.User.create({
           binaryStringAttr: '123456',
@@ -174,7 +174,8 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'textAttr', '123456', '123456');
     });
 
-    it('is deserialized as a string when DataType is not specified', async () => {
+    // For raw queries, Oracle expects hex string during insertion
+    (dialect.name === 'oracle' ? it.skip : it)('is deserialized as a string when DataType is not specified', async () => {
       await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
     });
   });
@@ -276,67 +277,69 @@ describe('DataTypes', () => {
     });
   });
 
-  describe('CHAR(<length>).BINARY', () => {
-    if (!dialect.supports.dataTypes.CHAR) {
-      it('throws, because this dialect does not support CHAR', async () => {
-        expect(() => {
-          sequelize.define('CrashedModel', {
-            attr: DataTypes.CHAR(5),
-          });
-        }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
+  if (dialect.name !== 'oracle') {
+    describe('CHAR(<length>).BINARY', () => {
+      if (!dialect.supports.dataTypes.CHAR) {
+        it('throws, because this dialect does not support CHAR', async () => {
+          expect(() => {
+            sequelize.define('CrashedModel', {
+              attr: DataTypes.CHAR(5),
+            });
+          }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
+        });
+
+        return;
+      }
+
+      if (!dialect.supports.dataTypes.COLLATE_BINARY) {
+        it('throws if CHAR.BINARY is used', () => {
+          expect(() => {
+            sequelize.define('CrashedModel', {
+              attr: DataTypes.CHAR(5).BINARY,
+            });
+          }).to.throwWithCause(`${dialect.name} does not support the CHAR.BINARY data type.`);
+        });
+
+        return;
+      }
+
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
+        }
+
+        User.init({
+          binaryCharAttr: {
+            type: DataTypes.CHAR(5).BINARY,
+            allowNull: false,
+          },
+        }, { sequelize });
+
+        await User.sync({ force: true });
+
+        return { User };
       });
 
-      return;
-    }
-
-    if (!dialect.supports.dataTypes.COLLATE_BINARY) {
-      it('throws if CHAR.BINARY is used', () => {
-        expect(() => {
-          sequelize.define('CrashedModel', {
-            attr: DataTypes.CHAR(5).BINARY,
-          });
-        }).to.throwWithCause(`${dialect.name} does not support the CHAR.BINARY data type.`);
+      it('is serialized/deserialized as strings', async () => {
+        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+        if (dialect.name === 'db2') {
+          await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234 ');
+        } else {
+          await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
+        }
       });
 
-      return;
-    }
-
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
-      }
-
-      User.init({
-        binaryCharAttr: {
-          type: DataTypes.CHAR(5).BINARY,
-          allowNull: false,
-        },
-      }, { sequelize });
-
-      await User.sync({ force: true });
-
-      return { User };
+      it('is deserialized as a string when DataType is not specified', async () => {
+        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+        // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
+        if (dialect.name === 'db2') {
+          await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234 ');
+        } else {
+          await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
+        }
+      });
     });
-
-    it('is serialized/deserialized as strings', async () => {
-      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-      if (dialect.name === 'db2') {
-        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234 ');
-      } else {
-        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
-      }
-    });
-
-    it('is deserialized as a string when DataType is not specified', async () => {
-      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-      // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
-      if (dialect.name === 'db2') {
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234 ');
-      } else {
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
-      }
-    });
-  });
+  }
 
   describe('CITEXT', () => {
     if (!dialect.supports.dataTypes.CITEXT) {
@@ -484,6 +487,12 @@ describe('DataTypes', () => {
       it('is deserialized as a number when DataType is not specified', async () => {
         await testSimpleInOutRaw(vars.User, 'booleanAttr', true, 1);
         await testSimpleInOutRaw(vars.User, 'booleanAttr', false, 0);
+      });
+    } else if (dialect.name === 'oracle') {
+      // Oracle uses CHAR(1). 
+      it('is deserialized as a char string when DataType is not specified', async () => {
+        await testSimpleInOutRaw(vars.User, 'booleanAttr', true, '1');
+        await testSimpleInOutRaw(vars.User, 'booleanAttr', false, '0');
       });
     } else {
       it('is deserialized as a boolean when DataType is not specified', async () => {
@@ -1406,8 +1415,9 @@ describe('DataTypes', () => {
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
+      // Oracle JSON is BLOB column with check `IS JSON`.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
-      if (dialect.name !== 'mariadb') {
+      if (dialect.name !== 'mariadb' && dialect.name !== 'oracle') {
         if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
