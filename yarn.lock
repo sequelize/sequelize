@@ -1875,15 +1875,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nrwl/tao@npm:17.2.1"
+"@nrwl/tao@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nrwl/tao@npm:17.2.2"
   dependencies:
-    nx: "npm:17.2.1"
+    nx: "npm:17.2.2"
     tslib: "npm:^2.3.0"
   bin:
     tao: index.js
-  checksum: 6e9eb4f16867cc111d4df2564d9cb7d523053dffbbccb235a4a0c36cbf94c94d9461252076a41c9cf3cc91187469a28380a2a0ff7ac3e9a7356a1a393d1f4610
+  checksum: f42bd962e9560f4c5076fba9c2f8bb2a797fbc83d794a865d40eebbc6fe628d8da0eced00963173324c7a84807118e09f6ce36a50c015e3ec08793e44f3dc9ea
   languageName: node
   linkType: hard
 
@@ -1904,72 +1904,72 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-darwin-arm64@npm:17.2.1"
+"@nx/nx-darwin-arm64@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-darwin-arm64@npm:17.2.2"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-darwin-x64@npm:17.2.1"
+"@nx/nx-darwin-x64@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-darwin-x64@npm:17.2.2"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-freebsd-x64@npm:17.2.1"
+"@nx/nx-freebsd-x64@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-freebsd-x64@npm:17.2.2"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:17.2.1"
+"@nx/nx-linux-arm-gnueabihf@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:17.2.2"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-linux-arm64-gnu@npm:17.2.1"
+"@nx/nx-linux-arm64-gnu@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-linux-arm64-gnu@npm:17.2.2"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-linux-arm64-musl@npm:17.2.1"
+"@nx/nx-linux-arm64-musl@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-linux-arm64-musl@npm:17.2.2"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-linux-x64-gnu@npm:17.2.1"
+"@nx/nx-linux-x64-gnu@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-linux-x64-gnu@npm:17.2.2"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-linux-x64-musl@npm:17.2.1"
+"@nx/nx-linux-x64-musl@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-linux-x64-musl@npm:17.2.2"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-win32-arm64-msvc@npm:17.2.1"
+"@nx/nx-win32-arm64-msvc@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-win32-arm64-msvc@npm:17.2.2"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:17.2.1":
-  version: 17.2.1
-  resolution: "@nx/nx-win32-x64-msvc@npm:17.2.1"
+"@nx/nx-win32-x64-msvc@npm:17.2.2":
+  version: 17.2.2
+  resolution: "@nx/nx-win32-x64-msvc@npm:17.2.2"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2250,7 +2250,7 @@ __metadata:
     mocha: "npm:10.2.0"
     node-gyp: "npm:10.0.1"
     node-hook: "npm:1.0.0"
-    nx: "npm:17.2.1"
+    nx: "npm:17.2.2"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.4"
@@ -10059,21 +10059,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:17.2.1, nx@npm:>=17.1.2 < 18":
-  version: 17.2.1
-  resolution: "nx@npm:17.2.1"
+"nx@npm:17.2.2, nx@npm:>=17.1.2 < 18":
+  version: 17.2.2
+  resolution: "nx@npm:17.2.2"
   dependencies:
-    "@nrwl/tao": "npm:17.2.1"
-    "@nx/nx-darwin-arm64": "npm:17.2.1"
-    "@nx/nx-darwin-x64": "npm:17.2.1"
-    "@nx/nx-freebsd-x64": "npm:17.2.1"
-    "@nx/nx-linux-arm-gnueabihf": "npm:17.2.1"
-    "@nx/nx-linux-arm64-gnu": "npm:17.2.1"
-    "@nx/nx-linux-arm64-musl": "npm:17.2.1"
-    "@nx/nx-linux-x64-gnu": "npm:17.2.1"
-    "@nx/nx-linux-x64-musl": "npm:17.2.1"
-    "@nx/nx-win32-arm64-msvc": "npm:17.2.1"
-    "@nx/nx-win32-x64-msvc": "npm:17.2.1"
+    "@nrwl/tao": "npm:17.2.2"
+    "@nx/nx-darwin-arm64": "npm:17.2.2"
+    "@nx/nx-darwin-x64": "npm:17.2.2"
+    "@nx/nx-freebsd-x64": "npm:17.2.2"
+    "@nx/nx-linux-arm-gnueabihf": "npm:17.2.2"
+    "@nx/nx-linux-arm64-gnu": "npm:17.2.2"
+    "@nx/nx-linux-arm64-musl": "npm:17.2.2"
+    "@nx/nx-linux-x64-gnu": "npm:17.2.2"
+    "@nx/nx-linux-x64-musl": "npm:17.2.2"
+    "@nx/nx-win32-arm64-msvc": "npm:17.2.2"
+    "@nx/nx-win32-x64-msvc": "npm:17.2.2"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.0-rc.46"
     "@zkochan/js-yaml": "npm:0.0.6"
@@ -10139,7 +10139,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: aebc2ca7ad84a7c50fc09fd492f103915eccbf9cd887309d67a01ad38e62bee510e6ec104d17626c872d4114168690ff0ee7253d3cf800e27c78d0c5afc135a6
+  checksum: a0b1274da1d4fe859f7a67ea0379047cbe45b758fc1f8ffc7338ea36d670b4ccd21407440fd3e97b0aac34b7b37b4e9b43e40734ab1e9a2c6a33ac47e89685dd
   languageName: node
   linkType: hard
 
