@@ -38,7 +38,39 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
     return 0;
   }
 
-  abstract apply(dialect: AbstractDialect, options?: EscapeOptions): string;
+  abstract supportsDialect(dialect: AbstractDialect): boolean;
+
+  abstract applyForDialect(dialect: AbstractDialect, options?: EscapeOptions): string;
+
+  supportsJavaScript(): boolean {
+    return false;
+  }
+
+  applyForJavaScript(): unknown {
+    throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
+  }
+
+  /**
+   * This getter is designed to be used as an attribute's default value.
+   * This is useful when the SQL version must be bypassed due to a limitation of the dialect that Sequelize cannot detect,
+   * such as a missing extension.
+   *
+   * ```ts
+   * const User = sequelize.define('User', {
+   *   uuid: {
+   *     type: DataTypes.UUID,
+   *     defaultValue: sql.uuidV4.asJavaScript,
+   *   },
+   * });
+   * ```
+   */
+  get asJavaScript(): () => unknown {
+    if (!this.supportsJavaScript()) {
+      throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
+    }
+
+    return () => this.applyForJavaScript();
+  }
 
   static build<M extends DialectAwareFn>(this: Class<M>, ...args: DialectAwareFn['args']): M {
     return new this(...args);
@@ -57,7 +89,11 @@ export class Unquote extends DialectAwareFn {
     return 1;
   }
 
-  apply(dialect: AbstractDialect, options?: EscapeOptions): string {
+  supportsDialect(dialect: AbstractDialect): boolean {
+    return dialect.supports.jsonOperations;
+  }
+
+  applyForDialect(dialect: AbstractDialect, options?: EscapeOptions): string {
     const arg = this.args[0];
 
     if (arg instanceof JsonPath) {
@@ -71,19 +107,3 @@ export class Unquote extends DialectAwareFn {
     return dialect.queryGenerator.formatUnquoteJson(arg, options);
   }
 }
-
-class JsonNullClass extends DialectAwareFn {
-  get maxArgCount() {
-    return 0;
-  }
-
-  get minArgCount() {
-    return 0;
-  }
-
-  apply(dialect: AbstractDialect): string {
-    return dialect.escapeJson(null);
-  }
-}
-
-export const JSON_NULL = JsonNullClass.build();

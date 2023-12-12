@@ -231,6 +231,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
   }
 
+  getUuidV1FunctionCall(): string {
+    return 'uuid_generate_v1()';
+  }
+
+  getUuidV4FunctionCall(): string {
+    return 'uuid_generate_v4()';
+  }
+
   versionQuery() {
     return 'SHOW SERVER_VERSION';
   }

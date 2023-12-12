@@ -6,7 +6,8 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { Cast } from '../../expression-builders/cast.js';
 import { Col } from '../../expression-builders/col.js';
 import { JsonPath } from '../../expression-builders/json-path.js';
-import { Literal, SQL_NULL } from '../../expression-builders/literal.js';
+import { SQL_NULL } from '../../expression-builders/json-sql-null.js';
+import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import type { Expression, ModelStatic, WhereOptions } from '../../index.js';

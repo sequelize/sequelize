@@ -3,9 +3,18 @@ import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import { v1 as uuidv1 } from 'uuid';
 import * as DataTypes from '../dialects/abstract/data-types.js';
+import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { isString } from './check.js';
 
 export function toDefaultValue(value: unknown): unknown {
+  if (value instanceof DialectAwareFn) {
+    if (value.supportsJavaScript()) {
+      return value.applyForJavaScript();
+    }
+
+    return undefined;
+  }
+
   if (typeof value === 'function') {
     const tmp = value();
     if (tmp instanceof DataTypes.AbstractDataType) {

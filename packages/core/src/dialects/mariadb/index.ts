@@ -57,6 +57,7 @@ export class MariaDbDialect extends AbstractDialect {
         unquoted: true,
         quoted: true,
       },
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
       removeColumn: {
         ifExists: true,

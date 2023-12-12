@@ -12,7 +12,7 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { DataTypes, Model, QueryTypes, ValidationError, fn, sql } from '@sequelize/core';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
@@ -1226,6 +1226,84 @@ describe('DataTypes', () => {
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'attr', uuidV4, uuidV4);
+    });
+  });
+
+  describe('UUID default values', () => {
+    it('supports sql.uuidV1', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV1,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV1.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV1.asJavaScript,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV4,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV4.asJavaScript,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
     });
   });
 

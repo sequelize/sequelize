@@ -827,7 +827,11 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     // so we need to remove the type from their escape options
     const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
 
-    return piece.apply(this.dialect, argEscapeOptions);
+    if (!piece.supportsDialect(this.dialect)) {
+      throw new Error(`Function ${piece.constructor.name} is not supported by ${this.dialect.name}.`);
+    }
+
+    return piece.applyForDialect(this.dialect, argEscapeOptions);
   }
 
   protected formatCast(cast: Cast, options?: EscapeOptions) {
@@ -945,6 +949,22 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   escapeList(values: unknown[], options?: EscapeOptions): string {
     return `(${values.map(value => this.escape(value, options)).join(', ')})`;
+  }
+
+  getUuidV1FunctionCall(): string {
+    if (!this.dialect.supports.uuidV1Generation) {
+      throw new Error(`UUID V1 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV1FunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
+  getUuidV4FunctionCall(): string {
+    if (!this.dialect.supports.uuidV4Generation) {
+      throw new Error(`UUID V4 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV4FunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
