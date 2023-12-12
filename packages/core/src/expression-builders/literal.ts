@@ -26,3 +26,4 @@ export function literal(val: string | Array<string | BaseSqlExpression>): Litera
   return new Literal(val);
 }
 
+export const SQL_NULL = literal('NULL');

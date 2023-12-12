@@ -22,6 +22,8 @@ export const Value = Pkg.Value;
 export const sql = Pkg.sql;
 export const and = Pkg.and;
 export const or = Pkg.or;
+export const SQL_NULL = Pkg.SQL_NULL;
+export const JSON_NULL = Pkg.JSON_NULL;
 
 // export * from './lib/query-interface';
 export const AbstractQueryInterface = Pkg.AbstractQueryInterface;

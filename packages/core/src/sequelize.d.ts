@@ -338,11 +338,31 @@ export interface Options extends Logging {
   models?: ModelStatic[];
 
   /**
-   * A flag that defines if native library shall be used or not. Currently only has an effect for postgres
+   * A flag that defines if the native library shall be used or not.
+   * Currently only has an effect for postgres
    *
    * @default false
    */
   native?: boolean;
+
+  /**
+   * When representing the JavaScript null primitive in a JSON column, Sequelize can
+   * use either the SQL NULL value, or a JSON 'null'.
+   *
+   * Set this to "json" if you want the null to be stored as a JSON 'null'.
+   * Set this to "sql" if you want the null to be stored as the SQL NULL value.
+   * Set this to "explicit" if you don't want Sequelize to make any assumptions.
+   * This means that you won't be able to use the JavaScript null primitive as the top level value of a JSON column,
+   * you will have to use {@link SQL_NULL} or {@link JSON_NULL} instead.
+   *
+   * This only impacts serialization when inserting or updating values.
+   * Comparing always requires to be explicit.
+   *
+   * Read more: https://sequelize.org/docs/v7/querying/json/
+   *
+   * @default json
+   */
+  nullJsonStringification?: 'explicit' | 'json' | 'sql';
 
   /**
    * Use read / write replication. To enable replication, pass an object, with two properties, read and write.
