@@ -218,10 +218,6 @@ export class BLOB extends BaseTypes.BLOB {
 }
 
 export class JSON extends BaseTypes.JSON {
-  toBindableValue(value: any): string {
-    return globalThis.JSON.stringify(value);
-  }
-
   parseDatabaseValue(value: unknown): unknown {
     // sqlite3 being sqlite3, JSON numbers are returned as JS numbers, but everything else is returned as a JSON string
     if (typeof value === 'number') {

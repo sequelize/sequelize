@@ -4,6 +4,7 @@ import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
+import { JSON_NULL } from './expression-builders/dialect-aware-fn.js';
 import { Identifier } from './expression-builders/identifier';
 import { JsonPath } from './expression-builders/json-path';
 import { Value } from './expression-builders/value';
@@ -13,7 +14,7 @@ import { Cast, cast } from './expression-builders/cast.js';
 import { Col, col } from './expression-builders/col.js';
 import { Fn, fn } from './expression-builders/fn.js';
 import { json } from './expression-builders/json.js';
-import { Literal, literal } from './expression-builders/literal.js';
+import { Literal, SQL_NULL, literal } from './expression-builders/literal.js';
 import { Where, where } from './expression-builders/where.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
@@ -275,6 +276,7 @@ export class Sequelize extends SequelizeTypeScript {
       disableClsTransactions: false,
       defaultTransactionNestMode: TransactionNestMode.reuse,
       defaultTimestampPrecision: 6,
+      nullJsonStringification: 'json',
       ...options,
       pool: defaults(options.pool || {}, {
         max: 5,
@@ -1196,6 +1198,9 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
  * @param {object} _inflection - `inflection` module
  */
 Sequelize.useInflection = useInflection;
+
+Sequelize.SQL_NULL = SQL_NULL;
+Sequelize.JSON_NULL = JSON_NULL;
 
 /**
  * Expose various errors available

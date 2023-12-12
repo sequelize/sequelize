@@ -1618,10 +1618,21 @@ export class JSON extends AbstractDataType<any> {
    * We stringify null too.
    */
   acceptsNull(): boolean {
-    return true;
+    const sequelize = this._getDialect().sequelize;
+
+    return sequelize.options.nullJsonStringification !== 'sql';
   }
 
   toBindableValue(value: any): string {
+    if (value === null) {
+      const sequelize = this._getDialect().sequelize;
+
+      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
+      if (isExplicit) {
+        throw new Error(`Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`);
+      }
+    }
+
     return globalThis.JSON.stringify(value);
   }
 
