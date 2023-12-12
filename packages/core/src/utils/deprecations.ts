@@ -23,3 +23,5 @@ export const noNewModel = deprecate(noop, `Do not use "new YourModel()" to insta
 export const noOpCol = deprecate(noop, 'Do not use Op.col, use col(), attribute(), or identifier() instead. Read more about these in the Raw Queries guide in the sequelize docs.', 'SEQUELIZE0021');
 export const noSqlJson = deprecate(noop, 'The json() function used to generate JSON queries is deprecated. All of its features are available through where(), attribute() or jsonPath(). Some of its features have been removed but can be replicated using the "sql" tag. See our Sequelize 7 upgrade guide.', 'SEQUELIZE0022');
 export const alwaysQuoteIdentifiers = deprecate(noop, 'Setting "quoteIdentifiers" to false is unsafe and it will be removed in v8.', 'SEQUELIZE0023');
+export const showAllToListSchemas = deprecate(noop, 'Do not use "showAllSchemas". Use QueryInterface#listSchemas instead.', 'SEQUELIZE0024');
+export const showAllToListTables = deprecate(noop, 'Do not use "showAllTables". Use QueryInterface#listTables instead.', 'SEQUELIZE0025');

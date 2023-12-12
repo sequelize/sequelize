@@ -10,10 +10,12 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
@@ -100,7 +102,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `c.IS_NULLABLE as 'IsNull',`,
       `COLUMN_DEFAULT AS 'Default',`,
       `pk.CONSTRAINT_TYPE AS 'Constraint',`,
-      `COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',`,
+      `COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',`,
       `CAST(prop.value AS NVARCHAR) AS 'Comment'`,
       'FROM',
       'INFORMATION_SCHEMA.TABLES t',
@@ -117,7 +119,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       'INNER JOIN sys.columns AS sc',
-      `ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name`,
+      `ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name`,
       'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id',
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
@@ -135,6 +137,29 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      if (!options?.changeSchema) {
+        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      }
+
+      if (beforeTable.tableName !== afterTable.tableName) {
+        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+      }
+
+      return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema!)} TRANSFER ${this.quoteTable(beforeTableName)}`;
+    }
+
+    return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {
@@ -158,43 +183,41 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT DB_NAME() AS constraintCatalog,',
-      's.[name] AS constraintSchema,',
-      'c.constraintName,',
-      `REPLACE(LEFT(c.constraintType, CHARINDEX('_CONSTRAINT', c.constraintType) - 1), '_', ' ') AS constraintType,`,
-      'DB_NAME() AS tableCatalog,',
-      's.[name] AS tableSchema,',
-      't.[name] AS tableName,',
-      'c.columnNames,',
-      'c.referencedTableSchema,',
-      'c.referencedTableName,',
-      'c.referencedColumnNames,',
-      'c.deleteAction,',
-      'c.updateAction,',
-      'c.definition',
-      'FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
-      'INNER JOIN (',
-      'SELECT kc.[name] AS constraintName, kc.[type_desc] AS constraintType, kc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS definition',
-      'FROM sys.key_constraints kc LEFT JOIN sys.indexes i ON kc.name = i.name',
-      'LEFT JOIN sys.index_columns ic ON ic.index_id = i.index_id AND ic.object_id = kc.parent_object_id',
-      'LEFT JOIN sys.columns c ON c.column_id = ic.column_id AND c.object_id = kc.parent_object_id UNION ALL',
-      'SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null as referencedTableSchema, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.check_constraints c UNION ALL',
-      'SELECT dc.[name] AS constraintName, dc.[type_desc] AS constraintType, dc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema, null AS referencedTableName',
-      ', null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition] FROM sys.default_constraints dc',
-      'INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id UNION ALL',
-      'SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames, OBJECT_SCHEMA_NAME(k.[referenced_object_id]) as referencedTableSchema',
-      ', OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction',
-      ', k.[update_referential_action_desc] AS updateAction, null AS definition FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id',
-      'INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id',
-      'INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id',
-      ') c ON t.object_id = c.constraintTableId',
+      `SELECT DB_NAME() AS constraintCatalog`,
+      `, s.[name] AS constraintSchema`,
+      `, c.constraintName`,
+      `, REPLACE(LEFT(c.constraintType, CHARINDEX('_CONSTRAINT', c.constraintType) - 1), '_', ' ') AS constraintType`,
+      `, DB_NAME() AS tableCatalog`,
+      `, s.[name] AS tableSchema`,
+      `, t.[name] AS tableName`,
+      `, c.columnNames`,
+      `, c.referencedTableSchema`,
+      `, c.referencedTableName`,
+      `, c.referencedColumnNames`,
+      `, c.deleteAction`,
+      `, c.updateAction`,
+      `, c.definition`,
+      `FROM sys.tables t`,
+      `INNER JOIN sys.schemas s ON t.schema_id = s.schema_id`,
+      `INNER JOIN (`,
+      `SELECT kc.[name] AS constraintName, kc.[type_desc] AS constraintType, kc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema`,
+      `, null AS referencedTableName, null AS referencedColumnNames, null AS deleteAction, null AS updateAction, null AS [definition], null AS column_id FROM sys.key_constraints kc`,
+      `LEFT JOIN sys.indexes i ON kc.name = i.name LEFT JOIN sys.index_columns ic ON ic.index_id = i.index_id AND ic.object_id = kc.parent_object_id LEFT JOIN sys.columns c ON c.column_id = ic.column_id AND c.object_id = kc.parent_object_id`,
+      `UNION ALL SELECT [name] AS constraintName, [type_desc] AS constraintType, [parent_object_id] AS constraintTableId, null AS columnNames, null as referencedTableSchema, null AS referencedTableName`,
+      `, null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition], null AS column_id FROM sys.check_constraints c UNION ALL`,
+      `SELECT dc.[name] AS constraintName, dc.[type_desc] AS constraintType, dc.[parent_object_id] AS constraintTableId, c.[name] AS columnNames, null as referencedTableSchema`,
+      `, null AS referencedTableName, null AS referencedColumnNames, null AS deleteAction, null AS updateAction, [definition], null AS column_id FROM sys.default_constraints dc`,
+      `INNER JOIN sys.columns c ON dc.parent_column_id = c.column_id AND dc.parent_object_id = c.object_id UNION ALL`,
+      `SELECT k.[name] AS constraintName, k.[type_desc] AS constraintType, k.[parent_object_id] AS constraintTableId, fcol.[name] AS columnNames, OBJECT_SCHEMA_NAME(k.[referenced_object_id]) as referencedTableSchema`,
+      `, OBJECT_NAME(k.[referenced_object_id]) AS referencedTableName, rcol.[name] AS referencedColumnNames, k.[delete_referential_action_desc] AS deleteAction, k.[update_referential_action_desc] AS updateAction`,
+      `, null AS [definition], rcol.column_id FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id`,
+      `INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id`,
+      `) c ON t.object_id = c.constraintTableId`,
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
       options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
-      'ORDER BY c.constraintName',
+      `ORDER BY c.constraintName, c.column_id`,
     ]);
   }
 
@@ -268,5 +291,22 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `DECLARE @ms_ver NVARCHAR(20);
 SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
 SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset || options.limit) {
+      fragment += ` OFFSET ${this.escape(options.offset || 0, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      if (options.limit === 0) {
+        throw new Error(`LIMIT 0 is not supported by ${this.dialect.name} dialect.`);
+      }
+
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

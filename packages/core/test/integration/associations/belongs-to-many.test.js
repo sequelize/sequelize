@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.status).not.to.exist;
         expect(project.UserProject.status).to.equal('active');
         await this.sequelize.dropSchema('acme');
-        const schemas = await this.sequelize.showAllSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
         if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
           expect(schemas).to.not.have.property('acme');
         }
@@ -3105,7 +3105,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user' });
 
       await this.sequelize.sync({ force: true });
-      const result = await this.sequelize.queryInterface.showAllTables();
+      const result = await this.sequelize.queryInterface.listTables();
       const tableNames = result.map(v => v.tableName);
 
       expect(tableNames.includes('group_user')).to.be.true;
@@ -3120,7 +3120,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup });
 
       await this.sequelize.sync({ force: true });
-      const result = await this.sequelize.queryInterface.showAllTables();
+      const result = await this.sequelize.queryInterface.listTables();
       const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.include('user_groups');

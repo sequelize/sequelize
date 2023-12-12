@@ -48,12 +48,12 @@ export const extensions = {
   min(str, val) {
     const number = Number.parseFloat(str);
 
-    return isNaN(number) || number >= val;
+    return Number.isNaN(number) || number >= val;
   },
   max(str, val) {
     const number = Number.parseFloat(str);
 
-    return isNaN(number) || number <= val;
+    return Number.isNaN(number) || number <= val;
   },
   not(str, pattern, modifiers) {
     return this.notRegex(str, pattern, modifiers);

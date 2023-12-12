@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed tableName', async function () {
       const Photo = this.sequelize.define('Foto', { name: DataTypes.STRING }, { tableName: 'photos' });
       await Photo.sync({ force: true });
-      const result = await this.sequelize.queryInterface.showAllTables();
+      const result = await this.sequelize.queryInterface.listTables();
       const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.include('photos');

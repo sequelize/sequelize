@@ -167,8 +167,6 @@ export class SqliteQuery extends AbstractQuery {
         return;
       }
 
-      const query = this;
-
       if (!parameters) {
         parameters = [];
       }
@@ -200,7 +198,7 @@ export class SqliteQuery extends AbstractQuery {
 
       complete();
 
-      return query._handleQueryResponse(response.statement, response.results);
+      return this._handleQueryResponse(response.statement, response.results);
     };
 
     if (method === 'all') {
@@ -243,6 +241,7 @@ export class SqliteQuery extends AbstractQuery {
           }
 
           // node-sqlite3 passes the statement object as `this` to the callback
+          // eslint-disable-next-line no-invalid-this
           resolve({ statement: this, results });
         });
       });
@@ -260,6 +259,7 @@ export class SqliteQuery extends AbstractQuery {
           }
 
           // node-sqlite3 passes the statement object as `this` to the callback
+          // eslint-disable-next-line no-invalid-this
           resolve({ statement: this, results });
         });
       });

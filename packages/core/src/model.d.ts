@@ -866,7 +866,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: number | Literal;
+  offset?: Nullish<number | Literal>;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.

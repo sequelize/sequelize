@@ -9,11 +9,12 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
-import type { ColumnsDescription } from '../abstract/query-interface.types';
+import type { SqliteColumnsDescription } from './query-interface.types';
 
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -67,6 +68,15 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
   }
 
+  renameColumnQuery(
+    _tableName: TableNameOrModel,
+    _attrNameBefore: string,
+    _attrNameAfter: string,
+    _attributes: SqliteColumnsDescription,
+  ): string {
+    throw new Error(`renameColumnQuery is not supported in ${this.dialect.name}.`);
+  }
+
   removeColumnQuery(_table: TableNameOrModel, _columnName: string, _options?: RemoveColumnQueryOptions): string {
     throw new Error(`removeColumnQuery is not supported in ${this.dialect.name}.`);
   }
@@ -101,7 +111,36 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  _replaceTableQuery(tableName: TableNameOrModel, attributes: ColumnsDescription, createTableSql?: string) {
+  // SQLite does not support renaming columns. The following is a workaround.
+  _replaceColumnQuery(
+    tableName: TableNameOrModel,
+    attrNameBefore: string,
+    attrNameAfter: string,
+    attributes: SqliteColumnsDescription,
+  ) {
+    const table = this.extractTableDetails(tableName);
+    const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
+    const quotedTableName = this.quoteTable(table);
+    const quotedBackupTableName = this.quoteTable(backupTable);
+
+    const tableAttributes = this.attributesToSQL(attributes);
+    const attributeNamesImport = Object.keys(tableAttributes).map(attr => (attrNameAfter === attr ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}` : this.quoteIdentifier(attr))).join(', ');
+    const attributeNamesExport = Object.keys(tableAttributes).map(attr => this.quoteIdentifier(attr)).join(', ');
+
+    return [
+      this.createTableQuery(backupTable, tableAttributes),
+      `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNamesImport} FROM ${quotedTableName};`,
+      `DROP TABLE ${quotedTableName};`,
+      this.createTableQuery(table, tableAttributes),
+      `INSERT INTO ${quotedTableName} SELECT ${attributeNamesExport} FROM ${quotedBackupTableName};`,
+      `DROP TABLE ${quotedBackupTableName};`,
+
+    ];
+  }
+
+  // SQLite has limited ALTER TABLE capapibilites which requires the below workaround involving recreating tables.
+  // This leads to issues with losing data or losing foreign key references.
+  _replaceTableQuery(tableName: TableNameOrModel, attributes: SqliteColumnsDescription, createTableSql?: string) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(`${table.tableName}_${randomBytes(8).toString('hex')}`, table);
     const quotedTableName = this.quoteTable(table);
@@ -114,12 +153,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
       : this.createTableQuery(backupTable, tableAttributes);
 
-    return joinSQLFragments([
+    return [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
-    ]);
+    ];
   }
 
   private escapeTable(tableName: TableNameOrModel): string {
@@ -139,5 +178,30 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   tableExistsQuery(tableName: TableNameOrModel): string {
 
     return `SELECT name FROM sqlite_master WHERE type = 'table' AND name = ${this.escapeTable(tableName)}`;
+  }
+
+  /**
+   * Generates an SQL query to check if there are any foreign key violations in the db schema
+   *
+   * @param tableName
+   */
+  foreignKeyCheckQuery(tableName: TableNameOrModel) {
+    return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT -1`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

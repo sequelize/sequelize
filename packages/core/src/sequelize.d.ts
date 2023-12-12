@@ -549,10 +549,6 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
 }
 
 export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
   type: T;
 }
 
@@ -575,10 +571,6 @@ export interface QueryOptions extends QueryRawOptions {
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
-  /**
-   * The type of query you are executing. The query type affects how results are formatted before they are
-   * passed back. The type is a string, but `Sequelize.QueryTypes` is provided as convenience shortcuts.
-   */
   type: T;
 }
 

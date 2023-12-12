@@ -2,16 +2,22 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -68,6 +74,31 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'renameTableQuery',
+        this.dialect.name,
+        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
+  }
+
   private _getConstraintType(type: ConstraintType): string {
     switch (type) {
       case 'CHECK':
@@ -109,7 +140,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND c.TYPE = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
-      'ORDER BY c.CONSTNAME, k.COLSEQ',
+      'ORDER BY c.CONSTNAME, k.COLSEQ, fk.COLSEQ',
     ]);
   }
 
@@ -166,5 +197,18 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
+    }
+
+    if (options.limit != null) {
+      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
+    }
+
+    return fragment;
   }
 }

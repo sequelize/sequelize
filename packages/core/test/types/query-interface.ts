@@ -80,7 +80,7 @@ async function test() {
     { schema: '<schema>', tableName: 'User' },
   );
 
-  const tableNames: TableNameWithSchema[] = await queryInterface.showAllTables();
+  const tableNames: TableNameWithSchema[] = await queryInterface.listTables();
 
   /*
   attributes will be something like:

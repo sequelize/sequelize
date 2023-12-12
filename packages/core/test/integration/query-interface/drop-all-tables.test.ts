@@ -38,7 +38,7 @@ describe('QueryInterface#dropAllTables', () => {
 
     it('should drop all tables', async () => {
       await queryInterface.dropAllTables();
-      const tables = await queryInterface.showAllTables();
+      const tables = await queryInterface.listTables();
       expect(tables).to.be.empty;
     });
   });
@@ -88,7 +88,7 @@ describe('QueryInterface#dropAllTables', () => {
 
       it('should drop a table', async () => {
         await queryInterface.dropAllTables();
-        const tables = await queryInterface.showAllTables();
+        const tables = await queryInterface.listTables();
         expect(tables).to.be.empty;
       });
     });
