@@ -6,7 +6,7 @@ import { testDataTypeSql } from './_utils';
 const { dialect, queryGenerator } = sequelize;
 
 describe('DataTypes.ARRAY', () => {
-  const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+  const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
     default: unsupportedError,
@@ -81,6 +81,11 @@ describe('DataTypes.ARRAY', () => {
   testDataTypeSql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
     default: unsupportedError,
     postgres: 'CITEXT[]',
+  });
+
+  testDataTypeSql('ARRAY(UUID)', DataTypes.ARRAY(DataTypes.UUID), {
+    default: unsupportedError,
+    postgres: 'UUID[]',
   });
 
   it('raises an error if no values are defined', () => {

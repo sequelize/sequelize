@@ -1678,7 +1678,7 @@ export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
-   * @see https://sequelize.org/docs/v7/other-topics/other-data-types/
+   * @see https://sequelize.org/docs/v7/models/data-types/
    */
   type: DataType;
 
