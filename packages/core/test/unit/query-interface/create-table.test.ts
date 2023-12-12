@@ -11,9 +11,15 @@ describe('QueryInterface#createTable', () => {
   });
 
   it('supports sql.uuidV4 default values', async () => {
-    const stub = sinon.stub(sequelize, 'queryRaw');
+    const localSequelize = dialect.name === 'postgres'
+      ? createSequelizeInstance({
+        databaseVersion: '13.0.0',
+      })
+      : sequelize;
 
-    await sequelize.queryInterface.createTable('table', {
+    const stub = sinon.stub(localSequelize, 'queryRaw');
+
+    await localSequelize.queryInterface.createTable('table', {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,
@@ -35,9 +41,11 @@ describe('QueryInterface#createTable', () => {
   });
 
   it('supports sql.uuidV1 default values', async () => {
-    const localSequelize = dialect.name === 'mysql' ? createSequelizeInstance({
-      databaseVersion: '8.0.13',
-    }) : sequelize;
+    const localSequelize = dialect.name === 'mysql'
+      ? createSequelizeInstance({
+        databaseVersion: '8.0.13',
+      })
+      : sequelize;
     const stub = sinon.stub(localSequelize, 'queryRaw');
 
     await localSequelize.queryInterface.createTable('table', {
