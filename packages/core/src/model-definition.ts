@@ -484,7 +484,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         const columnName = rawAttribute.columnName ?? rawAttribute.field ?? underscoredIf(attributeName, this.underscored);
 
         const builtAttribute = noPrototype<NormalizedAttributeOptions>({
-          ...omit(rawAttribute, ['index']),
+          ...omit(rawAttribute, ['unique', 'index']),
           type: this.#sequelize.normalizeDataType(rawAttribute.type),
           references: normalizeReference(rawAttribute.references),
 

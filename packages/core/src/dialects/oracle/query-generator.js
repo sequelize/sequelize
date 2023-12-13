@@ -187,8 +187,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
               const currUnique = options.uniqueKeys[keys[fieldIdx]];
 
               if (currUnique.fields.length === fields.length) {
+                let i;
                 // lengths are the same, possible same constraint
-                for (let i = 0; i < currUnique.fields.length; i++) {
+                for (i = 0; i < currUnique.fields.length; i++) {
                   const field = currUnique.fields[i];
 
                   if (_.includes(fields, field)) {
@@ -198,6 +199,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
                     canContinue = true;
                     break;
                   }
+                }
+                if (i === currUnique.fields.length) {
+                  break;
                 }
               }
             }
@@ -899,8 +903,18 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       template = '';
     }
 
-    if (attribute.unique === true && !attribute.primaryKey) {
-      template += ' UNIQUE';
+    // attribute (modelDefinition.physicalAttributes) doesn't contain unique. Thus, fetching
+    // from rawAttribute. For changeColumn context, if rawAttributes has unique, than
+    // unique constraint already exists on that column.
+    let modelDefinition, rawAttributes;
+    if (attribute.Model) {
+      modelDefinition = attribute.Model.modelDefinition;
+      rawAttributes = modelDefinition.rawAttributes;
+      let attrName = attribute.attributeName || options.attributeName;
+      if (rawAttributes[attrName].unique === true && !attribute.primaryKey &&
+          options.context !== 'changeColumn') {
+        template += ' UNIQUE';
+      }
     }
 
     if (attribute.primaryKey) {
