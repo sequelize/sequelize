@@ -948,6 +948,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           mssql: ['schema_test', 'special'],
           postgres: ['schema_test', 'special'],
           db2: ['schema_test', 'special '],
+          oracle: ['schema_test', 'special'],
         };
 
         expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
@@ -968,7 +969,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
-            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
               test++;
               expect(sql).to.not.contain('special');
             }
@@ -985,7 +986,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.contain('special');
-            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
               test++;
               expect(sql).to.contain('special');
             }
@@ -1024,7 +1025,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
-              case 'ibmi': {
+              case 'ibmi':
+              case 'oracle': {
                 expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
                 break;
@@ -1063,7 +1065,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
-              case 'ibmi': {
+              case 'ibmi':
+              case 'oracle': {
                 expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
                 expect(UserPublic).to.include('INSERT INTO "UserPublics"');
 
@@ -1102,7 +1105,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
-              case 'ibmi': {
+              case 'ibmi':
+              case 'oracle': {
                 expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
 
                 break;
@@ -1137,7 +1141,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             switch (dialectName) {
               case 'postgres':
               case 'db2':
-              case 'ibmi': {
+              case 'ibmi':
+              case 'oracle': {
                 expect(user).to.include('UPDATE "special"."UserSpecials"');
 
                 break;

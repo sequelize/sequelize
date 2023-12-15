@@ -461,21 +461,21 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
           ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
-          tableSchema: schema,
+          ...(dialect !== 'oracle') && { tableSchema: schema },
           tableName: 'actors',
           columnNames: ['level_id'],
           referencedTableSchema: schema,
           referencedTableName: 'levels',
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          updateAction: dialect === 'mariadb'
+          ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
             ? 'RESTRICT'
             : dialect === 'sqlite'
             ? ''
             // MySQL 8.0.0 changed the default to NO ACTION
             : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
             ? 'RESTRICT'
-            : 'NO ACTION',
+            : 'NO ACTION' },
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
 

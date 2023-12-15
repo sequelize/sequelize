@@ -359,8 +359,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
   }
 
-  listTablesQuery() {
-    return 'SELECT owner as "schema", table_name as "tableName", 0 as lvl FROM all_tables where OWNER IN(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\')';
+  listTablesQuery(options) {
+    let query = `SELECT owner as "schema", table_name as "tableName" FROM all_tables where OWNER IN`;
+    if(options && options.schema) {
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\' AND USERNAME=${this.escape(options.schema)})`;
+    } else {
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\')`;
+    }
+    return query;
   }
 
   dropTableQuery(tableName) {
@@ -904,7 +910,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     // attribute (modelDefinition.physicalAttributes) doesn't contain unique. Thus, fetching
-    // from rawAttribute. For changeColumn context, if rawAttributes has unique, than
+    // from rawAttribute. For changeColumn context, if rawAttributes has unique, then
     // unique constraint already exists on that column.
     let modelDefinition, rawAttributes;
     if (attribute.Model) {
