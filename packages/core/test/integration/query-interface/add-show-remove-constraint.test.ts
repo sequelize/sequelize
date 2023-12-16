@@ -491,7 +491,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
           ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
-          tableSchema: schema,
+          ...(dialect !== 'oracle') && { tableSchema: schema },
           tableName: 'levels',
           columnNames: ['id'],
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },

@@ -328,6 +328,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       return this.getForeignKeysQuery(tableName);
     }
     let table = this.extractTableDetails(tableName);
+    let schema = this.getCatalogName(table.schema);
     table = this.getCatalogName(table.tableName);
     return joinSQLFragments([
       'SELECT C.CONSTRAINT_NAME "constraintName",',
@@ -335,9 +336,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'C.TABLE_NAME "tableName",',
       'C.OWNER "constraintSchema",',
       'C.COLUMN_NAME "columnNames"',
-      'FROM USER_CONS_COLUMNS C',
+      'FROM ALL_CONS_COLUMNS C',
       'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
       `WHERE C.TABLE_NAME =${this.escape(table)}`,
+      `AND C.OWNER =${this.escape(schema)}`,
       options?.constraintName ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}` : '',
       options?.constraintType ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}` : '',
       'ORDER BY C.CONSTRAINT_NAME',
@@ -487,7 +489,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ';'
     ].join(' ');
     const secondQuery = joinSQLFragments([
-      `ALTER TABLE ${this.quoteIdentifier(tableName)}`,
+      `ALTER TABLE ${this.quoteTable(table)}`,
       'ADD FOREIGN KEY',
       `(${this.quoteIdentifier(attributeName)})`,
       definition.replace(/.+?(?=REFERENCES)/, '')
