@@ -64,6 +64,7 @@
     "type-fest": "^3.0.0",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",
+    "postgres-array":"^3.0.2",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
