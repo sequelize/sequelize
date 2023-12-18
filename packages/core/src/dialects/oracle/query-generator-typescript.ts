@@ -2,12 +2,13 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS, RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { AddLimitOffsetOptions, RemoveConstraintQueryOptions } from '../abstract/query-generator.types';
+import type { AddLimitOffsetOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
@@ -131,6 +132,31 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return fragment;
+  }
+
+  renameTableQuery(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'renameTableQuery',
+        this.dialect.name,
+        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+    let renamedTable  = afterTable.tableName;
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+    }
+    
+    return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(renamedTable)}`;
   }
 
   getAliasToken(): string {

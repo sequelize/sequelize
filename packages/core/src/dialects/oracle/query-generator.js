@@ -314,15 +314,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
   // TODO: MOVE IT TO QUERY-GENERATOR-TYPESCRIPT.TS ALONG WITH GETCATALOG()
 
-  renameTableQuery(before, after) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(before),
-      'RENAME TO',
-      this.quoteTable(after)
-    ]);
-  }
-
   showConstraintsQuery(tableName, options) {
     if (options.constraintType === 'FOREIGN KEY') {
       return this.getForeignKeysQuery(tableName);

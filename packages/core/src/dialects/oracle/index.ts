@@ -45,6 +45,9 @@ export class OracleDialect extends AbstractDialect {
       INTS: numericOptions,
       DOUBLE: numericOptions,
     },
+    renameTable: {
+      changeSchema: false,
+    },
     upserts: true,
     bulkDefault: true,
     topLevelOrderByRequired: true,
