@@ -953,7 +953,7 @@ export class Sequelize extends SequelizeTypeScript {
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   query<M extends Model>(sql: string | BaseSqlExpression, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
@@ -973,7 +973,7 @@ export class Sequelize extends SequelizeTypeScript {
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   queryRaw<M extends Model>(sql: string, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;
