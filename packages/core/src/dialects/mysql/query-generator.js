@@ -6,7 +6,6 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';

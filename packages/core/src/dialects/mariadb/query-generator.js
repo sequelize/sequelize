@@ -1,7 +1,6 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 

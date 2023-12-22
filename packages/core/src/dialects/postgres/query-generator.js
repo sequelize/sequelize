@@ -1,6 +1,5 @@
 'use strict';
 
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';

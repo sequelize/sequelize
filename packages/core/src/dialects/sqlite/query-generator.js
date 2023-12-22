@@ -1,7 +1,6 @@
 'use strict';
 
 import { removeNullishValuesFromHash } from '../../utils/format';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
