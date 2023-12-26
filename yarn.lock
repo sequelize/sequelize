@@ -2156,7 +2156,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     mariadb: "npm:3.2.3"
     mocha: "npm:10.2.0"
-    moment: "npm:2.29.4"
+    moment: "npm:2.30.0"
     mysql2: "npm:3.6.5"
     nyc: "npm:15.1.0"
     odbc: "npm:2.4.8"
@@ -9510,10 +9510,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"moment@npm:2.29.4, moment@npm:^2.29.4":
-  version: 2.29.4
-  resolution: "moment@npm:2.29.4"
-  checksum: 844c6f3ce42862ac9467c8ca4f5e48a00750078682cc5bda1bc0e50cc7ca88e2115a0f932d65a06e4a90e26cb78892be9b3ca3dd6546ca2c4d994cebb787fc2b
+"moment@npm:2.30.0, moment@npm:^2.29.4":
+  version: 2.30.0
+  resolution: "moment@npm:2.30.0"
+  checksum: bdfcbc99ebfe1f99761fb3591fdf51b027febbf75315054872c2957e0d590b3e5d0a0590c26203344113ce561fa48929e0f014556c255958dfeae11d19ee08c2
   languageName: node
   linkType: hard
 
