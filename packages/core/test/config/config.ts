@@ -96,5 +96,6 @@ export const Config: Record<Dialect, Options> = {
     dialectOptions: {
       odbcConnectionString: env.SEQ_IBMI_CONN_STR,
     },
+    databaseVersion: '7.3.0',
   },
 };
