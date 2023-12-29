@@ -335,7 +335,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
     if (query.query.at(-1) === ';') {
       query.query = query.query.slice(0, -1);
-      query.query = `SELECT * FROM FINAL TABLE (${query.query})`;
     }
 
     return query;
@@ -356,7 +355,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
     if (query.at(-1) === ';') {
       query = query.slice(0, -1);
-      query = `SELECT * FROM FINAL TABLE (${query})`;
     }
 
     return query;
