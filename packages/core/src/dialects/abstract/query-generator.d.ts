@@ -10,6 +10,7 @@ import type {
   NormalizedAttributeOptions,
   SearchPathable,
 } from '../../model.js';
+import type { Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -51,7 +52,7 @@ type UpdateOptions = ParameterOptions & {
 };
 
 type DeleteOptions = ParameterOptions & {
-  limit?: number | Literal | null | undefined,
+  limit?: Nullish<number | Literal>,
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {
@@ -147,7 +148,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;

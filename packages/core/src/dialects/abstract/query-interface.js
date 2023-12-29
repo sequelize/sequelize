@@ -8,7 +8,6 @@ import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 import defaults from 'lodash/defaults';
 import find from 'lodash/find';
-import identity from 'lodash/identity';
 import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
@@ -131,22 +130,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     });
 
     const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Rename a table
-   *
-   * @param {string} before    Current name of table
-   * @param {string} after     New name from table
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async renameTable(before, after, options) {
-    options = options || {};
-    const sql = this.queryGenerator.renameTableQuery(before, after);
 
     return await this.sequelize.queryRaw(sql, options);
   }

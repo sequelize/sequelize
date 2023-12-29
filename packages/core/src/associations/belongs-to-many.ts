@@ -41,9 +41,9 @@ import type {
   MultiAssociationOptions,
   NormalizedAssociationOptions,
 } from './base';
-import type { BelongsTo } from './belongs-to';
-import { HasMany } from './has-many';
-import { HasOne } from './has-one';
+import type { BelongsToAssociation } from './belongs-to.js';
+import { HasManyAssociation } from './has-many.js';
+import { HasOneAssociation } from './has-one.js';
 import {
   AssociationSecret,
   defineAssociation,
@@ -107,7 +107,8 @@ function addInclude(findOptions: FindOptions, include: Includeable) {
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
  */
-export class BelongsToMany<
+// Note: this class is named BelongsToManyAssociation instead of BelongsToMany to prevent naming conflicts with the BelongsToMany decorator
+export class BelongsToManyAssociation<
   SourceModel extends Model = Model,
   TargetModel extends Model = Model,
   ThroughModel extends Model = Model,
@@ -136,21 +137,21 @@ export class BelongsToMany<
   }
 
   /**
-   * @deprecated use {@link BelongsToMany#foreignKey}
+   * @deprecated use {@link BelongsToManyAssociation#foreignKey}
    */
   get identifier() {
     return this.foreignKey;
   }
 
   /**
-   * The corresponding column name of {@link BelongsToMany#foreignKey}
+   * The corresponding column name of {@link BelongsToManyAssociation#foreignKey}
    */
   get identifierField(): string {
     return this.fromThroughToSource.identifierField;
   }
 
   /**
-   * The corresponding column name of {@link BelongsToMany#otherKey}
+   * The corresponding column name of {@link BelongsToManyAssociation#otherKey}
    */
   get foreignIdentifierField() {
     return this.pairedWith.identifierField;
@@ -187,25 +188,25 @@ export class BelongsToMany<
   /**
    * The corresponding association this entity is paired with.
    */
-  pairedWith: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
+  pairedWith: BelongsToManyAssociation<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
 
   // intermediary associations
   // these create the actual associations on the model. Remove them would be a breaking change.
-  readonly fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>;
-  readonly fromSourceToThroughOne: HasOne<SourceModel, ThroughModel, SourceKey, any>;
-  get fromThroughToSource(): BelongsTo<ThroughModel, SourceModel, any, SourceKey> {
+  readonly fromSourceToThrough: HasManyAssociation<SourceModel, ThroughModel, SourceKey, any>;
+  readonly fromSourceToThroughOne: HasOneAssociation<SourceModel, ThroughModel, SourceKey, any>;
+  get fromThroughToSource(): BelongsToAssociation<ThroughModel, SourceModel, any, SourceKey> {
     return this.fromSourceToThrough.inverse;
   }
 
-  get fromTargetToThrough(): HasMany<TargetModel, ThroughModel, TargetKey, any> {
+  get fromTargetToThrough(): HasManyAssociation<TargetModel, ThroughModel, TargetKey, any> {
     return this.pairedWith.fromSourceToThrough;
   }
 
-  get fromTargetToThroughOne(): HasOne<TargetModel, ThroughModel, TargetKey, any> {
+  get fromTargetToThroughOne(): HasOneAssociation<TargetModel, ThroughModel, TargetKey, any> {
     return this.pairedWith.fromSourceToThroughOne;
   }
 
-  get fromThroughToTarget(): BelongsTo<ThroughModel, TargetModel, any, TargetKey> {
+  get fromThroughToTarget(): BelongsToAssociation<ThroughModel, TargetModel, any, TargetKey> {
     return this.pairedWith.fromThroughToSource;
   }
 
@@ -222,13 +223,15 @@ export class BelongsToMany<
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
     options: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
-    pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
+    pair?: BelongsToManyAssociation<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ) {
     super(secret, source, target, options, parent);
 
     try {
-      this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+      this.pairedWith = pair ?? BelongsToManyAssociation.associate<
+        TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey
+      >(
         secret,
         target,
         source,
@@ -281,48 +284,60 @@ export class BelongsToMany<
 
     const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
 
-    this.fromSourceToThrough = HasMany.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: options.throughAssociations.fromSource || `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
-      scope: this.through.scope,
-      foreignKey: {
-        ...this.options.foreignKey,
-        allowNull: this.options.foreignKey.allowNull ?? false,
-        name: this.options.foreignKey.name || (
+    this.fromSourceToThrough = HasManyAssociation.associate(
+      AssociationSecret,
+      this.source,
+      this.throughModel,
+      removeUndefined({
+        as: options.throughAssociations.fromSource || `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
+        scope: this.through.scope,
+        foreignKey: {
+          ...this.options.foreignKey,
+          allowNull: this.options.foreignKey.allowNull ?? false,
+          name: this.options.foreignKey.name || (
           this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
             : camelize(`${this.source.options.name.singular}_${sourceKey}`)
-        ),
-      },
-      sourceKey: this.options.sourceKey,
-      foreignKeyConstraints: this.options.foreignKeyConstraints,
-      hooks: this.options.hooks,
-      inverse: {
-        as: options.throughAssociations.toSource || this.pairedWith.name.singular,
-      },
-    }), this);
+          ),
+        },
+        sourceKey: this.options.sourceKey,
+        foreignKeyConstraints: this.options.foreignKeyConstraints,
+        hooks: this.options.hooks,
+        inverse: {
+          as: options.throughAssociations.toSource || this.pairedWith.name.singular,
+        },
+      }),
+      this,
+    );
 
-    this.fromSourceToThroughOne = HasOne.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: options.throughAssociations.fromSource
+    this.fromSourceToThroughOne = HasOneAssociation.associate(
+      AssociationSecret,
+      this.source,
+      this.throughModel,
+      removeUndefined({
+        as: options.throughAssociations.fromSource
         ? singularize(options.throughAssociations.fromSource)
         : `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
-      scope: this.through.scope,
-      // foreignKey: this.options.foreignKey,
-      foreignKey: {
-        ...this.options.foreignKey,
-        allowNull: this.options.foreignKey.allowNull ?? false,
-        name: this.options.foreignKey.name || (
+        scope: this.through.scope,
+        // foreignKey: this.options.foreignKey,
+        foreignKey: {
+          ...this.options.foreignKey,
+          allowNull: this.options.foreignKey.allowNull ?? false,
+          name: this.options.foreignKey.name || (
           this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
             : camelize(`${this.source.options.name.singular}_${sourceKey}`)
-        ),
-      },
-      sourceKey: this.options.sourceKey,
-      foreignKeyConstraints: this.options.foreignKeyConstraints,
-      hooks: this.options.hooks,
-      inverse: {
-        as: options.throughAssociations.toSource
+          ),
+        },
+        sourceKey: this.options.sourceKey,
+        foreignKeyConstraints: this.options.foreignKeyConstraints,
+        hooks: this.options.hooks,
+        inverse: {
+          as: options.throughAssociations.toSource
           ? singularize(options.throughAssociations.toSource)
           : this.pairedWith.name.singular,
-      },
-    }), this);
+        },
+      }),
+      this,
+    );
 
     // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
     const plural = upperFirst(this.options.name.plural);
@@ -411,14 +426,14 @@ Add your own primary key to the through model, on different attributes than the 
     source: ModelStatic<S>,
     target: ModelStatic<T>,
     options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
-    pair?: BelongsToMany<T, S, ThroughModel, TargetKey, SourceKey>,
+    pair?: BelongsToManyAssociation<T, S, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
-  ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
+  ): BelongsToManyAssociation<S, T, ThroughModel, SourceKey, TargetKey> {
     return defineAssociation<
-      BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
+      BelongsToManyAssociation<S, T, ThroughModel, SourceKey, TargetKey>,
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
-    >(BelongsToMany, source, target, options, parent, normalizeBelongsToManyOptions, newOptions => {
+    >(BelongsToManyAssociation, source, target, options, parent, normalizeBelongsToManyOptions, newOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target)
         && (
@@ -431,7 +446,7 @@ Add your own primary key to the through model, on different attributes than the 
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
       }
 
-      return new BelongsToMany(secret, source, target, newOptions, pair, parent);
+      return new BelongsToManyAssociation(secret, source, target, newOptions, pair, parent);
     });
   }
 
@@ -846,7 +861,7 @@ Add your own primary key to the through model, on different attributes than the 
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
-Object.defineProperty(BelongsToMany, 'name', {
+Object.defineProperty(BelongsToManyAssociation, 'name', {
   value: 'BelongsToMany',
 });
 

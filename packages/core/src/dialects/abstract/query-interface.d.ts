@@ -13,10 +13,11 @@ import type {
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
-import type { AllowLowercase } from '../../utils/types.js';
+import type { AllowLowercase, Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
+import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription, QiDropAllSchemasOptions } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -34,7 +35,7 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
-export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
 
@@ -43,7 +44,7 @@ export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
-  limit?: number | Literal | null | undefined;
+  limit?: Nullish<number | Literal>;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
@@ -269,11 +270,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options
    */
   dropAllEnums(options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Renames a table
-   */
-  renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Adds a new column to a table

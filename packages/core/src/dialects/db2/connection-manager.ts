@@ -54,7 +54,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connectio
       UID: config.username,
       // @ts-expect-error -- Bad typings
       PWD: config.password,
-      ...(config.ssl ? { SECURITY: config.ssl } : undefined),
+      ...(config.ssl ? { Security: 'SSL' } : undefined),
       // TODO: pass this property through dialectOptions
       // @ts-expect-error -- DB2 specific option that should not be at the top level
       ...(config.sslcertificate ? { SSLServerCertificate: config.ssl } : undefined),
