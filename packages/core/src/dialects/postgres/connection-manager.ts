@@ -64,7 +64,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
     assert(this.lib != null, 'pg-native module not found, please install it');
 
-    this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
+    this.#arrayParserLib = require('postgres-array') as ArrayParserLib;
   }
 
   async connect(config: ConnectionOptions): Promise<PgConnection> {
