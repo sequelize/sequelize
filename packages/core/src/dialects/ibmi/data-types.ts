@@ -9,15 +9,15 @@ export class UUID extends BaseTypes.UUID {
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
   escape(value: boolean | Falsy): string {
-    return value ? '1' : '0';
+    return this._getDialect().sequelize.options.databaseVersion?.startsWith('7.5') ? super.escape(value) : value ? '1' : '0';
   }
 
   toBindableValue(value: boolean | Falsy): unknown {
-    return value ? 1 : 0;
+    return this._getDialect().sequelize.options.databaseVersion?.startsWith('7.5') ? super.toBindableValue(value) : value ? 1 : 0;
   }
 
   toSql() {
-    return 'SMALLINT';
+    return this._getDialect().sequelize.options.databaseVersion?.startsWith('7.5') ? super.toSql() : 'SMALLINT';
   }
 }
 
