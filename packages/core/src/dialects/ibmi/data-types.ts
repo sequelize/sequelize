@@ -19,6 +19,10 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     return this.supportsNativeBooleans() ? super.escape(value) : value ? '1' : '0';
   }
 
+  parseDatabaseValue(value: unknown): boolean {
+    return this.supportsNativeBooleans() ? value === 'TRUE' : value === 1;
+  }
+
   toBindableValue(value: boolean | Falsy): unknown {
     return this.supportsNativeBooleans() ? super.toBindableValue(value) : value ? 1 : 0;
   }
