@@ -1,7 +1,19 @@
 'use strict';
 
+import {
+  Association,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
+  HasManyAssociation,
+  HasOneAssociation,
+} from './associations';
+import { AssociationSecret } from './associations/helpers';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import { ModelTypeScript } from './model-typescript';
+import { Op } from './operators';
+import { QueryTypes } from './query-types';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -13,21 +25,9 @@ import {
 import { toDefaultValue } from './utils/dialect';
 import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
 import { every, find } from './utils/iterators';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap, mergeDefaults } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
-import { ModelTypeScript } from './model-typescript';
-import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import {
-  Association,
-  BelongsToAssociation,
-  BelongsToManyAssociation,
-  HasManyAssociation,
-  HasOneAssociation,
-} from './associations';
-import { AssociationSecret } from './associations/helpers';
-import { Op } from './operators';
-import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
-import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
 import assignWith from 'lodash/assignWith';
@@ -39,11 +39,11 @@ import flattenDepth from 'lodash/flattenDepth';
 import forEach from 'lodash/forEach';
 import forIn from 'lodash/forIn';
 import get from 'lodash/get';
-import isEqual from 'lodash/isEqual';
+import intersection from 'lodash/intersection';
 import isEmpty from 'lodash/isEmpty';
+import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
-import intersection from 'lodash/intersection';
 import mapValues from 'lodash/mapValues';
 import omit from 'lodash/omit';
 import omitBy from 'lodash/omitBy';
@@ -51,8 +51,8 @@ import pick from 'lodash/pick';
 import pickBy from 'lodash/pickBy';
 import remove from 'lodash/remove';
 import union from 'lodash/union';
-import uniq from 'lodash/uniq';
 import unionBy from 'lodash/unionBy';
+import uniq from 'lodash/uniq';
 import without from 'lodash/without';
 
 const assert = require('node:assert');
@@ -3213,7 +3213,7 @@ Instead of specifying a Model, either:
 
     options = options ?? EMPTY_OBJECT;
 
-    const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
+    const { attributes, attributesWithGetters, rawAttributes } = this.constructor.modelDefinition;
 
     if (attributeName) {
       const attribute = attributes.get(attributeName);
@@ -3242,7 +3242,8 @@ Instead of specifying a Model, either:
       || options.plain && this._options.include
       || options.clone
     ) {
-      const values = Object.create(null);
+      let values = Object.create(null);
+
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
           if (!this._options.attributes?.includes(attributeName2)) {
@@ -3261,6 +3262,18 @@ Instead of specifying a Model, either:
           values[attributeName2] = this.get(attributeName2, options);
         }
       }
+
+      const keysOrder = Object.keys(rawAttributes);
+
+      values = Object.fromEntries(
+        Object.entries(values)
+          .sort(([keyA], [keyB]) => {
+            const indexA = keysOrder.indexOf(keyA);
+            const indexB = keysOrder.indexOf(keyB);
+
+            return indexA - indexB;
+          }),
+      );
 
       return values;
     }
