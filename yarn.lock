@@ -2215,7 +2215,7 @@ __metadata:
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
     eslint: "npm:8.56.0"
-    eslint-plugin-jsdoc: "npm:47.0.0"
+    eslint-plugin-jsdoc: "npm:47.0.1"
     eslint-plugin-mocha: "npm:10.2.0"
     fast-glob: "npm:3.3.2"
     husky: "npm:8.0.3"
@@ -5775,9 +5775,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:47.0.0":
-  version: 47.0.0
-  resolution: "eslint-plugin-jsdoc@npm:47.0.0"
+"eslint-plugin-jsdoc@npm:47.0.1":
+  version: 47.0.1
+  resolution: "eslint-plugin-jsdoc@npm:47.0.1"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.41.0"
     are-docs-informative: "npm:^0.0.2"
@@ -5790,7 +5790,7 @@ __metadata:
     spdx-expression-parse: "npm:^4.0.0"
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 46d15497331e7efdf5dfb79bf752696eb2bb50af02a9e8d189ebd9304f286722ed309220fee16eb8f33b2e9311d2d1138b262d427607cb63edb3677604be1cec
+  checksum: f2657cfc1394af0fca2c9c079065ffbc4e5fd41678299afb9ae261aff246cbd861d0ff38b57258caf6c9e9c57eb9975c75cd47c9f8c92bfefdaa4924eef62c24
   languageName: node
   linkType: hard
 
