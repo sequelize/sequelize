@@ -1749,6 +1749,10 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
+    const association = this._searchInclude(values);
+    if (association.length > 0 && !options.include) {
+      options.include = association;
+    }
 
     return await this.build(values, {
       isNewRecord: true,
@@ -1757,6 +1761,18 @@ ${associationOwner._getAssociationDebugList()}`);
       raw: options.raw,
       silent: options.silent,
     }).save(options);
+  }
+
+  static _searchInclude(values) {
+    const association = [];
+    const associationKeys = Object.keys(this.associations);
+    for (const value in values) {
+      if (associationKeys.includes(value)) {
+        association.push({ association: value });
+      }
+    }
+
+    return association;
   }
 
   /**
