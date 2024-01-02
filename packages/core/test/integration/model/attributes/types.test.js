@@ -189,6 +189,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(user.field2).to.equal(42);
         });
+
+        it('should keep the order of virtual fields as declared in the model definition', async function () {
+          const user = this.User.build({
+            field1: 'field1_value',
+            field2: 'field2_value',
+          });
+
+          const modelAttributes = Object.keys(this.User.modelDefinition.rawAttributes).join(',');
+          const resultAttributes = Object.keys(user.get()).join(',');
+
+          expect(resultAttributes).to.equal(modelAttributes);
+        });
       });
     });
   });
