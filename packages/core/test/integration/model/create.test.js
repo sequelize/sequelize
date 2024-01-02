@@ -1508,6 +1508,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
     });
+    it('should create associated objects without include option', async function () {
+      const Player = this.customSequelize.define('player', {
+        name: {
+          type: DataTypes.STRING,
+        },
+        teamId: {
+          type: DataTypes.INTEGER,
+        },
+      });
+      const Team = this.customSequelize.define('team', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+        name: {
+          type: DataTypes.STRING,
+        },
+      });
+      Player.team = Player.belongsTo(Team, {
+        as: 'team',
+        foreignKey: 'teamId',
+        targetKey: 'id',
+      });
+      await this.customSequelize.sync({ force: true });
+      const createdPlayer = await Player.create({
+        name: 'Player 1', team: { id: 1, name: 'My new team' },
+      });
+      expect(createdPlayer.team instanceof Team).to.be.ok;
+      expect(createdPlayer.teamId).to.equal(1);
+    });
   });
 
   it('should return autoIncrement primary key (create)', async function () {
