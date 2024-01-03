@@ -1,5 +1,5 @@
 import path from 'node:path';
-import url from 'node:url';
+import { URL } from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
 import type { Dialect, DialectOptions, Options } from '../sequelize';
@@ -10,10 +10,20 @@ import type { Dialect, DialectOptions, Options } from '../sequelize';
  * @param connectionString string value in format schema://username:password@host:port/database
  */
 export function parseConnectionString(connectionString: string): Options {
-  const urlParts = url.parse(connectionString, true);
   const options: Options = {};
-  if (urlParts.protocol) {
-    let protocol = urlParts.protocol.replace(/:$/, '');
+
+  // The following connectionStrings are not valid URLs, but they are supported by sqlite.
+  if (connectionString.toLowerCase() === 'sqlite://:memory:' || connectionString.toLowerCase() === 'sqlite::memory:') {
+    options.dialect = 'sqlite';
+    options.host = '';
+
+    return options;
+  }
+
+  const urlObject = new URL(connectionString);
+
+  if (urlObject.protocol) {
+    let protocol = urlObject.protocol.replace(/:$/, '');
     if (protocol === 'postgresql') {
       protocol = 'postgres';
     }
@@ -21,48 +31,47 @@ export function parseConnectionString(connectionString: string): Options {
     options.dialect = protocol as Dialect;
   }
 
-  if (urlParts.hostname != null) {
-    options.host = urlParts.hostname;
+  if (urlObject.hostname) {
+    options.host = urlObject.hostname;
   }
 
-  if (urlParts.pathname) {
-    // decode the URI component from urlParts.pathname value
-    options.database = decodeURIComponent(urlParts.pathname.replace(/^\//, ''));
+  if (urlObject.pathname) {
+    // decode the URI component from urlObject.pathname value
+    options.database = decodeURIComponent(urlObject.pathname.replace(/^\//, ''));
   }
 
-  if (urlParts.port) {
-    options.port = urlParts.port;
+  if (urlObject.port) {
+    options.port = urlObject.port;
   }
 
-  if (urlParts.auth) {
-    const authParts = urlParts.auth.split(':');
-    options.username = authParts[0];
-    if (authParts.length > 1) {
-      options.password = authParts.slice(1).join(':');
-    }
+  if (urlObject.username) {
+    options.username = decodeURIComponent(urlObject.username);
   }
 
-  if (options.dialect === 'sqlite' && urlParts.pathname && !urlParts.pathname.startsWith('/:memory')) {
-    const storagePath = path.join(options.host!, urlParts.pathname);
-    options.storage = path.resolve(options.storage || storagePath);
+  if (urlObject.password) {
+    options.password = decodeURIComponent(urlObject.password);
   }
 
-  if (urlParts.query) {
+  if (options.dialect === 'sqlite') {
+    options.storage = path.resolve(urlObject.pathname);
+  }
+
+  if (urlObject.searchParams) {
     // Allow host query argument to override the url host.
     // Enables specifying domain socket hosts which cannot be specified via the typical
     // host part of a url.
-    if (urlParts.query.host) {
-      options.host = urlParts.query.host as string;
+    if (urlObject.searchParams.has('host')) {
+      options.host = urlObject.searchParams.get('host')!;
     }
 
-    options.dialectOptions = urlParts.query;
-    if (urlParts.query.options) {
+    options.dialectOptions = Object.fromEntries(urlObject.searchParams.entries());
+    if (urlObject.searchParams.has('options')) {
       try {
-        const o = JSON.parse(urlParts.query.options as string);
+        const o = JSON.parse(urlObject.searchParams.get('options')!);
         options.dialectOptions.options = o;
       } catch {
         // Nothing to do, string is not a valid JSON
-        // an thus does not need any further processing
+        // and thus does not need any further processing
       }
     }
   }
