@@ -62,6 +62,11 @@ export class MysqlDialect extends AbstractDialect {
       maxExecutionTimeHint: {
         select: true,
       },
+      createSchema: {
+        charset: true,
+        collate: true,
+        ifNotExists: true,
+      },
     },
   );
 

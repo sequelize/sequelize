@@ -44,6 +44,11 @@ export class SnowflakeDialect extends AbstractDialect {
     dropTable: {
       cascade: true,
     },
+    createSchema: {
+      comment: true,
+      ifNotExists: true,
+      replace: true,
+    },
   });
 
   readonly dataTypesDocumentationUrl = 'https://docs.snowflake.com/en/sql-reference/data-types.html';

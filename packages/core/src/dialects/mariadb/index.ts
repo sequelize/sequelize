@@ -61,6 +61,13 @@ export class MariaDbDialect extends AbstractDialect {
       removeColumn: {
         ifExists: true,
       },
+      createSchema: {
+        charset: true,
+        collate: true,
+        comment: true,
+        ifNotExists: true,
+        replace: true,
+      },
     },
   );
 

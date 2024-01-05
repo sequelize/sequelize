@@ -28,6 +28,16 @@ export interface ListDatabasesQueryOptions {
   skip?: string[];
 }
 
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateSchemaQueryOptions {
+  authorization?: string | Literal;
+  charset?: string;
+  collate?: string;
+  comment?: string;
+  ifNotExists?: boolean;
+  replace?: boolean;
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];

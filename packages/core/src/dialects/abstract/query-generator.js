@@ -37,7 +37,6 @@ const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
 const { _validateIncludedElements } = require('../../model-internals');
 
-export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 
@@ -47,14 +46,6 @@ export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  createSchemaQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
   dropSchemaQuery() {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but dropSchemaQuery is not implemented.`);

@@ -1,9 +1,9 @@
 import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
-import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
   CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
   DropTableQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,

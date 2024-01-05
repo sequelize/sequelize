@@ -59,12 +59,6 @@ type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
 };
 
-// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateSchemaQueryOptions {
-  collate?: string;
-  charset?: string;
-}
-
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
   collate?: string;
@@ -149,7 +143,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: CreateTableQueryOptions
   ): string;
 
-  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
   dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
   /**

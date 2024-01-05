@@ -38,6 +38,9 @@ export class IBMiDialect extends AbstractDialect {
         changeSchema: false,
         changeSchemaAndTable: false,
       },
+      createSchema: {
+        authorization: true,
+      },
     },
   );
 
