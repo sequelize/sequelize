@@ -332,8 +332,18 @@ describe('Sequelize constructor', () => {
       expect(options.storage).to.equal('/completely/different/path.db');
     });
 
-    it('should be able to use :memory:', () => {
+    it('should be able to use :memory: (1)', () => {
       const sequelize = new Sequelize('sqlite://:memory:');
+      const options = sequelize.options;
+      expect(options.dialect).to.equal('sqlite');
+
+      // empty host is treated as :memory:
+      expect(options.host).to.equal('');
+      expect(options.storage).to.equal(undefined);
+    });
+
+    it('should be able to use :memory: (2)', () => {
+      const sequelize = new Sequelize('sqlite::memory:');
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
 

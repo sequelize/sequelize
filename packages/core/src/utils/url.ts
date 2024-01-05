@@ -31,7 +31,7 @@ export function parseConnectionString(connectionString: string): Options {
     options.dialect = protocol as Dialect;
   }
 
-  if (urlObject.hostname) {
+  if (urlObject.hostname != null) {
     options.host = urlObject.hostname;
   }
 
@@ -52,8 +52,9 @@ export function parseConnectionString(connectionString: string): Options {
     options.password = decodeURIComponent(urlObject.password);
   }
 
-  if (options.dialect === 'sqlite') {
-    options.storage = path.resolve(urlObject.pathname);
+  if (options.dialect === 'sqlite' && urlObject.pathname) {
+    const storagePath = path.join(options.host!, urlObject.pathname);
+    options.storage = path.resolve(options.storage || storagePath);
   }
 
   if (urlObject.searchParams) {
