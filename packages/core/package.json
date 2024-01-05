@@ -80,7 +80,7 @@
     "@types/snowflake-sdk": "1.6.20",
     "@types/tedious": "4.0.14",
     "@types/uuid": "9.0.7",
-    "chai": "4.3.10",
+    "chai": "4.4.0",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
     "delay": "5.0.0",
