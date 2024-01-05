@@ -111,7 +111,7 @@ export interface DescribeTableOptions extends QueryRawOptions {
 export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
-export interface QiDropAllTablesOptions extends QiDropTableOptions {
+export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTableOptions {
   skip?: string[];
 }
 
