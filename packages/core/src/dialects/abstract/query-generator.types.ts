@@ -38,6 +38,12 @@ export interface CreateSchemaQueryOptions {
   replace?: boolean;
 }
 
+// keep DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropSchemaQueryOptions {
+  cascade?: boolean;
+  ifExists?: boolean;
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];

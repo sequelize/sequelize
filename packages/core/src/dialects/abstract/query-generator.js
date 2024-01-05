@@ -46,14 +46,6 @@ export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  dropSchemaQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but dropSchemaQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
   /**
    * Returns an insert into command
    *

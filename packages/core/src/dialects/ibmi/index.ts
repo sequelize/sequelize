@@ -41,6 +41,10 @@ export class IBMiDialect extends AbstractDialect {
       createSchema: {
         authorization: true,
       },
+      dropSchema: {
+        cascade: true,
+        ifExists: true,
+      },
     },
   );
 

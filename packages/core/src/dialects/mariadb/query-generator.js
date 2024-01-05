@@ -13,10 +13,6 @@ const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescrip
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',

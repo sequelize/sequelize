@@ -21,10 +21,6 @@ const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
-  dropSchemaQuery(schema) {
-    return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
-  }
-
   // Table queries
   createTableQuery(tableName, attributes, options) {
     if (options) {

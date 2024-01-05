@@ -17,10 +17,6 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',

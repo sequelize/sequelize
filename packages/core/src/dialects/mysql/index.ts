@@ -67,6 +67,9 @@ export class MysqlDialect extends AbstractDialect {
         collate: true,
         ifNotExists: true,
       },
+      dropSchema: {
+        ifExists: true,
+      },
     },
   );
 

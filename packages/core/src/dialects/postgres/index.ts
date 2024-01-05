@@ -89,6 +89,10 @@ export class PostgresDialect extends AbstractDialect {
       authorization: true,
       ifNotExists: true,
     },
+    dropSchema: {
+      cascade: true,
+      ifExists: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;

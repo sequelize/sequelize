@@ -34,10 +34,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
   }
 
-  dropSchemaQuery(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

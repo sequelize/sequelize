@@ -68,6 +68,9 @@ export class MariaDbDialect extends AbstractDialect {
         ifNotExists: true,
         replace: true,
       },
+      dropSchema: {
+        ifExists: true,
+      },
     },
   );
 

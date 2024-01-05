@@ -15,7 +15,6 @@ import {
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
@@ -27,6 +26,7 @@ import type {
   DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
+  DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
   QiDropAllTablesOptions,
@@ -139,20 +139,9 @@ export class AbstractQueryInterfaceTypeScript {
    * @param schema Name of the schema
    * @param options
    */
-  async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const dropSchemaQuery: string | QueryWithBindParams = this.queryGenerator.dropSchemaQuery(schema);
-
-    let sql: string;
-    let queryRawOptions: undefined | QueryRawOptions;
-    if (typeof dropSchemaQuery === 'string') {
-      sql = dropSchemaQuery;
-      queryRawOptions = options;
-    } else {
-      sql = dropSchemaQuery.query;
-      queryRawOptions = { ...options, bind: dropSchemaQuery.bind };
-    }
-
-    await this.sequelize.queryRaw(sql, queryRawOptions);
+  async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
+    const sql = this.queryGenerator.dropSchemaQuery(schema, options);
+    await this.sequelize.queryRaw(sql, options);
   }
 
   /**

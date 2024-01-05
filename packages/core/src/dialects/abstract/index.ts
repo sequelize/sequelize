@@ -245,6 +245,10 @@ export type DialectSupports = {
     ifNotExists: boolean,
     replace: boolean,
   },
+  dropSchema: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -397,6 +401,10 @@ export abstract class AbstractDialect {
       comment: false,
       ifNotExists: false,
       replace: false,
+    },
+    dropSchema: {
+      cascade: false,
+      ifExists: false,
     },
   };
 

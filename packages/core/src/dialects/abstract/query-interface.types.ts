@@ -4,6 +4,7 @@ import type {
   AddConstraintQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
   DropTableQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -76,6 +77,9 @@ export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRa
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#dropSchema} */
+export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#listSchemas} */
 export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }

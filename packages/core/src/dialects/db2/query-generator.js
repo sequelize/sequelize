@@ -40,27 +40,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     this.autoGenValue = 1;
   }
 
-  _errorTableCount = 0;
-
-  dropSchemaQuery(schema) {
-    // DROP SCHEMA Can't drop schema if it is not empty.
-    // DROP SCHEMA Can't drop objects belonging to the schema
-    // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${this.escape(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
-
-    if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
-      this._errorTableCount = 0;
-    }
-
-    return {
-      query,
-      bind: {
-        sequelize_errorSchema: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-        sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE${this._errorTableCount++}` },
-      },
-    };
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(

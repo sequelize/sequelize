@@ -14,7 +14,7 @@ import type { Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -142,8 +142,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-
-  dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
   /**
    * Creates a function that can be used to collect bind parameters.

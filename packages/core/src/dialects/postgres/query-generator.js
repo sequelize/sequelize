@@ -32,10 +32,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `SET search_path to ${searchPath};`;
   }
 
-  dropSchemaQuery(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
