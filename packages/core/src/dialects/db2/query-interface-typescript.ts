@@ -31,6 +31,17 @@ export class Db2QueryInterfaceTypeScript extends AbstractQueryInterface {
           // eslint-disable-next-line no-await-in-loop
           await this.sequelize.queryRaw(`DROP ${type} ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(routine.ROUTINENAME)}`, options);
         }
+
+        // In Db2 the triggers are scoped to the schema, so we need to drop them separately for each schema
+        // eslint-disable-next-line no-await-in-loop
+        const triggers = await this.sequelize.queryRaw<{ TRIGNAME: string }>(`SELECT TRIGNAME FROM SYSCAT.TRIGGERS WHERE TRIGSCHEMA = ${this.queryGenerator.escape(schema)}`, {
+          ...options,
+          type: QueryTypes.SELECT,
+        });
+        for (const trigger of triggers) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.sequelize.queryRaw(`DROP TRIGGER ${this.quoteIdentifier(schema)}.${this.quoteIdentifier(trigger.TRIGNAME)}`, options);
+        }
       }
     }
 
