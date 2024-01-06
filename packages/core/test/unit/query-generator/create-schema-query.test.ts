@@ -51,7 +51,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
   it('supports the comment option', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { comment: 'myComment' }), {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['comment']),
-      snowflake: `CREATE SCHEMA [mySchema] COMMENT 'myComment'`,
+      snowflake: `CREATE SCHEMA "mySchema" COMMENT 'myComment'`,
       sqlite: notSupportedError,
     });
   });
