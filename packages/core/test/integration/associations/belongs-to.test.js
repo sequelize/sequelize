@@ -128,11 +128,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await task.setUserXYZ(user0);
         const user = await task.getUserXYZ();
         expect(user).to.be.ok;
+        await this.sequelize.queryInterface.dropAllTables({ schema: 'archive' });
         await this.sequelize.dropSchema('archive');
         const schemas = await this.sequelize.queryInterface.listSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-          expect(schemas).to.not.have.property('archive');
-        }
+        expect(schemas).to.not.include('archive');
       });
 
       it('supports schemas when defining custom foreign key attribute #9029', async function () {
