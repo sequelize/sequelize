@@ -181,9 +181,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         AcmeUser.belongsToMany(AcmeProject, { through: AcmeProjectUsers });
         AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('acme');
-
         await Promise.all([
           AcmeUser.sync({ force: true }),
           AcmeProject.sync({ force: true }),

@@ -12,7 +12,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(async function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
-    await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('changeColumn', () => {

@@ -115,7 +115,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         Task.belongsTo(User);
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('archive');
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -152,7 +151,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         Task.belongsTo(User, { foreignKey: 'user_id' });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('archive');
         await User.sync({ force: true });
         await Task.sync({ force: true });
@@ -161,8 +159,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         await task.setUserXYZ(user0);
         const user = await task.getUserXYZ();
         expect(user).to.be.ok;
-
-        await this.sequelize.dropSchema('archive');
       });
     }
   });

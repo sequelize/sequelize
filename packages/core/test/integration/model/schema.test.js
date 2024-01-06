@@ -55,10 +55,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
-      afterEach('drop schemas', async () => {
-        await current.dropSchema(SCHEMA_TWO);
-      });
-
       describe('Add data via model.create, retrieve via model.findOne', () => {
         it('should be able to sync model without schema option', function () {
           expect(this.RestaurantOne.table.schema).to.eq(current.dialect.getDefaultSchema());
@@ -186,13 +182,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Promise.all([
           this.RestaurantOne.sync({ force: true }),
           this.RestaurantTwo.sync({ force: true }),
-        ]);
-      });
-
-      afterEach('drop schemas', async () => {
-        await Promise.all([
-          current.dropSchema(SCHEMA_ONE),
-          current.dropSchema(SCHEMA_TWO),
         ]);
       });
 

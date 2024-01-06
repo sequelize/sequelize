@@ -438,7 +438,6 @@ if (current.dialect.supports.groupedLimit) {
 
         User.Tasks = User.hasMany(Task, { as: 'tasks' });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('archive');
         await this.sequelize.sync({ force: true });
 

@@ -95,7 +95,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         Group.hasOne(User);
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('admin');
         await Group.sync({ force: true });
         await User.sync({ force: true });

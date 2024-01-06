@@ -352,7 +352,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });
 
-          await Support.dropTestSchemas(this.sequelize);
           await this.sequelize.createSchema('work');
           await User.sync({ force: true });
           await Task.sync({ force: true });
