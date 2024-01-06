@@ -19,7 +19,7 @@ import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generato
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
 import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import type { ColumnsDescription, QiDropAllSchemasOptions } from './query-interface.types.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
@@ -245,11 +245,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Returns the current sequelize instance.
    */
   sequelize: Sequelize;
-
-  /**
-   * Drops all tables
-   */
-  dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
 
   /**
    * Creates a table with specified attributes.

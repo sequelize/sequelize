@@ -85,7 +85,7 @@ export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptio
 export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface QiDropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */

@@ -29,6 +29,7 @@ import type {
   DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiListSchemasOptions,
@@ -142,6 +143,37 @@ export class AbstractQueryInterfaceTypeScript {
   async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
     const sql = this.queryGenerator.dropSchemaQuery(schema, options);
     await this.sequelize.queryRaw(sql, options);
+  }
+
+  /**
+   * Drops all schemas
+   *
+   * @param options
+   */
+  async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allSchemas = await this.listSchemas(options);
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default for dialects that support it
+    if (dropOptions.cascade === undefined) {
+      if (this.sequelize.dialect.supports.dropSchema.cascade) {
+        dropOptions.cascade = true;
+      } else {
+        // if the dialect does not support "cascade", then drop all tables first in a loop to avoid deadlocks and timeouts
+        for (const schema of schemaNames) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.dropAllTables({ ...dropOptions, schema });
+        }
+      }
+    }
+
+    // Drop all the schemas in a loop to avoid deadlocks and timeouts
+    for (const schema of schemaNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropSchema(schema, dropOptions);
+    }
   }
 
   /**
