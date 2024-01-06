@@ -180,7 +180,7 @@ export class Db2Query extends AbstractQuery {
         data.unshift(outparams);
       }
 
-      return this.formatResults(data, datalen, metadata, connection);
+      return this.formatResults(data, datalen, metadata);
     }
 
     return this.formatResults(data, affectedRows);
