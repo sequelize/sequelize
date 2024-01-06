@@ -271,32 +271,7 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  const qi = customSequelize.queryInterface;
-  const schemas = await qi.listSchemas({ skip: [customSequelize.config.database] });
-  const tablesPromise = [];
-  const schemasPromise = [];
-  if (customSequelize.dialect.supports.dropSchema.cascade) {
-    for (const schemaName of schemas) {
-      schemasPromise.push(qi.dropSchema(schemaName, { cascade: true }));
-    }
-  } else if (getTestDialect() === 'db2') {
-    // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-    // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-    for (const schemaName of schemas) {
-      // eslint-disable-next-line no-await-in-loop
-      await qi.dropAllTables({ schema: schemaName });
-      // eslint-disable-next-line no-await-in-loop
-      await qi.dropSchema(schemaName);
-    }
-  } else {
-    for (const schemaName of schemas) {
-      tablesPromise.push(qi.dropAllTables({ schema: schemaName }));
-      schemasPromise.push(qi.dropSchema(schemaName));
-    }
-  }
-
-  await Promise.all(tablesPromise);
-  await Promise.all(schemasPromise);
+  await customSequelize.queryInterface.dropAllSchemas({ skip: [customSequelize.config.database] });
 }
 
 export * from '../support';
