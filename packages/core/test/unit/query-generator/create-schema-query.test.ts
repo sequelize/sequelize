@@ -51,7 +51,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
   it('supports the comment option', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { comment: 'myComment' }), {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['comment']),
-      'mariadb snowflake': `CREATE SCHEMA [mySchema] COMMENT 'myComment'`,
+      snowflake: `CREATE SCHEMA [mySchema] COMMENT 'myComment'`,
       sqlite: notSupportedError,
     });
   });
@@ -82,7 +82,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
       replace: true,
     }), {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'ifNotExists', 'replace']),
-      mariadb: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization']),
+      mariadb: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment']),
       mysql: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment', 'replace']),
       postgres: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'replace']),
       snowflake: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'charset', 'collate']),
