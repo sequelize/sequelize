@@ -91,6 +91,9 @@ export const Config: Record<Dialect, Options> = {
     password: env.SEQ_ORACLE_PW || env.SEQ_PW || 'sequelizepassword',
     host: env.SEQ_ORACLE_HOST || env.SEQ_HOST || '127.0.0.1',
     port: env.SEQ_ORACLE_PORT || env.SEQ_PORT || 1521,
+    dialectOptions: {
+      stmtCacheSize: Number(env.SEQ_ORACLE_STMT_CACHE || 0),
+    },
     pool: {
       max: Number(env.SEQ_ORACLE_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000)

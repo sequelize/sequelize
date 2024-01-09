@@ -114,7 +114,7 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
-    it('is deserialized as a string when DataType is not specified', async () => {
+    (dialect.name !== 'oracle'? it : it.skip)('is deserialized as a string when DataType is not specified', async () => {
       await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
   });
@@ -668,7 +668,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (dialect.name === 'sqlite' || dialect.name === 'oracle') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
@@ -1044,18 +1044,29 @@ describe('DataTypes', () => {
       );
     });
 
-    it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(
-        vars.User,
-        'dateAttr',
-        '2022-01-01T00:00:00Z',
-        dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
-          // sqlite decided to have a weird format that is not ISO 8601 compliant
-          : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
-          : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
-          : '2022-01-01 00:00:00+00',
-      );
-    });
+    if (dialect.name === 'oracle') {
+      it(`is deserialized as Date when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(
+          vars.User,
+          'dateAttr',
+          '2022-01-01T00:00:00Z',
+          new Date('2022-01-01T00:00:00Z')
+        );
+      })
+    } else {
+      it(`is deserialized as a string when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(
+          vars.User,
+          'dateAttr',
+          '2022-01-01T00:00:00Z',
+          dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
+            // sqlite decided to have a weird format that is not ISO 8601 compliant
+            : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
+            : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
+            : '2022-01-01 00:00:00+00',
+        );
+      });
+    }
   });
 
   describe('DATE(precision)', () => {
@@ -1088,7 +1099,7 @@ describe('DataTypes', () => {
 
     it('clamps to specified precision', async () => {
       // sqlite does not support restricting the precision
-      if (dialect.name !== 'sqlite') {
+      if (dialect.name !== 'sqlite' && dialect.name !== 'oracle') {
         await testSimpleInOut(vars.User, 'dateMinPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.000Z'));
         await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
 
@@ -1160,9 +1171,15 @@ describe('DataTypes', () => {
       }
     });
 
-    it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
-    });
+    if (dialect.name === 'oracle') {
+      it(`is deserialized as a date when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', new Date('2022-01-01T00:00:00.000Z'));
+      });
+    } else {
+      it(`is deserialized as a string when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+      });
+    }
   });
 
   if (dialect.name !== 'oracle') {

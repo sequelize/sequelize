@@ -272,7 +272,7 @@ export class REAL extends BaseTypes.REAL {
   }
 }
 
-export class BIGINT extends BaseTypes.BIGINT { // TODO:check for constructor
+export class BIGINT extends BaseTypes.BIGINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     if (this.options.length || this.options.zerofill) {
