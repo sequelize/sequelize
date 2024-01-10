@@ -50,7 +50,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -70,7 +70,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -127,7 +127,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -147,7 +147,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -172,7 +172,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -199,7 +199,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -228,7 +228,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -261,7 +261,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@f44cd7b40bfd40b6aa1cc1b9b5b7bf03d3c67110 # v4.1.0
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
