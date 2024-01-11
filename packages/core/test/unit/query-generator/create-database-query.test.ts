@@ -22,7 +22,7 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { collate: 'en_US.UTF-8' }), {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" LC_COLLATE = 'en_US.UTF-8'`,
-      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT COLLATE 'en_US.UTF-8'`,
+      snowflake: buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['collate']),
       mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase' ) CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'`,
     });
   });
@@ -54,18 +54,17 @@ describe('QueryGenerator#createDatabaseQuery', () => {
   it('supports the charset option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { charset: 'utf8mb4' }), {
       default: notSupportedError,
-      'mssql postgres': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
-      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4'`,
+      'mssql postgres snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
     });
   });
 
   it('supports combining all options', () => {
     const optionSupport = {
-      collate: ['postgres', 'snowflake', 'mssql'],
+      collate: ['postgres', 'mssql'],
       encoding: ['postgres'],
       ctype: ['postgres'],
       template: ['postgres'],
-      charset: ['snowflake'],
+      charset: [''],
     };
 
     const config = removeUndefined({
@@ -79,7 +78,7 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', config), {
       default: notSupportedError,
       postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'zh_TW.UTF-8' TEMPLATE = 'template0'`,
-      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase" DEFAULT CHARACTER SET 'utf8mb4' DEFAULT COLLATE 'en_US.UTF-8'`,
+      snowflake: `CREATE DATABASE IF NOT EXISTS "myDatabase"`,
       mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'myDatabase') CREATE DATABASE [myDatabase] COLLATE N'en_US.UTF-8'`,
     });
   });
