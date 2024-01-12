@@ -2589,6 +2589,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * If a transaction is passed, a savepoint will be created instead,
    * and any unique constraint violation will be handled internally.
    */
+  static findOrCreate<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    options: Omit<
+      FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
+      "raw"
+    > & { raw: true }
+  ): Promise<[entity: R, created: false] | [entity: M, created: true]>;
+  
   static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
