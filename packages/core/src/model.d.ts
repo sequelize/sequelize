@@ -2593,10 +2593,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options: Omit<
       FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
-      "raw"
+      'raw'
     > & { raw: true }
   ): Promise<[entity: R, created: false] | [entity: M, created: true]>;
-  
+
   static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
     options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
