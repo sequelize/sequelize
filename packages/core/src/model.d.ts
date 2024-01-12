@@ -1054,7 +1054,7 @@ export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TA
   /**
    * Default values to use if building a new instance
    */
-  defaults?: TCreationAttributes;
+  defaults?: Partial<TCreationAttributes>;
 }
 
 /**
@@ -1065,7 +1065,7 @@ export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAt
   /**
    * Default values to use if building a new instance
    */
-  defaults?: TCreationAttributes;
+  defaults?: Partial<TCreationAttributes>;
 }
 
 /**
