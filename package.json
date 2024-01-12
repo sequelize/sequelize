@@ -54,7 +54,7 @@
     "@ephys/eslint-config-typescript": "19.0.2",
     "@rushstack/eslint-patch": "1.6.1",
     "@types/node": "20.11.0",
-    "chai": "4.4.0",
+    "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
     "esbuild": "0.17.19",

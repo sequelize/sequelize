@@ -2157,7 +2157,7 @@ __metadata:
     "@types/uuid": "npm:9.0.7"
     "@types/validator": "npm:^13.7.5"
     bnf-parser: "npm:3.1.6"
-    chai: "npm:4.4.0"
+    chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
     dayjs: "npm:^1.11.5"
@@ -2225,7 +2225,7 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:19.0.2"
     "@rushstack/eslint-patch": "npm:1.6.1"
     "@types/node": "npm:20.11.0"
-    chai: "npm:4.4.0"
+    chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
@@ -2258,7 +2258,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@types/chai": "npm:4.3.11"
     "@types/chai-as-promised": "npm:7.1.8"
-    chai: "npm:4.4.0"
+    chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.2.0"
@@ -4398,9 +4398,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:4.4.0":
-  version: 4.4.0
-  resolution: "chai@npm:4.4.0"
+"chai@npm:4.4.1":
+  version: 4.4.1
+  resolution: "chai@npm:4.4.1"
   dependencies:
     assertion-error: "npm:^1.1.0"
     check-error: "npm:^1.0.3"
@@ -4409,7 +4409,7 @@ __metadata:
     loupe: "npm:^2.3.6"
     pathval: "npm:^1.1.1"
     type-detect: "npm:^4.0.8"
-  checksum: 34b6b616e77b42ae746f397ef8affaa0f3f2aa3955985de6d0faabcc9de250546e9e4f0d6bd9e59c920ff5f67937e6fa6e0f02752c0c3c43b0904e4f423cb9f7
+  checksum: 91590a8fe18bd6235dece04ccb2d5b4ecec49984b50924499bdcd7a95c02cb1fd2a689407c19bb854497bde534ef57525cfad6c7fdd2507100fd802fbc2aefbd
   languageName: node
   linkType: hard
 
