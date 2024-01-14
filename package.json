@@ -75,7 +75,7 @@
     "typedoc": "0.25.4",
     "typedoc-plugin-carbon-ads": "1.6.0",
     "typedoc-plugin-mdn-links": "3.1.12",
-    "typedoc-plugin-missing-exports": "2.1.0",
+    "typedoc-plugin-missing-exports": "2.2.0",
     "typescript": "5.2.2"
   },
   "packageManager": "yarn@4.0.2",
