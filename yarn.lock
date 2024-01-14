@@ -2245,7 +2245,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.4"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
-    typedoc-plugin-mdn-links: "npm:3.1.11"
+    typedoc-plugin-mdn-links: "npm:3.1.12"
     typedoc-plugin-missing-exports: "npm:2.1.0"
     typescript: "npm:5.2.2"
   languageName: unknown
@@ -13292,12 +13292,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-mdn-links@npm:3.1.11":
-  version: 3.1.11
-  resolution: "typedoc-plugin-mdn-links@npm:3.1.11"
+"typedoc-plugin-mdn-links@npm:3.1.12":
+  version: 3.1.12
+  resolution: "typedoc-plugin-mdn-links@npm:3.1.12"
   peerDependencies:
     typedoc: ">= 0.23.14 || 0.24.x || 0.25.x"
-  checksum: 9453d5bf8cde457050f69df07feb7649aa7c15e2d9ad61e17aeaff1e01d50e56b501cff332cc0ad37acf84e6e9e8740ade1ec45763c17bbc5772eeeadf016e0b
+  checksum: 164acdd17d10bd7399ebd3f3162f3fcbdd6814f0b7ba102e5bac2a3f6750bfb997b3d9db996d94c7ace773741e3c177e2f259320a9e12bc4bb696aa02c832ef2
   languageName: node
   linkType: hard
 
