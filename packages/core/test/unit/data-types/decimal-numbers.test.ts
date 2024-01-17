@@ -13,26 +13,31 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
   testDataTypeSql('REAL', DataTypes.REAL, {
     default: 'REAL',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
     default: 'REAL UNSIGNED',
     'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('REAL(11, 12)', DataTypes.REAL(11, 12), {
     default: 'REAL(11, 12)',
     'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
     'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('REAL({ precision: 11, scale: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
     'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
@@ -60,6 +65,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'db2 ibmi': 'DOUBLE',
     sqlite: 'REAL',
     snowflake: 'FLOAT',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
@@ -68,6 +74,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
@@ -76,6 +83,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
@@ -84,6 +92,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'db2 ibmi': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
+    oracle: 'BINARY_DOUBLE',
   });
 
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
@@ -119,30 +128,35 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     'mysql mariadb snowflake': 'FLOAT',
     // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
     'postgres mssql sqlite db2 ibmi': 'REAL',
+    oracle: 'BINARY_FLOAT',
   });
 
   testDataTypeSql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
     'mysql mariadb': 'FLOAT UNSIGNED',
     snowflake: 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
+    oracle: 'BINARY_FLOAT',
   });
 
   testDataTypeSql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
     'mysql mariadb': 'FLOAT(11, 12)',
     snowflake: 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
+    oracle: 'BINARY_FLOAT',
   });
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
     snowflake: 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
+    oracle: 'BINARY_FLOAT',
   });
 
   testDataTypeSql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
     snowflake: 'FLOAT',
     'postgres mssql sqlite db2 ibmi': 'REAL',
+    oracle: 'BINARY_FLOAT',
   });
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
@@ -197,22 +211,26 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
     sqlite: unsupportedError,
     postgres: 'DECIMAL',
+    oracle: 'NUMBER',
   });
 
   testDataTypeSql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
     default: 'DECIMAL(10, 2)',
     sqlite: unsupportedError,
+    oracle: 'NUMBER(10, 2)',
   });
 
   testDataTypeSql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
     default: 'DECIMAL(10, 2)',
     sqlite: unsupportedError,
+    oracle: 'NUMBER(10, 2)',
   });
 
   testDataTypeSql('DECIMAL(10, 2).UNSIGNED', DataTypes.DECIMAL(10, 2).UNSIGNED, {
     default: 'DECIMAL(10, 2)',
     'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
     sqlite: unsupportedError,
+    oracle: 'NUMBER(10, 2)',
   });
 
   testDataTypeSql('DECIMAL(10, 2).UNSIGNED.ZEROFILL', DataTypes.DECIMAL(10, 2).UNSIGNED.ZEROFILL, {
@@ -225,6 +243,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     default: 'DECIMAL(10, 2)',
     'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
     sqlite: unsupportedError,
+    oracle: 'NUMBER(10, 2)',
   });
 
   it('requires both scale & precision to be specified', () => {
@@ -241,7 +260,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     it('should throw an error if `value` is invalid', () => {
       const type: DataTypeInstance = DataTypes.DECIMAL(10, 2).toDialectDataType(dialect);
-      const typeName = supportsDecimal.constrained ? 'decimal(10, 2)' : 'decimal';
+      let typeName = supportsDecimal.constrained ? 'decimal(10, 2)' : 'decimal';
+      if (dialect.name === 'oracle') {
+        typeName = 'number(10, 2)';
+      }
 
       expect(() => {
         type.validate('foobar');

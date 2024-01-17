@@ -17,6 +17,7 @@ describe('DataTypes.BOOLEAN', () => {
     mariadb: 'TINYINT(1)',
     mysql: 'TINYINT(1)',
     sqlite: 'INTEGER',
+    oracle: 'CHAR(1)',
   });
 
   describe('validate', () => {
@@ -57,6 +58,7 @@ describe('DataTypes.ENUM', () => {
       mssql: `NVARCHAR(255)`,
       sqlite: 'TEXT',
       'db2 ibmi snowflake': 'VARCHAR(255)',
+      oracle: 'VARCHAR2(512)',
     });
   });
 
@@ -174,6 +176,7 @@ describe('DataTypes.JSON', () => {
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite: 'TEXT',
+    oracle: 'BLOB',
   });
 
   describe('escape', () => {

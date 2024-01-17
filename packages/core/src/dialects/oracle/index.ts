@@ -44,6 +44,7 @@ export class OracleDialect extends AbstractDialect {
       JSON: true,
       INTS: numericOptions,
       DOUBLE: numericOptions,
+      DECIMAL: { unconstrained: true },
     },
     renameTable: {
       changeSchema: false,

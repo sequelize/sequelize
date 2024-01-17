@@ -185,7 +185,7 @@
     "test-unit-ibmi": "cross-env DIALECT=ibmi yarn _test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake yarn _test-unit",
     "test-unit-oracle": "cross-env DIALECT=oracle yarn _test-unit",
-    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-ibmi",
+    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-oracle && yarn test-unit-ibmi",
     "test-unit": "yarn test-unit-all",
     "----------------------------------------- integration tests ---------------------------------------------": "",
     "test-integration-mariadb": "cross-env DIALECT=mariadb yarn test-integration",

@@ -115,7 +115,7 @@ export class CHAR extends BaseTypes.CHAR {
 
   toSql() {
     if (this.options.binary) {
-      return `RAW(${this.options.length})`;
+      return `RAW(${this.options.length ?? 255})`;
     }
 
     return super.toSql();
@@ -182,7 +182,7 @@ export class DECIMAL extends BaseTypes.DECIMAL {
     result += `(${this.options.precision}`;
 
     if (this.options.scale) {
-      result += `,${this.options.scale}`;
+      result += `, ${this.options.scale}`;
     }
 
     result += ')';

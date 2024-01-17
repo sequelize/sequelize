@@ -49,6 +49,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         case 'snowflake':
           dialectPath = require.resolve('snowflake-sdk');
           break;
+        case 'oracle':
+          dialectPath = require.resolve('oracledb');
+          break;
         default:
           throw new Error('Unsupported dialect');
       }
