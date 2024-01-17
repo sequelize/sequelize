@@ -16,7 +16,6 @@ import type {
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([]);
 const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
 
@@ -34,7 +33,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'createDatabaseQuery',
         this.dialect.name,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        new Set<keyof CreateDatabaseQueryOptions>([]),
         options,
       );
     }

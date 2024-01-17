@@ -345,7 +345,6 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { charset: 'utf8mb4' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['charset']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;',
-      snowflake: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['charset']),
     });
   });
 
@@ -353,7 +352,6 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { collate: 'en_US.UTF-8' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['collate']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COLLATE en_US.UTF-8;',
-      snowflake: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['collate']),
     });
   });
 
@@ -361,7 +359,6 @@ describe('QueryGenerator#createTableQuery', () => {
     expectsql(() => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { rowFormat: 'default' }), {
       default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['rowFormat']),
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB ROW_FORMAT=default;',
-      snowflake: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['rowFormat']),
     });
   });
 

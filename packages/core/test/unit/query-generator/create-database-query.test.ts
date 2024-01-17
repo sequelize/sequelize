@@ -64,7 +64,6 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       encoding: ['postgres'],
       ctype: ['postgres'],
       template: ['postgres'],
-      charset: [''],
     };
 
     const config = removeUndefined({
@@ -72,7 +71,6 @@ describe('QueryGenerator#createDatabaseQuery', () => {
       encoding: optionSupport.encoding.includes(dialectName) ? 'UTF8' : undefined,
       ctype: optionSupport.ctype.includes(dialectName) ? 'zh_TW.UTF-8' : undefined,
       template: optionSupport.template.includes(dialectName) ? 'template0' : undefined,
-      charset: optionSupport.charset.includes(dialectName) ? 'utf8mb4' : undefined,
     });
 
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', config), {
