@@ -20,6 +20,7 @@ class ConnectionManager {
   constructor(dialect, sequelize) {
     const { dialectModule, ...otherConfig } = sequelize.config;
     const config = _.cloneDeep(otherConfig);
+    config.dialectModule = dialectModule;
 
     this.sequelize = sequelize;
     this.config = config;
