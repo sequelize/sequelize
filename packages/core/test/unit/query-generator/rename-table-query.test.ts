@@ -31,7 +31,7 @@ describe('QueryGenerator#renameTableQuery', () => {
   it('throws an error if `options.changeSchema` is not set when moving table to another schema', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }), {
       default: changeSchemaNotSetError,
-      'db2 ibmi': moveSchemaNotSupportedError,
+      'db2 ibmi oracle': moveSchemaNotSupportedError,
     });
   });
 
@@ -41,7 +41,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       mssql: `ALTER SCHEMA [newSchema] TRANSFER [oldSchema].[oldTable]`,
       sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.oldTable`',
       postgres: `ALTER TABLE "oldSchema"."oldTable" SET SCHEMA "newSchema"`,
-      'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
+      'db2 ibmi oracle': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
     });
   });
 
@@ -49,7 +49,7 @@ describe('QueryGenerator#renameTableQuery', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }, { changeSchema: true }), {
       default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[newTable]',
       sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.newTable`',
-      'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
+      'db2 ibmi oracle': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, ['changeSchema']),
       'mssql postgres': moveSchemaWithRenameNotSupportedError,
     });
   });

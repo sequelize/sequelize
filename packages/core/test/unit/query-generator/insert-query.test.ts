@@ -39,6 +39,7 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
+      oracle: `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:1,$lastName,:2);`,
     });
 
     expect(bind).to.deep.eq({
@@ -59,6 +60,7 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
+      oracle: `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:1,$1,:2);`,
     });
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
@@ -121,6 +123,7 @@ describe('QueryGenerator#insertQuery', () => {
         mssql: 'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        oracle: `INSERT INTO "Users" ("firstName") VALUES (:1) RETURNING "id", "firstName" INTO :2,:3;`,
       });
     });
 
@@ -141,6 +144,7 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        oracle: `ad`,
       });
     });
 
@@ -162,6 +166,7 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        oracle: `asdf`,
       });
     });
 
@@ -171,6 +176,7 @@ describe('QueryGenerator#insertQuery', () => {
         query: {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
           'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+          oracle: `INSERT INTO "myTable" ("birthday") VALUES (:1);`,
         },
         bind: {
           mysql: {
@@ -197,6 +203,9 @@ describe('QueryGenerator#insertQuery', () => {
           mssql: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
+          oracle: {
+            sequelize_1: new Date('2011-03-27T10:01:55Z'),
+          }
         },
       });
     });
@@ -207,6 +216,7 @@ describe('QueryGenerator#insertQuery', () => {
         query: {
           default: 'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
           'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
+          oracle: `INSERT INTO "myTable" ("positive","negative") VALUES (:1,:2);`,
         },
         bind: {
           sqlite: {
@@ -241,6 +251,10 @@ describe('QueryGenerator#insertQuery', () => {
             sequelize_1: true,
             sequelize_2: false,
           },
+          oracle: {
+            sequelize_1: '1',
+            sequelize_2: '0',
+          }
         },
       });
     });
@@ -251,6 +265,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(query, {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
         'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
+        oracle: `INSERT INTO "myTable" ("value","name") VALUES (:1,:2);`,
       });
 
       expect(bind).to.deep.eq({

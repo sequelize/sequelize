@@ -269,7 +269,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' }, onUpdate: 'CASCADE' }), {
         default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
         sqlite: notSupportedError,
-        'db2 ibmi': onUpdateNotSupportedError,
+        'db2 ibmi oracle': onUpdateNotSupportedError,
       });
     });
 

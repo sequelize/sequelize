@@ -18,6 +18,7 @@ describe('QueryGenerator#addColumnQuery', () => {
       default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
       mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
       postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
+      oracle: `ALTER TABLE "Users" ADD "age" INTEGER NULL;`,
     });
   });
 

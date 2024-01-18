@@ -8,7 +8,11 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils'; //TODO: MIGHT NOT be needed.
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import { 
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
+} from '../abstract/query-generator';
 
 const DataTypes = require('../../data-types');
 const _ = require('lodash');
@@ -17,7 +21,8 @@ const util = require('util');
 const Transaction = require('../../transaction');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -32,7 +37,16 @@ const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().
 
 export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
-  createSchemaQuery(schema) {
+  createSchemaQuery(schema, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
     const quotedSchema = this.quoteIdentifier(schema);
     return [
       'DECLARE',
@@ -102,6 +116,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect.name,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
     const primaryKeys = [],
       foreignKeys = Object.create(null),
       attrStr = [],
@@ -315,7 +338,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   // TODO: MOVE IT TO QUERY-GENERATOR-TYPESCRIPT.TS ALONG WITH GETCATALOG()
 
   showConstraintsQuery(tableName, options) {
-    if (options.constraintType === 'FOREIGN KEY') {
+    if (options && options.constraintType === 'FOREIGN KEY') {
       return this.getForeignKeysQuery(tableName);
     }
     let table = this.extractTableDetails(tableName);
@@ -427,16 +450,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'ALTER TABLE',
       this.quoteTable(table),
       'ADD',
-      attribute
-    ]);
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP COLUMN',
-      this.quoteIdentifier(attributeName),
+      attribute,
       ';'
     ]);
   }

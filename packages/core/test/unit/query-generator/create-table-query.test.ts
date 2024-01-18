@@ -17,6 +17,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -28,6 +29,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "MyModels" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -38,6 +40,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "mySchema"."myTable" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -47,6 +50,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -60,6 +64,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "mySchema"."myTable" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -80,6 +85,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -90,6 +96,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -100,6 +107,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT,PRIMARY KEY ("myColumn", "secondColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -111,6 +119,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
       'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE,FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -122,6 +131,7 @@ describe('QueryGenerator#createTableQuery', () => {
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY REFERENCES "Bar" ("id"));',
       'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE,PRIMARY KEY ("myColumn"),FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -138,6 +148,7 @@ describe('QueryGenerator#createTableQuery', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id") COMMENT Foo);',
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id") COMMENT Foo); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE,FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id") COMMENT Foo)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -147,6 +158,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE NOT NULL); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -161,6 +173,7 @@ describe('QueryGenerator#createTableQuery', () => {
       sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
       db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -176,6 +189,7 @@ describe('QueryGenerator#createTableQuery', () => {
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [secondColumn];`,
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn"; -- 'Foo Bar', TableName = "myTable", ColumnName = "secondColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -190,6 +204,7 @@ describe('QueryGenerator#createTableQuery', () => {
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -204,6 +219,7 @@ describe('QueryGenerator#createTableQuery', () => {
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
       db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -224,6 +240,7 @@ describe('QueryGenerator#createTableQuery', () => {
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" "public"."enum_myTable_myColumn");',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] ENUM("foo", "bar"));`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" ENUM("foo", "bar")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" ENUM("foo", "bar"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -233,6 +250,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, `secondColumn` BIGINT, `thirdColumn` SMALLINT) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] BIGINT, [thirdColumn] SMALLINT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -243,6 +261,7 @@ describe('QueryGenerator#createTableQuery', () => {
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL, "secondColumn" BIGSERIAL, "thirdColumn" SMALLSERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -253,6 +272,7 @@ describe('QueryGenerator#createTableQuery', () => {
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL NOT NULL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -262,6 +282,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -272,6 +293,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -282,6 +304,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT,PRIMARY KEY ("myColumn", "secondColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -292,6 +315,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER NOT NULL, [secondColumn] INTEGER NOT NULL, [thirdColumn] TEXT, PRIMARY KEY ([secondColumn], [thirdColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT NOT NULL, PRIMARY KEY (`secondColumn`, `thirdColumn`));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT,PRIMARY KEY ("secondColumn", "thirdColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -302,6 +326,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT, PRIMARY KEY ([myColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -312,6 +337,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -321,6 +347,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER(5) UNSIGNED) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -331,6 +358,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
       'snowflake db2': 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER REFERENCES "Bar" ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER,FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 

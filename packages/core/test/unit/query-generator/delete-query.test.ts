@@ -31,6 +31,7 @@ describe('QueryGenerator#deleteQuery', () => {
       snowflake: `DELETE FROM "Users" WHERE "id" IN (SELECT "id" FROM "Users" WHERE name = 'Zoe' LIMIT 1)`,
       db2: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY`,
       ibmi: `DELETE FROM "Users" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY`,
+      oracle: `DELETE FROM "Users" WHERE rowid IN (SELECT rowid FROM "Users" WHERE rownum <= :limit AND name = 'Zoe')`,
     });
   });
 });

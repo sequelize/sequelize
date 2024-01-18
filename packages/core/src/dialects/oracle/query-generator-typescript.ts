@@ -2,13 +2,19 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import { REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS, RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import {
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS
+} from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
 import type { AddLimitOffsetOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions } from '../abstract/query-generator.types';
+import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
@@ -161,5 +167,21 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   getAliasToken(): string {
     return '';
+  }
+
+  removeColumnQuery(tableName: TableNameOrModel, attributeName: string, options: RemoveColumnQueryOptions): string {
+    rejectInvalidOptions(
+      'removeColumnQuery',
+      this.dialect.name,
+      REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP COLUMN',
+      this.quoteIdentifier(attributeName)
+    ]);
   }
 }

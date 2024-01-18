@@ -17,7 +17,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
   it('generates a query that drops a constraint with IF EXISTS', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { ifExists: true }), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
-      'db2 ibmi snowflake': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
+      'db2 ibmi snowflake oracle': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
       'mysql sqlite': notSupportedError,
     });
   });
@@ -27,6 +27,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
       'db2 ibmi mariadb mssql': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
       'mysql sqlite': notSupportedError,
+      oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
     });
   });
 
@@ -36,6 +37,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
       snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
       'db2 ibmi mariadb mssql': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
       'mysql sqlite': notSupportedError,
+      oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
     });
   });
 
