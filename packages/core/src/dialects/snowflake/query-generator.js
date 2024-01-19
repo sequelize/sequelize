@@ -29,7 +29,7 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['collate', 'charset', 'rowFormat', 'comment', 'uniqueKeys']);
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   constructor(options) {
@@ -134,9 +134,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       table,
       `(${attributesClause})`,
       options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
-      options.charset && `DEFAULT CHARSET=${options.charset}`,
-      options.collate && `COLLATE ${options.collate}`,
-      options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
       ';',
     ]);
   }
