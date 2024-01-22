@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.35](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.34...v7.0.0-alpha.35) (2024-01-22)
+
+
+### Bug Fixes
+
+* remove unsupported options for snowflake ([#16962](https://github.com/sequelize/sequelize/issues/16962)) ([139ec64](https://github.com/sequelize/sequelize/commit/139ec64471c2461dc34c0741bff5a6cdd8ea78df))
+
+
+
+
+
 # [7.0.0-alpha.34](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.33...v7.0.0-alpha.34) (2023-12-12)
 
 
