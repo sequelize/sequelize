@@ -132,6 +132,7 @@ describe('fn', () => {
       mssql: `concat(N'user', 1, 1, N'2011-03-27 10:01:55.000 +00:00', lower(N'user'))`,
       sqlite: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       ibmi: `concat('user', 1, 1, '2011-03-27 10:01:55.000', lower('user'))`,
+      oracle: `concat('user', 1, 1, TO_TIMESTAMP_TZ('2011-03-27 10:01:55.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'), lower('user'))`,
       default: `concat('user', 1, true, '2011-03-27 10:01:55.000', lower('user'))`,
     });
   });

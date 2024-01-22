@@ -43,6 +43,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
       mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
       snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+      oracle: `SELECT * FROM "Users" "User" GROUP BY "name";`,
     });
 
     testsql({
@@ -55,6 +56,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       ibmi: 'SELECT * FROM "Users" AS "User"',
       mssql: 'SELECT * FROM [Users] AS [User];',
       snowflake: 'SELECT * FROM "Users" AS "User";',
+      oracle: `SELECT * FROM "Users" "User";`
     });
   });
 });

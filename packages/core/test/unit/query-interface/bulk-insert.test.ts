@@ -26,6 +26,7 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
       ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
       mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
+      oracle: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\d+'\))$/),
     });
   });
 
@@ -43,6 +44,7 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
       ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
       mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
+      oracle: toMatchRegex(/^INSERT INTO \"Users\" \(\"firstName\"\) VALUES (?:\('\d+'\))$/),
     });
   });
 
@@ -67,6 +69,7 @@ describe('QueryInterface#bulkInsert', () => {
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
       // TODO: db2 should use the same system as ibmi
       ibmi: toMatchSql(`SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`),
+      oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
     });
   });
 });

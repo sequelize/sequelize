@@ -350,6 +350,7 @@ Caused by: "undefined" cannot be escaped`),
         db2: '"stringAttr" = \'here is a null char: \0\'',
         ibmi: '"stringAttr" = \'here is a null char: \0\'',
         sqlite: '`stringAttr` = \'here is a null char: \0\'',
+        oracle: `"stringAttr" = 'here is a null char: \0'`,
       });
 
       testSql({
@@ -359,6 +360,7 @@ Caused by: "undefined" cannot be escaped`),
         'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
         mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
         'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+        oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
 
       describe('Buffer', () => {
@@ -369,6 +371,7 @@ Caused by: "undefined" cannot be escaped`),
           db2: `"binaryAttr" = BLOB('Sequelize')`,
           snowflake: `"binaryAttr" = X'53657175656c697a65'`,
           mssql: '[binaryAttr] = 0x53657175656c697a65',
+          oracle: `"binaryAttr" = '53657175656c697a65'`,
         });
 
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
@@ -379,6 +382,7 @@ Caused by: "undefined" cannot be escaped`),
           db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
           snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
           mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
+          oracle: `"binaryAttr" IN ('5365717565276c697a6531', '53657175656c697a6532')`,
         });
       });
     });
@@ -429,6 +433,7 @@ Caused by: "undefined" cannot be escaped`),
         mssql: '[booleanAttr] = 1',
         sqlite: '`booleanAttr` = 1',
         ibmi: '"booleanAttr" = 1',
+        oracle: `"booleanAttr" = 1`,
       });
 
       testSql({
@@ -453,6 +458,7 @@ Caused by: "undefined" cannot be escaped`),
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
         'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+        oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
 
       testSql({ intAttr1: { [Op.col]: 'intAttr2' } }, {
@@ -591,6 +597,7 @@ Caused by: "undefined" cannot be escaped`),
       testSql({ booleanAttr: { [Op.eq]: true } }, {
         default: '[booleanAttr] = true',
         'mssql sqlite ibmi': '[booleanAttr] = 1',
+        oracle: `"booleanAttr" = 1`,
       });
 
       testSequelizeValueMethods(Op.eq, '=');
@@ -615,6 +622,7 @@ Caused by: "undefined" cannot be escaped`),
       testSql({ booleanAttr: { [Op.ne]: true } }, {
         default: '[booleanAttr] != true',
         'mssql ibmi sqlite': '[booleanAttr] != 1',
+        oracle: `"booleanAttr" != 1`,
       });
 
       testSequelizeValueMethods(Op.ne, '!=');
@@ -639,11 +647,13 @@ Caused by: "undefined" cannot be escaped`),
       testSql({ booleanAttr: { [Op.is]: false } }, {
         default: '[booleanAttr] IS false',
         'mssql ibmi sqlite': '[booleanAttr] IS 0',
+        oracle: `"booleanAttr" IS 0`,
       });
 
       testSql({ booleanAttr: { [Op.is]: true } }, {
         default: '[booleanAttr] IS true',
         'mssql ibmi sqlite': '[booleanAttr] IS 1',
+        oracle: `"booleanAttr" IS 1`,
       });
 
       // @ts-expect-error -- not supported, testing that it throws
@@ -696,11 +706,13 @@ Caused by: "undefined" cannot be escaped`),
       testSql({ booleanAttr: { [Op.isNot]: false } }, {
         default: '[booleanAttr] IS NOT false',
         'mssql ibmi sqlite': '[booleanAttr] IS NOT 0',
+        oracle: `"booleanAttr" IS NOT 0`,
       });
 
       testSql({ booleanAttr: { [Op.isNot]: true } }, {
         default: '[booleanAttr] IS NOT true',
         'mssql ibmi sqlite': '[booleanAttr] IS NOT 1',
+        oracle: `"booleanAttr" IS NOT 1`,
       });
     });
 
@@ -734,12 +746,13 @@ Caused by: "undefined" cannot be escaped`),
         mssql: 'NOT ([booleanAttr] = 0)',
         ibmi: 'NOT ("booleanAttr" = 0)',
         sqlite: 'NOT (`booleanAttr` = 0)',
+        oracle: `NOT ("booleanAttr" = 0)`,
       });
 
       testSql({ booleanAttr: { [Op.not]: true } }, {
         default: 'NOT ([booleanAttr] = true)',
         mssql: 'NOT ([booleanAttr] = 1)',
-        ibmi: 'NOT ("booleanAttr" = 1)',
+        'ibmi oracle': 'NOT ("booleanAttr" = 1)',
         sqlite: 'NOT (`booleanAttr` = 1)',
       });
 

@@ -19,6 +19,7 @@ describe('QueryInterface#dropTable', () => {
       const firstCall = stub.getCall(0);
       expectsql(firstCall.args[0] as string, {
         default: 'DROP TABLE IF EXISTS [myTable] CASCADE',
+        oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
       });
     } else {
       await expect(sequelize.queryInterface.dropTable('myTable', { cascade: true })).to.be.rejectedWith(`The following options are not supported by dropTableQuery in ${dialectName}: cascade`);

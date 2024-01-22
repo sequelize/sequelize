@@ -39,6 +39,7 @@ describe('QueryInterface#bulkUpdate', () => {
     expectsql(firstCall.args[0] as string, {
       default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2`,
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
+      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "firstName" = :2`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -86,6 +87,7 @@ describe('QueryInterface#bulkUpdate', () => {
     expectsql(firstCall.args[0] as string, {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $one',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $one);`,
+      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "firstName" = $one`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -116,6 +118,7 @@ describe('QueryInterface#bulkUpdate', () => {
     expectsql(firstCall.args[0] as string, {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $1',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $1);`,
+      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "firstName" = $1`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

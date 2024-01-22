@@ -46,6 +46,9 @@ export class OracleDialect extends AbstractDialect {
       DOUBLE: numericOptions,
       DECIMAL: { unconstrained: true },
     },
+    dropTable: {
+      cascade: true,
+    },
     renameTable: {
       changeSchema: false,
     },
