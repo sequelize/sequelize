@@ -212,7 +212,7 @@ export class Db2QueryInterface extends AbstractQueryInterface {
     }
   }
 
-  setIsolationLevel(transaction, value, options) {
+  setIsolationLevel(transaction, value, _options) {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new TypeError('Unable to set a transaction isolation level without transaction object!');
     }
