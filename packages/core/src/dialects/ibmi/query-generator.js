@@ -289,23 +289,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return removeTrailingSemicolon(super.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options));
   }
 
-  upsertQuery(tableName, insertValues, updateValues, where, model, options) {
-    const aliasTable = `temp_${this.quoteTable(tableName)}`;
-
-    let query = `MERGE INTO ${this.quoteTable(tableName)} `;
-
-    const usingClause = `USING (
-      SELECT * FROM (${this.quoteTable(tableName)}
-      VALUES(42)
-      ) AS ${aliasTable}("id") ON (${aliasTable}."id" = ${this.quoteTable(tableName)}."id")`;
-
-    query += usingClause;
-    query += ` WHEN MATCHED THEN ${this.updateQuery(tableName, tableName, where, options, updateValues)}
-    WHEN NOT MATCHED THEN ${this.insertQuery(tableName, insertValues, model, options).sql}`;
-
-    return query;
-  }
-
   insertQuery(table, valueHash, modelAttributes, options) {
     // remove the final semi-colon
     const query = super.insertQuery(table, valueHash, modelAttributes, options);

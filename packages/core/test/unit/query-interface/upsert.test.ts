@@ -6,6 +6,10 @@ import { expectsql, sequelize } from '../../support';
 const dialectName = sequelize.dialect.name;
 
 describe('QueryInterface#upsert', () => {
+  if (!sequelize.dialect.supports.upserts) {
+    return;
+  }
+
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,
   }, { timestamps: false });
@@ -35,9 +39,8 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
-      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
-      mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
+      default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName]',
+      'mariadb mysql': 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK)
           AS [Users_target]
@@ -48,8 +51,6 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;
       `,
-      // TODO: does snowflake not support upsert?
-      snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
       db2: `
         MERGE INTO "Users"
           AS "Users_target"
@@ -60,8 +61,6 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName") VALUES(':name');
       `,
-      // TODO: does ibmi not support upsert?
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -113,9 +112,8 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING',
+      'mariadb mysql': 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=VALUES(`id`)',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -124,8 +122,6 @@ describe('QueryInterface#upsert', () => {
           INSERT ([firstName], [lastName]) VALUES($firstName, N'Doe')
         OUTPUT $action, INSERTED.*;
       `,
-      // TODO: does snowflake not support upsert?
-      snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1);`,
       db2: `
         MERGE INTO "Users" AS "Users_target"
         USING (VALUES($firstName, 'Doe')) AS "Users_source"("firstName", "lastName")
@@ -133,8 +129,6 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName", "lastName") VALUES($firstName, 'Doe');
       `,
-      // TODO: does ibmi not support upsert?
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -170,9 +164,8 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING',
+      'mariadb mysql': 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=VALUES(`id`)',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -181,8 +174,6 @@ describe('QueryInterface#upsert', () => {
           INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
         OUTPUT $action, INSERTED.*;
       `,
-      // TODO: does snowflake not support upsert?
-      snowflake: `INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1);`,
       db2: `
         MERGE INTO "Users" AS "Users_target"
         USING (VALUES($1, 'Doe')) AS "Users_source"("firstName", "lastName")
@@ -190,8 +181,6 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName", "lastName") VALUES($1, 'Doe');
       `,
-      // TODO: does ibmi not support upsert?
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
     });
 
     // mssql does not generate any bind parameter
@@ -227,23 +216,21 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
-      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+      default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1',
+      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter"',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
         ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
-      sqlite: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
-      snowflake: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1);',
+      sqlite: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`',
       db2: `
         MERGE INTO "Users" AS "Users_target"
         USING (VALUES('Jonh', \`counter\` + 1)) AS "Users_source"("firstName", "counter")
         ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
-      ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1))',
     });
   });
 });

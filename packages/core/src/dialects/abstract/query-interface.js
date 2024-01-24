@@ -387,6 +387,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
   //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (!this.sequelize.dialect.supports.upserts) {
+      throw new Error(`Upserts are not supported by the ${this.sequelize.dialect.name} dialect`);
+    }
+
     if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
