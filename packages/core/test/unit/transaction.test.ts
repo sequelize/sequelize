@@ -6,9 +6,9 @@ import { beforeAll2, getTestDialect, sequelize } from '../support';
 const dialectName = getTestDialect();
 
 describe('Transaction', () => {
-  // IBMiQueryInterface#startTransaction does not pass "START TRANSACTION" queries to queryRaw.
+  // IBMiQueryInterface#startTransaction and Db2QueryInterface#startTransaction do not pass "START TRANSACTION" queries to queryRaw.
   // Instead, it calls beginTransaction directly on the transaction (as it should be done).
-  if (dialectName === 'ibmi') {
+  if (dialectName === 'ibmi' || dialectName === 'db2') {
     return;
   }
 
