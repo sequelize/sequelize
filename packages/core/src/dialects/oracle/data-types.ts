@@ -196,6 +196,9 @@ export class DECIMAL extends BaseTypes.DECIMAL {
 
   // Oracle treats DECIMAL as NUMBER(precision, scale).
   sanitize(value: AcceptedNumber) : AcceptedNumber {
+    if (typeof value === 'bigint') {
+      return value.toString();
+    }
     return value;
   }
 }
@@ -283,7 +286,7 @@ export class BIGINT extends BaseTypes.BIGINT {
   }
 
   toSql(): string {
-    return 'NUMBER(19)';
+    return 'NUMBER(19, 0)';
   }
 
   _getBindDef(oracledb: Lib) {

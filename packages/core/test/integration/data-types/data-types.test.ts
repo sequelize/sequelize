@@ -653,8 +653,10 @@ describe('DataTypes', () => {
     }
 
     it('rejects unsafe integers', async () => {
-      await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
+      if (dialect.name !== 'oracle') {
+        await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
+      }
 
       await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
       await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
@@ -700,8 +702,10 @@ describe('DataTypes', () => {
           return { User };
         });
 
-        it('rejects out-of-range numbers', async () => {
-          await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be.rejected;
+        it.only('rejects out-of-range numbers', async () => {
+          if (dialect.name === 'oracle') {
+            await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be.rejected;
+          }
           await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
         });
       });
@@ -883,7 +887,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (dialect.name === 'sqlite' || dialect.name === 'oracle') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {

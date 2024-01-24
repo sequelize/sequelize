@@ -503,7 +503,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     testDataTypeSql('BIGINT', DataTypes.BIGINT, {
       default: 'BIGINT',
       'sqlite snowflake': 'INTEGER',
-      oracle: 'NUMBER(19)',
+      oracle: 'NUMBER(19, 0)',
     });
 
     testDataTypeSql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
@@ -511,7 +511,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       'mysql mariadb': 'BIGINT UNSIGNED',
       // INTEGER in snowflake goes up to 99999999999999999999999999999999999999, which is enough to store an unsigned 64-bit integer.
       snowflake: 'INTEGER',
-      oracle: 'NUMBER(19)',
+      oracle: 'NUMBER(19, 0)',
     });
 
     testDataTypeSql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
@@ -523,14 +523,14 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       default: 'BIGINT',
       'sqlite snowflake': 'INTEGER',
       'mysql mariadb': 'BIGINT(11)',
-      oracle: 'NUMBER(19)',
+      oracle: 'NUMBER(19, 0)',
     });
 
     testDataTypeSql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
       default: 'BIGINT',
       'sqlite snowflake': 'INTEGER',
       'mysql mariadb': 'BIGINT(11)',
-      oracle: 'NUMBER(19)',
+      oracle: 'NUMBER(19, 0)',
     });
 
     testDataTypeSql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
@@ -538,7 +538,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
       default: unsignedUnsupportedError,
       'mysql mariadb': 'BIGINT(11) UNSIGNED',
       snowflake: 'INTEGER',
-      oracle: 'NUMBER(19)',
+      oracle: 'NUMBER(19, 0)',
     });
 
     testDataTypeSql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {

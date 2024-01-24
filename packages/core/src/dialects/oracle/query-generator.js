@@ -22,7 +22,7 @@ const Transaction = require('../../transaction');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -841,10 +841,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       };
     }
 
-    // TODO: Address on update cascade issue whether to throw error or ignore.
-    // Add this to documentation when merging to sequelize-main
-    // ON UPDATE CASCADE IS NOT SUPPORTED BY ORACLE.
-    attribute.onUpdate = '';
 
     // handle self referential constraints
     if (attribute.references) {
@@ -887,9 +883,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     } else if (attribute.type) {
       // setting it to false because oracle doesn't support unsigned int so put a check to make it behave like unsigned int
       let unsignedTemplate = '';
-      if (attribute.type._unsigned) {
-        attribute.type._unsigned = false;
-        unsignedTemplate += ` check(${this.quoteIdentifier(attribute.attributeName)} >= 0)`;
+      if (attribute.type?.options?.unsigned) {
+        attribute.type.options.unsigned = false;
+        unsignedTemplate += ` CHECK(${this.quoteIdentifier(options.attributeName)} >= 0)`;
       }
       template = attribute.type.toString();
 
