@@ -8,7 +8,7 @@ import clone from 'lodash/clone';
 import intersection from 'lodash/intersection';
 import isPlainObject from 'lodash/isPlainObject';
 import mapValues from 'lodash/mapValues';
-import {IsolationLevel} from "../../transaction";
+import { IsolationLevel } from '../../transaction';
 
 const { Op } = require('../../operators');
 const { AbstractQueryInterface } = require('../abstract/query-interface');
@@ -211,15 +211,16 @@ export class Db2QueryInterface extends AbstractQueryInterface {
         throw new Error(`Unknown isolation level: ${value}`);
     }
   }
+
   setIsolationLevel(transaction, value, options) {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new TypeError('Unable to set a transaction isolation level without transaction object!');
     }
 
     const isolationLevel = this.getIsolationLevel(value);
+
     return transaction.getConnection().setIsolationLevel(isolationLevel);
   }
-
 
   startTransaction(transaction, options) {
     if (!(transaction instanceof Transaction)) {
@@ -254,10 +255,10 @@ export class Db2QueryInterface extends AbstractQueryInterface {
     }
 
     options = {
-    ...options,
-    transaction: transaction.parent || transaction,
-    supportsSearchPath: false,
-    completesTransaction: true,
+      ...options,
+      transaction: transaction.parent || transaction,
+      supportsSearchPath: false,
+      completesTransaction: true,
     };
     options.transaction.name = transaction.parent ? transaction.name : undefined;
 
