@@ -6,7 +6,7 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { Cast } from '../../expression-builders/cast.js';
 import { Col } from '../../expression-builders/col.js';
 import { JsonPath } from '../../expression-builders/json-path.js';
-import { Literal } from '../../expression-builders/literal.js';
+import { Literal, SQL_NULL } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
@@ -290,11 +290,11 @@ export class WhereSqlBuilder {
 
         if (operator == null) {
           if (right === null && leftDataType instanceof DataTypes.JSON) {
-            throw new Error('Because JSON has two possible null values, comparing a JSON/JSONB attribute to NULL requires an explicit comparison operator. Use the `Op.is` operator to compare to SQL NULL, or the `Op.eq` operator to compare to JSON null.');
+            throw new Error(`When comparing against a JSON column, the JavaScript null value can be represented using either the JSON 'null', or the SQL NULL. You must be explicit about which one you mean by using Op.is or SQL_NULL for the SQL NULL; or Op.eq or JSON_NULL for the JSON 'null'. Learn more at https://sequelize.org/docs/v7/querying/json/`);
           }
 
           operator = Array.isArray(right) && !(leftDataType instanceof DataTypes.ARRAY) ? Op.in
-            : right === null ? Op.is
+            : (right === null || right === SQL_NULL) ? Op.is
             : Op.eq;
         }
 

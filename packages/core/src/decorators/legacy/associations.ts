@@ -9,10 +9,10 @@ import type {
   HasOneOptions,
 } from '../../associations/index.js';
 import {
-  BelongsTo as BelongsToAssociation,
-  BelongsToMany as BelongsToManyAssociation,
-  HasMany as HasManyAssociation,
-  HasOne as HasOneAssociation,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
+  HasManyAssociation,
+  HasOneAssociation,
 } from '../../associations/index.js';
 import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';

@@ -509,6 +509,11 @@ export abstract class AbstractDialect {
     return `'${value}'`;
   }
 
+  // Keep the logic of this class synchronized with the logic in the JSON DataType.
+  escapeJson(value: unknown): string {
+    return this.escapeString(JSON.stringify(value));
+  }
+
   /**
    * Whether this dialect can use \ in strings to escape string delimiters.
    *

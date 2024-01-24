@@ -71,3 +71,19 @@ export class Unquote extends DialectAwareFn {
     return dialect.queryGenerator.formatUnquoteJson(arg, options);
   }
 }
+
+class JsonNullClass extends DialectAwareFn {
+  get maxArgCount() {
+    return 0;
+  }
+
+  get minArgCount() {
+    return 0;
+  }
+
+  apply(dialect: AbstractDialect): string {
+    return dialect.escapeJson(null);
+  }
+}
+
+export const JSON_NULL = JsonNullClass.build();

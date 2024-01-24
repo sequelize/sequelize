@@ -3,14 +3,21 @@ import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type {
-  BelongsToMany,
+  BelongsToManyAssociation,
   BelongsToManySetAssociationsMixin,
   CreationOptional,
   InferAttributes,
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { AssociationError, BelongsTo, DataTypes, HasMany, HasOne, Model } from '@sequelize/core';
+import {
+  AssociationError,
+  BelongsToAssociation,
+  DataTypes,
+  HasManyAssociation,
+  HasOneAssociation,
+  Model,
+} from '@sequelize/core';
 import { createSequelizeInstance, getTestDialectTeaser, resetSequelizeInstance, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsToMany'), () => {
@@ -371,7 +378,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Place = sequelize.define('Place', {});
 
       const Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id', otherKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToMany;
+      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -395,7 +402,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       }, { timestamps: false });
 
       const Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id', otherKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToMany;
+      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -477,7 +484,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Place = sequelize.define('Place', { place_id: DataTypes.UUID });
 
       const Places = User.belongsToMany(Place, { through: 'user_places', sourceKey: 'user_id', targetKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToMany;
+      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -501,7 +508,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       }, { timestamps: false });
 
       const Places = User.belongsToMany(Place, { through: UserPlace, sourceKey: 'user_id', targetKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToMany;
+      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -538,11 +545,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(ProductTags.fromThroughToSource).to.be.an.instanceOf(BelongsTo);
-      expect(ProductTags.fromThroughToTarget).to.be.an.instanceOf(BelongsTo);
+      expect(ProductTags.fromThroughToSource).to.be.an.instanceOf(BelongsToAssociation);
+      expect(ProductTags.fromThroughToTarget).to.be.an.instanceOf(BelongsToAssociation);
 
-      expect(TagProducts.fromThroughToSource).to.be.an.instanceOf(BelongsTo);
-      expect(TagProducts.fromThroughToTarget).to.be.an.instanceOf(BelongsTo);
+      expect(TagProducts.fromThroughToSource).to.be.an.instanceOf(BelongsToAssociation);
+      expect(TagProducts.fromThroughToTarget).to.be.an.instanceOf(BelongsToAssociation);
 
       expect(ProductTags.fromThroughToSource.foreignKey).to.equal(ProductTags.foreignKey);
       expect(ProductTags.fromThroughToTarget.foreignKey).to.equal(ProductTags.otherKey);
@@ -575,11 +582,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(ProductTags.fromSourceToThrough).to.be.an.instanceOf(HasMany);
-      expect(ProductTags.fromTargetToThrough).to.be.an.instanceOf(HasMany);
+      expect(ProductTags.fromSourceToThrough).to.be.an.instanceOf(HasManyAssociation);
+      expect(ProductTags.fromTargetToThrough).to.be.an.instanceOf(HasManyAssociation);
 
-      expect(TagProducts.fromSourceToThrough).to.be.an.instanceOf(HasMany);
-      expect(TagProducts.fromTargetToThrough).to.be.an.instanceOf(HasMany);
+      expect(TagProducts.fromSourceToThrough).to.be.an.instanceOf(HasManyAssociation);
+      expect(TagProducts.fromTargetToThrough).to.be.an.instanceOf(HasManyAssociation);
 
       expect(ProductTags.fromSourceToThrough.foreignKey).to.equal(ProductTags.foreignKey);
       expect(ProductTags.fromTargetToThrough.foreignKey).to.equal(ProductTags.otherKey);
@@ -612,11 +619,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
       const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
 
-      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
-      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
       expect(ProductTags.fromSourceToThroughOne.foreignKey).to.equal(ProductTags.foreignKey);
       expect(ProductTags.fromTargetToThroughOne.foreignKey).to.equal(ProductTags.otherKey);
@@ -649,16 +656,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, sourceKey: 'productSecondaryId', targetKey: 'tagSecondaryId' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToMany;
+      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
 
       expect(ProductTags.foreignKey).to.equal('ProductProductSecondaryId', 'generated foreign key for source name (product) + source key (productSecondaryId) should result in ProductProductSecondaryId');
       expect(TagProducts.foreignKey).to.equal('TagTagSecondaryId');
 
-      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
-      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
       expect(TagProducts.fromSourceToThroughOne.sourceKey).to.equal(TagProducts.sourceKey);
       expect(TagProducts.fromTargetToThroughOne.sourceKey).to.equal(TagProducts.targetKey);
@@ -689,7 +696,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToMany;
+      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
 
       expect(ProductTags.fromThroughToSource).to.be.ok;
       expect(ProductTags.fromThroughToTarget).to.be.ok;
@@ -726,13 +733,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToMany;
+      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
 
-      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
-      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOne);
-      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOne);
+      expect(TagProducts.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
+      expect(TagProducts.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
 
       expect(ProductTags.fromSourceToThroughOne.foreignKey).to.equal(ProductTags.foreignKey);
       expect(ProductTags.fromTargetToThroughOne.foreignKey).to.equal(ProductTags.otherKey);
@@ -904,8 +911,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         },
       });
 
-      const MyUsers = Group.associations.MyUsers as BelongsToMany;
-      const MyGroups = User.associations.MyGroups as BelongsToMany;
+      const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
+      const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
       const throughModel = MyUsers.through.model;
 
       expect(Object.keys(throughModel.getAttributes()).sort())
@@ -939,8 +946,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         },
       });
 
-      const MyUsers = Group.associations.MyUsers as BelongsToMany;
-      const MyGroups = User.associations.MyGroups as BelongsToMany;
+      const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
+      const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
       expect(MyUsers.through.model === MyGroups.through.model);
 
@@ -1008,8 +1015,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         },
       });
 
-      const MyUsers = Group.associations.MyUsers as BelongsToMany;
-      const MyGroups = User.associations.MyGroups as BelongsToMany;
+      const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
+      const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
       const Through = MyUsers.through.model;
       expect(Through === MyGroups.through.model);
@@ -1062,8 +1069,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         },
       });
 
-      const MyUsers = Group.associations.MyUsers as BelongsToMany;
-      const MyGroups = User.associations.MyGroups as BelongsToMany;
+      const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
+      const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);

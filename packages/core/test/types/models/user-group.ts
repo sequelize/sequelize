@@ -1,8 +1,8 @@
 import type {
   CreationOptional,
-  HasMany,
   HasManyAddAssociationMixin,
   HasManyAddAssociationsMixin,
+  HasManyAssociation,
   HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin,
   HasManyGetAssociationsMixin,
@@ -25,7 +25,7 @@ export class UserGroup extends Model<
   InferCreationAttributes<UserGroup>
 > {
   static associations: {
-    users: HasMany<UserGroup, User>,
+    users: HasManyAssociation<UserGroup, User>,
   };
 
   declare id: CreationOptional<number>;
