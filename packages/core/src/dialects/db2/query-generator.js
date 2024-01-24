@@ -687,34 +687,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return '';
   }
 
-  setIsolationLevelQuery() {}
-
   generateTransactionId() {
     return randomBytes(10).toString('hex');
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'BEGIN TRANSACTION;';
-  }
-
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
-
-    return 'COMMIT TRANSACTION;';
-  }
-
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'ROLLBACK TRANSACTION;';
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {
