@@ -71,9 +71,6 @@ describe('Transaction', () => {
         'BEGIN DEFERRED TRANSACTION;',
         'PRAGMA read_uncommitted = ON;',
       ],
-      db2: [
-        'BEGIN TRANSACTION;',
-      ],
       mssql: [
         'BEGIN TRANSACTION;',
       ],
