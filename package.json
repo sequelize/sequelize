@@ -52,7 +52,7 @@
   ],
   "devDependencies": {
     "@ephys/eslint-config-typescript": "19.0.2",
-    "@rushstack/eslint-patch": "1.7.0",
+    "@rushstack/eslint-patch": "1.7.1",
     "@types/node": "20.11.5",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
