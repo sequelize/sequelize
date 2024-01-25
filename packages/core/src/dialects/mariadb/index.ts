@@ -64,7 +64,7 @@ export class MariaDbDialect extends AbstractDialect {
       createSchema: {
         charset: true,
         collate: true,
-        // TODO: uncomment when MariaDB 10.5 is oldest supported version
+        // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
         // comment: true,
         ifNotExists: true,
         replace: true,
