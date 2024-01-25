@@ -73,7 +73,7 @@
     "@types/ibm_db": "2.0.16",
     "@types/lodash": "4.14.202",
     "@types/mocha": "10.0.6",
-    "@types/pg": "8.10.9",
+    "@types/pg": "8.11.0",
     "@types/semver": "7.5.6",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
