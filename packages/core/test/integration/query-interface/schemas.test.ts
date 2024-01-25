@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core';
-import { DataTypes, sql } from '@sequelize/core';
+import { DataTypes, QueryTypes, sql } from '@sequelize/core';
 import { sequelize } from '../support';
 
 const { dialect } = sequelize;
@@ -34,21 +34,33 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
   if (dialect.supports.createSchema.authorization) {
     it('creates a schema with an authorization', async () => {
       if (dialect.name === 'mssql') {
-        // MSSQL requires a user to be created before creating a schema with an authorization
-        await sequelize.query('CREATE LOGIN [myUser] WITH PASSWORD = \'Password12!\'');
-        await sequelize.query('CREATE USER [myUser] FOR LOGIN [myUser]');
+        await sequelize.query(`IF SUSER_ID (N'myUser') IS NULL CREATE LOGIN [myUser] WITH PASSWORD = 'Password12!'`);
+        await sequelize.query(`IF DATABASE_PRINCIPAL_ID (N'myUser') IS NULL CREATE USER [myUser] FOR LOGIN [myUser]`);
+        await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
+      } else if (dialect.name === 'postgres') {
+        await sequelize.query(`DROP ROLE IF EXISTS "myUser"; CREATE ROLE "myUser" WITH LOGIN PASSWORD 'Password12!' CREATEDB`);
         await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
       } else {
         await queryInterface.createSchema(testSchema, { authorization: sql`CURRENT_USER` });
       }
 
+      if (['mssql', 'postgres'].includes(dialect.name)) {
+        const [result] = await sequelize.query<{ schema_owner: string }>(`SELECT schema_owner FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+        expect(result.schema_owner).to.equal('myUser');
+      } else if (dialect.name === 'db2') {
+        const [result] = await sequelize.query<{ OWNER: string }>(`SELECT OWNER FROM syscat.schemata WHERE SCHEMANAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+        expect(result.OWNER).to.equal('CURRENT_USER');
+      }
+
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
+      await queryInterface.dropSchema(testSchema);
       if (dialect.name === 'mssql') {
-        await queryInterface.dropSchema(testSchema);
         await sequelize.query('DROP USER [myUser]');
         await sequelize.query('DROP LOGIN [myUser]');
+      } else if (dialect.name === 'postgres') {
+        await sequelize.query('DROP ROLE "myUser"');
       }
     });
   }
