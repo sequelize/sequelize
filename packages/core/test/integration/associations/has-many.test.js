@@ -352,7 +352,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });
 
-          await Support.dropTestSchemas(this.sequelize);
           await this.sequelize.createSchema('work');
           await User.sync({ force: true });
           await Task.sync({ force: true });
@@ -456,11 +455,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks.length).to.equal(2);
           expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
+          await this.sequelize.queryInterface.dropAllTables({ schema: 'work' });
           await this.sequelize.dropSchema('work');
           const schemas = await this.sequelize.queryInterface.listSchemas();
-          if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
-            expect(schemas).to.be.empty;
-          }
+          expect(schemas).to.not.include('work');
         });
       });
     }

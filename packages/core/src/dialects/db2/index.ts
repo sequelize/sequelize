@@ -41,6 +41,9 @@ export class Db2Dialect extends AbstractDialect {
       changeSchema: false,
       changeSchemaAndTable: false,
     },
+    createSchema: {
+      authorization: true,
+    },
   });
 
   readonly defaultVersion = '1.0.0';

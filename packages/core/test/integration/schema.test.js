@@ -17,10 +17,6 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
     await this.sequelize.createSchema('testschema');
   });
 
-  afterEach(async function () {
-    await this.sequelize.dropSchema('testschema');
-  });
-
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       aNumber: { type: DataTypes.INTEGER },

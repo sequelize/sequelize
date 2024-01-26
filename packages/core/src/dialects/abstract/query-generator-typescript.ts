@@ -36,6 +36,8 @@ import type {
   AddConstraintQueryOptions,
   AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
   ListDatabasesQueryOptions,
@@ -62,6 +64,8 @@ export interface RemoveIndexQueryOptions {
 }
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateSchemaQueryOptions>(['authorization', 'charset', 'collate', 'comment', 'ifNotExists', 'replace']);
+export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQueryOptions>(['cascade', 'ifExists']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
 export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
@@ -181,6 +185,93 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
+  }
+
+  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string {
+    if (!this.dialect.supports.schemas) {
+      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+    }
+
+    if (options) {
+      const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateSchemaQueryOptions>();
+      if (this.dialect.supports.createSchema.authorization) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('authorization');
+      }
+
+      if (this.dialect.supports.createSchema.charset) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('charset');
+      }
+
+      if (this.dialect.supports.createSchema.collate) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('collate');
+      }
+
+      if (this.dialect.supports.createSchema.comment) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('comment');
+      }
+
+      if (this.dialect.supports.createSchema.ifNotExists) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifNotExists');
+      }
+
+      if (this.dialect.supports.createSchema.replace) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('replace');
+      }
+
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'CREATE',
+      options?.replace ? 'OR REPLACE' : '',
+      'SCHEMA',
+      options?.ifNotExists ? 'IF NOT EXISTS' : '',
+      this.quoteIdentifier(schemaName),
+      options?.authorization
+        ? `AUTHORIZATION ${options.authorization instanceof Literal ? this.formatLiteral(options.authorization) : this.quoteIdentifier(options.authorization)}`
+        : '',
+      options?.charset ? `DEFAULT CHARACTER SET ${this.escape(options.charset)}` : '',
+      options?.collate ? `DEFAULT COLLATE ${this.escape(options.collate)}` : '',
+      options?.comment ? `COMMENT ${this.escape(options.comment)}` : '',
+    ]);
+  }
+
+  dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
+    if (!this.dialect.supports.schemas) {
+      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+    }
+
+    if (options) {
+      const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>();
+      if (this.dialect.supports.dropSchema.cascade) {
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (this.dialect.supports.dropSchema.ifExists) {
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'dropSchemaQuery',
+        this.dialect.name,
+        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'DROP SCHEMA',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(schemaName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {

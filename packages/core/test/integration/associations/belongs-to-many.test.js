@@ -181,9 +181,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         AcmeUser.belongsToMany(AcmeProject, { through: AcmeProjectUsers });
         AcmeProject.belongsToMany(AcmeUser, { through: AcmeProjectUsers });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('acme');
-
         await Promise.all([
           AcmeUser.sync({ force: true }),
           AcmeProject.sync({ force: true }),
@@ -200,11 +198,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(project.UserProject).to.be.ok;
         expect(project.status).not.to.exist;
         expect(project.UserProject.status).to.equal('active');
+        await this.sequelize.queryInterface.dropAllTables({ schema: 'acme' });
         await this.sequelize.dropSchema('acme');
         const schemas = await this.sequelize.queryInterface.listSchemas();
-        if (['postgres', 'mssql', 'mariadb', 'ibmi'].includes(dialect)) {
-          expect(schemas).to.not.have.property('acme');
-        }
+        expect(schemas).to.not.include('acme');
       });
     }
 

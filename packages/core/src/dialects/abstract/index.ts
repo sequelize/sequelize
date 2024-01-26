@@ -237,6 +237,18 @@ export type DialectSupports = {
     changeSchema: boolean,
     changeSchemaAndTable: boolean,
   },
+  createSchema: {
+    authorization: boolean,
+    charset: boolean,
+    collate: boolean,
+    comment: boolean,
+    ifNotExists: boolean,
+    replace: boolean,
+  },
+  dropSchema: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -381,6 +393,18 @@ export abstract class AbstractDialect {
     renameTable: {
       changeSchema: true,
       changeSchemaAndTable: true,
+    },
+    createSchema: {
+      authorization: false,
+      charset: false,
+      collate: false,
+      comment: false,
+      ifNotExists: false,
+      replace: false,
+    },
+    dropSchema: {
+      cascade: false,
+      ifExists: false,
     },
   };
 

@@ -22,26 +22,6 @@ const { QueryTypes } = require('../../query-types');
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-    * Drop all schemas
-    *
-    * @param {object} [options] Query options
-    *
-    * @returns {Promise}
-    */
-
-  async dropAllSchemas(options) {
-    options = options || {};
-
-    if (!this.sequelize.dialect.supports.schemas) {
-      return this.sequelize.drop(options);
-    }
-
-    const schemas = await this.listSchemas(options);
-
-    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
    * Create a table with given set of attributes
    *
    * ```js

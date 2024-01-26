@@ -15,7 +15,6 @@ import {
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
@@ -27,8 +26,10 @@ import type {
   DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
+  DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiListSchemasOptions,
@@ -139,20 +140,40 @@ export class AbstractQueryInterfaceTypeScript {
    * @param schema Name of the schema
    * @param options
    */
-  async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const dropSchemaQuery: string | QueryWithBindParams = this.queryGenerator.dropSchemaQuery(schema);
+  async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
+    const sql = this.queryGenerator.dropSchemaQuery(schema, options);
+    await this.sequelize.queryRaw(sql, options);
+  }
 
-    let sql: string;
-    let queryRawOptions: undefined | QueryRawOptions;
-    if (typeof dropSchemaQuery === 'string') {
-      sql = dropSchemaQuery;
-      queryRawOptions = options;
-    } else {
-      sql = dropSchemaQuery.query;
-      queryRawOptions = { ...options, bind: dropSchemaQuery.bind };
+  /**
+   * Drops all schemas
+   *
+   * @param options
+   */
+  async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allSchemas = await this.listSchemas(options);
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default for dialects that support it
+    if (dropOptions.cascade === undefined) {
+      if (this.sequelize.dialect.supports.dropSchema.cascade) {
+        dropOptions.cascade = true;
+      } else {
+        // if the dialect does not support "cascade", then drop all tables first in a loop to avoid deadlocks and timeouts
+        for (const schema of schemaNames) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.dropAllTables({ ...dropOptions, schema });
+        }
+      }
     }
 
-    await this.sequelize.queryRaw(sql, queryRawOptions);
+    // Drop all the schemas in a loop to avoid deadlocks and timeouts
+    for (const schema of schemaNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropSchema(schema, dropOptions);
+    }
   }
 
   /**

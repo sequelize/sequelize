@@ -56,6 +56,9 @@ export class MssqlDialect extends AbstractDialect {
     renameTable: {
       changeSchemaAndTable: false,
     },
+    createSchema: {
+      authorization: true,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;

@@ -95,7 +95,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         Group.hasOne(User);
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('admin');
         await Group.sync({ force: true });
         await User.sync({ force: true });
@@ -112,11 +111,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(associatedUser).not.to.be.null;
         expect(associatedUser.id).to.equal(user.id);
         expect(associatedUser.id).not.to.equal(fakeUser.id);
+        await this.sequelize.queryInterface.dropAllTables({ schema: 'admin' });
         await this.sequelize.dropSchema('admin');
         const schemas = await this.sequelize.queryInterface.listSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-          expect(schemas).to.not.have.property('admin');
-        }
+        expect(schemas).to.not.include('admin');
       });
     }
   });
