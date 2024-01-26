@@ -24,7 +24,7 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
+      ibmi: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)$/),
       mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
     });
   });
@@ -41,7 +41,7 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
+      ibmi: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)$/),
       mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
     });
   });
@@ -65,8 +65,7 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       'mysql mariadb sqlite': toMatchSql('INSERT INTO `Users` (`firstName`) VALUES (\':injection\');'),
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
-      // TODO: db2 should use the same system as ibmi
-      ibmi: toMatchSql(`SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`),
+      ibmi: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (':injection')`),
     });
   });
 });

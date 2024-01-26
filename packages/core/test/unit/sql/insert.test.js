@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.bulkInsertQuery(User.table, [{ user_name: 'testuser', pass_word: '12345' }], { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys }, User.fieldRawAttributesMap),
         {
           default: 'INSERT INTO `users` (`user_name`,`pass_word`) VALUES (\'testuser\',\'12345\');',
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
+          ibmi: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\')',
           snowflake: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           mssql: 'INSERT INTO [users] ([user_name],[pass_word]) VALUES (N\'testuser\',N\'12345\');',
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
+            ibmi: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT)',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
           },

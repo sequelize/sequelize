@@ -8,16 +8,27 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
+  protected supportsNativeBooleans() {
+    const databaseVersion
+      = Number.parseFloat(this._getDialect().sequelize.options.databaseVersion || this._getDialect().defaultVersion);
+
+    return databaseVersion >= 7.5;
+  }
+
   escape(value: boolean | Falsy): string {
-    return value ? '1' : '0';
+    return this.supportsNativeBooleans() ? super.escape(value) : value ? '1' : '0';
+  }
+
+  parseDatabaseValue(value: unknown): boolean {
+    return this.supportsNativeBooleans() ? value === 'TRUE' : value === 1;
   }
 
   toBindableValue(value: boolean | Falsy): unknown {
-    return value ? 1 : 0;
+    return this.supportsNativeBooleans() ? super.toBindableValue(value) : value ? 1 : 0;
   }
 
   toSql() {
-    return 'SMALLINT';
+    return this.supportsNativeBooleans() ? super.toSql() : 'SMALLINT';
   }
 }
 

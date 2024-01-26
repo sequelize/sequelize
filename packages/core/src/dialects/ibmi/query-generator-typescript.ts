@@ -178,7 +178,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   // Version queries
   versionQuery() {
-    return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
+    return `SELECT CONCAT(OS_VERSION, CONCAT('.', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO`;
   }
 
   tableExistsQuery(tableName: TableNameOrModel): string {
