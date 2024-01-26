@@ -44,6 +44,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
         await queryInterface.createSchema(testSchema, { authorization: sql`CURRENT_USER` });
       }
 
+      const postCreationSchemas = await queryInterface.listSchemas();
+      expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
       if (['mssql', 'postgres'].includes(dialect.name)) {
         const [result] = await sequelize.query<{ schema_owner: string }>(`SELECT schema_owner FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
         expect(result.schema_owner).to.equal('myUser');
@@ -51,9 +54,6 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
         const [result] = await sequelize.query<{ OWNER: string }>(`SELECT OWNER FROM syscat.schemata WHERE SCHEMANAME = '${testSchema}'`, { type: QueryTypes.SELECT });
         expect(result.OWNER).to.equal('CURRENT_USER');
       }
-
-      const postCreationSchemas = await queryInterface.listSchemas();
-      expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
       await queryInterface.dropSchema(testSchema);
       if (dialect.name === 'mssql') {
@@ -70,6 +70,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       await queryInterface.createSchema(testSchema, { charset: 'utf8mb4' });
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
+      const [result] = await sequelize.query<{ DEFAULT_CHARACTER_SET_NAME: string }>(`SELECT DEFAULT_CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      expect(result.DEFAULT_CHARACTER_SET_NAME).to.equal('utf8mb4');
     });
   }
 
@@ -78,6 +81,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       await queryInterface.createSchema(testSchema, { collate: 'latin2_general_ci' });
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
+      const [result] = await sequelize.query<{ DEFAULT_COLLATION_NAME: string }>(`SELECT DEFAULT_COLLATION_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      expect(result.DEFAULT_COLLATION_NAME).to.equal('latin2_general_ci');
     });
   }
 
@@ -86,22 +92,36 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       await queryInterface.createSchema(testSchema, { comment: 'myComment' });
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
+      const [result] = await sequelize.query<{ SCHEMA_COMMENT: string }>(`SELECT SCHEMA_COMMENT FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      expect(result.SCHEMA_COMMENT).to.equal('myComment');
     });
   }
 
   if (dialect.supports.createSchema.ifNotExists) {
     it('does not throw if the schema already exists', async () => {
       await queryInterface.createSchema(testSchema);
+      const postCreationSchemas = await queryInterface.listSchemas();
+      expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
       await queryInterface.createSchema(testSchema, { ifNotExists: true });
+      const postReplaceSchemas = await queryInterface.listSchemas();
+      expect(postReplaceSchemas).to.include(testSchema, 'createSchema did not create testSchema');
     });
   }
 
   if (dialect.supports.createSchema.replace) {
     it('replaces a schema if it already exists', async () => {
       await queryInterface.createSchema(testSchema);
+      const postCreationSchemas = await queryInterface.listSchemas();
+      expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
+
       await queryInterface.createTable({ tableName: 'testTable', schema: testSchema }, { id: { type: DataTypes.INTEGER, primaryKey: true } });
       await queryInterface.createSchema(testSchema, { replace: true });
-      expect(await queryInterface.listTables()).to.be.empty;
+      const postReplaceSchemas = await queryInterface.listSchemas();
+      const postReplaceTables = await queryInterface.listTables({ schema: testSchema });
+      expect(postReplaceSchemas).to.include(testSchema, 'createSchema did not replace testSchema');
+      expect(postReplaceTables).to.be.empty;
     });
   }
 
