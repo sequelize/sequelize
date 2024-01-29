@@ -95,6 +95,8 @@ jobs:
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+      - name: Unit tests (oracle)
+        run: yarn lerna run test-unit-oracle --scope=@sequelize/core
   test-win:
     strategy:
       fail-fast: false
@@ -208,6 +210,43 @@ jobs:
         run: yarn workspace @sequelize/core add pg-native
         if: matrix.native
       - run: yarn start-postgres-${{ matrix.postgres-version }}
+      - name: Integration Tests
+        run: yarn lerna run test-integration --scope=@sequelize/core
+  test-oracle:
+    strategy:
+      fail-fast: false
+      matrix:
+        oracle-version: [18, 21]
+        node-version: [18, 20]
+    name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    needs: [ unit-test, test-typings ]
+    env:
+      DIALECT: oracle
+      SEQ_ORACLE_USER: sequelizetest
+      SEQ_ORACLE_PW: sequelizepassword
+      SEQ_ORACLE_DB: XEPDB1
+      SEQ_ORACLE_HOST: localhost
+      SEQ_ORACLE_PORT: 1521
+    steps:
+      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+        with:
+          name: install-build-artifact-node-${{ matrix.node-version }}
+      - name: Extract artifact
+        run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Install oracledb
+        run: yarn workspace @sequelize/core add oracledb
+      - if: matrix.oracle-version == '18'
+        name: Install Local Oracle DB 18
+        run: yarn start-oracle-oldest
+      - if: matrix.oracle-version == '21'
+        name: Install Local Oracle DB 21
+        run: yarn start-oracle-latest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
   test-oldest-latest:

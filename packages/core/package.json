@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/core",
-  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
+  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, Oracle and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
   "version": "0.0.0-development",
   "funding": [
     {
@@ -150,6 +150,7 @@
     "sql",
     "sqlserver",
     "snowflake",
+    "oracledb",
     "orm",
     "nodejs",
     "object relational mapper",
@@ -197,7 +198,8 @@
     "test-integration-db2": "cross-env DIALECT=db2 yarn test-integration",
     "test-integration-ibmi": "cross-env DIALECT=ibmi yarn test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake yarn test-integration",
-    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake",
+    "test-integration-oracle": "cross-env DIALECT=oracle yarn test-integration",
+    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake && yarn test-integration-oracle",
     "----------------------------------------- all tests ---------------------------------------------": "",
     "test-mariadb": "cross-env DIALECT=mariadb yarn test",
     "test-mysql": "cross-env DIALECT=mysql yarn test",
@@ -207,6 +209,7 @@
     "test-mssql": "cross-env DIALECT=mssql yarn test",
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
+    "test-oracle": "cross-env DIALECT=oracle yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "node ../../build-packages.mjs core"
   },

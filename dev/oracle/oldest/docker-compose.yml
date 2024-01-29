@@ -1,0 +1,17 @@
+# Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+
+services:
+  oraclexedb:
+    container_name: oraclexedb
+    image: gvenzl/oracle-xe:18-slim
+    environment:
+      ORACLE_PASSWORD: password
+    ports:
+      - 1521:1521
+    healthcheck:
+      test: ["CMD-SHELL", "sqlplus", "system/password@XEPDB1"]
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-oraclexedb-network
