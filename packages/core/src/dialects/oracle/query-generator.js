@@ -253,60 +253,32 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       });
     }
 
-    if (options && !!options.uniqueKeys) {
+    if (options?.uniqueKeys) {
+      // only need to sort primary keys once, don't do it in place
+      let sortedPrimaryKeys = [...primaryKeys];
+      sortedPrimaryKeys = sortedPrimaryKeys.map(elem => {
+        return elem.replace(/[.,"\s]/g, '');
+      });
+      sortedPrimaryKeys.sort();
       _.each(options.uniqueKeys, (columns, indexName) => {
-        let canBeUniq = false;
-
-        // Check if we can create the unique key
-        primaryKeys.forEach(primaryKey => {
-          // We can create an unique constraint if it's not on the primary key AND if it doesn't have unique in its definition
-          // We replace quotes in primary key with ''
-          // Primary key would be a list with double quotes in it so we remove the double quotes
-          primaryKey = primaryKey.replace(/"/g, '');
-
-          // We check if the unique indexes are already a part of primary key or not
-          // If it is not then we set canbeuniq to true and add a unique constraint to these fields.
-          // Else we can ignore unique constraint on these
-          if (!_.includes(columns.fields, primaryKey)) {
-            canBeUniq = true;
-          }
-        });
-
-        columns.fields.forEach(field => {
-          let currField = '';
-          if (!_.isString(field)) {
-            currField = field.attribute.replace(/[.,"\s]/g, '');
-          } else {
-            currField = field.replace(/[.,"\s]/g, '');
-          }
-          if (currField in attributes) {
-            // If canBeUniq is false we need not replace the UNIQUE for the attribute
-            // So we replace UNIQUE with '' only if there exists a primary key
-            if (attributes[currField].toUpperCase().indexOf('UNIQUE') > -1 && canBeUniq) {
-              // We generate the attribute without UNIQUE
-              const attrToReplace = attributes[currField].replace('UNIQUE', '');
-              // We replace in the final string
-              values.attributes = values.attributes.replace(attributes[currField], attrToReplace);
-            }
-          }
-        });
-
-        // Oracle cannot have an unique AND a primary key on the same fields, prior to the primary key
-        if (canBeUniq) {
-          const index = options.uniqueKeys[columns.name];
-          delete options.uniqueKeys[columns.name];
-          indexName = indexName.replace(/[.,\s]/g, '');
-          columns.name = indexName;
-          options.uniqueKeys[indexName] = index;
-
-          // Autogenerate Constraint name, if no indexName is given
-          if (indexName.length === 0) {
-            values.attributes += `,UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
-          } else {
-            values.attributes +=
-              `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
-          }
+        const sortedColumnFields = [...columns.fields];
+        sortedColumnFields.sort();
+        // if primary keys === unique keys, then skip adding new constraint
+        const uniqueIsPrimary
+          = sortedColumnFields.length === primaryKeys.length
+          && sortedColumnFields.every((value, index) => {
+            return value === sortedPrimaryKeys[index];
+          });
+        if (uniqueIsPrimary) {
+          return true;
         }
+
+        // generate Constraint name, if no indexName is given
+        if (typeof indexName !== 'string') {
+          indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
+        }
+        values.attributes +=
+          `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -910,20 +882,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       template += unsignedTemplate;
     } else {
       template = '';
-    }
-
-    // attribute (modelDefinition.physicalAttributes) doesn't contain unique. Thus, fetching
-    // from rawAttribute. For changeColumn context, if rawAttributes has unique, then
-    // unique constraint already exists on that column.
-    let modelDefinition, rawAttributes;
-    if (attribute.Model) {
-      modelDefinition = attribute.Model.modelDefinition;
-      rawAttributes = modelDefinition.rawAttributes;
-      let attrName = attribute.attributeName || options.attributeName;
-      if (rawAttributes[attrName].unique === true && !attribute.primaryKey &&
-          options.context !== 'changeColumn') {
-        template += ' UNIQUE';
-      }
     }
 
     if (attribute.primaryKey) {

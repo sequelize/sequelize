@@ -26,7 +26,8 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
       ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
       mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
-      oracle: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\d+'\))$/),
+      // oracle uses `executeMany()` provided by node-oracledb driver and passes the value with binds
+      oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/),
     });
   });
 
@@ -44,7 +45,7 @@ describe('QueryInterface#bulkInsert', () => {
       default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
       ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
       mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
-      oracle: toMatchRegex(/^INSERT INTO \"Users\" \(\"firstName\"\) VALUES (?:\('\d+'\))$/),
+      oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/),
     });
   });
 

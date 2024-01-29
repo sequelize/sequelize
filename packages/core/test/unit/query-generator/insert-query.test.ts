@@ -4,6 +4,7 @@ import { expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,
@@ -127,7 +128,8 @@ describe('QueryGenerator#insertQuery', () => {
       });
     });
 
-    it('supports array of strings (column names)', () => {
+    // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
+    (dialect.name === 'oracle' ? it.skip :it)('supports array of strings (column names)', () => {
       const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
@@ -144,11 +146,11 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
-        oracle: `ad`,
       });
     });
 
-    it('supports array of literals', () => {
+    // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
+    (dialect.name === 'oracle' ? it.skip :it)('supports array of literals', () => {
 
       expectsql(() => {
         return queryGenerator.insertQuery(User.table, {
@@ -166,7 +168,6 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
-        oracle: `asdf`,
       });
     });
 

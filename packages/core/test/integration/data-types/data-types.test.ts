@@ -702,7 +702,7 @@ describe('DataTypes', () => {
           return { User };
         });
 
-        it.only('rejects out-of-range numbers', async () => {
+        it('rejects out-of-range numbers', async () => {
           if (dialect.name === 'oracle') {
             await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be.rejected;
           }
