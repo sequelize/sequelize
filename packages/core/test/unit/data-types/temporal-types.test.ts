@@ -1,4 +1,5 @@
 import { expect } from 'chai';
+import { gte } from 'semver';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
@@ -122,6 +123,161 @@ describe('DataTypes.DATEONLY', () => {
         expect(type.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
       });
     }
+  });
+});
+
+describe('DataTypes.DATETIME', () => {
+  const unsupportedError = new TypeError(`${dialect.name} does not support the DATETIME data type. Please use DATETIME.OFFSET, DATETIME.ZONED or DATETIME.PLAIN instead.`);
+  describe('toSql', () => {
+    testDataTypeSql('DATETIME', DataTypes.DATETIME, {
+      default: unsupportedError,
+    });
+
+    testDataTypeSql('DATETIME(0)', DataTypes.DATETIME(0), {
+      default: unsupportedError,
+    });
+
+    testDataTypeSql('DATETIME(6)', DataTypes.DATETIME(6), {
+      default: unsupportedError,
+    });
+  });
+});
+
+describe('DataTypes.DATETIME.OFFSET', () => {
+  describe('toSql', () => {
+    const unsupportedError = new TypeError(`${dialect.name} does not support the DATETIME.OFFSET data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    testDataTypeSql('DATETIME.OFFSET', DataTypes.DATETIME.OFFSET, {
+      default: unsupportedError,
+      'postgres snowflake': 'TIMESTAMP WITH TIME ZONE',
+      mssql: 'DATETIMEOFFSET',
+      sqlite: 'TEXT',
+    });
+
+    testDataTypeSql('DATETIME(0).OFFSET', DataTypes.DATETIME(0).OFFSET, {
+      default: unsupportedError,
+      'postgres snowflake': 'TIMESTAMP(0) WITH TIME ZONE',
+      mssql: 'DATETIMEOFFSET(0)',
+      sqlite: 'TEXT',
+    });
+
+    testDataTypeSql('DATETIME(6).OFFSET', DataTypes.DATETIME(6).OFFSET, {
+      default: unsupportedError,
+      'postgres snowflake': 'TIMESTAMP(6) WITH TIME ZONE',
+      mssql: 'DATETIMEOFFSET(6)',
+      sqlite: 'TEXT',
+    });
+  });
+
+  if (dialect.supports.dataTypes.DATETIME.offset && gte(process.version, 'v19.0.0')) {
+    const type = DataTypes.DATETIME().OFFSET.toDialectDataType(dialect);
+    describe('validate', () => {
+      it('should throw an error if `value` is invalid', () => {
+        expect(() => {
+          type.validate('foobar');
+        }).to.throw(ValidationErrorItem, `'foobar' is not a valid date`);
+      });
+
+      it('does not throw if the value is a date string or Date object', () => {
+        expect(() => type.validate(now)).not.to.throw();
+        expect(() => type.validate(nowString)).not.to.throw();
+      });
+
+      it('does not throw if the value is a Temporal.Instant string or object', () => {
+        expect(() => type.validate('2021-01-01T00:00:00Z')).not.to.throw();
+        expect(() => type.validate(Temporal.Instant.from('2021-01-01T00:00:00Z'))).not.to.throw();
+      });
+    });
+
+    describe('sanitize', () => {
+      it('sanitizes a Date object or string to a Temporal.Instant object', () => {
+        expect(type.sanitize(now)).to.be.instanceOf(Temporal.Instant);
+        expect(type.sanitize(nowString)).to.be.instanceOf(Temporal.Instant);
+      });
+
+      it('sanitizes a Temporal.Instant string or object to a Temporal.Instant object', () => {
+        expect(type.sanitize('2021-01-01T00:00:00Z')).to.be.instanceOf(Temporal.Instant);
+        expect(type.sanitize(Temporal.Instant.from('2021-01-01T00:00:00Z'))).to.be.instanceOf(Temporal.Instant);
+      });
+    });
+  }
+});
+
+describe('DataTypes.DATETIME.PLAIN', () => {
+  describe('toSql', () => {
+    testDataTypeSql('DATETIME.PLAIN', DataTypes.DATETIME.PLAIN, {
+      'db2 ibmi postgres': 'TIMESTAMP',
+      'mariadb mysql': 'DATETIME',
+      mssql: 'DATETIME2',
+      snowflake: 'TIMESTAMP WITHOUT TIME ZONE',
+      sqlite: 'TEXT',
+    });
+
+    testDataTypeSql('DATETIME(0).PLAIN', DataTypes.DATETIME(0).PLAIN, {
+      'db2 ibmi postgres': 'TIMESTAMP(0)',
+      'mariadb mysql': 'DATETIME(0)',
+      mssql: 'DATETIME2(0)',
+      snowflake: 'TIMESTAMP(0) WITHOUT TIME ZONE',
+      sqlite: 'TEXT',
+    });
+
+    testDataTypeSql('DATETIME(6).PLAIN', DataTypes.DATETIME(6).PLAIN, {
+      'db2 ibmi postgres': 'TIMESTAMP(6)',
+      'mariadb mysql': 'DATETIME(6)',
+      mssql: 'DATETIME2(6)',
+      snowflake: 'TIMESTAMP(6) WITHOUT TIME ZONE',
+      sqlite: 'TEXT',
+    });
+  });
+
+  if (dialect.supports.dataTypes.DATETIME.plain && gte(process.version, 'v19.0.0')) {
+    const type = DataTypes.DATETIME().PLAIN.toDialectDataType(dialect);
+    describe('validate', () => {
+      it('should throw an error if `value` is invalid', () => {
+        expect(() => {
+          type.validate('foobar');
+        }).to.throw(ValidationErrorItem, `'foobar' is not a valid date`);
+      });
+
+      it('throws an error if the value is a ISO string or Date object', () => {
+        expect(() => type.validate(now)).to.throw();
+        expect(() => type.validate(nowString)).to.throw();
+      });
+
+      it('does not throw if the value is a Temporal.PlainDateTime string or object', () => {
+        expect(() => type.validate('2021-01-01T00:00:00')).not.to.throw();
+        expect(() => type.validate(Temporal.PlainDateTime.from('2021-01-01T00:00:00'))).not.to.throw();
+      });
+    });
+
+    describe('sanitize', () => {
+      it('does not sanitize a Date object or string to a Temporal.PlainDateTime object', () => {
+        expect(() => type.sanitize(now)).to.throw();
+        expect(() => type.sanitize(nowString)).to.throw();
+      });
+
+      it('sanitizes a Temporal.PlainDateTime string or object to a Temporal.PlainDateTime object', () => {
+        expect(type.sanitize('2021-01-01T00:00:00')).to.be.instanceOf(Temporal.PlainDateTime);
+        expect(type.sanitize(Temporal.PlainDateTime.from('2021-01-01T00:00:00'))).to.be.instanceOf(Temporal.PlainDateTime);
+      });
+    });
+  }
+});
+
+describe('DataTypes.DATETIME.ZONED', () => {
+  describe('toSql', () => {
+    const unsupportedError = new TypeError(`${dialect.name} does not support the DATETIME.ZONED data type.
+      As a workaround, you can split the attribute into two columns, one for the plain datetime and one for the timezone.`);
+    testDataTypeSql('DATETIME.ZONED', DataTypes.DATETIME.ZONED, {
+      default: unsupportedError,
+    });
+
+    testDataTypeSql('DATETIME(0).ZONED', DataTypes.DATETIME(0).ZONED, {
+      default: unsupportedError,
+    });
+
+    testDataTypeSql('DATETIME(6).ZONED', DataTypes.DATETIME(6).ZONED, {
+      default: unsupportedError,
+    });
   });
 });
 

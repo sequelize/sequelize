@@ -52,7 +52,7 @@ export class PostgresDialect extends AbstractDialect {
       HSTORE: true,
       TSVECTOR: true,
       CITEXT: true,
-      DATETIME: { infinity: true },
+      DATETIME: { infinity: true, offset: true, plain: true },
       DATEONLY: { infinity: true },
       FLOAT: { NaN: true, infinity: true },
       REAL: { NaN: true, infinity: true },

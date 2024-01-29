@@ -5,7 +5,7 @@ import type { GeoJson } from '../../geo-json.js';
 import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import * as BaseTypes from '../abstract/data-types.js';
-import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
+import type { AcceptedDate, AcceptedDateTime, BindParamOptions } from '../abstract/data-types.js';
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
@@ -51,6 +51,24 @@ export class DATE extends BaseTypes.DATE {
     }
 
     return super.sanitize(value);
+  }
+}
+
+export class DATETIME extends BaseTypes.DATETIME {
+  toSql() {
+    let result = 'DATETIME';
+
+    if (this.options.precision != null) {
+      result += `(${this.options.precision})`;
+    }
+
+    return result;
+  }
+
+  toBindableValue(date: AcceptedDateTime) {
+    const value = super.toBindableValue(date);
+
+    return value.replace('T', ' ');
   }
 }
 

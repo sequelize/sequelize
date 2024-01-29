@@ -41,6 +41,8 @@ export const DATE = classToInvokable(DataTypes.DATE);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const DATEONLY = classToInvokable(DataTypes.DATEONLY);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
+export const DATETIME = classToInvokable(DataTypes.DATETIME);
+/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const BOOLEAN = classToInvokable(DataTypes.BOOLEAN);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const NOW = classToInvokable(DataTypes.NOW);
