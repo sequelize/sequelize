@@ -75,6 +75,7 @@ export const AfterBulkUpdate = createHookDecorator('afterBulkUpdate');
 export const BeforeAssociate = createHookDecorator('beforeAssociate');
 export const AfterAssociate = createHookDecorator('afterAssociate');
 
+export const AfterCount = createHookDecorator('afterCount');
 export const BeforeCount = createHookDecorator('beforeCount');
 
 export const BeforeCreate = createHookDecorator('beforeCreate');
