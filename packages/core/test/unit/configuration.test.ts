@@ -193,11 +193,11 @@ describe('Sequelize constructor', () => {
     });
 
     it('priorises the ?host querystring parameter over the rest of the URI', () => {
-      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=example.com`);
+      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
 
       const options = sequelize.options;
-      expect(options.host).to.equal('example.com');
-      expect(options.replication.write.host).to.equal('example.com');
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
     it('supports connection strings in replication options', async () => {

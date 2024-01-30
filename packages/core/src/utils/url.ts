@@ -3,6 +3,7 @@ import { URL } from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
 import type { Dialect, DialectOptions, Options } from '../sequelize';
+import { encodeHost } from './deprecations';
 
 /**
  * Parses a connection string into an Options object with connection properties
@@ -33,7 +34,7 @@ export function parseConnectionString(connectionString: string): Options {
 
   if (urlObject.hostname != null) {
     // TODO: rename options.host to options.hostname, as host can accept a port while hostname can't
-    options.host = urlObject.hostname;
+    options.host = decodeURIComponent(urlObject.hostname);
   }
 
   if (urlObject.pathname) {
@@ -57,8 +58,10 @@ export function parseConnectionString(connectionString: string): Options {
     // Allow host query argument to override the url host.
     // Enables specifying domain socket hosts which cannot be specified via the typical
     // host part of a url.
+    // TODO: remove this workaround in Sequelize 8
     if (urlObject.searchParams.has('host')) {
-      options.host = urlObject.searchParams.get('host')!;
+      encodeHost();
+      options.host = decodeURIComponent(urlObject.searchParams.get('host')!);
     }
 
     if (options.dialect === 'sqlite' && urlObject.pathname) {
