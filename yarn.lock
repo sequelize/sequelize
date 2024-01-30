@@ -2258,7 +2258,7 @@ __metadata:
     nx: "npm:17.3.0"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
-    typedoc: "npm:0.25.4"
+    typedoc: "npm:0.25.7"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.14"
     typedoc-plugin-missing-exports: "npm:2.2.0"
@@ -12072,7 +12072,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"shiki@npm:^0.14.1":
+"shiki@npm:^0.14.7":
   version: 0.14.7
   resolution: "shiki@npm:0.14.7"
   dependencies:
@@ -13363,19 +13363,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.25.4":
-  version: 0.25.4
-  resolution: "typedoc@npm:0.25.4"
+"typedoc@npm:0.25.7":
+  version: 0.25.7
+  resolution: "typedoc@npm:0.25.7"
   dependencies:
     lunr: "npm:^2.3.9"
     marked: "npm:^4.3.0"
     minimatch: "npm:^9.0.3"
-    shiki: "npm:^0.14.1"
+    shiki: "npm:^0.14.7"
   peerDependencies:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x
   bin:
     typedoc: bin/typedoc
-  checksum: 2790b3f16b26a477cfc9b72f81b4f209c885c554f9c7b2557d5d85ea4c8bd6a51584af8d29eec123a26398c4986f52b0c3c7a9c32352a223c33a96bd211f288f
+  checksum: e663be0534dd56f45f041a478ee0613a1bf96cad7208a5cfc771981c904d0f30d8dca51956486f125f8004237264acc5dd45920fa6a0a32e351e36d74279abb1
   languageName: node
   linkType: hard
 
