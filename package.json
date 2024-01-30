@@ -53,7 +53,7 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "19.0.2",
     "@rushstack/eslint-patch": "1.7.2",
-    "@types/node": "20.11.10",
+    "@types/node": "20.11.11",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -78,7 +78,7 @@
     "typedoc-plugin-missing-exports": "2.2.0",
     "typescript": "5.2.2"
   },
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }
