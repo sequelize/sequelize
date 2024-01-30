@@ -172,11 +172,16 @@ export class ValidationErrorItem extends Error {
    *
    * @param useTypeAsNS controls whether the returned value is "namespace",
    *                    this parameter is ignored if the validator's `type` is not one of ValidationErrorItem.Origins
-   * @param NSSeparator a separator string for concatenating the namespace, must be not be empty,
-   *                    defaults to "." (fullstop). only used and validated if useTypeAsNS is TRUE.
    * @throws {Error}    thrown if NSSeparator is found to be invalid.
    */
   getValidatorKey(useTypeAsNS: false): string;
+
+  /**
+   * @param useTypeAsNS controls whether the returned value is "namespace",
+   *                    this parameter is ignored if the validator's `type` is not one of ValidationErrorItem.Origins
+   * @param NSSeparator a separator string for concatenating the namespace, must be not be empty,
+   *                    defaults to "." (fullstop). only used and validated if useTypeAsNS is TRUE.
+   */
   getValidatorKey(useTypeAsNS?: true, NSSeparator?: string): string;
   getValidatorKey(useTypeAsNS: boolean = true, NSSeparator: string = '.'): string {
     const useTANS = useTypeAsNS === undefined || Boolean(useTypeAsNS);

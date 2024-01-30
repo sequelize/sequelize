@@ -2957,9 +2957,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If called with a dot.seperated key on a JSON/JSONB attribute it will set the value nested and flag the
    * entire object as changed.
-   *
-   * @param options.raw If set to true, field and virtual setters will be ignored
-   * @param options.reset Clear all previously set data values
    */
   // TODO: 'key' accepts nested paths for JSON values (json.property)
   set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
