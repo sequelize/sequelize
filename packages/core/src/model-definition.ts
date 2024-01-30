@@ -921,7 +921,8 @@ export function mergeModelOptions(
           // @ts-expect-error -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, optionValue[hookType]];
         } else {
-          // @ts-expect-error -- typescript doesn't like this merge algorithm.
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
+          // @ts-ignore -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, ...optionValue[hookType]];
         }
       }
