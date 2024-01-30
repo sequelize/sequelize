@@ -921,6 +921,7 @@ export function mergeModelOptions(
           // @ts-expect-error -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, optionValue[hookType]];
         } else {
+          // @ts-expect-error -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, ...optionValue[hookType]];
         }
       }
