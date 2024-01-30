@@ -13,9 +13,9 @@ export function parseConnectionString(connectionString: string): Options {
   const options: Options = {};
 
   // The following connectionStrings are not valid URLs, but they are supported by sqlite.
-  if (connectionString.toLowerCase() === 'sqlite://:memory:' || connectionString.toLowerCase() === 'sqlite::memory:') {
+  if (connectionString === 'sqlite://:memory:' || connectionString === 'sqlite::memory:') {
     options.dialect = 'sqlite';
-    options.host = '';
+    options.storage = ':memory:';
 
     return options;
   }
@@ -32,6 +32,7 @@ export function parseConnectionString(connectionString: string): Options {
   }
 
   if (urlObject.hostname != null) {
+    // TODO: rename options.host to options.hostname, as host can accept a port while hostname can't
     options.host = urlObject.hostname;
   }
 
@@ -52,17 +53,18 @@ export function parseConnectionString(connectionString: string): Options {
     options.password = decodeURIComponent(urlObject.password);
   }
 
-  if (options.dialect === 'sqlite' && urlObject.pathname) {
-    const storagePath = path.join(options.host!, urlObject.pathname);
-    options.storage = path.resolve(options.storage || storagePath);
-  }
-
   if (urlObject.searchParams) {
     // Allow host query argument to override the url host.
     // Enables specifying domain socket hosts which cannot be specified via the typical
     // host part of a url.
     if (urlObject.searchParams.has('host')) {
       options.host = urlObject.searchParams.get('host')!;
+    }
+
+    if (options.dialect === 'sqlite' && urlObject.pathname) {
+      const storagePath = path.join(options.host!, urlObject.pathname);
+      delete options.host;
+      options.storage = path.resolve(options.storage || storagePath);
     }
 
     options.dialectOptions = Object.fromEntries(urlObject.searchParams.entries());
