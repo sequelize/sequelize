@@ -582,11 +582,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
           expect(foreignKeys).to.have.length(1);
           expect(foreignKeys[0]).to.deep.equal({
-            ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+            ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
             constraintSchema: schema,
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+            ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
             tableSchema: schema,
             tableName: 'actors',
             columnNames: ['level_id'],
@@ -611,11 +611,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
           expect(foreignKeys).to.have.length(1);
           expect(foreignKeys[0]).to.deep.equal({
-            ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+            ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
             constraintSchema: sequelize.dialect.getDefaultSchema(),
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+            ...['mssql', 'postgres', 'cockroachdb'].includes(dialect) && { tableCatalog: 'sequelize_test' },
             tableSchema: sequelize.dialect.getDefaultSchema(),
             tableName: 'actors',
             columnNames: ['level_id'],
