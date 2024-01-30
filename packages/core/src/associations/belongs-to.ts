@@ -23,8 +23,8 @@ import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import { Association } from './base';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
-import { HasMany } from './has-many.js';
-import { HasOne } from './has-one.js';
+import { HasManyAssociation } from './has-many.js';
+import { HasOneAssociation } from './has-one.js';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 
@@ -32,7 +32,7 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
  * One-to-one association
  * See {@link Model.belongsTo}
  *
- * This is almost the same as {@link HasOne}, but the foreign key will be defined on the source model.
+ * This is almost the same as {@link HasOneAssociation}, but the foreign key will be defined on the source model.
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
  *
@@ -41,7 +41,8 @@ import type { NormalizeBaseAssociationOptions } from './helpers';
  * @typeParam SourceKey The name of the Foreign Key attribute on the Source model.
  * @typeParam TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
  */
-export class BelongsTo<
+// Note: this class is named BelongsToAssociation instead of BelongsTo to prevent naming conflicts with the BelongsTo decorator
+export class BelongsToAssociation<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
@@ -69,7 +70,7 @@ export class BelongsTo<
 
   /**
    * The name of the attribute the foreign key points to.
-   * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOne.sourceKey}).
+   * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOneAssociation.sourceKey}).
    * The {@link Association.foreignKey} is on the Source Model.
    */
   targetKey: TargetKey;
@@ -83,7 +84,7 @@ export class BelongsTo<
   readonly targetKeyIsPrimary: boolean;
 
   /**
-   * @deprecated use {@link BelongsTo.targetKey}
+   * @deprecated use {@link BelongsToAssociation.targetKey}
    */
   get targetIdentifier(): string {
     return this.targetKey;
@@ -218,11 +219,11 @@ export class BelongsTo<
 
       switch (options.inverse.type) {
         case 'hasMany':
-          HasMany.associate(secret, target, source, passDown, this, this);
+          HasManyAssociation.associate(secret, target, source, passDown, this, this);
           break;
 
         case 'hasOne':
-          HasOne.associate(secret, target, source, passDown, this, this);
+          HasOneAssociation.associate(secret, target, source, passDown, this, this);
           break;
 
         default:
@@ -242,12 +243,12 @@ export class BelongsTo<
     target: ModelStatic<T>,
     options: BelongsToOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
-  ): BelongsTo<S, T, SourceKey, TargetKey> {
+  ): BelongsToAssociation<S, T, SourceKey, TargetKey> {
     return defineAssociation<
-      BelongsTo<S, T, SourceKey, TargetKey>,
+      BelongsToAssociation<S, T, SourceKey, TargetKey>,
       BelongsToOptions<SourceKey, TargetKey>,
       NormalizedBelongsToOptions<SourceKey, TargetKey>
-    >(BelongsTo, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
+    >(BelongsToAssociation, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target) && options.inverse
         // use 'options' because this will always be set in 'newOptions'
@@ -255,7 +256,7 @@ export class BelongsTo<
         throw new AssociationError(`Both options "as" and "inverse.as" must be defined for belongsTo self-associations, and their value must be different, if you specify the 'inverse' option.`);
       }
 
-      return new BelongsTo(secret, source, target, normalizedOptions, parent);
+      return new BelongsToAssociation(secret, source, target, normalizedOptions, parent);
     });
   }
 
@@ -407,7 +408,7 @@ export class BelongsTo<
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
-Object.defineProperty(BelongsTo, 'name', {
+Object.defineProperty(BelongsToAssociation, 'name', {
   value: 'BelongsTo',
 });
 

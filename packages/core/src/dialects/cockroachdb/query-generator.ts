@@ -1,7 +1,7 @@
 import type { TruncateOptions } from 'src/model';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { QueryWithBindParams } from '../abstract/query-generator.types';
+import type { DropSchemaQueryOptions } from '../abstract/query-generator.types';
 import { ENUM } from '../postgres/data-types';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
 
@@ -69,12 +69,12 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     return sql;
   }
 
-  dropSchemaQuery(schema: string): string | QueryWithBindParams {
+  dropSchemaQuery(schema: string, options?: DropSchemaQueryOptions): string {
     if (schema === 'crdb_internal') {
       throw new Error('Cannot remove crdb_internal schema in Cockroachdb');
     }
 
-    return super.dropSchemaQuery(schema);
+    return super.dropSchemaQuery(schema, options);
   }
 
   showIndexesQuery(tableName: TableNameOrModel): string {

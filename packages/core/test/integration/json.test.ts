@@ -531,6 +531,6 @@ describe('JSONB Casting', () => {
       },
     })).to.be.rejected;
 
-    expect(inlineErrorCause(error)).to.include('Because JSON has two possible null values, comparing a JSON/JSONB attribute to NULL requires an explicit comparison operator. Use the `Op.is` operator to compare to SQL NULL, or the `Op.eq` operator to compare to JSON null.');
+    expect(inlineErrorCause(error)).to.include('You must be explicit');
   });
 });

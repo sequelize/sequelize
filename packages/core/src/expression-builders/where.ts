@@ -79,7 +79,7 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  *
  * If your left operand is an attribute name, using the regular POJO syntax (`{ where: { attrName: value }}`) syntax is usually more convenient.
  *
- * ⚠️ Unlike the POJO syntax, if the left operand is a string, it will be treated as a _value_, not an attribute name. If you wish to refer to an attribute, use {@link attribute} instead.
+ * ⚠️ Unlike the POJO syntax, if the left operand is a string, it will be treated as a _value_, not an attribute name. If you wish to refer to an attribute, use {@link Attribute} instead.
  *
  * @example
  * ```ts

@@ -6,7 +6,7 @@ import { testDataTypeSql } from './_utils';
 const { dialect, queryGenerator } = sequelize;
 
 describe('DataTypes.ARRAY', () => {
-  const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+  const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
     default: unsupportedError,
@@ -25,7 +25,7 @@ describe('DataTypes.ARRAY', () => {
 
   testDataTypeSql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
     default: unsupportedError,
-    cockroachdb: new Error(`${dialect.name} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    cockroachdb: new Error(`${dialect.name} does not support the HSTORE data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
     postgres: 'HSTORE[]',
   });
 
@@ -81,8 +81,14 @@ describe('DataTypes.ARRAY', () => {
 
   testDataTypeSql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
     default: unsupportedError,
-    cockroachdb: new Error(`${dialect.name} does not support the case-insensitive text (CITEXT) data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    cockroachdb: new Error(`${dialect.name} does not support the CITEXT data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
     postgres: 'CITEXT[]',
+  });
+
+  testDataTypeSql('ARRAY(UUID)', DataTypes.ARRAY(DataTypes.UUID), {
+    default: unsupportedError,
+    postgres: 'UUID[]',
+    cockroachdb: new Error(`${dialect.name} does not support the UUID data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
   });
 
   it('raises an error if no values are defined', () => {

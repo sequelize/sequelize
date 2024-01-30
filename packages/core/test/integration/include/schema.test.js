@@ -21,10 +21,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
   }
 
   describe('findAll', () => {
-    afterEach(async function () {
-      await this.sequelize.dropSchema('account');
-    });
-
     beforeEach(async function () {
       this.fixtureA = async function () {
         await this.sequelize.dropSchema('account');
@@ -1244,7 +1240,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         foreignKey: 'UserId',
       });
 
-      await this.sequelize.dropSchema('hero');
       await this.sequelize.createSchema('hero');
       await this.sequelize.sync({ force: true });
 
@@ -1257,8 +1252,6 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           as: 'Resume',
         }],
       });
-
-      await this.sequelize.dropSchema('hero');
     });
   });
 });

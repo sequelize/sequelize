@@ -18,10 +18,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
-  });
-
   if (dialect.supports.schemas) {
     describe('dropAllSchema', () => {
       it('should drop all schema', async function () {
@@ -36,7 +32,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
 
         expect(newSchemaNames).to.have.length(schemaNames.length + 1);
-        await this.queryInterface.dropSchema('newSchema');
       });
     });
   }

@@ -238,6 +238,18 @@ export type DialectSupports = {
     changeSchema: boolean,
     changeSchemaAndTable: boolean,
   },
+  createSchema: {
+    authorization: boolean,
+    charset: boolean,
+    collate: boolean,
+    comment: boolean,
+    ifNotExists: boolean,
+    replace: boolean,
+  },
+  dropSchema: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -384,6 +396,18 @@ export abstract class AbstractDialect {
       changeSchema: true,
       changeSchemaAndTable: true,
     },
+    createSchema: {
+      authorization: false,
+      charset: false,
+      collate: false,
+      comment: false,
+      ifNotExists: false,
+      replace: false,
+    },
+    dropSchema: {
+      cascade: false,
+      ifExists: false,
+    },
   };
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
@@ -509,6 +533,11 @@ export abstract class AbstractDialect {
     value = value.replaceAll('\'', '\'\'');
 
     return `'${value}'`;
+  }
+
+  // Keep the logic of this class synchronized with the logic in the JSON DataType.
+  escapeJson(value: unknown): string {
+    return this.escapeString(JSON.stringify(value));
   }
 
   /**

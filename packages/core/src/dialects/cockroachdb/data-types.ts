@@ -33,7 +33,14 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends PostgresAr
 
     if (this.options.type instanceof ARRAY) {
       ValidationErrorItem.throwDataTypeValidationError('Cockroachdb does not support nested arrays');
+    } else if (this.options.type instanceof BaseTypes.HSTORE) {
+      ValidationErrorItem.throwDataTypeValidationError('cockroachdb does not support the HSTORE data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.');
+    } else if (this.options.type instanceof BaseTypes.UUID) {
+      ValidationErrorItem.throwDataTypeValidationError('cockroachdb does not support the UUID data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.');
+    } else if (this.options.type instanceof BaseTypes.CITEXT) {
+      ValidationErrorItem.throwDataTypeValidationError('cockroachdb does not support the CITEXT data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.');
     }
+
   }
 
   escape(values: Array<AcceptableTypeOf<T>>) {

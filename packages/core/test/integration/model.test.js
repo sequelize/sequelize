@@ -924,15 +924,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
       });
 
-      afterEach(async function () {
-        try {
-          await this.sequelize.dropSchema('schema_test');
-        } finally {
-          await this.sequelize.dropSchema('special');
-          await this.sequelize.dropSchema('prefix');
-        }
-      });
-
       it('should be able to drop with schemas', async function () {
         await this.UserSpecial.drop();
       });
@@ -1017,7 +1008,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
 
         let test = false;

@@ -9,7 +9,7 @@ const dialectName = dialect.name;
 
 describe('DataTypes.REAL', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('REAL', DataTypes.REAL, {
     default: 'REAL',
@@ -53,7 +53,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.DOUBLE', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DOUBLE.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('DOUBLE', DataTypes.DOUBLE, {
     default: 'DOUBLE PRECISION',
@@ -110,7 +110,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.FLOAT', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the FLOAT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   // Must be a single-precision floating point if available,
   // or a double-precision fallback if not.
@@ -189,9 +189,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DECIMAL', () => {
   const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DECIMAL.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
   const unsupportedError = new Error(`${dialectName} does not support the DECIMAL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('DECIMAL', DataTypes.DECIMAL, {
     default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),

@@ -1,13 +1,13 @@
 import type { SetRequired } from 'type-fest';
 import type {
   Association,
-  BelongsTo,
-  BelongsToMany,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
   BelongsToManyOptions,
   BelongsToOptions,
-  HasMany,
+  HasManyAssociation,
   HasManyOptions,
-  HasOne,
+  HasOneAssociation,
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
@@ -1678,7 +1678,7 @@ export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
-   * @see https://sequelize.org/docs/v7/other-topics/other-data-types/
+   * @see https://sequelize.org/docs/v7/models/data-types/
    */
   type: DataType;
 
@@ -2795,7 +2795,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOne<S, T, SKey, TKey>;
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOneAssociation<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -2817,7 +2817,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SKey, TKey>): BelongsTo<S, T, SKey, TKey>;
+  >(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: BelongsToOptions<SKey, TKey>,
+  ): BelongsToAssociation<S, T, SKey, TKey>;
 
   /**
    * Defines a 1:n association between two models.
@@ -2839,7 +2843,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SKey, TKey>): HasMany<S, T, SKey, TKey>;
+  >(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: HasManyOptions<SKey, TKey>,
+  ): HasManyAssociation<S, T, SKey, TKey>;
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -2871,7 +2879,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     TKey extends AttributeNames<T>,
   >(
     this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
-  ): BelongsToMany<S, T, ThroughModel, SKey, TKey>;
+  ): BelongsToManyAssociation<S, T, ThroughModel, SKey, TKey>;
 
   /**
    * @private
