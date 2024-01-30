@@ -3,6 +3,7 @@ import { URL } from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
 import type { Dialect, DialectOptions, Options } from '../sequelize';
+import { SUPPORTED_DIALECTS } from '../sequelize-typescript';
 import { encodeHost } from './deprecations';
 
 /**
@@ -27,6 +28,10 @@ export function parseConnectionString(connectionString: string): Options {
     let protocol = urlObject.protocol.replace(/:$/, '');
     if (protocol === 'postgresql') {
       protocol = 'postgres';
+    }
+
+    if (!SUPPORTED_DIALECTS.includes(protocol as Dialect)) {
+      throw new Error(`The protocol was set to ${JSON.stringify(protocol)}, which is not a supported dialect. Set it to one of ${SUPPORTED_DIALECTS.map(d => JSON.stringify(d)).join(', ')} instead.`);
     }
 
     options.dialect = protocol as Dialect;
