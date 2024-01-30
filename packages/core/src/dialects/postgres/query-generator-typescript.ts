@@ -1,3 +1,4 @@
+import semver from 'semver';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -229,6 +230,22 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {
     return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
+  }
+
+  getUuidV1FunctionCall(): string {
+    return 'uuid_generate_v1()';
+  }
+
+  getUuidV4FunctionCall(): string {
+    const dialectVersion = this.sequelize.getDatabaseVersion();
+
+    if (semver.lt(dialectVersion, '13.0.0')) {
+      return 'uuid_generate_v4()';
+    }
+
+    // uuid_generate_v4 requires the uuid-ossp extension, which is not installed by default.
+    // This has broader support, as it is part of the core Postgres distribution, but is only available since Postgres 13.
+    return 'gen_random_uuid()';
   }
 
   versionQuery() {

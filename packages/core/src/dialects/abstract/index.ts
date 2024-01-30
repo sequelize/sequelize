@@ -214,12 +214,16 @@ export type DialectSupports = {
   searchPath: boolean,
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
-   * enables the ability to use backslash escapes inside of the string.
+   * enables the ability to use backslash escapes inside the string.
    */
   escapeStringConstants: boolean,
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  /** Whether this dialect provides a native way to generate UUID v1 values */
+  uuidV1Generation: boolean,
+  /** Whether this dialect provides a native way to generate UUID v4 values */
+  uuidV4Generation: boolean,
   dropTable: {
     cascade: boolean,
   },
@@ -377,6 +381,8 @@ export abstract class AbstractDialect {
     searchPath: false,
     escapeStringConstants: false,
     globalTimeZoneConfig: false,
+    uuidV1Generation: false,
+    uuidV4Generation: false,
     dropTable: {
       cascade: false,
     },

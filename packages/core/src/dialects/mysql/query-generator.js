@@ -1,6 +1,9 @@
 'use strict';
 
 import { inspect } from 'node:util';
+import semver from 'semver';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
+import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_OBJECT } from '../../utils/object.js';
@@ -209,8 +212,27 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      const { defaultValue } = attribute;
+      const isExpression = defaultValue instanceof BaseSqlExpression;
+      let skipDefault = false;
+      if (isExpression) {
+        const dialectVersion = this.sequelize.getDatabaseVersion();
+        const hasJavaScriptFallback = defaultValue instanceof DialectAwareFn && defaultValue.supportsJavaScript();
+        if (semver.lt(dialectVersion, '8.0.13')) {
+          if (hasJavaScriptFallback) {
+            skipDefault = true;
+          } else {
+            throw new Error(`MySQL versions older than 8.0.13 do not support expressions as default values. The current version is ${dialectVersion}`);
+          }
+        }
+      }
+
+      if (!skipDefault) {
+        const escaped = this.escape(defaultValue);
+        // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
+        template += ` DEFAULT ${isExpression ? `(${escaped})` : escaped}`;
+      }
     }
 
     if (attribute.unique === true) {
