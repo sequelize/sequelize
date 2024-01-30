@@ -293,6 +293,10 @@ SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
 SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
   }
 
+  getUuidV4FunctionCall(): string {
+    return 'NEWID()';
+  }
+
   protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
     let fragment = '';
     if (options.offset || options.limit) {

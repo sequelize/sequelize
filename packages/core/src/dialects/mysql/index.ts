@@ -58,9 +58,18 @@ export class MysqlDialect extends AbstractDialect {
         quoted: true,
       },
       REGEXP: true,
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
       maxExecutionTimeHint: {
         select: true,
+      },
+      createSchema: {
+        charset: true,
+        collate: true,
+        ifNotExists: true,
+      },
+      dropSchema: {
+        ifExists: true,
       },
     },
   );

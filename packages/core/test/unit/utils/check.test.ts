@@ -1,10 +1,13 @@
 import { expect } from 'chai';
-import { Sequelize } from '@sequelize/core';
+import { DataTypes, Op, sql } from '@sequelize/core';
 import { canTreatArrayAsAnd, isColString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import {
   defaultValueSchemable,
   isWhereEmpty,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { sequelize } from '../../support';
+
+const dialect = sequelize.dialect;
 
 describe('utils / check', () => {
   describe('isColString', () => {
@@ -35,7 +38,7 @@ describe('utils / check', () => {
     it('should return true if the array contains a Where', () => {
       expect(
         canTreatArrayAsAnd([
-          Sequelize.where(Sequelize.col('name'), Sequelize.Op.eq, 'foo'),
+          sql.where(sql.col('name'), Op.eq, 'foo'),
         ]),
       ).to.equal(true);
     });
@@ -46,24 +49,24 @@ describe('utils / check', () => {
 
   describe('defaultValueSchemable', () => {
     it('should return false if the value is a NOW', () => {
-      expect(defaultValueSchemable(Sequelize.DataTypes.NOW)).to.equal(false);
-      expect(defaultValueSchemable(Sequelize.DataTypes.NOW())).to.equal(false);
+      expect(defaultValueSchemable(DataTypes.NOW, dialect)).to.equal(false);
+      expect(defaultValueSchemable(DataTypes.NOW(), dialect)).to.equal(false);
     });
     it('should return false if the value is a UUIDV1', () => {
-      expect(defaultValueSchemable(Sequelize.DataTypes.UUIDV1)).to.equal(false);
-      expect(defaultValueSchemable(Sequelize.DataTypes.UUIDV1())).to.equal(
+      expect(defaultValueSchemable(DataTypes.UUIDV1, dialect)).to.equal(false);
+      expect(defaultValueSchemable(DataTypes.UUIDV1(), dialect)).to.equal(
         false,
       );
     });
     it('should return false if the value is a UUIDV4', () => {
-      expect(defaultValueSchemable(Sequelize.DataTypes.UUIDV4)).to.equal(false);
-      expect(defaultValueSchemable(Sequelize.DataTypes.UUIDV4())).to.equal(
+      expect(defaultValueSchemable(DataTypes.UUIDV4, dialect)).to.equal(false);
+      expect(defaultValueSchemable(DataTypes.UUIDV4(), dialect)).to.equal(
         false,
       );
     });
     it('should return true otherwise', () => {
-      expect(defaultValueSchemable('hello')).to.equal(true);
-      expect(defaultValueSchemable(Sequelize.DataTypes.INTEGER())).to.equal(
+      expect(defaultValueSchemable('hello', dialect)).to.equal(true);
+      expect(defaultValueSchemable(DataTypes.INTEGER(), dialect)).to.equal(
         true,
       );
     });

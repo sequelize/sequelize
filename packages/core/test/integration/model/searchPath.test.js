@@ -73,13 +73,6 @@ describe('SearchPath in Model Methods', () => {
     await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_TWO });
   });
 
-  afterEach('drop schemas', async () => {
-    const { sequelize } = vars;
-
-    await sequelize.dropSchema('schema_one');
-    await sequelize.dropSchema('schema_two');
-  });
-
   describe('enum case', () => {
     it('able to refresh enum when searchPath is used', async function () {
       await this.Location.sync({ force: true });

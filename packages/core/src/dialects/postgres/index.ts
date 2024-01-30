@@ -72,6 +72,8 @@ export class PostgresDialect extends AbstractDialect {
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,
+    uuidV1Generation: true,
+    uuidV4Generation: true,
     dropTable: {
       cascade: true,
     },
@@ -84,6 +86,14 @@ export class PostgresDialect extends AbstractDialect {
     },
     renameTable: {
       changeSchemaAndTable: false,
+    },
+    createSchema: {
+      authorization: true,
+      ifNotExists: true,
+    },
+    dropSchema: {
+      cascade: true,
+      ifExists: true,
     },
   });
 

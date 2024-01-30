@@ -180,7 +180,7 @@ export class Db2Query extends AbstractQuery {
         data.unshift(outparams);
       }
 
-      return this.formatResults(data, datalen, metadata, connection);
+      return this.formatResults(data, datalen, metadata);
     }
 
     return this.formatResults(data, affectedRows);
@@ -229,10 +229,9 @@ export class Db2Query extends AbstractQuery {
    * @param {Array} data - The result of the query execution.
    * @param {Integer} rowCount - The number of affected rows.
    * @param {Array} metadata - Metadata of the returned result set.
-   * @param {object} conn - The connection object.
    * @private
    */
-  formatResults(data, rowCount, metadata, conn) {
+  formatResults(data, rowCount, metadata) {
     let result = this.instance;
     if (this.isInsertQuery(data, metadata)) {
       this.handleInsertQuery(data, metadata);
@@ -269,12 +268,6 @@ export class Db2Query extends AbstractQuery {
       result = this.handleSelectQuery(data);
     } else if (this.isUpsertQuery()) {
       result = data;
-    } else if (this.isDropSchemaQuery()) {
-      result = data[0];
-      if (conn) {
-        const query = 'DROP TABLE ERRORSCHEMA.ERRORTABLE';
-        conn.querySync(query);
-      }
     } else if (this.isCallQuery()) {
       result = data;
     } else if (this.isBulkUpdateQuery()) {
@@ -386,16 +379,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return new sequelizeErrors.DatabaseError(err);
-  }
-
-  isDropSchemaQuery() {
-    let result = false;
-
-    if (this.sql.startsWith('CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
-      result = true;
-    }
-
-    return result;
   }
 
   isShowOrDescribeQuery() {

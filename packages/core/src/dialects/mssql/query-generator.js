@@ -5,11 +5,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
@@ -26,70 +22,10 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return [
-      'IF NOT EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
-      'WHERE schema_name =', this.escape(schema), ')',
-      'BEGIN',
-      'EXEC sp_executesql N\'CREATE SCHEMA',
-      this.quoteIdentifier(schema),
-      ';\'',
-      'END;',
-    ].join(' ');
-  }
-
-  dropSchemaQuery(schema) {
-    // Mimics Postgres CASCADE, will drop objects belonging to the schema
-    const quotedSchema = this.escape(schema);
-
-    return [
-      'IF EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
-      'WHERE schema_name =', quotedSchema, ')',
-      'BEGIN',
-      'DECLARE @id INT, @ms_sql NVARCHAR(2000);',
-      'DECLARE @cascade TABLE (',
-      'id INT NOT NULL IDENTITY PRIMARY KEY,',
-      'ms_sql NVARCHAR(2000) NOT NULL );',
-      'INSERT INTO @cascade ( ms_sql )',
-      'SELECT CASE WHEN o.type IN (\'F\',\'PK\')',
-      'THEN N\'ALTER TABLE [\'+ s.name + N\'].[\' + p.name + N\'] DROP CONSTRAINT [\' + o.name + N\']\'',
-      'ELSE N\'DROP TABLE [\'+ s.name + N\'].[\' + o.name + N\']\' END',
-      'FROM sys.objects o',
-      'JOIN sys.schemas s on o.schema_id = s.schema_id',
-      'LEFT OUTER JOIN sys.objects p on o.parent_object_id = p.object_id',
-      'WHERE o.type IN (\'F\', \'PK\', \'U\') AND s.name = ', quotedSchema,
-      'ORDER BY o.type ASC;',
-      'SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id;',
-      'WHILE @id IS NOT NULL',
-      'BEGIN',
-      'BEGIN TRY EXEC sp_executesql @ms_sql; END TRY',
-      'BEGIN CATCH BREAK; THROW; END CATCH;',
-      'DELETE FROM @cascade WHERE id = @id;',
-      'SELECT @id = NULL, @ms_sql = NULL;',
-      'SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id;',
-      'END',
-      'EXEC sp_executesql N\'DROP SCHEMA', this.quoteIdentifier(schema), ';\'',
-      'END;',
-    ].join(' ');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -540,7 +476,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
+    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ' NULL';
     }
 
@@ -550,7 +486,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 

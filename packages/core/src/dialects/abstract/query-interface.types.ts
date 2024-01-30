@@ -1,9 +1,10 @@
 import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
-import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
   CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
   DropTableQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -77,11 +78,14 @@ export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRa
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
+/** Options accepted by {@link AbstractQueryInterface#dropSchema} */
+export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions { }
+
 /** Options accepted by {@link AbstractQueryInterface#listSchemas} */
 export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface QiDropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */
@@ -107,7 +111,7 @@ export interface DescribeTableOptions extends QueryRawOptions {
 export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
-export interface QiDropAllTablesOptions extends QiDropTableOptions {
+export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTableOptions {
   skip?: string[];
 }
 
