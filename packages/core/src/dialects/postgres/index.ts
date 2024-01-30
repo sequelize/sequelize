@@ -87,6 +87,14 @@ export class PostgresDialect extends AbstractDialect {
     renameTable: {
       changeSchemaAndTable: false,
     },
+    createSchema: {
+      authorization: true,
+      ifNotExists: true,
+    },
+    dropSchema: {
+      cascade: true,
+      ifExists: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;

@@ -6,6 +6,7 @@ import type {
   ConnectionOptions as MySqlConnectionOptions,
   createConnection as mysqlCreateConnection,
 } from 'mysql2';
+import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -31,17 +32,6 @@ type Lib = {
 
 export interface MySqlConnection extends Connection, AbstractConnection {}
 
-export interface MySqlTypeCastValue {
-  type: string;
-  length: number;
-  db: string;
-  table: string;
-  name: string;
-  string(): string;
-  buffer(): Buffer;
-  geometry(): unknown;
-}
-
 /**
  * MySQL Connection Manager
  *
@@ -59,7 +49,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 
-  #typecast(field: MySqlTypeCastValue, next: () => void): unknown {
+  #typecast(field: Field, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);

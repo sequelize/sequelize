@@ -14,10 +14,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
-  });
-
   describe('describeTable', () => {
     if (Support.sequelize.dialect.supports.schemas) {
       it('reads the metadata of the table with schema', async function () {
@@ -36,8 +32,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(metadata0.username2).not.to.be.undefined;
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
-
-        await this.sequelize.dropSchema('test_meta');
       });
     }
 
