@@ -2,7 +2,7 @@
   "name": "@sequelize/monorepo",
   "private": true,
   "scripts": {
-    "prepare": "husky install",
+    "prepare": "husky",
     "publish-all": "lerna publish --conventional-commits --no-private --yes --create-release github",
     "lint": "eslint . --fix --report-unused-disable-directives",
     "lint-no-fix": "eslint . --quiet --report-unused-disable-directives",
