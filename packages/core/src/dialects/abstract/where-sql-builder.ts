@@ -14,7 +14,7 @@ import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
-import { isDictionary, isPlainObject, isString } from '../../utils/check.js';
+import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
@@ -636,7 +636,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {
-    if (!isDictionary(value)) {
+    if (!isPlainObject(value)) {
       return '';
     }
 
@@ -652,7 +652,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpValues(value: unknown, type: NormalizedDataType | undefined): string {
-    if (isDictionary(value) && Op.values in value) {
+    if (isPlainObject(value) && Op.values in value) {
       const options = { type };
 
       const operand: unknown[] = Array.isArray(value[Op.values])
