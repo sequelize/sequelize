@@ -713,11 +713,12 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async delete(tableName: TableNameOrModel, options: QiDeleteOptions): Promise<number> {
-    const sql = this.queryGenerator.deleteQuery(tableName, options);
+    const deleteOptions = { ...options };
+    const sql = this.queryGenerator.deleteQuery(tableName, deleteOptions);
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
+    delete deleteOptions.replacements;
 
-    return this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.DELETE });
+    return this.sequelize.queryRaw(sql, { ...deleteOptions, raw: true, type: QueryTypes.DELETE });
   }
 
   /**

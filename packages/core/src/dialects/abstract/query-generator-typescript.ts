@@ -1088,7 +1088,32 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
   }
 
-  deleteQuery(_tableName: TableNameOrModel, _options: DeleteQueryOptions): string {
-    throw new Error(`deleteQuery has not been implemented in ${this.dialect.name}.`);
+  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions): string {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+
+    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with deleteQuery without a model.');
+      }
+
+      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
+      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        `ORDER BY ${pks}`,
+        this._addLimitAndOffset(options),
+        ')',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${this.quoteTable(tableName)}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+      this._addLimitAndOffset(options),
+    ]);
   }
 }

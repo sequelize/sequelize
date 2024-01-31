@@ -60,6 +60,9 @@ export class MssqlDialect extends AbstractDialect {
     createSchema: {
       authorization: true,
     },
+    delete: {
+      modelWithLimit: true,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;

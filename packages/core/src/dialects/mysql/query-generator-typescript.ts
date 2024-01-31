@@ -3,7 +3,6 @@ import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
-import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -18,7 +17,6 @@ import type {
 } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
-  DeleteQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
@@ -185,15 +183,5 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return fragment;
-  }
-
-  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
-    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
-
-    return joinSQLFragments([
-      `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.where ? this.whereQuery(options.where, whereOptions) : '',
-      this._addLimitAndOffset(options),
-    ]);
   }
 }
