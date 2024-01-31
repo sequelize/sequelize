@@ -34,7 +34,7 @@ describe('destroy', () => {
     it('throws an error if no where clause is given', async () => {
       const { User } = vars;
 
-      await expect(User.destroy()).to.be.rejectedWith(Error, 'Missing where attribute in the options parameter of model.destroy.');
+      await expect(User.destroy()).to.be.rejectedWith(Error, 'As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
     });
 
     it('deletes all instances when given an empty where object', async () => {
