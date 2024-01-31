@@ -53,7 +53,7 @@ const SEQUELIZE_OVERWRITTEN_MODEL_HOOKS = [
   'beforeCount', 'afterCount',
   'beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions', 'afterFind',
   'beforeSync', 'afterSync',
-  'beforeAssociate', 'afterAssociate',
+  'beforeDefinitionRefresh', 'afterDefinitionRefresh',
 ] as const;
 
 export function isOverwrittenModelHook(hookName: string): hookName is typeof SEQUELIZE_OVERWRITTEN_MODEL_HOOKS[number] {
@@ -131,8 +131,8 @@ export interface SequelizeHooks extends Omit<ModelHooks, typeof SEQUELIZE_OVERWR
   afterFind(model: ModelStatic, ...args: Parameters<ModelHooks['afterFind']>): ReturnType<ModelHooks['afterFind']>;
   beforeSync(model: ModelStatic, ...args: Parameters<ModelHooks['beforeSync']>): ReturnType<ModelHooks['beforeSync']>;
   afterSync(model: ModelStatic, ...args: Parameters<ModelHooks['afterSync']>): ReturnType<ModelHooks['afterSync']>;
-  beforeAssociate(model: ModelStatic, ...args: Parameters<ModelHooks['beforeAssociate']>): ReturnType<ModelHooks['beforeAssociate']>;
-  afterAssociate(model: ModelStatic, ...args: Parameters<ModelHooks['afterAssociate']>): ReturnType<ModelHooks['afterAssociate']>;
+  beforeDefinitionRefresh(model: ModelStatic, ...args: Parameters<ModelHooks['beforeDefinitionRefresh']>): ReturnType<ModelHooks['beforeDefinitionRefresh']>;
+  afterDefinitionRefresh(model: ModelStatic, ...args: Parameters<ModelHooks['afterDefinitionRefresh']>): ReturnType<ModelHooks['afterDefinitionRefresh']>;
 }
 
 export interface StaticSequelizeHooks {
