@@ -21,7 +21,7 @@ import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
-import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
+import { isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
@@ -959,7 +959,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    * @param options The options to use when escaping the value
    */
   escape(value: unknown, options: EscapeOptions = EMPTY_OBJECT): string {
-    if (isDictionary(value) && Op.col in value) {
+    if (isPlainObject(value) && Op.col in value) {
       noOpCol();
       value = new Col(value[Op.col] as string);
     }

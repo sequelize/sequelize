@@ -261,7 +261,15 @@ export async function dropTestDatabases(customSequelize: Sequelize = sequelize) 
 
   const qi = customSequelize.queryInterface;
   const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
-  await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+  if (getTestDialect() === 'db2') {
+    for (const db of databases) {
+      // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+      // eslint-disable-next-line no-await-in-loop
+      await qi.dropDatabase(db.name);
+    }
+  } else {
+    await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+  }
 }
 
 export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
