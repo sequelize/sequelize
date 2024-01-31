@@ -2480,7 +2480,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (!options?.where) {
-      throw new Error('Missing where attribute in the options parameter of model.destroy.');
+      throw new Error('As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
     }
 
     if (!isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
