@@ -3356,7 +3356,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           singular: 'Invitee',
           plural: 'Invitees',
         },
-        foreignKey: 'InviteeId',
+        foreignKey: 'inviteeId',
         through: 'Invites',
         inverse: {
           as: 'Hosts',
