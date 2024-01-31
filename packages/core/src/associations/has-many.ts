@@ -25,7 +25,7 @@ import { removeUndefined } from '../utils/object.js';
 import type { AllowIterable } from '../utils/types.js';
 import { MultiAssociation } from './base';
 import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
-import { BelongsTo } from './belongs-to.js';
+import { BelongsToAssociation } from './belongs-to.js';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
 import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 
@@ -33,7 +33,7 @@ import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpe
  * One-to-many association.
  * See {@link Model.hasMany}
  *
- * Like with {@link HasOne}, the foreign key will be defined on the target model.
+ * Like with {@link HasOneAssociation}, the foreign key will be defined on the target model.
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
  * If the association is aliased, use the alias instead, e.g. `User.hasMany(Project, { as: 'jobs' })` will be `user.getJobs()`.
@@ -44,7 +44,8 @@ import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpe
  * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
  * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasManySetAssociationsMixin} & others.
  */
-export class HasMany<
+// Note: this class is named HasManyAssociation instead of HasMany to prevent naming conflicts with the HasMany decorator
+export class HasManyAssociation<
   S extends Model = Model,
   T extends Model = Model,
   SourceKey extends AttributeNames<S> = any,
@@ -85,7 +86,7 @@ export class HasMany<
     return this.inverse.targetKeyField;
   }
 
-  readonly inverse: BelongsTo<T, S, TargetKey, SourceKey>;
+  readonly inverse: BelongsToAssociation<T, S, TargetKey, SourceKey>;
 
   constructor(
     secret: symbol,
@@ -93,7 +94,7 @@ export class HasMany<
     target: ModelStatic<T>,
     options: NormalizedHasManyOptions<SourceKey, TargetKey>,
     parent?: Association,
-    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
+    inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
   ) {
     if (
       options.sourceKey
@@ -112,7 +113,7 @@ export class HasMany<
 
     super(secret, source, target, options, parent);
 
-    this.inverse = inverse ?? BelongsTo.associate(secret, target, source, removeUndefined({
+    this.inverse = inverse ?? BelongsToAssociation.associate(secret, target, source, removeUndefined({
       as: options.inverse?.as,
       scope: options.inverse?.scope,
       foreignKey: options.foreignKey,
@@ -153,14 +154,14 @@ export class HasMany<
     target: ModelStatic<T>,
     options: HasManyOptions<SourceKey, TargetKey> = {},
     parent?: Association<any>,
-    inverse?: BelongsTo<T, S, TargetKey, SourceKey>,
-  ): HasMany<S, T, SourceKey, TargetKey> {
+    inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
+  ): HasManyAssociation<S, T, SourceKey, TargetKey> {
 
     return defineAssociation<
-      HasMany<S, T, SourceKey, TargetKey>,
+      HasManyAssociation<S, T, SourceKey, TargetKey>,
       HasManyOptions<SourceKey, TargetKey>,
       NormalizedHasManyOptions<SourceKey, TargetKey>
-    >(HasMany, source, target, options, parent, normalizeHasManyOptions, normalizedOptions => {
+    >(HasManyAssociation, source, target, options, parent, normalizeHasManyOptions, normalizedOptions => {
       // self-associations must always set their 'as' parameter
       if (
         isSameInitialModel(source, target)
@@ -174,7 +175,7 @@ export class HasMany<
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
       }
 
-      return new HasMany(secret, source, target, normalizedOptions, parent, inverse);
+      return new HasManyAssociation(secret, source, target, normalizedOptions, parent, inverse);
     });
   }
 
@@ -558,7 +559,7 @@ export class HasMany<
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
-Object.defineProperty(HasMany, 'name', {
+Object.defineProperty(HasManyAssociation, 'name', {
   value: 'HasMany',
 });
 

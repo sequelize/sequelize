@@ -8,7 +8,6 @@ import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 import defaults from 'lodash/defaults';
 import find from 'lodash/find';
-import identity from 'lodash/identity';
 import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
@@ -22,26 +21,6 @@ const { QueryTypes } = require('../../query-types');
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
-  /**
-    * Drop all schemas
-    *
-    * @param {object} [options] Query options
-    *
-    * @returns {Promise}
-    */
-
-  async dropAllSchemas(options) {
-    options = options || {};
-
-    if (!this.sequelize.dialect.supports.schemas) {
-      return this.sequelize.drop(options);
-    }
-
-    const schemas = await this.showAllSchemas(options);
-
-    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
   /**
    * Create a table with given set of attributes
    *
@@ -131,22 +110,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     });
 
     const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Rename a table
-   *
-   * @param {string} before    Current name of table
-   * @param {string} after     New name from table
-   * @param {object} [options] Query options
-   *
-   * @returns {Promise}
-   */
-  async renameTable(before, after, options) {
-    options = options || {};
-    const sql = this.queryGenerator.renameTableQuery(before, after);
 
     return await this.sequelize.queryRaw(sql, options);
   }
@@ -260,6 +223,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} options
    * @private
    */
+  // TODO: rename to "describeColumn"
   async assertTableHasColumn(tableName, columnName, options) {
     const description = await this.describeTable(tableName, options);
     if (description[columnName]) {

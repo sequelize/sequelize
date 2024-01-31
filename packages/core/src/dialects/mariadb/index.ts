@@ -57,8 +57,20 @@ export class MariaDbDialect extends AbstractDialect {
         unquoted: true,
         quoted: true,
       },
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
       removeColumn: {
+        ifExists: true,
+      },
+      createSchema: {
+        charset: true,
+        collate: true,
+        // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
+        // comment: true,
+        ifNotExists: true,
+        replace: true,
+      },
+      dropSchema: {
         ifExists: true,
       },
     },

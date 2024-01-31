@@ -1,8 +1,10 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
+import type { Literal } from '../../expression-builders/literal';
 import type { IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
+import type { Nullish } from '../../utils/types';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -26,6 +28,22 @@ export interface ListDatabasesQueryOptions {
   skip?: string[];
 }
 
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateSchemaQueryOptions {
+  authorization?: string | Literal;
+  charset?: string;
+  collate?: string;
+  comment?: string;
+  ifNotExists?: boolean;
+  replace?: boolean;
+}
+
+// keep DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropSchemaQueryOptions {
+  cascade?: boolean;
+  ifExists?: boolean;
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];
@@ -39,6 +57,11 @@ export interface DropTableQueryOptions {
 // Keeep LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface ListTablesQueryOptions {
   schema?: string;
+}
+
+// keep RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RenameTableQueryOptions {
+  changeSchema?: boolean;
 }
 
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -144,4 +167,10 @@ export interface AttributeToSqlOptions {
 export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
   tableHints?: TableHints[];
+}
+
+export interface AddLimitOffsetOptions {
+  limit?: Nullish<number | Literal>;
+  offset?: Nullish<number | Literal>;
+  replacements?: BindOrReplacements;
 }

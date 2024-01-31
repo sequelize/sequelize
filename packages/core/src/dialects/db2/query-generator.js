@@ -5,12 +5,7 @@ import { removeNullishValuesFromHash } from '../../utils/format';
 import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 import defaults from 'lodash/defaults';
@@ -27,9 +22,7 @@ const DataTypes = require('../../data-types');
 const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /* istanbul ignore next */
@@ -45,41 +38,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
 
     this.autoGenValue = 1;
-  }
-
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
-  }
-
-  _errorTableCount = 0;
-
-  dropSchemaQuery(schema) {
-    // DROP SCHEMA Can't drop schema if it is not empty.
-    // DROP SCHEMA Can't drop objects belonging to the schema
-    // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${this.escape(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
-
-    if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
-      this._errorTableCount = 0;
-    }
-
-    return {
-      query,
-      bind: {
-        sequelize_errorSchema: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-        sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE${this._errorTableCount++}` },
-      },
-    };
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -183,15 +141,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     return `${template(query, this._templateSettings)(values).trim()};${commentStr}`;
-  }
-
-  renameTableQuery(before, after) {
-    const query = 'RENAME TABLE <%= before %> TO <%= after %>;';
-
-    return template(query, this._templateSettings)({
-      before: this.quoteTable(before),
-      after: this.quoteTable(after),
-    });
   }
 
   addColumnQuery(table, key, dataType, options) {
@@ -532,7 +481,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       query += ` ${whereSql}`;
     }
 
-    query += this.addLimitAndOffset(options);
+    query += this._addLimitAndOffset(options);
 
     return query;
   }
@@ -583,7 +532,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { replacements: options?.replacements, type: attribute.type })}`;
     }
 
@@ -726,21 +675,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     return 'ROLLBACK TRANSACTION;';
-  }
-
-  addLimitAndOffset(options) {
-    const offset = options.offset || 0;
-    let fragment = '';
-
-    if (offset) {
-      fragment += ` OFFSET ${this.escape(offset, { replacements: options.replacements })} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, { replacements: options.replacements })} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {

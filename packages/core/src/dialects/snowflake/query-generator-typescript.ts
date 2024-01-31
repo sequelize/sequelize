@@ -8,6 +8,7 @@ import {
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -15,7 +16,7 @@ import type {
   ShowConstraintsQueryOptions,
 } from '../abstract/query-generator.types';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate']);
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([]);
 const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
 
@@ -40,8 +41,6 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       `CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`,
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
     ]);
   }
 
@@ -134,5 +133,20 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT CURRENT_VERSION() AS "version"';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      fragment += ` LIMIT NULL`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
   }
 }

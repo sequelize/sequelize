@@ -13,6 +13,7 @@ import type {
   TableNameOrModel,
 } from '../abstract/query-generator-typescript';
 import type {
+  AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
@@ -144,4 +145,25 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   versionQuery() {
     return 'SELECT VERSION() as `version`';
   }
+
+  getUuidV1FunctionCall(): string {
+    return 'UUID()';
+  }
+
+  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = '';
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+    } else if (options.offset) {
+      // limit must be specified if offset is specified.
+      fragment += ` LIMIT 18446744073709551615`;
+    }
+
+    if (options.offset) {
+      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
+    }
+
+    return fragment;
+  }
+
 }

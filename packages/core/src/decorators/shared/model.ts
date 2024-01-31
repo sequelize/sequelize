@@ -99,6 +99,8 @@ export function mergeAttributeOptions(
 ): Partial<AttributeOptions> {
   for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof AttributeOptions, any]>) {
     if (existingOptions[optionName] === undefined) {
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
+      // @ts-ignore -- this function is very fuzzy in terms of typing due to how generic it is.
       existingOptions[optionName] = optionValue;
       continue;
     }

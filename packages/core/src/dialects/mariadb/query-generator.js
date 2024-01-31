@@ -13,20 +13,6 @@ const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescrip
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
-  createSchemaQuery(schemaName, options) {
-    return joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schemaName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -212,7 +198,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 

@@ -13,12 +13,13 @@ import type {
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
-import type { AllowLowercase } from '../../utils/types.js';
+import type { AllowLowercase, Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
+import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import type { QiDropAllSchemasOptions } from './query-interface.types.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 interface Replaceable {
@@ -34,7 +35,7 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
-export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
 
@@ -43,7 +44,7 @@ export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
-  limit?: number | Literal | null | undefined;
+  limit?: Nullish<number | Literal>;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
@@ -121,7 +122,7 @@ export interface IndexOptions {
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
    */
-  type?: IndexType;
+  type?: IndexType | undefined;
 
   /**
    * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
@@ -246,11 +247,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   sequelize: Sequelize;
 
   /**
-   * Drops all tables
-   */
-  dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
-
-  /**
    * Creates a table with specified attributes.
    *
    * @param tableName     Name of table to create
@@ -269,11 +265,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param options
    */
   dropAllEnums(options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Renames a table
-   */
-  renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
 
   /**
    * Adds a new column to a table
@@ -309,13 +300,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Adds a new index to a table
    */
   addIndex(
-    tableName: TableName,
+    tableName: TableNameOrModel,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   addIndex(
-    tableName: TableName,
+    tableName: TableNameOrModel,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -546,4 +537,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Rollback (revert) a transaction that hasn't been committed
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
+
+  // TODO: rename to "describeColumn"
+  assertTableHasColumn(
+    tableName: TableNameOrModel,
+    columnName: string,
+    options?: QueryRawOptions
+  ): Promise<ColumnsDescription>;
 }

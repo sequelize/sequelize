@@ -14,10 +14,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
-  });
-
   describe('describeTable', () => {
     if (Support.sequelize.dialect.supports.schemas) {
       it('reads the metadata of the table with schema', async function () {
@@ -36,8 +32,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(metadata0.username2).not.to.be.undefined;
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
-
-        await this.sequelize.dropSchema('test_meta');
       });
     }
 
@@ -180,6 +174,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(metalumni.dod.primaryKey).to.eql(false);
       expect(metalumni.ctrycod.primaryKey).to.eql(false);
       expect(metalumni.city.primaryKey).to.eql(false);
+    });
+
+    it('should correctly return the columns when the table contains a dot in the name', async function () {
+      const User = this.sequelize.define('my.user', {
+        name: DataTypes.STRING,
+      }, { freezeTableName: true });
+
+      await User.sync({ force: true });
+      const metadata = await this.queryInterface.describeTable('my.user');
+
+      expect(metadata).to.haveOwnProperty('name');
     });
   });
 });

@@ -6,6 +6,7 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
+const dialectName = getTestDialect();
 
 describe('QueryGenerator#selectQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -55,24 +56,137 @@ describe('QueryGenerator#selectQuery', () => {
     return { User, Project, ProjectContributor };
   });
 
-  it('supports offset without limit', () => {
-    const { User } = vars;
+  describe('limit/offset', () => {
+    it('supports offset without limit', () => {
+      const { User } = vars;
 
-    const sql = queryGenerator.selectQuery(User.table, {
-      model: User,
-      attributes: ['id'],
-      offset: 1,
-    }, User);
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 1,
+      }, User);
 
-    expectsql(sql, {
-      postgres: `SELECT "id" FROM "Users" AS "User" OFFSET 1;`,
-      mysql: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      mariadb: 'SELECT `id` FROM `Users` AS `User` LIMIT 18446744073709551615 OFFSET 1;',
-      sqlite: 'SELECT `id` FROM `Users` AS `User` LIMIT -1 OFFSET 1;',
-      snowflake: 'SELECT "id" FROM "Users" AS "User" LIMIT NULL OFFSET 1;',
-      db2: `SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS;`,
-      ibmi: 'SELECT "id" FROM "Users" AS "User" OFFSET 1 ROWS',
-      mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+      expectsql(sql, {
+        sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
+        postgres: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
+        snowflake: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
+        'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+      });
+    });
+
+    it('support limit without offset', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 10,
+      }, User);
+
+      expectsql(sql, {
+        default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;',
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      });
+    });
+
+    it('supports offset and limit', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 1,
+        limit: 10,
+      }, User);
+
+      expectsql(sql, {
+        default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET 1;',
+        'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+      });
+    });
+
+    it('ignores 0 as offset with a limit', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 0,
+        limit: 10,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+      });
+    });
+
+    it('ignores 0 as offset without a limit', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        offset: 0,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User];`,
+      });
+    });
+
+    it('support 0 as limit', () => {
+      const { User } = vars;
+
+      expectsql(() => queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 0,
+      }, User), {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 0;`,
+        mssql: new Error(`LIMIT 0 is not supported by ${dialectName} dialect.`),
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
+      });
+    });
+
+    it('escapes limit', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        // @ts-expect-error -- testing invalid limit
+        limit: `';DELETE FROM user`,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT ''';DELETE FROM user';`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT \'\\\';DELETE FROM user\';',
+      });
+    });
+
+    it('escapes offset', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(User.table, {
+        model: User,
+        attributes: ['id'],
+        limit: 10,
+        // @ts-expect-error -- testing invalid offset
+        offset: `';DELETE FROM user`,
+      }, User);
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET ''';DELETE FROM user';`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
+        'mariadb mysql': 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET \'\\\';DELETE FROM user\';',
+      });
     });
   });
 
@@ -88,14 +202,7 @@ describe('QueryGenerator#selectQuery', () => {
     }, Project);
 
     expectsql(sql, {
-      postgres: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      mysql: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      mariadb: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      sqlite: 'SELECT `id` FROM `Projects` AS `Project` WHERE `Project`.`duration` = 9007199254740993;',
-      snowflake: 'SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;',
-      db2: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993;`,
-      ibmi: `SELECT "id" FROM "Projects" AS "Project" WHERE "Project"."duration" = 9007199254740993`,
-      mssql: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
     });
   });
 
@@ -710,8 +817,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('optimizer hints', () => {
-    const dialectName = getTestDialect();
-
     it('max execution time hint', () => {
       const { User } = vars;
 

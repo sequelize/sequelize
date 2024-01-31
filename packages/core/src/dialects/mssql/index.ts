@@ -44,6 +44,7 @@ export class MssqlDialect extends AbstractDialect {
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
       GEOMETRY: false,
     },
+    uuidV4Generation: true,
     jsonOperations: true,
     jsonExtraction: {
       unquoted: true,
@@ -52,6 +53,12 @@ export class MssqlDialect extends AbstractDialect {
     tableHints: true,
     removeColumn: {
       ifExists: true,
+    },
+    renameTable: {
+      changeSchemaAndTable: false,
+    },
+    createSchema: {
+      authorization: true,
     },
   });
 

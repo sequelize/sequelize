@@ -14,10 +14,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
-  });
-
   describe('createTable', () => {
     it('should create a auto increment primary key', async function () {
       await this.queryInterface.createTable('TableWithPK', {

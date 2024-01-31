@@ -3,7 +3,6 @@
 import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
-const sequelizeErrors = require('../../errors');
 const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 

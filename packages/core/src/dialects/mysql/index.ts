@@ -58,9 +58,18 @@ export class MysqlDialect extends AbstractDialect {
         quoted: true,
       },
       REGEXP: true,
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
       maxExecutionTimeHint: {
         select: true,
+      },
+      createSchema: {
+        charset: true,
+        collate: true,
+        ifNotExists: true,
+      },
+      dropSchema: {
+        ifExists: true,
       },
     },
   );
@@ -97,6 +106,10 @@ export class MysqlDialect extends AbstractDialect {
 
   escapeString(value: string): string {
     return escapeMysqlString(value);
+  }
+
+  escapeJson(value: unknown): string {
+    return `CAST(${super.escapeJson(value)} AS JSON)`;
   }
 
   canBackslashEscape() {

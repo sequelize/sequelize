@@ -22,8 +22,8 @@ jobs:
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -35,39 +35,22 @@ jobs:
         run: yarn nx reset
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
-      - uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
+      - uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
           retention-days: 1
-  install-and-build-on-windows:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [18, 20]
-    name: Upload install and build artifact on Windows (Node ${{ matrix.node-version }})
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: yarn
-      - name: Install dependencies
-        run: yarn install --immutable
-      - name: Build sequelize
-        run: yarn build
   lint:
     name: Lint code
     runs-on: ubuntu-latest
     needs: install-and-build
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -82,12 +65,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -112,17 +95,39 @@ jobs:
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+  test-win:
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [18, 20]
+    name: Build and test on Windows (Node ${{ matrix.node-version }})
+    runs-on: windows-latest
+    needs: lint # don't bother running if lint tests fail
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: yarn
+      - name: Install dependencies
+        run: yarn install --immutable
+      - name: Unit tests (validator.js)
+        run: yarn lerna run test-unit --scope=@sequelize/validator.js
+      - name: Unit tests (sqlite)
+        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
+      - name: Integration tests (sqlite)
+        run: yarn lerna run test-integration-sqlite --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -137,12 +142,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: lint
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -162,12 +167,12 @@ jobs:
     env:
       DIALECT: sqlite
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -189,12 +194,12 @@ jobs:
       DIALECT: ${{ matrix.native && 'postgres-native' || 'postgres' }}
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -218,12 +223,12 @@ jobs:
     env:
       DIALECT: ${{ matrix.dialect }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -247,16 +252,16 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@3df4ab11eba7bda6032a0b82a6bb43b11571feac # v4.0.0
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
           # We need the entire history to generate the changelog properly
           fetch-depth: 0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/setup-node@b39b52d1213e96004bfcb1c61a8a6fa8ab84f3e8 # v4.0.1
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact

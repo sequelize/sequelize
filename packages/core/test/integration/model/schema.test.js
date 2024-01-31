@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 
-const dialect = Support.getTestDialect();
 const { DataTypes, Op } = require('@sequelize/core');
 
 const current = Support.sequelize;
@@ -54,10 +53,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.RestaurantOne.sync({ force: true }),
           this.RestaurantTwo.sync({ force: true }),
         ]);
-      });
-
-      afterEach('drop schemas', async () => {
-        await current.dropSchema(SCHEMA_TWO);
       });
 
       describe('Add data via model.create, retrieve via model.findOne', () => {
@@ -187,13 +182,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Promise.all([
           this.RestaurantOne.sync({ force: true }),
           this.RestaurantTwo.sync({ force: true }),
-        ]);
-      });
-
-      afterEach('drop schemas', async () => {
-        await Promise.all([
-          current.dropSchema(SCHEMA_ONE),
-          current.dropSchema(SCHEMA_TWO),
         ]);
       });
 

@@ -6,13 +6,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -23,32 +17,10 @@ const DataTypes = require('../../data-types');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
-const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
-  // Schema queries
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA "${schema}"`;
-  }
-
-  dropSchemaQuery(schema) {
-    return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
-  }
-
   // Table queries
   createTableQuery(tableName, attributes, options) {
     if (options) {
@@ -185,10 +157,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(tableName)} ${finalQuery}`;
-  }
-
-  renameTableQuery(before, after) {
-    return `RENAME TABLE ${this.quoteTable(before)} TO ${this.quoteTable(after)}`;
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -383,31 +351,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     if (options.offset || options.limit) {
-      query += this.addLimitAndOffset(options, model);
+      query += this._addLimitAndOffset(options, model);
     }
 
     return query;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options) {
-    let fragment = '';
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   // bindParam(bind) {
@@ -455,7 +402,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     // BLOB cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {

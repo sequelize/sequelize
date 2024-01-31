@@ -4,8 +4,10 @@ import retry from 'retry-as-promised';
 import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { Identifier } from './expression-builders/identifier';
 import { JsonPath } from './expression-builders/json-path';
+import { JSON_NULL, SQL_NULL } from './expression-builders/json-sql-null.js';
 import { Value } from './expression-builders/value';
 import { List } from './expression-builders/list';
 import { sql } from './expression-builders/sql';
@@ -26,11 +28,14 @@ import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
-
 import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import { BelongsToAssociation } from './associations/belongs-to';
+import { HasOneAssociation } from './associations/has-one';
+import { BelongsToManyAssociation } from './associations/belongs-to-many';
+import { HasManyAssociation } from './associations/has-many';
 
 const { Model } = require('./model');
 const DataTypes = require('./data-types');
@@ -45,10 +50,6 @@ const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
-const { BelongsTo } = require('./associations/belongs-to');
-const { HasOne } = require('./associations/has-one');
-const { BelongsToMany } = require('./associations/belongs-to-many');
-const { HasMany } = require('./associations/has-many');
 require('./utils/dayjs');
 
 /**
@@ -275,6 +276,7 @@ export class Sequelize extends SequelizeTypeScript {
       disableClsTransactions: false,
       defaultTransactionNestMode: TransactionNestMode.reuse,
       defaultTimestampPrecision: 6,
+      nullJsonStringification: 'json',
       ...options,
       pool: defaults(options.pool || {}, {
         max: 5,
@@ -590,6 +592,10 @@ export class Sequelize extends SequelizeTypeScript {
   async query(sql, options) {
     options = { ...this.options.query, ...options };
 
+    if (sql instanceof BaseSqlExpression) {
+      sql = this.queryGenerator.formatSqlExpression(sql, options);
+    }
+
     if (typeof sql === 'object') {
       throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
     }
@@ -620,7 +626,6 @@ Use Sequelize#query if you wish to use replacements.`);
     options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
-    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -1153,10 +1158,10 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 Sequelize.Model = Model;
 
 Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsTo = BelongsTo;
-Sequelize.HasOne = HasOne;
-Sequelize.HasMany = HasMany;
-Sequelize.BelongsToMany = BelongsToMany;
+Sequelize.BelongsToAssociation = BelongsToAssociation;
+Sequelize.HasOneAssociation = HasOneAssociation;
+Sequelize.HasManyAssociation = HasManyAssociation;
+Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
@@ -1197,6 +1202,9 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
  * @param {object} _inflection - `inflection` module
  */
 Sequelize.useInflection = useInflection;
+
+Sequelize.SQL_NULL = SQL_NULL;
+Sequelize.JSON_NULL = JSON_NULL;
 
 /**
  * Expose various errors available

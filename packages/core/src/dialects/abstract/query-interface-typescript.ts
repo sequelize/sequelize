@@ -6,11 +6,15 @@ import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
+import {
+  noSchemaDelimiterParameter,
+  noSchemaParameter,
+  showAllToListSchemas,
+  showAllToListTables,
+} from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
@@ -22,14 +26,17 @@ import type {
   DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
+  DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
-  QiShowAllTablesOptions,
+  QiListSchemasOptions,
+  QiListTablesOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
-  ShowAllSchemasOptions,
+  RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
 
@@ -133,24 +140,44 @@ export class AbstractQueryInterfaceTypeScript {
    * @param schema Name of the schema
    * @param options
    */
-  async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const dropSchemaQuery: string | QueryWithBindParams = this.queryGenerator.dropSchemaQuery(schema);
-
-    let sql: string;
-    let queryRawOptions: undefined | QueryRawOptions;
-    if (typeof dropSchemaQuery === 'string') {
-      sql = dropSchemaQuery;
-      queryRawOptions = options;
-    } else {
-      sql = dropSchemaQuery.query;
-      queryRawOptions = { ...options, bind: dropSchemaQuery.bind };
-    }
-
-    await this.sequelize.queryRaw(sql, queryRawOptions);
+  async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
+    const sql = this.queryGenerator.dropSchemaQuery(schema, options);
+    await this.sequelize.queryRaw(sql, options);
   }
 
   /**
-   * Show all defined schemas
+   * Drops all schemas
+   *
+   * @param options
+   */
+  async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allSchemas = await this.listSchemas(options);
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default for dialects that support it
+    if (dropOptions.cascade === undefined) {
+      if (this.sequelize.dialect.supports.dropSchema.cascade) {
+        dropOptions.cascade = true;
+      } else {
+        // if the dialect does not support "cascade", then drop all tables first in a loop to avoid deadlocks and timeouts
+        for (const schema of schemaNames) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.dropAllTables({ ...dropOptions, schema });
+        }
+      }
+    }
+
+    // Drop all the schemas in a loop to avoid deadlocks and timeouts
+    for (const schema of schemaNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropSchema(schema, dropOptions);
+    }
+  }
+
+  /**
+   * List defined schemas
    *
    * **Note:** this is a schema in the [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
    * not a database table. In mysql and mariadb, this will show all databases.
@@ -159,7 +186,7 @@ export class AbstractQueryInterfaceTypeScript {
    *
    * @returns list of schemas
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions): Promise<string[]> {
+  async listSchemas(options?: QiListSchemasOptions): Promise<string[]> {
     const showSchemasSql = this.queryGenerator.listSchemasQuery(options);
     const schemaNames = await this.sequelize.queryRaw<{ schema: string }>(showSchemasSql, {
       ...options,
@@ -168,6 +195,18 @@ export class AbstractQueryInterfaceTypeScript {
     });
 
     return schemaNames.map(schemaName => schemaName.schema);
+  }
+
+  /**
+   * Show all defined schemas
+   *
+   * @deprecated Use {@link listSchemas} instead.
+   * @param options
+   */
+  async showAllSchemas(options?: QiListSchemasOptions): Promise<string[]> {
+    showAllToListSchemas();
+
+    return this.listSchemas(options);
   }
 
   /**
@@ -189,7 +228,7 @@ export class AbstractQueryInterfaceTypeScript {
    */
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
-    const allTables = await this.showAllTables(options);
+    const allTables = await this.listTables(options);
     const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     const dropOptions = { ...options };
@@ -214,14 +253,43 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Show all tables.
+   * List tables
    *
    * @param options
    */
-  async showAllTables(options?: QiShowAllTablesOptions): Promise<TableNameWithSchema[]> {
+  async listTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
     const sql = this.queryGenerator.listTablesQuery(options);
 
     return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
+  }
+
+  /**
+   * Show all tables
+   *
+   * @deprecated Use {@link listTables} instead.
+   * @param options
+   */
+  async showAllTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
+    showAllToListTables();
+
+    return this.listTables(options);
+  }
+
+  /**
+   * Rename a table
+   *
+   * @param beforeTableName
+   * @param afterTableName
+   * @param options
+   */
+  async renameTable(
+    beforeTableName: TableNameOrModel,
+    afterTableName: TableNameOrModel,
+    options?: RenameTableOptions,
+  ): Promise<void> {
+    const sql = this.queryGenerator.renameTableQuery(beforeTableName, afterTableName, options);
+
+    await this.sequelize.queryRaw(sql, options);
   }
 
   /**
@@ -533,7 +601,6 @@ export class AbstractQueryInterfaceTypeScript {
    */
   getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
-
   }
 
   /**

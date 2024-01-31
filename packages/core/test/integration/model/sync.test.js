@@ -604,7 +604,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         .queryInterface
         .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
-      await sequelize.dropSchema(schema);
     });
 
     it('should not recreate a foreign key if it already exists when { alter: true } is used with a custom schema (reference attribute is a Model)', async () => {
