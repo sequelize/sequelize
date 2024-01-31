@@ -578,7 +578,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       expect(aFks).to.have.length(1);
       expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
 
-      A.modelDefinition.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+      A.modelDefinition.rawAttributes.bId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
       A.modelDefinition.refreshAttributes();
       await sequelize.sync({ alter: true });
 

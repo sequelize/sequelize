@@ -1429,7 +1429,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
-        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
+        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
         include: [
           { model: this.Project },
         ],

@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const posts = await Post.findAll({
-          attributes: [[Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count']],
+          attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'comment_count']],
           include: [
             { model: Comment, attributes: [] },
           ],

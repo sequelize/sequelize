@@ -712,10 +712,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+          const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: undefined });
           expect(labels0.length).to.equal(0);
 
-          const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
+          const labels = await Label.findAll({ where: { articleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();
         });
@@ -810,7 +810,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const article0 = await Article.create({ title: 'foo' });
         await article0.createLabel({ text: 'bar' });
         const article = article0;
-        const labels = await Label.findAll({ where: { ArticleId: article.id } });
+        const labels = await Label.findAll({ where: { articleId: article.id } });
         expect(labels.length).to.equal(1);
       });
 

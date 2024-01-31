@@ -135,7 +135,7 @@ Instead of specifying a Model, either:
       const result = await Table1.findAll({
         raw: true,
         attributes: [
-          [Sequelize.fn('SUM', Sequelize.col('Table2.Tables3.value')), 'sum'],
+          [Sequelize.fn('SUM', Sequelize.col('table2.Tables3.value')), 'sum'],
         ],
         include: [
           {

@@ -1445,7 +1445,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             as: 'tags',
             through: {
               where: {
-                productId: 3,
+                ProductId: 3,
               },
             },
             required: true,
@@ -1467,7 +1467,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             as: 'tags',
             through: {
               where: {
-                productId: 3,
+                ProductId: 3,
               },
             },
             required: true,
