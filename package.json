@@ -57,7 +57,7 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "19.0.2",
     "@rushstack/eslint-patch": "1.7.2",
-    "@types/node": "20.11.10",
+    "@types/node": "20.11.12",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -66,9 +66,9 @@
     "eslint-plugin-jsdoc": "48.0.4",
     "eslint-plugin-mocha": "10.2.0",
     "fast-glob": "3.3.2",
-    "husky": "8.0.3",
+    "husky": "9.0.7",
     "lerna": "8.0.2",
-    "lint-staged": "15.2.0",
+    "lint-staged": "15.2.1",
     "markdownlint-cli": "0.39.0",
     "mocha": "10.2.0",
     "node-gyp": "10.0.1",
@@ -76,13 +76,13 @@
     "nx": "17.3.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
-    "typedoc": "0.25.4",
+    "typedoc": "0.25.7",
     "typedoc-plugin-carbon-ads": "1.6.0",
     "typedoc-plugin-mdn-links": "3.1.14",
     "typedoc-plugin-missing-exports": "2.2.0",
-    "typescript": "5.2.2"
+    "typescript": "5.3.3"
   },
-  "packageManager": "yarn@4.0.2",
+  "packageManager": "yarn@4.1.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
   }

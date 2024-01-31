@@ -205,7 +205,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
           sql += ' NOT NULL';
         }
 
-        if (defaultValueSchemable(attribute.defaultValue)) {
+        if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP

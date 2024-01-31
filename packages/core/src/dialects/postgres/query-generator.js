@@ -275,7 +275,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       }
     }
 
-    if (defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 

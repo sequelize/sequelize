@@ -146,6 +146,10 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'SELECT VERSION() as `version`';
   }
 
+  getUuidV1FunctionCall(): string {
+    return 'UUID()';
+  }
+
   protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
     let fragment = '';
     if (options.limit != null) {
