@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             withIncludeFunctionAndStringAssociation: () => {
               return {
                 include: [{
-                  association: 'Children',
+                  association: 'children',
                   where: {
                     priority: 1,
                   },

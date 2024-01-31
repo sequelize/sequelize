@@ -648,11 +648,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const product = Product.build({
           id: 1,
           title: 'Chair',
-          Tags: [
+          tags: [
             { id: 1, name: 'Alpha' },
             { id: 2, name: 'Beta' },
           ],
-          User: {
+          user: {
             id: 1,
             first_name: 'Mick',
             last_name: 'Hansen',
@@ -664,11 +664,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
-        expect(product.Tags).to.be.ok;
-        expect(product.Tags.length).to.equal(2);
-        expect(product.Tags[0]).to.be.instanceof(Tag);
-        expect(product.User).to.be.ok;
-        expect(product.User).to.be.instanceof(User);
+        expect(product.tags).to.be.ok;
+        expect(product.tags.length).to.equal(2);
+        expect(product.tags[0]).to.be.instanceof(Tag);
+        expect(product.user).to.be.ok;
+        expect(product.user).to.be.instanceof(User);
       });
 
       it('should support includes with aliases', function () {
@@ -1429,7 +1429,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
-        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
+        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
         include: [
           { model: this.Project },
         ],

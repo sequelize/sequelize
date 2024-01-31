@@ -614,8 +614,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User,
       }, User), {
-        ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
-        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        ibmi: 'SELECT "User"."name", "User"."age", "posts"."id" AS "posts.id", "posts"."title" AS "posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "posts" ON "User"."id" = "posts"."user_id"',
+        default: 'SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];',
       });
     });
 
@@ -648,7 +648,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User,
       }, User), {
-        default: `SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];`,
+        default: `SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];`,
       });
     });
 
@@ -823,7 +823,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         table: Company.getTableName(),
         model: Company,
         attributes: ['name', 'public'],
-        where: { '$Users.Profession.name$': 'test', [Op.and]: { scopeId: [42] } },
+        where: { '$Users.profession.name$': 'test', [Op.and]: { scopeId: [42] } },
         include: _validateIncludedElements({
           include: [{
             association: Company.Users,
@@ -845,28 +845,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'SELECT [Company].* FROM ('
           + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
           + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
-          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
           + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
-          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
           + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] LIMIT 1`
           + `) IS NOT NULL ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
         'db2 ibmi': 'SELECT [Company].* FROM ('
           + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
           + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
-          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
           + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
-          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
           + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] FETCH NEXT 1 ROWS ONLY`
           + `) IS NOT NULL ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
         mssql: 'SELECT [Company].* FROM ('
           + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
           + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
-          + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-          + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
           + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
-          + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
           + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY`
           + `) IS NOT NULL ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) AS [Company];`,
       });
@@ -992,7 +992,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         });
 
-        User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+        // association name is Pascal case to test quoteIdentifier: false
+        User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
         expectsql(sql.selectQuery('User', {
           attributes: ['name', 'age'],
@@ -1058,7 +1059,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
-  describe('queryIdentifiers: false', () => {
+  describe('quoteIdentifiers: false', () => {
     beforeEach(() => {
       sql.options.quoteIdentifiers = false;
     });
@@ -1101,7 +1102,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      // association name is Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
@@ -1142,8 +1144,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
-      Post.Comments = Post.hasMany(Comment, { foreignKey: 'post_id' });
+      // association names are Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+      Post.Comments = Post.hasMany(Comment, { foreignKey: 'post_id', as: 'Comments' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
@@ -1189,7 +1192,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      // association name is Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age', ['status.label', 'statuslabel']],

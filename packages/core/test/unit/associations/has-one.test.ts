@@ -60,18 +60,28 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(User.associations.task).to.be.ok;
   });
 
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
+
+    User.hasOne(Task);
+
+    expect(Object.keys(Task.associations)).to.deep.eq(['user']);
+    expect(Object.keys(User.associations)).to.deep.eq(['task']);
+  });
+
   it('does not use `as` option to generate foreign key name', () => {
     // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = sequelize.define('User', { username: DataTypes.STRING });
     const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
     const association1 = User.hasOne(Task);
-    expect(association1.foreignKey).to.equal('UserId');
-    expect(Task.getAttributes().UserId).not.to.be.empty;
+    expect(association1.foreignKey).to.equal('userId');
+    expect(Task.getAttributes().userId).not.to.be.empty;
 
     const association2 = User.hasOne(Task, { as: 'Shabda' });
-    expect(association2.foreignKey).to.equal('UserId');
-    expect(Task.getAttributes().UserId).not.to.be.empty;
+    expect(association2.foreignKey).to.equal('userId');
+    expect(Task.getAttributes().userId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -180,7 +190,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     User.hasOne(Task, { foreignKey: { allowNull: false } });
 
-    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().userId.onDelete).to.eq('CASCADE');
   });
 
   it('should throw an error if an association clashes with the name of an already define attribute', () => {
@@ -204,7 +214,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
       expect(
         Object.keys(Group.associations),
-      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+      ).to.deep.equal(['user', 'primaryUsers', 'secondaryUsers']);
     });
   });
 

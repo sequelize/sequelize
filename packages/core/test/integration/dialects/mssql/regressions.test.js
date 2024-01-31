@@ -80,8 +80,8 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(logs).to.have.length(2);
-      expect(logs[0].User.get('UserName')).to.equal('Shaktimaan');
-      expect(logs[1].User.get('UserName')).to.equal('Aryamaan');
+      expect(logs[0].user.get('UserName')).to.equal('Shaktimaan');
+      expect(logs[1].user.get('UserName')).to.equal('Aryamaan');
 
       // #11258 and similar
       const otherLogs = await LoginLog.findAll({
@@ -101,8 +101,8 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(otherLogs).to.have.length(2);
-      expect(otherLogs[0].User.get('UserName')).to.equal('Aryamaan');
-      expect(otherLogs[1].User.get('UserName')).to.equal('Shaktimaan');
+      expect(otherLogs[0].user.get('UserName')).to.equal('Aryamaan');
+      expect(otherLogs[1].user.get('UserName')).to.equal('Shaktimaan');
 
       // Separate queries can apply order freely
       const separateUsers = await User.findAll({
@@ -127,9 +127,9 @@ if (dialect.startsWith('mssql')) {
 
       expect(separateUsers).to.have.length(2);
       expect(separateUsers[0].get('UserName')).to.equal('Aryamaan');
-      expect(separateUsers[0].get('LoginLogs')).to.have.length(1);
+      expect(separateUsers[0].get('loginLogs')).to.have.length(1);
       expect(separateUsers[1].get('UserName')).to.equal('Shaktimaan');
-      expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
+      expect(separateUsers[1].get('loginLogs')).to.have.length(1);
     });
 
     it('allow referencing FK to different tables in a schema with onDelete, #10125', async function () {
