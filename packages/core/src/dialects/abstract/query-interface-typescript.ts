@@ -7,6 +7,7 @@ import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
 import {
+  deleteToBulkDelete,
   noSchemaDelimiterParameter,
   noSchemaParameter,
   showAllToListSchemas,
@@ -713,6 +714,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async delete(tableName: TableNameOrModel, options: RequiredBy<BulkDeleteOptions, 'where'>): Promise<number> {
+    deleteToBulkDelete();
     const deleteOptions = { ...options };
     const sql = this.queryGenerator.bulkDeleteQuery(tableName, deleteOptions);
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
