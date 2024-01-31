@@ -200,6 +200,14 @@ describe('Sequelize constructor', () => {
       expect(options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
+    it('supports using a socket path as an encoded domain', () => {
+      const sequelize = new Sequelize(`${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`);
+
+      const options = sequelize.options;
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
+    });
+
     it('supports connection strings in replication options', async () => {
       const uri = `${dialect}://username:password@host:1234/database`;
 
