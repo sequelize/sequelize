@@ -50,6 +50,10 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
   async getConnection(options: GetConnectionOptions): Promise<SqliteConnection> {
     const connectionUuid = options.uuid || 'default';
 
+    if (this.sequelize.options.storage && this.sequelize.options.host) {
+      throw new Error('The host and storage options cannot be set at the same time');
+    }
+
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
     const storage = this.sequelize.options.storage
       ?? this.sequelize.options.host

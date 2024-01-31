@@ -193,11 +193,19 @@ describe('Sequelize constructor', () => {
     });
 
     it('priorises the ?host querystring parameter over the rest of the URI', () => {
-      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=example.com`);
+      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
 
       const options = sequelize.options;
-      expect(options.host).to.equal('example.com');
-      expect(options.replication.write.host).to.equal('example.com');
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
+    });
+
+    it('supports using a socket path as an encoded domain', () => {
+      const sequelize = new Sequelize(`${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`);
+
+      const options = sequelize.options;
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
     it('supports connection strings in replication options', async () => {
@@ -332,14 +340,18 @@ describe('Sequelize constructor', () => {
       expect(options.storage).to.equal('/completely/different/path.db');
     });
 
-    it('should be able to use :memory:', () => {
+    it('should be able to use :memory: (1)', () => {
       const sequelize = new Sequelize('sqlite://:memory:');
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
+      expect(options.storage).to.equal(':memory:');
+    });
 
-      // empty host is treated as :memory:
-      expect(options.host).to.equal('');
-      expect(options.storage).to.equal(undefined);
+    it('should be able to use :memory: (2)', () => {
+      const sequelize = new Sequelize('sqlite::memory:');
+      const options = sequelize.options;
+      expect(options.dialect).to.equal('sqlite');
+      expect(options.storage).to.equal(':memory:');
     });
   });
 });

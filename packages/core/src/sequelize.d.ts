@@ -27,7 +27,7 @@ import type {
 } from './model';
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
-import type { SequelizeHooks } from './sequelize-typescript.js';
+import type { SUPPORTED_DIALECTS, SequelizeHooks } from './sequelize-typescript.js';
 import type { RequiredBy } from './utils/types.js';
 import type { DataTypes, IsolationLevel, Op, QueryTypes, TransactionNestMode, TransactionType } from '.';
 
@@ -167,9 +167,7 @@ export interface Config {
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions: Readonly<DialectOptions>;
 }
-
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
-
+export type Dialect = typeof SUPPORTED_DIALECTS[number];
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */
