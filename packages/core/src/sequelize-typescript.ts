@@ -147,7 +147,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
-export const SUPPORTED_DIALECTS = ['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql', 'mariadb', 'mssql', 'db2', 'snowflake', 'ibmi'] as const;
+export const SUPPORTED_DIALECTS = Object.freeze(['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql', 'mariadb', 'mssql', 'db2', 'snowflake', 'ibmi'] as const);
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
