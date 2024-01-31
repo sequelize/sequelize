@@ -466,31 +466,31 @@ describe('QueryGenerator#selectQuery', () => {
           SELECT
             [Project].[id],
             [contributors].[id] AS [contributors.id],
-            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId],
-            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId]
+            [contributors->ProjectContributor].[userId] AS [contributors.ProjectContributor.userId],
+            [contributors->ProjectContributor].[projectId] AS [contributors.ProjectContributor.projectId]
           FROM [Projects] AS [Project]
           LEFT OUTER JOIN (
             [ProjectContributors] AS [contributors->ProjectContributor]
             INNER JOIN [Users] AS [contributors]
-            ON [contributors].[id] = [contributors->ProjectContributor].[UserId]
+            ON [contributors].[id] = [contributors->ProjectContributor].[userId]
             AND 'where'
           )
-          ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
+          ON [Project].[id] = [contributors->ProjectContributor].[projectId];
         `,
         mssql: `
           SELECT
             [Project].[id],
             [contributors].[id] AS [contributors.id],
-            [contributors->ProjectContributor].[UserId] AS [contributors.ProjectContributor.UserId],
-            [contributors->ProjectContributor].[ProjectId] AS [contributors.ProjectContributor.ProjectId]
+            [contributors->ProjectContributor].[userId] AS [contributors.ProjectContributor.userId],
+            [contributors->ProjectContributor].[projectId] AS [contributors.ProjectContributor.projectId]
           FROM [Projects] AS [Project]
           LEFT OUTER JOIN (
             [ProjectContributors] AS [contributors->ProjectContributor]
             INNER JOIN [Users] AS [contributors]
-            ON [contributors].[id] = [contributors->ProjectContributor].[UserId]
+            ON [contributors].[id] = [contributors->ProjectContributor].[userId]
             AND N'where'
           )
-          ON [Project].[id] = [contributors->ProjectContributor].[ProjectId];
+          ON [Project].[id] = [contributors->ProjectContributor].[projectId];
         `,
       });
     });

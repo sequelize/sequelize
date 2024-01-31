@@ -298,18 +298,18 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       ]);
 
       expect(user.Groups.length).to.equal(1);
-      expect(user.Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(user.Groups[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(user.Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(user.userSecondId);
+        expect(user.Groups[0].User_has_Group.userUserSecondId).to.deep.equal(user.userSecondId);
       } else {
-        expect(user.Groups[0].User_has_Group.UserUserSecondId).to.equal(user.userSecondId);
+        expect(user.Groups[0].User_has_Group.userUserSecondId).to.equal(user.userSecondId);
       }
 
-      expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(user.Groups[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(user.Groups[0].groupSecondId);
+        expect(user.Groups[0].User_has_Group.groupGroupSecondId).to.deep.equal(user.Groups[0].groupSecondId);
       } else {
-        expect(user.Groups[0].User_has_Group.GroupGroupSecondId).to.equal(user.Groups[0].groupSecondId);
+        expect(user.Groups[0].User_has_Group.groupGroupSecondId).to.equal(user.Groups[0].groupSecondId);
       }
 
       expect(users.length).to.equal(1);
@@ -381,63 +381,63 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users.length).to.equal(2);
       expect(users[0].Groups.length).to.equal(1);
       expect(users[1].Groups.length).to.equal(1);
-      expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[0].Groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+        expect(users[0].Groups[0].usergroups.userUserSecondId).to.deep.equal(users[0].userSecondId);
       } else {
-        expect(users[0].Groups[0].usergroups.UserUserSecondId).to.equal(users[0].userSecondId);
+        expect(users[0].Groups[0].usergroups.userUserSecondId).to.equal(users[0].userSecondId);
       }
 
-      expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
       } else {
-        expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.equal(users[0].Groups[0].groupSecondId);
       }
 
-      expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[1].Groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+        expect(users[1].Groups[0].usergroups.userUserSecondId).to.deep.equal(users[1].userSecondId);
       } else {
-        expect(users[1].Groups[0].usergroups.UserUserSecondId).to.equal(users[1].userSecondId);
+        expect(users[1].Groups[0].usergroups.userUserSecondId).to.equal(users[1].userSecondId);
       }
 
-      expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
       } else {
-        expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.equal(users[1].Groups[0].groupSecondId);
       }
 
       expect(groups.length).to.equal(2);
       expect(groups[0].users.length).to.equal(1);
       expect(groups[1].users.length).to.equal(1);
-      expect(groups[0].users[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(groups[0].users[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+        expect(groups[0].users[0].usergroups.groupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
       } else {
-        expect(groups[0].users[0].usergroups.GroupGroupSecondId).to.equal(groups[0].groupSecondId);
+        expect(groups[0].users[0].usergroups.groupGroupSecondId).to.equal(groups[0].groupSecondId);
       }
 
-      expect(groups[0].users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[0].users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].usergroups.userUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
       } else {
-        expect(groups[0].users[0].usergroups.UserUserSecondId).to.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].usergroups.userUserSecondId).to.equal(groups[0].users[0].userSecondId);
       }
 
-      expect(groups[1].users[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(groups[1].users[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+        expect(groups[1].users[0].usergroups.groupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
       } else {
-        expect(groups[1].users[0].usergroups.GroupGroupSecondId).to.equal(groups[1].groupSecondId);
+        expect(groups[1].users[0].usergroups.groupGroupSecondId).to.equal(groups[1].groupSecondId);
       }
 
-      expect(groups[1].users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[1].users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].usergroups.userUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
       } else {
-        expect(groups[1].users[0].usergroups.UserUserSecondId).to.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].usergroups.userUserSecondId).to.equal(groups[1].users[0].userSecondId);
       }
     });
 
@@ -501,63 +501,63 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users.length).to.equal(2);
       expect(users[0].groups.length).to.equal(1);
       expect(users[1].groups.length).to.equal(1);
-      expect(users[0].groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[0].groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+        expect(users[0].groups[0].usergroups.userUserSecondId).to.deep.equal(users[0].userSecondId);
       } else {
-        expect(users[0].groups[0].usergroups.UserUserSecondId).to.equal(users[0].userSecondId);
+        expect(users[0].groups[0].usergroups.userUserSecondId).to.equal(users[0].userSecondId);
       }
 
-      expect(users[0].groups[0].usergroups.GroupId).to.be.ok;
+      expect(users[0].groups[0].usergroups.groupId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].groups[0].usergroups.GroupId).to.deep.equal(users[0].groups[0].id);
+        expect(users[0].groups[0].usergroups.groupId).to.deep.equal(users[0].groups[0].id);
       } else {
-        expect(users[0].groups[0].usergroups.GroupId).to.equal(users[0].groups[0].id);
+        expect(users[0].groups[0].usergroups.groupId).to.equal(users[0].groups[0].id);
       }
 
-      expect(users[1].groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[1].groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+        expect(users[1].groups[0].usergroups.userUserSecondId).to.deep.equal(users[1].userSecondId);
       } else {
-        expect(users[1].groups[0].usergroups.UserUserSecondId).to.equal(users[1].userSecondId);
+        expect(users[1].groups[0].usergroups.userUserSecondId).to.equal(users[1].userSecondId);
       }
 
-      expect(users[1].groups[0].usergroups.GroupId).to.be.ok;
+      expect(users[1].groups[0].usergroups.groupId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].groups[0].usergroups.GroupId).to.deep.equal(users[1].groups[0].id);
+        expect(users[1].groups[0].usergroups.groupId).to.deep.equal(users[1].groups[0].id);
       } else {
-        expect(users[1].groups[0].usergroups.GroupId).to.equal(users[1].groups[0].id);
+        expect(users[1].groups[0].usergroups.groupId).to.equal(users[1].groups[0].id);
       }
 
       expect(groups.length).to.equal(2);
       expect(groups[0].users.length).to.equal(1);
       expect(groups[1].users.length).to.equal(1);
-      expect(groups[0].users[0].usergroups.GroupId).to.be.ok;
+      expect(groups[0].users[0].usergroups.groupId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].usergroups.GroupId).to.deep.equal(groups[0].id);
+        expect(groups[0].users[0].usergroups.groupId).to.deep.equal(groups[0].id);
       } else {
-        expect(groups[0].users[0].usergroups.GroupId).to.equal(groups[0].id);
+        expect(groups[0].users[0].usergroups.groupId).to.equal(groups[0].id);
       }
 
-      expect(groups[0].users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[0].users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].usergroups.userUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
       } else {
-        expect(groups[0].users[0].usergroups.UserUserSecondId).to.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].usergroups.userUserSecondId).to.equal(groups[0].users[0].userSecondId);
       }
 
-      expect(groups[1].users[0].usergroups.GroupId).to.be.ok;
+      expect(groups[1].users[0].usergroups.groupId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].usergroups.GroupId).to.deep.equal(groups[1].id);
+        expect(groups[1].users[0].usergroups.groupId).to.deep.equal(groups[1].id);
       } else {
-        expect(groups[1].users[0].usergroups.GroupId).to.equal(groups[1].id);
+        expect(groups[1].users[0].usergroups.groupId).to.equal(groups[1].id);
       }
 
-      expect(groups[1].users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[1].users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].usergroups.userUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
       } else {
-        expect(groups[1].users[0].usergroups.UserUserSecondId).to.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].usergroups.userUserSecondId).to.equal(groups[1].users[0].userSecondId);
       }
     });
 
@@ -627,63 +627,63 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users.length).to.equal(2);
       expect(users[0].Groups.length).to.equal(1);
       expect(users[1].Groups.length).to.equal(1);
-      expect(users[0].Groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[0].Groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+        expect(users[0].Groups[0].usergroups.userUserSecondId).to.deep.equal(users[0].userSecondId);
       } else {
-        expect(users[0].Groups[0].usergroups.UserUserSecondId).to.equal(users[0].userSecondId);
+        expect(users[0].Groups[0].usergroups.userUserSecondId).to.equal(users[0].userSecondId);
       }
 
-      expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
       } else {
-        expect(users[0].Groups[0].usergroups.GroupGroupSecondId).to.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].usergroups.groupGroupSecondId).to.equal(users[0].Groups[0].groupSecondId);
       }
 
-      expect(users[1].Groups[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(users[1].Groups[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].usergroups.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+        expect(users[1].Groups[0].usergroups.userUserSecondId).to.deep.equal(users[1].userSecondId);
       } else {
-        expect(users[1].Groups[0].usergroups.UserUserSecondId).to.equal(users[1].userSecondId);
+        expect(users[1].Groups[0].usergroups.userUserSecondId).to.equal(users[1].userSecondId);
       }
 
-      expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
       } else {
-        expect(users[1].Groups[0].usergroups.GroupGroupSecondId).to.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].usergroups.groupGroupSecondId).to.equal(users[1].Groups[0].groupSecondId);
       }
 
       expect(groups.length).to.equal(2);
       expect(groups[0].Users.length).to.equal(1);
       expect(groups[1].Users.length).to.equal(1);
-      expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(groups[0].Users[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+        expect(groups[0].Users[0].usergroups.groupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
       } else {
-        expect(groups[0].Users[0].usergroups.GroupGroupSecondId).to.equal(groups[0].groupSecondId);
+        expect(groups[0].Users[0].usergroups.groupGroupSecondId).to.equal(groups[0].groupSecondId);
       }
 
-      expect(groups[0].Users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[0].Users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+        expect(groups[0].Users[0].usergroups.userUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
       } else {
-        expect(groups[0].Users[0].usergroups.UserUserSecondId).to.equal(groups[0].Users[0].userSecondId);
+        expect(groups[0].Users[0].usergroups.userUserSecondId).to.equal(groups[0].Users[0].userSecondId);
       }
 
-      expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.be.ok;
+      expect(groups[1].Users[0].usergroups.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+        expect(groups[1].Users[0].usergroups.groupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
       } else {
-        expect(groups[1].Users[0].usergroups.GroupGroupSecondId).to.equal(groups[1].groupSecondId);
+        expect(groups[1].Users[0].usergroups.groupGroupSecondId).to.equal(groups[1].groupSecondId);
       }
 
-      expect(groups[1].Users[0].usergroups.UserUserSecondId).to.be.ok;
+      expect(groups[1].Users[0].usergroups.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].usergroups.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+        expect(groups[1].Users[0].usergroups.userUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
       } else {
-        expect(groups[1].Users[0].usergroups.UserUserSecondId).to.equal(groups[1].Users[0].userSecondId);
+        expect(groups[1].Users[0].usergroups.userUserSecondId).to.equal(groups[1].Users[0].userSecondId);
       }
     });
 
@@ -741,7 +741,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         indexes: [
           {
             unique: true,
-            fields: ['UserUserSecondId', 'GroupGroupSecondId'],
+            fields: ['userUserSecondId', 'groupGroupSecondId'],
             name: 'UserHasGroup_Second_Unique',
           },
         ],
@@ -763,63 +763,63 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(users.length).to.equal(2);
       expect(users[0].groups.length).to.equal(1);
       expect(users[1].groups.length).to.equal(1);
-      expect(users[0].groups[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(users[0].groups[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+        expect(users[0].groups[0].User_has_Group.userUserSecondId).to.deep.equal(users[0].userSecondId);
       } else {
-        expect(users[0].groups[0].User_has_Group.UserUserSecondId).to.equal(users[0].userSecondId);
+        expect(users[0].groups[0].User_has_Group.userUserSecondId).to.equal(users[0].userSecondId);
       }
 
-      expect(users[0].groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[0].groups[0].groupSecondId);
+        expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.deep.equal(users[0].groups[0].groupSecondId);
       } else {
-        expect(users[0].groups[0].User_has_Group.GroupGroupSecondId).to.equal(users[0].groups[0].groupSecondId);
+        expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.equal(users[0].groups[0].groupSecondId);
       }
 
-      expect(users[1].groups[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(users[1].groups[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+        expect(users[1].groups[0].User_has_Group.userUserSecondId).to.deep.equal(users[1].userSecondId);
       } else {
-        expect(users[1].groups[0].User_has_Group.UserUserSecondId).to.equal(users[1].userSecondId);
+        expect(users[1].groups[0].User_has_Group.userUserSecondId).to.equal(users[1].userSecondId);
       }
 
-      expect(users[1].groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[1].groups[0].groupSecondId);
+        expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.deep.equal(users[1].groups[0].groupSecondId);
       } else {
-        expect(users[1].groups[0].User_has_Group.GroupGroupSecondId).to.equal(users[1].groups[0].groupSecondId);
+        expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.equal(users[1].groups[0].groupSecondId);
       }
 
       expect(groups.length).to.equal(2);
       expect(groups[0].users.length).to.equal(1);
       expect(groups[1].users.length).to.equal(1);
-      expect(groups[0].users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+        expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
       } else {
-        expect(groups[0].users[0].User_has_Group.GroupGroupSecondId).to.equal(groups[0].groupSecondId);
+        expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.equal(groups[0].groupSecondId);
       }
 
-      expect(groups[0].users[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(groups[0].users[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].User_has_Group.userUserSecondId).to.deep.equal(groups[0].users[0].userSecondId);
       } else {
-        expect(groups[0].users[0].User_has_Group.UserUserSecondId).to.equal(groups[0].users[0].userSecondId);
+        expect(groups[0].users[0].User_has_Group.userUserSecondId).to.equal(groups[0].users[0].userSecondId);
       }
 
-      expect(groups[1].users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+        expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
       } else {
-        expect(groups[1].users[0].User_has_Group.GroupGroupSecondId).to.equal(groups[1].groupSecondId);
+        expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.equal(groups[1].groupSecondId);
       }
 
-      expect(groups[1].users[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(groups[1].users[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].User_has_Group.userUserSecondId).to.deep.equal(groups[1].users[0].userSecondId);
       } else {
-        expect(groups[1].users[0].User_has_Group.UserUserSecondId).to.equal(groups[1].users[0].userSecondId);
+        expect(groups[1].users[0].User_has_Group.userUserSecondId).to.equal(groups[1].users[0].userSecondId);
       }
     });
 
@@ -2386,8 +2386,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       const attributes = this.sequelize.model('user_places').getAttributes();
 
-      expect(attributes.PlaceId.field).to.equal('PlaceId');
-      expect(attributes.UserId.field).to.equal('UserId');
+      expect(attributes.placeId.field).to.equal('placeId');
+      expect(attributes.userId.field).to.equal('userId');
     });
 
     it('generates snake_case foreign keys if underscored is set on the through model', function () {
@@ -2400,8 +2400,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       const attributes = UserPlaces.getAttributes();
 
-      expect(attributes.PlaceId.field).to.equal('place_id');
-      expect(attributes.UserId.field).to.equal('user_id');
+      expect(attributes.placeId.field).to.equal('place_id');
+      expect(attributes.userId.field).to.equal('user_id');
     });
 
     it('should infer otherKey from paired BTM relationship with a through string defined', function () {
@@ -2601,7 +2601,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       this.User.belongsToMany(this.Task, { through: this.UserTasks });
       this.Task.belongsToMany(this.User, { through: this.UserTasks });
 
-      expect(Object.keys(this.UserTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
+      expect(Object.keys(this.UserTasks.primaryKeys).sort()).to.deep.equal(['taskId', 'userId']);
     });
 
     it('keeps the primary key if it was added by the user', function () {
@@ -2629,7 +2629,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       for (const model of [this.UserTasks, this.UserTasks2]) {
         const index = model.getIndexes()[0];
 
-        expect(index.fields.sort()).to.deep.equal(['TaskId', 'UserId']);
+        expect(index.fields.sort()).to.deep.equal(['taskId', 'userId']);
       }
     });
 
@@ -2657,8 +2657,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         });
 
         return this.sequelize.queryInterface.createTable('users_tasks', {
-          TaskId: DataTypes.INTEGER,
-          UserId: DataTypes.INTEGER,
+          taskId: DataTypes.INTEGER,
+          userId: DataTypes.INTEGER,
           createdAt: DataTypes.DATE,
           updatedAt: DataTypes.DATE,
         });
@@ -2670,7 +2670,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.User.belongsToMany(this.Task, { through: this.UsersTasks });
         this.Task.belongsToMany(this.User, { through: this.UsersTasks });
 
-        expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
+        expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['taskId', 'userId']);
 
         const [user, task] = await Promise.all([
           this.User.create({ username: 'foo' }),
@@ -2716,7 +2716,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.users[0].addProjects(this.projects);
         await this.UserProjects.destroy({
           where: {
-            ProjectId: this.projects[0].id,
+            projectId: this.projects[0].id,
           },
         });
 
@@ -2729,7 +2729,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.users[0].addProjects(this.projects);
         await this.UserProjects.destroy({
           where: {
-            ProjectId: this.projects[0].id,
+            projectId: this.projects[0].id,
           },
         });
 
@@ -2742,7 +2742,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.users[0].addProjects(this.projects);
         await this.UserProjects.destroy({
           where: {
-            ProjectId: this.projects[0].id,
+            projectId: this.projects[0].id,
           },
         });
 
@@ -2863,7 +2863,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           p.UserProjects = { status: 'active' };
 
           await u.addProject(p);
-          const up = await this.UserProjects.findOne({ where: { UserId: u.id, ProjectId: p.id } });
+          const up = await this.UserProjects.findOne({ where: { userId: u.id, projectId: p.id } });
           expect(up.status).to.equal('active');
         });
 
@@ -2874,7 +2874,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
 
           await u.addProject(p, { through: { status: 'active' } });
-          const up = await this.UserProjects.findOne({ where: { UserId: u.id, ProjectId: p.id } });
+          const up = await this.UserProjects.findOne({ where: { userId: u.id, projectId: p.id } });
           expect(up.status).to.equal('active');
         });
 
@@ -2984,8 +2984,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           await user.setProjects([p1, p2], { through: { status: 'active' } });
 
           const [up1, up2] = await Promise.all([
-            this.UserProjects.findOne({ where: { UserId: user.id, ProjectId: p1.id } }),
-            this.UserProjects.findOne({ where: { UserId: user.id, ProjectId: p2.id } }),
+            this.UserProjects.findOne({ where: { userId: user.id, projectId: p1.id } }),
+            this.UserProjects.findOne({ where: { userId: user.id, projectId: p2.id } }),
           ]);
 
           expect(up1.status).to.equal('inactive');
@@ -3091,63 +3091,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const tasks = await worker.getTasks();
         expect(tasks.length).to.equal(1);
       });
-    });
-  });
-
-  describe('alias', () => {
-    it('creates the join table when through is a string', async function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: 'group_user' });
-      Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user' });
-
-      await this.sequelize.sync({ force: true });
-      const result = await this.sequelize.queryInterface.listTables();
-      const tableNames = result.map(v => v.tableName);
-
-      expect(tableNames.includes('group_user')).to.be.true;
-    });
-
-    it('creates the join table when through is a model', async function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-      const UserGroup = this.sequelize.define('GroupUser', {}, { tableName: 'user_groups' });
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: UserGroup });
-      Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup });
-
-      await this.sequelize.sync({ force: true });
-      const result = await this.sequelize.queryInterface.listTables();
-      const tableNames = result.map(v => v.tableName);
-
-      expect(tableNames).to.include('user_groups');
-    });
-
-    it('correctly identifies its counterpart when through is a string', function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: 'group_user' });
-      Group.belongsToMany(User, { as: 'MyUsers', through: 'group_user' });
-
-      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-      expect(Group.associations.MyUsers.through.model.getAttributes().UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.getAttributes().GroupId).to.exist;
-    });
-
-    it('correctly identifies its counterpart when through is a model', function () {
-      const User = this.sequelize.define('User', {});
-      const Group = this.sequelize.define('Group', {});
-      const UserGroup = this.sequelize.define('GroupUser', {}, { tableName: 'user_groups' });
-
-      User.belongsToMany(Group, { as: 'MyGroups', through: UserGroup });
-      Group.belongsToMany(User, { as: 'MyUsers', through: UserGroup });
-
-      expect(Group.associations.MyUsers.through.model === User.associations.MyGroups.through.model);
-
-      expect(Group.associations.MyUsers.through.model.getAttributes().UserId).to.exist;
-      expect(Group.associations.MyUsers.through.model.getAttributes().GroupId).to.exist;
     });
   });
 
