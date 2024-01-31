@@ -12,8 +12,8 @@ import {
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
-  DeleteQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -332,8 +332,8 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return fragment;
   }
 
-  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
-    const sql = super.deleteQuery(tableName, options);
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {
+    const sql = super.bulkDeleteQuery(tableName, options);
 
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
   }

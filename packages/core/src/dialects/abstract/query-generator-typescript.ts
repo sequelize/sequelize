@@ -35,9 +35,9 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   AddLimitOffsetOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
-  DeleteQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
@@ -1088,13 +1088,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
   }
 
-  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions): string {
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
     const table = this.quoteTable(tableName);
     const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
       if (!isModelStatic(tableName)) {
-        throw new Error('Cannot use LIMIT with deleteQuery without a model.');
+        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
       }
 
       const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');

@@ -2,9 +2,9 @@ import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
 import type {
   AddConstraintQueryOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
-  DeleteQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   ListDatabasesQueryOptions,
@@ -141,4 +141,4 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
-export interface QiDeleteOptions extends DeleteQueryOptions, QueryRawOptions { }
+export interface BulkDeleteOptions extends BulkDeleteQueryOptions, QueryRawOptions { }

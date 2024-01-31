@@ -12,7 +12,7 @@ import {
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
-  DeleteQueryOptions,
+  BulkDeleteQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
@@ -221,7 +221,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return fragment;
   }
 
-  deleteQuery(tableName: TableNameOrModel, options: DeleteQueryOptions) {
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {
     const table = this.quoteTable(tableName);
     const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
 

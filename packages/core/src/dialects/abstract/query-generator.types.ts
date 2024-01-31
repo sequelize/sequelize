@@ -181,8 +181,6 @@ export interface AddLimitOffsetOptions {
   replacements?: BindOrReplacements;
 }
 
-export interface DeleteQueryOptions {
-  limit?: Nullish<number | Literal>;
-  replacements?: BindOrReplacements;
-  where: WhereOptions<any>;
+export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions {
+  where?: WhereOptions<any>;
 }

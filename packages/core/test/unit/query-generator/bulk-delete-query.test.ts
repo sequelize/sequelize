@@ -2,20 +2,20 @@ import { DataTypes, literal } from '@sequelize/core';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const limitNotSupportedError = new Error('Cannot use LIMIT with deleteQuery without a model.');
+const limitNotSupportedError = new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
 
-describe('QueryGenerator#deleteQuery', () => {
+describe('QueryGenerator#bulkDeleteQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   it('produces a delete query', () => {
-    expectsql(queryGenerator.deleteQuery('myTable', { where: { name: 'barry' } }), {
+    expectsql(queryGenerator.bulkDeleteQuery('myTable', { where: { name: 'barry' } }), {
       default: `DELETE FROM [myTable] WHERE [name] = 'barry'`,
       mssql: `DELETE FROM [myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
   });
 
   it('produces a delete query with a limit', () => {
-    expectsql(() => queryGenerator.deleteQuery('myTable', { where: { name: 'barry' }, limit: 10 }), {
+    expectsql(() => queryGenerator.bulkDeleteQuery('myTable', { where: { name: 'barry' }, limit: 10 }), {
       default: `DELETE FROM [myTable] WHERE [name] = 'barry' LIMIT 10`,
       sqlite: 'DELETE FROM `myTable` WHERE rowid IN (SELECT rowid FROM `myTable` WHERE `name` = \'barry\' LIMIT 10)',
       'db2 ibmi': `DELETE FROM "myTable" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
@@ -26,7 +26,7 @@ describe('QueryGenerator#deleteQuery', () => {
   it('produces a delete query with a limit using a model', () => {
     const MyModel = sequelize.define('MyModel', {});
 
-    expectsql(queryGenerator.deleteQuery(MyModel, { where: { name: 'barry' }, limit: 10 }), {
+    expectsql(queryGenerator.bulkDeleteQuery(MyModel, { where: { name: 'barry' }, limit: 10 }), {
       default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
       mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite: 'DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = \'barry\' LIMIT 10)',
@@ -39,7 +39,7 @@ describe('QueryGenerator#deleteQuery', () => {
   it('produces a delete query with named replacements in literals', () => {
     const MyModel = sequelize.define('MyModel', {});
 
-    const query = queryGenerator.deleteQuery(
+    const query = queryGenerator.bulkDeleteQuery(
       MyModel,
       {
         limit: literal(':limit'),
@@ -61,7 +61,7 @@ describe('QueryGenerator#deleteQuery', () => {
   });
 
   it('fails to produce a delete query with undefined parameter in where', () => {
-    expectsql(() => queryGenerator.deleteQuery('myTable', { where: { name: undefined } }), {
+    expectsql(() => queryGenerator.bulkDeleteQuery('myTable', { where: { name: undefined } }), {
       default: new Error(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.
 Value: { name: undefined }
 Caused by: "undefined" cannot be escaped`),
@@ -78,14 +78,14 @@ Caused by: "undefined" cannot be escaped`),
       },
     });
 
-    expectsql(queryGenerator.deleteQuery(MyModel, { where: { id: 2 } }), {
+    expectsql(queryGenerator.bulkDeleteQuery(MyModel, { where: { id: 2 } }), {
       default: 'DELETE FROM [MyModels] WHERE [my_model_id] = 2',
       mssql: 'DELETE FROM [MyModels] WHERE [my_model_id] = 2; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
     });
   });
 
   it('produces a delete query with a schema', () => {
-    expectsql(queryGenerator.deleteQuery({ tableName: 'myTable', schema: 'mySchema' }, { where: { name: 'barry' } }), {
+    expectsql(queryGenerator.bulkDeleteQuery({ tableName: 'myTable', schema: 'mySchema' }, { where: { name: 'barry' } }), {
       default: `DELETE FROM [mySchema].[myTable] WHERE [name] = 'barry'`,
       mssql: `DELETE FROM [mySchema].[myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite: 'DELETE FROM `mySchema.myTable` WHERE `name` = \'barry\'',
@@ -93,7 +93,7 @@ Caused by: "undefined" cannot be escaped`),
   });
 
   it('produces a delete query with a default schema', () => {
-    expectsql(queryGenerator.deleteQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, { where: { name: 'barry' } }), {
+    expectsql(queryGenerator.bulkDeleteQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, { where: { name: 'barry' } }), {
       default: `DELETE FROM [myTable] WHERE [name] = 'barry'`,
       mssql: `DELETE FROM [myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite: 'DELETE FROM `myTable` WHERE `name` = \'barry\'',
@@ -104,7 +104,7 @@ Caused by: "undefined" cannot be escaped`),
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
     const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
-    expectsql(queryGeneratorSchema.deleteQuery('myTable', { where: { name: 'barry' } }), {
+    expectsql(queryGeneratorSchema.bulkDeleteQuery('myTable', { where: { name: 'barry' } }), {
       default: `DELETE FROM [mySchema].[myTable] WHERE [name] = 'barry'`,
       mssql: `DELETE FROM [mySchema].[myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite: 'DELETE FROM `mySchema.myTable` WHERE `name` = \'barry\'',
@@ -117,7 +117,7 @@ Caused by: "undefined" cannot be escaped`),
       return;
     }
 
-    expectsql(queryGenerator.deleteQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, { where: { name: 'barry' } }), {
+    expectsql(queryGenerator.bulkDeleteQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, { where: { name: 'barry' } }), {
       sqlite: 'DELETE FROM `mySchemacustommyTable` WHERE `name` = \'barry\'',
     });
   });
