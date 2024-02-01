@@ -214,12 +214,16 @@ export type DialectSupports = {
   searchPath: boolean,
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
-   * enables the ability to use backslash escapes inside of the string.
+   * enables the ability to use backslash escapes inside the string.
    */
   escapeStringConstants: boolean,
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  /** Whether this dialect provides a native way to generate UUID v1 values */
+  uuidV1Generation: boolean,
+  /** Whether this dialect provides a native way to generate UUID v4 values */
+  uuidV4Generation: boolean,
   dropTable: {
     cascade: boolean,
   },
@@ -228,6 +232,7 @@ export type DialectSupports = {
   },
   truncate: {
     cascade: boolean,
+    restartIdentity: boolean,
   },
   removeColumn: {
     cascade: boolean,
@@ -236,6 +241,21 @@ export type DialectSupports = {
   renameTable: {
     changeSchema: boolean,
     changeSchemaAndTable: boolean,
+  },
+  createSchema: {
+    authorization: boolean,
+    charset: boolean,
+    collate: boolean,
+    comment: boolean,
+    ifNotExists: boolean,
+    replace: boolean,
+  },
+  dropSchema: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
+  delete: {
+    modelWithLimit: boolean,
   },
 };
 
@@ -365,6 +385,8 @@ export abstract class AbstractDialect {
     searchPath: false,
     escapeStringConstants: false,
     globalTimeZoneConfig: false,
+    uuidV1Generation: false,
+    uuidV4Generation: false,
     dropTable: {
       cascade: false,
     },
@@ -373,6 +395,7 @@ export abstract class AbstractDialect {
     },
     truncate: {
       cascade: false,
+      restartIdentity: false,
     },
     removeColumn: {
       cascade: false,
@@ -381,6 +404,21 @@ export abstract class AbstractDialect {
     renameTable: {
       changeSchema: true,
       changeSchemaAndTable: true,
+    },
+    createSchema: {
+      authorization: false,
+      charset: false,
+      collate: false,
+      comment: false,
+      ifNotExists: false,
+      replace: false,
+    },
+    dropSchema: {
+      cascade: false,
+      ifExists: false,
+    },
+    delete: {
+      modelWithLimit: false,
     },
   };
 

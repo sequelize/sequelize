@@ -2451,8 +2451,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
-   * Destroys all instances of the model.
-   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
+   * Truncates the table associated with the model.
    *
    * __Danger__: This will completely empty your table!
    *
@@ -2460,12 +2459,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
-    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
-    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    options = cloneDeep(options) ?? {};
-    options.truncate = true;
-
-    return await this.destroy(options);
+    await this.queryInterface.truncate(this, options);
   }
 
   /**
@@ -2481,12 +2475,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     this._injectScope(options);
 
-    if (!options || !(options.where || options.truncate)) {
-      throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
+    if (options && 'truncate' in options) {
+      throw new Error('Model#destroy does not support the truncate option. Use Model#truncate instead.');
     }
 
-    if (!options.truncate && !isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
-      throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
+    if (!options?.where) {
+      throw new Error('As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
     }
 
     const modelDefinition = this.modelDefinition;
@@ -2496,11 +2490,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       individualHooks: false,
       force: false,
-      cascade: false,
-      restartIdentity: false,
     });
-
-    options.type = QueryTypes.BULKDELETE;
 
     mapOptionFieldNames(options, this);
     options.model = this;
@@ -2545,7 +2535,7 @@ ${associationOwner._getAssociationDebugList()}`);
       attrValueHash[deletedAtColumnName] = new Date();
       result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
     } else {
-      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+      result = await this.queryInterface.bulkDelete(this, options);
     }
 
     // Run afterDestroy hook on each record individually
@@ -4005,7 +3995,7 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this, this.constructor.getTableName(options), where, { type: QueryTypes.DELETE, limit: null, ...options });
+      result = await this.constructor.queryInterface.delete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook

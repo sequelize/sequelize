@@ -22,26 +22,6 @@ const { QueryTypes } = require('../../query-types');
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
-    * Drop all schemas
-    *
-    * @param {object} [options] Query options
-    *
-    * @returns {Promise}
-    */
-
-  async dropAllSchemas(options) {
-    options = options || {};
-
-    if (!this.sequelize.dialect.supports.schemas) {
-      return this.sequelize.drop(options);
-    }
-
-    const schemas = await this.listSchemas(options);
-
-    return Promise.all(schemas.map(schemaName => this.dropSchema(schemaName, options)));
-  }
-
-  /**
    * Create a table with given set of attributes
    *
    * ```js
@@ -561,92 +541,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
-  }
-
-  async delete(instance, tableName, identifier, options) {
-    const cascades = [];
-
-    const sql = this.queryGenerator.deleteQuery(tableName, identifier, {}, instance.constructor);
-
-    options = { ...options };
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    // Check for a restrict field
-    if (Boolean(instance.constructor) && Boolean(instance.constructor.associations)) {
-      const keys = Object.keys(instance.constructor.associations);
-      const length = keys.length;
-      let association;
-
-      for (let i = 0; i < length; i++) {
-        association = instance.constructor.associations[keys[i]];
-        if (association.options && association.options.onDelete
-          && association.options.onDelete.toLowerCase() === 'cascade'
-          && association.options.hooks === true) {
-          cascades.push(association.accessors.get);
-        }
-      }
-    }
-
-    for (const cascade of cascades) {
-      let instances = await instance[cascade](options);
-      // Check for hasOne relationship with non-existing associate ("has zero")
-      if (!instances) {
-        continue;
-      }
-
-      if (!Array.isArray(instances)) {
-        instances = [instances];
-      }
-
-      for (const _instance of instances) {
-        await _instance.destroy(options);
-      }
-    }
-
-    options.instance = instance;
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  /**
-   * Delete multiple records from a table
-   *
-   * @param {string}  tableName            table name from where to delete records
-   * @param {object}  where                where conditions to find records to delete
-   * @param {object}  [options]            options
-   * @param {boolean} [options.truncate]   Use truncate table command
-   * @param {boolean} [options.cascade=false]         Only used in conjunction with TRUNCATE. Truncates  all tables that have foreign-key references to the named table, or to any tables added to the group due to CASCADE.
-   * @param {boolean} [options.restartIdentity=false] Only used in conjunction with TRUNCATE. Automatically restart sequences owned by columns of the truncated table.
-   * @param {Model}   [model]              Model
-   *
-   * @returns {Promise}
-   */
-  async bulkDelete(tableName, where, options, model) {
-    options = cloneDeep(options) ?? {};
-    options = defaults(options, { limit: null });
-
-    if (options.truncate === true) {
-      return this.sequelize.queryRaw(
-        this.queryGenerator.truncateTableQuery(tableName, options),
-        options,
-      );
-    }
-
-    if (typeof identifier === 'object') {
-      where = cloneDeep(where) ?? {};
-    }
-
-    const sql = this.queryGenerator.deleteQuery(tableName, where, options, model);
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    return await this.sequelize.queryRaw(
-      sql,
-      options,
-    );
   }
 
   async select(model, tableName, optionsArg) {

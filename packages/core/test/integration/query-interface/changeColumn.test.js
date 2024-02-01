@@ -12,7 +12,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(async function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
-    await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('changeColumn', () => {
@@ -352,21 +351,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
         let refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
-        expect(refs[0].columnNames).to.deep.equal(['UserId']);
+        expect(refs[0].columnNames).to.deep.equal(['userId']);
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
 
         await this.queryInterface.changeColumn('Tasks', 'bar', DataTypes.STRING);
         refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after changing column');
-        expect(refs[0].columnNames).to.deep.equal(['UserId']);
+        expect(refs[0].columnNames).to.deep.equal(['userId']);
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
 
         await this.queryInterface.renameColumn('Tasks', 'bar', 'foo');
         refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
         expect(refs.length).to.equal(1, 'should keep foreign key after renaming column');
-        expect(refs[0].columnNames).to.deep.equal(['UserId']);
+        expect(refs[0].columnNames).to.deep.equal(['userId']);
         expect(refs[0].referencedTableName).to.equal('Users');
         expect(refs[0].referencedColumnNames).to.deep.equal(['id']);
       });

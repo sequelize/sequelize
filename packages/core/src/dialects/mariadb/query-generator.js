@@ -1,7 +1,6 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 
@@ -13,20 +12,6 @@ const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescrip
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
-  createSchemaQuery(schemaName, options) {
-    return joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schemaName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -171,26 +156,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const escapeOptions = { ...options, model };
-    const whereSql = this.whereQuery(where, escapeOptions);
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    }
-
-    return query;
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -212,7 +177,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 

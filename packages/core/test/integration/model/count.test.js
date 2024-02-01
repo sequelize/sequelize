@@ -136,7 +136,7 @@ describe('Model.count', () => {
       await Post.sync({ force: true });
       await PostComment.sync({ force: true });
       const post = await Post.create({});
-      await PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]);
+      await PostComment.bulkCreate([{ postId: post.id }, { postId: post.id }]);
       const count1 = await Post.count({ distinct: false, include: { model: PostComment, required: false } });
       const count2 = await Post.count({ distinct: true, include: { model: PostComment, required: false } });
       expect(count1).to.equal(2);
@@ -256,7 +256,7 @@ describe('Model.count', () => {
         col: 'username',
         include: [this.Project],
         where: {
-          '$Projects.name$': 'project1',
+          '$projects.name$': 'project1',
         },
       };
 
@@ -269,7 +269,7 @@ describe('Model.count', () => {
       await user.createProject({ name: 'project1' });
       const count0 = await this.User.count(countOptions);
       expect(count0).to.be.eql(1);
-      countOptions.where['$Projects.name$'] = 'project2';
+      countOptions.where['$projects.name$'] = 'project2';
       const count = await this.User.count(countOptions);
       expect(count).to.be.eql(0);
     });

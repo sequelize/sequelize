@@ -14,6 +14,7 @@ const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
 const ER_NO_REFERENCED_ROW = 1452;
+const ER_CONSTRAINT_NOT_FOUND = 3940;
 
 const debug = logger.debugContext('sql:mysql');
 
@@ -152,7 +153,7 @@ export class MySqlQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
       return data.affectedRows;
     }
 
@@ -229,6 +230,20 @@ export class MySqlQuery extends AbstractQuery {
           fields,
           value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
           index: match ? match[2] : undefined,
+          cause: err,
+        });
+      }
+
+      case ER_CONSTRAINT_NOT_FOUND: {
+        const constraintMatch = err.sql.match(/(?:constraint|index) `(.+?)`/i);
+        const constraint = constraintMatch ? constraintMatch[1] : undefined;
+        const tableMatch = err.sql.match(/table `(.+?)`/i);
+        const table = tableMatch ? tableMatch[1] : undefined;
+
+        return new sequelizeErrors.UnknownConstraintError({
+          message: err.text,
+          constraint,
+          table,
           cause: err,
         });
       }

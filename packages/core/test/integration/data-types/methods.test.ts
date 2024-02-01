@@ -69,6 +69,7 @@ describe('DataType Methods', () => {
 
     Project.belongsToMany(User, {
       as: 'stakeholders',
+      inverse: 'stakeholdings',
       through: ProjectStakeholder,
     });
 

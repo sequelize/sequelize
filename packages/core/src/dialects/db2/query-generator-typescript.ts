@@ -3,21 +3,27 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
+  DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
+  DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
+const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -25,6 +31,20 @@ const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptio
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   protected _getTechnicalSchemaNames() {
     return ['ERRORSCHEMA', 'NULLID', 'SQLJ'];
+  }
+
+  dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'dropSchemaQuery',
+        this.dialect.name,
+        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `DROP SCHEMA ${this.quoteIdentifier(schemaName)} RESTRICT`;
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
@@ -97,6 +117,20 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
   private _getConstraintType(type: ConstraintType): string {

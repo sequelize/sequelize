@@ -6,11 +6,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -21,30 +17,10 @@ const DataTypes = require('../../data-types');
 
 const typeWithoutDefault = new Set(['BLOB']);
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
-  // Schema queries
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA "${schema}"`;
-  }
-
-  dropSchemaQuery(schema) {
-    return `BEGIN IF EXISTS (SELECT * FROM SYSIBM.SQLSCHEMAS WHERE TABLE_SCHEM = ${schema ? `'${schema}'` : 'CURRENT SCHEMA'}) THEN SET TRANSACTION ISOLATION LEVEL NO COMMIT; DROP SCHEMA "${schema ? `${schema}` : 'CURRENT SCHEMA'}"; COMMIT; END IF; END`;
-  }
-
   // Table queries
   createTableQuery(tableName, attributes, options) {
     if (options) {
@@ -362,25 +338,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
-  }
-
-  deleteQuery(tableName, where, options = {}, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const whereSql = this.whereQuery(where, { ...options, model });
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.offset || options.limit) {
-      query += this._addLimitAndOffset(options, model);
-    }
-
-    return query;
-  }
-
   // bindParam(bind) {
   //   return value => {
   //     bind.push(value);
@@ -426,7 +383,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     // BLOB cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {

@@ -79,11 +79,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       tableName: 'profession',
     });
 
-    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId' });
-    User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
-    User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
-    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId' });
-    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId' });
+    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
+    User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
+    User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
+    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId', inverse: 'Profession' });
+    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId', inverse: 'Company' });
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
     /*

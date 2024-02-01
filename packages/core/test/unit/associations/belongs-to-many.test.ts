@@ -34,6 +34,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     }).to.throw(`User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
   });
 
+  it('creates the join table when through is a string', async () => {
+    const User = sequelize.define('User');
+    const Group = sequelize.define('Group');
+
+    User.belongsToMany(Group, { as: 'MyGroups', through: 'GroupUser' });
+    Group.belongsToMany(User, { as: 'MyUsers', through: 'GroupUser' });
+
+    expect(sequelize.model('GroupUser')).to.exist;
+  });
+
   it('should not inherit scopes from parent to join table', () => {
     const A = sequelize.define('a');
     const B = sequelize.define('b', {}, {
@@ -226,7 +236,17 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     expect(() => {
       Post.belongsToMany(User, { through: { model: 'UserPost' } });
-    }).to.throw('You have defined two associations with the same name "Users" on the model "Post". Use another alias using the "as" parameter');
+    }).to.throw('You have defined two associations with the same name "users" on the model "Post". Use another alias using the "as" parameter');
+  });
+
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
+
+    User.belongsToMany(Task, { through: 'UserTask' });
+
+    expect(Object.keys(Task.associations)).to.deep.eq(['users', 'usersTasks', 'userTask']);
+    expect(Object.keys(User.associations)).to.deep.eq(['tasks', 'tasksUsers', 'taskUser']);
   });
 
   describe('proper syntax', () => {
@@ -378,7 +398,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Place = sequelize.define('Place', {});
 
       const Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id', otherKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
+      const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -402,7 +422,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       }, { timestamps: false });
 
       const Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id', otherKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
+      const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -421,8 +441,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const PersonChildren = sequelize.define('PersonChildren');
       const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
 
-      expect(Children.foreignKey).to.equal('ParentId');
-      expect(Children.otherKey).to.equal('ChildId');
+      expect(Children.foreignKey).to.equal('parentId');
+      expect(Children.otherKey).to.equal('childId');
       expect(PersonChildren.getAttributes()[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.getAttributes()[Children.otherKey]).to.be.ok;
     });
@@ -432,12 +452,12 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const PersonChildren = sequelize.define('PersonChildren', {}, { underscored: true });
       const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
 
-      expect(Children.foreignKey).to.equal('ParentId');
-      expect(Children.otherKey).to.equal('ChildId');
+      expect(Children.foreignKey).to.equal('parentId');
+      expect(Children.otherKey).to.equal('childId');
       expect(PersonChildren.getAttributes()[Children.foreignKey]).to.be.ok;
       expect(PersonChildren.getAttributes()[Children.otherKey]).to.be.ok;
-      expect(PersonChildren.getAttributes()[Children.foreignKey].field).to.equal('parent_id');
-      expect(PersonChildren.getAttributes()[Children.otherKey].field).to.equal('child_id');
+      expect(PersonChildren.getAttributes()[Children.foreignKey].columnName).to.equal('parent_id');
+      expect(PersonChildren.getAttributes()[Children.otherKey].columnName).to.equal('child_id');
     });
 
     it('should create non-null foreign keys by default', () => {
@@ -447,8 +467,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const association = A.belongsToMany(B, { through: 'AB' });
 
       const attributes = association.throughModel.getAttributes();
-      expect(attributes.AId.allowNull).to.be.false;
-      expect(attributes.BId.allowNull).to.be.false;
+      expect(attributes.aId.allowNull).to.be.false;
+      expect(attributes.bId.allowNull).to.be.false;
     });
 
     it('allows creating nullable FKs', () => {
@@ -462,8 +482,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const attributes = association.throughModel.getAttributes();
-      expect(attributes.AId.allowNull).to.be.true;
-      expect(attributes.BId.allowNull).to.be.true;
+      expect(attributes.aId.allowNull).to.be.true;
+      expect(attributes.bId.allowNull).to.be.true;
     });
 
     it('should add FKs with onDelete=cascade by default', () => {
@@ -473,8 +493,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const association = A.belongsToMany(B, { through: 'AB', foreignKey: {} });
 
       const attributes = association.throughModel.getAttributes();
-      expect(attributes.AId.onDelete).to.eq('CASCADE');
-      expect(attributes.BId.onDelete).to.eq('CASCADE');
+      expect(attributes.aId.onDelete).to.eq('CASCADE');
+      expect(attributes.bId.onDelete).to.eq('CASCADE');
     });
   });
 
@@ -484,7 +504,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Place = sequelize.define('Place', { place_id: DataTypes.UUID });
 
       const Places = User.belongsToMany(Place, { through: 'user_places', sourceKey: 'user_id', targetKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
+      const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -508,7 +528,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       }, { timestamps: false });
 
       const Places = User.belongsToMany(Place, { through: UserPlace, sourceKey: 'user_id', targetKey: 'place_id' });
-      const Users = Place.getAssociation('Users') as BelongsToManyAssociation;
+      const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
       expect(Users.pairedWith).to.equal(Places);
@@ -656,10 +676,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, sourceKey: 'productSecondaryId', targetKey: 'tagSecondaryId' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
+      const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
-      expect(ProductTags.foreignKey).to.equal('ProductProductSecondaryId', 'generated foreign key for source name (product) + source key (productSecondaryId) should result in ProductProductSecondaryId');
-      expect(TagProducts.foreignKey).to.equal('TagTagSecondaryId');
+      expect(ProductTags.foreignKey).to.equal('productProductSecondaryId', 'generated foreign key for source name (product) + source key (productSecondaryId) should result in productProductSecondaryId');
+      expect(TagProducts.foreignKey).to.equal('tagTagSecondaryId');
 
       expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
       expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
@@ -674,7 +694,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(ProductTags.fromTargetToThroughOne.sourceKey).to.equal(ProductTags.targetKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'ProductProductSecondaryId', 'TagTagSecondaryId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productProductSecondaryId', 'tagTagSecondaryId'].sort());
     });
 
     it('should setup belongsTo relations to source and target from join model with only foreign keys defined', () => {
@@ -696,7 +716,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
+      const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
       expect(ProductTags.fromThroughToSource).to.be.ok;
       expect(ProductTags.fromThroughToTarget).to.be.ok;
@@ -733,7 +753,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       });
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
-      const TagProducts = Tag.getAssociation('Products') as BelongsToManyAssociation;
+      const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
       expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
       expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
@@ -785,7 +805,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'ProductId', 'TagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
     });
   });
 
@@ -859,8 +879,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         through: UserFollower,
       });
 
-      expect(UserFollowers.foreignKey).to.eq('FollowingId');
-      expect(UserFollowers.otherKey).to.eq('FollowerId');
+      expect(UserFollowers.foreignKey).to.eq('followingId');
+      expect(UserFollowers.otherKey).to.eq('followerId');
 
       expect(Object.keys(UserFollower.getAttributes()).length).to.equal(3);
     });
@@ -916,13 +936,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const throughModel = MyUsers.through.model;
 
       expect(Object.keys(throughModel.getAttributes()).sort())
-        .to.deep.equal(['UserId', 'GroupId', 'createdAt', 'updatedAt'].sort());
+        .to.deep.equal(['userId', 'groupId', 'createdAt', 'updatedAt'].sort());
 
       expect(throughModel === MyGroups.through.model);
-      expect(throughModel.getAttributes().UserId.onUpdate).to.equal('RESTRICT');
-      expect(throughModel.getAttributes().UserId.onDelete).to.equal('SET NULL');
-      expect(throughModel.getAttributes().GroupId.onUpdate).to.equal('SET NULL');
-      expect(throughModel.getAttributes().GroupId.onDelete).to.equal('RESTRICT');
+      expect(throughModel.getAttributes().userId.onUpdate).to.equal('RESTRICT');
+      expect(throughModel.getAttributes().userId.onDelete).to.equal('SET NULL');
+      expect(throughModel.getAttributes().groupId.onUpdate).to.equal('SET NULL');
+      expect(throughModel.getAttributes().groupId.onDelete).to.equal('RESTRICT');
     });
 
     it('work properly when through is a model', () => {
@@ -954,12 +974,12 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Through = MyUsers.through.model;
 
       expect(Object.keys(Through.getAttributes()).sort())
-        .to.deep.equal(['UserId', 'GroupId', 'createdAt', 'updatedAt'].sort());
+        .to.deep.equal(['userId', 'groupId', 'createdAt', 'updatedAt'].sort());
 
-      expect(Through.getAttributes().UserId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
-      expect(Through.getAttributes().UserId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
-      expect(Through.getAttributes().GroupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
-      expect(Through.getAttributes().GroupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
+      expect(Through.getAttributes().userId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
+      expect(Through.getAttributes().userId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
+      expect(Through.getAttributes().groupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
+      expect(Through.getAttributes().groupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
     });
 
     it('makes the foreign keys primary keys', () => {
@@ -976,13 +996,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const Through = association.throughModel;
 
-      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['createdAt', 'updatedAt', 'GroupId', 'UserId'].sort());
-      expect(Through.getAttributes().UserId.primaryKey).to.be.true;
-      expect(Through.getAttributes().GroupId.primaryKey).to.be.true;
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['createdAt', 'updatedAt', 'groupId', 'userId'].sort());
+      expect(Through.getAttributes().userId.primaryKey).to.be.true;
+      expect(Through.getAttributes().groupId.primaryKey).to.be.true;
       // @ts-expect-error -- this property does not exist after normalization
-      expect(Through.getAttributes().UserId.unique).to.be.undefined;
+      expect(Through.getAttributes().userId.unique).to.be.undefined;
       // @ts-expect-error -- this property does not exist after normalization
-      expect(Through.getAttributes().GroupId.unique).to.be.undefined;
+      expect(Through.getAttributes().groupId.unique).to.be.undefined;
     });
 
     it('generates unique identifier with very long length', () => {

@@ -27,7 +27,7 @@ import type {
 } from './model';
 import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
-import type { SequelizeHooks } from './sequelize-typescript.js';
+import type { SUPPORTED_DIALECTS, SequelizeHooks } from './sequelize-typescript.js';
 import type { RequiredBy } from './utils/types.js';
 import type { DataTypes, IsolationLevel, Op, QueryTypes, TransactionNestMode, TransactionType } from '.';
 
@@ -167,9 +167,7 @@ export interface Config {
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions: Readonly<DialectOptions>;
 }
-
-export type Dialect = 'mysql' | 'postgres' | 'sqlite' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi';
-
+export type Dialect = typeof SUPPORTED_DIALECTS[number];
 /**
  * Options for the constructor of the {@link Sequelize} main class.
  */
@@ -955,8 +953,7 @@ export class Sequelize extends SequelizeTypeScript {
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   query<M extends Model>(sql: string | BaseSqlExpression, options: QueryOptionsWithModel<M> & { plain: true }): Promise<M | null>;
@@ -976,8 +973,7 @@ export class Sequelize extends SequelizeTypeScript {
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
-  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<void>;
-  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKDELETE>): Promise<number>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>): Promise<RawConstraintDescription[]>;
   queryRaw<M extends Model>(sql: string, options: QueryRawOptionsWithModel<M> & { plain: true }): Promise<M | null>;

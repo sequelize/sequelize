@@ -162,9 +162,9 @@ export class AbstractQuery {
   isBulkUpdateQuery(): boolean;
 
   /**
-   * Checks if the query type is BULKDELETE
+   * Checks if the query type is DELETE
    */
-  isBulkDeleteQuery(): boolean;
+  isDeleteQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE

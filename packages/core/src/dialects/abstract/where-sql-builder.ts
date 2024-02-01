@@ -6,14 +6,15 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { Cast } from '../../expression-builders/cast.js';
 import { Col } from '../../expression-builders/col.js';
 import { JsonPath } from '../../expression-builders/json-path.js';
-import { Literal, SQL_NULL } from '../../expression-builders/literal.js';
+import { SQL_NULL } from '../../expression-builders/json-sql-null.js';
+import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
-import { isDictionary, isPlainObject, isString } from '../../utils/check.js';
+import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
@@ -635,7 +636,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpAnyAll(value: unknown, type: NormalizedDataType | undefined): string {
-    if (!isDictionary(value)) {
+    if (!isPlainObject(value)) {
       return '';
     }
 
@@ -651,7 +652,7 @@ export class WhereSqlBuilder {
   }
 
   #formatOpValues(value: unknown, type: NormalizedDataType | undefined): string {
-    if (isDictionary(value) && Op.values in value) {
+    if (isPlainObject(value) && Op.values in value) {
       const options = { type };
 
       const operand: unknown[] = Array.isArray(value[Op.values])

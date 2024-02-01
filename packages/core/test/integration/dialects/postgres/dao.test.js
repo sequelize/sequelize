@@ -985,17 +985,17 @@ describe('[POSTGRES Specific] DAO', () => {
           {
             id: 1,
             name: 'Transfiguration',
-            ProfessorId: 1,
+            professorId: 1,
           },
           {
             id: 2,
             name: 'Potions',
-            ProfessorId: 2,
+            professorId: 2,
           },
           {
             id: 3,
             name: 'Defence Against the Dark Arts',
-            ProfessorId: 2,
+            professorId: 2,
           },
         ]);
 
@@ -1057,8 +1057,8 @@ describe('[POSTGRES Specific] DAO', () => {
 
         expect(professors.length).to.eql(2);
         expect(professors[0].fullName).to.eql('Albus Dumbledore');
-        expect(professors[0].Classes.length).to.eql(1);
-        expect(professors[0].Classes[0].Students.length).to.eql(3);
+        expect(professors[0].classes.length).to.eql(1);
+        expect(professors[0].classes[0].students.length).to.eql(3);
       } finally {
         this.sequelize.queryGenerator.options.quoteIdentifiers = true;
       }

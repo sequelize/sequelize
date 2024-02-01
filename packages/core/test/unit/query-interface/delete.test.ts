@@ -16,13 +16,10 @@ describe('QueryInterface#delete', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = User.build();
-
     await sequelize.queryInterface.delete(
-      instance,
-      User.table,
-      { firstName: ':id' },
+      User,
       {
+        where: { firstName: ':id' },
         replacements: {
           limit: 1,
           id: '123',

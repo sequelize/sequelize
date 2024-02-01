@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, {
           hooks: {
             afterCreate(product) {
-              product.isIncludeCreatedOnAfterCreate = Boolean(product.User && product.User.id);
+              product.isIncludeCreatedOnAfterCreate = Boolean(product.user && product.user.id);
             },
           },
         });
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedProduct = await Product.create({
           title: 'Chair',
-          User: {
+          user: {
             first_name: 'Mick',
             last_name: 'Broadstone',
           },
@@ -48,17 +48,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
-        expect(savedProduct.User.createOptions.myOption).to.equal('option');
-        expect(savedProduct.User.createOptions.parentRecord).to.equal(savedProduct);
+        expect(savedProduct.user.createOptions.myOption).to.equal('option');
+        expect(savedProduct.user.createOptions.parentRecord).to.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
           include: [User],
         });
 
-        expect(persistedProduct.User).to.be.ok;
-        expect(persistedProduct.User.first_name).to.equal('Mick');
-        expect(persistedProduct.User.last_name).to.equal('Broadstone');
+        expect(persistedProduct.user).to.be.ok;
+        expect(persistedProduct.user.first_name).to.equal('Mick');
+        expect(persistedProduct.user.last_name).to.equal('Broadstone');
       });
 
       it('should create data for BelongsTo relations with no nullable FK', async function () {
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedProduct = await Product.create({
           title: 'Chair',
-          User: {
+          user: {
             first_name: 'Mick',
           },
         }, {
@@ -90,8 +90,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(savedProduct).to.exist;
         expect(savedProduct.title).to.equal('Chair');
-        expect(savedProduct.User).to.exist;
-        expect(savedProduct.User.first_name).to.equal('Mick');
+        expect(savedProduct.user).to.exist;
+        expect(savedProduct.user.first_name).to.equal('Mick');
       });
 
       it('should create data for BelongsTo relations with alias', async function () {
@@ -133,8 +133,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, {
           hooks: {
             afterCreate(product) {
-              product.areIncludesCreatedOnAfterCreate = product.Tags
-                && product.Tags.every(tag => {
+              product.areIncludesCreatedOnAfterCreate = product.tags
+                && product.tags.every(tag => {
                   return Boolean(tag.id);
                 });
             },
@@ -157,7 +157,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const savedProduct = await Product.create({
           id: 1,
           title: 'Chair',
-          Tags: [
+          tags: [
             { id: 1, name: 'Alpha' },
             { id: 2, name: 'Beta' },
           ],
@@ -169,18 +169,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedProduct.areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedProduct.Tags[0].createOptions.myOption).to.equal('option');
-        expect(savedProduct.Tags[0].createOptions.parentRecord).to.equal(savedProduct);
-        expect(savedProduct.Tags[1].createOptions.myOption).to.equal('option');
-        expect(savedProduct.Tags[1].createOptions.parentRecord).to.equal(savedProduct);
+        expect(savedProduct.tags[0].createOptions.myOption).to.equal('option');
+        expect(savedProduct.tags[0].createOptions.parentRecord).to.equal(savedProduct);
+        expect(savedProduct.tags[1].createOptions.myOption).to.equal('option');
+        expect(savedProduct.tags[1].createOptions.parentRecord).to.equal(savedProduct);
 
         const persistedProduct = await Product.findOne({
           where: { id: savedProduct.id },
           include: [Tag],
         });
 
-        expect(persistedProduct.Tags).to.be.ok;
-        expect(persistedProduct.Tags.length).to.equal(2);
+        expect(persistedProduct.tags).to.be.ok;
+        expect(persistedProduct.tags.length).to.equal(2);
       });
 
       it('should create data for HasMany relations with alias', async function () {
@@ -230,7 +230,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedUser = await User.create({
           username: 'Muzzy',
-          Task: {
+          task: {
             title: 'Eat Clocks',
           },
         }, {
@@ -242,7 +242,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [Task],
         });
 
-        expect(persistedUser.Task).to.be.ok;
+        expect(persistedUser.task).to.be.ok;
       });
 
       it('should create data for HasOne relations with alias', async function () {
@@ -281,8 +281,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }, {
           hooks: {
             afterCreate(user) {
-              user.areIncludesCreatedOnAfterCreate = user.Tasks
-                && user.Tasks.every(task => {
+              user.areIncludesCreatedOnAfterCreate = user.tasks
+                && user.tasks.every(task => {
                   return Boolean(task.id);
                 });
             },
@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         const savedUser = await User.create({
           username: 'John',
-          Tasks: [
+          tasks: [
             { title: 'Get rich', active: true },
             { title: 'Die trying', active: false },
           ],
@@ -319,18 +319,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         expect(savedUser.areIncludesCreatedOnAfterCreate).to.be.true;
-        expect(savedUser.Tasks[0].createOptions.myOption).to.equal('option');
-        expect(savedUser.Tasks[0].createOptions.parentRecord).to.equal(savedUser);
-        expect(savedUser.Tasks[1].createOptions.myOption).to.equal('option');
-        expect(savedUser.Tasks[1].createOptions.parentRecord).to.equal(savedUser);
+        expect(savedUser.tasks[0].createOptions.myOption).to.equal('option');
+        expect(savedUser.tasks[0].createOptions.parentRecord).to.equal(savedUser);
+        expect(savedUser.tasks[1].createOptions.myOption).to.equal('option');
+        expect(savedUser.tasks[1].createOptions.parentRecord).to.equal(savedUser);
 
         const persistedUser = await User.findOne({
           where: { id: savedUser.id },
           include: [Task],
         });
 
-        expect(persistedUser.Tasks).to.be.ok;
-        expect(persistedUser.Tasks.length).to.equal(2);
+        expect(persistedUser.tasks).to.be.ok;
+        expect(persistedUser.tasks.length).to.equal(2);
       });
 
       it('should create data for polymorphic BelongsToMany relations', async function () {

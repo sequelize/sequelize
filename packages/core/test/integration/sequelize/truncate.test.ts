@@ -5,12 +5,12 @@ import { beforeAll2, sequelize, setResetMode } from '../support';
 
 interface IA extends Model<InferAttributes<IA>, InferCreationAttributes<IA>> {
   id: CreationOptional<number>;
-  BId: number | null;
+  bId: number | null;
 }
 
 interface IB extends Model<InferAttributes<IB>, InferCreationAttributes<IB>> {
   id: CreationOptional<number>;
-  AId: number | null;
+  aId: number | null;
 }
 
 describe('Sequelize#truncate', () => {
@@ -19,12 +19,12 @@ describe('Sequelize#truncate', () => {
   const vars = beforeAll2(async () => {
     const A = sequelize.define<IA>('A', {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      BId: { type: DataTypes.INTEGER },
+      bId: { type: DataTypes.INTEGER },
     });
 
     const B = sequelize.define<IB>('B', {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      AId: { type: DataTypes.INTEGER },
+      aId: { type: DataTypes.INTEGER },
     });
 
     // These models both have a foreign key that references the other model.
@@ -43,14 +43,14 @@ describe('Sequelize#truncate', () => {
 
       await sequelize.transaction(async transaction => {
         const a = await A.create({
-          BId: null,
+          bId: null,
         }, { transaction });
 
         const b = await B.create({
-          AId: a.id,
+          aId: a.id,
         }, { transaction });
 
-        a.BId = b.id;
+        a.bId = b.id;
         await a.save({ transaction });
       });
 
@@ -68,14 +68,14 @@ describe('Sequelize#truncate', () => {
 
       await sequelize.transaction(async transaction => {
         const a = await A.create({
-          BId: null,
+          bId: null,
         }, { transaction });
 
         const b = await B.create({
-          AId: a.id,
+          aId: a.id,
         }, { transaction });
 
-        a.BId = b.id;
+        a.bId = b.id;
         await a.save({ transaction });
       });
 

@@ -28,6 +28,22 @@ export interface ListDatabasesQueryOptions {
   skip?: string[];
 }
 
+// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface CreateSchemaQueryOptions {
+  authorization?: string | Literal;
+  charset?: string;
+  collate?: string;
+  comment?: string;
+  ifNotExists?: boolean;
+  replace?: boolean;
+}
+
+// keep DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface DropSchemaQueryOptions {
+  cascade?: boolean;
+  ifExists?: boolean;
+}
+
 export interface ListSchemasQueryOptions {
   /** List of schemas to exclude from output */
   skip?: string[];
@@ -46,6 +62,12 @@ export interface ListTablesQueryOptions {
 // keep RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RenameTableQueryOptions {
   changeSchema?: boolean;
+}
+
+// Keep TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface TruncateTableQueryOptions {
+  cascade?: boolean;
+  restartIdentity?: boolean;
 }
 
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -157,4 +179,8 @@ export interface AddLimitOffsetOptions {
   limit?: Nullish<number | Literal>;
   offset?: Nullish<number | Literal>;
   replacements?: BindOrReplacements;
+}
+
+export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions {
+  where?: WhereOptions<any>;
 }
