@@ -791,6 +791,10 @@ Specify a different name for either index to resolve this issue.`);
 
     return association.target.modelDefinition.#getAssociationFromPathMut(associationPath);
   }
+
+  isParanoid(): boolean {
+    return Boolean(this.timestampAttributeNames.deletedAt);
+  }
 }
 
 const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition<any>>();

@@ -16,6 +16,7 @@ import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import { IndexHints } from '../../index-hints.js';
+import type { ModelDefinition } from '../../model-definition.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
@@ -25,7 +26,7 @@ import { isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
-import { isModelStatic } from '../../utils/model-utils.js';
+import { getTableIdentifier, isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql, validateDataType } from './data-types-utils.js';
@@ -56,7 +57,12 @@ import type { WhereOptions } from './where-sql-builder-types.js';
 import { PojoWhere, WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
 
+/**
+ * @deprecated use {@link TableOrModel}.
+ */
 export type TableNameOrModel = TableName | ModelStatic;
+
+export type TableOrModel = TableName | ModelStatic | ModelDefinition;
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {
@@ -640,24 +646,22 @@ export class AbstractQueryGeneratorTypeScript {
 
   // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
-    tableNameOrModel: TableNameOrModel,
+    tableOrModel: TableOrModel,
     options?: { schema?: string, delimiter?: string },
   ): TableNameWithSchema {
-    const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
-      : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
-      : tableNameOrModel;
+    const tableIdentifier = getTableIdentifier(tableOrModel);
 
-    if (!isPlainObject(tableNameObject)) {
-      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
+    if (!isPlainObject(tableIdentifier)) {
+      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
 
     // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
-    delete tableNameObject.toString;
+    delete tableIdentifier.toString;
 
     return {
-      ...tableNameObject,
-      schema: options?.schema || tableNameObject.schema || this.options.schema || this.dialect.getDefaultSchema(),
-      delimiter: options?.delimiter || tableNameObject.delimiter || '.',
+      ...tableIdentifier,
+      schema: options?.schema || tableIdentifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
+      delimiter: options?.delimiter || tableIdentifier.delimiter || '.',
     };
   }
 
@@ -667,7 +671,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param param table string or object
    * @param options options
    */
-  quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
+  quoteTable(param: TableOrModel, options?: QuoteTableOptions): string {
     const QUOTE_TABLE_SUPPORTED_OPTIONS = new Set<keyof QuoteTableOptions>();
     if (this.dialect.supports.indexHints) {
       QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
@@ -1088,7 +1092,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
   }
 
-  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
+  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions): string {
     const table = this.quoteTable(tableName);
     const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
 

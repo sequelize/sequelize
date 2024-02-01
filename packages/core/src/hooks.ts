@@ -214,3 +214,35 @@ function getName(obj: object) {
 
   return `[instance ${obj.constructor.name}]`;
 }
+
+export interface NewHookable<HookNames extends string> {
+  /**
+   * Controls which hooks should be run.
+   *
+   * Possible values:
+   * - false: All hooks will be run. (default)
+   * - true: No hooks will be run.
+   * - An array of strings: The hooks listed in the array will not be run.
+   * - An object with the "except" property: Only the hooks listed in the array will be run.
+   */
+  noHooks?: boolean | undefined | readonly HookNames[] | { except: readonly HookNames[] };
+}
+
+export function mayRunHook<HookName extends string>(
+  hookName: HookName,
+  noHooksConfig: NewHookable<HookName>['noHooks'],
+): boolean {
+  if (!noHooksConfig) {
+    return true;
+  }
+
+  if (noHooksConfig === true) {
+    return false;
+  }
+
+  if ('except' in noHooksConfig) {
+    return noHooksConfig.except.includes(hookName);
+  }
+
+  return !noHooksConfig.includes(hookName);
+}

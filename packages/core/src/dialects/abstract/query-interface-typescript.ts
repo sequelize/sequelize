@@ -13,15 +13,13 @@ import {
   showAllToListSchemas,
   showAllToListTables,
 } from '../../utils/deprecations';
-import type { RequiredBy } from '../../utils/types';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
-import type { TableNameOrModel } from './query-generator-typescript.js';
+import type { TableNameOrModel, TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
-  BulkDeleteOptions,
   ColumnsDescription,
   ConstraintDescription,
   CreateDatabaseOptions,
@@ -32,6 +30,7 @@ import type {
   DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiBulkDeleteOptions,
   QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
@@ -713,14 +712,10 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName
    * @param options
    */
-  async delete(tableName: TableNameOrModel, options: RequiredBy<BulkDeleteOptions, 'where'>): Promise<number> {
+  async delete(tableName: TableOrModel, options: QiBulkDeleteOptions): Promise<number> {
     deleteToBulkDelete();
-    const deleteOptions = { ...options };
-    const sql = this.queryGenerator.bulkDeleteQuery(tableName, deleteOptions);
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete deleteOptions.replacements;
 
-    return this.sequelize.queryRaw(sql, { ...deleteOptions, raw: true, type: QueryTypes.DELETE });
+    return this.bulkDelete(tableName, options);
   }
 
   /**
@@ -729,7 +724,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName
    * @param options
    */
-  async bulkDelete(tableName: TableNameOrModel, options?: BulkDeleteOptions): Promise<number> {
+  async bulkDelete(tableName: TableOrModel, options?: QiBulkDeleteOptions): Promise<number> {
     const bulkDeleteOptions = { ...options };
     const sql = this.queryGenerator.bulkDeleteQuery(tableName, bulkDeleteOptions);
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
