@@ -24,7 +24,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery('myTable', { name: 'check', type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -33,7 +33,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         default: `ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] IN ('admin', 'user', 'guest'))`,
         mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] IN (N'admin', N'user', N'guest'))`,
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -41,7 +41,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -51,7 +51,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery(MyModel, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -59,7 +59,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -67,7 +67,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGenerator.addConstraintQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -78,7 +78,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
       expectsql(() => queryGeneratorSchema.addConstraintQuery('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
         sqlite: notSupportedError,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 

@@ -36,9 +36,7 @@ export class MysqlDialect extends AbstractDialect {
         using: 1,
       },
       constraints: {
-        check: false,
         foreignKeyChecksDisableable: true,
-        remove: false,
       },
       indexViaAlter: true,
       indexHints: true,
@@ -78,10 +76,10 @@ export class MysqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
-  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
+  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html';
 
   // minimum supported version
-  readonly defaultVersion = '5.7.0';
+  readonly defaultVersion = '8.0.19';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
 

@@ -95,31 +95,6 @@ describe('QueryInterface#createTable', () => {
     });
   });
 
-  if (dialect.name === 'mysql') {
-    // mysql < 8.0.13 does not support dynamic default values
-    it('supports sql.uuidV1 default values (mysql < 8.0.13)', async () => {
-      const localSequelize = createSequelizeInstance({
-        databaseVersion: '8.0.12',
-      });
-
-      const stub = sinon.stub(localSequelize, 'queryRaw');
-
-      await localSequelize.queryInterface.createTable('table', {
-        id: {
-          type: DataTypes.UUID,
-          primaryKey: true,
-          defaultValue: sql.uuidV1,
-        },
-      });
-
-      expect(stub.callCount).to.eq(1);
-      const firstCall = stub.getCall(0);
-      expectsql(firstCall.args[0], {
-        mysql: 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY, PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      });
-    });
-  }
-
   it('supports JSON_NULL default values', async () => {
     if (!dialect.supports.dataTypes.JSON) {
       return;

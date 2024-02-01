@@ -14,14 +14,9 @@ const dialect = Support.sequelize.dialect;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
 
-const current = Support.sequelize;
-const semver = require('semver');
-
 // ⚠️ Do not add tests to this file. Tests should be added to the new test suite in test/integration/model/<method-name>.ts
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  let isMySQL8;
-
   before(function () {
     this.clock = sinon.useFakeTimers();
   });
@@ -31,8 +26,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function () {
-    isMySQL8 = dialectName === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
-
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -337,12 +330,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    describe('descending indices (MySQL 8 specific)', () => {
+    describe('descending indices', () => {
       it('complains about missing support for descending indexes', async function () {
-        if (!isMySQL8) {
-          return;
-        }
-
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -377,10 +366,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works fine with InnoDB', async function () {
-        if (!isMySQL8) {
-          return;
-        }
-
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -1238,11 +1223,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       } catch (error) {
         switch (dialectName) {
           case 'mysql': {
-            if (isMySQL8) {
-              expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
-            } else {
-              expect(error.message).to.match(/Cannot add foreign key constraint/);
-            }
+            expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
             break;
           }
