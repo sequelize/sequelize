@@ -58,6 +58,11 @@ export class ModelRepository<M extends Model = Model> {
       throw new Error('ModelRepository#destroy does not support paranoid deletion yet.');
     }
 
+    // in case the beforeDestroyMany hook removed all instances.
+    if (instances.length === 0) {
+      return 0;
+    }
+
     Object.freeze(options);
     Object.freeze(instances);
 
