@@ -1,3 +1,5 @@
+import { assertNoReservedBind } from '../../utils/sql';
+
 const _ = require('lodash');
 const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript')
 const { QueryTypes } = require('../../query-types');
@@ -5,6 +7,10 @@ const { QueryTypes } = require('../../query-types');
 export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
 
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (options.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
     options = { ...options };
 
     const model = options.model;
