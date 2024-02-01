@@ -2475,7 +2475,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param  {object} options destroy options
    * @returns {Promise<number>} The number of destroyed rows
    */
-  // TODO: deprecate name in favor of bulkDestroy
+  // TODO: deprecate name in favor of bulkDestroy,
+  //  which does the same thing but uses `noHooks` instead of `hooks` and `hardDelete` instead of `force`,
+  //  and does not accept `individualHooks`
   static async destroy(options) {
     options = cloneDeep(options) ?? {};
 
