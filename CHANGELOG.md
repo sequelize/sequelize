@@ -3,6 +3,27 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.36](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.35...v7.0.0-alpha.36) (2024-02-01)
+
+
+### Bug Fixes
+
+* use loop to drop db2 test databases to prevent deadlocks ([#17024](https://github.com/sequelize/sequelize/issues/17024)) ([f4083de](https://github.com/sequelize/sequelize/commit/f4083dedee49ee39249acd2398886c1cb55db198))
+
+
+### Features
+
+* add support for generating uuids in SQL ([#16864](https://github.com/sequelize/sequelize/issues/16864)) ([2df575b](https://github.com/sequelize/sequelize/commit/2df575b9b3ddc113f3cda00caef141d8349f72eb))
+* drop support TS 4.9 ([#17023](https://github.com/sequelize/sequelize/issues/17023)) ([85e84cd](https://github.com/sequelize/sequelize/commit/85e84cdbe462b01dd2927df765d178cc3ca83207))
+* migrate bulkDelete, delete & truncate methods to typescript ([#15934](https://github.com/sequelize/sequelize/issues/15934)) ([693c0fc](https://github.com/sequelize/sequelize/commit/693c0fcbae8baf1899e54de15f8c140b0cda0758))
+* migrate schema queries to typescript ([#16932](https://github.com/sequelize/sequelize/issues/16932)) ([12ad4f1](https://github.com/sequelize/sequelize/commit/12ad4f1ed22b42235e8f8341f50ac74d682967f6))
+* parse URLs using WHATWG URL API instead of legacy URL API ([#16927](https://github.com/sequelize/sequelize/issues/16927)) ([9cc6ca9](https://github.com/sequelize/sequelize/commit/9cc6ca90199d1e9c30737b46c3d25e55a85b6a38))
+* **types:** support TypeScript 5.3.3 ([#17017](https://github.com/sequelize/sequelize/issues/17017)) ([20eb84f](https://github.com/sequelize/sequelize/commit/20eb84f4bef0cdf17ee9fc7510f9c98e1999b987))
+
+
+
+
+
 # [7.0.0-alpha.35](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.34...v7.0.0-alpha.35) (2024-01-22)
 
 
