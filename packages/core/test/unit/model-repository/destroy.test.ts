@@ -211,4 +211,22 @@ describe('ModelRepository#destroy', () => {
       mssql: `DELETE FROM [SimpleIds] WHERE [id] IN (1, 2, 3); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
   });
+
+  it('aborts if beforeDestroyMany removes all instances', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    const { SimpleId } = vars;
+
+    const repository = SimpleId.modelRepository;
+
+    const instance1 = SimpleId.build({ id: 1 });
+
+    SimpleId.hooks.addListener('beforeDestroyMany', instances => {
+      // remove all instances
+      instances.splice(0, instances.length);
+    });
+
+    await repository.destroy([instance1]);
+
+    expect(stub.callCount).to.eq(0);
+  });
 });
