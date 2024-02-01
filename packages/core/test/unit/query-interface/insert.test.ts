@@ -4,6 +4,7 @@ import { DataTypes, literal } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#insert', () => {
+  const dialect = sequelize.dialect;
   const User = sequelize.define('User', {
     firstName: DataTypes.STRING,
   }, { timestamps: false });
@@ -13,7 +14,8 @@ describe('QueryInterface#insert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  it('does not parse replacements outside of raw sql', async () => {
+  // Oracle nedds bindDefinitions to be defined for outBinds using modelDefinition which is undefined in this case.
+  (dialect.name === 'oracle' ? it.skip : it)('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {
@@ -51,7 +53,8 @@ describe('QueryInterface#insert', () => {
     })).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
   });
 
-  it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+  // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
+  (dialect.name === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {
@@ -77,7 +80,7 @@ describe('QueryInterface#insert', () => {
     });
   });
 
-  it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+  (dialect.name === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {

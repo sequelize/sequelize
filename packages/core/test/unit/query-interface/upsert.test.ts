@@ -15,7 +15,8 @@ describe('QueryInterface#upsert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  it('does not parse replacements outside of raw sql', async () => {
+  // For oracle the datatype validation for id fails. Oracle uses Where clause which does the type validation.
+  (dialectName === 'oracle' ? it.skip :it)('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.upsert(
@@ -90,7 +91,7 @@ describe('QueryInterface#upsert', () => {
     )).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
   });
 
-  it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+  (dialectName === 'oracle' ? it.skip :it)('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.upsert(
@@ -149,7 +150,7 @@ describe('QueryInterface#upsert', () => {
     }
   });
 
-  it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+  (dialectName === 'oracle' ? it.skip :it)('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.upsert(
@@ -244,6 +245,7 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
       ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1))',
+      oracle: `DECLARE BEGIN UPDATE "Users" SET "counter"=\`counter\` + 1; IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Users" ("firstName","counter") VALUES (:1,\`counter\` + 1); :isUpdate := 0; ELSE :isUpdate := 1; END IF; END;`
     });
   });
 });

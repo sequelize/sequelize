@@ -3,11 +3,11 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
-import { addTicks, quoteIdentifier, removeTicks } from '../../utils/dialect';
+import { addTicks, quoteIdentifier } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils'; //TODO: MIGHT NOT be needed.
+import { normalizeDataType } from '../abstract/data-types-utils';
 import { 
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
@@ -17,7 +17,6 @@ import {
 const DataTypes = require('../../data-types');
 const _ = require('lodash');
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
-const util = require('util');
 const Transaction = require('../../transaction');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
@@ -257,7 +256,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // only need to sort primary keys once, don't do it in place
       let sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys = sortedPrimaryKeys.map(elem => {
-        return elem.replace(/[.,"\s]/g, '');
+        return elem.replace(/"/g, '');
       });
       sortedPrimaryKeys.sort();
       _.each(options.uniqueKeys, (columns, indexName) => {

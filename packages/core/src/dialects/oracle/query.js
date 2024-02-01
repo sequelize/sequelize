@@ -2,7 +2,6 @@ import { AbstractQuery } from '../abstract/query';
 import { extend, mapKeys, mapValues, isPlainObject, reduce, toPairs } from 'lodash';
 import { nameIndex } from '../../utils/string';
 import { logger } from '../../utils/logger';
-import { getAttributeName } from '../../utils/format';
 
 const SequelizeErrors = require('../../errors');
 const debug = logger.debugContext('sql:oracle');
