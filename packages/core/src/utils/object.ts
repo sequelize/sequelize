@@ -5,6 +5,7 @@ import forOwn from 'lodash/forOwn';
 import getValue from 'lodash/get';
 import isEqual from 'lodash/isEqual';
 import isFunction from 'lodash/isFunction';
+import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
 import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
@@ -241,6 +242,70 @@ export function getAllOwnEntries(obj: object): IterableIterator<[key: string | s
 }
 
 export function noPrototype<T extends object>(obj: T): T {
+  Object.setPrototypeOf(obj, null);
+
+  return obj;
+}
+
+export function freezeDeep<T extends object>(obj: T): T {
+  Object.freeze(obj);
+
+  freezeDescendants(obj);
+
+  return obj;
+}
+
+/**
+ * Only freezes the descendants of an object, not the object itself.
+ *
+ * @param obj
+ */
+export function freezeDescendants<T extends object>(obj: T): T {
+  for (const descendant of Object.values(obj)) {
+    if (isPlainObject(descendant) || Array.isArray(descendant)) {
+      freezeDeep(descendant);
+    }
+  }
+
+  return obj;
+}
+
+export function cloneDeepPlainValues<T>(value: T, transferUnclonables?: boolean): T {
+  if (Array.isArray(value)) {
+    return value.map(val => cloneDeepPlainValues(val, transferUnclonables)) as T;
+  }
+
+  if (isObject(value)) {
+    if (value instanceof Date) {
+      return new Date(value) as T;
+    }
+
+    const prototype = Object.getPrototypeOf(value);
+
+    if (prototype !== null && prototype !== Object.prototype) {
+      if (transferUnclonables) {
+        return value;
+      }
+
+      throw new Error('This function can only clone plain objects, arrays and primitives');
+    }
+
+    const out = pojo() as T;
+    for (const key of Object.keys(value) as Array<keyof T>) {
+      out[key] = cloneDeepPlainValues(value[key], transferUnclonables);
+    }
+
+    return out;
+  }
+
+  return value;
+}
+
+export function pojo<T extends object>(obj?: T): T {
+  if (!obj) {
+    return Object.create(null);
+  }
+
   Object.setPrototypeOf(obj, null);
 
   return obj;

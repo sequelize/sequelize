@@ -70,6 +70,10 @@ export function isPlainObject(value: unknown): value is object {
   return prototype === null || prototype === Object.prototype;
 }
 
+export function isDevEnv(): boolean {
+  return process.env.NODE_ENV !== 'production';
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *

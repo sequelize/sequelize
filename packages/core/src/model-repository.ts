@@ -9,7 +9,8 @@ import {
 import type { DestroyManyOptions } from './model-repository.types.js';
 import type { Model } from './model.js';
 import { Op } from './operators.js';
-import { EMPTY_OBJECT } from './utils/object.js';
+import { isDevEnv } from './utils/check.js';
+import { EMPTY_OBJECT, cloneDeepPlainValues, freezeDescendants } from './utils/object.js';
 
 /**
  * The goal of this class is to become the new home of all the static methods that are currently present on the Model class,
@@ -38,33 +39,40 @@ export class ModelRepository<M extends Model = Model> {
   }
 
   async destroy(instanceOrInstances: readonly M[] | M, options: DestroyManyOptions = EMPTY_OBJECT): Promise<number> {
-    const { hardDelete, noHooks, ...passDown } = options;
+    const { ...optionsClone } = options;
 
     assertHasPrimaryKey(this.#modelDefinition);
-    setTransactionFromCls(passDown, this.#sequelize);
+    setTransactionFromCls(optionsClone, this.#sequelize);
 
     const instances: M[] = Array.isArray(instanceOrInstances) ? [...instanceOrInstances] : [instanceOrInstances];
     if (instances.length === 0) {
       return 0;
     }
 
-    if (mayRunHook('beforeDestroyMany', noHooks)) {
-      await this.#modelDefinition.hooks.runAsync('beforeDestroyMany', instances, options);
+    if (isDevEnv()) {
+      // Users should not mutate any mutable value inside `options`, and instead mutate the `options` object directly
+      // This ensures `options` remains immutable while limiting ourselves to a shallow clone in production,
+      // improving performance.
+      freezeDescendants(cloneDeepPlainValues(optionsClone, true));
     }
 
-    const isSoftDelete = !hardDelete && this.#modelDefinition.isParanoid();
+    if (mayRunHook('beforeDestroyMany', optionsClone.noHooks)) {
+      await this.#modelDefinition.hooks.runAsync('beforeDestroyMany', instances, optionsClone);
+
+      // in case the beforeDestroyMany hook removed all instances.
+      if (instances.length === 0) {
+        return 0;
+      }
+    }
+
+    Object.freeze(optionsClone);
+    Object.freeze(instances);
+
+    const isSoftDelete = !optionsClone.hardDelete && this.#modelDefinition.isParanoid();
     if (isSoftDelete) {
       // TODO: implement once updateMany is implemented - https://github.com/sequelize/sequelize/issues/4501
       throw new Error('ModelRepository#destroy does not support paranoid deletion yet.');
     }
-
-    // in case the beforeDestroyMany hook removed all instances.
-    if (instances.length === 0) {
-      return 0;
-    }
-
-    Object.freeze(options);
-    Object.freeze(instances);
 
     const primaryKeys = this.#modelDefinition.primaryKeysAttributeNames;
     let where;
@@ -85,14 +93,20 @@ export class ModelRepository<M extends Model = Model> {
       };
     }
 
-    const result = await this.#queryInterface.bulkDelete(this.#modelDefinition, {
-      ...passDown,
+    const bulkDeleteOptions = {
+      ...optionsClone,
       limit: null,
       where,
-    });
+    };
 
-    if (mayRunHook('afterDestroyMany', noHooks)) {
-      await this.#modelDefinition.hooks.runAsync('afterDestroyMany', instances, options, result);
+    // DestroyManyOptions-specific options.
+    delete bulkDeleteOptions.hardDelete;
+    delete bulkDeleteOptions.noHooks;
+
+    const result = await this.#queryInterface.bulkDelete(this.#modelDefinition, bulkDeleteOptions);
+
+    if (mayRunHook('afterDestroyMany', optionsClone.noHooks)) {
+      await this.#modelDefinition.hooks.runAsync('afterDestroyMany', instances, optionsClone, result);
     }
 
     return result;

@@ -156,7 +156,10 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
   }
 
   if (options.transaction === undefined && options.connection == null) {
-    options.transaction = sequelize.getCurrentClsTransaction();
+    const currentTransaction = sequelize.getCurrentClsTransaction();
+    if (currentTransaction) {
+      options.transaction = currentTransaction;
+    }
   }
 
   if (options.connection) {
@@ -166,7 +169,10 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
       options.transaction = clsTransaction;
     }
   } else {
-    options.connection = options.transaction?.getConnectionIfExists();
+    const connection = options.transaction?.getConnectionIfExists();
+    if (connection) {
+      options.connection = options.transaction?.getConnectionIfExists();
+    }
   }
 }
 
