@@ -92,4 +92,12 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     ]);
   }
 
+  getUuidV1FunctionCall(): string {
+    return 'uuid_generate_v1()';
+  }
+
+  getUuidV4FunctionCall(): string {
+    return 'gen_random_uuid()';
+  }
+
 }

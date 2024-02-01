@@ -85,6 +85,8 @@ export class CockroachDbDialect extends AbstractDialect {
       authorization: true,
       ifNotExists: true,
     },
+    uuidV1Generation: true,
+    uuidV4Generation: true,
     dropSchema: {
       cascade: true,
       ifExists: true,
