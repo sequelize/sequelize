@@ -2,7 +2,7 @@ import type { Sequelize } from '../../sequelize.js';
 import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { escapeMysqlString } from '../mysql/mysql-utils';
+import { escapeMysqlMariaDbString } from '../mysql/mysql-utils.js';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
@@ -107,7 +107,7 @@ export class MariaDbDialect extends AbstractDialect {
   }
 
   escapeString(value: string) {
-    return escapeMysqlString(value);
+    return escapeMysqlMariaDbString(value);
   }
 
   canBackslashEscape() {
