@@ -330,7 +330,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    describe('descending indices', () => {
+    describe('descending indices (MySQL specific)', () => {
+      if (dialectName !== 'mysql') {
+        return;
+      }
+
       it('complains about missing support for descending indexes', async function () {
         const indices = [{
           name: 'a_b_uniq',
