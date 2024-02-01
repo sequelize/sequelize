@@ -14,7 +14,7 @@ describe('QueryInterface#insert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  // Oracle nedds bindDefinitions to be defined for outBinds using modelDefinition which is undefined in this case.
+  // Oracle nedds bindDefinitions to be defined for outBinds which can't be obtained with bind and replacement present together.
   (dialect.name === 'oracle' ? it.skip : it)('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
