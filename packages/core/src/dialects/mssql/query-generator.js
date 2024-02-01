@@ -423,28 +423,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = {}, model) {
-    const table = this.quoteTable(tableName);
-
-    const escapeOptions = { ...options, model };
-    const whereClause = this.whereQuery(where, escapeOptions);
-
-    return joinSQLFragments([
-      'DELETE',
-      options.limit && `TOP(${this.escape(options.limit, escapeOptions)})`,
-      'FROM',
-      table,
-      whereClause,
-      ';',
-      'SELECT @@ROWCOUNT AS AFFECTEDROWS',
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {

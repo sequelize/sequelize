@@ -58,7 +58,7 @@ async function test() {
   await queryInterface.dropTable('nameOfTheExistingTable');
   await queryInterface.dropTable({ schema: '<schema>', tableName: 'nameOfTheExistingTable' });
 
-  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' });
 
   const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo' }, [{}], {});
 
@@ -239,7 +239,7 @@ async function test() {
     },
   });
 
-  await queryInterface.delete(null, 'Person', {
+  await queryInterface.delete('Person', {
     where: {
       a: 1,
     },

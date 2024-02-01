@@ -2,6 +2,7 @@ import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
 import type {
   AddConstraintQueryOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
@@ -13,6 +14,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types';
 
 export interface DatabaseDescription {
@@ -118,6 +120,9 @@ export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTa
 /** Options accepted by {@link AbstractQueryInterface#renameTable} */
 export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
 
+/** Options accepted by {@link AbstractQueryInterface#truncate} */
+export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions { }
+
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 
 /** Options accepted by {@link AbstractQueryInterface#removeColumn} */
@@ -134,3 +139,6 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
+export interface BulkDeleteOptions extends BulkDeleteQueryOptions, QueryRawOptions { }

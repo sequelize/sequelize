@@ -35,6 +35,7 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   AddLimitOffsetOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
@@ -48,6 +49,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -75,6 +77,7 @@ export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveC
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
+export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['cascade', 'restartIdentity']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -327,6 +330,10 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTableName)}`;
+  }
+
+  truncateTableQuery(_tableName: TableNameOrModel, _options?: TruncateTableQueryOptions): string | string[] {
+    throw new Error(`truncateTableQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
@@ -1079,5 +1086,34 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   protected _addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+
+    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      }
+
+      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
+      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        `ORDER BY ${pks}`,
+        this._addLimitAndOffset(options),
+        ')',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${this.quoteTable(tableName)}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+      this._addLimitAndOffset(options),
+    ]);
   }
 }

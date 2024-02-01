@@ -10,7 +10,6 @@ import type {
   NormalizedAttributeOptions,
   SearchPathable,
 } from '../../model.js';
-import type { Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -49,10 +48,6 @@ type BulkInsertOptions = ParameterOptions & {
 
 type UpdateOptions = ParameterOptions & {
   bindParam?: false | ((value: unknown) => string),
-};
-
-type DeleteOptions = ParameterOptions & {
-  limit?: Nullish<number | Literal>,
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {
@@ -119,13 +114,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: UpdateOptions,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): { query: string, bind?: unknown[] };
-
-  deleteQuery(
-    tableName: TableName,
-    where?: WhereOptions,
-    options?: DeleteOptions,
-    model?: ModelStatic<Model>,
-  ): string;
 
   arithmeticQuery(
     operator: string,

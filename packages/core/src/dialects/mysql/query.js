@@ -152,7 +152,7 @@ export class MySqlQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
       return data.affectedRows;
     }
 

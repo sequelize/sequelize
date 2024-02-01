@@ -1,7 +1,6 @@
 'use strict';
 
 import { removeNullishValuesFromHash } from '../../utils/format';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -168,28 +167,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
-    ].join('');
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    defaults(options, this.options);
-
-    let whereClause = this.whereQuery(where, { ...options, model });
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, options)})`;
-    }
-
-    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
   }
 
   attributesToSQL(attributes, options) {

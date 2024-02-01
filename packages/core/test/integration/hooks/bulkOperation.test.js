@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         { username: 'joe', mood: 'sad' },
       ]);
 
-      await this.ParanoidUser.destroy({ truncate: true });
+      await this.ParanoidUser.truncate();
     });
 
     describe('on success', () => {
