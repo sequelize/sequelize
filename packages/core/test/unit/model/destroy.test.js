@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     before(function () {
-      this.stubDelete = sinon.stub(current.queryInterface, 'bulkDelete').resolves([]);
+      this.stubDelete = sinon.stub(current, 'queryRaw').resolves([]);
     });
 
     beforeEach(function () {

@@ -186,6 +186,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     Project.hasMany(Task, {
       as: 'Tasks',
       foreignKey: 'project_id',
+      inverse: 'Project',
     });
 
     Task.belongsTo(Project, {
@@ -196,6 +197,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     Task.hasMany(Subtask, {
       as: 'Subtasks',
       foreignKey: 'task_id',
+      inverse: 'Task',
     });
 
     Subtask.belongsTo(Task, {

@@ -129,11 +129,11 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             ]).then(() => Product.findAll()),
           ]);
           const groupMembers = [
-            { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-            { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id },
+            { accUserId: user.id, GroupId: groups[0].id, rankId: ranks[0].id },
+            { accUserId: user.id, GroupId: groups[1].id, rankId: ranks[2].id },
           ];
           if (i < 3) {
-            groupMembers.push({ AccUserId: user.id, GroupId: groups[2].id, RankId: ranks[1].id });
+            groupMembers.push({ accUserId: user.id, GroupId: groups[2].id, rankId: ranks[1].id });
           }
 
           await Promise.all([
@@ -163,14 +163,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             products[i * 5 + 3].setCompany(companies[1]),
             products[i * 5 + 4].setCompany(companies[0]),
             Price.bulkCreate([
-              { ProductId: products[i * 5 + 0].id, value: 5 },
-              { ProductId: products[i * 5 + 0].id, value: 10 },
-              { ProductId: products[i * 5 + 1].id, value: 5 },
-              { ProductId: products[i * 5 + 1].id, value: 10 },
-              { ProductId: products[i * 5 + 1].id, value: 15 },
-              { ProductId: products[i * 5 + 1].id, value: 20 },
-              { ProductId: products[i * 5 + 2].id, value: 20 },
-              { ProductId: products[i * 5 + 3].id, value: 20 },
+              { productId: products[i * 5 + 0].id, value: 5 },
+              { productId: products[i * 5 + 0].id, value: 10 },
+              { productId: products[i * 5 + 1].id, value: 5 },
+              { productId: products[i * 5 + 1].id, value: 10 },
+              { productId: products[i * 5 + 1].id, value: 15 },
+              { productId: products[i * 5 + 1].id, value: 20 },
+              { productId: products[i * 5 + 2].id, value: 20 },
+              { productId: products[i * 5 + 3].id, value: 20 },
             ]),
           ]);
         }
@@ -250,8 +250,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
-            { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-            { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id },
+            { accUserId: user.id, groupId: groups[0].id, rankId: ranks[0].id },
+            { accUserId: user.id, groupId: groups[1].id, rankId: ranks[1].id },
           ]),
           user.setProducts([
             products[i * 2 + 0],
@@ -266,12 +266,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ]),
           products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[i * 2 + 0].id, value: 5 },
-            { ProductId: products[i * 2 + 0].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 5 },
-            { ProductId: products[i * 2 + 1].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 15 },
-            { ProductId: products[i * 2 + 1].id, value: 20 },
+            { productId: products[i * 2 + 0].id, value: 5 },
+            { productId: products[i * 2 + 0].id, value: 10 },
+            { productId: products[i * 2 + 1].id, value: 5 },
+            { productId: products[i * 2 + 1].id, value: 10 },
+            { productId: products[i * 2 + 1].id, value: 15 },
+            { productId: products[i * 2 + 1].id, value: 20 },
           ]),
         ]);
 
@@ -288,7 +288,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             {
               model: Product,
               include: [
-                'Tags',
+                'tags',
                 { model: Tag, as: 'Category' },
                 Price,
               ],
@@ -304,20 +304,20 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           user.Memberships.sort(sortById);
 
           expect(user.Memberships.length).to.equal(2);
-          expect(user.Memberships[0].Group.name).to.equal('Developers');
-          expect(user.Memberships[0].Rank.canRemove).to.equal(1);
-          expect(user.Memberships[1].Group.name).to.equal('Designers');
-          expect(user.Memberships[1].Rank.canRemove).to.equal(0);
+          expect(user.Memberships[0].group.name).to.equal('Developers');
+          expect(user.Memberships[0].rank.canRemove).to.equal(1);
+          expect(user.Memberships[1].group.name).to.equal('Designers');
+          expect(user.Memberships[1].rank.canRemove).to.equal(0);
 
-          user.Products.sort(sortById);
-          expect(user.Products.length).to.equal(2);
-          expect(user.Products[0].Tags.length).to.equal(2);
-          expect(user.Products[1].Tags.length).to.equal(1);
-          expect(user.Products[0].Category).to.be.ok;
-          expect(user.Products[1].Category).not.to.be.ok;
+          user.products.sort(sortById);
+          expect(user.products.length).to.equal(2);
+          expect(user.products[0].tags.length).to.equal(2);
+          expect(user.products[1].tags.length).to.equal(1);
+          expect(user.products[0].Category).to.be.ok;
+          expect(user.products[1].Category).not.to.be.ok;
 
-          expect(user.Products[0].Prices.length).to.equal(2);
-          expect(user.Products[1].Prices.length).to.equal(4);
+          expect(user.products[0].prices.length).to.equal(2);
+          expect(user.products[1].prices.length).to.equal(4);
         }
       }
     });
@@ -461,8 +461,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(as.length).to.eql(2);
       expect(as[0].itemA.test).to.eql('abc');
       expect(as[1].itemA.test).to.eql('abc');
-      expect(as[0].Order.position).to.eql(1);
-      expect(as[1].Order.position).to.eql(2);
+      expect(as[0].order.position).to.eql(1);
+      expect(as[1].order.position).to.eql(2);
     });
 
     it('should include attributes from through models', async function () {
@@ -518,12 +518,12 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         ],
       });
 
-      expect(products[0].Tags[0].ProductTag.priority).to.equal(1);
-      expect(products[0].Tags[1].ProductTag.priority).to.equal(2);
-      expect(products[1].Tags[0].ProductTag.priority).to.equal(1);
-      expect(products[2].Tags[0].ProductTag.priority).to.equal(3);
-      expect(products[2].Tags[1].ProductTag.priority).to.equal(1);
-      expect(products[2].Tags[2].ProductTag.priority).to.equal(2);
+      expect(products[0].tags[0].ProductTag.priority).to.equal(1);
+      expect(products[0].tags[1].ProductTag.priority).to.equal(2);
+      expect(products[1].tags[0].ProductTag.priority).to.equal(1);
+      expect(products[2].tags[0].ProductTag.priority).to.equal(3);
+      expect(products[2].tags[1].ProductTag.priority).to.equal(1);
+      expect(products[2].tags[2].ProductTag.priority).to.equal(2);
     });
 
     it('should support a required belongsTo include', async function () {
@@ -553,7 +553,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
 
       expect(users.length).to.equal(1);
-      expect(users[0].Group).to.be.ok;
+      expect(users[0].group).to.be.ok;
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', async function () {
@@ -591,8 +591,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
 
       expect(users.length).to.equal(1);
-      expect(users[0].Group).to.be.ok;
-      expect(users[0].Group.name).to.equal('A');
+      expect(users[0].group).to.be.ok;
+      expect(users[0].group.name).to.equal('A');
     });
 
     it('should be possible to extend the on clause with a where option on a belongsTo include', async function () {
@@ -630,7 +630,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
 
       for (const user of users) {
-        expect(user.Group).to.be.ok;
+        expect(user.group).to.be.ok;
       }
     });
 
@@ -686,8 +686,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
       expect(users.length).to.equal(1);
       for (const user of users) {
-        expect(user.Group).to.be.ok;
-        expect(user.Group.Categories).to.be.ok;
+        expect(user.group).to.be.ok;
+        expect(user.group.categories).to.be.ok;
       }
     });
 
@@ -800,8 +800,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
 
       expect(users.length).to.equal(1);
       for (const user of users) {
-        expect(user.Group).to.be.ok;
-        expect(user.Group.Categories).to.be.ok;
+        expect(user.group).to.be.ok;
+        expect(user.group.categories).to.be.ok;
       }
     });
 
@@ -894,7 +894,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       });
 
       expect(products.length).to.equal(1);
-      expect(products[0].Tags.length).to.equal(1);
+      expect(products[0].tags.length).to.equal(1);
     });
 
     it('should be possible to extend the on clause with a where option on nested includes', async function () {
@@ -968,8 +968,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
-            { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
-            { UserId: user.id, GroupId: groups[1].id, RankId: ranks[1].id },
+            { userId: user.id, groupId: groups[0].id, rankId: ranks[0].id },
+            { userId: user.id, groupId: groups[1].id, rankId: ranks[1].id },
           ]),
           user.setProducts([
             products[i * 2 + 0],
@@ -984,14 +984,15 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ]),
           products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
-            { ProductId: products[i * 2 + 0].id, value: 5 },
-            { ProductId: products[i * 2 + 0].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 5 },
-            { ProductId: products[i * 2 + 1].id, value: 10 },
-            { ProductId: products[i * 2 + 1].id, value: 15 },
-            { ProductId: products[i * 2 + 1].id, value: 20 },
+            { productId: products[i * 2 + 0].id, value: 5 },
+            { productId: products[i * 2 + 0].id, value: 10 },
+            { productId: products[i * 2 + 1].id, value: 5 },
+            { productId: products[i * 2 + 1].id, value: 10 },
+            { productId: products[i * 2 + 1].id, value: 15 },
+            { productId: products[i * 2 + 1].id, value: 20 },
           ]),
         ]);
+
         const users = await User.findAll({
           include: [
             {
@@ -1005,7 +1006,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             {
               model: Product,
               include: [
-                'Tags',
+                'tags',
                 { model: Tag, as: 'Category' },
                 {
                   model: Price,
@@ -1024,9 +1025,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         });
         for (const user of users) {
           expect(user.Memberships.length).to.equal(1);
-          expect(user.Memberships[0].Rank.name).to.equal('Admin');
-          expect(user.Products.length).to.equal(1);
-          expect(user.Products[0].Prices.length).to.equal(1);
+          expect(user.Memberships[0].rank.name).to.equal('Admin');
+          expect(user.products.length).to.equal(1);
+          expect(user.products[0].prices.length).to.equal(1);
         }
       }
     });
@@ -1070,7 +1071,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(users.length).to.equal(2);
 
       for (const user of users) {
-        expect(user.Group.name).to.equal('A');
+        expect(user.group.name).to.equal('A');
       }
     });
 
@@ -1081,7 +1082,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         attributes: ['title'],
         include: [
           { model: this.models.Company, where: { name: 'NYSE' } },
-          { model: this.models.Tag, as: 'Tags' },
+          { model: this.models.Tag, as: 'tags' },
           { model: this.models.Price },
         ],
         limit: 3,
@@ -1093,9 +1094,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(products.length).to.equal(3);
 
       for (const product of products) {
-        expect(product.Company.name).to.equal('NYSE');
-        expect(product.Tags.length).to.be.ok;
-        expect(product.Prices.length).to.be.ok;
+        expect(product.company.name).to.equal('NYSE');
+        expect(product.tags.length).to.be.ok;
+        expect(product.prices.length).to.be.ok;
       }
     });
 
@@ -1105,7 +1106,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag, as: 'Tags' },
+          { model: this.models.Tag, as: 'tags' },
           {
             model: this.models.Price,
             where: {
@@ -1122,10 +1123,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(products.length).to.equal(6);
 
       for (const product of products) {
-        expect(product.Tags.length).to.be.ok;
-        expect(product.Prices.length).to.be.ok;
+        expect(product.tags.length).to.be.ok;
+        expect(product.prices.length).to.be.ok;
 
-        for (const price of product.Prices) {
+        for (const price of product.prices) {
           expect(price.value).to.be.above(5);
         }
       }
@@ -1137,7 +1138,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       const products = await this.models.Product.findAll({
         include: [
           { model: this.models.Company },
-          { model: this.models.Tag, as: 'Tags', where: { name: ['A', 'B', 'C'] } },
+          { model: this.models.Tag, as: 'tags', where: { name: ['A', 'B', 'C'] } },
           { model: this.models.Price },
         ],
         limit: 10,
@@ -1149,10 +1150,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       expect(products.length).to.equal(10);
 
       for (const product of products) {
-        expect(product.Tags.length).to.be.ok;
-        expect(product.Prices.length).to.be.ok;
+        expect(product.tags.length).to.be.ok;
+        expect(product.prices.length).to.be.ok;
 
-        for (const tag of product.Tags) {
+        for (const tag of product.tags) {
           expect(['A', 'B', 'C']).to.include(tag.name);
         }
       }

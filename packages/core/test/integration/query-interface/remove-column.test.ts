@@ -1,5 +1,4 @@
 import { expect } from 'chai';
-import { lt } from 'semver';
 import { DataTypes } from '@sequelize/core';
 import { getTestDialect, getTestDialectTeaser, sequelize } from '../support';
 
@@ -239,9 +238,6 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
           ? 'RESTRICT'
           : dialectName === 'sqlite'
           ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialectName === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
           : 'NO ACTION',
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       }]);

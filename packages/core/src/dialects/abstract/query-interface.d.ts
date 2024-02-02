@@ -13,7 +13,7 @@ import type {
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
-import type { AllowLowercase, Nullish } from '../../utils/types.js';
+import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
 import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
@@ -41,10 +41,6 @@ export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLi
 
 export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
-}
-
-export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
-  limit?: Nullish<number | Literal>;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
@@ -381,26 +377,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): Promise<object>;
-
-  /**
-   * Deletes a row
-   */
-  delete(
-    instance: Model | null,
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiDeleteOptions,
-  ): Promise<object>;
-
-  /**
-   * Deletes multiple rows at once
-   */
-  bulkDelete(
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiOptionsWithReplacements,
-    model?: ModelStatic
   ): Promise<object>;
 
   /**

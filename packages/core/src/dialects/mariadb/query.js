@@ -87,7 +87,7 @@ export class MariaDbQuery extends AbstractQuery {
   formatResults(data) {
     let result = this.instance;
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
       return data.affectedRows;
     }
 

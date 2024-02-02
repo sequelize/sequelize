@@ -1,6 +1,5 @@
 'use strict';
 
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
@@ -187,47 +186,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     parameters = parameters || '';
 
     return `CREATE OR REPLACE FUNCTION pg_temp.${fnName}(${parameters}) ${returns} AS $func$ BEGIN ${body} END; $func$ LANGUAGE ${language}; SELECT * FROM pg_temp.${fnName}();`;
-  }
-
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `TRUNCATE ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? ' RESTART IDENTITY' : '',
-      options.cascade ? ' CASCADE' : '',
-    ].join('');
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    const table = this.quoteTable(tableName);
-
-    const escapeOptions = {
-      replacements: options.replacements,
-      model,
-    };
-
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, escapeOptions)}` : '';
-    let primaryKeys = '';
-    let primaryKeysSelection = '';
-
-    let whereClause = this.whereQuery(where, { ...options, model });
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (options.limit) {
-      if (!model) {
-        throw new Error('Cannot LIMIT delete without a model.');
-      }
-
-      const pks = Object.values(model.primaryKeys).map(pk => this.quoteIdentifier(pk.field)).join(',');
-
-      primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
-      primaryKeysSelection = pks;
-
-      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
-    }
-
-    return `DELETE FROM ${table}${whereClause}`;
   }
 
   attributeToSQL(attribute, options) {

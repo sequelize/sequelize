@@ -1,7 +1,6 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 
@@ -155,26 +154,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       attrString.join(', '),
       ';',
     ]);
-  }
-
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const escapeOptions = { ...options, model };
-    const whereSql = this.whereQuery(where, escapeOptions);
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    }
-
-    return query;
   }
 
   attributeToSQL(attribute, options) {

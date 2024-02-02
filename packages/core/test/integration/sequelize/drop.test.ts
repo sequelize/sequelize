@@ -8,7 +8,7 @@ const dialectName = getTestDialect();
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
         ...(dialectName !== 'cockroachdb' && {
           references: {
@@ -19,7 +19,7 @@ describe('Sequelize#drop', () => {
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
         ...(dialectName !== 'cockroachdb' && {
           references: {
@@ -49,13 +49,13 @@ describe('Sequelize#drop', () => {
     }
 
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
       },
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
       },
     });

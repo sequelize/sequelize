@@ -1,9 +1,12 @@
-import type { TruncateOptions } from 'src/model';
+import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { DropSchemaQueryOptions } from '../abstract/query-generator.types';
+import { TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import type { DropSchemaQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
 import { ENUM } from '../postgres/data-types';
 import { PostgresQueryGenerator } from '../postgres/query-generator';
+
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['cascade']);
 
 export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
 
@@ -43,10 +46,20 @@ export class CockroachDbQueryGenerator extends PostgresQueryGenerator {
     ]);
   }
 
-  truncateTableQuery(tableName: string, options: TruncateOptions = {}): string {
+  truncateTableQuery(tableName: string, options?: TruncateTableQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     return [
       `TRUNCATE ${this.quoteTable(tableName)}`,
-      options.cascade ? ' CASCADE' : '',
+      options?.cascade ? ' CASCADE' : '',
     ].join('');
   }
 

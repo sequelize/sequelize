@@ -14,6 +14,7 @@ import type {
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
@@ -135,6 +136,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    return joinSQLFragments([
+      `TRUNCATE ${this.quoteTable(tableName)}`,
+      options?.restartIdentity ? 'RESTART IDENTITY' : '',
+      options?.cascade ? 'CASCADE' : '',
+    ]);
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

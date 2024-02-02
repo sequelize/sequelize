@@ -290,8 +290,11 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       };
     }
   } else {
-    as = isMultiAssociation ? target.options.name.plural : target.options.name.singular;
-    name = target.options.name;
+    as = lowerFirst(isMultiAssociation ? target.options.name.plural : target.options.name.singular);
+    name = {
+      plural: lowerFirst(target.options.name.plural),
+      singular: lowerFirst(target.options.name.singular),
+    };
   }
 
   return removeUndefined({

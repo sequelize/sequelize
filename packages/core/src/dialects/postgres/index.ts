@@ -79,6 +79,7 @@ export class PostgresDialect extends AbstractDialect {
     },
     truncate: {
       cascade: true,
+      restartIdentity: true,
     },
     removeColumn: {
       cascade: true,
@@ -94,6 +95,9 @@ export class PostgresDialect extends AbstractDialect {
     dropSchema: {
       cascade: true,
       ifExists: true,
+    },
+    delete: {
+      modelWithLimit: true,
     },
   });
 

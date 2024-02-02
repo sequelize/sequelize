@@ -193,7 +193,7 @@ describe('Paranoid Model', () => {
     }, { paranoid: true });
     const Pet = this.sequelize.define('Pet', {
       name: DataTypes.STRING,
-      UserId: DataTypes.INTEGER,
+      userId: DataTypes.INTEGER,
     }, { paranoid: true });
 
     User.hasMany(Pet);
@@ -205,8 +205,8 @@ describe('Paranoid Model', () => {
 
     // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
     await Pet.bulkCreate([
-      { name: 'Fido', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 1 }) },
-      { name: 'Fifi', UserId: userId, ...(dialectName === 'cockroachdb' && { id: 2 }) },
+      { name: 'Fido', userId, ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { name: 'Fifi', userId, ...(dialectName === 'cockroachdb' && { id: 2 }) },
     ]);
     const pet = await Pet.findByPk(1);
     await pet.destroy();
@@ -219,8 +219,8 @@ describe('Paranoid Model', () => {
       include: { model: Pet, paranoid: false },
     });
     expect(user).to.exist;
-    expect(user.Pets).to.have.length(1);
+    expect(user.pets).to.have.length(1);
     expect(userWithDeletedPets).to.exist;
-    expect(userWithDeletedPets.Pets).to.have.length(2);
+    expect(userWithDeletedPets.pets).to.have.length(2);
   });
 });

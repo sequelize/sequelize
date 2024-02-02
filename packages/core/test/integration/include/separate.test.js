@@ -506,7 +506,7 @@ if (current.dialect.supports.groupedLimit) {
             required: true,
             include: [{
               association: User.Tasks,
-              attributes: ['UserId'],
+              attributes: ['userId'],
               separate: true,
               include: [{
                 association: Task.User,
@@ -522,10 +522,10 @@ if (current.dialect.supports.groupedLimit) {
 
         expect(results.length).to.equal(1);
         expect(results[0].id).to.equal(1);
-        expect(results[0].User.id).to.equal(2);
-        expect(results[0].User.Tasks.length).to.equal(1);
-        expect(results[0].User.Tasks[0].User.id).to.equal(2);
-        expect(results[0].User.Tasks[0].User.Company.id).to.equal(3);
+        expect(results[0].user.id).to.equal(2);
+        expect(results[0].user.tasks.length).to.equal(1);
+        expect(results[0].user.tasks[0].user.id).to.equal(2);
+        expect(results[0].user.tasks[0].user.company.id).to.equal(3);
       });
     });
   });

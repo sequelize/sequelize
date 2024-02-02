@@ -68,6 +68,16 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
   });
 
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
+
+    Task.belongsTo(User);
+
+    expect(Object.keys(Task.associations)).to.deep.eq(['user']);
+    expect(Object.keys(User.associations)).to.deep.eq([]);
+  });
+
   it('should add a nullable foreign key by default', () => {
     const BarUser = sequelize.define('user');
 
@@ -84,12 +94,12 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     Task.belongsTo(User, { foreignKey: { allowNull: false } });
 
-    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().userId.onDelete).to.eq('CASCADE');
   });
 
   it(`does not overwrite the 'deferrable' option set in Model.init`, () => {
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
@@ -101,7 +111,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     A.belongsTo(B);
 
-    expect(A.getAttributes().BId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
+    expect(A.getAttributes().bId.references?.deferrable).to.equal(Deferrable.INITIALLY_IMMEDIATE);
   });
 
   // See https://github.com/sequelize/sequelize/issues/15625 for more details
@@ -149,8 +159,8 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     Log.belongsTo(Book);
 
-    expect(Log.getAttributes().PluralId).to.not.exist;
-    expect(Log.getAttributes().SingularId).to.exist;
+    expect(Log.getAttributes().pluralId).to.not.exist;
+    expect(Log.getAttributes().singularId).to.exist;
   });
 
   describe('association hooks', () => {

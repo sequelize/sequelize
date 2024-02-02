@@ -9,12 +9,7 @@ import {
   flattenObjectDeep,
   merge,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import {
-  camelizeIf,
-  pluralize,
-  singularize,
-  underscoredIf,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { pluralize, singularize, underscoredIf } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { sequelize } from '../../support';
 
@@ -33,20 +28,6 @@ describe('Utils', () => {
 
       it('doesn\'t underscore if second param is false', () => {
         expect(underscoredIf('fooBar', false)).to.equal('fooBar');
-      });
-    });
-
-    describe('camelizeIf', () => {
-      it('is defined', () => {
-        expect(camelizeIf).to.be.ok;
-      });
-
-      it('camelizes if second param is true', () => {
-        expect(camelizeIf('foo_bar', true)).to.equal('fooBar');
-      });
-
-      it('doesn\'t camelize if second param is false', () => {
-        expect(underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });
   });
@@ -154,13 +135,19 @@ describe('Utils', () => {
 
   describe('url', () => {
     it('should return the correct options after parsed', () => {
-      const options = parseConnectionString('pg://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss');
-      expect(options.dialect).to.equal('pg');
+      const options = parseConnectionString('postgresql://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss');
+      expect(options.dialect).to.equal('postgres');
       expect(options.host).to.equal('104.129.90.48');
       expect(options.port).to.equal('4001');
       expect(options.database).to.equal('database ss');
       expect(options.username).to.equal('wpx ss');
       expect(options.password).to.equal('wpx ss');
+    });
+
+    it('should throw when given an incorrect dialect', () => {
+      expect(() => {
+        parseConnectionString('test://localhost');
+      }).to.throw(Error, 'The protocol was set to "test", which is not a supported dialect.');
     });
   });
 

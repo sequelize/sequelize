@@ -251,7 +251,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             required: true,
             through: {
               where: {
-                HobbyName: 'archery',
+                hobbyName: 'archery',
               },
             },
           }],
@@ -634,7 +634,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             required: true,
             through: {
               where: {
-                HobbyName: 'archery',
+                hobbyName: 'archery',
               },
             },
           }],

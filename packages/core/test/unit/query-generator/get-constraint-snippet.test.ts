@@ -27,7 +27,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
     it('generates a constraint snippet for a check constraint with a name', () => {
       expectsql(() => queryGenerator._getConstraintSnippet('myTable', { name: 'check', type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [check] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -35,14 +35,14 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
       expectsql(() => queryGenerator._getConstraintSnippet('myTable', { name: 'check', type: 'CHECK', fields: ['role'], where: { age: ['admin', 'user', 'guest'] } }), {
         default: `CONSTRAINT [check] CHECK ([age] IN ('admin', 'user', 'guest'))`,
         mssql: `CONSTRAINT [check] CHECK ([age] IN (N'admin', N'user', N'guest'))`,
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
     it('generates a constraint snippet for a check constraint', () => {
       expectsql(() => queryGenerator._getConstraintSnippet('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -51,21 +51,21 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
       expectsql(() => queryGenerator._getConstraintSnippet(MyModel, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
     it('generates a constraint snippet for a check constraint with schema', () => {
       expectsql(() => queryGenerator._getConstraintSnippet({ tableName: 'myTable', schema: 'mySchema' }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
     it('generates a constraint snippet for a check constraint with default schema', () => {
       expectsql(() => queryGenerator._getConstraintSnippet({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 
@@ -75,7 +75,7 @@ describe('QueryGenerator#_getConstraintSnippet', () => {
 
       expectsql(() => queryGeneratorSchema._getConstraintSnippet('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-        'mysql snowflake': checkNotSupportedError,
+        snowflake: checkNotSupportedError,
       });
     });
 

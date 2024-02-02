@@ -618,7 +618,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       await queryInterface.bulkInsert('Users', [{ username: 'foo', ...(dialect === 'cockroachdb' && { id: 1 }) }]);
       await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
       try {
-        await queryInterface.bulkDelete('Users', {});
+        await queryInterface.bulkDelete('Users');
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);

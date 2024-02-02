@@ -1,5 +1,4 @@
 import { assert, expect } from 'chai';
-import { lt } from 'semver';
 import { AggregateError, DataTypes, Op, UnknownConstraintError } from '@sequelize/core';
 import { sequelize } from '../support';
 
@@ -149,9 +148,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           ? 'RESTRICT'
           : dialect === 'sqlite'
           ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
           : 'NO ACTION',
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
@@ -219,9 +215,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           ? 'RESTRICT'
           : dialect === 'sqlite'
           ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
           : 'NO ACTION',
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
@@ -335,7 +328,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? '"age" > 10'
             : dialect === 'postgres'
             ? '((age > 10))'
-            : dialect === 'sqlite'
+            : ['mysql', 'sqlite'].includes(dialect)
             ? '(`age` > 10)'
             : dialect === 'cockroachdb'
             ? '((age > 10:::INT8))'
@@ -488,9 +481,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? 'RESTRICT'
             : dialect === 'sqlite'
             ? ''
-            // MySQL 8.0.0 changed the default to NO ACTION
-            : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-            ? 'RESTRICT'
             : 'NO ACTION',
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
@@ -598,9 +588,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? 'RESTRICT'
             : dialect === 'sqlite'
             ? ''
-            // MySQL 8.0.0 changed the default to NO ACTION
-            : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-            ? 'RESTRICT'
             : 'NO ACTION',
             ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
           });
@@ -627,9 +614,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? 'RESTRICT'
             : dialect === 'sqlite'
             ? ''
-            // MySQL 8.0.0 changed the default to NO ACTION
-            : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-            ? 'RESTRICT'
             : 'NO ACTION',
             ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
           });

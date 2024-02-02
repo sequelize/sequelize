@@ -130,7 +130,7 @@ export class SqliteQuery extends AbstractQuery {
       return result;
     }
 
-    if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {
+    if ([QueryTypes.BULKUPDATE, QueryTypes.DELETE].includes(this.options.type)) {
       return metaData.changes;
     }
 
@@ -350,7 +350,7 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   getDatabaseMethod() {
-    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.options.type === QueryTypes.BULKDELETE) {
+    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.isDeleteQuery()) {
       return 'run';
     }
 

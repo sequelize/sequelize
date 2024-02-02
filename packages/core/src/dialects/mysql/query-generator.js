@@ -1,12 +1,9 @@
 'use strict';
 
 import { inspect } from 'node:util';
-import semver from 'semver';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -171,26 +168,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const escapeOptions = { ...options, model };
-    const whereSql = this.whereQuery(where, escapeOptions);
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    }
-
-    return query;
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -214,25 +191,9 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       && attribute.type._binary !== true
       && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
-      const isExpression = defaultValue instanceof BaseSqlExpression;
-      let skipDefault = false;
-      if (isExpression) {
-        const dialectVersion = this.sequelize.getDatabaseVersion();
-        const hasJavaScriptFallback = defaultValue instanceof DialectAwareFn && defaultValue.supportsJavaScript();
-        if (semver.lt(dialectVersion, '8.0.13')) {
-          if (hasJavaScriptFallback) {
-            skipDefault = true;
-          } else {
-            throw new Error(`MySQL versions older than 8.0.13 do not support expressions as default values. The current version is ${dialectVersion}`);
-          }
-        }
-      }
-
-      if (!skipDefault) {
-        const escaped = this.escape(defaultValue);
-        // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
-        template += ` DEFAULT ${isExpression ? `(${escaped})` : escaped}`;
-      }
+      const escaped = this.escape(defaultValue);
+      // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
+      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {

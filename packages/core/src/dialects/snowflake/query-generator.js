@@ -1,7 +1,6 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
@@ -201,58 +200,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'RENAME COLUMN',
       attrString.join(' to '),
       ';',
-    ]);
-  }
-
-  truncateTableQuery(tableName) {
-    return joinSQLFragments([
-      'TRUNCATE',
-      this.quoteTable(tableName),
-    ]);
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    const escapeOptions = { ...options, model };
-
-    const table = this.quoteTable(tableName);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    let primaryKeys = '';
-    let primaryKeysSelection = '';
-
-    let whereClause = this.whereQuery(where, escapeOptions);
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (limit) {
-      if (!model) {
-        throw new Error('Cannot LIMIT delete without a model.');
-      }
-
-      const pks = Object.values(model.primaryKeys).map(pk => this.quoteIdentifier(pk.field)).join(',');
-
-      primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
-      primaryKeysSelection = pks;
-
-      return joinSQLFragments([
-        'DELETE FROM',
-        table,
-        'WHERE',
-        primaryKeys,
-        'IN (SELECT',
-        primaryKeysSelection,
-        'FROM',
-        table,
-        whereClause,
-        limit,
-        ')',
-      ]);
-    }
-
-    return joinSQLFragments([
-      'DELETE FROM',
-      table,
-      whereClause,
     ]);
   }
 

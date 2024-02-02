@@ -139,7 +139,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ["4.9", "5.0", "5.1", "5.2"]
+        ts-version: ["5.0", "5.1", "5.2", "5.3"]
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
