@@ -239,12 +239,6 @@ async function test() {
     },
   });
 
-  await queryInterface.delete('Person', {
-    where: {
-      a: 1,
-    },
-  });
-
   class TestModel extends Model {}
 
   await queryInterface.upsert('test', { a: 1 }, { b: 2 }, { c: 3 }, { model: TestModel });

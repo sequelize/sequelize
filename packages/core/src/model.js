@@ -3971,7 +3971,7 @@ Instead of specifying a Model, either:
       // TODO: replace "hooks" with "noHooks" in this method and call ModelRepository.destroy instead of queryInterface.delete
       const where = this.where(true);
 
-      result = await this.constructor.queryInterface.delete(this.constructor, { limit: null, ...options, where });
+      result = await this.constructor.queryInterface.bulkDelete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook

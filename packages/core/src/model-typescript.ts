@@ -75,12 +75,12 @@ export class ModelTypeScript {
     return (this.constructor as ModelStatic).modelDefinition;
   }
 
-  static get modelRepository(): ModelRepository {
+  static get _UNSTABLE_modelRepository(): ModelRepository {
     return getModelRepository(this.modelDefinition);
   }
 
-  get modelRepository(): ModelRepository {
-    return (this.constructor as ModelStatic).modelRepository;
+  get _UNSTABLE_modelRepository(): ModelRepository {
+    return (this.constructor as ModelStatic)._UNSTABLE_modelRepository;
   }
 
   /**
