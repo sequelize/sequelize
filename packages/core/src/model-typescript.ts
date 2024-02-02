@@ -424,7 +424,7 @@ export class ModelTypeScript {
     instances: M | M[],
     options?: DestroyOptions<Attributes<M>>,
   ): Promise<number> {
-    return this.modelRepository.destroy(instances, options);
+    return this._UNSTABLE_modelRepository.destroy(instances, options);
   }
 }
 
