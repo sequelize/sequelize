@@ -53,7 +53,7 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "19.0.2",
     "@rushstack/eslint-patch": "1.7.2",
-    "@types/node": "20.11.15",
+    "@types/node": "20.11.16",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -62,7 +62,7 @@
     "eslint-plugin-jsdoc": "48.0.4",
     "eslint-plugin-mocha": "10.2.0",
     "fast-glob": "3.3.2",
-    "husky": "9.0.7",
+    "husky": "9.0.10",
     "lerna": "8.0.2",
     "lint-staged": "15.2.1",
     "markdownlint-cli": "0.39.0",
