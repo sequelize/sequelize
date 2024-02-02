@@ -10,32 +10,32 @@ describe('QueryGenerator#removeConstraintQuery', () => {
   it('generates a query that drops a constraint', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint]',
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
   it('generates a query that drops a constraint with IF EXISTS', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { ifExists: true }), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
-      'db2 ibmi snowflake': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
+      'db2 ibmi mysql snowflake': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
     });
   });
 
   it('generates a query that drops a constraint with CASCADE', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { cascade: true }), {
-      default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
-      'db2 ibmi mariadb mssql': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
-      'mysql sqlite': notSupportedError,
+      default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
+      sqlite: notSupportedError,
+      'postgres snowflake': 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
     });
   });
 
   it('generates a query that drops a constraint with IF EXISTS and CASCADE', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { cascade: true, ifExists: true }), {
-      default: 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint] CASCADE',
+      default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
+      postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT IF EXISTS "myConstraint" CASCADE',
       snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
-      'db2 ibmi mariadb mssql': buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
@@ -44,21 +44,21 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
     expectsql(() => queryGenerator.removeConstraintQuery(MyModel, 'myConstraint'), {
       default: 'ALTER TABLE [MyModels] DROP CONSTRAINT [myConstraint]',
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
   it('generates a query that drops a constraint with schema', () => {
     expectsql(() => queryGenerator.removeConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
   it('generates a query that drops a constraint with default schema', () => {
     expectsql(() => queryGenerator.removeConstraintQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, 'myConstraint'), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint]',
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 
@@ -68,7 +68,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
     expectsql(() => queryGeneratorSchema.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
-      'mysql sqlite': notSupportedError,
+      sqlite: notSupportedError,
     });
   });
 

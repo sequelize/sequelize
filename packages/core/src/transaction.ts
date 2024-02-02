@@ -34,10 +34,7 @@ export class Transaction {
    * Creates a new transaction instance
    *
    * @param sequelize A configured sequelize Instance
-   * @param options An object with options
-   * @param [options.type] Sets the type of the transaction. Sqlite only
-   * @param [options.isolationLevel] Sets the isolation level of the transaction.
-   * @param [options.constraintChecking] Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   * @param options The transaction options.
    */
   constructor(sequelize: Sequelize, options: TransactionOptions) {
     this.sequelize = sequelize;
@@ -526,8 +523,20 @@ export interface TransactionOptions extends Logging {
    * Used to determine whether sequelize is allowed to use a read replication server.
    */
   readOnly?: boolean | undefined;
+
+  /**
+   * Sets the isolation level of the transaction.
+   */
   isolationLevel?: IsolationLevel | null | undefined;
+
+  /**
+   * Sets the type of the transaction. Sqlite only
+   */
   type?: TransactionType | undefined;
+
+  /**
+   * Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   */
   constraintChecking?: ConstraintChecking | Class<ConstraintChecking> | undefined;
 
   /**

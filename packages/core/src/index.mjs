@@ -22,6 +22,8 @@ export const Value = Pkg.Value;
 export const sql = Pkg.sql;
 export const and = Pkg.and;
 export const or = Pkg.or;
+export const SQL_NULL = Pkg.SQL_NULL;
+export const JSON_NULL = Pkg.JSON_NULL;
 
 // export * from './lib/query-interface';
 export const AbstractQueryInterface = Pkg.AbstractQueryInterface;
@@ -38,10 +40,10 @@ export const IsolationLevel = Pkg.IsolationLevel;
 
 // export * from './lib/associations/index';
 export const Association = Pkg.Association;
-export const BelongsTo = Pkg.BelongsTo;
-export const HasOne = Pkg.HasOne;
-export const HasMany = Pkg.HasMany;
-export const BelongsToMany = Pkg.BelongsToMany;
+export const BelongsToAssociation = Pkg.BelongsToAssociation;
+export const HasOneAssociation = Pkg.HasOneAssociation;
+export const HasManyAssociation = Pkg.HasManyAssociation;
+export const BelongsToManyAssociation = Pkg.BelongsToManyAssociation;
 
 // export * from './lib/errors';
 export const BaseError = Pkg.BaseError;

@@ -168,7 +168,7 @@ export class SnowflakeQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
       return data[0]['number of rows updated'];
     }
 

@@ -50,6 +50,16 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(User.associations.tasks).to.be.ok;
   });
 
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
+
+    User.hasMany(Task);
+
+    expect(Object.keys(Task.associations)).to.deep.eq(['user']);
+    expect(Object.keys(User.associations)).to.deep.eq(['tasks']);
+  });
+
   describe('optimizations using bulk create, destroy and update', () => {
     class User extends Model<InferAttributes<User>> {
       declare setTasks: HasManySetAssociationsMixin<Task, number>;

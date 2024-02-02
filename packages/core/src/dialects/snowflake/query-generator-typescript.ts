@@ -6,6 +6,7 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
@@ -14,11 +15,13 @@ import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate']);
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([]);
 const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -41,8 +44,6 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       `CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`,
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
     ]);
   }
 
@@ -88,6 +89,20 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
         : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

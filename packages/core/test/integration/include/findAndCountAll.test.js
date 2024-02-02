@@ -182,13 +182,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       User.hasMany(Project);
 
-      let userId = null;
-
       await User.sync({ force: true });
       await Project.sync({ force: true });
       const results = await Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
       const user = results[0];
-      userId = user.id;
+      const userId = user.id;
       await user.setProjects([results[1], results[2], results[3]]);
 
       const result = await User.findAndCountAll({
@@ -198,7 +196,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       expect(result.rows.length).to.equal(1);
-      expect(result.rows[0].Projects.length).to.equal(3);
+      expect(result.rows[0].projects.length).to.equal(3);
       expect(result.count).to.equal(1);
     });
 
@@ -214,7 +212,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Make five instances of Foo
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the last four instances of Foo
-      await Bar.bulkCreate([{ FooId: 2 }, { FooId: 3 }, { FooId: 4 }, { FooId: 5 }]);
+      await Bar.bulkCreate([{ fooId: 2 }, { fooId: 3 }, { fooId: 4 }, { fooId: 5 }]);
 
       // Query for the first two instances of Foo which have related Bars
       const result0 = await Foo.findAndCountAll({
@@ -247,7 +245,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the first two instances of Foo
-      await Bar.bulkCreate([{ FooId: 1, m: 'yes' }, { FooId: 1, m: 'yes' }, { FooId: 1, m: 'no' }, { FooId: 2, m: 'yes' }]);
+      await Bar.bulkCreate([{ fooId: 1, m: 'yes' }, { fooId: 1, m: 'yes' }, { fooId: 1, m: 'no' }, { fooId: 2, m: 'yes' }]);
 
       // Query for the first instance of Foo which have related Bars with m === 'yes'
       const result = await Foo.findAndCountAll({
@@ -302,15 +300,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Project.bulkCreate([
-        { m: 'A', UserId: 1 },
-        { m: 'A', UserId: 2 },
+        { m: 'A', userId: 1 },
+        { m: 'A', userId: 2 },
       ]);
 
       await Task.bulkCreate([
-        { ProjectId: 1, name: 'Just' },
-        { ProjectId: 1, name: 'for' },
-        { ProjectId: 2, name: 'testing' },
-        { ProjectId: 2, name: 'proposes' },
+        { projectId: 1, name: 'Just' },
+        { projectId: 1, name: 'for' },
+        { projectId: 2, name: 'testing' },
+        { projectId: 2, name: 'proposes' },
       ]);
 
       // Find All Tasks with Project(m=a) and User(name=user-name-2)
@@ -360,9 +358,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Project.bulkCreate([
-        { name: 'naam-satya', UserId: 1 },
-        { name: 'guru-satya', UserId: 2 },
-        { name: 'app-satya', UserId: 2 },
+        { name: 'naam-satya', userId: 1 },
+        { name: 'guru-satya', userId: 2 },
+        { name: 'app-satya', userId: 2 },
       ]);
 
       const result = await User.findAndCountAll({

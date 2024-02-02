@@ -5,6 +5,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
@@ -13,10 +14,12 @@ import type {
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -89,6 +92,20 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
   showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {

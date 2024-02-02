@@ -340,8 +340,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             expect(parent.get('name')).to.equal('parent2');
-            expect(parent.Children).to.have.length(1);
-            expect(parent.Children[0].dataValues).not.to.have.property('name');
+            expect(parent.children).to.have.length(1);
+            expect(parent.children[0].dataValues).not.to.have.property('name');
           });
         });
       });
@@ -366,7 +366,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync({ force: true });
           await Child.create({ secret: 'super secret' });
           const user = await Child.scope('public').findOne();
-          expect(user.dataValues).to.have.property('ParentId');
+          expect(user.dataValues).to.have.property('parentId');
           expect(user.dataValues).not.to.have.property('secret');
         });
 
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.sequelize.sync({ force: true });
           await Child.create({ secret: 'super secret' });
           const user = await Child.findOne();
-          expect(user.dataValues).to.have.property('ParentId');
+          expect(user.dataValues).to.have.property('parentId');
           expect(user.dataValues).not.to.have.property('secret');
         });
 

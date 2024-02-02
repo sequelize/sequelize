@@ -5,11 +5,7 @@ import { removeNullishValuesFromHash } from '../../utils/format';
 import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 import defaults from 'lodash/defaults';
@@ -26,7 +22,6 @@ const DataTypes = require('../../data-types');
 const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
@@ -43,41 +38,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
 
     this.autoGenValue = 1;
-  }
-
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA ${this.quoteIdentifier(schema)};`;
-  }
-
-  _errorTableCount = 0;
-
-  dropSchemaQuery(schema) {
-    // DROP SCHEMA Can't drop schema if it is not empty.
-    // DROP SCHEMA Can't drop objects belonging to the schema
-    // So, call the admin procedure to drop schema.
-    const query = `CALL SYSPROC.ADMIN_DROP_SCHEMA(${this.escape(schema.trim())}, NULL, $sequelize_errorSchema, $sequelize_errorTable)`;
-
-    if (this._errorTableCount >= Number.MAX_SAFE_INTEGER) {
-      this._errorTableCount = 0;
-    }
-
-    return {
-      query,
-      bind: {
-        sequelize_errorSchema: { ParamType: 'INOUT', Data: 'ERRORSCHEMA' },
-        sequelize_errorTable: { ParamType: 'INOUT', Data: `ERRORTABLE${this._errorTableCount++}` },
-      },
-    };
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -508,24 +468,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
-  }
-
-  deleteQuery(tableName, where, options = {}, model) {
-    const table = this.quoteTable(tableName);
-    let query = `DELETE FROM ${table}`;
-
-    const whereSql = this.whereQuery(where, { ...options, model });
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    query += this._addLimitAndOffset(options);
-
-    return query;
-  }
-
   addIndexQuery(tableName, attributes, options, rawTablename) {
     if ('include' in attributes && !attributes.unique) {
       throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
@@ -572,7 +514,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     // Blobs/texts cannot have a defaultValue
     if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue)) {
+        && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { replacements: options?.replacements, type: attribute.type })}`;
     }
 

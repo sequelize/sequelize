@@ -147,6 +147,8 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
+export const SUPPORTED_DIALECTS = Object.freeze(['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql', 'mariadb', 'mssql', 'db2', 'snowflake', 'ibmi'] as const);
+
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
  * This is a temporary class used to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
@@ -477,8 +479,6 @@ export abstract class SequelizeTypeScript {
       throw new Error('sequelize.destroyAll does not support the limit option.');
     }
 
-    // We will eventually remove the "truncate" option from Model.destroy, in favor of using Model.truncate,
-    // so we don't support it in new methods.
     if (options && 'truncate' in options) {
       throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
     }
