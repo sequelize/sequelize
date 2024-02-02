@@ -109,3 +109,6 @@ export const ValidationFailed = createHookDecorator('validationFailed');
 
 export const BeforeDefinitionRefresh = createHookDecorator('beforeDefinitionRefresh');
 export const AfterDefinitionRefresh = createHookDecorator('afterDefinitionRefresh');
+
+export const BeforeIncrementDecrement = createHookDecorator('beforeIncrementDecrement');
+export const AfterIncrementDecrement = createHookDecorator('afterIncrementDecrement');

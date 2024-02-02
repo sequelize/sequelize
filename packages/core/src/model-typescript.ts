@@ -249,6 +249,9 @@ export class ModelTypeScript {
   static beforeAssociate = legacyBuildAddHook(staticModelHooks, 'beforeAssociate');
   static afterAssociate = legacyBuildAddHook(staticModelHooks, 'afterAssociate');
 
+  static beforeIncrementDecrement = legacyBuildAddHook(staticModelHooks, 'beforeIncrementDecrement');
+  static afterIncrementDecrement = legacyBuildAddHook(staticModelHooks, 'afterIncrementDecrement');
+
   /**
    * Initialize a model, representing a table in the DB, with attributes and options.
    *

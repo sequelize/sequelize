@@ -11,6 +11,7 @@ import {
   AfterDefinitionRefresh,
   AfterDestroy,
   AfterFind,
+  AfterIncrementDecrement,
   AfterRestore,
   AfterSave,
   AfterSync,
@@ -29,6 +30,7 @@ import {
   BeforeFind,
   BeforeFindAfterExpandIncludeAll,
   BeforeFindAfterOptions,
+  BeforeIncrementDecrement,
   BeforeRestore,
   BeforeSave,
   BeforeSync,
@@ -75,6 +77,8 @@ const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
   validationFailed: ValidationFailed,
   beforeDefinitionRefresh: BeforeDefinitionRefresh,
   afterDefinitionRefresh: AfterDefinitionRefresh,
+  beforeIncrementDecrement: BeforeIncrementDecrement,
+  afterIncrementDecrement: AfterIncrementDecrement,
 };
 
 for (const [hookName, decorator] of Object.entries(hookMap)) {
