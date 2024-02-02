@@ -45,7 +45,7 @@ describe('ModelRepository#destroy', () => {
 
   it('throw an error if the model has no primary key', async () => {
     const { NoPk } = vars;
-    const repository = NoPk.modelRepository;
+    const repository = NoPk._UNSTABLE_modelRepository;
 
     const instance = NoPk.build();
 
@@ -54,7 +54,7 @@ describe('ModelRepository#destroy', () => {
 
   it(`throws an error if the model's PK is not loaded`, async () => {
     const { SimpleId } = vars;
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance = SimpleId.build();
 
@@ -65,7 +65,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance = SimpleId.build({ id: 1 });
 
@@ -83,7 +83,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -102,7 +102,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { CompositePk } = vars;
-    const repository = CompositePk.modelRepository;
+    const repository = CompositePk._UNSTABLE_modelRepository;
 
     const instance1 = CompositePk.build({ id1: 1, id2: 2 });
     const instance2 = CompositePk.build({ id1: 3, id2: 4 });
@@ -121,7 +121,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { VersionedSimpleId } = vars;
-    const repository = VersionedSimpleId.modelRepository;
+    const repository = VersionedSimpleId._UNSTABLE_modelRepository;
 
     const instance1 = VersionedSimpleId.build({ id: 1, version: 2 });
     const instance2 = VersionedSimpleId.build({ id: 3, version: 4 });
@@ -140,7 +140,7 @@ describe('ModelRepository#destroy', () => {
     sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -171,7 +171,7 @@ describe('ModelRepository#destroy', () => {
     sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -192,7 +192,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
     const { SimpleId } = vars;
 
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -216,7 +216,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
     const { SimpleId } = vars;
 
-    const repository = SimpleId.modelRepository;
+    const repository = SimpleId._UNSTABLE_modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
 
