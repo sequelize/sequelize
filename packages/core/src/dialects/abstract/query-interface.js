@@ -346,7 +346,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = cloneDeep(options) ?? {};
-    const modelDefinition = instance?.constructor.modelDefinition;
+    const modelDefinition = instance?.modelDefinition;
 
     options.hasTrigger = modelDefinition?.options.hasTrigger;
     const { query, bind } = this.queryGenerator.insertQuery(
@@ -480,7 +480,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    const modelDefinition = instance?.constructor.modelDefinition;
+    const modelDefinition = instance?.modelDefinition;
 
     options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
