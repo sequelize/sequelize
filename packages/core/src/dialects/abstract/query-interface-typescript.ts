@@ -15,7 +15,6 @@ import {
 } from '../../utils/deprecations';
 import type { RequiredBy } from '../../utils/types';
 import type { Connection } from './connection-manager.js';
-import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
@@ -43,6 +42,7 @@ import type {
   RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
+import type { AbstractDialect } from './index.js';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -51,26 +51,30 @@ export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Pro
  * This is a temporary class used to progressively migrate the AbstractQueryInterface class to TypeScript by slowly moving its functions here.
  * Always use {@link AbstractQueryInterface} instead.
  */
-export class AbstractQueryInterfaceTypeScript {
-  readonly sequelize: Sequelize;
-  readonly queryGenerator: AbstractQueryGenerator;
+export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = AbstractDialect> {
+  readonly dialect: Dialect;
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   /**
-   * @param sequelize The sequelize instance.
-   * @param queryGenerator The query generator of the dialect used by the current Sequelize instance.
+   * @param dialect The dialect instance.
    * @param internalQueryInterface The internal query interface to use.
    *                               Defaults to a new instance of {@link AbstractQueryInterfaceInternal}.
    *                               Your dialect may replace this with a custom implementation.
    */
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: AbstractQueryGenerator,
+    dialect: Dialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
-    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    this.dialect = dialect;
+    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
+  }
+
+  get sequelize(): Sequelize {
+    return this.dialect.sequelize;
+  }
+
+  get queryGenerator(): Dialect['queryGenerator'] {
+    return this.dialect.queryGenerator;
   }
 
   /**

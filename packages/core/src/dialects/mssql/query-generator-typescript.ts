@@ -1,7 +1,7 @@
-import type { Expression } from '../../sequelize';
+import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { buildJsonPath } from '../../utils/json';
+import { buildJsonPath } from '../../utils/json.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -11,7 +11,6 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
@@ -22,6 +21,8 @@ import type {
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
+import { MsSqlQueryGeneratorInternal } from './query-generator-internal.js';
+import type { MssqlDialect } from './index.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -31,24 +32,12 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
  * Temporary class to ease the TypeScript migration
  */
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalDatabaseNames() {
-    return ['master', 'model', 'msdb', 'tempdb'];
-  }
+  readonly #internals: MsSqlQueryGeneratorInternal;
 
-  protected _getTechnicalSchemaNames() {
-    return [
-      'db_accessadmin',
-      'db_backupoperator',
-      'db_datareader',
-      'db_datawriter',
-      'db_ddladmin',
-      'db_denydatareader',
-      'db_denydatawriter',
-      'db_owner',
-      'db_securityadmin',
-      'INFORMATION_SCHEMA',
-      'sys',
-    ];
+  constructor(dialect: MssqlDialect, internals: MsSqlQueryGeneratorInternal = new MsSqlQueryGeneratorInternal(dialect)) {
+    super(dialect, internals);
+
+    this.#internals = internals;
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
@@ -70,10 +59,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listDatabasesQuery(options?: ListDatabasesQueryOptions) {
-    const databasesToSkip = this._getTechnicalDatabaseNames();
-
+    let databasesToSkip = this.#internals.getTechnicalDatabaseNames();
     if (options && Array.isArray(options?.skip)) {
-      databasesToSkip.push(...options.skip);
+      databasesToSkip = [...databasesToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -83,7 +71,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = ['dbo', 'guest', ...this._getTechnicalSchemaNames()];
+    const schemasToSkip = ['dbo', 'guest', ...this.#internals.getTechnicalSchemaNames()];
 
     if (options?.skip) {
       schemasToSkip.push(...options.skip);
@@ -138,7 +126,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
       options?.schema
         ? `AND s.name = ${this.escape(options.schema)}`
-        : `AND s.name NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND s.name NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
   }
@@ -180,7 +168,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
-  private _getConstraintType(type: ConstraintType): string {
+  #getConstraintType(type: ConstraintType): string {
     switch (type) {
       case 'CHECK':
         return 'CHECK_CONSTRAINT';
@@ -234,7 +222,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
       options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.constraintType = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      options?.constraintType ? `AND c.constraintType = ${this.escape(this.#getConstraintType(options.constraintType))}` : '',
       `ORDER BY c.constraintName, c.column_id`,
     ]);
   }
@@ -313,23 +301,6 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
 
   getUuidV4FunctionCall(): string {
     return 'NEWID()';
-  }
-
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.offset || options.limit) {
-      fragment += ` OFFSET ${this.escape(options.offset || 0, options)} ROWS`;
-    }
-
-    if (options.limit != null) {
-      if (options.limit === 0) {
-        throw new Error(`LIMIT 0 is not supported by ${this.dialect.name} dialect.`);
-      }
-
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 
   bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {

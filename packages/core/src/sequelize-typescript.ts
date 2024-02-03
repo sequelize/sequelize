@@ -2,6 +2,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
+import { normalizeDataType, validateDataType } from './dialects/abstract/data-types-utils.js';
+import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
 import type { EscapeOptions } from './dialects/abstract/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './dialects/abstract/query-interface.types.js';
@@ -27,10 +29,13 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
+import { isNullish, isString } from './utils/check.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
 import type { PartialBy } from './utils/types.js';
 import type {
   CreateSchemaOptions,
+  DataType,
+  DataTypeClassOrInstance,
   DestroyOptions,
   ModelAttributes,
   ModelOptions,
@@ -624,5 +629,35 @@ export abstract class SequelizeTypeScript {
    */
   async fetchDatabaseVersion(options?: QueryRawOptions) {
     return this.queryInterface.fetchDatabaseVersion(options);
+  }
+
+  /**
+   * Validate a value against a field specification
+   *
+   * @param value The value to validate
+   * @param type The DataType to validate against
+   */
+  validateValue(value: unknown, type: DataType) {
+    if (this.options.noTypeValidation || isNullish(value)) {
+      return;
+    }
+
+    if (isString(type)) {
+      return;
+    }
+
+    type = this.normalizeDataType(type);
+
+    const error = validateDataType(value, type);
+    if (error) {
+      throw error;
+    }
+  }
+
+  normalizeDataType(Type: string): string;
+  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any> {
+    return normalizeDataType(Type, this.dialect);
   }
 }

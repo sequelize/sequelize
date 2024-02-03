@@ -7,15 +7,19 @@ import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-inte
 import type { SqliteQueryGenerator } from './query-generator';
 import type { SqliteColumnsDescription } from './query-interface.types';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
+import type { SqliteDialect } from './index.js';
 
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
-  readonly #sequelize: Sequelize;
-  readonly #queryGenerator: SqliteQueryGenerator;
+  constructor(readonly dialect: SqliteDialect) {
+    super(dialect);
+  }
 
-  constructor(sequelize: Sequelize, queryGenerator: SqliteQueryGenerator) {
-    super(sequelize, queryGenerator);
-    this.#sequelize = sequelize;
-    this.#queryGenerator = queryGenerator;
+  get #sequelize(): Sequelize {
+    return this.dialect.sequelize;
+  }
+
+  get #queryGenerator(): SqliteQueryGenerator {
+    return this.dialect.queryGenerator;
   }
 
   /**

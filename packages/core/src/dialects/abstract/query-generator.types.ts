@@ -1,18 +1,13 @@
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { Literal } from '../../expression-builders/literal';
-import type { IndexHintable, ReferentialAction } from '../../model';
+import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
 import type { Nullish } from '../../utils/types';
 import type { TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
-
-export interface QueryWithBindParams {
-  query: string;
-  bind: BindOrReplacements;
-}
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
@@ -181,6 +176,4 @@ export interface AddLimitOffsetOptions {
   replacements?: BindOrReplacements;
 }
 
-export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions {
-  where?: WhereOptions<any>;
-}
+export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}
