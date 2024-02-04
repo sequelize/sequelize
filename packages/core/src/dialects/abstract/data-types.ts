@@ -2701,7 +2701,7 @@ export class MACADDR extends AbstractDataType<string> {
   }
 
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '48' })) {
       ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid MACADDR', value),
       );
@@ -2710,6 +2710,44 @@ export class MACADDR extends AbstractDataType<string> {
 
   toSql(): string {
     return 'MACADDR';
+  }
+}
+
+/**
+ * The MACADDR type stores MAC addresses. Takes 8 bytes
+ *
+ * Only available for Postgres
+ *
+ * __Fallback policy:__
+ * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.MACADDR8
+ * ```
+ *
+ * @category DataTypes
+ */
+export class MACADDR8 extends AbstractDataType<string> {
+  /** @hidden */
+  static readonly [kDataTypeIdentifier]: string = 'MACADDR8';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      throwUnsupportedDataType(dialect, 'MACADDR8');
+    }
+  }
+
+  validate(value: any) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '64' })) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid MACADDR8', value),
+      );
+    }
+  }
+
+  toSql(): string {
+    return 'MACADDR8';
   }
 }
 
