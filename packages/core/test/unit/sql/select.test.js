@@ -521,14 +521,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasMultiAssociation: true, // must be set only for mssql dialect here
         subQuery: false,
       }, {
-        default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+        default: `SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
-          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10;`),
-        'db2 ibmi mssql': Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10;`,
+        'db2 ibmi mssql': `SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
-          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`),
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`,
       });
 
       const nestedInclude = _validateIncludedElements({

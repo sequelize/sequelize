@@ -10,7 +10,6 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
-const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
@@ -21,15 +20,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   if (dialect.supports.schemas) {
     describe('dropAllSchema', () => {
       it('should drop all schema', async function () {
-        await this.queryInterface.dropAllSchemas({
-          skip: [this.sequelize.config.database],
-        });
+        await Support.dropTestSchemas(this.sequelize);
         const schemaNames = await this.queryInterface.listSchemas();
         await this.queryInterface.createSchema('newSchema');
         const newSchemaNames = await this.queryInterface.listSchemas();
-        if (!current.dialect.supports.schemas) {
-          return;
-        }
 
         expect(newSchemaNames).to.have.length(schemaNames.length + 1);
       });
