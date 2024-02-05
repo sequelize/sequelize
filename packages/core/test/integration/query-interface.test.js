@@ -20,7 +20,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   if (dialect.supports.schemas) {
     describe('dropAllSchema', () => {
       it('should drop all schema', async function () {
-        await Support.dropTestSchemas(this.sequelize);
+        await this.queryInterface.dropAllSchemas({ 
+           skip: [this.sequelize.config.database], 
+         });
         const schemaNames = await this.queryInterface.listSchemas();
         await this.queryInterface.createSchema('newSchema');
         const newSchemaNames = await this.queryInterface.listSchemas();
