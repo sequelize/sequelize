@@ -11,7 +11,7 @@ const { DataTypes } = require('@sequelize/core');
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 
-describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe('QueryInterface', () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
