@@ -5577,7 +5577,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"es-abstract@npm:^1.22.1":
+"es-abstract@npm:^1.22.1, es-abstract@npm:^1.22.3":
   version: 1.22.3
   resolution: "es-abstract@npm:1.22.3"
   dependencies:
@@ -6891,7 +6891,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-intrinsic@npm:^1.0.2, get-intrinsic@npm:^1.1.1, get-intrinsic@npm:^1.1.3, get-intrinsic@npm:^1.2.1, get-intrinsic@npm:^1.2.2":
+"get-intrinsic@npm:^1.0.2, get-intrinsic@npm:^1.1.1, get-intrinsic@npm:^1.1.3, get-intrinsic@npm:^1.2.1, get-intrinsic@npm:^1.2.2, get-intrinsic@npm:^1.2.3":
   version: 1.2.3
   resolution: "get-intrinsic@npm:1.2.3"
   dependencies:
@@ -11599,16 +11599,17 @@ __metadata:
   linkType: hard
 
 "reflect.getprototypeof@npm:^1.0.4":
-  version: 1.0.4
-  resolution: "reflect.getprototypeof@npm:1.0.4"
+  version: 1.0.5
+  resolution: "reflect.getprototypeof@npm:1.0.5"
   dependencies:
-    call-bind: "npm:^1.0.2"
-    define-properties: "npm:^1.2.0"
-    es-abstract: "npm:^1.22.1"
-    get-intrinsic: "npm:^1.2.1"
+    call-bind: "npm:^1.0.5"
+    define-properties: "npm:^1.2.1"
+    es-abstract: "npm:^1.22.3"
+    es-errors: "npm:^1.0.0"
+    get-intrinsic: "npm:^1.2.3"
     globalthis: "npm:^1.0.3"
     which-builtin-type: "npm:^1.1.3"
-  checksum: 10c0/02104cdd22658b637efe6b1df73658edab539268347327c8250a72d0cb273dcdf280c284e2d94155d22601d022d16be1a816a8616d679e447cbcbde9860d15cb
+  checksum: 10c0/68f2a21494a9f4f5acc19bda5213236aa7fc02f9953ce2b18670c63b9ca3dec294dcabbb9d394d98cd2fc0de46b7cd6354614a60a33cabdbb5de9a6f7115f9a6
   languageName: node
   linkType: hard
 
