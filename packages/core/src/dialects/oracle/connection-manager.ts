@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import type { Connection as oracledbConnection } from 'oracledb';
 import {
   AccessDeniedError,
@@ -9,7 +11,6 @@ import {
 } from '../../errors/index.js';
 import semver from 'semver';
 import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
-import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { OracleDialect } from './index.js';

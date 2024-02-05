@@ -1,4 +1,4 @@
--- Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+-- Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
 create user sequelizetest identified by sequelizepassword;
 grant connect to sequelizetest with admin option;

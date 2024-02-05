@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import type { Falsy } from '../../generic/falsy';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';

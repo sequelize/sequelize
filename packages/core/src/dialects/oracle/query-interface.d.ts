@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import type { Sequelize } from '../../sequelize.js';
 import type { OracleQueryGenerator } from './query-generator.js';
 import { OracleQueryInterfaceTypescript } from './query-interface-typescript.js';

@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import type { Sequelize } from '../../sequelize';
 import { createNamedParamBindCollector } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';

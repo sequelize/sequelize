@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';

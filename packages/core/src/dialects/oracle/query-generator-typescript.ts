@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';

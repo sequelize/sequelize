@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+# Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
 #!/usr/bin/env bash
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/

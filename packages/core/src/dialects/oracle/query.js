@@ -1,3 +1,5 @@
+// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+
 import { AbstractQuery } from '../abstract/query';
 import { extend, mapKeys, mapValues, isPlainObject, reduce, toPairs } from 'lodash';
 import { nameIndex } from '../../utils/string';
