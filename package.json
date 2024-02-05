@@ -69,7 +69,7 @@
     "mocha": "10.2.0",
     "node-gyp": "10.0.1",
     "node-hook": "1.0.0",
-    "nx": "17.3.2",
+    "nx": "18.0.1",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
     "typedoc": "0.25.7",
