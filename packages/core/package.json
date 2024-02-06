@@ -86,7 +86,7 @@
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "ibm_db": "3.2.3",
+    "ibm_db": "https://github.com/ibmdb/node-ibm_db.git",
     "lcov-result-merger": "5.0.0",
     "mariadb": "3.2.3",
     "mocha": "10.2.0",

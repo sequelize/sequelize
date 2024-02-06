@@ -2231,7 +2231,7 @@ __metadata:
     expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.2.12"
     fs-jetpack: "npm:5.1.0"
-    ibm_db: "npm:3.2.3"
+    ibm_db: "https://github.com/ibmdb/node-ibm_db.git"
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:5.0.0"
     lodash: "npm:^4.17.21"
@@ -7508,9 +7508,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.3":
+"ibm_db@https://github.com/ibmdb/node-ibm_db.git":
   version: 3.2.3
-  resolution: "ibm_db@npm:3.2.3"
+  resolution: "ibm_db@https://github.com/ibmdb/node-ibm_db.git#commit=3045f4fa320d48c75ca3f6295d65d5cbb65e322c"
   dependencies:
     adm-zip: "npm:^0.5.10"
     axios: "npm:^1.6.2"
@@ -7521,7 +7521,7 @@ __metadata:
     nan: "npm:^2.18.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/a01e6dcfff485d5c3953cce152fcfe75192a41e7cc3ed537167a7ac6564bfd67924150993ba45052ae4015fe4fb36d6b0202444213449da69e772ceb10525097
+  checksum: 10c0/fb3b35f4764a439cd8de25cd2c2e250bffc8140364a3a14cbba7c6be88caa8cb3805ee0d63778bf4043b672b984f1914f42e69854a7bd0fba8cfbb203f434e97
   languageName: node
   linkType: hard
 
