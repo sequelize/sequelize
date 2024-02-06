@@ -19,6 +19,7 @@ node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+/.nx
 
 .pnp.*
 .yarn/*

@@ -95,3 +95,5 @@ export { col, Col } from './expression-builders/col.js';
 export { cast, Cast } from './expression-builders/cast.js';
 export { json } from './expression-builders/json.js';
 export { where, Where } from './expression-builders/where.js';
+export { JSON_NULL } from './expression-builders/json-sql-null.js';
+export { SQL_NULL } from './expression-builders/json-sql-null.js';

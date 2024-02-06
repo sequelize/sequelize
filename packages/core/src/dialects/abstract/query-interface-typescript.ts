@@ -7,19 +7,21 @@ import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
 import {
+  deleteToBulkDelete,
   noSchemaDelimiterParameter,
   noSchemaParameter,
   showAllToListSchemas,
   showAllToListTables,
 } from '../../utils/deprecations';
+import type { RequiredBy } from '../../utils/types';
 import type { Connection } from './connection-manager.js';
 import type { AbstractQueryGenerator } from './query-generator';
 import type { TableNameOrModel } from './query-generator-typescript.js';
-import type { QueryWithBindParams } from './query-generator.types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
+  BulkDeleteOptions,
   ColumnsDescription,
   ConstraintDescription,
   CreateDatabaseOptions,
@@ -27,12 +29,15 @@ import type {
   DatabaseDescription,
   DeferConstraintsOptions,
   DescribeTableOptions,
+  DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiListSchemasOptions,
   QiListTablesOptions,
+  QiTruncateTableOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
   RenameTableOptions,
@@ -139,20 +144,40 @@ export class AbstractQueryInterfaceTypeScript {
    * @param schema Name of the schema
    * @param options
    */
-  async dropSchema(schema: string, options?: QueryRawOptions): Promise<void> {
-    const dropSchemaQuery: string | QueryWithBindParams = this.queryGenerator.dropSchemaQuery(schema);
+  async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
+    const sql = this.queryGenerator.dropSchemaQuery(schema, options);
+    await this.sequelize.queryRaw(sql, options);
+  }
 
-    let sql: string;
-    let queryRawOptions: undefined | QueryRawOptions;
-    if (typeof dropSchemaQuery === 'string') {
-      sql = dropSchemaQuery;
-      queryRawOptions = options;
-    } else {
-      sql = dropSchemaQuery.query;
-      queryRawOptions = { ...options, bind: dropSchemaQuery.bind };
+  /**
+   * Drops all schemas
+   *
+   * @param options
+   */
+  async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
+    const skip = options?.skip || [];
+    const allSchemas = await this.listSchemas(options);
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
+
+    const dropOptions = { ...options };
+    // enable "cascade" by default for dialects that support it
+    if (dropOptions.cascade === undefined) {
+      if (this.sequelize.dialect.supports.dropSchema.cascade) {
+        dropOptions.cascade = true;
+      } else {
+        // if the dialect does not support "cascade", then drop all tables first in a loop to avoid deadlocks and timeouts
+        for (const schema of schemaNames) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.dropAllTables({ ...dropOptions, schema });
+        }
+      }
     }
 
-    await this.sequelize.queryRaw(sql, queryRawOptions);
+    // Drop all the schemas in a loop to avoid deadlocks and timeouts
+    for (const schema of schemaNames) {
+      // eslint-disable-next-line no-await-in-loop
+      await this.dropSchema(schema, dropOptions);
+    }
   }
 
   /**
@@ -348,6 +373,22 @@ export class AbstractQueryInterfaceTypeScript {
       }
 
       throw error;
+    }
+  }
+
+  /**
+   * Truncates a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async truncate(tableName: TableNameOrModel, options?: QiTruncateTableOptions): Promise<void> {
+    const sql = this.queryGenerator.truncateTableQuery(tableName, options);
+    const queryOptions = { ...options, raw: true, type: QueryTypes.RAW };
+    if (Array.isArray(sql)) {
+      await this.#internalQueryInterface.executeQueriesSequentially(sql, queryOptions);
+    } else {
+      await this.sequelize.queryRaw(sql, queryOptions);
     }
   }
 
@@ -664,5 +705,36 @@ export class AbstractQueryInterfaceTypeScript {
     options?: QueryRawOptions,
   ): Promise<void> {
     await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+  }
+
+  /**
+   * Delete records from a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async delete(tableName: TableNameOrModel, options: RequiredBy<BulkDeleteOptions, 'where'>): Promise<number> {
+    deleteToBulkDelete();
+    const deleteOptions = { ...options };
+    const sql = this.queryGenerator.bulkDeleteQuery(tableName, deleteOptions);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete deleteOptions.replacements;
+
+    return this.sequelize.queryRaw(sql, { ...deleteOptions, raw: true, type: QueryTypes.DELETE });
+  }
+
+  /**
+   * Delete multiple records from a table
+   *
+   * @param tableName
+   * @param options
+   */
+  async bulkDelete(tableName: TableNameOrModel, options?: BulkDeleteOptions): Promise<number> {
+    const bulkDeleteOptions = { ...options };
+    const sql = this.queryGenerator.bulkDeleteQuery(tableName, bulkDeleteOptions);
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete bulkDeleteOptions.replacements;
+
+    return this.sequelize.queryRaw(sql, { ...bulkDeleteOptions, raw: true, type: QueryTypes.DELETE });
   }
 }

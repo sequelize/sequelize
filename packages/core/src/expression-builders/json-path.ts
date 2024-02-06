@@ -17,7 +17,7 @@ export class JsonPath extends BaseSqlExpression {
 
 /**
  * Use this to access nested properties in a JSON column.
- * You can also use the dot notation with {@link attribute}, but this works with any values, not just attributes.
+ * You can also use the dot notation with {@link Attribute}, but this works with any values, not just attributes.
  *
  * @param expression The expression to access the property on.
  * @param path The path to the property. If a number is used, it will be treated as an array index, otherwise as a key.

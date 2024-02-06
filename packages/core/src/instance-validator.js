@@ -4,7 +4,7 @@ import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { BelongsTo } from './associations/belongs-to';
+import { BelongsToAssociation } from './associations/belongs-to';
 
 import difference from 'lodash/difference';
 import forIn from 'lodash/forIn';
@@ -371,7 +371,7 @@ export class InstanceValidator {
    */
   _validateSchema(attribute, attributeName, value) {
     if (attribute.allowNull === false && value == null) {
-      const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsTo && association.foreignKey === attribute.fieldName);
+      const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsToAssociation && association.foreignKey === attribute.fieldName);
       if (!association || !this.modelInstance.get(association.as)) {
         const modelDefinition = this.modelInstance.constructor.modelDefinition;
         const validators = modelDefinition.attributes.get(attributeName)?.validate;

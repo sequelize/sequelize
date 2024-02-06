@@ -1,15 +1,11 @@
 'use strict';
 
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { ENUM } from './data-types';
 import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isEmpty from 'lodash/isEmpty';
@@ -28,30 +24,11 @@ const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescri
  */
 const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymmetric,authorization,binary,both,case,cast,check,collate,collation,column,concurrently,constraint,create,cross,current_catalog,current_date,current_role,current_schema,current_time,current_timestamp,current_user,default,deferrable,desc,distinct,do,else,end,except,false,fetch,for,foreign,freeze,from,full,grant,group,having,ilike,in,initially,inner,intersect,into,is,isnull,join,lateral,leading,left,like,limit,localtime,localtimestamp,natural,not,notnull,null,offset,on,only,or,order,outer,overlaps,placing,primary,references,returning,right,select,session_user,similar,some,symmetric,table,tablesample,then,to,trailing,true,union,unique,user,using,variadic,verbose,when,where,window,with'.split(',');
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
-  }
-
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
-  }
-
-  dropSchemaQuery(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -211,47 +188,6 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `CREATE OR REPLACE FUNCTION pg_temp.${fnName}(${parameters}) ${returns} AS $func$ BEGIN ${body} END; $func$ LANGUAGE ${language}; SELECT * FROM pg_temp.${fnName}();`;
   }
 
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `TRUNCATE ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? ' RESTART IDENTITY' : '',
-      options.cascade ? ' CASCADE' : '',
-    ].join('');
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    const table = this.quoteTable(tableName);
-
-    const escapeOptions = {
-      replacements: options.replacements,
-      model,
-    };
-
-    const limit = options.limit ? ` LIMIT ${this.escape(options.limit, escapeOptions)}` : '';
-    let primaryKeys = '';
-    let primaryKeysSelection = '';
-
-    let whereClause = this.whereQuery(where, { ...options, model });
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (options.limit) {
-      if (!model) {
-        throw new Error('Cannot LIMIT delete without a model.');
-      }
-
-      const pks = Object.values(model.primaryKeys).map(pk => this.quoteIdentifier(pk.field)).join(',');
-
-      primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
-      primaryKeysSelection = pks;
-
-      return `DELETE FROM ${table} WHERE ${primaryKeys} IN (SELECT ${primaryKeysSelection} FROM ${table}${whereClause}${limit})`;
-    }
-
-    return `DELETE FROM ${table}${whereClause}`;
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -297,7 +233,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       }
     }
 
-    if (defaultValueSchemable(attribute.defaultValue)) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 

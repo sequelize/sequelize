@@ -546,12 +546,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(aFks.length).to.eq(1);
     expect(aFks[0].referencedTableName).to.eq('Bs');
     expect(aFks[0].referencedColumnNames).to.deep.eq(['id']);
-    expect(aFks[0].columnNames).to.deep.eq(['BId']);
+    expect(aFks[0].columnNames).to.deep.eq(['bId']);
 
     expect(bFks.length).to.eq(1);
     expect(bFks[0].referencedTableName).to.eq('As');
     expect(bFks[0].referencedColumnNames).to.deep.eq(['id']);
-    expect(bFks[0].columnNames).to.deep.eq(['AId']);
+    expect(bFks[0].columnNames).to.deep.eq(['aId']);
   });
 
   // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
@@ -578,7 +578,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       expect(aFks).to.have.length(1);
       expect(aFks[0].deferrable).to.eq(Deferrable.INITIALLY_IMMEDIATE);
 
-      A.modelDefinition.rawAttributes.BId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
+      A.modelDefinition.rawAttributes.bId.references.deferrable = Deferrable.INITIALLY_DEFERRED;
       A.modelDefinition.refreshAttributes();
       await sequelize.sync({ alter: true });
 
@@ -604,7 +604,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         .queryInterface
         .showConstraints(BelongsToUser, { constraintType: 'FOREIGN KEY' });
       expect(results).to.have.length(1);
-      await sequelize.dropSchema(schema);
     });
 
     it('should not recreate a foreign key if it already exists when { alter: true } is used with a custom schema (reference attribute is a Model)', async () => {

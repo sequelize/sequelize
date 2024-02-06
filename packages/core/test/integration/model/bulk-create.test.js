@@ -419,7 +419,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           tableName: 'Dummy',
         });
 
-        await Support.dropTestSchemas(this.customSequelize);
         await this.customSequelize.createSchema('space1');
         await Dummy.sync({ force: true });
 

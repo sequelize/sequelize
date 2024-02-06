@@ -120,7 +120,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
           expect(error.code).to.equal('ENOENT');
         }
 
-        const sequelizeReadOnly0 = new Sequelize('sqlite://foo', {
+        const sequelizeReadOnly0 = new Sequelize({
+          dialect: 'sqlite',
           storage: p,
           dialectOptions: {
             mode: sqlite3.OPEN_READONLY,
@@ -128,7 +129,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         });
         Support.destroySequelizeAfterTest(sequelizeReadOnly0);
 
-        const sequelizeReadWrite0 = new Sequelize('sqlite://foo', {
+        const sequelizeReadWrite0 = new Sequelize({
+          dialect: 'sqlite',
           storage: p,
           dialectOptions: {
             mode: sqlite3.OPEN_READWRITE,
@@ -147,13 +149,15 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         ]);
 
         // By default, sqlite creates a connection that's READWRITE | CREATE
-        const sequelize = new Sequelize('sqlite://foo', {
+        const sequelize = new Sequelize({
+          dialect: 'sqlite',
           storage: p,
         });
 
         Support.destroySequelizeAfterTest(sequelize);
         await testAccess(await sequelize.query(createTableFoo));
-        const sequelizeReadOnly = new Sequelize('sqlite://foo', {
+        const sequelizeReadOnly = new Sequelize({
+          dialect: 'sqlite',
           storage: p,
           dialectOptions: {
             mode: sqlite3.OPEN_READONLY,
@@ -161,7 +165,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         });
         Support.destroySequelizeAfterTest(sequelizeReadOnly);
 
-        const sequelizeReadWrite = new Sequelize('sqlite://foo', {
+        const sequelizeReadWrite = new Sequelize({
+          dialect: 'sqlite',
           storage: p,
           dialectOptions: {
             mode: sqlite3.OPEN_READWRITE,

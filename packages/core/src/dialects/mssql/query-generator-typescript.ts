@@ -7,21 +7,25 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   AddLimitOffsetOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -102,7 +106,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `c.IS_NULLABLE as 'IsNull',`,
       `COLUMN_DEFAULT AS 'Default',`,
       `pk.CONSTRAINT_TYPE AS 'Constraint',`,
-      `COLUMNPROPERTY(OBJECT_ID(c.TABLE_SCHEMA+'.'+c.TABLE_NAME), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',`,
+      `COLUMNPROPERTY(OBJECT_ID('[' + c.TABLE_SCHEMA + '].[' + c.TABLE_NAME + ']'), c.COLUMN_NAME, 'IsIdentity') as 'IsIdentity',`,
       `CAST(prop.value AS NVARCHAR) AS 'Comment'`,
       'FROM',
       'INFORMATION_SCHEMA.TABLES t',
@@ -119,7 +123,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       'INNER JOIN sys.columns AS sc',
-      `ON sc.object_id = object_id(t.table_schema + '.' + t.table_name) AND sc.name = c.column_name`,
+      `ON sc.object_id = object_id('[' + t.table_schema + '].[' + t.table_name + ']') AND sc.name = c.column_name`,
       'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id',
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
@@ -160,6 +164,20 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
   private _getConstraintType(type: ConstraintType): string {
@@ -293,6 +311,10 @@ SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion')));
 SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
   }
 
+  getUuidV4FunctionCall(): string {
+    return 'NEWID()';
+  }
+
   protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
     let fragment = '';
     if (options.offset || options.limit) {
@@ -308,5 +330,11 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     }
 
     return fragment;
+  }
+
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {
+    const sql = super.bulkDeleteQuery(tableName, options);
+
+    return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
   }
 }

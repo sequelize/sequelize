@@ -1,9 +1,11 @@
 import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
-import type { CreateSchemaQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
   DropTableQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -12,6 +14,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types';
 
 export interface DatabaseDescription {
@@ -77,11 +80,14 @@ export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRa
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
+/** Options accepted by {@link AbstractQueryInterface#dropSchema} */
+export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions { }
+
 /** Options accepted by {@link AbstractQueryInterface#listSchemas} */
 export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface QiDropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */
@@ -107,12 +113,15 @@ export interface DescribeTableOptions extends QueryRawOptions {
 export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
-export interface QiDropAllTablesOptions extends QiDropTableOptions {
+export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTableOptions {
   skip?: string[];
 }
 
 /** Options accepted by {@link AbstractQueryInterface#renameTable} */
 export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#truncate} */
+export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions { }
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 
@@ -130,3 +139,6 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
+export interface BulkDeleteOptions extends BulkDeleteQueryOptions, QueryRawOptions { }

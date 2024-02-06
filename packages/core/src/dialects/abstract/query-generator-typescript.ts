@@ -21,7 +21,7 @@ import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
-import { isDictionary, isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
+import { isNullish, isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
@@ -35,7 +35,10 @@ import type { AbstractQueryGenerator } from './query-generator.js';
 import type {
   AddConstraintQueryOptions,
   AddLimitOffsetOptions,
+  BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
   DropTableQueryOptions,
   GetConstraintSnippetQueryOptions,
   ListDatabasesQueryOptions,
@@ -46,6 +49,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -62,6 +66,8 @@ export interface RemoveIndexQueryOptions {
 }
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateSchemaQueryOptions>(['authorization', 'charset', 'collate', 'comment', 'ifNotExists', 'replace']);
+export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQueryOptions>(['cascade', 'ifExists']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
 export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
@@ -71,6 +77,7 @@ export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveC
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
+export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['cascade', 'restartIdentity']);
 
 export interface QueryGeneratorOptions {
   sequelize: Sequelize;
@@ -183,6 +190,93 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
   }
 
+  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string {
+    if (!this.dialect.supports.schemas) {
+      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+    }
+
+    if (options) {
+      const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateSchemaQueryOptions>();
+      if (this.dialect.supports.createSchema.authorization) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('authorization');
+      }
+
+      if (this.dialect.supports.createSchema.charset) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('charset');
+      }
+
+      if (this.dialect.supports.createSchema.collate) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('collate');
+      }
+
+      if (this.dialect.supports.createSchema.comment) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('comment');
+      }
+
+      if (this.dialect.supports.createSchema.ifNotExists) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifNotExists');
+      }
+
+      if (this.dialect.supports.createSchema.replace) {
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('replace');
+      }
+
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'CREATE',
+      options?.replace ? 'OR REPLACE' : '',
+      'SCHEMA',
+      options?.ifNotExists ? 'IF NOT EXISTS' : '',
+      this.quoteIdentifier(schemaName),
+      options?.authorization
+        ? `AUTHORIZATION ${options.authorization instanceof Literal ? this.formatLiteral(options.authorization) : this.quoteIdentifier(options.authorization)}`
+        : '',
+      options?.charset ? `DEFAULT CHARACTER SET ${this.escape(options.charset)}` : '',
+      options?.collate ? `DEFAULT COLLATE ${this.escape(options.collate)}` : '',
+      options?.comment ? `COMMENT ${this.escape(options.comment)}` : '',
+    ]);
+  }
+
+  dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
+    if (!this.dialect.supports.schemas) {
+      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+    }
+
+    if (options) {
+      const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>();
+      if (this.dialect.supports.dropSchema.cascade) {
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('cascade');
+      }
+
+      if (this.dialect.supports.dropSchema.ifExists) {
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifExists');
+      }
+
+      rejectInvalidOptions(
+        'dropSchemaQuery',
+        this.dialect.name,
+        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'DROP SCHEMA',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.quoteIdentifier(schemaName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {
     if (this.dialect.supports.schemas) {
       throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
@@ -236,6 +330,10 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTableName)}`;
+  }
+
+  truncateTableQuery(_tableName: TableNameOrModel, _options?: TruncateTableQueryOptions): string | string[] {
+    throw new Error(`truncateTableQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
@@ -836,7 +934,11 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     // so we need to remove the type from their escape options
     const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
 
-    return piece.apply(this.dialect, argEscapeOptions);
+    if (!piece.supportsDialect(this.dialect)) {
+      throw new Error(`Function ${piece.constructor.name} is not supported by ${this.dialect.name}.`);
+    }
+
+    return piece.applyForDialect(this.dialect, argEscapeOptions);
   }
 
   protected formatCast(cast: Cast, options?: EscapeOptions) {
@@ -873,7 +975,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    * @param options The options to use when escaping the value
    */
   escape(value: unknown, options: EscapeOptions = EMPTY_OBJECT): string {
-    if (isDictionary(value) && Op.col in value) {
+    if (isPlainObject(value) && Op.col in value) {
       noOpCol();
       value = new Col(value[Op.col] as string);
     }
@@ -956,6 +1058,22 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     return `(${values.map(value => this.escape(value, options)).join(', ')})`;
   }
 
+  getUuidV1FunctionCall(): string {
+    if (!this.dialect.supports.uuidV1Generation) {
+      throw new Error(`UUID V1 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV1FunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
+  getUuidV4FunctionCall(): string {
+    if (!this.dialect.supports.uuidV4Generation) {
+      throw new Error(`UUID V4 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV4FunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
     throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
   }
@@ -977,5 +1095,34 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   protected _addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`_addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+
+    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      }
+
+      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
+      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+
+      return joinSQLFragments([
+        `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        `ORDER BY ${pks}`,
+        this._addLimitAndOffset(options),
+        ')',
+      ]);
+    }
+
+    return joinSQLFragments([
+      `DELETE FROM ${this.quoteTable(tableName)}`,
+      options.where ? this.whereQuery(options.where, whereOptions) : '',
+      this._addLimitAndOffset(options),
+    ]);
   }
 }

@@ -1,9 +1,9 @@
 'use strict';
 
 import { inspect } from 'node:util';
+import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -17,20 +17,6 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
-  createSchemaQuery(schemaName, options) {
-    return joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schemaName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -182,26 +168,6 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const escapeOptions = { ...options, model };
-    const whereSql = this.whereQuery(where, escapeOptions);
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    }
-
-    return query;
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -223,8 +189,11 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      const { defaultValue } = attribute;
+      const escaped = this.escape(defaultValue);
+      // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
+      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {

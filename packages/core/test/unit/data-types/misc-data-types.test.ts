@@ -1,9 +1,9 @@
 import assert from 'node:assert';
 import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
-import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { DataTypes, JSON_NULL, SQL_NULL, ValidationErrorItem } from '@sequelize/core';
 import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import { expectsql, sequelize, typeTest } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize, typeTest } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const { queryGenerator, dialect } = sequelize;
@@ -169,7 +169,7 @@ describe('DataTypes.RANGE', () => {
 
 describe('DataTypes.JSON', () => {
   testDataTypeSql('JSON', DataTypes.JSON, {
-    default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
     'mariadb mysql postgres': 'JSON',
@@ -218,7 +218,7 @@ describe('DataTypes.JSON', () => {
       });
     });
 
-    it('escapes NULL', () => {
+    it('escapes JS null as the JSON null', () => {
       expectsql(queryGenerator.escape(null, { type: new DataTypes.JSON() }), {
         default: `'null'`,
         mysql: `CAST('null' AS JSON)`,
@@ -234,11 +234,71 @@ describe('DataTypes.JSON', () => {
       });
     });
   });
+
+  describe('with nullJsonStringification = sql', () => {
+    if (!dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
+    const sqlNullQueryGenerator = createSequelizeInstance({
+      nullJsonStringification: 'sql',
+    }).queryGenerator;
+
+    it('escapes JS null as the SQL null', () => {
+      expectsql(sqlNullQueryGenerator.escape(null, { type: new DataTypes.JSON() }), {
+        default: `NULL`,
+      });
+    });
+
+    it('escapes nested JS null as the JSON null', () => {
+      expectsql(sqlNullQueryGenerator.escape({ a: null }, { type: new DataTypes.JSON() }), {
+        default: `'{"a":null}'`,
+        mysql: `CAST('{"a":null}' AS JSON)`,
+        mssql: `N'{"a":null}'`,
+      });
+    });
+  });
+
+  describe('with nullJsonStringification = explicit', () => {
+    if (!dialect.supports.dataTypes.JSON) {
+      return;
+    }
+
+    const explicitNullQueryGenerator = createSequelizeInstance({
+      nullJsonStringification: 'explicit',
+    }).queryGenerator;
+
+    it('rejects the JS null when used as the top level value', () => {
+      expect(() => explicitNullQueryGenerator.escape(null, { type: new DataTypes.JSON() })).to.throw(/"nullJsonStringification" option is set to "explicit"/);
+    });
+
+    it('escapes nested JS null as the JSON null', () => {
+      expectsql(explicitNullQueryGenerator.escape({ a: null }, { type: new DataTypes.JSON() }), {
+        default: `'{"a":null}'`,
+        mysql: `CAST('{"a":null}' AS JSON)`,
+        mssql: `N'{"a":null}'`,
+      });
+    });
+
+    it('escapes SQL_NULL as NULL', () => {
+      expectsql(explicitNullQueryGenerator.escape(SQL_NULL, { type: new DataTypes.JSON() }), {
+        default: `NULL`,
+      });
+    });
+
+    it('escapes JSON_NULL as NULL', () => {
+      expectsql(explicitNullQueryGenerator.escape(JSON_NULL, { type: new DataTypes.JSON() }), {
+        default: `'null'`,
+        mysql: `CAST('null' AS JSON)`,
+        mssql: `N'null'`,
+      });
+    });
+  });
 });
 
 describe('DataTypes.JSONB', () => {
   testDataTypeSql('JSONB', DataTypes.JSONB, {
-    default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+    default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
     postgres: 'JSONB',
   });
 });
@@ -246,7 +306,7 @@ describe('DataTypes.JSONB', () => {
 describe('DataTypes.HSTORE', () => {
   describe('toSql', () => {
     testDataTypeSql('HSTORE', DataTypes.HSTORE, {
-      default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+      default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'HSTORE',
     });
   });

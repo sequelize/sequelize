@@ -17,7 +17,13 @@ import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap,
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
+import {
+  Association,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
+  HasManyAssociation,
+  HasOneAssociation,
+} from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
 import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
@@ -455,7 +461,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
         // 'fromSourceToThroughOne' is a bit hacky and should not be included when { all: true } is specified
         //  because its parent 'belongsToMany' will be replaced by it in query generator.
-        if (association.parentAssociation instanceof BelongsToMany
+        if (association.parentAssociation instanceof BelongsToManyAssociation
           && association === association.parentAssociation.fromSourceToThroughOne) {
           return;
         }
@@ -542,7 +548,7 @@ ${associationOwner._getAssociationDebugList()}`);
     include.as ||= association.as;
 
     // If through, we create a pseudo child include, to ease our parsing later on
-    if (association instanceof BelongsToMany) {
+    if (association instanceof BelongsToManyAssociation) {
       if (!include.include) {
         include.include = [];
       }
@@ -600,7 +606,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (include.separate === true) {
-      if (!(include.association instanceof HasMany)) {
+      if (!(include.association instanceof HasManyAssociation)) {
         throw new TypeError('Only HasMany associations support include.separate');
       }
 
@@ -2192,7 +2198,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }));
       } else {
         if (options.include && options.include.length > 0) {
-          await Promise.all(options.include.filter(include => include.association instanceof BelongsTo).map(async include => {
+          await Promise.all(options.include.filter(include => include.association instanceof BelongsToAssociation).map(async include => {
             const associationInstances = [];
             const associationInstanceIndexToInstanceMap = [];
 
@@ -2325,8 +2331,8 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (options.include && options.include.length > 0) {
-        await Promise.all(options.include.filter(include => !(include.association instanceof BelongsTo
-          || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
+        await Promise.all(options.include.filter(include => !(include.association instanceof BelongsToAssociation
+          || include.parent && include.parent.association instanceof BelongsToManyAssociation)).map(async include => {
           const associationInstances = [];
           const associationInstanceIndexToInstanceMap = [];
 
@@ -2338,7 +2344,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
             for (const associationInstance of associated) {
               if (associationInstance) {
-                if (!(include.association instanceof BelongsToMany)) {
+                if (!(include.association instanceof BelongsToManyAssociation)) {
                   associationInstance.set(include.association.foreignKey, instance.get(include.association.sourceKey || instance.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
                   Object.assign(associationInstance, include.association.scope);
                 }
@@ -2363,7 +2369,7 @@ ${associationOwner._getAssociationDebugList()}`);
           );
 
           const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
-          if (include.association instanceof BelongsToMany) {
+          if (include.association instanceof BelongsToManyAssociation) {
             const valueSets = [];
 
             for (const idx in createdAssociationInstances) {
@@ -2445,8 +2451,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
-   * Destroys all instances of the model.
-   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
+   * Truncates the table associated with the model.
    *
    * __Danger__: This will completely empty your table!
    *
@@ -2454,12 +2459,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
-    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
-    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    options = cloneDeep(options) ?? {};
-    options.truncate = true;
-
-    return await this.destroy(options);
+    await this.queryInterface.truncate(this, options);
   }
 
   /**
@@ -2475,12 +2475,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     this._injectScope(options);
 
-    if (!options || !(options.where || options.truncate)) {
-      throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
+    if (options && 'truncate' in options) {
+      throw new Error('Model#destroy does not support the truncate option. Use Model#truncate instead.');
     }
 
-    if (!options.truncate && !isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
-      throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
+    if (!options?.where) {
+      throw new Error('As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
     }
 
     const modelDefinition = this.modelDefinition;
@@ -2490,11 +2490,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       individualHooks: false,
       force: false,
-      cascade: false,
-      restartIdentity: false,
     });
-
-    options.type = QueryTypes.BULKDELETE;
 
     mapOptionFieldNames(options, this);
     options.model = this;
@@ -2539,7 +2535,7 @@ ${associationOwner._getAssociationDebugList()}`);
       attrValueHash[deletedAtColumnName] = new Date();
       result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
     } else {
-      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+      result = await this.queryInterface.bulkDelete(this, options);
     }
 
     // Run afterDestroy hook on each record individually
@@ -3710,7 +3706,7 @@ Instead of specifying a Model, either:
     }
 
     if (options.fields.length > 0 && this.isNewRecord && this._options.include && this._options.include.length > 0) {
-      await Promise.all(this._options.include.filter(include => include.association instanceof BelongsTo).map(async include => {
+      await Promise.all(this._options.include.filter(include => include.association instanceof BelongsToAssociation).map(async include => {
         const instance = this.get(include.as);
         if (!instance) {
           return;
@@ -3794,8 +3790,8 @@ Instead of specifying a Model, either:
     Object.assign(result.dataValues, values);
     if (wasNewRecord && this._options.include && this._options.include.length > 0) {
       await Promise.all(
-        this._options.include.filter(include => !(include.association instanceof BelongsTo
-          || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
+        this._options.include.filter(include => !(include.association instanceof BelongsToAssociation
+          || include.parent && include.parent.association instanceof BelongsToManyAssociation)).map(async include => {
           let instances = this.get(include.as);
 
           if (!instances) {
@@ -3818,7 +3814,7 @@ Instead of specifying a Model, either:
 
           // Instances will be updated in place so we can safely treat HasOne like a HasMany
           await Promise.all(instances.map(async instance => {
-            if (include.association instanceof BelongsToMany) {
+            if (include.association instanceof BelongsToManyAssociation) {
               await instance.save(includeOptions);
               const values0 = {
                 [include.association.foreignKey]: this.get(this.constructor.primaryKeyAttribute, { raw: true }),
@@ -3999,7 +3995,7 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this, this.constructor.getTableName(options), where, { type: QueryTypes.DELETE, limit: null, ...options });
+      result = await this.constructor.queryInterface.delete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook
@@ -4215,10 +4211,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The model that will be associated with a hasMany relationship
    * @param {object} options Options for the association
-   * @returns {HasMany} The newly defined association (also available in {@link Model.associations}).
+   * @returns {HasManyAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static hasMany(target, options) {
-    return HasMany.associate(AssociationSecret, this, target, options);
+    return HasManyAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4241,10 +4237,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target Target model
    * @param {object} options belongsToMany association options
-   * @returns {BelongsToMany} The newly defined association (also available in {@link Model.associations}).
+   * @returns {BelongsToManyAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsToMany(target, options) {
-    return BelongsToMany.associate(AssociationSecret, this, target, options);
+    return BelongsToManyAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4260,10 +4256,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The model that will be associated with hasOne relationship
    * @param {object} [options] hasOne association options
-   * @returns {HasOne} The newly defined association (also available in {@link Model.associations}).
+   * @returns {HasOneAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static hasOne(target, options) {
-    return HasOne.associate(AssociationSecret, this, target, options);
+    return HasOneAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4279,10 +4275,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The target model
    * @param {object} [options] belongsTo association options
-   * @returns {BelongsTo} The newly defined association (also available in {@link Model.associations}).
+   * @returns {BelongsToAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsTo(target, options) {
-    return BelongsTo.associate(AssociationSecret, this, target, options);
+    return BelongsToAssociation.associate(AssociationSecret, this, target, options);
   }
 }
 

@@ -12,9 +12,9 @@ const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 const promiseProps = require('p-props');
 
-const sortById = function (a, b) {
+function sortById(a, b) {
   return a.id < b.id ? -1 : 1;
-};
+}
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('find', () => {
@@ -135,7 +135,7 @@ Instead of specifying a Model, either:
       const result = await Table1.findAll({
         raw: true,
         attributes: [
-          [Sequelize.fn('SUM', Sequelize.col('Table2.Tables3.value')), 'sum'],
+          [Sequelize.fn('SUM', Sequelize.col('table2.Tables3.value')), 'sum'],
         ],
         include: [
           {
@@ -321,15 +321,16 @@ Instead of specifying a Model, either:
         },
         include: [
           {
-            model: User, include: [
+            model: User,
+            include: [
               { model: Group },
             ],
           },
         ],
       });
 
-      expect(task.User).to.be.ok;
-      expect(task.User.Group).to.be.ok;
+      expect(task.user).to.be.ok;
+      expect(task.user.group).to.be.ok;
     });
 
     it('should support a simple sibling set of belongsTo include', async function () {
@@ -343,8 +344,8 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
 
       const task0 = await Task.create({
-        User: {},
-        Group: {},
+        user: {},
+        group: {},
       }, {
         include: [User, Group],
       });
@@ -359,8 +360,8 @@ Instead of specifying a Model, either:
         ],
       });
 
-      expect(task.User).to.be.ok;
-      expect(task.Group).to.be.ok;
+      expect(task.user).to.be.ok;
+      expect(task.group).to.be.ok;
     });
 
     it('should support a simple nested hasOne -> hasOne include', async function () {
@@ -375,27 +376,28 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
 
       const user = await User.create({
-        Task: {},
-        Group: {},
+        task: {},
+        group: {},
       }, {
         include: [Task, Group],
       });
 
       const group = await Group.findOne({
         where: {
-          id: user.Group.id,
+          id: user.group.id,
         },
         include: [
           {
-            model: User, include: [
+            model: User,
+            include: [
               { model: Task },
             ],
           },
         ],
       });
 
-      expect(group.User).to.be.ok;
-      expect(group.User.Task).to.be.ok;
+      expect(group.user).to.be.ok;
+      expect(group.user.task).to.be.ok;
     });
 
     it('should support a simple nested hasMany -> belongsTo include', async function () {
@@ -410,11 +412,11 @@ Instead of specifying a Model, either:
       await Project.bulkCreate([{ id: 1 }, { id: 2 }]);
 
       const user0 = await User.create({
-        Tasks: [
-          { ProjectId: 1 },
-          { ProjectId: 2 },
-          { ProjectId: 1 },
-          { ProjectId: 2 },
+        tasks: [
+          { projectId: 1 },
+          { projectId: 2 },
+          { projectId: 1 },
+          { projectId: 2 },
         ],
       }, {
         include: [Task],
@@ -426,18 +428,19 @@ Instead of specifying a Model, either:
         },
         include: [
           {
-            model: Task, include: [
+            model: Task,
+            include: [
               { model: Project },
             ],
           },
         ],
       });
 
-      expect(user.Tasks).to.be.ok;
-      expect(user.Tasks.length).to.equal(4);
+      expect(user.tasks).to.be.ok;
+      expect(user.tasks.length).to.equal(4);
 
-      for (const task of user.Tasks) {
-        expect(task.Project).to.be.ok;
+      for (const task of user.tasks) {
+        expect(task.project).to.be.ok;
       }
     });
 
@@ -453,28 +456,29 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
 
       const project = await Project.create({
-        Workers: [{}],
-        Tasks: [{}, {}, {}, {}],
+        workers: [{}],
+        tasks: [{}, {}, {}, {}],
       }, {
         include: [Worker, Task],
       });
 
       const worker = await Worker.findOne({
         where: {
-          id: project.Workers[0].id,
+          id: project.workers[0].id,
         },
         include: [
           {
-            model: Project, include: [
+            model: Project,
+            include: [
               { model: Task },
             ],
           },
         ],
       });
 
-      expect(worker.Project).to.be.ok;
-      expect(worker.Project.Tasks).to.be.ok;
-      expect(worker.Project.Tasks.length).to.equal(4);
+      expect(worker.project).to.be.ok;
+      expect(worker.project.tasks).to.be.ok;
+      expect(worker.project.tasks.length).to.equal(4);
     });
 
     it('should support a simple nested hasMany to hasMany include', async function () {
@@ -495,7 +499,7 @@ Instead of specifying a Model, either:
       const [products, tags] = await Promise.all([
         User.create({
           id: 1,
-          Products: [
+          products: [
             { title: 'Chair' },
             { title: 'Desk' },
             { title: 'Dress' },
@@ -539,11 +543,11 @@ Instead of specifying a Model, either:
         ],
       });
 
-      expect(user.Products.length).to.equal(4);
-      expect(user.Products[0].Tags.length).to.equal(2);
-      expect(user.Products[1].Tags.length).to.equal(1);
-      expect(user.Products[2].Tags.length).to.equal(3);
-      expect(user.Products[3].Tags.length).to.equal(0);
+      expect(user.products.length).to.equal(4);
+      expect(user.products[0].tags.length).to.equal(2);
+      expect(user.products[1].tags.length).to.equal(1);
+      expect(user.products[2].tags.length).to.equal(3);
+      expect(user.products[3].tags.length).to.equal(0);
     });
 
     it('should support an include with multiple different association types', async function () {
@@ -595,18 +599,18 @@ Instead of specifying a Model, either:
         Product.create({
           id: 1,
           title: 'Chair',
-          Prices: [{ value: 5 }, { value: 10 }],
+          prices: [{ value: 5 }, { value: 10 }],
         }, { include: [Price] }),
         Product.create({
           id: 2,
           title: 'Desk',
-          Prices: [{ value: 5 }, { value: 10 }, { value: 15 }, { value: 20 }],
+          prices: [{ value: 5 }, { value: 10 }, { value: 15 }, { value: 20 }],
         }, { include: [Price] }),
         User.create({
           id: 1,
           Memberships: [
-            { id: 1, Group: { name: 'Developers' }, Rank: { name: 'Admin', canInvite: 1, canRemove: 1 } },
-            { id: 2, Group: { name: 'Designers' }, Rank: { name: 'Member', canInvite: 1, canRemove: 0 } },
+            { id: 1, group: { name: 'Developers' }, rank: { name: 'Admin', canInvite: 1, canRemove: 1 } },
+            { id: 2, group: { name: 'Designers' }, rank: { name: 'Member', canInvite: 1, canRemove: 0 } },
           ],
         }, {
           include: { model: GroupMember, as: 'Memberships', include: [Group, Rank] },
@@ -638,7 +642,7 @@ Instead of specifying a Model, either:
           },
           {
             model: Product, include: [
-              { model: Tag, as: 'Tags' },
+              { model: Tag, as: 'tags' },
               { model: Tag, as: 'Category' },
               Price,
             ],
@@ -648,20 +652,20 @@ Instead of specifying a Model, either:
 
       user.Memberships.sort(sortById);
       expect(user.Memberships.length).to.equal(2);
-      expect(user.Memberships[0].Group.name).to.equal('Developers');
-      expect(user.Memberships[0].Rank.canRemove).to.equal(1);
-      expect(user.Memberships[1].Group.name).to.equal('Designers');
-      expect(user.Memberships[1].Rank.canRemove).to.equal(0);
+      expect(user.Memberships[0].group.name).to.equal('Developers');
+      expect(user.Memberships[0].rank.canRemove).to.equal(1);
+      expect(user.Memberships[1].group.name).to.equal('Designers');
+      expect(user.Memberships[1].rank.canRemove).to.equal(0);
 
-      user.Products.sort(sortById);
-      expect(user.Products.length).to.equal(2);
-      expect(user.Products[0].Tags.length).to.equal(2);
-      expect(user.Products[1].Tags.length).to.equal(1);
-      expect(user.Products[0].Category).to.be.ok;
-      expect(user.Products[1].Category).not.to.be.ok;
+      user.products.sort(sortById);
+      expect(user.products.length).to.equal(2);
+      expect(user.products[0].tags.length).to.equal(2);
+      expect(user.products[1].tags.length).to.equal(1);
+      expect(user.products[0].Category).to.be.ok;
+      expect(user.products[1].Category).not.to.be.ok;
 
-      expect(user.Products[0].Prices.length).to.equal(2);
-      expect(user.Products[1].Prices.length).to.equal(4);
+      expect(user.products[0].prices.length).to.equal(2);
+      expect(user.products[1].prices.length).to.equal(4);
     });
 
     it('should support specifying attributes', async function () {
@@ -681,7 +685,7 @@ Instead of specifying a Model, either:
 
       await Task.create({
         title: 'FooBar',
-        Project: { title: 'BarFoo' },
+        project: { title: 'BarFoo' },
       }, {
         include: [Project],
       });
@@ -694,10 +698,10 @@ Instead of specifying a Model, either:
       });
 
       expect(tasks[0].title).to.equal('FooBar');
-      expect(tasks[0].Project.title).to.equal('BarFoo');
+      expect(tasks[0].project.title).to.equal('BarFoo');
 
-      expect(omit(tasks[0].get(), 'Project')).to.deep.equal({ title: 'FooBar' });
-      expect(tasks[0].Project.get()).to.deep.equal({ title: 'BarFoo' });
+      expect(omit(tasks[0].get(), 'project')).to.deep.equal({ title: 'FooBar' });
+      expect(tasks[0].project.get()).to.deep.equal({ title: 'BarFoo' });
     });
 
     it('should support Sequelize.literal and renaming of attributes in included model attributes', async function () {
@@ -720,7 +724,7 @@ Instead of specifying a Model, either:
       switch (dialect) {
         case 'mssql': {
           findAttributes = [
-            Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "PostComments.someProperty"'),
+            Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "postComments.someProperty"'),
             [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
           ];
 
@@ -729,7 +733,7 @@ Instead of specifying a Model, either:
 
         case 'ibmi': {
           findAttributes = [
-            Sequelize.literal('1 AS "PostComments.someProperty"'),
+            Sequelize.literal('1 AS "postComments.someProperty"'),
             [Sequelize.literal('1'), 'someProperty2'],
           ];
 
@@ -738,7 +742,7 @@ Instead of specifying a Model, either:
 
         case 'db2': {
           findAttributes = [
-            Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "PostComments.someProperty"'),
+            Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "postComments.someProperty"'),
             [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
           ];
 
@@ -756,7 +760,7 @@ Instead of specifying a Model, either:
 
         default: {
           findAttributes = [
-            Sequelize.literal('EXISTS(SELECT 1) AS "PostComments.someProperty"'),
+            Sequelize.literal('EXISTS(SELECT 1) AS "postComments.someProperty"'),
             [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
           ];
         }
@@ -773,9 +777,9 @@ Instead of specifying a Model, either:
         ],
       });
 
-      expect(posts[0].PostComments[0].get('someProperty')).to.be.ok;
-      expect(posts[0].PostComments[0].get('someProperty2')).to.be.ok;
-      expect(posts[0].PostComments[0].get('commentTitle')).to.equal('WAT');
+      expect(posts[0].postComments[0].get('someProperty')).to.be.ok;
+      expect(posts[0].postComments[0].get('someProperty2')).to.be.ok;
+      expect(posts[0].postComments[0].get('commentTitle')).to.equal('WAT');
     });
 
     it('should support self associated hasMany (with through) include', async function () {
@@ -927,7 +931,7 @@ Instead of specifying a Model, either:
       });
 
       expect(result.length).to.eql(1);
-      expect(result[0].Item.test).to.eql('def');
+      expect(result[0].item.test).to.eql('def');
     });
 
     it('should support or()', async function () {
@@ -964,7 +968,7 @@ Instead of specifying a Model, either:
       expect(result.count).to.eql(1);
 
       expect(result.rows.length).to.eql(1);
-      expect(result.rows[0].Item.test).to.eql('def');
+      expect(result.rows[0].item.test).to.eql('def');
     });
   });
 

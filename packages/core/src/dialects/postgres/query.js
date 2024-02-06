@@ -251,7 +251,7 @@ export class PostgresQuery extends AbstractQuery {
       return this.handleSelectQuery(rows);
     }
 
-    if (QueryTypes.BULKDELETE === this.options.type) {
+    if (this.isDeleteQuery()) {
       return Number.parseInt(rowCount, 10);
     }
 

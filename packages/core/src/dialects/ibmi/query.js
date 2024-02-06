@@ -121,7 +121,7 @@ export class IBMiQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery() || this.isUpsertQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery() || this.isUpsertQuery()) {
       return data.count;
     }
 

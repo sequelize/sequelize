@@ -14,7 +14,7 @@ import type {
   WhereOperators,
   WhereOptions,
 } from '@sequelize/core';
-import { DataTypes, Model, Op, and, json, or, sql } from '@sequelize/core';
+import { DataTypes, JSON_NULL, Model, Op, SQL_NULL, and, json, or, sql } from '@sequelize/core';
 import type {
   FormatWhereOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
@@ -61,8 +61,8 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
 
-  declare jsonAttr: object;
-  declare jsonbAttr: object;
+  declare jsonAttr: object | null;
+  declare jsonbAttr: object | null;
 
   declare aliasedInt: number;
   declare aliasedJsonAttr: object;
@@ -453,6 +453,10 @@ Caused by: "undefined" cannot be escaped`),
         default: '[nullableIntAttr] IS NULL',
       });
 
+      testSql({ nullableIntAttr: SQL_NULL }, {
+        default: '[nullableIntAttr] IS NULL',
+      });
+
       testSql({ dateAttr: new Date('2021-01-01T00:00:00Z') }, {
         default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
         mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
@@ -641,6 +645,10 @@ Caused by: "undefined" cannot be escaped`),
       }
 
       testSql({ nullableIntAttr: { [Op.is]: null } }, {
+        default: '[nullableIntAttr] IS NULL',
+      });
+
+      testSql({ nullableIntAttr: { [Op.is]: SQL_NULL } }, {
         default: '[nullableIntAttr] IS NULL',
       });
 
@@ -2032,17 +2040,74 @@ Caused by: "undefined" cannot be escaped`),
           const ignore: TestModelWhere = { '$doesNotExist$.nested': 'value' };
         }
 
-        if (dialectSupportsJsonQuotedExtraction()) {
-          testSql({ jsonAttr: 'value' }, {
-            default: `[jsonAttr] = '"value"'`,
-            mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
-          });
+        testSql({ jsonAttr: 'value' }, {
+          default: `[jsonAttr] = '"value"'`,
+          mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
+          mssql: `[jsonAttr] = N'"value"'`,
+        });
 
+        testSql({ jsonAttr: null }, {
+          default: new Error('You must be explicit'),
+        });
+
+        testSql({ jsonAttr: { [Op.eq]: null } }, {
+          default: `[jsonAttr] = 'null'`,
+          mysql: `\`jsonAttr\` = CAST('null' AS JSON)`,
+          mssql: `[jsonAttr] = N'null'`,
+        });
+
+        testSql({ jsonAttr: { [Op.is]: null } }, {
+          default: `[jsonAttr] IS NULL`,
+        });
+
+        testSql({ jsonAttr: JSON_NULL }, {
+          default: `[jsonAttr] = 'null'`,
+          mysql: `\`jsonAttr\` = CAST('null' AS JSON)`,
+          mssql: `[jsonAttr] = N'null'`,
+        });
+
+        testSql({ jsonAttr: SQL_NULL }, {
+          default: `[jsonAttr] IS NULL`,
+        });
+
+        if (dialectSupportsJsonQuotedExtraction()) {
           testSql({ 'jsonAttr.nested': 'value' }, {
             postgres: `"jsonAttr"->'nested' = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+          });
+
+          testSql({ 'jsonAttr.nested': null }, {
+            default: new Error('You must be explicit'),
+          });
+
+          testSql({ 'jsonAttr.nested': JSON_NULL }, {
+            postgres: `"jsonAttr"->'nested' = 'null'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
+          });
+
+          testSql({ 'jsonAttr.nested': SQL_NULL }, {
+            postgres: `"jsonAttr"->'nested' IS NULL`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
+          });
+
+          testSql({ 'jsonAttr.nested': { [Op.eq]: null } }, {
+            postgres: `"jsonAttr"->'nested' = 'null'`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
+          });
+
+          testSql({ 'jsonAttr.nested': { [Op.is]: null } }, {
+            postgres: `"jsonAttr"->'nested' IS NULL`,
+            sqlite: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
+            mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
+            mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
           });
 
           testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
@@ -2642,6 +2707,23 @@ Caused by: "undefined" cannot be escaped`),
         },
       }, {
         default: 'NOT ([intAttr1] = 1 AND [intAttr2] = 2)',
+      });
+
+      testSql({
+        [Op.not]: {
+          [Op.or]: {
+            [Op.and]: {
+              intAttr1: 1,
+              intAttr2: 2,
+            },
+            [Op.or]: {
+              intAttr1: 1,
+              intAttr2: 2,
+            },
+          },
+        },
+      }, {
+        default: 'NOT (([intAttr1] = 1 AND [intAttr2] = 2) OR ([intAttr1] = 1 OR [intAttr2] = 2))',
       });
 
       // Op.not, Op.and, Op.or can reside on the same object as attributes

@@ -10,11 +10,10 @@ import type {
   NormalizedAttributeOptions,
   SearchPathable,
 } from '../../model.js';
-import type { Nullish } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -51,19 +50,9 @@ type UpdateOptions = ParameterOptions & {
   bindParam?: false | ((value: unknown) => string),
 };
 
-type DeleteOptions = ParameterOptions & {
-  limit?: Nullish<number | Literal>,
-};
-
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
 };
-
-// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateSchemaQueryOptions {
-  collate?: string;
-  charset?: string;
-}
 
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
@@ -126,13 +115,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): { query: string, bind?: unknown[] };
 
-  deleteQuery(
-    tableName: TableName,
-    where?: WhereOptions,
-    options?: DeleteOptions,
-    model?: ModelStatic<Model>,
-  ): string;
-
   arithmeticQuery(
     operator: string,
     tableName: TableName,
@@ -148,9 +130,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-
-  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
-  dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
 
   /**
    * Creates a function that can be used to collect bind parameters.

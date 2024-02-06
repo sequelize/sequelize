@@ -585,8 +585,8 @@ Got { association: 1 } instead`);
           });
 
           expect(tasks).to.exist;
-          expect(tasks[0].Worker).to.exist;
-          expect(tasks[0].Worker.name).to.equal('worker');
+          expect(tasks[0].worker).to.exist;
+          expect(tasks[0].worker.name).to.equal('worker');
         });
 
         it('returns the associated worker via task.worker, using limit and sort', async function () {
@@ -598,8 +598,8 @@ Got { association: 1 } instead`);
           });
 
           expect(tasks).to.exist;
-          expect(tasks[0].Worker).to.exist;
-          expect(tasks[0].Worker.name).to.equal('worker');
+          expect(tasks[0].worker).to.exist;
+          expect(tasks[0].worker.name).to.equal('worker');
         });
       });
 
@@ -631,8 +631,8 @@ Got { association: 1 } instead`);
           });
 
           expect(workers).to.exist;
-          expect(workers[0].TaskHasOne).to.exist;
-          expect(workers[0].TaskHasOne.title).to.equal('homework');
+          expect(workers[0].taskHasOne).to.exist;
+          expect(workers[0].taskHasOne.title).to.equal('homework');
         });
       });
 
@@ -1036,8 +1036,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
-            expect(kingdom.Animals).to.exist; // include model exists
-            expect(kingdom.Animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
+            expect(kingdom.animals).to.exist; // include model exists
+            expect(kingdom.animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
           }
         });
 
@@ -1424,7 +1424,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await User.create({
           name: 'some user',
-          Image: {
+          image: {
             path: 'folder1/folder2/logo.png',
           },
         }, {
@@ -1443,8 +1443,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
         for (const user of users) {
           expect(user.get('name')).to.equal('some user');
-          expect(user.Image.get('url')).to.equal('https://my-cool-domain.com/folder1/folder2/logo.png');
-          expect(user.Image.get('path')).to.equal('folder1/folder2/logo.png');
+          expect(user.image.get('url')).to.equal('https://my-cool-domain.com/folder1/folder2/logo.png');
+          expect(user.image.get('path')).to.equal('folder1/folder2/logo.png');
         }
       });
     });
@@ -1541,7 +1541,7 @@ The following associations are defined on "Worker": "ToDos"`);
           name: 'Some election',
         },
         include: [
-          'Citizen', // Election creator
+          'citizen', // Election creator
           { model: Citizen, as: 'Voters' }, // Election voters
         ],
       });

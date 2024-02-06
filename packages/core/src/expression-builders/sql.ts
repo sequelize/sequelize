@@ -8,6 +8,7 @@ import { identifier } from './identifier.js';
 import { jsonPath } from './json-path.js';
 import { list } from './list.js';
 import { Literal, literal } from './literal.js';
+import { SqlUuidV1, SqlUuidV4 } from './uuid.js';
 import { Value } from './value.js';
 import { where } from './where.js';
 
@@ -50,5 +51,6 @@ sql.jsonPath = jsonPath;
 sql.list = list;
 sql.literal = literal;
 sql.where = where;
-
+sql.uuidV4 = SqlUuidV4.build();
+sql.uuidV1 = SqlUuidV1.build();
 sql.unquote = Unquote.build.bind(Unquote);

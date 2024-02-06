@@ -95,7 +95,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         Group.hasOne(User);
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('admin');
         await Group.sync({ force: true });
         await User.sync({ force: true });
@@ -112,11 +111,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(associatedUser).not.to.be.null;
         expect(associatedUser.id).to.equal(user.id);
         expect(associatedUser.id).not.to.equal(fakeUser.id);
+        await this.sequelize.queryInterface.dropAllTables({ schema: 'admin' });
         await this.sequelize.dropSchema('admin');
         const schemas = await this.sequelize.queryInterface.listSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-          expect(schemas).to.not.have.property('admin');
-        }
+        expect(schemas).to.not.include('admin');
       });
     }
   });
@@ -169,10 +167,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
-      await expect(Task.create({ title: 'task', UserXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       const task = await Task.create({ title: 'task' });
 
-      await expect(Task.update({ title: 'taskUpdate', UserXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
     });
 
     it('should setup underscored field with foreign keys when using underscored', function () {
@@ -181,8 +179,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       Account.hasOne(User);
 
-      expect(User.getAttributes().AccountId).to.exist;
-      expect(User.getAttributes().AccountId.field).to.equal('account_id');
+      expect(User.getAttributes().accountId).to.exist;
+      expect(User.getAttributes().accountId.field).to.equal('account_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -191,8 +189,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       Account.hasOne(User);
 
-      expect(User.getAttributes().AccountId).to.exist;
-      expect(User.getAttributes().AccountId.field).to.equal('AccountId');
+      expect(User.getAttributes().accountId).to.exist;
+      expect(User.getAttributes().accountId.field).to.equal('accountId');
     });
 
     it('should support specifying the field of a foreign key', async function () {
@@ -226,7 +224,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         include: [User],
       });
 
-      expect(task.UserXYZ).to.exist;
+      expect(task.userXYZ).to.exist;
     });
 
     it('should support custom primary key field name in sub queries', async function () {
@@ -265,7 +263,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await user.setTask(task);
       await user.destroy();
       await task.reload();
-      expect(task.UserId).to.equal(null);
+      expect(task.userId).to.equal(null);
     });
 
     it('should be possible to disable them', async function () {
@@ -281,7 +279,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await user.setTask(task);
       await user.destroy();
       await task.reload();
-      expect(task.UserId).to.equal(user.id);
+      expect(task.userId).to.equal(user.id);
     });
 
     it('can cascade deletes', async function () {
@@ -335,7 +333,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
-        expect(tasks[0].UserId).to.equal(999);
+        expect(tasks[0].userId).to.equal(999);
       });
     }
 
@@ -407,7 +405,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       Group.hasOne(User);
 
       await this.sequelize.sync({ force: true });
-      expect(User.getAttributes().GroupPKBTName.type).to.an.instanceof(DataTypes.STRING);
+      expect(User.getAttributes().groupPKBTName.type).to.an.instanceof(DataTypes.STRING);
     });
 
     it('should support a non-primary key as the association column on a target with custom primary key', async function () {
@@ -519,8 +517,8 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         // The model is named incorrectly.
         // The modal name should always be singular, so here sequelize assumes that "Orders" is singular
-        expect(InternetOrders.getAttributes().OrdersId).to.be.ok;
-        expect(InternetOrders.getAttributes().OrderId).not.to.be.ok;
+        expect(InternetOrders.getAttributes().ordersId).to.be.ok;
+        expect(InternetOrders.getAttributes().orderId).not.to.be.ok;
       });
     });
   });

@@ -1,5 +1,6 @@
 import NodeUtil from 'node:util';
 import * as _inflection from 'inflection';
+import lowerFirst from 'lodash/lowerFirst';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
@@ -14,18 +15,8 @@ export function useInflection(newInflection: Inflection) {
 
 /* String utils */
 
-export function camelizeIf(str: string, condition: boolean): string {
-  let result = str;
-
-  if (condition) {
-    result = camelize(str);
-  }
-
-  return result;
-}
-
 export function camelize(str: string): string {
-  return str.trim().replaceAll(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
+  return lowerFirst(str.trim()).replaceAll(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
 }
 
 export function underscoredIf(str: string, condition: boolean): string {

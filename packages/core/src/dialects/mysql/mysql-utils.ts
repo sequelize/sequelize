@@ -1,4 +1,4 @@
-export function escapeMysqlString(value: string): string {
+export function escapeMysqlMariaDbString(value: string): string {
   // eslint-disable-next-line no-control-regex -- \u001A is intended to be in this regex
   value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, s => {
     switch (s) {

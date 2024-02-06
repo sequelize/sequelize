@@ -91,8 +91,8 @@ describe('Model#findOrBuild', () => {
       expect(user.get('username')).to.equal('Mello');
       expect(user.get('age')).to.equal(20);
 
-      expect(user.Projects).to.have.length(1);
-      expect(user.Projects[0].get('name')).to.equal('Investigate');
+      expect(user.projects).to.have.length(1);
+      expect(user.projects[0].get('name')).to.equal('Investigate');
     });
   });
 

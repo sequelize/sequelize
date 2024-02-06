@@ -1,5 +1,4 @@
 import { assert, expect } from 'chai';
-import { lt } from 'semver';
 import { AggregateError, DataTypes, Op, UnknownConstraintError } from '@sequelize/core';
 import { sequelize } from '../support';
 
@@ -150,9 +149,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           ? 'RESTRICT'
           : dialect === 'sqlite'
           ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
           : 'NO ACTION' },
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
@@ -221,10 +217,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           ? 'RESTRICT'
           : dialect === 'sqlite'
           ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
-          : 'NO ACTION' },
+          : 'NO ACTION'},
         ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
       });
 
@@ -335,7 +328,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? '"age" > 10'
             : dialect === 'postgres'
             ? '((age > 10))'
-            : dialect === 'sqlite'
+            : ['mysql', 'sqlite'].includes(dialect)
             ? '(`age` > 10)'
             : '`age` > 10'},
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
@@ -433,9 +426,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             allowNull: false,
           },
         });
-      });
 
-      it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
         await queryInterface.addConstraint({ tableName: 'levels', schema }, {
           name: 'pk_levels',
           type: 'PRIMARY KEY',
@@ -452,7 +443,9 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           },
           onDelete: 'CASCADE',
         });
+      });
 
+      it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
         const foreignKeys = await queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
         expect(foreignKeys).to.have.length(1);
         expect(foreignKeys[0]).to.deep.equal({
@@ -472,9 +465,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? 'RESTRICT'
             : dialect === 'sqlite'
             ? ''
-            // MySQL 8.0.0 changed the default to NO ACTION
-            : dialect === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-            ? 'RESTRICT'
             : 'NO ACTION' },
           ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
         });
@@ -500,6 +490,104 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         await queryInterface.removeConstraint({ tableName: 'levels', schema }, ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels');
         const pkAfterRemove = await queryInterface.showConstraints({ tableName: 'levels', schema }, { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' });
         expect(pkAfterRemove).to.have.length(0);
+      });
+
+      describe('when tables are present in different schemas', () => {
+        beforeEach(async () => {
+          await queryInterface.createTable({
+            tableName: 'levels',
+          }, {
+            id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              primaryKey: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: false,
+            },
+          });
+
+          await queryInterface.createTable({
+            tableName: 'actors',
+          }, {
+            id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: false,
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+            },
+          });
+
+          await queryInterface.addConstraint({ tableName: 'actors' }, {
+            name: 'custom_constraint_name',
+            type: 'FOREIGN KEY',
+            fields: ['level_id'],
+            references: {
+              table: { tableName: 'levels' },
+              field: 'id',
+            },
+            onDelete: 'CASCADE',
+          });
+        });
+
+        it('should show only foreign key constraints for the table in the right schema', async () => {
+          const foreignKeys = await queryInterface.showConstraints({ tableName: 'actors', schema }, { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
+
+          expect(foreignKeys).to.have.length(1);
+          expect(foreignKeys[0]).to.deep.equal({
+            ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+            constraintSchema: schema,
+            constraintName: 'custom_constraint_name',
+            constraintType: 'FOREIGN KEY',
+            ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+            tableSchema: schema,
+            tableName: 'actors',
+            columnNames: ['level_id'],
+            referencedTableSchema: schema,
+            referencedTableName: 'levels',
+            referencedColumnNames: ['id'],
+            deleteAction: 'CASCADE',
+            updateAction: dialect === 'mariadb'
+            ? 'RESTRICT'
+            : dialect === 'sqlite'
+            ? ''
+            : 'NO ACTION',
+            ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+          });
+        });
+
+        it('should show only foreign key constraints for the table in the default schema', async () => {
+          const foreignKeys = await queryInterface.showConstraints('actors', { columnName: 'level_id', constraintType: 'FOREIGN KEY' });
+
+          expect(foreignKeys).to.have.length(1);
+          expect(foreignKeys[0]).to.deep.equal({
+            ...['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' },
+            constraintSchema: sequelize.dialect.getDefaultSchema(),
+            constraintName: 'custom_constraint_name',
+            constraintType: 'FOREIGN KEY',
+            ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
+            tableSchema: sequelize.dialect.getDefaultSchema(),
+            tableName: 'actors',
+            columnNames: ['level_id'],
+            referencedTableSchema: sequelize.dialect.getDefaultSchema(),
+            referencedTableName: 'levels',
+            referencedColumnNames: ['id'],
+            deleteAction: 'CASCADE',
+            updateAction: dialect === 'mariadb'
+            ? 'RESTRICT'
+            : dialect === 'sqlite'
+            ? ''
+            : 'NO ACTION',
+            ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
+          });
+        });
       });
     });
   }

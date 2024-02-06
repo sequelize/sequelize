@@ -11,7 +11,6 @@ import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
-import { camelize } from './string';
 import { getComplexKeys } from './where.js';
 
 export const EMPTY_OBJECT = Object.freeze(Object.create(null));
@@ -97,7 +96,6 @@ export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
     }
   });
 }
-/* eslint-enable consistent-return */
 
 /**
  * Receives a tree-like object and returns a plain object which depth is 1.
@@ -200,21 +198,6 @@ export function defaults(
   }
 
   return objectIn;
-}
-
-/**
- * @param obj
- * @returns A new object with camel-cased keys
- * @private
- */
-export function camelizeObjectKeys(obj: { [key: string]: any }) {
-  const newObj: { [key: string]: any } = Object.create(null);
-
-  for (const key of Object.keys(obj)) {
-    newObj[camelize(key)] = obj[key];
-  }
-
-  return newObj;
 }
 
 type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
