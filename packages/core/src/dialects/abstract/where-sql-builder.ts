@@ -883,10 +883,6 @@ function wrapWithNot(sql: string): string {
     return '';
   }
 
-  if (sql.startsWith('(') && sql.endsWith(')')) {
-    return `NOT ${sql}`;
-  }
-
   return `NOT (${sql})`;
 }
 
