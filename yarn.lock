@@ -2212,6 +2212,7 @@ __metadata:
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.14.202"
     "@types/mocha": "npm:10.0.6"
+    "@types/oracledb": "npm:^6.0.4"
     "@types/pg": "npm:8.11.0"
     "@types/semver": "npm:7.5.6"
     "@types/sinon": "npm:17.0.3"
@@ -2241,6 +2242,7 @@ __metadata:
     mysql2: "npm:3.9.1"
     nyc: "npm:15.1.0"
     odbc: "npm:2.4.8"
+    oracledb: "npm:6.0"
     p-map: "npm:4.0.0"
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
@@ -2270,6 +2272,8 @@ __metadata:
     mysql2:
       optional: true
     odbc:
+      optional: true
+    oracledb:
       optional: true
     pg:
       optional: true
@@ -3247,6 +3251,15 @@ __metadata:
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
   checksum: 10c0/aef7bb9b015883d6f4119c423dd28c4bdc17b0e8a0ccf112c78b4fe0e91fbc4af7c6204b04bba0e199a57d2f3fbbd5b4a14bf8739bf9d2a39b2a0aad545e0f86
+  languageName: node
+  linkType: hard
+
+"@types/oracledb@npm:^6.0.4":
+  version: 6.0.4
+  resolution: "@types/oracledb@npm:6.0.4"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/7a195cff23de0f7e70c95726b4e26fbd462de8841ac1315fc7870d8eaf7b62e1525251b0e10f2522da90609e3a262666c785d41eb87a67ac60d846f6e5f86fce
   languageName: node
   linkType: hard
 
@@ -10571,6 +10584,13 @@ __metadata:
     strip-ansi: "npm:^6.0.0"
     wcwidth: "npm:^1.0.1"
   checksum: 10c0/10ff14aace236d0e2f044193362b22edce4784add08b779eccc8f8ef97195cae1248db8ec1ec5f5ff076f91acbe573f5f42a98c19b78dba8c54eefff983cae85
+  languageName: node
+  linkType: hard
+
+"oracledb@npm:6.0":
+  version: 6.0.3
+  resolution: "oracledb@npm:6.0.3"
+  checksum: 10c0/b356b243e239a87270ea5e929c7ffc49d11574cec154579803809d9aa8091586aa02ca165ce6753daa6e1ddafb3938cd19c480fc0f38d97a2cf8ae09dabf857e
   languageName: node
   linkType: hard
 

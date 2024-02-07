@@ -5,18 +5,23 @@ import { generateIndexName } from '../../utils/string';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { AddLimitOffsetOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions } from '../abstract/query-generator.types';
+import type { AddLimitOffsetOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
 import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
+
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
 const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
+const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateSchemaQueryOptions>();
+const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableNameOrModel) {
@@ -185,5 +190,74 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP COLUMN',
       this.quoteIdentifier(attributeName)
     ]);
+  }
+
+  createSchemaQuery(schema : string, options: CreateSchemaQueryOptions) : string {
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect.name,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+    const quotedSchema = this.quoteIdentifier(schema);
+    return [
+      'DECLARE',
+      'USER_FOUND BOOLEAN := FALSE;',
+      'BEGIN',
+      ' BEGIN',
+      '   EXECUTE IMMEDIATE ',
+      this.escape(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
+      ';',
+      '   EXCEPTION WHEN OTHERS THEN',
+      '     IF SQLCODE != -1920 THEN',
+      '       RAISE;',
+      '     ELSE',
+      '       USER_FOUND := TRUE;',
+      '     END IF;',
+      ' END;',
+      ' IF NOT USER_FOUND THEN',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT "CONNECT" TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE TABLE TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE VIEW TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE ANY TRIGGER TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE ANY PROCEDURE TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE SEQUENCE TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`GRANT CREATE SYNONYM TO ${quotedSchema}`),
+      ';',
+      '    EXECUTE IMMEDIATE ',
+      this.escape(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
+      ';',
+      ' END IF;',
+      'END;'
+    ].join(' ');
+  }
+
+  truncateTableQuery(tableName: TableNameOrModel, options: TruncateTableQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect.name,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 }

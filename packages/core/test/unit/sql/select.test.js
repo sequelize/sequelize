@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
       }, User), {
         ibmi: 'SELECT "User"."name", "User"."age", "posts"."id" AS "posts.id", "posts"."title" AS "posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "posts" ON "User"."id" = "posts"."user_id"',
-        oracle: `SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" "User" LEFT OUTER JOIN "Post" "Posts" ON "User"."id" = "Posts"."user_id";`,
+        oracle: `SELECT "User"."name", "User"."age", "posts"."id" AS "posts.id", "posts"."title" AS "posts.title" FROM "User" "User" LEFT OUTER JOIN "Post" "posts" ON "User"."id" = "posts"."user_id";`,
         default: 'SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];',
       });
     });
@@ -735,7 +735,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: User,
       }, User), {
         default: `SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];`,
-        oracle: `SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" "User" ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN "Post" "Posts" ON "User"."id" = "Posts"."user_id";`,
+        oracle: `SELECT "User"."name", "User"."age", "posts"."id" AS "posts.id", "posts"."title" AS "posts.title" FROM "User" "User" ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN "Post" "posts" ON "User"."id" = "posts"."user_id";`,
       });
     });
 
@@ -985,10 +985,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         oracle: `SELECT "Company".* FROM (`
           + `SELECT "Company"."name", "Company"."public", "Company"."id" FROM "Company" "Company" `
           + `INNER JOIN "Users" "Users" ON "Company"."id" = "Users"."companyId" `
-          + `INNER JOIN "Professions" "Users->Profession" ON "Users"."professionId" = "Users->Profession"."id" `
-          + `WHERE ("Company"."scopeId" IN (42) AND "Users->Profession"."name" = 'test') AND (`
+          + `INNER JOIN "Professions" "Users->profession" ON "Users"."professionId" = "Users->profession"."id" `
+          + `WHERE ("Company"."scopeId" IN (42) AND "Users->profession"."name" = 'test') AND (`
           + `SELECT "Users"."companyId" FROM "Users" "Users" `
-          + `INNER JOIN "Professions" "Profession" ON "Users"."professionId" = "Profession"."id" `
+          + `INNER JOIN "Professions" "profession" ON "Users"."professionId" = "profession"."id" `
           + `WHERE "Users"."companyId" = "Company"."id" ORDER BY "Users"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY`
           + `) IS NOT NULL ORDER BY "Company"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) "Company";`,
       });

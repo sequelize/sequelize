@@ -13,6 +13,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       default: 'DROP SCHEMA [mySchema]',
       db2: 'DROP SCHEMA "mySchema" RESTRICT',
       sqlite: notSupportedError,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -21,6 +22,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       default: 'DROP SCHEMA IF EXISTS [mySchema]',
       'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['ifExists']),
       sqlite: notSupportedError,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -29,6 +31,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       default: 'DROP SCHEMA [mySchema] CASCADE',
       'db2 mariadb mssql mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
       sqlite: notSupportedError,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -38,7 +41,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade', 'ifExists']),
       'mariadb mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
       sqlite: notSupportedError,
-      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "myDatabase" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
     });
   });
 });

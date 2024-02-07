@@ -464,18 +464,6 @@ export class OracleQuery extends AbstractQuery {
       result = [result, data.rowsAffected];
     } else if (this.isBulkUpdateQuery()) {
       result = data.rowsAffected;
-    } else if (this.isBulkDeleteQuery()) {
-      result = data.rowsAffected;
-    // } else if (this.isVersionQuery()) {
-    //   const version = data.rows[0].VERSION_FULL;
-    //   if (version) {
-    //     const versions = version.split('.');
-    //     result = `${versions[0]}.${versions[1]}.${versions[2]}`;
-    //   } else {
-    //     result = '0.0.0';
-    //   }
-    // } else if (this.isForeignKeysQuery()) {
-    //   result = data.rows;
     } else if (this.isUpsertQuery()) {
       // Upsert Query, will return nothing
       data = data.outBinds;

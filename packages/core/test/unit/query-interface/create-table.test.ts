@@ -37,6 +37,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -92,9 +93,11 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
+  // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
   it('supports JSON_NULL default values', async () => {
     if (!dialect.supports.dataTypes.JSON) {
       return;
@@ -116,6 +119,7 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT \'null\');',
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 });

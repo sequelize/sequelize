@@ -10,7 +10,6 @@ import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
 import { normalizeDataType } from '../abstract/data-types-utils';
 import { 
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
 } from '../abstract/query-generator';
 
@@ -20,7 +19,6 @@ import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
 const Transaction = require('../../transaction');
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /**
@@ -35,62 +33,6 @@ const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
 const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
 export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
-
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-    const quotedSchema = this.quoteIdentifier(schema);
-    return [
-      'DECLARE',
-      'USER_FOUND BOOLEAN := FALSE;',
-      'BEGIN',
-      ' BEGIN',
-      '   EXECUTE IMMEDIATE ',
-      this.escape(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
-      ';',
-      '   EXCEPTION WHEN OTHERS THEN',
-      '     IF SQLCODE != -1920 THEN',
-      '       RAISE;',
-      '     ELSE',
-      '       USER_FOUND := TRUE;',
-      '     END IF;',
-      ' END;',
-      ' IF NOT USER_FOUND THEN',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT "CONNECT" TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE TABLE TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE VIEW TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE ANY TRIGGER TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE ANY PROCEDURE TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE SEQUENCE TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`GRANT CREATE SYNONYM TO ${quotedSchema}`),
-      ';',
-      '    EXECUTE IMMEDIATE ',
-      this.escape(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
-      ';',
-      ' END IF;',
-      'END;'
-    ].join(' ');
-  }
 
   listSchemasQuery() {
     return 'SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = (\'NO\') AND USERNAME != user';
@@ -781,9 +723,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return result;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
-  }
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = tableName;
@@ -865,7 +804,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         attribute.type &&
         attribute.type !== 'TEXT' &&
         attribute.type._binary !== true &&
-        defaultValueSchemable(attribute.defaultValue)
+        defaultValueSchemable(attribute.defaultValue, this.dialect)
       ) {
         template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
       }
@@ -874,7 +813,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         // If autoincrement, not null is set automatically
         if (attribute.allowNull === false) {
           template += ' NOT NULL';
-        } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
+        } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue, this.dialect)) {
           template += ' NULL';
         }
       }
