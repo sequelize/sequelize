@@ -25,7 +25,8 @@ describe('DataType Methods', () => {
     parseDatabaseValue(_value: unknown): any {
       return customValueSymbol;
     }
-    _getBindDef(oracledb: any) {
+
+    _getBindDef(oracledb : any) {
       return { type: oracledb.DB_TYPE_VARCHAR, maxSize: 255 };
     }
   }
@@ -73,6 +74,7 @@ describe('DataType Methods', () => {
 
     Project.belongsToMany(User, {
       as: 'stakeholders',
+      inverse: 'stakeholdings',
       through: ProjectStakeholder,
     });
 
@@ -89,6 +91,7 @@ describe('DataType Methods', () => {
   });
 
   const spies = beforeEach2(() => {
+    // add mocha spy to sanitize
     return {
       sanitize: sinon.spy(DataTypes.STRING.prototype, 'sanitize'),
       validate: sinon.spy(DataTypes.STRING.prototype, 'validate'),

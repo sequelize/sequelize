@@ -73,6 +73,7 @@ if (dialect.name !== 'oracle') {
 
       Project.belongsToMany(User, {
         as: 'stakeholders',
+        inverse: 'stakeholdings',
         through: ProjectStakeholder,
       });
 
