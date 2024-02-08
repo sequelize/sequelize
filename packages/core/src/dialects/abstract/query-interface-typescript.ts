@@ -3,6 +3,8 @@ import isEmpty from 'lodash/isEmpty';
 import { Deferrable } from '../../deferrable';
 import type { ConstraintChecking } from '../../deferrable';
 import { BaseError } from '../../errors';
+import { Model } from '../../model';
+import type { AttributeOptions, ModelStatic } from '../../model';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
@@ -13,6 +15,7 @@ import {
   showAllToListSchemas,
   showAllToListTables,
 } from '../../utils/deprecations';
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 import type { RequiredBy } from '../../utils/types';
 import type { Connection } from './connection-manager.js';
 import type { TableNameOrModel } from './query-generator-typescript.js';
@@ -31,9 +34,11 @@ import type {
   DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiBulkInsertOptions,
   QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
+  QiInsertOptions,
   QiListSchemasOptions,
   QiListTablesOptions,
   QiTruncateTableOptions,
@@ -740,5 +745,89 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     delete bulkDeleteOptions.replacements;
 
     return this.sequelize.queryRaw(sql, { ...bulkDeleteOptions, raw: true, type: QueryTypes.DELETE });
+  }
+
+  /**
+   * Insert multiple records into a table
+   *
+   * @example
+   * queryInterface.bulkInsert('roles', [{
+   *    label: 'user',
+   *    createdAt: new Date(),
+   *    updatedAt: new Date()
+   *  }, {
+   *    label: 'admin',
+   *    createdAt: new Date(),
+   *    updatedAt: new Date()
+   *  }]);
+   *
+   * @param tableName     Table name to insert record to
+   * @param values        List of records to insert
+   * @param options       Various options, please see Model.bulkCreate options
+   * @param attributeHash Various attributes mapped by field name
+   */
+  async bulkInsert(
+    tableName: TableNameOrModel,
+    values: Array<Record<string, unknown>>,
+    options?: QiBulkInsertOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): Promise<Array<Record<string, unknown>>> {
+    const bulkInsertOptions = { ...options };
+    const sql = this.queryGenerator.bulkInsertQuery(tableName, values, bulkInsertOptions, attributeHash);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete bulkInsertOptions.replacements;
+
+    const results = await this.sequelize.queryRaw<Array<Record<string, unknown>>>(sql, {
+      ...bulkInsertOptions,
+      type: QueryTypes.INSERT,
+    });
+
+    return results[0];
+  }
+
+  /**
+   * Inserts a new record
+   *
+   * @param tableName
+   * @param values
+   * @param options
+   * @param instanceOrAttributeHash
+   */
+  async insert<M extends Model>(
+    tableName: TableNameOrModel,
+    values: Record<string, unknown>,
+    options?: QiInsertOptions,
+    instanceOrAttributeHash?: M | Record<string, AttributeOptions>,
+  ): Promise<[M | Record<string, unknown>, number]> {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
+    let attributeHash: Record<string, AttributeOptions> | undefined;
+    const insertOptions = { ...options };
+    if (instanceOrAttributeHash instanceof Model) {
+      const model = (instanceOrAttributeHash.constructor as ModelStatic<M>);
+      insertOptions.model = model;
+      insertOptions.instance = instanceOrAttributeHash;
+      insertOptions.hasTrigger = model.modelDefinition.options.hasTrigger ?? false;
+    } else {
+      attributeHash = instanceOrAttributeHash;
+    }
+
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, insertOptions, attributeHash);
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete insertOptions.replacements;
+    insertOptions.bind = combineBinds(insertOptions.bind ?? {}, bind ?? {});
+
+    if (instanceOrAttributeHash instanceof Model) {
+      const results = await this.sequelize.queryRaw<M>(query, { ...insertOptions, type: QueryTypes.INSERT });
+      results[0].isNewRecord = false;
+
+      return results;
+    }
+
+    return this.sequelize.queryRaw(query, { ...insertOptions, type: QueryTypes.INSERT });
   }
 }

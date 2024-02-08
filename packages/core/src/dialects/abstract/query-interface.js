@@ -340,30 +340,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  async insert(instance, tableName, values, options) {
-    if (options?.bind) {
-      assertNoReservedBind(options.bind);
-    }
-
-    options = cloneDeep(options) ?? {};
-    options.hasTrigger = instance?.constructor?.options.hasTrigger;
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, options);
-
-    options.type = QueryTypes.INSERT;
-    options.instance = instance;
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-    options.bind = combineBinds(options.bind, bind);
-
-    const results = await this.sequelize.queryRaw(query, options);
-    if (instance) {
-      results[0].isNewRecord = false;
-    }
-
-    return results;
-  }
-
   /**
    * Upsert
    *
@@ -431,40 +407,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
-  }
-
-  /**
-   * Insert multiple records into a table
-   *
-   * @example
-   * queryInterface.bulkInsert('roles', [{
-   *    label: 'user',
-   *    createdAt: new Date(),
-   *    updatedAt: new Date()
-   *  }, {
-   *    label: 'admin',
-   *    createdAt: new Date(),
-   *    updatedAt: new Date()
-   *  }]);
-   *
-   * @param {string} tableName   Table name to insert record to
-   * @param {Array}  records     List of records to insert
-   * @param {object} options     Various options, please see Model.bulkCreate options
-   * @param {object} attributes  Various attributes mapped by field name
-   *
-   * @returns {Promise}
-   */
-  async bulkInsert(tableName, records, options, attributes) {
-    options = { ...options, type: QueryTypes.INSERT };
-
-    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    const results = await this.sequelize.queryRaw(sql, options);
-
-    return results[0];
   }
 
   async update(instance, tableName, values, where, options) {

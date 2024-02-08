@@ -16,7 +16,7 @@ describe('QueryInterface#insert', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User, {
+    await sequelize.queryInterface.insert(User, {
       firstName: 'Zoe',
     }, {
       returning: sequelize.dialect.supports.insert.returning ? [':data'] : undefined,
@@ -42,7 +42,7 @@ describe('QueryInterface#insert', () => {
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.queryInterface.insert(null, User, {
+    await expect(sequelize.queryInterface.insert(User, {
       firstName: literal('$sequelize_test'),
     }, {
       bind: {
@@ -54,7 +54,7 @@ describe('QueryInterface#insert', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User, {
+    await sequelize.queryInterface.insert(User, {
       firstName: literal('$firstName'),
       lastName: 'Doe',
     }, {
@@ -78,7 +78,7 @@ describe('QueryInterface#insert', () => {
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User, {
+    await sequelize.queryInterface.insert(User, {
       firstName: literal('$1'),
       lastName: 'Doe',
     }, {

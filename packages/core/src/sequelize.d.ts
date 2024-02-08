@@ -951,7 +951,7 @@ export class Sequelize extends SequelizeTypeScript {
   /* eslint-disable max-len -- these signatures are more readable if they are all aligned */
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[Record<string, unknown>, number]>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   query(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
@@ -960,6 +960,7 @@ export class Sequelize extends SequelizeTypeScript {
   query<M extends Model>(sql: string | BaseSqlExpression, options: QueryOptionsWithModel<M>): Promise<M[]>;
   query<T extends object>(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
   query<T extends object>(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  query<T extends object>(sql: string | BaseSqlExpression, options: QueryOptionsWithType<QueryTypes.INSERT>): Promise<[T, number]>;
   query(sql: string | BaseSqlExpression, options: (QueryOptions | QueryOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   query(sql: string | BaseSqlExpression, options?: QueryOptions | QueryOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
 
@@ -971,7 +972,7 @@ export class Sequelize extends SequelizeTypeScript {
    */
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPDATE>): Promise<[undefined, number]>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.BULKUPDATE>): Promise<number>;
-  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[number, number]>;
+  queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[Record<string, unknown>, number]>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.UPSERT>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DELETE>): Promise<number>;
   queryRaw(sql: string, options: QueryRawOptionsWithType<QueryTypes.DESCRIBE>): Promise<ColumnsDescription>;
@@ -980,6 +981,7 @@ export class Sequelize extends SequelizeTypeScript {
   queryRaw<M extends Model>(sql: string, options: QueryRawOptionsWithModel<M>): Promise<M[]>;
   queryRaw<T extends object>(sql: string, options: QueryRawOptionsWithType<QueryTypes.SELECT> & { plain: true }): Promise<T | null>;
   queryRaw<T extends object>(sql: string, options: QueryRawOptionsWithType<QueryTypes.SELECT>): Promise<T[]>;
+  queryRaw<T extends object>(sql: string, options: QueryRawOptionsWithType<QueryTypes.INSERT>): Promise<[T, number]>;
   queryRaw(sql: string, options: (QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>) & { plain: true }): Promise<{ [key: string]: unknown } | null>;
   queryRaw(sql: string, options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>): Promise<[unknown[], unknown]>;
   /* eslint-enable max-len */

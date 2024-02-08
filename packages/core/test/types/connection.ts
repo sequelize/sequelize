@@ -16,7 +16,7 @@ async function test() {
 
   expectTypeOf(
     await sequelize.query('INSERT into test set test=1', { type: QueryTypes.INSERT }),
-  ).toEqualTypeOf<[number, number]>();
+  ).toEqualTypeOf<[Record<string, unknown>, number]>();
 }
 
 // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive :/

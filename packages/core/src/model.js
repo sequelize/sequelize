@@ -3748,7 +3748,7 @@ Instead of specifying a Model, either:
 
     if (this.isNewRecord) {
       query = 'insert';
-      args = [this, this.constructor, values, options];
+      args = [this.constructor, values, options, this];
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);
