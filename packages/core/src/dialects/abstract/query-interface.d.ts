@@ -11,16 +11,17 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions } from './query-generator.js';
+import type { AddColumnQueryOptions } from './query-generator.js';
 import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
+import type { AbstractDialect } from './index.js';
 
 interface Replaceable {
   /**
@@ -229,19 +230,8 @@ export type CreateTableAttributes<
  *
 * This interface is available through {@link Sequelize#queryInterface}.
 */
-export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
-  /**
-   * Returns the dialect-specific sql generator.
-   *
-   * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
-   */
-  queryGenerator: AbstractQueryGenerator;
-
-  /**
-   * Returns the current sequelize instance.
-   */
-  sequelize: Sequelize;
-
+export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDialect>
+  extends AbstractQueryInterfaceTypeScript<Dialect> {
   /**
    * Creates a table with specified attributes.
    *

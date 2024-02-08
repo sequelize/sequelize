@@ -72,12 +72,9 @@ export class SnowflakeDialect extends AbstractDialect {
     console.warn('The Snowflake dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.');
 
     super(sequelize, DataTypes, 'snowflake');
-    this.connectionManager = new SnowflakeConnectionManager(this, sequelize);
-    this.queryGenerator = new SnowflakeQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new SnowflakeQueryInterface(sequelize, this.queryGenerator);
+    this.connectionManager = new SnowflakeConnectionManager(this);
+    this.queryGenerator = new SnowflakeQueryGenerator(this);
+    this.queryInterface = new SnowflakeQueryInterface(this);
   }
 
   createBindCollector() {

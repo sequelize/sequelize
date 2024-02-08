@@ -6,15 +6,15 @@ import { ENUM } from './data-types';
 import { quoteIdentifier } from '../../utils/dialect';
 import { rejectInvalidOptions } from '../../utils/check';
 import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
-
 import each from 'lodash/each';
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
 import reduce from 'lodash/reduce';
+import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const DataTypes = require('../../data-types');
-const { PostgresQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 /**
  * list of reserved words in PostgreSQL 10
@@ -27,6 +27,17 @@ const POSTGRES_RESERVED_WORDS = 'all,analyse,analyze,and,any,array,as,asc,asymme
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
+  #internals;
+
+  constructor(
+    dialect,
+    internals = new PostgresQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
   setSearchPath(searchPath) {
     return `SET search_path to ${searchPath};`;
   }
@@ -280,7 +291,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         if (attribute.references.deferrable) {
-          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
+          sql += ` ${this.#internals.getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
         }
       }
     }

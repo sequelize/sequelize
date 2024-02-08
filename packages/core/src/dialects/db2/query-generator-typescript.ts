@@ -1,3 +1,4 @@
+import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
@@ -10,7 +11,6 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -19,6 +19,8 @@ import type {
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
+import { Db2QueryGeneratorInternal } from './query-generator-internal.js';
+import type { Db2Dialect } from './index.js';
 
 const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
@@ -29,8 +31,15 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
  * Temporary class to ease the TypeScript migration
  */
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalSchemaNames() {
-    return ['ERRORSCHEMA', 'NULLID', 'SQLJ'];
+  readonly #internals: Db2QueryGeneratorInternal;
+
+  constructor(dialect: Db2Dialect, internals: Db2QueryGeneratorInternal = new Db2QueryGeneratorInternal(dialect)) {
+    super(dialect, internals);
+
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP_LIKE');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
+
+    this.#internals = internals;
   }
 
   dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
@@ -48,10 +57,9 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
     if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
+      schemasToSkip = [...schemasToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -89,7 +97,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM SYSCAT.TABLES WHERE TYPE = 'T'`,
       options?.schema
         ? `AND TABSCHEMA = ${this.escape(options.schema)}`
-        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
   }
@@ -133,7 +141,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
-  private _getConstraintType(type: ConstraintType): string {
+  #getConstraintType(type: ConstraintType): string {
     switch (type) {
       case 'CHECK':
         return 'K';
@@ -173,7 +181,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
       options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.TYPE = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      options?.constraintType ? `AND c.TYPE = ${this.escape(this.#getConstraintType(options.constraintType))}` : '',
       'ORDER BY c.CONSTNAME, k.COLSEQ, fk.COLSEQ',
     ]);
   }
@@ -231,18 +239,5 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
-  }
-
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
-    }
-
-    if (options.limit != null) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
   }
 }

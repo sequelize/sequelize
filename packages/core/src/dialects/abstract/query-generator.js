@@ -11,6 +11,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
+import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
 import compact from 'lodash/compact';
@@ -46,6 +47,16 @@ export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
+  #internals;
+
+  constructor(
+    dialect,
+    internals = new AbstractQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+    this.#internals = internals;
+  }
+
   /**
    * Returns an insert into command
    *
@@ -1244,7 +1255,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this._addLimitAndOffset(options);
+    const limitOrder = this.#internals.addLimitAndOffset(options);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -1381,7 +1392,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         if (attr instanceof Literal) {
           // We trust the user to rename the field correctly
-          return this.formatLiteral(attr, options);
+          return this.#internals.formatLiteral(attr, options);
         }
 
         if (attr instanceof BaseSqlExpression) {

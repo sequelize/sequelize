@@ -757,10 +757,7 @@ if (dialect.startsWith('postgres')) {
 
     describe('fromArray()', () => {
       beforeEach(function () {
-        this.queryGenerator = new QueryGenerator({
-          sequelize: this.sequelize,
-          dialect: this.sequelize.dialect,
-        });
+        this.queryGenerator = new QueryGenerator(this.sequelize.dialect);
       });
 
       const tests = [

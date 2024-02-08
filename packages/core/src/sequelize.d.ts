@@ -1,7 +1,7 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
 import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
-import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { DataType } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import type { ColumnsDescription, RawConstraintDescription } from './dialects/abstract/query-interface.types';
 import type { BaseSqlExpression, DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
@@ -1032,10 +1032,6 @@ export class Sequelize extends SequelizeTypeScript {
   close(): Promise<void>;
 
   normalizeAttribute<M extends Model = Model>(attribute: AttributeOptions<M> | DataType): AttributeOptions<M>;
-
-  normalizeDataType(Type: string): string;
-  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
-  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
 
   /**
    * Returns the installed version of Sequelize

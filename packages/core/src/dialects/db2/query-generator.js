@@ -31,11 +31,8 @@ function throwMethodUndefined(methodName) {
 }
 
 export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP_LIKE');
-    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
+  constructor(dialect, internals) {
+    super(dialect, internals);
 
     this.autoGenValue = 1;
   }

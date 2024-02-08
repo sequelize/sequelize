@@ -10,7 +10,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
@@ -30,8 +30,8 @@ type Lib = typeof import('snowflake-sdk');
 export class SnowflakeConnectionManager extends AbstractConnectionManager<SnowflakeConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: SnowflakeDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: SnowflakeDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('snowflake-sdk') as Lib;
   }
 
