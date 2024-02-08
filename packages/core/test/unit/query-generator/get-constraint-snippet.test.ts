@@ -72,9 +72,9 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a check constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
+      const internalsSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
 
-      expectsql(() => queryGeneratorSchema.getConstraintSnippet('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
+      expectsql(() => internalsSchema.getConstraintSnippet('myTable', { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
         snowflake: checkNotSupportedError,
       });
@@ -132,9 +132,9 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a default constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
+      const internalsSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
 
-      expectsql(() => queryGeneratorSchema.getConstraintSnippet('myTable', { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
+      expectsql(() => internalsSchema.getConstraintSnippet('myTable', { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
         default: defaultNotSupportedError,
         mssql: `CONSTRAINT [myTable_role_df] DEFAULT (N'guest') FOR [role]`,
       });
@@ -200,9 +200,9 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a unique constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
+      const internalsSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
 
-      expectsql(() => queryGeneratorSchema.getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'] }), {
+      expectsql(() => internalsSchema.getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'] }), {
         default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
       });
     });
@@ -288,9 +288,9 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a foreign key constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
+      const internalsSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
 
-      expectsql(() => queryGeneratorSchema.getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' } }), {
+      expectsql(() => internalsSchema.getConstraintSnippet('myTable', { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: 'otherTable', field: 'id' } }), {
         default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
         sqlite: 'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchema.otherTable` (`id`)',
       });
@@ -356,9 +356,9 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
 
     it('generates a constraint snippet for a primary key constraint with globally set schema', () => {
       const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-      const queryGeneratorSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
+      const internalsSchema = sequelizeSchema.queryGenerator.__TEST__getInternals();
 
-      expectsql(() => queryGeneratorSchema.getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'] }), {
+      expectsql(() => internalsSchema.getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'] }), {
         default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
       });
     });
