@@ -30,9 +30,9 @@ describe('QueryInterface#truncate', () => {
   describe('Truncate', () => {
     beforeEach(async () => {
       await vars.Level.bulkCreate([
-        { name: 'level1' },
-        { name: 'level2' },
-        { name: 'level3' },
+        { name: 'level1', ...(sequelize.dialect.name === 'cockroachdb' && { id: 1 }) },
+        { name: 'level2', ...(sequelize.dialect.name === 'cockroachdb' && { id: 2 }) },
+        { name: 'level3', ...(sequelize.dialect.name === 'cockroachdb' && { id: 3 }) },
       ]);
     });
 

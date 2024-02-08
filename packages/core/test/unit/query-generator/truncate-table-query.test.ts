@@ -12,14 +12,14 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite: ['DELETE FROM `myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `myTable`',
-      'postgres snowflake': 'TRUNCATE "myTable"',
+      'postgres snowflake cockroachdb': 'TRUNCATE "myTable"',
     });
   });
 
   it('produces a TRUNCATE TABLE query with CASCADE for a table', () => {
     expectPerDialect(() => queryGenerator.truncateTableQuery('myTable', { cascade: true }), {
       default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
-      postgres: `TRUNCATE "myTable" CASCADE`,
+      'postgres cockroachdb': `TRUNCATE "myTable" CASCADE`,
     });
   });
 
@@ -36,6 +36,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade', 'restartIdentity']),
       sqlite: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
       postgres: `TRUNCATE "myTable" RESTART IDENTITY CASCADE`,
+      cockroachdb: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['restartIdentity']),
     });
   });
 
@@ -47,7 +48,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite: ['DELETE FROM `MyModels`'],
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
-      'postgres snowflake': 'TRUNCATE "MyModels"',
+      'postgres snowflake cockroachdb': 'TRUNCATE "MyModels"',
     });
   });
 
@@ -57,7 +58,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite: ['DELETE FROM `mySchema.myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
-      'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+      'postgres snowflake cockroachdb': 'TRUNCATE "mySchema"."myTable"',
     });
   });
 
@@ -67,7 +68,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite: ['DELETE FROM `myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `myTable`',
-      'postgres snowflake': 'TRUNCATE "myTable"',
+      'postgres snowflake cockroachdb': 'TRUNCATE "myTable"',
     });
   });
 
@@ -80,7 +81,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite: ['DELETE FROM `mySchema.myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
-      'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+      'postgres snowflake cockroachdb': 'TRUNCATE "mySchema"."myTable"',
     });
   });
 

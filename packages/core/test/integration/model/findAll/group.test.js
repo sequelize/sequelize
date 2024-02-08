@@ -8,6 +8,7 @@ const Support = require('../../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
+const dialectName = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
@@ -29,8 +30,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         // Create an enviroment
         await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
+          { name: 'post-1', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+          { name: 'post-2', ...(dialectName === 'cockroachdb' && { id: 2 }) },
         ]);
 
         await Comment.bulkCreate([
@@ -72,10 +73,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await current.sync({ force: true });
 
-        await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
-        ]);
+        if (dialectName === 'cockroachdb') {
+          // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
+          await Post.bulkCreate([
+            { id: 1, name: 'post-1' },
+            { id: 2, name: 'post-2' },
+          ]);
+        } else {
+          await Post.bulkCreate([
+            { name: 'post-1' },
+            { name: 'post-2' },
+          ]);
+        }
 
         await Comment.bulkCreate([
           { text: 'Market', postId: 1 },

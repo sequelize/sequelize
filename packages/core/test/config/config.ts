@@ -97,4 +97,11 @@ export const Config: Record<Dialect, Options> = {
       odbcConnectionString: env.SEQ_IBMI_CONN_STR,
     },
   },
+  cockroachdb: {
+    database: env.SEQ_COCKROACHDB_DB || env.seq_DB || 'sequelize_test',
+    port: env.SEQ_COCKROACHDB_PORT || 26_257,
+    username: env.SEQ_COCKROACHDB_USER || 'sequelize_test',
+    host: env.SEQ_COCKROACHDB_HOST || '127.0.0.1',
+    password: env.SEQ_COCKROACHDB_PW || 'sequelize_test',
+  },
 };

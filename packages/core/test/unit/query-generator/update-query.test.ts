@@ -107,6 +107,10 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
+        cockroachdb: {
+          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
       },
     });
   });
@@ -159,6 +163,11 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_3: 2,
         },
         snowflake: {
+          sequelize_1: true,
+          sequelize_2: false,
+          sequelize_3: 2,
+        },
+        cockroachdb: {
           sequelize_1: true,
           sequelize_2: false,
           sequelize_3: 2,

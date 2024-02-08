@@ -11,7 +11,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
   it('produces a DROP DATABASE query in supported dialects', () => {
     expectsql(() => queryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
-      'mssql postgres snowflake': 'DROP DATABASE IF EXISTS [myDatabase]',
+      'mssql postgres snowflake cockroachdb': 'DROP DATABASE IF EXISTS [myDatabase]',
     });
   });
 
@@ -19,7 +19,7 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
     expectsql(() => noQuoteQueryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
       mssql: 'DROP DATABASE IF EXISTS [myDatabase]',
-      'postgres snowflake': 'DROP DATABASE IF EXISTS myDatabase',
+      'postgres snowflake cockroachdb': 'DROP DATABASE IF EXISTS myDatabase',
     });
   });
 });

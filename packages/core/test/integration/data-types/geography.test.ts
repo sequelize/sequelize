@@ -266,7 +266,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
-  if (sequelize.dialect.name === 'postgres') {
+  if (['postgres', 'cockroachdb'].includes(sequelize.dialect.name)) {
     describe('GEOGRAPHY(POLYGON, SRID)', () => {
       const vars = beforeEach2(async () => {
         return { User: await createUserModelWithGeography(GeoJsonType.Polygon, 4326) };

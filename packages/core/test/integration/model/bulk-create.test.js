@@ -161,6 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         logging(sql) {
           switch (dialectName) {
             case 'postgres':
+            case 'cockroachdb':
             case 'ibmi': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
 
@@ -973,8 +974,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 options,
               );
 
+              const sortedResults = results.sort((a, b) => a.dataValues.user_id - b.dataValues.user_id);
+
               for (let i = 0; i < 10; i++) {
-                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                // CockroachDB does not guarantee sequential generation.
+                if (dialectName === 'cockroachdb') {
+                  expect(sortedResults[i].user_id).to.eq(memberships[i].user_id);
+                } else {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                }
+
                 expect(results[i].team_id).to.eq(memberships[i].team_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
@@ -1104,8 +1113,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   options,
                 );
 
+                const sortedResults = results.sort((a, b) => a.dataValues.user_id - b.dataValues.user_id);
+
                 for (let i = 0; i < 10; i++) {
-                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  // CockroachDB appends new records are appended at the bottom, so the retrieved list order may differ
+                  if (dialectName === 'cockroachdb') {
+                    expect(sortedResults[i].user_id).to.eq(memberships[i].user_id);
+                  } else {
+                    expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  }
+
                   expect(results[i].team_id).to.eq(memberships[i].team_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
@@ -1138,11 +1155,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const actualUsers0 = await User.findAll({ order: ['id'] });
           const [users, actualUsers] = [users0, actualUsers0];
-          expect(users.length).to.eql(actualUsers.length);
-          for (const [i, user] of users.entries()) {
-            expect(user.get('id')).to.be.ok;
-            expect(user.get('id')).to.equal(actualUsers[i].get('id'))
-              .and.to.equal(i + 1);
+
+          if (current.dialect.name === 'cockroachdb') {
+            const usersIds = users.map(user => user.get('id'));
+            const actualUserIds = actualUsers.map(user => user.get('id'));
+            const orderedUserIds = usersIds.sort((a, b) => a - b);
+
+            expect(users.length).to.eql(actualUsers.length);
+            users.forEach(user => expect(user.get('id')).to.be.ok);
+            expect(usersIds).to.eql(actualUserIds);
+            expect(usersIds).to.eql(orderedUserIds);
+          } else {
+            expect(users.length).to.eql(actualUsers.length);
+            for (const [i, user] of users.entries()) {
+              expect(user.get('id')).to.be.ok;
+              expect(user.get('id')).to.equal(actualUsers[i].get('id'))
+                .and.to.equal(i + 1);
+            }
           }
         });
 
@@ -1169,11 +1198,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const actualUsers0 = await User.findAll({ order: ['maId'] });
           const [users, actualUsers] = [users0, actualUsers0];
-          expect(users.length).to.eql(actualUsers.length);
-          for (const [i, user] of users.entries()) {
-            expect(user.get('maId')).to.be.ok;
-            expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
-              .and.to.equal(i + 1);
+
+          if (dialectName === 'cockroachdb') {
+            const usersIds = users.map(user => user.get('maId'));
+            const actualUserIds = actualUsers.map(user => user.get('maId'));
+            const orderedUserIds = usersIds.sort((a, b) => a - b);
+
+            users.forEach(user => expect(user.get('maId')).to.be.ok);
+            expect(usersIds).to.eql(actualUserIds);
+            expect(usersIds).to.eql(orderedUserIds);
+          } else {
+            expect(users.length).to.eql(actualUsers.length);
+            for (const [i, user] of users.entries()) {
+              expect(user.get('maId')).to.be.ok;
+              expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
+                .and.to.equal(i + 1);
+            }
           }
         });
 
@@ -1290,8 +1330,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await Maya.sync({ force: true });
         const ms = await Maya.bulkCreate([M1, M2], { returning: true });
-        expect(ms[0].id).to.be.eql(1);
-        expect(ms[1].id).to.be.eql(2);
+
+        if (dialectName === 'cockroachdb') {
+          expect(ms[0].id < ms[1].id).to.be.true;
+        } else {
+          expect(ms[0].id).to.be.eql(1);
+          expect(ms[1].id).to.be.eql(2);
+        }
       });
 
       it('should return supplied values on primary keys', async function () {

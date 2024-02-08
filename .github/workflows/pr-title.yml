@@ -36,5 +36,6 @@ jobs:
             snowflake
             sqlite
             types
+            cockroachdb
           ignoreLabels: |
             ignore-semantic-pull-request

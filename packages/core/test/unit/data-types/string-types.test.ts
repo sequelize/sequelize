@@ -34,14 +34,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres cockroachdb': binaryCollationUnsupportedError,
     });
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres cockroachdb': binaryCollationUnsupportedError,
     });
   });
 
@@ -162,14 +162,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'CHAR(12) BINARY',
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
       sqlite: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql cockroachdb': binaryNotSupportedError,
     });
 
     testDataTypeSql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
       default: 'CHAR(255) BINARY',
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
       sqlite: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql cockroachdb': binaryNotSupportedError,
     });
   });
 });

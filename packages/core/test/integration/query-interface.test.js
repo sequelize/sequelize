@@ -116,7 +116,12 @@ describe('QueryInterface', () => {
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
       indexColumns = uniq(indexes.map(index => index.name));
-      expect(indexColumns).to.be.empty;
+      // Reason: CockroachDB always has a primary index on the table.
+      if (dialectName === 'cockroachdb') {
+        expect(indexColumns).to.not.include('group_username_is_admin');
+      } else {
+        expect(indexColumns).to.be.empty;
+      }
     });
 
     if (dialect.supports.schemas) {
@@ -142,7 +147,8 @@ describe('QueryInterface', () => {
           schema: 'schema',
           tableName: 'table',
         });
-        expect(indexes.length).to.eq(1);
+
+        expect(indexes.length).to.eq(dialectName === 'cockroachdb' ? 2 : 1);
         expect(indexes[0].name).to.eq('table_name_is_admin');
       });
     }

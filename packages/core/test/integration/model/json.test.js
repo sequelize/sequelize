@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.Event.sync({ force: true });
     });
 
-    if (current.dialect.supports.lock) {
+    if (current.dialect.supports.lock && current.dialect.supports.transactions) {
       it('findOrCreate supports transactions, json and locks', async function () {
         const transaction = await current.startUnmanagedTransaction();
 

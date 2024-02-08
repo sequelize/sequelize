@@ -17,6 +17,7 @@ const pTimeout = require('p-timeout');
 const current = Support.sequelize;
 const dialect = current.dialect;
 const dialectName = Support.getTestDialect();
+const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(async function () {
@@ -617,6 +618,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.transactions) {
         it('should work with multiple concurrent calls within a transaction', async function () {
+          let instanceId;
           const t = await this.customSequelize.startUnmanagedTransaction();
           const [
             [instance1, created1],
@@ -630,10 +632,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await t.commit();
 
+          if (dialectName === 'cockroachdb') {
+            const result = await this.User.findAll({ where: { uniqueName: 'winner' } });
+            instanceId = result[0].id;
+          }
+
           // All instances are the same
-          expect(instance1.id).to.equal(1);
-          expect(instance2.id).to.equal(1);
-          expect(instance3.id).to.equal(1);
+          expect(instance1.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
+          expect(instance2.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
+          expect(instance3.id).to.equal(dialectName === 'cockroachdb' ? instanceId : 1);
           // Only one of the createdN values is true
           expect(Boolean(created1 ^ created2 ^ created3)).to.be.true;
         });
@@ -849,7 +856,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.sync({ force: true });
           const user = await User.create({}, { returning: true });
           expect(user.get('id')).to.be.ok;
-          expect(user.get('id')).to.equal(1);
+
+          // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
+          if (dialectName !== 'cockroachdb') {
+            expect(user.get('id')).to.equal(1);
+          }
         });
 
         it('should make the autoincremented values available on the returned instances with custom fields', async function () {
@@ -865,14 +876,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.sync({ force: true });
           const user = await User.create({}, { returning: true });
           expect(user.get('maId')).to.be.ok;
-          expect(user.get('maId')).to.equal(1);
+
+          // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
+          if (dialectName !== 'cockroachdb') {
+            expect(user.get('maId')).to.equal(1);
+          }
         });
       });
     }
 
     it('is possible to use casting when creating an instance', async function () {
       const type = ['mysql', 'mariadb'].includes(dialectName) ? 'signed' : 'integer';
-      const bindParam = dialectName === 'postgres' ? '$1'
+      const bindParam = ['postgres', 'cockroachdb'].includes(dialectName) ? '$1'
         : dialectName === 'sqlite' ? '$sequelize_1'
         : dialectName === 'mssql' ? '@sequelize_1'
         : '?';
@@ -994,6 +1009,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         expect(user0.year).to.equal(`${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`);
 
+      }
+
+      if (dialectName === 'cockroachdb') {
+        userWithDefaults = this.customSequelize.define('userWithDefaults', {
+          uuid: {
+            type: 'UUID',
+            defaultValue: this.sequelize.fn('gen_random_uuid'),
+          },
+        });
+
+        await userWithDefaults.sync({ force: true });
+        const user = await userWithDefaults.create({});
+        expect(isUUID(user.uuid)).to.be.true;
       }
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
@@ -1211,10 +1239,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await User.sync({ force: true });
-      const user = await User.create({});
-      expect(user.userid).to.equal(1);
-      const user0 = await User.create({});
-      expect(user0.userid).to.equal(2);
+
+      if (dialectName === 'cockroachdb') {
+        const user1 = await User.create({});
+        const user2 = await User.create({});
+        expect(user2.userid > user1.userid).to.be.true;
+      } else {
+        const user = await User.create({});
+        expect(user.userid).to.equal(1);
+        const user0 = await User.create({});
+        expect(user0.userid).to.equal(2);
+      }
     });
 
     it('allows the usage of options as attribute', async function () {
@@ -1510,15 +1545,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  it('should return autoIncrement primary key (create)', async function () {
-    const Maya = this.customSequelize.define('Maya', {});
+  // This test expects the ID to be 1 but in CockroachDB uses UUIDv4 to generate IDs.
+  if (dialectName !== 'cockroachdb') {
+    it('should return autoIncrement primary key (create)', async function () {
+      const Maya = this.customSequelize.define('Maya', {});
 
-    const M1 = {};
+      const M1 = {};
 
-    await Maya.sync({ force: true });
-    const m = await Maya.create(M1, { returning: true });
-    expect(m.id).to.be.eql(1);
-  });
+      await Maya.sync({ force: true });
+      const m = await Maya.create(M1, { returning: true });
+      expect(m.id).to.be.eql(1);
+    });
+  }
 
   it('should support logging', async function () {
     const spy = sinon.spy();

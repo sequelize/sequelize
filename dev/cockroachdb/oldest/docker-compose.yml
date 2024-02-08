@@ -1,0 +1,23 @@
+services:
+  cockroachdb-oldest:
+    container_name: sequelize-cockroachdb-oldest
+    image: cockroachdb/cockroach:v22.2.0
+    ports:
+      - 26257:26257
+      - 8080:8080
+    command: start-single-node --cluster-name=cockroach-sequelize-example --advertise-addr='localhost' --insecure
+    environment:
+      COCKROACH_DATABASE: public
+    volumes:
+      - cockroach-single:/cockroach/cockroach-data-oldest
+      - ~/init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: curl --fail http://localhost:8080 || exit 1
+      interval: 3s
+      timeout: 1s
+      retries: 10
+networks:
+  default:
+    name: sequelize-cockroachdb-oldest-network
+volumes:
+  cockroach-single:

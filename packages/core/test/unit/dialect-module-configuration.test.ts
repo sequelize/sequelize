@@ -25,6 +25,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('options.dialectModulePath', () => {
       let dialectPath: string;
       switch (dialect) {
+        case 'cockroachdb':
         case 'postgres':
           dialectPath = require.resolve('pg');
           break;

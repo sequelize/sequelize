@@ -6,6 +6,8 @@ const expect = chai.expect;
 const { Sequelize, DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {
     it('should allow us to update specific columns without tripping the validations', async function () {
@@ -28,7 +30,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       await User
         .update({ username: 'toni' }, { where: { id: user.id } });
 
-      const user0 = await User.findByPk(1);
+      const user0 = await User.findByPk(current.dialect.name === 'cockroachdb' ? user.id : 1);
       expect(user0.username).to.equal('toni');
     });
 

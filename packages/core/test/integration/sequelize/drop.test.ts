@@ -1,26 +1,31 @@
 import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
-import { sequelize } from '../support';
+import { getTestDialect, sequelize } from '../support';
 
 const dialect = sequelize.getDialect();
+const dialectName = getTestDialect();
 
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
     const A = sequelize.define('A', {
       bId: {
         type: DataTypes.INTEGER,
-        references: {
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
-        },
+        ...(dialectName !== 'cockroachdb' && {
+          references: {
+            deferrable: Deferrable.INITIALLY_IMMEDIATE,
+          },
+        }),
       },
     });
 
     const B = sequelize.define('B', {
       aId: {
         type: DataTypes.INTEGER,
-        references: {
-          deferrable: Deferrable.INITIALLY_IMMEDIATE,
-        },
+        ...(dialectName !== 'cockroachdb' && {
+          references: {
+            deferrable: Deferrable.INITIALLY_IMMEDIATE,
+          },
+        }),
       },
     });
 

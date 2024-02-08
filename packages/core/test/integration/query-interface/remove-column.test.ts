@@ -47,20 +47,36 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
           name: {
             type: DataTypes.STRING,
             allowNull: false,
+            ...(dialectName === 'cockroachdb' && { unique: true }),
           },
         });
 
-        await queryInterface.addColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          references: { key: 'id', table: 'level' },
-        });
+        // Cockroachdb does not allow removing columns referenced by primary key
+        if (dialectName === 'cockroachdb') {
+          await queryInterface.addColumn('users', 'level_id', {
+            type: DataTypes.STRING,
+            references: { key: 'name', table: 'level' },
+          });
 
-        await queryInterface.removeColumn('level', 'id', { cascade: true });
+          await queryInterface.removeColumn('level', 'name', { cascade: true });
 
-        const levelTable = await queryInterface.describeTable('level');
-        expect(levelTable).to.not.have.property('id');
-        const usersTable = await queryInterface.describeTable('users');
-        expect(usersTable).to.have.property('level_id');
+          const levelTable = await queryInterface.describeTable('level');
+          expect(levelTable).to.not.have.property('name');
+          const usersTable = await queryInterface.describeTable('users');
+          expect(usersTable).to.have.property('level_id');
+        } else {
+          await queryInterface.addColumn('users', 'level_id', {
+            type: DataTypes.INTEGER,
+            references: { key: 'id', table: 'level' },
+          });
+
+          await queryInterface.removeColumn('level', 'id', { cascade: true });
+
+          const levelTable = await queryInterface.describeTable('level');
+          expect(levelTable).to.not.have.property('id');
+          const usersTable = await queryInterface.describeTable('users');
+          expect(usersTable).to.have.property('level_id');
+        }
       });
     }
 
@@ -88,14 +104,16 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       expect(table).to.not.have.property('manager');
     });
 
-    it('should be able to remove a column with primaryKey', async () => {
-      await queryInterface.removeColumn('users', 'manager');
-      const table0 = await queryInterface.describeTable('users');
-      expect(table0).to.not.have.property('manager');
-      await queryInterface.removeColumn('users', 'id');
-      const table = await queryInterface.describeTable('users');
-      expect(table).to.not.have.property('id');
-    });
+    if (sequelize.dialect.supports.removeColumn.primaryKeyColumn) {
+      it('should be able to remove a column with primaryKey', async () => {
+        await queryInterface.removeColumn('users', 'manager');
+        const table0 = await queryInterface.describeTable('users');
+        expect(table0).to.not.have.property('manager');
+        await queryInterface.removeColumn('users', 'id');
+        const table = await queryInterface.describeTable('users');
+        expect(table).to.not.have.property('id');
+      });
+    }
 
     // From MSSQL documentation on ALTER COLUMN:
     //    The modified column cannot be any one of the following:
@@ -147,8 +165,14 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
         },
       });
 
-      await queryInterface.bulkInsert('level', [{ name: 'L1' }, { name: 'L2' }, { name: 'L3' }]);
-      await queryInterface.bulkInsert('actors', [{ name: 'Keanu Reeves', level_id: 2 }, { name: 'Laurence Fishburne', level_id: 1 }]);
+      // Cockroachdb does not support sequential id generation
+      if (dialectName === 'cockroachdb') {
+        await queryInterface.bulkInsert('level', [{ id: 1, name: 'L1' }, { id: 2, name: 'L2' }, { id: 3, name: 'L3' }]);
+        await queryInterface.bulkInsert('actors', [{ id: 1, name: 'Keanu Reeves', level_id: 2 }, { id: 2, name: 'Laurence Fishburne', level_id: 1 }]);
+      } else {
+        await queryInterface.bulkInsert('level', [{ name: 'L1' }, { name: 'L2' }, { name: 'L3' }]);
+        await queryInterface.bulkInsert('actors', [{ name: 'Keanu Reeves', level_id: 2 }, { name: 'Laurence Fishburne', level_id: 1 }]);
+      }
 
       await queryInterface.removeColumn('level', 'name');
 
@@ -198,11 +222,11 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       const defaultSchema = sequelize.dialect.getDefaultSchema();
       const constraints = await queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' });
       expect(constraints).to.deep.equal([{
-        ...['mssql', 'postgres'].includes(dialectName) && { constraintCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialectName) && { constraintCatalog: 'sequelize_test' },
         constraintSchema: defaultSchema,
         constraintName: dialectName === 'sqlite' ? 'FOREIGN' : 'actors_level_id_fkey',
         constraintType: 'FOREIGN KEY',
-        ...['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' },
+        ...['mssql', 'postgres', 'cockroachdb'].includes(dialectName) && { tableCatalog: 'sequelize_test' },
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['level_id'],

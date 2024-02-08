@@ -26,14 +26,14 @@ describe('QueryGenerator#removeConstraintQuery', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { cascade: true }), {
       default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
       sqlite: notSupportedError,
-      'postgres snowflake': 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
+      'postgres snowflake cockroachdb': 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
     });
   });
 
   it('generates a query that drops a constraint with IF EXISTS and CASCADE', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { cascade: true, ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
-      postgres: 'ALTER TABLE "myTable" DROP CONSTRAINT IF EXISTS "myConstraint" CASCADE',
+      'postgres cockroachdb': 'ALTER TABLE "myTable" DROP CONSTRAINT IF EXISTS "myConstraint" CASCADE',
       snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['ifExists']),
       sqlite: notSupportedError,
     });

@@ -7,6 +7,8 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 const sinon = require('sinon');
 
+const dialectName = Support.getTestDialect();
+
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
     this.clock = sinon.useFakeTimers();
@@ -145,7 +147,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, where: {} });
 
-        await expect(User.findByPk(1)).to.eventually.have.property('updatedAt').afterTime(oldDate);
+        const userId = dialectName === 'cockroachdb' ? user.id : 1;
+        await expect(User.findByPk(userId)).to.eventually.have.property('updatedAt').afterTime(oldDate);
       });
 
       it('with timestamps set to true and options.silent set to true', async function () {
@@ -160,7 +163,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         await User[method]('aNumber', { by: 1, silent: true, where: {} });
 
-        const updatedUser = await User.findByPk(1);
+        const userId = dialectName === 'cockroachdb' ? user.id : 1;
+        const updatedUser = await User.findByPk(userId);
 
         await expect(updatedUser.updatedAt).to.equalTime(oldDate);
       });

@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[0].intVal).to.equal(5);
       });
 
-      if (dialectName === 'postgres') {
+      if (['postgres', 'cockroachdb'].includes(dialectName)) {
         it('should be able to find a row using ilike', async function () {
           const users = await this.User.findAll({
             where: {
@@ -246,13 +246,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Passports.sync({ force: true });
 
         await User.bulkCreate([
-          { username: 'boo5', aBool: false },
-          { username: 'boo6', aBool: true },
+          { ...(dialectName === 'cockroachdb' && { id: 1 }), username: 'boo5', aBool: false },
+          { ...(dialectName === 'cockroachdb' && { id: 2 }), username: 'boo6', aBool: true },
         ]);
 
         await Passports.bulkCreate([
-          { isActive: true },
-          { isActive: false },
+          { ...(dialectName === 'cockroachdb' && { id: 1 }), isActive: true },
+          { ...(dialectName === 'cockroachdb' && { id: 2 }), isActive: false },
         ]);
 
         const user = await User.findByPk(1);
@@ -1327,25 +1327,45 @@ The following associations are defined on "Worker": "ToDos"`);
       it('sorts the results via id in ascending order', async function () {
         const users = await this.User.findAll();
         expect(users.length).to.equal(2);
-        expect(users[0].id).to.be.below(users[1].id);
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] < userIds[1]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.below(users[1].id);
+        }
       });
 
       it('sorts the results via id in descending order', async function () {
         const users = await this.User.findAll({ order: [['id', 'DESC']] });
-        expect(users[0].id).to.be.above(users[1].id);
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] > userIds[1]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.above(users[1].id);
+        }
       });
 
       it('sorts the results via a date column', async function () {
         await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
-        expect(users[0].id).to.be.above(users[2].id);
+        // Because Cockroachdb treats BigInt as Strings, Mocha's below and above comparisons do not work, since they expect either number or date.
+        if (dialectName === 'cockroachdb') {
+          const userIds = users.map(user => BigInt(user.id));
+          expect(userIds[0] > userIds[2]).to.be.true;
+        } else {
+          expect(users[0].id).to.be.above(users[2].id);
+        }
       });
 
       it('handles offset and limit', async function () {
-        await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
+        const createdUsers = await this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]);
         const users = await this.User.findAll({ limit: 2, offset: 2 });
         expect(users.length).to.equal(2);
-        expect(users[0].id).to.equal(3);
+        if (dialectName === 'cockroachdb') {
+          expect(users[0].id).to.equal(createdUsers[0].id);
+        } else {
+          expect(users[0].id).to.equal(3);
+        }
       });
 
       it('should allow us to find IDs using capital letters', async function () {
@@ -1355,8 +1375,10 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         await User.sync({ force: true });
-        await User.create({ Login: 'foo' });
-        const user = await User.findAll({ where: { ID: 1 } });
+        const createdUser = await User.create({ Login: 'foo' });
+
+        const user = await User.findAll({ where: { ID: current.dialect.name === 'cockroachdb' ? createdUser.ID : 1 } });
+
         expect(user).to.be.instanceof(Array);
         expect(user).to.have.length(1);
       });

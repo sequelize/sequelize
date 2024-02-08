@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
         db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
         mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
-        postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
+        'postgres cockroachdb': 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
         mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
         mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
       });
@@ -88,6 +88,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         postgres: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" COLLATE "en_US" DESC)',
         mariadb: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
         mysql: 'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+        cockroachdb: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" USING BTREE ("fieldB", "fieldA" DESC)',
       });
     });
 
@@ -99,6 +100,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
         mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+        cockroachdb: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
       });
     });
 
@@ -116,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           fields: ['event'],
           using: 'gin',
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
+          'postgres cockroachdb': 'CREATE INDEX "table_event" ON "table" USING gin ("event")',
         });
       });
     }
@@ -132,7 +134,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'public\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
+          'postgres cockroachdb': 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'public\'',
         });
 
@@ -150,7 +152,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = \'group\' OR `type` = \'private\'',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
+          'postgres cockroachdb': 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N\'group\' OR [type] = N\'private\'',
         });
 
@@ -165,7 +167,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
           db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-          postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
+          'postgres cockroachdb': 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
           mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         });
       });
@@ -178,7 +180,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gin',
           operator: 'jsonb_path_ops',
         }), {
-          postgres: 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
+          'postgres cockroachdb': 'CREATE INDEX "table_event" ON "table" USING gin ("event" jsonb_path_ops)',
         });
       });
     }
@@ -190,7 +192,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           using: 'gist',
           operator: 'inet_ops',
         }), {
-          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
+          'postgres cockroachdb': 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
         });
       });
       it('operator in fields', () => {
@@ -201,7 +203,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
+          'postgres cockroachdb': 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops)',
         });
       });
       it('operator in fields with order', () => {
@@ -213,7 +215,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
+          'postgres cockroachdb': 'CREATE INDEX "table_column" ON "table" USING gist ("column" inet_ops DESC)',
         });
       });
       it('operator in multiple fields #1', () => {
@@ -225,7 +227,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }, 'column2'],
           using: 'gist',
         }), {
-          postgres: 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
+          'postgres cockroachdb': 'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops DESC, "column2")',
         });
       });
       it('operator in multiple fields #2', () => {
@@ -239,13 +241,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }],
           using: 'btree',
         }), {
-          postgres: 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
+          'postgres cockroachdb': 'CREATE INDEX "table_path_level_name" ON "table" USING btree ("path" text_pattern_ops, "level", "name" varchar_pattern_ops)',
         });
       });
     }
 
     it('include columns with unique index', () => {
-      expectsql(() => sql.addIndexQuery('User',  {
+      expectsql(() => sql.addIndexQuery('User', {
         name: 'email_include_name',
         fields: ['email'],
         include: ['first_name', 'last_name'],
@@ -253,12 +255,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }), {
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE UNIQUE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        'db2 postgres': 'CREATE UNIQUE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+        'db2 postgres cockroachdb': 'CREATE UNIQUE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
       });
     });
 
     it('include columns with non-unique index', () => {
-      expectsql(() => sql.addIndexQuery('User',  {
+      expectsql(() => sql.addIndexQuery('User', {
         name: 'email_include_name',
         fields: ['email'],
         include: ['first_name', 'last_name'],
@@ -266,12 +268,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE ([first_name], [last_name])',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
+        'postgres cockroachdb': 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE ("first_name", "last_name")',
       });
     });
 
     it('include columns using a liternal with non-unique index', () => {
-      expectsql(() => sql.addIndexQuery('User',  {
+      expectsql(() => sql.addIndexQuery('User', {
         name: 'email_include_name',
         fields: ['email'],
         include: literal('(first_name, last_name)'),
@@ -279,12 +281,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+        'postgres cockroachdb': 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
       });
     });
 
     it('include columns using an array of liternals with non-unique index', () => {
-      expectsql(() => sql.addIndexQuery('User',  {
+      expectsql(() => sql.addIndexQuery('User', {
         name: 'email_include_name',
         fields: ['email'],
         include: [literal('first_name'), literal('last_name')],
@@ -292,7 +294,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
         default: new Error(`The include attribute for indexes is not supported by ${current.dialect.name} dialect`),
         mssql: 'CREATE INDEX [email_include_name] ON [User] ([email]) INCLUDE (first_name, last_name)',
-        postgres: 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
+        'postgres cockroachdb': 'CREATE INDEX "email_include_name" ON "User" ("email") INCLUDE (first_name, last_name)',
       });
     });
   });

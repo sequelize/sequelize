@@ -238,6 +238,7 @@ export type DialectSupports = {
   removeColumn: {
     cascade: boolean,
     ifExists: boolean,
+    primaryKeyColumn: boolean,
   },
   renameTable: {
     changeSchema: boolean,
@@ -402,6 +403,7 @@ export abstract class AbstractDialect {
     removeColumn: {
       cascade: false,
       ifExists: false,
+      primaryKeyColumn: true,
     },
     renameTable: {
       changeSchema: true,

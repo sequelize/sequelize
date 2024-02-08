@@ -109,8 +109,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(data).not.to.have.ownProperty('badgeNumber');
   });
 
-  // IBM i can't alter INTEGER -> STRING
-  if (dialect !== 'ibmi') {
+  // IBM i and cockroachdb can't alter INTEGER -> STRING
+  if (!['ibmi', 'cockroachdb'].includes(dialect)) {
     it('changes a column if it exists in the model but is different in the database', async () => {
       const testSync = sequelize.define('testSync', {
         name: DataTypes.STRING,
@@ -492,7 +492,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   // TODO: this should work with MSSQL / MariaDB too
-  if (dialect.startsWith('postgres')) {
+  if (dialect.startsWith('postgres') || dialect === 'cockroachdb') {
     it('defaults to schema provided to sync() for references #11276', async function () {
       await Promise.all([
         sequelize.createSchema(SCHEMA_ONE),
@@ -633,8 +633,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
-  // TODO add support for db2 and mssql dialects
-  if (dialect !== 'db2' && dialect !== 'mssql') {
+  // TODO add support for db2, cockroachdb and mssql dialects
+  if (!['db2', 'mssql', 'cockroachdb'].includes(dialect)) {
     it('does not recreate existing enums (#7649)', async () => {
       sequelize.define('Media', {
         type: DataTypes.ENUM([

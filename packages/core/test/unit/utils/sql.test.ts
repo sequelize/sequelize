@@ -22,7 +22,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT [$id] FROM users WHERE id = '$id' OR id = ? OR id = '''$id'''`,
-      postgres: `SELECT "$id" FROM users WHERE id = '$id' OR id = $1 OR id = '''$id'''`,
+      'postgres cockroachdb': `SELECT "$id" FROM users WHERE id = '$id' OR id = $1 OR id = '''$id'''`,
       sqlite: `SELECT \`$id\` FROM users WHERE id = '$id' OR id = $id OR id = '''$id'''`,
       mssql: `SELECT [$id] FROM users WHERE id = '$id' OR id = @id OR id = '''$id'''`,
     });
@@ -39,7 +39,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?`,
-      postgres: `SELECT * FROM users WHERE id = $1`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = $1`,
       sqlite: `SELECT * FROM users WHERE id = $1`,
       mssql: `SELECT * FROM users WHERE id = @1`,
     });
@@ -58,7 +58,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?::string`,
-      postgres: `SELECT * FROM users WHERE id = $1::string`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = $1::string`,
       sqlite: `SELECT * FROM users WHERE id = $param::string`,
       mssql: `SELECT * FROM users WHERE id = @param::string`,
     });
@@ -69,7 +69,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>?`,
-      postgres: `SELECT * FROM users WHERE json_col->>$1`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE json_col->>$1`,
       sqlite: `SELECT * FROM users WHERE json_col->>$key`,
       mssql: `SELECT * FROM users WHERE json_col->>@key`,
     });
@@ -80,7 +80,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?;`,
-      postgres: `SELECT * FROM users WHERE id = $1;`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = $1;`,
       sqlite: `SELECT * FROM users WHERE id = $id;`,
       mssql: `SELECT * FROM users WHERE id = @id;`,
       ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
@@ -102,7 +102,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?`,
-      postgres: `SELECT * FROM users WHERE id = $1`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = $1`,
       sqlite: `SELECT * FROM users WHERE id = $a`,
       mssql: `SELECT * FROM users WHERE id = @a`,
     });
@@ -118,17 +118,16 @@ describe('mapBindParameters', () => {
 
   it(`does not consider the token to be a bind parameter if it does not follow '(', ',', '=' or whitespace`, () => {
     const { sql, bindOrder } = mapBindParameters(`SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`, dialect);
-
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?`,
-      postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
       sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id`,
     });
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'postgres') {
+    } else if (dialect.name === 'postgres' || dialect.name === 'cockroachdb') {
       expect(bindOrder).to.deep.eq(['id']);
     } else {
       expect(bindOrder).to.deep.eq(['id', 'id', 'id', 'id']);
@@ -168,7 +167,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT z$$ ? x$$ * FROM users`,
-      postgres: `SELECT z$$ $1 x$$ * FROM users`,
+      'postgres cockroachdb': `SELECT z$$ $1 x$$ * FROM users`,
       sqlite: `SELECT z$$ $id x$$ * FROM users`,
       mssql: `SELECT z$$ @id x$$ * FROM users`,
     });
@@ -185,7 +184,7 @@ describe('mapBindParameters', () => {
 
     expectsql(sql, {
       default: `SELECT $$ abc $$ AS string FROM users WHERE id = ?`,
-      postgres: `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
+      'postgres cockroachdb': `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
       sqlite: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
       mssql: `SELECT $$ abc $$ AS string FROM users WHERE id = @id`,
     });
@@ -218,7 +217,7 @@ SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
         sql: toMatchSql(`SELECT * FROM users WHERE id = '\\' $id' OR id = ?`),
         bindOrder: ['id'],
       }),
-      postgres: toHaveProperties({
+      'postgres cockroachdb': toHaveProperties({
         sql: `SELECT * FROM users WHERE id = '\\' $id' OR id = $1`,
         bindOrder: ['id'],
       }),
@@ -234,7 +233,7 @@ SELECT * FROM users WHERE id = E'\\' $id' OR id = $id`),
         sql: toMatchSql(`SELECT * FROM users WHERE id = E'\\' $id' OR id = ?`),
         bindOrder: ['id'],
       }),
-      postgres: toHaveProperties({
+      'postgres cockroachdb': toHaveProperties({
         sql: `SELECT * FROM users WHERE id = E'\\' $id' OR id = $1`,
         bindOrder: ['id'],
       }),
@@ -250,7 +249,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
         sql: toMatchSql(`SELECT * FROM users WHERE id = e'\\' $id' OR id = ?`),
         bindOrder: ['id'],
       }),
-      postgres: toHaveProperties({
+      'postgres cockroachdb': toHaveProperties({
         sql: `SELECT * FROM users WHERE id = e'\\' $id' OR id = $1`,
         bindOrder: ['id'],
       }),
@@ -262,7 +261,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = '\\\\' OR id = ?`,
-      postgres: `SELECT * FROM users WHERE id = '\\\\' OR id = $1`,
+      'postgres cockroachdb': `SELECT * FROM users WHERE id = '\\\\' OR id = $1`,
       sqlite: `SELECT * FROM users WHERE id = '\\\\' OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = '\\\\' OR id = @id`,
     });
@@ -297,7 +296,7 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         SELECT * FROM users -- WHERE id = $id
         WHERE id = ?
       `,
-      postgres: `
+      'postgres cockroachdb': `
         SELECT * FROM users -- WHERE id = $id
         WHERE id = $1
       `,
@@ -341,7 +340,7 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         */
         WHERE id = ?
       `,
-      postgres: `
+      'postgres cockroachdb': `
         SELECT * FROM users /*
         WHERE id = $id
         */
@@ -508,7 +507,7 @@ SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
       default: new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
 
-      'mysql mariadb postgres': toMatchSql(`SELECT * FROM users WHERE id = '\\' :id' OR id = 1`),
+      'mysql mariadb postgres cockroachdb': toMatchSql(`SELECT * FROM users WHERE id = '\\' :id' OR id = 1`),
     });
   });
 
@@ -517,7 +516,7 @@ SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
       default: new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = E'\\' :id' OR id = :id`),
 
-      'mysql mariadb postgres': toMatchSql(`SELECT * FROM users WHERE id = E'\\' :id' OR id = 1`),
+      'mysql mariadb postgres cockroachdb': toMatchSql(`SELECT * FROM users WHERE id = E'\\' :id' OR id = 1`),
     });
   });
 
@@ -706,7 +705,7 @@ SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
       default: new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
 
-      'mysql mariadb postgres': toMatchSql(`SELECT * FROM users WHERE id = '\\' ?' OR id = 1`),
+      'mysql mariadb postgres cockroachdb': toMatchSql(`SELECT * FROM users WHERE id = '\\' ?' OR id = 1`),
     });
   });
 
@@ -715,7 +714,7 @@ SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
       default: new Error(`The following SQL query includes an unterminated string literal:
 SELECT * FROM users WHERE id = E'\\' ?' OR id = ?`),
 
-      'mysql mariadb postgres': toMatchSql(`SELECT * FROM users WHERE id = E'\\' ?' OR id = 1`),
+      'mysql mariadb postgres cockroachdb': toMatchSql(`SELECT * FROM users WHERE id = E'\\' ?' OR id = 1`),
     });
   });
 

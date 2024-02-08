@@ -30,7 +30,7 @@ describe('QueryInterface#createTable', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      postgres: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT gen_random_uuid(), PRIMARY KEY ("id"));',
+      'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT gen_random_uuid(), PRIMARY KEY ("id"));',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY, PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER DEFAULT NEWID(), PRIMARY KEY ([id]));`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
@@ -84,7 +84,7 @@ describe('QueryInterface#createTable', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      postgres: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v1(), PRIMARY KEY ("id"));',
+      'postgres cockroachdb': 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v1(), PRIMARY KEY ("id"));',
       mysql: 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT (UUID()), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mariadb: 'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT UUID(), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER, PRIMARY KEY ([id]));`,
@@ -112,7 +112,7 @@ describe('QueryInterface#createTable', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      postgres: `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
+      'postgres cockroachdb': `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT \'null\');',

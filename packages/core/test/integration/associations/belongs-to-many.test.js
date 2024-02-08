@@ -1751,10 +1751,21 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
+      const data = dialect === 'cockroachdb' ? {
+        post: { name: 'post1', id: 1 },
+        comment: { name: 'comment1', id: 1 },
+        tag: { name: 'tag1', id: 1 },
+      } : {
+        post: { name: 'post1' },
+        comment: { name: 'comment1' },
+        tag: { name: 'tag1' },
+      };
+
       const [post, comment, tag] = await Promise.all([
-        Post.create({ name: 'post1' }),
-        Comment.create({ name: 'comment1' }),
-        Tag.create({ name: 'tag1' }),
+        Post.create(data.post),
+        Comment.create(data.comment),
+        Tag.create(data.tag),
       ]);
 
       this.post = post;
@@ -1806,11 +1817,23 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
 
+      // CockroachDB uses UUID as the default primary key type instead of integer-based auto-incrementing values
+      const data = dialect === 'cockroachdb' ? {
+        post: { name: 'post1', id: 1 },
+        comment: { name: 'comment1', id: 1 },
+        tag: [{ name: 'tag1', id: 1 }, { name: 'tag2', id: 2 }],
+      }
+      : {
+        post: { name: 'post1' },
+        comment: { name: 'comment1' },
+        tag: [{ name: 'tag1' }, { name: 'tag2' }],
+      };
+
       const [post, comment, tag, secondTag] = await Promise.all([
-        Post.create({ name: 'post1' }),
-        Comment.create({ name: 'comment1' }),
-        Tag.create({ name: 'tag1' }),
-        Tag.create({ name: 'tag2' }),
+        Post.create(data.post),
+        Comment.create(data.comment),
+        Tag.create(data.tag[0]),
+        Tag.create(data.tag[1]),
       ]);
 
       await post.setTags([tag, secondTag]);

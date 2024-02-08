@@ -12,7 +12,7 @@ const sinon = require('sinon');
 const dayjs = require('dayjs');
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'cockroachdb'].includes(dialectName)) {
     return `"${str}"`;
   }
 
@@ -210,6 +210,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const user = await vars.User.create({
             username: 'john',
             emailAddress: 'john@gmail.com',
+            ...(dialectName === 'cockroachdb' && { id: 1 }),
           }, {
             logging: s => {
               createSql = s;
@@ -228,6 +229,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
             expect(updateSql.endsWith(` with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
+          } else if (dialectName === 'cockroachdb') {
+            expect(createSql.endsWith(`with parameters [ 1, 'john', 'john@gmail.com' ]`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
+            expect(updateSql.endsWith(`with parameters [ 'li', 1 ]`)).to.eq(true, 'bind parameters incorrectly logged for UPDATE query');
           } else {
             // these dialects use named bind parameters
             expect(createSql.endsWith(` with parameters { sequelize_1: 'john', sequelize_2: 'john@gmail.com' }`)).to.eq(true, 'bind parameters incorrectly logged for INSERT query');
@@ -237,7 +241,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         it('add parameters in log sql when use bind value', async () => {
           let logSql;
-          let typeCast = dialectName === 'postgres' ? '::text' : '';
+          let typeCast = ['postgres', 'cockroachdb'].includes(dialectName) ? '::text' : '';
           if (['db2'].includes(dialectName)) {
             typeCast = '::VARCHAR';
           }
@@ -514,14 +518,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
 
         await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $1 as baz`, {  raw: true, bind: { one: 1, two: 2 } })
           .should.be.rejectedWith(Error, /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g);
       });
 
       it('rejects when binds passed as array and a named parameter is also present', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
 
         await this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, $foo as baz`, { raw: true, bind: [1, 2] })
           .should.be.rejectedWith(Error, /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g);
@@ -620,7 +624,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('binds token with the passed array', async function () {
         const expected = [{ foo: 1, bar: 2 }];
 
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $1${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $2${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           type: this.sequelize.QueryTypes.SELECT, bind: [1, 2], logging(s) {
@@ -628,7 +632,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           },
         });
         expect(result).to.deep.equal(expected);
-        if (['postgres', 'sqlite'].includes(dialectName)) {
+        if (['postgres', 'sqlite', 'cockroachdb'].includes(dialectName)) {
           expect(logSql).to.include('$1');
         }
       });
@@ -636,7 +640,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('binds named parameters with the passed object', async function () {
         const expected = [{ foo: 1, bar: 2 }];
 
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $one${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $two${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true, bind: { one: 1, two: 2 }, logging(s) {
@@ -644,7 +648,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           },
         });
         expect(result[0]).to.deep.equal(expected);
-        if (dialectName === 'postgres') {
+        if (['postgres', 'cockroachdb'].includes(dialectName)) {
           expect(logSql).to.include('$1');
         }
 
@@ -655,7 +659,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       if (dialectName !== 'db2') {
         it('binds named parameters with the passed object using the same key twice', async function () {
-          const typeCast = dialectName === 'postgres' ? '::int' : '';
+          const typeCast = ['postgres', 'cockroachdb'].includes(dialectName) ? '::int' : '';
           let logSql;
           const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
             raw: true, bind: { one: 1, two: 2 }, logging(s) {
@@ -668,7 +672,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
           }
 
-          if (dialectName === 'postgres') {
+          if (dialectName === 'postgres' || dialectName === 'cockroachdb') {
             expect(logSql).to.include('$1');
             expect(logSql).to.include('$2');
             expect(logSql).to.not.include('$3');
@@ -677,7 +681,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       }
 
       it('binds named parameters with the passed object having a null property', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1, two: null } });
         const expected = ['db2', 'ibmi'].includes(dialectName) ? [{ FOO: 1, BAR: null }] : [{ foo: 1, bar: null }];
         expect(result[0]).to.deep.equal(expected);
@@ -685,7 +689,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       // this was a legacy band aid that has since been removed, because the underlying issue (transforming bind params in strings) has been fixed.
       it('does not transform $$ in strings (positional)', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         let logSql;
         const result = await this.sequelize.query(`select $1${typeCast} as foo, '$$ / $$1' as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, {
           raw: true,
@@ -696,28 +700,28 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         });
         const expected = ['db2', 'ibmi'].includes(dialectName) ? [{ FOO: 1, BAR: '$$ / $$1' }] : [{ foo: 1, bar: '$$ / $$1' }];
         expect(result[0]).to.deep.equal(expected);
-        if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialectName)) {
+        if (['postgres', 'sqlite', 'db2', 'ibmi', 'cockroachdb'].includes(dialectName)) {
           expect(logSql).to.include('$1');
         }
       });
 
       // this was a legacy band aid that has since been removed, because the underlying issue (transforming bind params in strings) has been fixed.
       it('does not transform $$ in strings (named)', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo, '$$ / $$one' as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
         const expected = ['db2', 'ibmi'].includes(dialectName) ? [{ FOO: 1, BAR: '$$ / $$one' }] : [{ foo: 1, bar: '$$ / $$one' }];
         expect(result[0]).to.deep.equal(expected);
       });
 
       it(`does not treat a $ as a bind param if it's in the middle of an identifier`, async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2', 'cockroachdb'].includes(dialectName) ? '::int' : '';
         const result = await this.sequelize.query(`select $one${typeCast} as foo$bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, { raw: true, bind: { one: 1 } });
         const expected = ['db2', 'ibmi'].includes(dialectName) ? [{ FOO$BAR: 1 }] : [{ foo$bar: 1 }];
         expect(result[0]).to.deep.equal(expected);
       });
     }
 
-    if (['postgres', 'sqlite', 'mssql'].includes(dialectName)) {
+    if (['postgres', 'sqlite', 'mssql', 'cockroachdb'].includes(dialectName)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
         const result = await this.sequelize.query('select :stringArray as foo', { raw: true, replacements: { stringArray: sql.list(['"string"']) } });
         expect(result[0]).to.deep.equal([{ foo: '"string"' }]);
@@ -734,7 +738,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(dayjs(result[0].t).isValid()).to.be.true;
     });
 
-    if (Support.getTestDialect() === 'postgres') {
+    if (Support.getTestDialect() === 'postgres' || Support.getTestDialect() === 'cockroachdb') {
       it('replaces named parameters with the passed object and ignores casts', async function () {
         await expect(this.sequelize.query('select :one as foo, :two as bar, \'1000\'::integer as baz', { raw: true, replacements: { one: 1, two: 2 } }).then(obj => obj[0]))
           .to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);

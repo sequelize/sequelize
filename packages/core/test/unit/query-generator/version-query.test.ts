@@ -6,7 +6,7 @@ describe('QueryGenerator#versionQuery', () => {
   it('produces a query that returns the database version', () => {
     expectsql(() => queryGenerator.versionQuery(), {
       'mariadb mysql': 'SELECT VERSION() as `version`',
-      postgres: 'SHOW SERVER_VERSION',
+      'postgres cockroachdb': 'SHOW SERVER_VERSION',
       mssql: `DECLARE @ms_ver NVARCHAR(20); SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion'))); SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`,
       sqlite: 'SELECT sqlite_version() as `version`',
       snowflake: 'SELECT CURRENT_VERSION() AS "version"',

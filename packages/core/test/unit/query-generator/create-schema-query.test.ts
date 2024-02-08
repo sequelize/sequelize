@@ -84,7 +84,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
       default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'ifNotExists', 'replace']),
       mariadb: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment']),
       mysql: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment', 'replace']),
-      postgres: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'replace']),
+      'postgres cockroachdb': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'replace']),
       snowflake: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'charset', 'collate']),
       sqlite: notSupportedError,
     });

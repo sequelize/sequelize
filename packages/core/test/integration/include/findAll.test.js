@@ -14,6 +14,8 @@ function sortById(a, b) {
   return a.id < b.id ? -1 : 1;
 }
 
+const current = Support.sequelize;
+
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findAll', () => {
     beforeEach(function () {
@@ -114,13 +116,22 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         const tags = await Tag.findAll();
         for (const i of [0, 1, 2, 3, 4]) {
           const user = await User.create();
-          await Product.bulkCreate([
+
+          const data = current.dialect.name === 'cockroachdb' ? [
+            { id: i * 5 + 1, title: 'Chair' },
+            { id: i * 5 + 2, title: 'Desk' },
+            { id: i * 5 + 3, title: 'Bed' },
+            { id: i * 5 + 4, title: 'Pen' },
+            { id: i * 5 + 5, title: 'Monitor' },
+          ] : [
             { title: 'Chair' },
             { title: 'Desk' },
             { title: 'Bed' },
             { title: 'Pen' },
             { title: 'Monitor' },
-          ]);
+          ];
+
+          await Product.bulkCreate(data);
           const products = await Product.findAll();
           const groupMembers  = [
             { groupId: groups[0].id, rankId: ranks[0].id },

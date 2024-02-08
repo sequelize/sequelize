@@ -13,7 +13,7 @@ const dialectName = dialect.name;
  * In dialects like postgres, no "json = json" operator exists, we need to cast to text first.
  * It does however support "jsonb = jsonb".
  */
-const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
+const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql', 'cockroachdb'].includes(dialectName);
 
 describe('JSON Manipulation', () => {
   if (!dialect.supports.dataTypes.JSON) {

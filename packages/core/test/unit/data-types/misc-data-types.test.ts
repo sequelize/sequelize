@@ -51,7 +51,7 @@ describe('DataTypes.ENUM', () => {
     assert(typeof enumType !== 'string');
 
     expectsql(enumType.toSql(), {
-      postgres: '"public"."enum_Users_anEnum"',
+      'postgres cockroachdb': '"public"."enum_Users_anEnum"',
       'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
@@ -170,7 +170,7 @@ describe('DataTypes.JSON', () => {
     default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
-    'mariadb mysql postgres': 'JSON',
+    'mariadb mysql postgres cockroachdb': 'JSON',
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite: 'TEXT',
@@ -296,7 +296,7 @@ describe('DataTypes.JSON', () => {
 describe('DataTypes.JSONB', () => {
   testDataTypeSql('JSONB', DataTypes.JSONB, {
     default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
-    postgres: 'JSONB',
+    'postgres cockroachdb': 'JSONB',
   });
 });
 

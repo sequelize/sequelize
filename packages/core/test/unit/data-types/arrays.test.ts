@@ -10,82 +10,85 @@ describe('DataTypes.ARRAY', () => {
 
   testDataTypeSql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
     default: unsupportedError,
-    postgres: 'VARCHAR(255)[]',
+    'postgres cockroachdb': 'VARCHAR(255)[]',
   });
 
   testDataTypeSql('ARRAY(VARCHAR(100))', DataTypes.ARRAY(DataTypes.STRING(100)), {
     default: unsupportedError,
-    postgres: 'VARCHAR(100)[]',
+    'postgres cockroachdb': 'VARCHAR(100)[]',
   });
 
   testDataTypeSql('ARRAY(INTEGER)', DataTypes.ARRAY(DataTypes.INTEGER), {
     default: unsupportedError,
-    postgres: 'INTEGER[]',
+    'postgres cockroachdb': 'INTEGER[]',
   });
 
   testDataTypeSql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
     default: unsupportedError,
+    cockroachdb: new Error(`${dialect.name} does not support the HSTORE data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
     postgres: 'HSTORE[]',
   });
 
   testDataTypeSql('ARRAY(ARRAY(VARCHAR(255)))', DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)), {
     default: unsupportedError,
-    postgres: 'VARCHAR(255)[][]',
+    'postgres cockroachdb': 'VARCHAR(255)[][]',
   });
 
   testDataTypeSql('ARRAY(TEXT)', DataTypes.ARRAY(DataTypes.TEXT), {
     default: unsupportedError,
-    postgres: 'TEXT[]',
+    'postgres cockroachdb': 'TEXT[]',
   });
 
   testDataTypeSql('ARRAY(DATE)', DataTypes.ARRAY(DataTypes.DATE), {
     default: unsupportedError,
-    postgres: 'TIMESTAMP WITH TIME ZONE[]',
+    'postgres cockroachdb': 'TIMESTAMP WITH TIME ZONE[]',
   });
 
   testDataTypeSql('ARRAY(BOOLEAN)', DataTypes.ARRAY(DataTypes.BOOLEAN), {
     default: unsupportedError,
-    postgres: 'BOOLEAN[]',
+    'postgres cockroachdb': 'BOOLEAN[]',
   });
 
   testDataTypeSql('ARRAY(DECIMAL)', DataTypes.ARRAY(DataTypes.DECIMAL), {
     default: unsupportedError,
-    postgres: 'DECIMAL[]',
+    'postgres cockroachdb': 'DECIMAL[]',
   });
 
   testDataTypeSql('ARRAY(DECIMAL(6, 4))', DataTypes.ARRAY(DataTypes.DECIMAL(6, 4)), {
     default: unsupportedError,
-    postgres: 'DECIMAL(6, 4)[]',
+    'postgres cockroachdb': 'DECIMAL(6, 4)[]',
   });
 
   testDataTypeSql('ARRAY(DOUBLE)', DataTypes.ARRAY(DataTypes.DOUBLE), {
     default: unsupportedError,
-    postgres: 'DOUBLE PRECISION[]',
+    'postgres cockroachdb': 'DOUBLE PRECISION[]',
   });
 
   testDataTypeSql('ARRAY(REAL))', DataTypes.ARRAY(DataTypes.REAL), {
     default: unsupportedError,
-    postgres: 'REAL[]',
+    'postgres cockroachdb': 'REAL[]',
   });
 
   testDataTypeSql('ARRAY(JSON)', DataTypes.ARRAY(DataTypes.JSON), {
     default: unsupportedError,
-    postgres: 'JSON[]',
+    'postgres cockroachdb': 'JSON[]',
   });
 
   testDataTypeSql('ARRAY(JSONB)', DataTypes.ARRAY(DataTypes.JSONB), {
     default: unsupportedError,
-    postgres: 'JSONB[]',
+    'postgres cockroachdb': 'JSONB[]',
   });
 
   testDataTypeSql('ARRAY(CITEXT)', DataTypes.ARRAY(DataTypes.CITEXT), {
     default: unsupportedError,
+    cockroachdb: new Error(`${dialect.name} does not support the CITEXT data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
     postgres: 'CITEXT[]',
   });
 
   testDataTypeSql('ARRAY(UUID)', DataTypes.ARRAY(DataTypes.UUID), {
     default: unsupportedError,
     postgres: 'UUID[]',
+    cockroachdb: new Error(`${dialect.name} does not support the UUID data type.\n See https://www.cockroachlabs.com/docs/stable/data-types/ for a list of supported data types.`),
   });
 
   it('raises an error if no values are defined', () => {
@@ -128,7 +131,7 @@ describe('DataTypes.ARRAY', () => {
         'foo',
         'bar',
       ], { type: DataTypes.ARRAY(DataTypes.TEXT) }), {
-        postgres: `ARRAY['foo','bar']`,
+        'postgres cockroachdb': `ARRAY['foo','bar']`,
       });
     });
 
@@ -138,7 +141,7 @@ describe('DataTypes.ARRAY', () => {
         'foo',
         'bar',
       ], { type: DataTypes.ARRAY(DataTypes.STRING(64)) }), {
-        postgres: `ARRAY['foo','bar']::VARCHAR(64)[]`,
+        'postgres cockroachdb': `ARRAY['foo','bar']::VARCHAR(64)[]`,
       });
     });
 
@@ -148,7 +151,7 @@ describe('DataTypes.ARRAY', () => {
         43,
         'joe',
       ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
-        postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+        'postgres cockroachdb': 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
       });
     });
 
@@ -164,7 +167,7 @@ describe('DataTypes.ARRAY', () => {
             { type: DataTypes.ARRAY(DataTypes.JSONB) },
           ),
           {
-            postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+            'postgres cockroachdb': 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
           },
         );
       });

@@ -228,7 +228,7 @@ describe('QueryInterface#upsert', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
-      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+      'postgres cockroachdb': 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])

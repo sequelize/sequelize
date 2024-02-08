@@ -220,6 +220,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       let query: string;
       switch (getTestDialect()) {
+        case 'cockroachdb':
         case 'postgres':
           query = 'select pg_sleep(2);';
           break;

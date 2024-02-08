@@ -655,7 +655,8 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (['sqlite', 'cockroachdb'].includes(dialect.name)) {
+      // Cockroachdb parses BIGINTs greater than Number.MAX_SAFE_INT as a string and less than Number.MAX_SAFE_INTEGER as an integer.
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
@@ -1387,6 +1388,7 @@ describe('DataTypes', () => {
           declare jsonArray: any[];
           declare jsonObject: object;
           declare jsonNull: any;
+          declare id: any;
         }
 
         User.init({
@@ -1441,6 +1443,9 @@ describe('DataTypes', () => {
             // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
             expect(table.jsonStr.type).to.equal('LONGTEXT');
             break;
+          case 'cockroachdb':
+            expect(table.jsonStr.type).to.equal('JSONB');
+            break;
           default:
             expect(table.jsonStr.type).to.equal(jsonTypeName);
         }
@@ -1449,14 +1454,15 @@ describe('DataTypes', () => {
       it('properly serializes default values', async () => {
         const createdUser = await vars.User.create();
         await createdUser.reload();
-        expect(createdUser.get()).to.deep.eq({
+        const user = createdUser.get();
+        expect(user).to.deep.eq({
           jsonStr: 'abc',
           jsonBoolean: true,
           jsonNumber: 1,
           jsonNull: null,
           jsonArray: ['a', 'b'],
           jsonObject: { key: 'abc' },
-          id: 1,
+          id: dialect.name === 'cockroachdb' ? user.id : 1,
         });
       });
 
@@ -1572,9 +1578,10 @@ describe('DataTypes', () => {
         declare booleanArray: Array<string | number | bigint | boolean> | null;
         declare dateArray: Array<string | Date> | null;
         declare stringArray: string[];
-        declare arrayOfArrayOfStrings: string[][];
+        declare arrayOfArrayOfStrings?: string[][];
       }
 
+      // Cockroachdb does not support nested arrays.
       User.init({
         enumArray: DataTypes.ARRAY(DataTypes.ENUM(Object.values(TestEnum))),
         intArray: DataTypes.ARRAY(DataTypes.INTEGER),
@@ -1582,7 +1589,7 @@ describe('DataTypes', () => {
         booleanArray: DataTypes.ARRAY(DataTypes.BOOLEAN),
         dateArray: DataTypes.ARRAY(DataTypes.DATE),
         stringArray: DataTypes.ARRAY(DataTypes.TEXT),
-        arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)),
+        ...(dialect.name !== 'cockroachdb' && { arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)) }),
       }, { sequelize });
 
       await User.sync({ force: true });
@@ -1590,6 +1597,7 @@ describe('DataTypes', () => {
       return { User };
     });
 
+    // CockroachDB does not support nested arrays.
     it('serialize/deserializes arrays', async () => {
       await testSimpleInOut(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOut(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
@@ -1597,17 +1605,28 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'booleanArray', [true, false], [true, false]);
       await testSimpleInOut(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], [new Date('2022-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')]);
       await testSimpleInOut(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      if (dialect.name !== 'cockroachdb') {
+        await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      }
     });
 
     it(`is deserialized as a parsed array when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
       await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
-      await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+      // Earlier versions of cockroachdb add a +00 at the end of a timestampz array, which is not followed post v23.1.
+      // Cockroachdb parses values smaller than Number.MAX_SAFE_INTEGER as integers and bigger than that as strings.
+      if (dialect.name === 'cockroachdb') {
+        await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], [1, 2, 3]);
+      } else {
+        await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
+        await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
+      }
+
       await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
-      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
       await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      if (dialect.name !== 'cockroachdb') {
+        await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      }
     });
 
     it('rejects non-array values', async () => {

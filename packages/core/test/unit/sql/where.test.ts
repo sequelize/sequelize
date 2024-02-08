@@ -83,8 +83,8 @@ TestModel.init({
 
   ...(dialectSupportsArray() && {
     intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
-    intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
-    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE(3)),
+    ...(dialectSupportsRange() && { intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER) }),
+    ...(dialectSupportsRange() && { dateRangeAttr: DataTypes.RANGE(DataTypes.DATE(3)) }),
   }),
 
   stringAttr: DataTypes.STRING,
@@ -144,10 +144,10 @@ describe(getTestDialectTeaser('SQL'), () => {
      */
     type OperatorsSupportingSequelizeValueMethods = keyof {
       [Key in keyof WhereOperators<number>
-        as IncludesType<
-          WhereOperators<number>[Key],
-          Col | Literal | Fn | Cast | { [Op.col]: string }
-        > extends true ? Key : never
+      as IncludesType<
+        WhereOperators<number>[Key],
+        Col | Literal | Fn | Cast | { [Op.col]: string }
+      > extends true ? Key : never
       ]: WhereOperators<number>[Key]
     };
 
@@ -208,11 +208,11 @@ describe(getTestDialectTeaser('SQL'), () => {
      */
     type OperatorsSupportingAnyAll<AttributeType> = keyof {
       [Key in keyof WhereOperators<AttributeType>
-        as IncludesType<
-          WhereOperators<AttributeType>[Key],
-          | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
-          | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
-        > extends true ? Key : never
+      as IncludesType<
+        WhereOperators<AttributeType>[Key],
+        | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
+        | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
+      > extends true ? Key : never
       ]: WhereOperators<AttributeType>[Key]
     };
 
@@ -247,7 +247,7 @@ describe(getTestDialectTeaser('SQL'), () => {
       for (const [arrayOperator, arraySqlOperator] of arrayOperators) {
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: testWithValues } } }, {
           default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
-          postgres: `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
+          'postgres cockroachdb': `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
         });
 
         testSql({ [attributeName]: { [operator]: { [arrayOperator]: literal('literal') } } }, {
@@ -364,7 +364,7 @@ Caused by: "undefined" cannot be escaped`),
       describe('Buffer', () => {
         testSql({ binaryAttr: Buffer.from('Sequelize') }, {
           ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
-          postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
+          'postgres cockroachdb': `"binaryAttr" = '\\x53657175656c697a65'`,
           'sqlite mariadb mysql': '`binaryAttr` = X\'53657175656c697a65\'',
           db2: `"binaryAttr" = BLOB('Sequelize')`,
           snowflake: `"binaryAttr" = X'53657175656c697a65'`,
@@ -374,7 +374,7 @@ Caused by: "undefined" cannot be escaped`),
         // Including a quote (') to ensure dialects that don't convert to hex are safe from SQL injection.
         testSql({ binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] }, {
           ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
-          postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
+          'postgres cockroachdb': `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
           'sqlite mariadb mysql': '`binaryAttr` IN (X\'5365717565276c697a6531\', X\'53657175656c697a6532\')',
           db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
           snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
@@ -779,7 +779,7 @@ Caused by: "undefined" cannot be escaped`),
 
       if (dialectSupportsJsonOperations() && dialectSupportsJsonQuotedExtraction()) {
         testSql({ [Op.not]: json('data.key', 10) }, {
-          postgres: `NOT ("data"->'key' = '10')`,
+          'postgres cockroachdb': `NOT ("data"->'key' = '10')`,
           sqlite: `NOT (json_extract(\`data\`,'$.key') = '10')`,
           mariadb: `NOT (json_compact(json_extract(\`data\`,'$.key')) = '10')`,
           mysql: `NOT (json_extract(\`data\`,'$.key') = CAST('10' AS JSON))`,
@@ -1262,7 +1262,7 @@ Caused by: "undefined" cannot be escaped`),
         testSql({
           intRangeAttr: { [Op.contains]: 1 },
         }, {
-          postgres: `"intRangeAttr" @> 1`,
+          'postgres cockroachdb': `"intRangeAttr" @> 1`,
         });
 
         // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
@@ -1877,8 +1877,8 @@ Caused by: "undefined" cannot be escaped`),
     }
 
     if (sequelize.dialect.supports.REGEXP) {
-      describeRegexpSuite(Op.regexp, sequelize.dialect.name === 'postgres' ? '~' : 'REGEXP');
-      describeRegexpSuite(Op.notRegexp, sequelize.dialect.name === 'postgres' ? '!~' : 'NOT REGEXP');
+      describeRegexpSuite(Op.regexp, (sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'cockroachdb') ? '~' : 'REGEXP');
+      describeRegexpSuite(Op.notRegexp, (sequelize.dialect.name === 'postgres' || sequelize.dialect.name === 'cockroachdb') ? '!~' : 'NOT REGEXP');
     }
 
     if (sequelize.dialect.supports.IREGEXP) {
@@ -1900,7 +1900,7 @@ Caused by: "undefined" cannot be escaped`),
 
     function describeAdjacentRangeSuite(
       operator: typeof Op.adjacent | typeof Op.strictLeft | typeof Op.strictRight
-              | typeof Op.noExtendLeft | typeof Op.noExtendRight,
+        | typeof Op.noExtendLeft | typeof Op.noExtendRight,
       sqlOperator: string,
     ) {
       if (!dialectSupportsRange()) {
@@ -2059,7 +2059,7 @@ Caused by: "undefined" cannot be escaped`),
 
         if (dialectSupportsJsonQuotedExtraction()) {
           testSql({ 'jsonAttr.nested': 'value' }, {
-            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"->'nested' = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
@@ -2098,14 +2098,14 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql(where('value', Op.eq, attribute('jsonAttr.nested')), {
-            postgres: `'"value"' = "jsonAttr"->'nested'`,
+            'postgres cockroachdb': `'"value"' = "jsonAttr"->'nested'`,
             sqlite: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
             mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
             mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
           });
 
           testSql({ 'jsonAttr.nested.twice': 'value' }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
@@ -2114,7 +2114,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             jsonAttr: { nested: 'value' },
           }, {
-            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"->'nested' = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
@@ -2123,7 +2123,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             'jsonAttr.nested': { twice: 'value' },
           }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"#>ARRAY['nested','twice']::VARCHAR(255)[] = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
@@ -2139,7 +2139,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             'jsonAttr.nested': { [Op.ne]: 'value' },
           }, {
-            postgres: `"jsonAttr"->'nested' != '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"->'nested' != '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
@@ -2148,7 +2148,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             '$jsonAttr$.nested': 'value',
           }, {
-            postgres: `"jsonAttr"->'nested' = '"value"'`,
+            'postgres cockroachdb': `"jsonAttr"->'nested' = '"value"'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
@@ -2157,7 +2157,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             '$association.jsonAttr$.nested': 'value',
           }, {
-            postgres: `"association"."jsonAttr"->'nested' = '"value"'`,
+            'postgres cockroachdb': `"association"."jsonAttr"->'nested' = '"value"'`,
             sqlite: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
@@ -2167,7 +2167,7 @@ Caused by: "undefined" cannot be escaped`),
             'jsonAttr.nested::STRING': 'value',
           }, {
             // with the left value cast to a string, we serialize the right value as a string, not as a JSON value
-            postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+            'postgres cockroachdb': `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
             mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
             'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
           });
@@ -2183,7 +2183,7 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             '$association.jsonAttr$.nested.deep::STRING': 'value',
           }, {
-            postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep']::VARCHAR(255)[] AS STRING) = 'value'`,
+            'postgres cockroachdb': `CAST("association"."jsonAttr"#>ARRAY['nested','deep']::VARCHAR(255)[] AS STRING) = 'value'`,
             mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
             'sqlite mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
           });
@@ -2191,13 +2191,13 @@ Caused by: "undefined" cannot be escaped`),
           testSql({
             $jsonAttr$: { 'nested::string': 'value' },
           }, {
-            postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
+            'postgres cockroachdb': `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
             mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
             'sqlite mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
           });
 
           testSql({ 'jsonAttr.nested.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
+            'postgres cockroachdb': `"jsonAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
@@ -2205,7 +2205,7 @@ Caused by: "undefined" cannot be escaped`),
 
           // 0 is treated as a string key here, not an array index
           testSql({ 'jsonAttr.0': 4 }, {
-            postgres: `"jsonAttr"->'0' = '4'`,
+            'postgres cockroachdb': `"jsonAttr"->'0' = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
@@ -2213,7 +2213,7 @@ Caused by: "undefined" cannot be escaped`),
 
           // 0 is treated as an index here, not a string key
           testSql({ 'jsonAttr[0]': 4 }, {
-            postgres: `"jsonAttr"->0 = '4'`,
+            'postgres cockroachdb': `"jsonAttr"->0 = '4'`,
 
             // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
             sqlite: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
@@ -2222,7 +2222,7 @@ Caused by: "undefined" cannot be escaped`),
           });
 
           testSql({ 'jsonAttr.0.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['0','attribute']::VARCHAR(255)[] = '4'`,
+            'postgres cockroachdb': `"jsonAttr"#>ARRAY['0','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
@@ -2230,7 +2230,7 @@ Caused by: "undefined" cannot be escaped`),
 
           // Regression test: https://github.com/sequelize/sequelize/issues/8718
           testSql({ jsonAttr: { 'hyphenated-key': 4 } }, {
-            postgres: `"jsonAttr"->'hyphenated-key' = '4'`,
+            'postgres cockroachdb': `"jsonAttr"->'hyphenated-key' = '4'`,
             sqlite: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."hyphenated-key"')) = '4'`,
             mysql: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = CAST('4' AS JSON)`,
@@ -2238,14 +2238,14 @@ Caused by: "undefined" cannot be escaped`),
 
           // SQL injection test
           testSql({ jsonAttr: { '"a\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "': 1 } }, {
-            postgres: `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
+            'postgres cockroachdb': `"jsonAttr"->'a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- ' = '1'`,
             mysql: `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = CAST('1' AS JSON)`,
             sqlite: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
             mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "')) = '1'`,
           });
 
           testSql({ 'jsonAttr[0].nested.attribute': 4 }, {
-            postgres: `"jsonAttr"#>ARRAY['0','nested','attribute']::VARCHAR(255)[] = '4'`,
+            'postgres cockroachdb': `"jsonAttr"#>ARRAY['0','nested','attribute']::VARCHAR(255)[] = '4'`,
 
             // these tests cannot be deduplicated because [0] will be replaced by `0` by expectsql
             sqlite: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
@@ -2255,7 +2255,7 @@ Caused by: "undefined" cannot be escaped`),
 
           // aliases attribute -> column correctly
           testSql({ 'aliasedJsonAttr.nested.attribute': 4 }, {
-            postgres: `"aliased_json"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
+            'postgres cockroachdb': `"aliased_json"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '4'`,
             sqlite: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
             mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
             mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
@@ -2264,25 +2264,25 @@ Caused by: "undefined" cannot be escaped`),
 
         if (dialectSupportsJsonUnquotedExtraction()) {
           testSql({ 'jsonAttr:unquote': 0 }, {
-            postgres: `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
+            'postgres cockroachdb': `"jsonAttr"#>>ARRAY[]::TEXT[] = 0`,
             mssql: `JSON_VALUE([jsonAttr]) = 0`,
             'sqlite mysql mariadb': `json_unquote([jsonAttr]) = 0`,
           });
 
           testSql({ 'jsonAttr.key:unquote': 0 }, {
-            postgres: `"jsonAttr"->>'key' = 0`,
+            'postgres cockroachdb': `"jsonAttr"->>'key' = 0`,
             mssql: `JSON_VALUE([jsonAttr], N'$.key') = 0`,
             'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.key')) = 0`,
           });
 
           testSql({ 'jsonAttr.nested.key:unquote': 0 }, {
-            postgres: `"jsonAttr"#>>ARRAY['nested','key']::VARCHAR(255)[] = 0`,
+            'postgres cockroachdb': `"jsonAttr"#>>ARRAY['nested','key']::VARCHAR(255)[] = 0`,
             mssql: `JSON_VALUE([jsonAttr], N'$.nested.key') = 0`,
             'sqlite mysql mariadb': `json_unquote(json_extract([jsonAttr],'$.nested.key')) = 0`,
           });
 
           testSql({ 'jsonAttr[0]:unquote': 0 }, {
-            postgres: `"jsonAttr"->>0 = 0`,
+            'postgres cockroachdb': `"jsonAttr"->>0 = 0`,
 
             // must be separate because [0] will be replaced by `0` by expectsql
             sqlite: `json_unquote(json_extract(\`jsonAttr\`,'$[0]')) = 0`,
@@ -2399,13 +2399,13 @@ Caused by: "undefined" cannot be escaped`),
 
         // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(json('profile.id', cast('12346-78912', 'text')), {
-          postgres: `"User"."profile"->'id' = CAST('12346-78912' AS TEXT)`,
+          'postgres cockroachdb': `"User"."profile"->'id' = CAST('12346-78912' AS TEXT)`,
         }, {
           mainAlias: 'User',
         });
 
         testSql(json({ profile: { id: '12346-78912', name: 'test' } }), {
-          postgres: `"User"."profile"->'id' = '"12346-78912"' AND "User"."profile"->'name' = '"test"'`,
+          'postgres cockroachdb': `"User"."profile"->'id' = '"12346-78912"' AND "User"."profile"->'name' = '"test"'`,
         }, {
           mainAlias: 'User',
         });
@@ -2417,7 +2417,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"User"."jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '"value"'`,
+          'postgres cockroachdb': `"User"."jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = '"value"'`,
         }, {
           mainAlias: 'User',
         });
@@ -2429,7 +2429,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"->'nested' IN ('1', '2')`,
+          'postgres cockroachdb': `"jsonbAttr"->'nested' IN ('1', '2')`,
         });
 
         testSql({
@@ -2437,7 +2437,7 @@ Caused by: "undefined" cannot be escaped`),
             [Op.in]: [3, 7],
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] IN ('3', '7')`,
+          'postgres cockroachdb': `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] IN ('3', '7')`,
         });
 
         testSql({
@@ -2447,7 +2447,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"->'nested' BETWEEN '1' AND '2'`,
+          'postgres cockroachdb': `"jsonbAttr"->'nested' BETWEEN '1' AND '2'`,
         });
 
         testSql({
@@ -2456,7 +2456,7 @@ Caused by: "undefined" cannot be escaped`),
             name: 'Product',
           },
         }, {
-          postgres: `"jsonbAttr"->'price' = '5' AND "jsonbAttr"->'name' = '"Product"'`,
+          'postgres cockroachdb': `"jsonbAttr"->'price' = '5' AND "jsonbAttr"->'name' = '"Product"'`,
         });
 
         testSql({
@@ -2469,7 +2469,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"User"."jsonbAttr"#>ARRAY['name','last']::VARCHAR(255)[] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
+          'postgres cockroachdb': `"User"."jsonbAttr"#>ARRAY['name','last']::VARCHAR(255)[] = '"Simpson"' AND "User"."jsonbAttr"->'employment' != '"None"'`,
         }, {
           mainAlias: 'User',
         });
@@ -2485,7 +2485,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] > ${queryGen.escape(jsonDt)}`,
+          'postgres cockroachdb': `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] > ${queryGen.escape(jsonDt)}`,
         });
 
         testSql({
@@ -2495,7 +2495,7 @@ Caused by: "undefined" cannot be escaped`),
             },
           },
         }, {
-          postgres: `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = 'true'`,
+          'postgres cockroachdb': `"jsonbAttr"#>ARRAY['nested','attribute']::VARCHAR(255)[] = 'true'`,
         });
 
         testSql({
@@ -2509,33 +2509,33 @@ Caused by: "undefined" cannot be escaped`),
         testSql({
           jsonbTypeLiteralAttr: { [Op.contains]: { foo: 'bar' } },
         }, {
-          postgres: '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
+          'postgres cockroachdb': '"jsonbTypeLiteralAttr" @> \'{"foo":"bar"}\'',
         });
 
         testSql({
           // @ts-expect-error -- key `bad` isn't known
           jsonbTypeLiteralAttr: { [Op.contains]: { bad: 'bad' } },
         }, {
-          postgres: '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
+          'postgres cockroachdb': '"jsonbTypeLiteralAttr" @> \'{"bad":"bad"}\'',
         });
 
         testSql({
           jsonbInterfaceAttr: { [Op.contains]: { foo: 'bar' } },
         }, {
-          postgres: '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
+          'postgres cockroachdb': '"jsonbInterfaceAttr" @> \'{"foo":"bar"}\'',
         });
 
         testSql({
           // @ts-expect-error -- key `bad` isn't known
           jsonbInterfaceAttr: { [Op.contains]: { bad: 'bad' } },
         }, {
-          postgres: '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
+          'postgres cockroachdb': '"jsonbInterfaceAttr" @> \'{"bad":"bad"}\'',
         });
 
         // aliases correctly
 
         testSql({ aliasedJsonbAttr: { key: 'value' } }, {
-          postgres: `"aliased_jsonb"->'key' = '"value"'`,
+          'postgres cockroachdb': `"aliased_jsonb"->'key' = '"value"'`,
         });
       });
     }
@@ -2902,7 +2902,7 @@ Caused by: "undefined" cannot be escaped`),
 
         if (dialectSupportsJsonOperations() && dialectSupportsJsonQuotedExtraction()) {
           testSql(where(col('col'), { jsonPath: 'value' }), {
-            postgres: `"col"->'jsonPath' = '"value"'`,
+            'postgres cockroachdb': `"col"->'jsonPath' = '"value"'`,
             sqlite: `json_extract(\`col\`,'$.jsonPath') = '"value"'`,
             mariadb: `json_compact(json_extract(\`col\`,'$.jsonPath')) = '"value"'`,
             mysql: `json_extract(\`col\`,'$.jsonPath') = CAST('"value"' AS JSON)`,

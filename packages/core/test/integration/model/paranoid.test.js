@@ -152,10 +152,12 @@ describe('Paranoid Model', () => {
     }, { paranoid: true });
 
     await User.sync({ force: true });
+
+    // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
     await User.bulkCreate([
-      { username: 'Toni' },
-      { username: 'Tobi' },
-      { username: 'Max' },
+      { username: 'Toni', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
+      { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
     ]);
     const user = await User.findByPk(1);
     await user.destroy();
@@ -170,10 +172,12 @@ describe('Paranoid Model', () => {
     }, { paranoid: true });
 
     await User.sync({ force: true });
+
+    // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
     await User.bulkCreate([
-      { username: 'Toni' },
-      { username: 'Tobi' },
-      { username: 'Max' },
+      { username: 'Toni', ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { username: 'Tobi', ...(dialectName === 'cockroachdb' && { id: 2 }) },
+      { username: 'Max', ...(dialectName === 'cockroachdb' && { id: 3 }) },
     ]);
     const user = await User.findByPk(1);
     await user.destroy();
@@ -198,9 +202,11 @@ describe('Paranoid Model', () => {
     await User.sync({ force: true });
     await Pet.sync({ force: true });
     const userId = (await User.create({ username: 'Joe' })).id;
+
+    // Cockroachdb does not guarantee sequential id generation as it uses unique_rowid().
     await Pet.bulkCreate([
-      { name: 'Fido', userId },
-      { name: 'Fifi', userId },
+      { name: 'Fido', userId, ...(dialectName === 'cockroachdb' && { id: 1 }) },
+      { name: 'Fifi', userId, ...(dialectName === 'cockroachdb' && { id: 2 }) },
     ]);
     const pet = await Pet.findByPk(1);
     await pet.destroy();

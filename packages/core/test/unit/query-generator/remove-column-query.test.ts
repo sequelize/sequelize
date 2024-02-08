@@ -18,7 +18,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
   it('generates a query that drops a column with cascade', () => {
     expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn', { cascade: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['cascade']),
-      'db2 ibmi postgres': 'ALTER TABLE [myTable] DROP COLUMN [myColumn] CASCADE',
+      'db2 ibmi postgres cockroachdb': 'ALTER TABLE [myTable] DROP COLUMN [myColumn] CASCADE',
       sqlite: notSupportedError,
     });
   });
@@ -26,7 +26,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
   it('generates a query that drops a column with ifExists', () => {
     expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn', { ifExists: true }), {
       default: buildInvalidOptionReceivedError('removeColumnQuery', dialectName, ['ifExists']),
-      'mariadb mssql postgres': 'ALTER TABLE [myTable] DROP COLUMN IF EXISTS [myColumn]',
+      'mariadb mssql postgres cockroachdb': 'ALTER TABLE [myTable] DROP COLUMN IF EXISTS [myColumn]',
       sqlite: notSupportedError,
     });
   });

@@ -56,13 +56,19 @@ describe(getTestDialectTeaser('fn()'), () => {
 
       // These values are returned as strings
       // See https://github.com/sequelize/sequelize/issues/10533#issuecomment-1254141892 for more details
-      expect(airplane.get('count')).to.equal(arithmeticAsNumber ? 3 : '3');
+      if (dialectName === 'cockroachdb') {
+        // CockroachDB defines bigInts and integers as INT, so while parsing the value it returns string only if value > Number.MAX_SAFE_INTEGER
+        expect(airplane.get('count')).to.equal(3);
+      } else {
+        expect(airplane.get('count')).to.equal(arithmeticAsNumber ? 3 : '3');
+      }
+
       expect(airplane.get('count-engines')).to.equal(arithmeticAsNumber ? 1 : '1');
       expect(airplane.get('count-engines-wings')).to.equal(arithmeticAsNumber ? 2 : '2');
     });
   }
 
-  if (dialectName !== 'mssql' && dialectName !== 'postgres' && dialectName !== 'ibmi') {
+  if (!['mssql', 'postgres', 'ibmi', 'cockroachdb'].includes(dialectName)) {
     it('accepts condition object (auto casting)', async () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [

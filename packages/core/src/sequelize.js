@@ -350,6 +350,9 @@ export class Sequelize extends SequelizeTypeScript {
       case 'snowflake':
         Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
+      case 'cockroachdb':
+        Dialect = require('./dialects/cockroachdb').CockroachDbDialect;
+        break;
       default:
         throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
     }
@@ -946,7 +949,7 @@ Use Sequelize#query if you wish to use replacements.`);
    * @returns {Fn}
    */
   random() {
-    if (['postgres', 'sqlite', 'snowflake'].includes(this.getDialect())) {
+    if (['postgres', 'sqlite', 'snowflake', 'cockroachdb'].includes(this.getDialect())) {
       return fn('RANDOM');
     }
 
