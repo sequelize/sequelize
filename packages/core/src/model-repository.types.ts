@@ -2,7 +2,7 @@ import type { QiBulkDeleteOptions } from './dialects/abstract/query-interface.ty
 import type { NewHookable } from './hooks.js';
 
 /**
- * Used by {@link ModelRepository#destroy}
+ * Used by {@link ModelRepository#_UNSTABLE_destroy}
  */
 export interface DestroyManyOptions extends NewHookable<'beforeDestroyMany' | 'afterDestroyMany'>, Omit<QiBulkDeleteOptions, 'where' | 'limit'> {
   /**
