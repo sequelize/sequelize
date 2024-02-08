@@ -83,6 +83,8 @@ export const INET = classToInvokable(DataTypes.INET);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const MACADDR = classToInvokable(DataTypes.MACADDR);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
+export const MACADDR8 = classToInvokable(DataTypes.MACADDR8);
+/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const CITEXT = classToInvokable(DataTypes.CITEXT);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const TSVECTOR = classToInvokable(DataTypes.TSVECTOR);

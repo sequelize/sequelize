@@ -42,6 +42,7 @@ const ignoredCjsKeysMap = {
     'JSON',
     'JSONB',
     'MACADDR',
+    'MACADDR8',
     'MEDIUMINT',
     'NOW',
     'RANGE',
