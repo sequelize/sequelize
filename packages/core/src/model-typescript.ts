@@ -75,12 +75,12 @@ export class ModelTypeScript {
     return (this.constructor as ModelStatic).modelDefinition;
   }
 
-  static get _UNSTABLE_modelRepository(): ModelRepository {
+  static get modelRepository(): ModelRepository {
     return getModelRepository(this.modelDefinition);
   }
 
-  get _UNSTABLE_modelRepository(): ModelRepository {
-    return (this.constructor as ModelStatic)._UNSTABLE_modelRepository;
+  get modelRepository(): ModelRepository {
+    return (this.constructor as ModelStatic).modelRepository;
   }
 
   /**
@@ -419,12 +419,12 @@ export class ModelTypeScript {
    * @param instances The instances to delete.
    * @param options Options.
    */
-  static async destroyMany<M extends Model>(
+  static async _UNSTABLE_destroyMany<M extends Model>(
     this: ModelStatic<M>,
     instances: M | M[],
     options?: DestroyOptions<Attributes<M>>,
   ): Promise<number> {
-    return this._UNSTABLE_modelRepository.destroy(instances, options);
+    return this.modelRepository._UNSTABLE_destroy(instances, options);
   }
 }
 

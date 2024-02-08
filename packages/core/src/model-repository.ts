@@ -38,7 +38,10 @@ export class ModelRepository<M extends Model = Model> {
     return this.#sequelize.queryInterface;
   }
 
-  async destroy(instanceOrInstances: readonly M[] | M, options: DestroyManyOptions = EMPTY_OBJECT): Promise<number> {
+  async _UNSTABLE_destroy(
+    instanceOrInstances: readonly M[] | M,
+    options: DestroyManyOptions = EMPTY_OBJECT,
+  ): Promise<number> {
     const { ...optionsClone } = options;
 
     assertHasPrimaryKey(this.#modelDefinition);

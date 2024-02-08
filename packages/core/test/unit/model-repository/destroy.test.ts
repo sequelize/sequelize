@@ -45,31 +45,31 @@ describe('ModelRepository#destroy', () => {
 
   it('throw an error if the model has no primary key', async () => {
     const { NoPk } = vars;
-    const repository = NoPk._UNSTABLE_modelRepository;
+    const repository = NoPk.modelRepository;
 
     const instance = NoPk.build();
 
-    await expect(repository.destroy(instance)).to.be.rejectedWith('does not have a primary key attribute definition');
+    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith('does not have a primary key attribute definition');
   });
 
   it(`throws an error if the model's PK is not loaded`, async () => {
     const { SimpleId } = vars;
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance = SimpleId.build();
 
-    await expect(repository.destroy(instance)).to.be.rejectedWith('missing the value of its primary key');
+    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith('missing the value of its primary key');
   });
 
   it('creates an optimized query for single-entity deletions', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance = SimpleId.build({ id: 1 });
 
-    await repository.destroy(instance);
+    await repository._UNSTABLE_destroy(instance);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -83,12 +83,12 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
 
-    await repository.destroy([instance1, instance2]);
+    await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -102,12 +102,12 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { CompositePk } = vars;
-    const repository = CompositePk._UNSTABLE_modelRepository;
+    const repository = CompositePk.modelRepository;
 
     const instance1 = CompositePk.build({ id1: 1, id2: 2 });
     const instance2 = CompositePk.build({ id1: 3, id2: 4 });
 
-    await repository.destroy([instance1, instance2]);
+    await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -121,12 +121,12 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     const { VersionedSimpleId } = vars;
-    const repository = VersionedSimpleId._UNSTABLE_modelRepository;
+    const repository = VersionedSimpleId.modelRepository;
 
     const instance1 = VersionedSimpleId.build({ id: 1, version: 2 });
     const instance2 = VersionedSimpleId.build({ id: 3, version: 4 });
 
-    await repository.destroy([instance1, instance2]);
+    await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -140,7 +140,7 @@ describe('ModelRepository#destroy', () => {
     sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -151,7 +151,7 @@ describe('ModelRepository#destroy', () => {
     SimpleId.hooks.addListener('beforeDestroyMany', beforeDestroyManySpy);
     SimpleId.hooks.addListener('afterDestroyMany', afterDestroyManySpy);
 
-    await repository.destroy([instance1, instance2]);
+    await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(beforeDestroyManySpy.callCount).to.eq(1);
     expect(beforeDestroyManySpy.getCall(0).args).to.deep.eq([
@@ -171,7 +171,7 @@ describe('ModelRepository#destroy', () => {
     sinon.stub(sequelize, 'queryRaw');
 
     const { SimpleId } = vars;
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -182,7 +182,7 @@ describe('ModelRepository#destroy', () => {
     SimpleId.hooks.addListener('beforeDestroyMany', beforeDestroyManySpy);
     SimpleId.hooks.addListener('afterDestroyMany', afterDestroyManySpy);
 
-    await repository.destroy([instance1, instance2], { noHooks: true });
+    await repository._UNSTABLE_destroy([instance1, instance2], { noHooks: true });
 
     expect(beforeDestroyManySpy.callCount).to.eq(0);
     expect(afterDestroyManySpy.callCount).to.eq(0);
@@ -192,7 +192,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
     const { SimpleId } = vars;
 
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
     const instance2 = SimpleId.build({ id: 2 });
@@ -202,7 +202,7 @@ describe('ModelRepository#destroy', () => {
       instances.push(instance3);
     });
 
-    await repository.destroy([instance1, instance2]);
+    await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -216,7 +216,7 @@ describe('ModelRepository#destroy', () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
     const { SimpleId } = vars;
 
-    const repository = SimpleId._UNSTABLE_modelRepository;
+    const repository = SimpleId.modelRepository;
 
     const instance1 = SimpleId.build({ id: 1 });
 
@@ -225,7 +225,7 @@ describe('ModelRepository#destroy', () => {
       instances.splice(0, instances.length);
     });
 
-    await repository.destroy([instance1]);
+    await repository._UNSTABLE_destroy([instance1]);
 
     expect(stub.callCount).to.eq(0);
   });

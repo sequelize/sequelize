@@ -27,4 +27,3 @@ export const showAllToListSchemas = deprecate(noop, 'Do not use "showAllSchemas"
 export const showAllToListTables = deprecate(noop, 'Do not use "showAllTables". Use QueryInterface#listTables instead.', 'SEQUELIZE0025');
 export const noDataTypesUuid = deprecate(noop, 'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1 or sql.uuidV4 instead.', 'SEQUELIZE0026');
 export const encodeHost = deprecate(noop, 'Use a URL encoded host instead of adding it as a host query string', 'SEQUELIZE0027');
-export const noDestroyIndividualHooks = deprecate(noop, 'Using "individualHooks" in Model.destroy is deprecated in favor of calling Model.findAll followed by Model.destroyMany.', 'SEQUELIZE0029');

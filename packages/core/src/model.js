@@ -4,7 +4,6 @@ import { AbstractDataType } from './dialects/abstract/data-types';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { intersects } from './utils/array';
 import {
-  noDestroyIndividualHooks,
   noDoubleNestedGroup,
   noModelDropSchema,
   noNewModel,
@@ -2475,7 +2474,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param  {object} options destroy options
    * @returns {Promise<number>} The number of destroyed rows
    */
-  // TODO: deprecate name in favor of bulkDestroy,
+  // TODO: add _UNSTABLE_bulkDestroy, aimed to be a replacement,
   //  which does the same thing but uses `noHooks` instead of `hooks` and `hardDelete` instead of `force`,
   //  and does not accept `individualHooks`
   static async destroy(options) {
@@ -2513,8 +2512,6 @@ ${associationOwner._getAssociationDebugList()}`);
     let instances;
     // Get daos and run beforeDestroy hook on each record individually
     if (options.individualHooks) {
-      noDestroyIndividualHooks();
-
       instances = await this.findAll({
         where: options.where,
         connection: options.connection,
