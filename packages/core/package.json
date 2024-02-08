@@ -89,7 +89,7 @@
     "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
     "mariadb": "3.2.3",
-    "mocha": "10.2.0",
+    "mocha": "10.3.0",
     "moment": "2.30.1",
     "mysql2": "3.9.1",
     "nyc": "15.1.0",
