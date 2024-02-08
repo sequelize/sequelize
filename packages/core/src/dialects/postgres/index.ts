@@ -60,6 +60,7 @@ export class PostgresDialect extends AbstractDialect {
       DECIMAL: { unconstrained: true, NaN: true, infinity: true },
       CIDR: true,
       MACADDR: true,
+      MACADDR8: true,
       INET: true,
     },
     jsonOperations: true,

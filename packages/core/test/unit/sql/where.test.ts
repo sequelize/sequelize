@@ -2696,6 +2696,23 @@ Caused by: "undefined" cannot be escaped`),
         default: 'NOT ([intAttr1] = 1 AND [intAttr2] = 2)',
       });
 
+      testSql({
+        [Op.not]: {
+          [Op.or]: {
+            [Op.and]: {
+              intAttr1: 1,
+              intAttr2: 2,
+            },
+            [Op.or]: {
+              intAttr1: 1,
+              intAttr2: 2,
+            },
+          },
+        },
+      }, {
+        default: 'NOT (([intAttr1] = 1 AND [intAttr2] = 2) OR ([intAttr1] = 1 OR [intAttr2] = 2))',
+      });
+
       // Op.not, Op.and, Op.or can reside on the same object as attributes
       testSql({
         intAttr1: 1,
