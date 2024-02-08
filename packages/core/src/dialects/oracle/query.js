@@ -464,6 +464,8 @@ export class OracleQuery extends AbstractQuery {
       result = [result, data.rowsAffected];
     } else if (this.isBulkUpdateQuery()) {
       result = data.rowsAffected;
+    } else if (this.isDeleteQuery()) {
+      result = data.rowsAffected;
     } else if (this.isUpsertQuery()) {
       // Upsert Query, will return nothing
       data = data.outBinds;
