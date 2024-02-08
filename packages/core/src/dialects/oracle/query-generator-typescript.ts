@@ -13,9 +13,9 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { AddLimitOffsetOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
+import type { AddLimitOffsetOptions, BulkDeleteQueryOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
 import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
-
+import { isModelStatic } from '../../utils/model-utils';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
 const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
@@ -259,5 +259,29 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       );
     }
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
+  }
+
+  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
+    const table = this.quoteTable(tableName);
+    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+    let queryTmpl;
+
+    let whereClause = this.whereQuery(options.where, whereOptions);
+    whereClause = whereClause.replace('WHERE', '');
+
+    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+      if (!isModelStatic(tableName)) {
+        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      }
+
+      const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
+      queryTmpl =
+        `DELETE FROM ${table} WHERE rowid IN (SELECT rowid FROM ${table} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
+        })`;
+    } else {
+      const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';
+      queryTmpl = `DELETE FROM ${table}${whereTmpl}`;
+    }
+    return queryTmpl;
   }
 }

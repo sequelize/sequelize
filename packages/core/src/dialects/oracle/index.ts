@@ -54,6 +54,9 @@ export class OracleDialect extends AbstractDialect {
     renameTable: {
       changeSchema: false,
     },
+    delete: {
+      modelWithLimit: true,
+    },
     upserts: true,
     bulkDefault: true,
     topLevelOrderByRequired: true,
