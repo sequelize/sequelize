@@ -121,17 +121,6 @@ export class INTEGER extends BaseTypes.INTEGER {
   }
 }
 
-export class BIGINT extends BaseTypes.BIGINT {
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
-  }
-
-  toSql(): string {
-    return 'INTEGER';
-  }
-}
-
 export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);

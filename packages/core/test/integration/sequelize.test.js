@@ -532,11 +532,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('define', () => {
     describe('table', () => {
-      for (const customAttributes of [
-        { id: { type: DataTypes.BIGINT, primaryKey: true } },
+      const attributeList = [
+        { id: { type: DataTypes.INTEGER, primaryKey: true } },
         { id: { type: DataTypes.STRING, allowNull: true, primaryKey: true } },
-        { id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } },
-      ]) {
+        { id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true } },
+      ];
+
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        attributeList.push(
+          { id: { type: DataTypes.BIGINT, primaryKey: true } },
+          { id: { type: DataTypes.BIGINT, allowNull: false, primaryKey: true, autoIncrement: true } },
+        );
+      }
+
+      for (const customAttributes of attributeList) {
 
         it('should be able to override options on the default attributes', async function () {
           const Picture = this.sequelize.define('picture', cloneDeep(customAttributes));

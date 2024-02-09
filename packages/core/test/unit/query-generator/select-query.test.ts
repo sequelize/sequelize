@@ -37,7 +37,7 @@ describe('QueryGenerator#selectQuery', () => {
         autoIncrement: true,
         primaryKey: true,
       },
-      duration: DataTypes.BIGINT,
+      duration: DataTypes.INTEGER,
     }, { timestamps: false });
 
     const ProjectContributor = sequelize.define('ProjectContributor', {}, { timestamps: false });

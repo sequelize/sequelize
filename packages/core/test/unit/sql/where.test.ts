@@ -33,6 +33,7 @@ type Expectations = {
   [dialectName: string]: string | Error,
 };
 
+const dialectSupportsBigInt = () => sequelize.dialect.supports.dataTypes.BIGINT;
 const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
@@ -91,7 +92,7 @@ TestModel.init({
   binaryAttr: DataTypes.BLOB,
   dateAttr: DataTypes.DATE(3),
   booleanAttr: DataTypes.BOOLEAN,
-  bigIntAttr: DataTypes.BIGINT,
+  ...(dialectSupportsBigInt() && { bigIntAttr: DataTypes.BIGINT }),
 
   aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
 

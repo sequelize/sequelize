@@ -167,6 +167,8 @@ export type DialectSupports = {
     DOUBLE: SupportableFloatOptions,
     /** This dialect supports arbitrary precision numbers */
     DECIMAL: false | SupportableExactDecimalOptions,
+    /** This dialect supports big integers */
+    BIGINT: boolean,
     /**
      * The dialect is considered to support JSON if it provides either:
      * - A JSON data type.
@@ -352,6 +354,7 @@ export abstract class AbstractDialect {
       REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
       DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
       DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
+      BIGINT: true,
       CIDR: false,
       MACADDR: false,
       MACADDR8: false,
