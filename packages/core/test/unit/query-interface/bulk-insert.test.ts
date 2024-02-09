@@ -2,7 +2,7 @@ import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
 import { DataTypes, Transaction } from '@sequelize/core';
-import { expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
+import { expectPerDialect, expectsql, sequelize, toMatchRegex } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
   const User = sequelize.define('User', {
@@ -17,15 +17,14 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users);
+    await sequelize.queryInterface.bulkInsert(User, users);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
-      mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
+      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\)$/),
+      mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\)$/),
     });
   });
 
@@ -34,15 +33,14 @@ describe('QueryInterface#bulkInsert', () => {
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
+    await sequelize.queryInterface.bulkInsert(User, users, { transaction });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
-      mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
+      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\)$/),
+      mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\)$/),
     });
   });
 
@@ -50,7 +48,7 @@ describe('QueryInterface#bulkInsert', () => {
   it('does not parse replacements outside of raw sql', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.queryInterface.bulkInsert(User.table, [{
+    await sequelize.queryInterface.bulkInsert(User, [{
       firstName: ':injection',
     }], {
       replacements: {
@@ -61,12 +59,9 @@ describe('QueryInterface#bulkInsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
-    expectPerDialect(() => firstCall, {
-      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
-      'mysql mariadb sqlite': toMatchSql('INSERT INTO `Users` (`firstName`) VALUES (\':injection\');'),
-      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
-      // TODO: db2 should use the same system as ibmi
-      ibmi: toMatchSql(`SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`),
+    expectsql(() => firstCall, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES (':injection')`,
+      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N':injection')`,
     });
   });
 });

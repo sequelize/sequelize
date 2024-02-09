@@ -1522,7 +1522,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     const M1 = {};
 
     await Maya.sync({ force: true });
-    const m = await Maya.create(M1, { returning: true });
+    const m = await Maya.create(M1, { returning: dialect.supports.insert.returning });
     expect(m.id).to.be.eql(1);
   });
 

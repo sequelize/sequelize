@@ -8,7 +8,6 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
 const { createSequelizeInstance } = require('../../../support');
 
@@ -160,118 +159,6 @@ if (dialect === 'sqlite') {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
           context: QueryGenerator,
-        },
-      ],
-
-      insertQuery: [
-        {
-          arguments: ['myTable', { name: 'foo' }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: 'foo' },
-          },
-        }, {
-          arguments: ['myTable', { name: '\'bar\'' }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: '\'bar\'' },
-          },
-        }, {
-          arguments: ['myTable', { data: Buffer.from('Sequelize') }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`data`) VALUES ($sequelize_1);',
-            bind: { sequelize_1: Buffer.from('Sequelize') },
-          },
-        }, {
-          arguments: ['myTable', { name: 'bar', value: null }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'bar', sequelize_2: null },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
-            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
-          },
-        }, {
-          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3);',
-            bind: { sequelize_1: 'foo', sequelize_2: 1, sequelize_3: null },
-          },
-          context: { options: { omitNull: false } },
-        }, {
-          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: null }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: 1 },
-          },
-          context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', { name: 'foo', foo: 1, nullValue: undefined }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`name`,`foo`) VALUES ($sequelize_1,$sequelize_2);',
-            bind: { sequelize_1: 'foo', sequelize_2: 1 },
-          },
-          context: { options: { omitNull: true } },
-        }, {
-          arguments: ['myTable', function (sequelize) {
-            return {
-              foo: sequelize.fn('NOW'),
-            };
-          }],
-          expectation: {
-            query: 'INSERT INTO `myTable` (`foo`) VALUES (NOW());',
-            bind: {},
-          },
-          needsSequelize: true,
-        },
-      ],
-
-      bulkInsertQuery: [
-        {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'foo\'),(\'bar\');',
-        }, {
-          arguments: ['myTable', [{ name: '\'bar\'' }, { name: 'foo' }]],
-          expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'\'\'bar\'\'\'),(\'foo\');',
-        }, {
-          arguments: ['myTable', [{ name: 'foo', birthday: dayjs('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES (\'foo\',\'2011-03-27 10:01:55.000 +00:00\'),(\'bar\',\'2012-03-27 10:01:55.000 +00:00\');',
-        }, {
-          arguments: ['myTable', [{ name: 'bar', value: null }, { name: 'foo', value: 1 }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`value`) VALUES (\'bar\',NULL),(\'foo\',1);',
-        }, {
-          arguments: ['myTable', [{ name: 'bar', value: undefined }, { name: 'bar', value: 2 }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`value`) VALUES (\'bar\',NULL),(\'bar\',2);',
-        }, {
-          arguments: ['myTable', [{ name: 'foo', value: true }, { name: 'bar', value: false }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`value`) VALUES (\'foo\',1),(\'bar\',0);',
-        }, {
-          arguments: ['myTable', [{ name: 'foo', value: false }, { name: 'bar', value: false }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`value`) VALUES (\'foo\',0),(\'bar\',0);',
-        }, {
-          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
-        }, {
-          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
-          context: { options: { omitNull: false } },
-        }, {
-          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
-          context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
-        }, {
-          arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
-          context: { options: { omitNull: true } }, // Note: As above
-        }, {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: 'INSERT OR IGNORE INTO `myTable` (`name`) VALUES (\'foo\'),(\'bar\');',
-        }, {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
-          expectation: 'INSERT INTO `myTable` (`name`) VALUES (\'foo\'),(\'bar\') ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;',
         },
       ],
 

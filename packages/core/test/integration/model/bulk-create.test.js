@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, col } = require('@sequelize/core');
+const { DataTypes, Op, col, DatabaseError } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -155,20 +155,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await Beer.sync({ force: true });
 
-      await Beer.bulkCreate([{
+      const beers = await Beer.bulkCreate([{
         style: 'ipa',
       }], {
         logging(sql) {
           switch (dialectName) {
-            case 'postgres':
-            case 'ibmi': {
+            case 'db2':
+            case 'postgres': {
               expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
-
-              break;
-            }
-
-            case 'db2': {
-              expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
 
               break;
             }
@@ -179,12 +173,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               break;
             }
 
-            default: { // mysql, sqlite
+            case 'sqlite': {
               expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
+
+              break;
+            }
+
+            default: { // mariadb, mysql,
+              expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (DEFAULT');
             }
           }
         },
       });
+
+      expect(beers).to.have.length(1);
+      expect(beers[0].id).to.equal(1);
+      expect(beers[0].size).to.not.be.ok;
+      expect(beers[0].style).to.equal('ipa');
+
     });
 
     it('properly handles disparate field lists', async function () {
@@ -428,8 +434,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.inserts.ignoreDuplicates
-        || current.dialect.supports.inserts.onConflictDoNothing) {
+    if (current.dialect.supports.insert.ignore || current.dialect.supports.insert.onConflict) {
       it('should support the ignoreDuplicates option', async function () {
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
@@ -467,7 +472,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.inserts.updateOnDuplicate) {
+    if (current.dialect.supports.insert.updateOnDuplicate) {
       describe('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', async function () {
           const data = [
@@ -760,7 +765,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
 
-        if (current.dialect.supports.inserts.conflictFields) {
+        if (current.dialect.supports.insert.conflictFields) {
           it('should respect the conflictAttributes option', async function () {
             const Permissions = this.customSequelize.define(
               'permissions',
@@ -986,7 +991,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           if (
-            current.dialect.supports.inserts.onConflictWhere
+            current.dialect.supports.insert.onConflictWhere
           ) {
             describe('conflictWhere', () => {
               const Memberships = current.define(
@@ -1209,7 +1214,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
 
-          const users0 = await User.bulkCreate([
+          const promise = User.bulkCreate([
             {},
             {},
             {},
@@ -1217,11 +1222,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             returning: [col('*')],
           });
 
-          const actualUsers0 = await User.findAll();
-          const [users, actualUsers] = [users0, actualUsers0];
-          expect(users.length).to.eql(actualUsers.length);
-          for (const user of users) {
-            expect(user.get()).to.have.property('not_on_model');
+          if (dialectName === 'mssql') {
+            // For bulk insert, all columns need to specified the returning option or the model
+            expect(promise).to.eventually.be.rejectedWith(DatabaseError, 'Column name or number of supplied values does not match table definition.');
+          } else {
+            const users = await promise;
+            const actualUsers = await User.findAll();
+            expect(users.length).to.eql(actualUsers.length);
+            for (const user of users) {
+              expect(user.get()).to.have.property('not_on_model');
+            }
           }
         });
       });
@@ -1289,7 +1299,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const M2 = {};
 
         await Maya.sync({ force: true });
-        const ms = await Maya.bulkCreate([M1, M2], { returning: true });
+        const ms = await Maya.bulkCreate([M1, M2], { returning: dialect.supports.insert.returning });
         expect(ms[0].id).to.be.eql(1);
         expect(ms[1].id).to.be.eql(2);
       });
@@ -1304,7 +1314,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { id: 1 },
           { id: 2 },
           { id: 3 },
-        ], { returning: true });
+        ], { returning: dialect.supports.insert.returning });
 
         const actualUsers0 = await User.findAll({ order: [['id', 'ASC']] });
         const [users, actualUsers] = [users0, actualUsers0];
@@ -1330,7 +1340,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { id: 2 },
           { id: 4 },
           { id: 5 },
-        ], { returning: true });
+        ], { returning: dialect.supports.insert.returning });
 
         expect(users.length).to.eql(3);
 
