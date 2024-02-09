@@ -71,9 +71,7 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
 
     delete options.replacements;
 
-    const result = await this.sequelize.queryRaw(sql, options);
-
-    return [result, undefined];
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   // TODO: drop "schema" options from the option bag, it must be passed through tableName instead.
