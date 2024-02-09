@@ -1,18 +1,31 @@
+import { inspect } from 'node:util';
+import type { AttributeOptions } from '../../model.js';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
+import { removeNullishValuesFromArray, removeNullishValuesFromHash } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
+import { isModelStatic } from '../../utils/model-utils.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
+  BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  INSERT_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type {
+  EscapeOptions,
+  QueryWithBindParams,
+  RemoveIndexQueryOptions,
+  TableNameOrModel,
+} from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
+  BulkInsertQueryOptions,
   CreateDatabaseQueryOptions,
+  InsertQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -24,7 +37,9 @@ import type { ConstraintType } from '../abstract/query-interface.types';
 import { MsSqlQueryGeneratorInternal } from './query-generator-internal.js';
 import type { MssqlDialect } from './index.js';
 
+const BULK_INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof BulkInsertQueryOptions>(['returning']);
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
+const INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof BulkInsertQueryOptions>(['returning']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
@@ -307,5 +322,274 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     const sql = super.bulkDeleteQuery(tableName, options);
 
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
+  }
+
+  bulkInsertQuery(
+    tableName: TableNameOrModel,
+    values: Array<Record<string, unknown>>,
+    options?: BulkInsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'bulkInsertQuery',
+        this.dialect.name,
+        BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    if (!Array.isArray(values)) {
+      throw new Error(`Invalid values: ${inspect(values)}. Expected an array.`);
+    }
+
+    if (values.length === 0) {
+      throw new Error('Invalid values: []. Expected at least one element.');
+    }
+
+    const allColumns = new Set<string>();
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const valueHashes = removeNullishValuesFromArray(values, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const bulkInsertOptions = { ...options, model };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const row of valueHashes) {
+      for (const column of Object.keys(row)) {
+        allColumns.add(column);
+      }
+    }
+
+    if (allColumns.size === 0) {
+      throw new Error('No columns were defined');
+    }
+
+    if (bulkInsertOptions.returning && attributeMap.size === 0) {
+      throw new Error('Cannot use "returning" option with no attributes');
+    }
+
+    let removedAutoIncrement = false;
+    const rowValues = valueHashes.map(row => {
+      if (typeof row !== 'object' || row == null || Array.isArray(row)) {
+        throw new Error(`Invalid row: ${inspect(row)}. Expected an object.`);
+      }
+
+      const valueMap = new Map<string, string>();
+      for (const column of allColumns) {
+        const rowValue = row[column];
+        if (attributeMap.get(column)?.autoIncrement) {
+          // MS SQL Server does not support inserting null values into autoIncrement columns
+          if (rowValue == null) {
+            removedAutoIncrement = true;
+            continue;
+          } else if (removedAutoIncrement) {
+            throw new Error(`Cannot insert a mixture of null and non-null values into an autoIncrement column (${column}).`);
+          } else {
+            valueMap.set(column, this.escape(rowValue, {
+              ...bulkInsertOptions,
+              type: attributeMap.get(column)?.type,
+            }));
+          }
+        } else if (rowValue === undefined) {
+          // Treat undefined values as DEFAULT (where supported) or NULL (where not supported)
+          valueMap.set(column, 'DEFAULT');
+        } else {
+          valueMap.set(column, this.escape(rowValue, {
+            ...bulkInsertOptions,
+            type: attributeMap.get(column)?.type,
+          }));
+        }
+      }
+
+      return valueMap;
+    });
+
+    if (removedAutoIncrement) {
+      // Remove autoIncrement columns from the list of columns
+      allColumns.delete([...allColumns].find(column => attributeMap.get(column)?.autoIncrement)!);
+    }
+
+    const returnFields = this.#internals.getReturnFields(bulkInsertOptions, attributeMap);
+    const autoIncrementColumn = [...allColumns].find(column => attributeMap.get(column)?.autoIncrement);
+    const returningFragment = bulkInsertOptions.returning
+      ? joinSQLFragments(['OUTPUT', returnFields.map(field => `INSERTED.${field}`).join(', '), 'INTO @output_table'])
+      : '';
+
+    const queries: string[] = [];
+    if (bulkInsertOptions.returning) {
+      // Due to how the mssql query is built, an output table must be created before the insert statement
+      // as the query can be split into multiple statements.
+      queries.push(this.#internals.generateOutputTableFragment(returnFields, attributeMap));
+    }
+
+    if (autoIncrementColumn) {
+      // MS SQL Server by default does not allow inserting into autoIncrement columns unless IDENTITY_INSERT is ON
+      queries.push(`SET IDENTITY_INSERT ${this.quoteTable(tableName)} ON`);
+    }
+
+    let queryCount = 0;
+    let hasInsertStatement = false;
+    const columnFragment = [...allColumns].map(column => this.quoteIdentifier(column)).join(',');
+    for (const row of rowValues) {
+      if (row.size === 0) {
+        hasInsertStatement = false;
+        queries.push(joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          returningFragment,
+          'DEFAULT VALUES',
+        ]));
+        continue;
+      }
+
+      const rowFragment = [...row.values()].join(',');
+      if (hasInsertStatement && queryCount < 1000) {
+        // If the table has already been inserted into, append the row to the insert statement
+        // as long as there is less than 1000 rows in the statement (SQL Server limit)
+        queryCount++;
+        queries.push(`${queries.pop()},(${rowFragment})`);
+      } else {
+        // If there is no insert statement, start one
+        queryCount = 1;
+        hasInsertStatement = true;
+        queries.push(joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          `(${columnFragment})`,
+          returningFragment,
+          'VALUES',
+          `(${rowFragment})`,
+        ]));
+      }
+    }
+
+    if (autoIncrementColumn) {
+      // Set IDENTITY_INSERT back to OFF after the bulk insert
+      queries.push(`SET IDENTITY_INSERT ${this.quoteTable(tableName)} OFF`);
+    }
+
+    if (bulkInsertOptions.returning) {
+      queries.push('SELECT * FROM @output_table');
+    }
+
+    return queries.join(';');
+  }
+
+  insertQuery(
+    tableName: TableNameOrModel,
+    value: Record<string, unknown>,
+    options?: InsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'insertQuery',
+        this.dialect.name,
+        INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+      throw new Error(`Invalid value: ${inspect(value)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const model = isModelStatic(tableName) ? tableName : undefined;
+    const valueMap = new Map<string, string>();
+    const valueHash = removeNullishValuesFromHash(value, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const insertOptions: InsertQueryOptions = {
+      ...options,
+      model,
+      bindParam: options?.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam,
+    };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const [column, rowValue] of Object.entries(valueHash)) {
+      if (attributeMap.get(column)?.autoIncrement && rowValue == null) {
+        // MS SQL Server does not support inserting null values into autoIncrement columns
+        continue;
+      } else if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      } else {
+        valueMap.set(column, this.escape(rowValue, {
+          ...insertOptions,
+          type: attributeMap.get(column)?.type,
+        }));
+      }
+    }
+
+    const returnFields = this.#internals.getReturnFields(insertOptions, attributeMap);
+    const returningFragment = insertOptions.returning
+      ? joinSQLFragments(['OUTPUT', returnFields.map(field => `INSERTED.${field}`).join(', '), insertOptions.hasTrigger ? 'INTO @output_table' : ''])
+      : '';
+
+    if (valueMap.size === 0) {
+      return {
+        query: joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          returningFragment,
+          'DEFAULT VALUES',
+        ]),
+        bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+      };
+    }
+
+    const autoIncrementColumn = [...valueMap.keys()].find(column => attributeMap.get(column)?.autoIncrement);
+    const queries: string[] = [];
+    if (insertOptions.returning && insertOptions.hasTrigger) {
+      queries.push(this.#internals.generateOutputTableFragment(returnFields, attributeMap));
+    }
+
+    if (autoIncrementColumn) {
+      queries.push(`SET IDENTITY_INSERT ${this.quoteTable(tableName)} ON`);
+    }
+
+    const rowFragment = [...valueMap.values()].join(',');
+    const columnFragment = [...valueMap.keys()].map(column => this.quoteIdentifier(column)).join(',');
+    queries.push(joinSQLFragments([
+      'INSERT INTO',
+      this.quoteTable(tableName),
+      `(${columnFragment})`,
+      returningFragment,
+      'VALUES',
+      `(${rowFragment})`,
+    ]));
+
+    if (autoIncrementColumn) {
+      queries.push(`SET IDENTITY_INSERT ${this.quoteTable(tableName)} OFF`);
+    }
+
+    if (insertOptions.returning && insertOptions.hasTrigger) {
+      queries.push('SELECT * FROM @output_table');
+    }
+
+    return {
+      query: queries.join(';'),
+      bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 }

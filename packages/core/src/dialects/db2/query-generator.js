@@ -6,12 +6,11 @@ import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import { Db2QueryGeneratorInternal } from './query-generator-internal';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import forEach from 'lodash/forEach';
-import forOwn from 'lodash/forOwn';
 import includes from 'lodash/includes';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
@@ -31,10 +30,15 @@ function throwMethodUndefined(methodName) {
 }
 
 export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
-  constructor(dialect, internals) {
+  #internals;
+
+  constructor(
+    dialect,
+    internals = new Db2QueryGeneratorInternal(dialect),
+  ) {
     super(dialect, internals);
 
-    this.autoGenValue = 1;
+    this.#internals = internals;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -233,72 +237,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
-    options = options || {};
-    attributes = attributes || {};
-    let query = 'INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>;';
-    if (options.returning) {
-      query = 'SELECT * FROM FINAL TABLE (INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
-    }
-
-    const emptyQuery = 'INSERT INTO <%= table %>';
-    const tuples = [];
-    const allAttributes = [];
-    const allQueries = [];
-
-    let outputFragment;
-    const valuesForEmptyQuery = [];
-
-    if (options.returning) {
-      outputFragment = '';
-    }
-
-    forEach(attrValueHashes, attrValueHash => {
-      // special case for empty objects with primary keys
-      const fields = Object.keys(attrValueHash);
-      const firstAttr = attributes[fields[0]];
-      if (fields.length === 1 && firstAttr && firstAttr.autoIncrement && attrValueHash[fields[0]] === null) {
-        valuesForEmptyQuery.push(`(${this.autoGenValue++})`);
-
-        return;
-      }
-
-      // normal case
-      forOwn(attrValueHash, (value, key) => {
-        if (!allAttributes.includes(key)) {
-          if (value === null && attributes[key] && attributes[key].autoIncrement) {
-            return;
-          }
-
-          allAttributes.push(key);
-        }
-      });
-    });
-    if (valuesForEmptyQuery.length > 0) {
-      allQueries.push(`${emptyQuery} VALUES ${valuesForEmptyQuery.join(',')}`);
-    }
-
-    if (allAttributes.length > 0) {
-      forEach(attrValueHashes, attrValueHash => {
-        tuples.push(`(${
-          // TODO: pass type of attribute & model
-          allAttributes.map(key => this.escape(attrValueHash[key] ?? null, { replacements: options.replacements })).join(',')})`);
-      });
-      allQueries.push(query);
-    }
-
-    const replacements = {
-      table: this.quoteTable(tableName),
-      attributes: allAttributes.map(attr => this.quoteIdentifier(attr)).join(','),
-      tuples,
-      output: outputFragment,
-    };
-
-    const generatedQuery = template(allQueries.join(';'), this._templateSettings)(replacements);
-
-    return generatedQuery;
-  }
-
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
     options = options || {};
@@ -314,7 +252,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const modelAttributeMap = {};
     const values = [];
     const bind = {};
-    const bindParam = options.bindParam || this.bindParam(bind);
+    const bindParam = options.bindParam || this.#internals.bindParam(bind);
 
     if (attributes) {
       each(attributes, (attribute, key) => {

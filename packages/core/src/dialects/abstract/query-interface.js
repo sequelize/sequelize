@@ -346,15 +346,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = cloneDeep(options) ?? {};
-    const modelDefinition = instance?.constructor.modelDefinition;
-
-    options.hasTrigger = modelDefinition?.options.hasTrigger;
-    const { query, bind } = this.queryGenerator.insertQuery(
-      tableName,
-      values,
-      modelDefinition && getObjectFromMap(modelDefinition.attributes),
-      options,
-    );
+    options.hasTrigger = instance?.constructor?.options.hasTrigger;
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, values, options);
 
     options.type = QueryTypes.INSERT;
     options.instance = instance;
@@ -431,12 +424,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       options.upsertKeys = uniq(options.upsertKeys);
     }
 
-    const { bind, query } = this.queryGenerator.insertQuery(
-      tableName,
-      insertValues,
-      getObjectFromMap(modelDefinition.attributes),
-      options,
-    );
+    const { bind, query } = this.queryGenerator.insertQuery(tableName, insertValues, options);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacement;

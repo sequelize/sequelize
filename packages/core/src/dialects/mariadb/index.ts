@@ -17,15 +17,18 @@ const numericOptions: SupportableNumericOptions = {
 export class MariaDbDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport(
     {
-      'VALUES ()': true,
       'LIMIT ON UPDATE': true,
       lock: true,
       forShare: 'LOCK IN SHARE MODE',
       settingIsolationLevelDuringTransaction: false,
       schemas: true,
-      inserts: {
-        ignoreDuplicates: ' IGNORE',
-        updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
+      // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
+      // returnValues: 'returning',
+      insert: {
+        ignore: true,
+        // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
+        // returning: true,
+        updateOnDuplicate: true,
       },
       index: {
         collate: false,

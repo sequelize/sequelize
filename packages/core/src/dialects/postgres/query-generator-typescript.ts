@@ -1,13 +1,27 @@
+import { randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
 import semver from 'semver';
+import type { AttributeOptions } from '../../model.js';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check.js';
+import { removeNullishValuesFromHash } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { isModelStatic } from '../../utils/model-utils.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
-import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
+import type {
+  EscapeOptions,
+  QueryWithBindParams,
+  RemoveIndexQueryOptions,
+  TableNameOrModel,
+} from '../abstract/query-generator-typescript';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  INSERT_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
+  InsertQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -19,6 +33,7 @@ import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
 import type { PostgresDialect } from './index.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
+const INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof InsertQueryOptions>(['conflictWhere', 'exception', 'ignoreDuplicates', 'returning', 'updateOnDuplicate']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -262,5 +277,131 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SHOW SERVER_VERSION';
+  }
+
+  insertQuery(
+    tableName: TableNameOrModel,
+    value: Record<string, unknown>,
+    options?: InsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'insertQuery',
+        this.dialect.name,
+        INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+
+      if (options.ignoreDuplicates && options.updateOnDuplicate) {
+        throw new Error('Options ignoreDuplicates and updateOnDuplicate cannot be used together');
+      }
+    }
+
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+      throw new Error(`Invalid value: ${inspect(value)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const valueMap = new Map<string, string>();
+    const valueHash = removeNullishValuesFromHash(value, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const insertOptions: InsertQueryOptions = {
+      ...options,
+      model,
+      bindParam: options?.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam,
+    };
+
+    if (this.sequelize.options.dialectOptions.prependSearchPath || insertOptions.searchPath || insertOptions.exception) {
+      // Not currently supported with search path (requires output of multiple queries)
+      insertOptions.bindParam = undefined;
+    }
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const [column, rowValue] of Object.entries(valueHash)) {
+      if (attributeMap.get(column)?.autoIncrement && rowValue == null) {
+        valueMap.set(column, 'DEFAULT');
+      } else if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      } else {
+        valueMap.set(column, this.escape(rowValue, {
+          ...insertOptions,
+          type: attributeMap.get(column)?.type,
+        }));
+      }
+    }
+
+    const returnFields = this.#internals.getReturnFields(insertOptions, attributeMap);
+    const returningFragment = insertOptions.returning ? joinSQLFragments(['RETURNING', returnFields.join(', ')]) : '';
+
+    if (valueMap.size === 0) {
+      return {
+        query: joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          'DEFAULT VALUES',
+          returningFragment,
+        ]),
+        bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+      };
+    }
+
+    const rowFragment = [...valueMap.values()].join(',');
+    const columnFragment = [...valueMap.keys()].map(column => this.quoteIdentifier(column)).join(',');
+    const conflictFragment = insertOptions.updateOnDuplicate ? this.#internals.generateUpdateOnDuplicateKeysFragment(insertOptions) : '';
+
+    if (insertOptions.exception) {
+      // Postgres will abort the transaction if an error is thrown inside a transaction block
+      // This is a hack to allow the user to throw an error if a constraint is violated, but not abort the transaction
+      const delimiter = `$func_${randomBytes(8).toString('hex')}$`;
+
+      return {
+        query: joinSQLFragments([
+          `CREATE OR REPLACE FUNCTION pg_temp.testfunc(OUT response ${this.quoteTable(tableName)}, OUT sequelize_caught_exception text) RETURNS RECORD AS`,
+          delimiter,
+          'BEGIN INSERT INTO',
+          this.quoteTable(tableName),
+          `(${columnFragment})`,
+          'VALUES',
+          `(${rowFragment})`,
+          conflictFragment,
+          insertOptions.ignoreDuplicates ? 'ON CONFLICT DO NOTHING' : '',
+          'RETURNING * INTO response;',
+          'EXCEPTION WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;',
+          'END;',
+          delimiter,
+          'LANGUAGE plpgsql;',
+          `SELECT (testfunc.response).${returnFields.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`,
+          // pg_temp functions are private per connection, so we never risk this function interfering with another one.
+          'DROP FUNCTION IF EXISTS pg_temp.testfunc()',
+        ]),
+      };
+    }
+
+    return {
+      query: joinSQLFragments([
+        'INSERT INTO',
+        this.quoteTable(tableName),
+        `(${columnFragment})`,
+        'VALUES',
+        `(${rowFragment})`,
+        conflictFragment,
+        insertOptions.ignoreDuplicates ? 'ON CONFLICT DO NOTHING' : '',
+        returningFragment,
+      ]),
+      bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 }

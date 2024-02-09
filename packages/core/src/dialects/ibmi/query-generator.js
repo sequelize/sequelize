@@ -289,17 +289,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return removeTrailingSemicolon(super.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options));
   }
 
-  insertQuery(table, valueHash, modelAttributes, options) {
-    // remove the final semi-colon
-    const query = super.insertQuery(table, valueHash, modelAttributes, options);
-    if (query.query.at(-1) === ';') {
-      query.query = query.query.slice(0, -1);
-      query.query = `SELECT * FROM FINAL TABLE (${query.query})`;
-    }
-
-    return query;
-  }
-
   selectQuery(tableName, options, model) {
     // remove the final semi-colon
     let query = super.selectQuery(tableName, options, model);
@@ -309,25 +298,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     return query;
   }
-
-  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
-    // remove the final semi-colon
-    let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
-    if (query.at(-1) === ';') {
-      query = query.slice(0, -1);
-      query = `SELECT * FROM FINAL TABLE (${query})`;
-    }
-
-    return query;
-  }
-
-  // bindParam(bind) {
-  //   return value => {
-  //     bind.push(value);
-
-  //     return '?';
-  //   };
-  // }
 
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {

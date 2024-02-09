@@ -16,7 +16,7 @@ import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import { IndexHints } from '../../index-hints.js';
-import type { Attributes, Model, ModelStatic } from '../../model.js';
+import type { AttributeOptions, Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
@@ -24,6 +24,7 @@ import { TableHints } from '../../table-hints.js';
 import { isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
+import { removeNullishValuesFromArray, removeNullishValuesFromHash } from '../../utils/format.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
@@ -33,10 +34,12 @@ import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
+  BulkInsertQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
+  InsertQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -62,10 +65,12 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
+export const BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof BulkInsertQueryOptions>(['conflictWhere', 'ignoreDuplicates', 'returning', 'updateOnDuplicate']);
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
 export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateSchemaQueryOptions>(['authorization', 'charset', 'collate', 'comment', 'ifNotExists', 'replace']);
 export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQueryOptions>(['cascade', 'ifExists']);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
+export const INSERT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof InsertQueryOptions>(['conflictWhere', 'exception', 'ignoreDuplicates', 'returning', 'updateOnDuplicate']);
 export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
 export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
@@ -118,6 +123,11 @@ export interface FormatWhereOptions extends Bindable {
  */
 export interface Bindable {
   bindParam?: ((value: unknown) => string) | undefined;
+}
+
+export interface QueryWithBindParams {
+  query: string;
+  bind?: Record<string, unknown> | undefined;
 }
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -805,6 +815,240 @@ export class AbstractQueryGeneratorTypeScript {
       options.where ? this.whereQuery(options.where, whereOptions) : '',
       this.#internals.addLimitAndOffset(options),
     ]);
+  }
+
+  bulkInsertQuery(
+    tableName: TableNameOrModel,
+    values: Array<Record<string, unknown>>,
+    options?: BulkInsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): string {
+    if (options) {
+      const BULK_INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof BulkInsertQueryOptions>();
+
+      if (this.dialect.supports.insert.ignore) {
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('ignoreDuplicates');
+      }
+
+      if (this.dialect.supports.insert.onConflict) {
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('conflictWhere');
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('ignoreDuplicates');
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('updateOnDuplicate');
+      }
+
+      if (this.dialect.supports.insert.returning) {
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('returning');
+      }
+
+      if (this.dialect.supports.insert.updateOnDuplicate) {
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS.add('updateOnDuplicate');
+      }
+
+      rejectInvalidOptions(
+        'bulkInsertQuery',
+        this.dialect.name,
+        BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+
+      if (options.ignoreDuplicates && options.updateOnDuplicate) {
+        throw new Error('Options ignoreDuplicates and updateOnDuplicate cannot be used together');
+      }
+    }
+
+    if (!Array.isArray(values)) {
+      throw new Error(`Invalid values: ${NodeUtil.inspect(values)}. Expected an array.`);
+    }
+
+    if (values.length === 0) {
+      throw new Error('Invalid values: []. Expected at least one element.');
+    }
+
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const allColumns = new Set<string>();
+    const valueHashes = removeNullishValuesFromArray(values, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const bulkInsertOptions = { ...options, model };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const row of valueHashes) {
+      for (const column of Object.keys(row)) {
+        allColumns.add(column);
+      }
+    }
+
+    if (allColumns.size === 0) {
+      throw new Error('No columns were defined');
+    }
+
+    const columnFragment = [...allColumns].map(column => this.quoteIdentifier(column)).join(',');
+    const rowsFragment = valueHashes.map(row => {
+      if (typeof row !== 'object' || row == null || Array.isArray(row)) {
+        throw new Error(`Invalid row: ${NodeUtil.inspect(row)}. Expected an object.`);
+      }
+
+      const valueMap = new Map<string, string>();
+      for (const column of allColumns) {
+        const rowValue = row[column];
+        if (attributeMap.get(column)?.autoIncrement && rowValue == null && this.dialect.supports.insert.default) {
+          valueMap.set(column, 'DEFAULT');
+        } else if (rowValue === undefined) {
+          // Treat undefined values as DEFAULT (where supported) or NULL (where not supported)
+          valueMap.set(column, this.dialect.supports.insert.default ? 'DEFAULT' : 'NULL');
+        } else {
+          valueMap.set(column, this.escape(rowValue, {
+            ...bulkInsertOptions,
+            type: attributeMap.get(column)?.type,
+          }));
+        }
+      }
+
+      return `(${[...valueMap.values()].join(',')})`;
+    });
+
+    const conflictFragment = bulkInsertOptions.updateOnDuplicate ? this.#internals.generateUpdateOnDuplicateKeysFragment(bulkInsertOptions) : '';
+    const returningFragment = bulkInsertOptions.returning ? joinSQLFragments(['RETURNING', this.#internals.getReturnFields(bulkInsertOptions, attributeMap).join(', ')]) : '';
+
+    return joinSQLFragments([
+      'INSERT',
+      bulkInsertOptions.ignoreDuplicates && this.dialect.supports.insert.ignore ? 'IGNORE' : '',
+      'INTO',
+      this.quoteTable(tableName),
+      `(${columnFragment})`,
+      'VALUES',
+      rowsFragment.join(','),
+      conflictFragment,
+      bulkInsertOptions.ignoreDuplicates && this.dialect.supports.insert.onConflict ? 'ON CONFLICT DO NOTHING' : '',
+      returningFragment,
+    ]);
+  }
+
+  insertQuery(
+    tableName: TableNameOrModel,
+    value: Record<string, unknown>,
+    options?: InsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): QueryWithBindParams {
+    if (options) {
+      const INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof InsertQueryOptions>();
+
+      if (this.dialect.supports.insert.exception) {
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('exception');
+      }
+
+      if (this.dialect.supports.insert.ignore) {
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('ignoreDuplicates');
+      }
+
+      if (this.dialect.supports.insert.onConflict) {
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('conflictWhere');
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('ignoreDuplicates');
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('updateOnDuplicate');
+      }
+
+      if (this.dialect.supports.insert.returning) {
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('returning');
+      }
+
+      if (this.dialect.supports.insert.updateOnDuplicate) {
+        INSERT_QUERY_SUPPORTED_OPTIONS.add('updateOnDuplicate');
+      }
+
+      rejectInvalidOptions(
+        'insertQuery',
+        this.dialect.name,
+        INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+
+      if (options.ignoreDuplicates && options.updateOnDuplicate) {
+        throw new Error('Options ignoreDuplicates and updateOnDuplicate cannot be used together');
+      }
+    }
+
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+      throw new Error(`Invalid value: ${NodeUtil.inspect(value)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const valueMap = new Map<string, string>();
+    const valueHash = removeNullishValuesFromHash(value, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const insertOptions: InsertQueryOptions = {
+      ...options,
+      model,
+      bindParam: options?.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam,
+    };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const [column, rowValue] of Object.entries(valueHash)) {
+      if (attributeMap.get(column)?.autoIncrement && rowValue == null && this.dialect.supports.insert.default) {
+        valueMap.set(column, 'DEFAULT');
+      } else if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      } else {
+        valueMap.set(column, this.escape(rowValue, {
+          ...insertOptions,
+          type: attributeMap.get(column)?.type,
+        }));
+      }
+    }
+
+    const returningFragment = insertOptions.returning ? joinSQLFragments(['RETURNING', this.#internals.getReturnFields(insertOptions, attributeMap).join(', ')]) : '';
+
+    if (valueMap.size === 0) {
+      return {
+        query: joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          this.dialect.supports.insert.defaultValues ? 'DEFAULT VALUES' : 'VALUES ()',
+          returningFragment,
+        ]),
+        bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+      };
+    }
+
+    const rowFragment = [...valueMap.values()].join(',');
+    const columnFragment = [...valueMap.keys()].map(column => this.quoteIdentifier(column)).join(',');
+    const conflictFragment = insertOptions.updateOnDuplicate ? this.#internals.generateUpdateOnDuplicateKeysFragment(insertOptions, valueMap) : '';
+
+    return {
+      query: joinSQLFragments([
+        'INSERT',
+        insertOptions.ignoreDuplicates && this.dialect.supports.insert.ignore ? 'IGNORE' : '',
+        'INTO',
+        this.quoteTable(tableName),
+        `(${columnFragment})`,
+        'VALUES',
+        `(${rowFragment})`,
+        conflictFragment,
+        insertOptions.ignoreDuplicates && this.dialect.supports.insert.onConflict ? 'ON CONFLICT DO NOTHING' : '',
+        returningFragment,
+      ]),
+      bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 
   __TEST__getInternals() {

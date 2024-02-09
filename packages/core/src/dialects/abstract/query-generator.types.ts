@@ -1,11 +1,13 @@
+import type { Writable } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
+import type { Col } from '../../expression-builders/col';
 import type { Literal } from '../../expression-builders/literal';
-import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
+import type { Filterable, IndexHintable, ReferentialAction, SearchPathable } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
 import type { Nullish } from '../../utils/types';
-import type { TableNameOrModel } from './query-generator-typescript';
+import type { FormatWhereOptions, TableNameOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
@@ -176,4 +178,26 @@ export interface AddLimitOffsetOptions {
   replacements?: BindOrReplacements;
 }
 
+export interface GetReturnFieldsOptions {
+  hasTrigger?: boolean;
+  returning?: boolean | Array<string | Col | Literal>;
+}
+
 export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}
+
+// keep INSERT_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface InsertQueryOptions extends Writable<FormatWhereOptions, 'replacements'>, GetReturnFieldsOptions, SearchPathable {
+  conflictWhere?: WhereOptions;
+  exception?: boolean;
+  ignoreDuplicates?: boolean;
+  updateOnDuplicate?: string[];
+  upsertKeys?: string[];
+}
+
+// keep BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface BulkInsertQueryOptions extends Writable<FormatWhereOptions, 'replacements'>, GetReturnFieldsOptions {
+  conflictWhere?: WhereOptions;
+  ignoreDuplicates?: boolean;
+  updateOnDuplicate?: string[];
+  upsertKeys?: string[];
+}

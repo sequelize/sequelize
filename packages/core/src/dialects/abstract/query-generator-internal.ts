@@ -1,19 +1,28 @@
+import { inspect } from 'node:util';
 import { Deferrable } from '../../deferrable.js';
 import type { AssociationPath } from '../../expression-builders/association-path.js';
 import type { Attribute } from '../../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import type { Cast } from '../../expression-builders/cast.js';
-import type { Col } from '../../expression-builders/col.js';
+import { Col } from '../../expression-builders/col.js';
 import type { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
 import type { Fn } from '../../expression-builders/fn.js';
 import type { JsonPath } from '../../expression-builders/json-path.js';
-import type { Literal } from '../../expression-builders/literal.js';
+import { Literal } from '../../expression-builders/literal.js';
+import type { AttributeOptions } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
+import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
 import { EMPTY_ARRAY } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
+import { VIRTUAL } from './data-types.js';
 import type { EscapeOptions, TableNameOrModel } from './query-generator-typescript.js';
-import type { AddLimitOffsetOptions, GetConstraintSnippetQueryOptions } from './query-generator.types.js';
+import type {
+  AddLimitOffsetOptions,
+  GetConstraintSnippetQueryOptions,
+  GetReturnFieldsOptions,
+  InsertQueryOptions,
+} from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
 
@@ -311,5 +320,112 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Creates a function that can be used to collect bind parameters.
+   *
+   * @param bind A mutable object to which bind parameters will be added.
+   */
+  bindParam(bind: Record<string, unknown>): (value: unknown) => string {
+    let i = 0;
+
+    return (value: unknown): string => {
+      const bindName = `sequelize_${++i}`;
+
+      bind[bindName] = value;
+
+      return `$${bindName}`;
+    };
+  }
+
+  /**
+   * Returns the SQL fragment to handle returning the attributes from an insert/update query.
+   *
+   * @param options         An object with options.
+   * @param modelAttributes A map with the model attributes.
+  */
+  getReturnFields(options: GetReturnFieldsOptions, modelAttributes: Map<string, AttributeOptions>): string[] {
+    const returnFields: string[] = [];
+
+    if (Array.isArray(options.returning)) {
+      returnFields.push(...options.returning.map(field => {
+        if (typeof field === 'string') {
+          return this.queryGenerator.quoteIdentifier(field);
+        } else if (field instanceof Literal) {
+          return this.queryGenerator.formatSqlExpression(field);
+        } else if (field instanceof Col) {
+          return this.queryGenerator.formatSqlExpression(field);
+        }
+
+        throw new Error(`Unsupported value in "returning" option: ${inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`);
+      }));
+    } else if (modelAttributes.size > 0) {
+      const attributes = [...modelAttributes.entries()]
+        .map(([name, attr]) => ({ ...attr, columnName: this.queryGenerator.quoteIdentifier(attr.columnName ?? name) }))
+        .filter(({ type }) => !(type instanceof VIRTUAL))
+        .map(({ columnName }) => columnName);
+
+      returnFields.push(...attributes);
+    }
+
+    if (returnFields.length === 0) {
+      returnFields.push('*');
+    }
+
+    return returnFields;
+  }
+
+  /**
+   * Generates an SQL fragment to handle the ON DUPLICATE KEY UPDATE clause of an insert query.
+   *
+   * @param options
+   * @param values
+   */
+  generateUpdateOnDuplicateKeysFragment(options: InsertQueryOptions, values: Map<string, string> = new Map()): string {
+    const conflictFragments: string[] = [];
+    const updateOnDuplicateKeys = options.updateOnDuplicate ?? [];
+    if (this.dialect.supports.insert.onConflict) {
+      // If no conflict target columns were specified, use the primary key names from options.upsertKeys
+      const conflictKeys = options.upsertKeys?.map(attr => this.queryGenerator.quoteIdentifier(attr)) ?? [];
+      const updateKeys = updateOnDuplicateKeys.map(attr => `${this.queryGenerator.quoteIdentifier(attr)}=EXCLUDED.${this.queryGenerator.quoteIdentifier(attr)}`);
+      conflictFragments.push(`ON CONFLICT (${conflictKeys.join(',')})`);
+      if (options.conflictWhere) {
+        conflictFragments.push(this.queryGenerator.whereQuery(options.conflictWhere, options));
+      }
+
+      // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
+      // do an update.  Instead, fall back to DO NOTHING.
+      if (updateKeys.length === 0) {
+        conflictFragments.push('DO NOTHING');
+      } else {
+        conflictFragments.push('DO UPDATE SET', updateKeys.join(','));
+      }
+    } else if (this.dialect.supports.insert.updateOnDuplicate) {
+      const valueKeys = updateOnDuplicateKeys.map(attr => {
+        const value = values.get(attr);
+
+        return value ? `${this.queryGenerator.quoteIdentifier(attr)}=${value}` : `${this.queryGenerator.quoteIdentifier(attr)}=VALUES(${this.queryGenerator.quoteIdentifier(attr)})`;
+      });
+      // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
+      // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
+      // This will be the primary key in most cases, but it could be some other constraint.
+      if (valueKeys.length === 0 && options.upsertKeys) {
+        valueKeys.push(...options.upsertKeys.map(attr => `${this.queryGenerator.quoteIdentifier(attr)}=VALUES(${this.queryGenerator.quoteIdentifier(attr)})`));
+      }
+
+      // edge case... but if for some reason there were no valueKeys, and there were also no upsertKeys... then we
+      // can no longer build the requested query without a syntax error.  Let's throw something more graceful here
+      // so the devs know what the problem is.
+      if (valueKeys.length === 0) {
+        throw new Error('No update values found for ON DUPLICATE KEY UPDATE clause, and no identifier fields could be found to use instead.');
+      }
+
+      conflictFragments.push(`ON DUPLICATE KEY UPDATE ${valueKeys.join(',')}`);
+    } else {
+      throw new Error(`Updating on duplicate keys is not supported by ${this.dialect.name}.`);
+    }
+
+    return joinSQLFragments(conflictFragments);
   }
 }

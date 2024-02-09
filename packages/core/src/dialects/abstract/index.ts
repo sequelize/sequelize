@@ -44,17 +44,12 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
 }
 
 export type DialectSupports = {
-  'DEFAULT': boolean,
-  'DEFAULT VALUES': boolean,
-  'VALUES ()': boolean,
   // TODO: rename to `update.limit`
   'LIMIT ON UPDATE': boolean,
-  'ON DUPLICATE KEY': boolean,
   'ORDER NULLS': boolean,
   'UNION': boolean,
   'UNION ALL': boolean,
   'RIGHT JOIN': boolean,
-  EXCEPTION: boolean,
 
   forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | undefined,
   lock: boolean,
@@ -78,8 +73,6 @@ export type DialectSupports = {
     /* does the dialect support updating autoincrement fields */
     update: boolean,
   },
-  /* Do we need to say DEFAULT for bulk insert */
-  bulkDefault: boolean,
   /**
    * Whether this dialect has native support for schemas.
    * For the purposes of Sequelize, a Schema is considered to be a grouping of tables.
@@ -100,12 +93,20 @@ export type DialectSupports = {
   },
   migrations: boolean,
   upserts: boolean,
-  inserts: {
-    ignoreDuplicates: string, /* dialect specific words for INSERT IGNORE or DO NOTHING */
-    updateOnDuplicate: boolean | string, /* whether dialect supports ON DUPLICATE KEY UPDATE */
-    onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
-    onConflictWhere: boolean, /* whether dialect supports ON CONFLICT WHERE */
-    conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
+  insert: {
+    /** Indicates if the dialect supports DEFAULT */
+    default: boolean,
+    /** Indicates if the dialect supports DEFAULT VALUES */
+    defaultValues: boolean,
+    exception: boolean,
+    /** Indicates if the dialect supports IGNORE */
+    ignore: boolean,
+    /** Indicates if the dialect supports ON CONFLICT */
+    onConflict: boolean,
+    /** Indicates if the dialect supports returning values */
+    returning: boolean,
+    /** Indicates if the dialect supports UPDATE ON DUPLICATE */
+    updateOnDuplicate: boolean,
   },
   constraints: {
     restrict: boolean,
@@ -272,16 +273,11 @@ export abstract class AbstractDialect {
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
   static readonly supports: DialectSupports = {
-    DEFAULT: true,
-    'DEFAULT VALUES': false,
-    'VALUES ()': false,
     'LIMIT ON UPDATE': false,
-    'ON DUPLICATE KEY': true,
     'ORDER NULLS': false,
     UNION: true,
     'UNION ALL': true,
     'RIGHT JOIN': true,
-    EXCEPTION: false,
     lock: false,
     lockOf: false,
     lockKey: false,
@@ -294,7 +290,6 @@ export abstract class AbstractDialect {
       defaultValue: true,
       update: true,
     },
-    bulkDefault: false,
     schemas: false,
     multiDatabases: false,
     transactions: true,
@@ -304,12 +299,14 @@ export abstract class AbstractDialect {
     },
     migrations: true,
     upserts: true,
-    inserts: {
-      ignoreDuplicates: '',
+    insert: {
+      default: true,
+      defaultValues: false,
+      exception: false,
+      ignore: false,
+      onConflict: false,
+      returning: false,
       updateOnDuplicate: false,
-      onConflictDoNothing: '',
-      onConflictWhere: false,
-      conflictFields: false,
     },
     constraints: {
       restrict: true,

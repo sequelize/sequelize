@@ -8,7 +8,6 @@ import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-ut
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
-import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 
@@ -205,87 +204,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       '\'COLUMN\'',
       ';',
     ]);
-  }
-
-  bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
-    const quotedTable = this.quoteTable(tableName);
-    options = options || {};
-    attributes = attributes || {};
-
-    const tuples = [];
-    const allAttributes = [];
-    const allQueries = [];
-
-    let needIdentityInsertWrapper = false;
-    let outputFragment = '';
-
-    if (options.returning) {
-      const returnValues = this.generateReturnValues(attributes, options);
-
-      outputFragment = returnValues.outputFragment;
-    }
-
-    const emptyQuery = `INSERT INTO ${quotedTable}${outputFragment} DEFAULT VALUES`;
-
-    for (const attrValueHash of attrValueHashes) {
-      // special case for empty objects with primary keys
-      const fields = Object.keys(attrValueHash);
-      const firstAttr = attributes[fields[0]];
-      if (fields.length === 1 && firstAttr && firstAttr.autoIncrement && attrValueHash[fields[0]] === null) {
-        allQueries.push(emptyQuery);
-        continue;
-      }
-
-      // normal case
-      forOwn(attrValueHash, (value, key) => {
-        if (value !== null && attributes[key] && attributes[key].autoIncrement) {
-          needIdentityInsertWrapper = true;
-        }
-
-        if (!allAttributes.includes(key)) {
-          if (value === null && attributes[key] && attributes[key].autoIncrement) {
-            return;
-          }
-
-          allAttributes.push(key);
-        }
-      });
-    }
-
-    if (allAttributes.length > 0) {
-      for (const attrValueHash of attrValueHashes) {
-        tuples.push(`(${
-          allAttributes.map(key => {
-            // TODO: bindParam
-            // TODO: pass "model"
-            return this.escape(attrValueHash[key] ?? null, {
-              type: attributes[key]?.type,
-              replacements: options.replacements,
-            });
-          }).join(',')
-        })`);
-      }
-
-      const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`);
-    }
-
-    const commands = [];
-    let offset = 0;
-    while (offset < Math.max(tuples.length, 1)) {
-      // SQL Server can insert a maximum of 1000 rows at a time,
-      // This splits the insert in multiple statements to respect that limit
-      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
-      let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
-      if (needIdentityInsertWrapper) {
-        generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
-      }
-
-      commands.push(generatedQuery);
-      offset += 1000;
-    }
-
-    return `${commands.join(';')};`;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {

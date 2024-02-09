@@ -1,6 +1,5 @@
 'use strict';
 
-import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
 const { AbstractQueryInterface } = require('../abstract/query-interface');
@@ -38,7 +37,7 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     options.updateOnDuplicate = Object.keys(updateValues);
     options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.getColumnName(pkAttrName));
 
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
+    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, options);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;

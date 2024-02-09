@@ -9,16 +9,15 @@ import { SqliteQueryInterface } from './query-interface';
 
 export class SqliteDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
-    DEFAULT: false,
-    'DEFAULT VALUES': true,
     'UNION ALL': false,
     'RIGHT JOIN': false,
     returnValues: 'returning',
-    inserts: {
-      ignoreDuplicates: ' OR IGNORE',
-      updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true,
-      onConflictWhere: true,
+    insert: {
+      default: false,
+      defaultValues: true,
+      ignore: true,
+      onConflict: true,
+      returning: true,
     },
     index: {
       using: false,

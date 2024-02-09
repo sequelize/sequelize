@@ -17,15 +17,14 @@ const numericOptions: SupportableNumericOptions = {
 export class MysqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport(
     {
-      'VALUES ()': true,
       'LIMIT ON UPDATE': true,
       lock: true,
       forShare: 'LOCK IN SHARE MODE',
       settingIsolationLevelDuringTransaction: false,
       schemas: true,
-      inserts: {
-        ignoreDuplicates: ' IGNORE',
-        updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
+      insert: {
+        ignore: true,
+        updateOnDuplicate: true,
       },
       index: {
         collate: false,
