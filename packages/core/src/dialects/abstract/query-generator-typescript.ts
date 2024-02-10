@@ -25,8 +25,9 @@ import { TableHints } from '../../table-hints.js';
 import { isPlainObject, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
+import { join, map } from '../../utils/iterators.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
-import { getTableIdentifier, isModelStatic } from '../../utils/model-utils.js';
+import { extractModelDefinition, extractTableIdentifier, isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
@@ -98,7 +99,7 @@ export interface FormatWhereOptions extends Bindable {
   /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
-  readonly model?: ModelStatic | undefined;
+  readonly model?: ModelStatic | ModelDefinition | null | undefined;
 
   /**
    * The alias of the main table corresponding to {@link FormatWhereOptions.model}.
@@ -471,7 +472,7 @@ export class AbstractQueryGeneratorTypeScript {
     tableOrModel: TableOrModel,
     options?: { schema?: string, delimiter?: string },
   ): TableNameWithSchema {
-    const tableIdentifier = getTableIdentifier(tableOrModel);
+    const tableIdentifier = extractTableIdentifier(tableOrModel);
 
     if (!isPlainObject(tableIdentifier)) {
       throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
@@ -782,17 +783,24 @@ export class AbstractQueryGeneratorTypeScript {
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
   }
 
-  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions): string {
-    const table = this.quoteTable(tableName);
-    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions): string {
+    const table = this.quoteTable(tableOrModel);
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const whereOptions = { ...options, model: modelDefinition };
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
-      if (!isModelStatic(tableName)) {
-        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      if (!modelDefinition) {
+        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model or model definition.');
       }
 
-      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
-      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+      const pks = join(
+        map(modelDefinition.primaryKeysAttributeNames, attrName => {
+          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
+        }),
+        ', ',
+      );
+
+      const primaryKeys = modelDefinition.primaryKeysAttributeNames.size > 1 ? `(${pks})` : pks;
 
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
@@ -805,7 +813,7 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return joinSQLFragments([
-      `DELETE FROM ${this.quoteTable(tableName)}`,
+      `DELETE FROM ${this.quoteTable(tableOrModel)}`,
       options.where ? this.whereQuery(options.where, whereOptions) : '',
       this.#internals.addLimitAndOffset(options),
     ]);

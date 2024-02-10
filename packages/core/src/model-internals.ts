@@ -171,7 +171,7 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
   } else {
     const connection = options.transaction?.getConnectionIfExists();
     if (connection) {
-      options.connection = options.transaction?.getConnectionIfExists();
+      options.connection = connection;
     }
   }
 }

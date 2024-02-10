@@ -33,7 +33,7 @@ export function isSameInitialModel(a: ModelStatic<any>, b: ModelStatic<any>): bo
     && (a.getInitialModel() === b.getInitialModel());
 }
 
-export function getModelDefinition(tableOrModel: TableOrModel): ModelDefinition | null {
+export function extractModelDefinition(tableOrModel: TableOrModel): ModelDefinition | null {
   if (tableOrModel instanceof ModelDefinition) {
     return tableOrModel;
   }
@@ -45,11 +45,11 @@ export function getModelDefinition(tableOrModel: TableOrModel): ModelDefinition 
   return null;
 }
 
-export function getTableIdentifier(tableOrModel: TableOrModel): TableNameWithSchema {
+export function extractTableIdentifier(tableOrModel: TableOrModel): TableNameWithSchema {
   if (isString(tableOrModel)) {
     return { tableName: tableOrModel };
   }
 
-  return getModelDefinition(tableOrModel)?.table ?? tableOrModel as TableNameWithSchema;
+  return extractModelDefinition(tableOrModel)?.table ?? tableOrModel as TableNameWithSchema;
 }
 
