@@ -3203,7 +3203,7 @@ Instead of specifying a Model, either:
 
     options = options ?? EMPTY_OBJECT;
 
-    const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
+    const { attributes, attributesWithGetters, rawAttributes } = this.constructor.modelDefinition;
 
     if (attributeName) {
       const attribute = attributes.get(attributeName);
@@ -3232,7 +3232,8 @@ Instead of specifying a Model, either:
       || options.plain && this._options.include
       || options.clone
     ) {
-      const values = Object.create(null);
+      let values = Object.create(null);
+
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
           if (!this._options.attributes?.includes(attributeName2)) {
@@ -3251,6 +3252,18 @@ Instead of specifying a Model, either:
           values[attributeName2] = this.get(attributeName2, options);
         }
       }
+
+      const keysOrder = Object.keys(rawAttributes);
+
+      values = Object.fromEntries(
+        Object.entries(values)
+          .sort(([keyA], [keyB]) => {
+            const indexA = keysOrder.indexOf(keyA);
+            const indexB = keysOrder.indexOf(keyB);
+
+            return indexA - indexB;
+          }),
+      );
 
       return values;
     }
