@@ -9,6 +9,7 @@ import type { Fn } from '../../expression-builders/fn.js';
 import type { JsonPath } from '../../expression-builders/json-path.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type { Sequelize } from '../../sequelize.js';
+import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
@@ -241,10 +242,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   }
 
   formatAttribute(piece: Attribute, options?: EscapeOptions): string {
-    const model = options?.model;
+    const modelDefinition = options?.model ? extractModelDefinition(options.model) : null;
 
     // This handles special attribute syntaxes like $association.references$, json.paths, and attribute::casting
-    const columnName = model?.modelDefinition.getColumnNameLoose(piece.attributeName)
+    const columnName = modelDefinition?.getColumnNameLoose(piece.attributeName)
       ?? piece.attributeName;
 
     if (options?.mainAlias) {

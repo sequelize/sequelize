@@ -10,12 +10,13 @@ import { SQL_NULL } from '../../expression-builders/json-sql-null.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
-import type { AbstractDialect, Expression, ModelStatic, WhereOptions } from '../../index.js';
+import type { AbstractDialect, Expression, ModelDefinition, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
 import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
+import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
@@ -263,8 +264,10 @@ export class WhereSqlBuilder {
     pojoWhere: PojoWhere,
     options: FormatWhereOptions = EMPTY_OBJECT,
   ): string {
+    const modelDefinition = options?.model ? extractModelDefinition(options.model) : null;
+
     // we need to parse the left operand early to determine the data type of the right operand
-    let leftDataType = this.#getOperandType(pojoWhere.leftOperand, options.model);
+    let leftDataType = this.#getOperandType(pojoWhere.leftOperand, modelDefinition);
     const operandIsJsonColumn = leftDataType == null || leftDataType instanceof DataTypes.JSON;
 
     return this.#handleRecursiveNotOrAndNestedPathRecursive(
@@ -277,7 +280,7 @@ export class WhereSqlBuilder {
         if (leftDataType == null && left instanceof JsonPath) {
           leftDataType = this.#jsonType;
         } else if (left !== pojoWhere.leftOperand) { // if "left" was wrapped in a JSON path, we need to get its data type again as it might have been cast
-          leftDataType = this.#getOperandType(left, options.model);
+          leftDataType = this.#getOperandType(left, modelDefinition);
         }
 
         if (operator === Op.col) {
@@ -314,7 +317,7 @@ export class WhereSqlBuilder {
           }
         }
 
-        const rightDataType = this.#getOperandType(right, options.model);
+        const rightDataType = this.#getOperandType(right, modelDefinition);
 
         if (operator in this) {
           // @ts-expect-error -- TS does not know that this is a method
@@ -823,7 +826,7 @@ export class WhereSqlBuilder {
     return operand;
   }
 
-  #getOperandType(operand: Expression, model: Nullish<ModelStatic>): NormalizedDataType | undefined {
+  #getOperandType(operand: Expression, modelDefinition: Nullish<ModelDefinition>): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
       // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?
       return this.#dialect.sequelize.normalizeDataType(operand.type);
@@ -834,22 +837,22 @@ export class WhereSqlBuilder {
       return this.#jsonType;
     }
 
-    if (!model) {
+    if (!modelDefinition) {
       return undefined;
     }
 
     if (operand instanceof AssociationPath) {
-      const association = model.modelDefinition.getAssociation(operand.associationPath);
+      const association = modelDefinition.getAssociation(operand.associationPath);
 
       if (!association) {
         return undefined;
       }
 
-      return this.#getOperandType(operand.attributeName, association.target);
+      return this.#getOperandType(operand.attributeName, association.target.modelDefinition);
     }
 
     if (operand instanceof Attribute) {
-      return model.modelDefinition.attributes.get(operand.attributeName)?.type;
+      return modelDefinition.attributes.get(operand.attributeName)?.type;
     }
 
     return undefined;

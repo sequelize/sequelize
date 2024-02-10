@@ -16,16 +16,18 @@ import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
 import { IndexHints } from '../../index-hints.js';
+import type { ModelDefinition } from '../../model-definition.js';
 import type { Attributes, Model, ModelStatic } from '../../model.js';
 import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
-import { isPlainObject, isString, rejectInvalidOptions } from '../../utils/check.js';
+import { isPlainObject, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
+import { join, map } from '../../utils/iterators.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
-import { isModelStatic } from '../../utils/model-utils.js';
+import { extractModelDefinition, extractTableIdentifier, isModelStatic } from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
 import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
@@ -53,7 +55,12 @@ import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
 
+/**
+ * @deprecated use {@link TableOrModel}.
+ */
 export type TableNameOrModel = TableName | ModelStatic;
+
+export type TableOrModel = TableName | ModelStatic | ModelDefinition;
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {
@@ -92,7 +99,7 @@ export interface FormatWhereOptions extends Bindable {
   /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
-  readonly model?: ModelStatic | undefined;
+  readonly model?: ModelStatic | ModelDefinition | null | undefined;
 
   /**
    * The alias of the main table corresponding to {@link FormatWhereOptions.model}.
@@ -402,24 +409,22 @@ export class AbstractQueryGeneratorTypeScript {
 
   // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
-    tableNameOrModel: TableNameOrModel,
+    tableOrModel: TableOrModel,
     options?: { schema?: string, delimiter?: string },
   ): TableNameWithSchema {
-    const tableNameObject = isModelStatic(tableNameOrModel) ? tableNameOrModel.getTableName()
-      : isString(tableNameOrModel) ? { tableName: tableNameOrModel }
-      : tableNameOrModel;
+    const tableIdentifier = extractTableIdentifier(tableOrModel);
 
-    if (!isPlainObject(tableNameObject)) {
-      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableNameOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
+    if (!isPlainObject(tableIdentifier)) {
+      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
 
     // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
-    delete tableNameObject.toString;
+    delete tableIdentifier.toString;
 
     return {
-      ...tableNameObject,
-      schema: options?.schema || tableNameObject.schema || this.options.schema || this.dialect.getDefaultSchema(),
-      delimiter: options?.delimiter || tableNameObject.delimiter || '.',
+      ...tableIdentifier,
+      schema: options?.schema || tableIdentifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
+      delimiter: options?.delimiter || tableIdentifier.delimiter || '.',
     };
   }
 
@@ -429,7 +434,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param param table string or object
    * @param options options
    */
-  quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
+  quoteTable(param: TableOrModel, options?: QuoteTableOptions): string {
     if (options) {
       rejectInvalidOptions(
         'quoteTable',
@@ -720,17 +725,24 @@ export class AbstractQueryGeneratorTypeScript {
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
   }
 
-  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
-    const table = this.quoteTable(tableName);
-    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions): string {
+    const table = this.quoteTable(tableOrModel);
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const whereOptions = { ...options, model: modelDefinition };
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
-      if (!isModelStatic(tableName)) {
-        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      if (!modelDefinition) {
+        throw new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
       }
 
-      const pks = Object.values(tableName.primaryKeys).map(key => this.quoteIdentifier(key.columnName)).join(', ');
-      const primaryKeys = Object.values(tableName.primaryKeys).length > 1 ? `(${pks})` : pks;
+      const pks = join(
+        map(modelDefinition.primaryKeysAttributeNames, attrName => {
+          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
+        }),
+        ', ',
+      );
+
+      const primaryKeys = modelDefinition.primaryKeysAttributeNames.size > 1 ? `(${pks})` : pks;
 
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
@@ -743,7 +755,7 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     return joinSQLFragments([
-      `DELETE FROM ${this.quoteTable(tableName)}`,
+      `DELETE FROM ${this.quoteTable(tableOrModel)}`,
       options.where ? this.whereQuery(options.where, whereOptions) : '',
       this.#internals.addLimitAndOffset(options),
     ]);
