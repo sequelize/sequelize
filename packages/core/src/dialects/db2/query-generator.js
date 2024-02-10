@@ -2,6 +2,7 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
+import { EMPTY_SET } from '../../utils/object.js';
 import { removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
@@ -22,7 +23,6 @@ const DataTypes = require('../../data-types');
 const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /* istanbul ignore next */
@@ -41,7 +41,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -144,9 +144,9 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }

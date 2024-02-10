@@ -179,36 +179,18 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (options) {
-      const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateSchemaQueryOptions>();
-      if (this.dialect.supports.createSchema.authorization) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('authorization');
-      }
-
-      if (this.dialect.supports.createSchema.charset) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('charset');
-      }
-
-      if (this.dialect.supports.createSchema.collate) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('collate');
-      }
-
-      if (this.dialect.supports.createSchema.comment) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('comment');
-      }
-
-      if (this.dialect.supports.createSchema.ifNotExists) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifNotExists');
-      }
-
-      if (this.dialect.supports.createSchema.replace) {
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('replace');
-      }
-
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        {
+          authorization: this.dialect.supports.createSchema.authorization,
+          charset: this.dialect.supports.createSchema.charset,
+          collate: this.dialect.supports.createSchema.collate,
+          comment: this.dialect.supports.createSchema.comment,
+          ifNotExists: this.dialect.supports.createSchema.ifNotExists,
+          replace: this.dialect.supports.createSchema.replace,
+        },
         options,
       );
     }
@@ -234,20 +216,14 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (options) {
-      const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>();
-      if (this.dialect.supports.dropSchema.cascade) {
-        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('cascade');
-      }
-
-      if (this.dialect.supports.dropSchema.ifExists) {
-        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS.add('ifExists');
-      }
-
       rejectInvalidOptions(
         'dropSchemaQuery',
-        this.dialect.name,
+        this.dialect,
         DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        {
+          cascade: this.dialect.supports.dropSchema.cascade,
+          ifExists: this.dialect.supports.dropSchema.ifExists,
+        },
         options,
       );
     }
@@ -273,18 +249,14 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
-
-    if (this.dialect.supports.dropTable.cascade) {
-      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
-    }
-
     if (options) {
       rejectInvalidOptions(
         'dropTableQuery',
-        this.dialect.name,
+        this.dialect,
         DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        {
+          cascade: this.dialect.supports.dropTable.cascade,
+        },
         options,
       );
     }
@@ -321,21 +293,14 @@ export class AbstractQueryGeneratorTypeScript {
 
   removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
     if (options) {
-      const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
-
-      if (this.dialect.supports.removeColumn.cascade) {
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('cascade');
-      }
-
-      if (this.dialect.supports.removeColumn.ifExists) {
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS.add('ifExists');
-      }
-
       rejectInvalidOptions(
         'removeColumnQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        {
+          cascade: this.dialect.supports.removeColumn.cascade,
+          ifExists: this.dialect.supports.removeColumn.ifExists,
+        },
         options,
       );
     }
@@ -369,21 +334,16 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (options) {
-      const REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>();
       const { removeOptions } = this.dialect.supports.constraints;
-      if (removeOptions.cascade) {
-        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('cascade');
-      }
-
-      if (removeOptions.ifExists) {
-        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS.add('ifExists');
-      }
 
       rejectInvalidOptions(
         'removeConstraintQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_CONSTRAINT_QUERY_SUPPORTED_OPTIONS,
+        {
+          cascade: removeOptions.cascade,
+          ifExists: removeOptions.ifExists,
+        },
         options,
       );
     }
@@ -490,16 +450,18 @@ export class AbstractQueryGeneratorTypeScript {
    * @param options options
    */
   quoteTable(param: TableNameOrModel, options?: QuoteTableOptions): string {
-    const QUOTE_TABLE_SUPPORTED_OPTIONS = new Set<keyof QuoteTableOptions>();
-    if (this.dialect.supports.indexHints) {
-      QUOTE_TABLE_SUPPORTED_OPTIONS.add('indexHints');
+    if (options) {
+      rejectInvalidOptions(
+        'quoteTable',
+        this.dialect,
+        QUOTE_TABLE_SUPPORTABLE_OPTIONS,
+        {
+          indexHints: this.dialect.supports.indexHints,
+          tableHints: this.dialect.supports.tableHints,
+        },
+        options,
+      );
     }
-
-    if (this.dialect.supports.tableHints) {
-      QUOTE_TABLE_SUPPORTED_OPTIONS.add('tableHints');
-    }
-
-    rejectInvalidOptions('quoteTable', this.dialect.name, QUOTE_TABLE_SUPPORTABLE_OPTIONS, QUOTE_TABLE_SUPPORTED_OPTIONS, { ...options });
 
     if (isModelStatic(param)) {
       param = param.getTableName();

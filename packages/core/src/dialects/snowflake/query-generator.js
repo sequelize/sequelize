@@ -1,6 +1,7 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
@@ -21,7 +22,6 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
@@ -29,7 +29,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -110,9 +110,9 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
