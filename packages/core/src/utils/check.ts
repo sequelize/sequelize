@@ -1,3 +1,4 @@
+import pickBy from 'lodash/pickBy';
 import type { AbstractDialect } from '../dialects/abstract/index.js';
 import { BaseError } from '../errors/index.js';
 import { Where } from '../expression-builders/where.js';
@@ -111,7 +112,11 @@ export function rejectInvalidOptions<T extends string>(
   supportedOptions: Iterable<T> | Partial<Record<T, boolean>>,
   receivedOptions: object,
 ): void {
-  const receivedOptionNames = Object.keys(receivedOptions);
+  const receivedOptionNames = Object.keys(
+    // This removes any undefined or false values from the object
+    // It is therefore _essential_ that boolean options are false by default!
+    pickBy(receivedOptions, value => value !== undefined && value !== false),
+  );
   const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
 
   const unsupportedOptions = receivedOptionNames.filter(optionName => {

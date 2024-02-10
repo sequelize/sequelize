@@ -183,14 +183,7 @@ export class AbstractQueryGeneratorTypeScript {
         'createSchemaQuery',
         this.dialect,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        {
-          authorization: this.dialect.supports.createSchema.authorization,
-          charset: this.dialect.supports.createSchema.charset,
-          collate: this.dialect.supports.createSchema.collate,
-          comment: this.dialect.supports.createSchema.comment,
-          ifNotExists: this.dialect.supports.createSchema.ifNotExists,
-          replace: this.dialect.supports.createSchema.replace,
-        },
+        this.dialect.supports.createSchema,
         options,
       );
     }
@@ -220,10 +213,7 @@ export class AbstractQueryGeneratorTypeScript {
         'dropSchemaQuery',
         this.dialect,
         DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        {
-          cascade: this.dialect.supports.dropSchema.cascade,
-          ifExists: this.dialect.supports.dropSchema.ifExists,
-        },
+        this.dialect.supports.dropSchema,
         options,
       );
     }
@@ -254,9 +244,7 @@ export class AbstractQueryGeneratorTypeScript {
         'dropTableQuery',
         this.dialect,
         DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        {
-          cascade: this.dialect.supports.dropTable.cascade,
-        },
+        this.dialect.supports.dropTable,
         options,
       );
     }
@@ -297,10 +285,7 @@ export class AbstractQueryGeneratorTypeScript {
         'removeColumnQuery',
         this.dialect,
         REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        {
-          cascade: this.dialect.supports.removeColumn.cascade,
-          ifExists: this.dialect.supports.removeColumn.ifExists,
-        },
+        this.dialect.supports.removeColumn,
         options,
       );
     }
@@ -334,16 +319,11 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (options) {
-      const { removeOptions } = this.dialect.supports.constraints;
-
       rejectInvalidOptions(
         'removeConstraintQuery',
         this.dialect,
         REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
-        {
-          cascade: removeOptions.cascade,
-          ifExists: removeOptions.ifExists,
-        },
+        this.dialect.supports.constraints.removeOptions,
         options,
       );
     }
