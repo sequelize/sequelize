@@ -9,17 +9,10 @@ import { SnowflakeQueryInterface } from './query-interface';
 
 export class SnowflakeDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
-    'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
     settingIsolationLevelDuringTransaction: false,
-    inserts: {
-      ignoreDuplicates: ' IGNORE',
-      // disable for now, but could be enable by approach below
-      // https://stackoverflow.com/questions/54828745/how-to-migrate-on-conflict-do-nothing-from-postgresql-to-snowflake
-      // updateOnDuplicate: true
-    },
     index: {
       collate: false,
       length: true,
@@ -34,6 +27,7 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     indexViaAlter: true,
     indexHints: true,
+    upserts: false,
     schemas: true,
     multiDatabases: true,
     dataTypes: {

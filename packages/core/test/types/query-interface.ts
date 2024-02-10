@@ -249,5 +249,6 @@ async function test() {
 
   await queryInterface.upsert('test', { a: 1 }, { b: 2 }, { c: 3 }, { model: TestModel });
 
-  await queryInterface.insert(null, 'test', {});
+  await queryInterface.insert('test', {});
+  await queryInterface.insert(TestModel, {});
 }

@@ -10,12 +10,8 @@ import { PostgresQueryInterface } from './query-interface';
 
 export class PostgresDialect extends AbstractDialect {
   static readonly supports = AbstractDialect.extendSupport({
-    'DEFAULT VALUES': true,
-    EXCEPTION: true,
-    'ON DUPLICATE KEY': false,
     'ORDER NULLS': true,
     returnValues: 'returning',
-    bulkDefault: true,
     schemas: true,
     multiDatabases: true,
     lock: true,
@@ -36,11 +32,11 @@ export class PostgresDialect extends AbstractDialect {
       operator: true,
       include: true,
     },
-    inserts: {
-      onConflictDoNothing: ' ON CONFLICT DO NOTHING',
-      updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true,
-      onConflictWhere: true,
+    insert: {
+      defaultValues: true,
+      exception: true,
+      onConflict: true,
+      returning: true,
     },
     dataTypes: {
       ARRAY: true,

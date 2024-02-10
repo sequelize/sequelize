@@ -781,8 +781,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('association options', () => {
     it('can specify data type for auto-generated relational keys', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING];
+      const dataTypes = [DataTypes.INTEGER, DataTypes.STRING];
       const Tasks = {};
+
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        dataTypes.push(DataTypes.BIGINT);
+      }
 
       for (const dataType of dataTypes) {
         const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;

@@ -77,7 +77,7 @@ describe('Model#increment', () => {
       await vars.User.create({ id: 1, integer1: 0, integer2: 0 });
     });
 
-    if (sequelize.dialect.supports.returnValues === 'returning') {
+    if (sequelize.dialect.supports.returnValues) {
       it('supports returning', async () => {
         const user1 = await vars.User.findByPk(1, { rejectOnEmpty: true });
         await user1.increment('integer1', { by: 2 });

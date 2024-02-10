@@ -2,14 +2,7 @@
 
 import type { Col } from '../../expression-builders/col.js';
 import type { Literal } from '../../expression-builders/literal.js';
-import type {
-  AttributeOptions,
-  FindOptions,
-  Model,
-  ModelStatic,
-  NormalizedAttributeOptions,
-  SearchPathable,
-} from '../../model.js';
+import type { AttributeOptions, FindOptions, Model, ModelStatic, NormalizedAttributeOptions } from '../../model.js';
 import type { DataType } from './data-types.js';
 import type { TableNameOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
@@ -25,25 +18,6 @@ type ParameterOptions = {
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
   model: ModelStatic<M>,
-};
-
-type InsertOptions = ParameterOptions & SearchPathable & {
-  exception?: boolean,
-  bindParam?: false | ((value: unknown) => string),
-
-  updateOnDuplicate?: string[],
-  ignoreDuplicates?: boolean,
-  upsertKeys?: string[],
-  returning?: boolean | Array<string | Literal | Col>,
-};
-
-type BulkInsertOptions = ParameterOptions & {
-  hasTrigger?: boolean,
-
-  updateOnDuplicate?: string[],
-  ignoreDuplicates?: boolean,
-  upsertKeys?: string[],
-  returning?: boolean | Array<string | Literal | Col>,
 };
 
 type UpdateOptions = ParameterOptions & {
@@ -85,18 +59,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   quoteIdentifiers(identifiers: string): string;
 
   selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;
-  insertQuery(
-    table: TableName,
-    valueHash: object,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-    options?: InsertOptions
-  ): { query: string, bind?: unknown[] };
-  bulkInsertQuery(
-    tableName: TableName,
-    newEntries: object[],
-    options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions }
-  ): string;
 
   addColumnQuery(
     table: TableName,
@@ -128,13 +90,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-
-  /**
-   * Creates a function that can be used to collect bind parameters.
-   *
-   * @param bind A mutable object to which bind parameters will be added.
-   */
-  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 
   attributesToSQL(attributes: ColumnsDescription, options?: AttributeToSqlOptions): Record<string, string>;
 }

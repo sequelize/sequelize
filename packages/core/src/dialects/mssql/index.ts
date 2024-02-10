@@ -10,7 +10,6 @@ import { MsSqlQuery } from './query.js';
 
 export class MssqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
-    'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
     migrations: false,
     returnValues: 'output',
@@ -35,6 +34,10 @@ export class MssqlDialect extends AbstractDialect {
       using: false,
       where: true,
       include: true,
+    },
+    insert: {
+      defaultValues: true,
+      returning: true,
     },
     tmpTableTrigger: true,
     dataTypes: {

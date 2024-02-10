@@ -13,11 +13,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('options tests', () => {
       const Model = current.define('User', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },
-        count: DataTypes.BIGINT,
+        count: DataTypes.INTEGER,
       });
 
       it('should reject if options are missing', async () => {

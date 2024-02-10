@@ -5,7 +5,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import merge from 'lodash/merge';
 
 const { AbstractQuery } = require('../abstract/query');
-const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
 
@@ -50,33 +49,54 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   _handleQueryResponse(metaData, results) {
-    let result = this.instance;
+    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
+      if (this.instance && this.instance.dataValues) {
+        // If we are creating an instance, and we get no rows, the create failed but did not throw.
+        // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
+        if (this.isInsertQuery() && !this.isUpsertQuery() && results.length === 0) {
+          throw new sequelizeErrors.EmptyResultError();
+        }
 
-    // add the inserted row id to the instance
-    if (this.isInsertQuery(results, metaData) || this.isUpsertQuery()) {
-      this.handleInsertQuery(results, metaData);
-      if (!this.instance) {
-        const modelDefinition = this.model?.modelDefinition;
+        if (Array.isArray(results) && results[0]) {
+          for (const attributeOrColumnName of Object.keys(results[0])) {
+            const modelDefinition = this.model.modelDefinition;
 
-        // handle bulkCreate AI primary key
-        if (
-          metaData.constructor.name === 'Statement'
-          && modelDefinition?.autoIncrementAttributeName
-          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
-        ) {
-          const startId = metaData[this.getInsertIdField()] - metaData.changes + 1;
-          result = [];
-          for (let i = startId; i < startId + metaData.changes; i++) {
-            result.push({ [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: i });
+            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+            const attribute = modelDefinition.attributes.get(attributeOrColumnName) ?? modelDefinition.columns.get(attributeOrColumnName);
+
+            const updatedValue = this._parseDatabaseValue(results[0][attributeOrColumnName], attribute?.type);
+
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
           }
-        } else {
-          result = metaData[this.getInsertIdField()];
         }
       }
+
+      if (this.isUpsertQuery()) {
+        return [
+          this.instance,
+          null,
+        ];
+      }
+
+      return [
+        this.instance || results && (this.options.plain && results[0] || results) || undefined,
+        this.options.returning ? results.length : metaData.changes,
+      ];
+    }
+
+    if (this.isBulkUpdateQuery()) {
+      return this.options.returning ? this.handleSelectQuery(results) : metaData.changes;
+    }
+
+    if (this.isDeleteQuery()) {
+      return metaData.changes;
     }
 
     if (this.isShowConstraintsQuery()) {
-      return result;
+      return results;
     }
 
     if (this.isSelectQuery()) {
@@ -97,7 +117,7 @@ export class SqliteQuery extends AbstractQuery {
 
     if (this.sql.includes('PRAGMA TABLE_INFO')) {
       // this is the sqlite way of getting the metadata of a table
-      result = {};
+      const result = {};
 
       let defaultValue;
       for (const _result of results) {
@@ -130,23 +150,11 @@ export class SqliteQuery extends AbstractQuery {
       return result;
     }
 
-    if ([QueryTypes.BULKUPDATE, QueryTypes.DELETE].includes(this.options.type)) {
-      return metaData.changes;
-    }
-
-    if (this.options.type === QueryTypes.RAW) {
+    if (this.isRawQuery()) {
       return [results, metaData];
     }
 
-    if (this.isUpsertQuery()) {
-      return [result, null];
-    }
-
-    if (this.isUpdateQuery() || this.isInsertQuery()) {
-      return [result, metaData.changes];
-    }
-
-    return result;
+    return this.instance;
   }
 
   async run(sql, parameters) {
@@ -154,12 +162,6 @@ export class SqliteQuery extends AbstractQuery {
     this.sql = sql;
     const method = this.getDatabaseMethod();
     const complete = this._logQuery(sql, debug, parameters);
-
-    // TODO: remove sql type based parsing for SQLite.
-    //  It is extremely inefficient (requires a series of DESCRIBE TABLE query, which slows down all queries).
-    //  and is very unreliable.
-    //  Use Sequelize DataType parsing instead, until sqlite3 provides a clean API to know the DB type.
-    const columnTypes = {};
 
     const executeSql = async () => {
       // TODO: remove this check. A query could start with a comment:
@@ -200,32 +202,6 @@ export class SqliteQuery extends AbstractQuery {
 
       return this._handleQueryResponse(response.statement, response.results);
     };
-
-    if (method === 'all') {
-      let tableNames = [];
-      if (this.options && this.options.tableNames) {
-        tableNames = this.options.tableNames;
-      } else if (/from `(.*?)`/i.test(this.sql)) {
-        tableNames.push(/from `(.*?)`/i.exec(this.sql)[1]);
-      }
-
-      // If we already have the metadata for the table, there's no need to ask for it again
-      tableNames = tableNames.filter(tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master');
-
-      if (tableNames.length === 0) {
-        return executeSql();
-      }
-
-      await Promise.all(tableNames.map(async tableName => {
-        tableName = tableName.replaceAll('`', '');
-        columnTypes[tableName] = {};
-
-        const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
-        for (const result of results) {
-          columnTypes[tableName][result.name] = result.type;
-        }
-      }));
-    }
 
     return executeSql();
   }
@@ -350,7 +326,11 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   getDatabaseMethod() {
-    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.isDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isInsertQuery() || this.isUpsertQuery() || this.isUpdateQuery()) {
+      return this.options.returning ? 'all' : 'run';
+    }
+
+    if (this.isDeleteQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase())) {
       return 'run';
     }
 

@@ -9,15 +9,15 @@ import { SqliteQueryInterface } from './query-interface';
 
 export class SqliteDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
-    DEFAULT: false,
-    'DEFAULT VALUES': true,
     'UNION ALL': false,
     'RIGHT JOIN': false,
-    inserts: {
-      ignoreDuplicates: ' OR IGNORE',
-      updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true,
-      onConflictWhere: true,
+    returnValues: 'returning',
+    insert: {
+      default: false,
+      defaultValues: true,
+      ignore: true,
+      onConflict: true,
+      returning: true,
     },
     index: {
       using: false,
@@ -38,6 +38,9 @@ export class SqliteDialect extends AbstractDialect {
       COLLATE_BINARY: true,
       CITEXT: true,
       DECIMAL: false,
+      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
+      // issue: https://github.com/TryGhost/node-sqlite3/issues/922
+      BIGINT: false,
       JSON: true,
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)

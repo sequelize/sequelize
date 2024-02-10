@@ -1,7 +1,5 @@
 'use strict';
 
-import { getAttributeName } from '../../utils/format';
-
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
 
@@ -180,10 +178,48 @@ export class MsSqlQuery extends AbstractQuery {
    *  ])
    */
   formatResults(data, rowCount) {
-    if (this.isInsertQuery(data)) {
-      this.handleInsertQuery(data);
+    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
+      if (this.instance && this.instance.dataValues) {
+        // If we are creating an instance, and we get no rows, the create failed but did not throw.
+        // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
+        if (this.isInsertQuery() && !this.isUpsertQuery() && data.length === 0) {
+          throw new sequelizeErrors.EmptyResultError();
+        }
 
-      return [this.instance || data, rowCount];
+        // if this was an upsert and no data came back, that means the record exists, but the update was a noop.
+        // return the current instance and mark it as an "not an insert".
+        if (this.isUpsertQuery() && data.length === 0) {
+          return [this.instance || data, false];
+        }
+
+        if (Array.isArray(data) && data[0]) {
+          for (const attributeOrColumnName of Object.keys(data[0])) {
+            const modelDefinition = this.model.modelDefinition;
+
+            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+            const attribute = modelDefinition.attributes.get(attributeOrColumnName) ?? modelDefinition.columns.get(attributeOrColumnName);
+
+            const updatedValue = this._parseDatabaseValue(data[0][attributeOrColumnName], attribute?.type);
+
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
+          }
+        }
+      }
+
+      if (this.isUpsertQuery()) {
+        return [
+          this.instance || data,
+          data[0].$action === 'INSERT',
+        ];
+      }
+
+      return [
+        this.instance || data && (this.options.plain && data[0] || data) || undefined,
+        rowCount,
+      ];
     }
 
     if (this.isDescribeQuery()) {
@@ -230,31 +266,11 @@ export class MsSqlQuery extends AbstractQuery {
     }
 
     if (this.isBulkUpdateQuery()) {
-      if (this.options.returning) {
-        return this.handleSelectQuery(data);
-      }
-
-      return rowCount;
+      return this.options.returning ? this.handleSelectQuery(data) : rowCount;
     }
 
     if (this.isDeleteQuery()) {
       return data[0] ? data[0].AFFECTEDROWS : 0;
-    }
-
-    if (this.isUpsertQuery()) {
-      // if this was an upsert and no data came back, that means the record exists, but the update was a noop.
-      // return the current instance and mark it as an "not an insert".
-      if (data && data.length === 0) {
-        return [this.instance || data, false];
-      }
-
-      this.handleInsertQuery(data);
-
-      return [this.instance || data, data[0].$action === 'INSERT'];
-    }
-
-    if (this.isUpdateQuery()) {
-      return [this.instance || data, rowCount];
     }
 
     if (this.isShowConstraintsQuery()) {
@@ -409,39 +425,5 @@ export class MsSqlQuery extends AbstractQuery {
     }, new Map());
 
     return Array.from(indexes.values());
-  }
-
-  handleInsertQuery(insertedRows, metaData) {
-    if (!this.instance?.dataValues) {
-      return;
-    }
-
-    // map column names to attribute names
-    insertedRows = insertedRows.map(row => {
-      const attributes = Object.create(null);
-
-      for (const columnName of Object.keys(row)) {
-        const attributeName = getAttributeName(this.model, columnName) ?? columnName;
-
-        attributes[attributeName] = row[columnName];
-      }
-
-      return attributes;
-    });
-
-    insertedRows = this._parseDataArrayByType(insertedRows, this.model, this.options.includeMap);
-
-    const autoIncrementAttributeName = this.model.autoIncrementAttribute;
-    let id = null;
-
-    id = id || insertedRows && insertedRows[0][this.getInsertIdField()];
-    id = id || metaData && metaData[this.getInsertIdField()];
-    id = id || insertedRows && insertedRows[0][autoIncrementAttributeName];
-
-    // assign values to existing instance
-    this.instance[autoIncrementAttributeName] = id;
-    for (const attributeName of Object.keys(insertedRows[0])) {
-      this.instance.dataValues[attributeName] = insertedRows[0][attributeName];
-    }
   }
 }

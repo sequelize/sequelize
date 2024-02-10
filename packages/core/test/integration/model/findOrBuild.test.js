@@ -65,7 +65,7 @@ describe('Model#findOrBuild', () => {
       const [, user2] = await this.User.bulkCreate([
         { username: 'Mello', age: 10 },
         { username: 'Mello', age: 20 },
-      ], { returning: true });
+      ], { returning: Support.sequelize.dialect.supports.insert.returning });
 
       const project = await this.Project.create({
         name: 'Investigate',

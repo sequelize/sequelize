@@ -1,18 +1,25 @@
 import { randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
+import type { AttributeOptions } from '../../model';
 import { rejectInvalidOptions } from '../../utils/check';
+import { removeNullishValuesFromArray, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
+  BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS,
+  INSERT_QUERY_SUPPORTABLE_OPTIONS,
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { QueryWithBindParams, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
+  BulkInsertQueryOptions,
   GetConstraintSnippetQueryOptions,
+  InsertQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
@@ -22,6 +29,8 @@ import { SqliteQueryGeneratorInternal } from './query-generator-internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types';
 import type { SqliteDialect } from './index.js';
 
+const BULK_INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof BulkInsertQueryOptions>(['conflictWhere', 'ignoreDuplicates', 'returning', 'updateOnDuplicate']);
+const INSERT_QUERY_SUPPORTED_OPTIONS = new Set<keyof InsertQueryOptions>(['conflictWhere', 'ignoreDuplicates', 'returning', 'updateOnDuplicate']);
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['restartIdentity']);
@@ -236,6 +245,190 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `DELETE FROM ${table}`,
       options.where ? this.whereQuery(options.where, whereOptions) : '',
     ]);
+  }
+
+  bulkInsertQuery(
+    tableName: TableNameOrModel,
+    values: Array<Record<string, unknown>>,
+    options?: BulkInsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): string {
+    if (options) {
+      rejectInvalidOptions(
+        'bulkInsertQuery',
+        this.dialect.name,
+        BULK_INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        BULK_INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+
+      if (options.ignoreDuplicates && options.updateOnDuplicate) {
+        throw new Error('Options ignoreDuplicates and updateOnDuplicate cannot be used together');
+      }
+    }
+
+    if (!Array.isArray(values)) {
+      throw new Error(`Invalid values: ${inspect(values)}. Expected an array.`);
+    }
+
+    if (values.length === 0) {
+      throw new Error('Invalid values: []. Expected at least one element.');
+    }
+
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const allColumns = new Set<string>();
+    const valueHashes = removeNullishValuesFromArray(values, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const bulkInsertOptions = { ...options, model };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const row of valueHashes) {
+      for (const column of Object.keys(row)) {
+        allColumns.add(column);
+      }
+    }
+
+    if (allColumns.size === 0) {
+      throw new Error('No columns were defined');
+    }
+
+    const columnFragment = [...allColumns].map(column => this.quoteIdentifier(column)).join(',');
+    const rowsFragment = valueHashes.map(row => {
+      if (typeof row !== 'object' || row == null || Array.isArray(row)) {
+        throw new Error(`Invalid row: ${inspect(row)}. Expected an object.`);
+      }
+
+      const valueMap = new Map<string, string>();
+      for (const column of allColumns) {
+        // SQLite does not support DEFAULT in values so default to null if undefined
+        const rowValue = row[column] ?? null;
+
+        valueMap.set(column, this.escape(rowValue, {
+          ...bulkInsertOptions,
+          type: attributeMap.get(column)?.type,
+        }));
+      }
+
+      return `(${[...valueMap.values()].join(',')})`;
+    });
+
+    const conflictFragment = bulkInsertOptions.updateOnDuplicate ? this.#internals.generateUpdateOnDuplicateKeysFragment(bulkInsertOptions) : '';
+    const returningFragment = bulkInsertOptions.returning ? joinSQLFragments(['RETURNING', this.#internals.getReturnFields(bulkInsertOptions, attributeMap).join(', ')]) : '';
+
+    return joinSQLFragments([
+      'INSERT',
+      bulkInsertOptions.ignoreDuplicates ? 'OR IGNORE' : '',
+      'INTO',
+      this.quoteTable(tableName),
+      `(${columnFragment})`,
+      'VALUES',
+      rowsFragment.join(','),
+      conflictFragment,
+      returningFragment,
+    ]);
+  }
+
+  insertQuery(
+    tableName: TableNameOrModel,
+    value: Record<string, unknown>,
+    options?: InsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'insertQuery',
+        this.dialect.name,
+        INSERT_QUERY_SUPPORTABLE_OPTIONS,
+        INSERT_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+
+      if (options.ignoreDuplicates && options.updateOnDuplicate) {
+        throw new Error('Options ignoreDuplicates and updateOnDuplicate cannot be used together');
+      }
+    }
+
+    if (typeof value !== 'object' || value == null || Array.isArray(value)) {
+      throw new Error(`Invalid value: ${inspect(value)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const model = isModelStatic(tableName) ? tableName : options?.model;
+    const valueMap = new Map<string, string>();
+    const valueHash = removeNullishValuesFromHash(value, this.options.omitNull ?? false);
+    const attributeMap = new Map<string, AttributeOptions>();
+    const insertOptions: InsertQueryOptions = {
+      ...options,
+      model,
+      bindParam: options?.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam,
+    };
+
+    if (model) {
+      for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    } else if (attributeHash) {
+      for (const [column, attribute] of Object.entries(attributeHash)) {
+        attributeMap.set(attribute?.columnName ?? column, attribute);
+      }
+    }
+
+    for (const [column, rowValue] of Object.entries(valueHash)) {
+      if (attributeMap.get(column)?.autoIncrement && rowValue == null) {
+        // Skip auto-increment columns with null values as they will be auto-generated
+        continue;
+      } else if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      } else {
+        valueMap.set(column, this.escape(rowValue, {
+          ...insertOptions,
+          type: attributeMap.get(column)?.type,
+        }));
+      }
+    }
+
+    const returningFragment = insertOptions.returning ? joinSQLFragments(['RETURNING', this.#internals.getReturnFields(insertOptions, attributeMap).join(', ')]) : '';
+
+    if (valueMap.size === 0) {
+      return {
+        query: joinSQLFragments([
+          'INSERT INTO',
+          this.quoteTable(tableName),
+          'DEFAULT VALUES',
+          returningFragment,
+        ]),
+        bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+      };
+    }
+
+    const rowFragment = [...valueMap.values()].join(',');
+    const columnFragment = [...valueMap.keys()].map(column => this.quoteIdentifier(column)).join(',');
+    const conflictFragment = insertOptions.updateOnDuplicate ? this.#internals.generateUpdateOnDuplicateKeysFragment(insertOptions) : '';
+
+    return {
+      query: joinSQLFragments([
+        'INSERT',
+        insertOptions.ignoreDuplicates ? 'OR IGNORE' : '',
+        'INTO',
+        this.quoteTable(tableName),
+        `(${columnFragment})`,
+        'VALUES',
+        `(${rowFragment})`,
+        conflictFragment,
+        returningFragment,
+      ]),
+      bind: typeof insertOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 
   /**

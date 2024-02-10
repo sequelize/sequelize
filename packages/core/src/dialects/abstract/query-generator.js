@@ -17,7 +17,6 @@ import { joinWithLogicalOperator } from './where-sql-builder';
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import forOwn from 'lodash/forOwn';
 import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
@@ -58,326 +57,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
-   * Returns an insert into command
-   *
-   * @param {string} table
-   * @param {object} valueHash       attribute value pairs
-   * @param {object} modelAttributes
-   * @param {object} [options]
-   *
-   * @private
-   */
-  insertQuery(table, valueHash, modelAttributes, options) {
-    options = options || {};
-    defaults(options, this.options);
-
-    const modelAttributeMap = {};
-    const bind = Object.create(null);
-    const fields = [];
-    const returningModelAttributes = [];
-    const values = Object.create(null);
-    const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
-    let query;
-    let valueQuery = '';
-    let emptyQuery = '';
-    let outputFragment = '';
-    let returningFragment = '';
-    let identityWrapperRequired = false;
-    let tmpTable = ''; // tmpTable declaration for trigger
-
-    if (modelAttributes) {
-      each(modelAttributes, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
-    }
-
-    if (this.dialect.supports['DEFAULT VALUES']) {
-      emptyQuery += ' DEFAULT VALUES';
-    } else if (this.dialect.supports['VALUES ()']) {
-      emptyQuery += ' VALUES ()';
-    }
-
-    if (this.dialect.supports.returnValues && options.returning) {
-      const returnValues = this.generateReturnValues(modelAttributes, options);
-
-      returningModelAttributes.push(...returnValues.returnFields);
-      returningFragment = returnValues.returningFragment;
-      tmpTable = returnValues.tmpTable || '';
-      outputFragment = returnValues.outputFragment || '';
-    }
-
-    if (get(this, ['sequelize', 'options', 'dialectOptions', 'prependSearchPath']) || options.searchPath) {
-      // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
-    }
-
-    if (this.dialect.supports.EXCEPTION && options.exception) {
-      // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
-    }
-
-    valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
-    for (const key in valueHash) {
-      if (Object.hasOwn(valueHash, key)) {
-        // if value is undefined, we replace it with null
-        const value = valueHash[key] ?? null;
-        fields.push(this.quoteIdentifier(key));
-
-        // SERIALS' can't be NULL in postgresql, use DEFAULT where supported
-        if (modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true && value == null) {
-          if (!this.dialect.supports.autoIncrement.defaultValue) {
-            fields.splice(-1, 1);
-          } else if (this.dialect.supports.DEFAULT) {
-            values[key] = 'DEFAULT';
-          } else {
-            values[key] = this.escape(null);
-          }
-        } else {
-          if (modelAttributeMap[key] && modelAttributeMap[key].autoIncrement === true) {
-            identityWrapperRequired = true;
-          }
-
-          values[key] = this.escape(value, {
-            model: options.model,
-            type: modelAttributeMap[key]?.type,
-            replacements: options.replacements,
-            bindParam,
-          });
-        }
-      }
-    }
-
-    let onDuplicateKeyUpdate = '';
-
-    if (
-      !isEmpty(options.conflictWhere)
-      && !this.dialect.supports.inserts.onConflictWhere
-    ) {
-      throw new Error('missing dialect support for conflictWhere option');
-    }
-
-    // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
-    // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
-    // upsert function.
-    if (this.dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
-      if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
-        // If no conflict target columns were specified, use the primary key names from options.upsertKeys
-        const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
-        const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-
-        const fragments = [
-          'ON CONFLICT',
-          '(',
-          conflictKeys.join(','),
-          ')',
-        ];
-
-        if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
-        }
-
-        // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
-        // do an update.  Instead, fall back to DO NOTHING.
-        if (isEmpty(updateKeys)) {
-          fragments.push('DO NOTHING');
-        } else {
-          fragments.push('DO UPDATE SET', updateKeys.join(','));
-        }
-
-        onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
-      } else {
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=${values[attr]}`);
-        // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
-        // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
-        // This will be the primary key in most cases, but it could be some other constraint.
-        if (isEmpty(valueKeys) && options.upsertKeys) {
-          valueKeys.push(...options.upsertKeys.map(attr => `${this.quoteIdentifier(attr)}=${this.quoteIdentifier(attr)}`));
-        }
-
-        // edge case... but if for some reason there were no valueKeys, and there were also no upsertKeys... then we
-        // can no longer build the requested query without a syntax error.  Let's throw something more graceful here
-        // so the devs know what the problem is.
-        if (isEmpty(valueKeys)) {
-          throw new Error('No update values found for ON DUPLICATE KEY UPDATE clause, and no identifier fields could be found to use instead.');
-        }
-
-        onDuplicateKeyUpdate += `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
-      }
-    }
-
-    const replacements = {
-      ignoreDuplicates: options.ignoreDuplicates ? this.dialect.supports.inserts.ignoreDuplicates : '',
-      onConflictDoNothing: options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '',
-      attributes: fields.join(','),
-      output: outputFragment,
-      values: Object.values(values).join(','),
-      tmpTable,
-    };
-
-    valueQuery = `${tmpTable}INSERT${replacements.ignoreDuplicates} INTO ${quotedTable} (${replacements.attributes})${replacements.output} VALUES (${replacements.values})${onDuplicateKeyUpdate}${replacements.onConflictDoNothing}${valueQuery}`;
-    emptyQuery = `${tmpTable}INSERT${replacements.ignoreDuplicates} INTO ${quotedTable}${replacements.output}${onDuplicateKeyUpdate}${replacements.onConflictDoNothing}${emptyQuery}`;
-
-    // Mostly for internal use, so we expect the user to know what he's doing!
-    // pg_temp functions are private per connection, so we never risk this function interfering with another one.
-    if (this.dialect.supports.EXCEPTION && options.exception) {
-      const dropFunction = 'DROP FUNCTION IF EXISTS pg_temp.testfunc()';
-
-      if (returningModelAttributes.length === 0) {
-        returningModelAttributes.push('*');
-      }
-
-      const delimiter = `$func_${crypto.randomUUID().replaceAll('-', '')}$`;
-      const selectQuery = `SELECT (testfunc.response).${returningModelAttributes.join(', (testfunc.response).')}, testfunc.sequelize_caught_exception FROM pg_temp.testfunc();`;
-
-      options.exception = 'WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL;';
-      valueQuery = `CREATE OR REPLACE FUNCTION pg_temp.testfunc(OUT response ${quotedTable}, OUT sequelize_caught_exception text) RETURNS RECORD AS ${delimiter} BEGIN ${valueQuery} RETURNING * INTO response; EXCEPTION ${options.exception} END ${delimiter} LANGUAGE plpgsql; ${selectQuery} ${dropFunction}`;
-    } else {
-      valueQuery += returningFragment;
-      emptyQuery += returningFragment;
-    }
-
-    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
-    if (this.dialect.supports.finalTable) {
-      query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
-    }
-
-    if (identityWrapperRequired && this.dialect.supports.autoIncrement.identityInsert) {
-      query = `SET IDENTITY_INSERT ${quotedTable} ON; ${query} SET IDENTITY_INSERT ${quotedTable} OFF;`;
-    }
-
-    // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query };
-    if (options.bindParam !== false) {
-      result.bind = bind;
-    }
-
-    return result;
-  }
-
-  /**
-   * Returns an insert into command for multiple values.
-   *
-   * @param {string} tableName
-   * @param {object} fieldValueHashes
-   * @param {object} options
-   * @param {object} fieldMappedAttributes
-   *
-   * @private
-   */
-  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
-    options = options || {};
-    fieldMappedAttributes = fieldMappedAttributes || {};
-
-    const tuples = [];
-    const serials = {};
-    const allAttributes = [];
-    let onDuplicateKeyUpdate = '';
-
-    for (const fieldValueHash of fieldValueHashes) {
-      forOwn(fieldValueHash, (value, key) => {
-        if (!allAttributes.includes(key)) {
-          allAttributes.push(key);
-        }
-
-        if (
-          fieldMappedAttributes[key]
-          && fieldMappedAttributes[key].autoIncrement === true
-        ) {
-          serials[key] = true;
-        }
-      });
-    }
-
-    for (const fieldValueHash of fieldValueHashes) {
-      const values = allAttributes.map(key => {
-        if (
-          this.dialect.supports.bulkDefault
-          && serials[key] === true
-        ) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
-        }
-
-        return this.escape(fieldValueHash[key] ?? null, {
-          // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
-          type: fieldMappedAttributes[key]?.type,
-          replacements: options.replacements,
-        });
-      });
-
-      tuples.push(`(${values.join(',')})`);
-    }
-
-    // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
-    // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
-    // upsert function.
-    if (this.dialect.supports.inserts.updateOnDuplicate && options.updateOnDuplicate) {
-      if (this.dialect.supports.inserts.updateOnDuplicate === ' ON CONFLICT DO UPDATE SET') { // postgres / sqlite
-        // If no conflict target columns were specified, use the primary key names from options.upsertKeys
-        const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
-        const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-
-        let whereClause = false;
-        if (options.conflictWhere) {
-          if (!this.dialect.supports.inserts.onConflictWhere) {
-            throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
-          }
-
-          whereClause = this.whereQuery(options.conflictWhere, options);
-        }
-
-        // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
-        onDuplicateKeyUpdate = [
-          'ON CONFLICT',
-          '(',
-          conflictKeys.join(','),
-          ')',
-          whereClause,
-          'DO UPDATE SET',
-          updateKeys.join(','),
-        ];
-      } else { // mysql / maria
-        if (options.conflictWhere) {
-          throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
-        }
-
-        const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
-        onDuplicateKeyUpdate = `${this.dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
-      }
-    }
-
-    const ignoreDuplicates = options.ignoreDuplicates ? this.dialect.supports.inserts.ignoreDuplicates : '';
-    const attributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-    const onConflictDoNothing = options.ignoreDuplicates ? this.dialect.supports.inserts.onConflictDoNothing : '';
-    let returning = '';
-
-    if (this.dialect.supports.returnValues && options.returning) {
-      const returnValues = this.generateReturnValues(fieldMappedAttributes, options);
-
-      returning += returnValues.returningFragment;
-    }
-
-    return joinSQLFragments([
-      'INSERT',
-      ignoreDuplicates,
-      'INTO',
-      this.quoteTable(tableName),
-      `(${attributes})`,
-      'VALUES',
-      tuples.join(','),
-      onDuplicateKeyUpdate,
-      onConflictDoNothing,
-      returning,
-      ';',
-    ]);
-  }
-
-  /**
    * Returns an update query
    *
    * @param {string} tableName
@@ -406,7 +85,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.bindParam = false;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam;
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit && this.dialect.name !== 'mssql' && this.dialect.name !== 'db2') {
       // TODO: use bind parameter
@@ -421,7 +100,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       outputFragment = returnValues.outputFragment || '';
 
       // ensure that the return output is properly mapped to model fields.
-      if (this.dialect.supports.returnValues !== 'output' && options.returning) {
+      if (this.dialect.supports.returnValues && options.returning) {
         options.mapToModel = true;
       }
     }
@@ -486,7 +165,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // TODO: this method should delegate to `updateQuery`
 
     options = options || {};
-    defaults(options, { returning: true });
+    defaults(options, { returning: this.dialect.supports.returnValues });
     const { model } = options;
 
     // TODO: add attribute DataType
@@ -903,18 +582,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  bindParam(bind) {
-    let i = 0;
-
-    return value => {
-      const bindName = `sequelize_${++i}`;
-
-      bind[bindName] = value;
-
-      return `$${bindName}`;
-    };
   }
 
   /*

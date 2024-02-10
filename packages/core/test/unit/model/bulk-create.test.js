@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
-      if (current.dialect.supports.inserts.updateOnDuplicate) {
+      if (current.dialect.supports.insert.updateOnDuplicate) {
         it('should map conflictAttributes to column names', async () => {
           // Note that the model also has an id key as its primary key.
           await Model.bulkCreate([{ accountId: 42, purchaseCount: 3 }], {

@@ -11,10 +11,7 @@ export class IBMiDialect extends AbstractDialect {
 
   static supports = AbstractDialect.extendSupport(
     {
-      'VALUES ()': true,
-      'ON DUPLICATE KEY': false,
       transactions: false,
-      bulkDefault: true,
       index: {
         using: false,
         where: true,
@@ -24,6 +21,11 @@ export class IBMiDialect extends AbstractDialect {
       },
       constraints: {
         onUpdate: false,
+      },
+      finalTable: true,
+      insert: {
+        defaultValues: true,
+        returning: true,
       },
       groupedLimit: false,
       upserts: false,

@@ -32,10 +32,6 @@ interface Replaceable {
 
 interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable { }
 
-export interface QiInsertOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | Array<string | Literal | Col>;
-}
-
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
@@ -322,11 +318,6 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
 
   /**
-   * Inserts a new record
-   */
-  insert(instance: Model | null, tableName: TableName, values: object, options?: QiInsertOptions): Promise<object>;
-
-  /**
    * Inserts or Updates a record in the database
    */
   upsert<M extends Model>(
@@ -336,16 +327,6 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     where: object,
     options?: QiUpsertOptions<M>,
   ): Promise<object>;
-
-  /**
-   * Inserts multiple records at once
-   */
-  bulkInsert(
-    tableName: TableName,
-    records: object[],
-    options?: QiOptionsWithReplacements,
-    attributes?: Record<string, AttributeOptions>
-  ): Promise<object | number>;
 
   /**
    * Updates a row

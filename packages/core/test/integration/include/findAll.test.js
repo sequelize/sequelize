@@ -1483,7 +1483,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should be possible not to include the main id in the attributes', async function () {
       const Member = this.sequelize.define('Member', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },
@@ -1501,7 +1501,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
       const Album = this.sequelize.define('Album', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },

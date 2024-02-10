@@ -1854,8 +1854,8 @@ ${associationOwner._getAssociationDebugList()}`);
         values = defaults(values, options.where);
       }
 
-      options.exception = true;
-      options.returning = true;
+      options.exception = this.sequelize.dialect.supports.insert.exception;
+      options.returning = this.sequelize.dialect.supports.insert.returning;
 
       try {
         const created = await this.create(values, options);
@@ -1989,7 +1989,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static async upsert(values, options) {
     options = {
       hooks: true,
-      returning: true,
+      returning: this.sequelize.dialect.supports.returnValues,
       validate: true,
       ...cloneDeep(options),
     };
@@ -2128,7 +2128,7 @@ ${associationOwner._getAssociationDebugList()}`);
         if (options.association) {
           options.returning = false;
         } else {
-          options.returning = true;
+          options.returning = this.sequelize.dialect.supports.insert.returning;
         }
       }
 
@@ -2261,13 +2261,6 @@ ${associationOwner._getAssociationDebugList()}`);
           return out;
         });
 
-        // Map attributes to fields for serial identification
-        const fieldMappedAttributes = Object.create(null);
-        for (const attrName in model.tableAttributes) {
-          const attribute = modelDefinition.attributes.get(attrName);
-          fieldMappedAttributes[attribute.columnName] = attribute;
-        }
-
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {
@@ -2298,7 +2291,7 @@ ${associationOwner._getAssociationDebugList()}`);
           options.returning = options.returning.map(attr => modelDefinition.getColumnNameLoose(attr));
         }
 
-        const results = await model.queryInterface.bulkInsert(model.getTableName(options), records, options, fieldMappedAttributes);
+        const results = await model.queryInterface.bulkInsert(model, records, options);
         if (Array.isArray(results)) {
           for (const [i, result] of results.entries()) {
             const instance = instances[i];
@@ -2310,7 +2303,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
               if (!instance || key === model.primaryKeyAttribute
                 && instance.get(model.primaryKeyAttribute)
-                && ['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
+                && ['mysql', 'mariadb'].includes(dialect)) {
                 // The query.js for these DBs is blind, it autoincrements the
                 // primarykey value, even if it was set manually. Also, it can
                 // return more results than instances, bug?.
@@ -3605,7 +3598,7 @@ Instead of specifying a Model, either:
       if (options.association) {
         options.returning = false;
       } else if (this.isNewRecord) {
-        options.returning = true;
+        options.returning = this.sequelize.dialect.supports.insert.returning;
       }
     }
 
@@ -3755,7 +3748,7 @@ Instead of specifying a Model, either:
 
     if (this.isNewRecord) {
       query = 'insert';
-      args = [this, this.constructor.getTableName(options), values, options];
+      args = [this.constructor, values, options, this];
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);

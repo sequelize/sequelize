@@ -147,6 +147,51 @@ export function removeNullishValuesFromHash(
   return result;
 }
 
+/**
+ * Removes entries from an array of hashes whose value is either null or undefined, unless `omitNull` is false or `allowNull` includes that key.
+ *
+ * Keys ending with 'Id' are never removed.
+ *
+ * @param hashes the array of objects from which entries with nullish values will be removed.
+ * @param omitNull if false, this method returns the array as-is
+ * @param options
+ * @param options.allowNull A list of keys that must be preserved even if their value is null or undefined.
+ */
+export function removeNullishValuesFromArray(
+  hashes: Array<Record<string, unknown>>,
+  omitNull: boolean,
+  options?: { allowNull?: string[] },
+): Array<Record<string, unknown>> {
+  if (!omitNull) {
+    return hashes;
+  }
+
+  const allowNull = options?.allowNull ?? [];
+  const keysToOmit = new Set<string>();
+
+  for (const hash of hashes) {
+    for (const [key, val] of Object.entries(hash)) {
+      if (!allowNull.includes(key) || !key.endsWith('Id') || val === null && val === undefined) {
+        keysToOmit.add(key);
+      }
+
+      if (val !== null && val !== undefined) {
+        keysToOmit.delete(key);
+      }
+    }
+  }
+
+  return hashes.map(hash => {
+    const _hash = { ...hash };
+
+    for (const key of keysToOmit) {
+      delete _hash[key];
+    }
+
+    return _hash;
+  });
+}
+
 export function getColumnName(attribute: NormalizedAttributeOptions): string {
   assert(attribute.fieldName != null, 'getColumnName expects a normalized attribute meta');
 

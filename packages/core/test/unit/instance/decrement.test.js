@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     describe('options tests', () => {
       const Model = current.define('User', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },

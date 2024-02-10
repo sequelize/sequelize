@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     describe('custom setter', () => {
       before(function () {
-        this.stubCreate = sinon.stub(current.queryInterface, 'insert').callsFake(async instance => [instance, 1]);
+        this.stubCreate = sinon.stub(current.queryInterface, 'insert').callsFake(async (_table, _values, _options, instance) => [instance, 1]);
       });
 
       after(function () {

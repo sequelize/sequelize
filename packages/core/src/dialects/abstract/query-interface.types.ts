@@ -3,10 +3,12 @@ import type { QueryRawOptions } from '../../sequelize';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
+  BulkInsertQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
+  InsertQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -142,3 +144,9 @@ export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, Que
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
 export interface BulkDeleteOptions extends BulkDeleteQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#bulkInsert} */
+export interface QiBulkInsertOptions extends BulkInsertQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#insert} */
+export interface QiInsertOptions extends InsertQueryOptions, QueryRawOptions { }

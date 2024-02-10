@@ -4,6 +4,7 @@ import { removeNullishValuesFromHash } from '../../utils/format';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import { SqliteQueryGeneratorInternal } from './query-generator-internal';
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -17,6 +18,17 @@ const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
+  #internals;
+
+  constructor(
+    dialect,
+    internals = new SqliteQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -128,7 +140,19 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const modelAttributeMap = Object.create(null);
     const values = [];
     const bind = Object.create(null);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    const bindParam = options.bindParam === undefined ? this.#internals.bindParam(bind) : options.bindParam;
+    let suffix = '';
+
+    if (options.returning) {
+      const returnValues = this.generateReturnValues(attributes, options);
+
+      suffix += returnValues.returningFragment;
+
+      // ensure that the return output is properly mapped to model fields.
+      if (this.dialect.supports.returnValues) {
+        options.mapToModel = true;
+      }
+    }
 
     if (attributes) {
       each(attributes, (attribute, key) => {
@@ -156,9 +180,9 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const whereOptions = { ...options, bindParam };
 
     if (options.limit) {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})${suffix}`.trim();
     } else {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
+      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
     }
 
     const result = { query };

@@ -232,20 +232,38 @@ export class Db2Query extends AbstractQuery {
    * @private
    */
   formatResults(data, rowCount, metadata) {
-    let result = this.instance;
-    if (this.isInsertQuery(data, metadata)) {
-      this.handleInsertQuery(data, metadata);
+    if (this.isInsertQuery()) {
+      if (this.instance && this.instance.dataValues) {
+        // If we are creating an instance, and we get no rows, the create failed but did not throw.
+        // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
+        if (data.length === 0) {
+          throw new sequelizeErrors.EmptyResultError();
+        }
 
-      if (!this.instance) {
-        if (this.options.plain) {
-          const record = data[0];
-          result = record[Object.keys(record)[0]];
-        } else {
-          result = data;
+        if (Array.isArray(data) && data[0]) {
+          for (const attributeOrColumnName of Object.keys(data[0])) {
+            const modelDefinition = this.model.modelDefinition;
+
+            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
+            const attribute = modelDefinition.attributes.get(attributeOrColumnName) ?? modelDefinition.columns.get(attributeOrColumnName);
+
+            const updatedValue = this._parseDatabaseValue(data[0][attributeOrColumnName], attribute?.type);
+
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
+          }
         }
       }
+
+      return [
+        this.instance || data && (this.options.plain && data[0] || data) || undefined,
+        rowCount,
+      ];
     }
 
+    let result = this.instance;
     if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
@@ -267,14 +285,14 @@ export class Db2Query extends AbstractQuery {
     } else if (this.isSelectQuery()) {
       result = this.handleSelectQuery(data);
     } else if (this.isUpsertQuery()) {
-      result = data;
+      result = [data, null];
     } else if (this.isCallQuery()) {
       result = data;
     } else if (this.isBulkUpdateQuery()) {
-      result = data.length;
+      result = this.options.returning ? this.handleSelectQuery(data) : rowCount;
     } else if (this.isDeleteQuery()) {
       result = rowCount;
-    } else if (this.isInsertQuery() || this.isUpdateQuery()) {
+    } else if (this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
       result = data;
@@ -428,24 +446,5 @@ export class Db2Query extends AbstractQuery {
     }, new Map());
 
     return Array.from(indexes.values());
-  }
-
-  handleInsertQuery(results, metaData) {
-    if (!this.instance) {
-      return;
-    }
-
-    const modelDefinition = this.model.modelDefinition;
-    if (!modelDefinition.autoIncrementAttributeName) {
-      return;
-    }
-
-    const autoIncrementAttribute = modelDefinition.attributes.get(modelDefinition.autoIncrementAttributeName);
-
-    const id = (results?.[0][this.getInsertIdField()])
-      ?? (metaData?.[this.getInsertIdField()])
-      ?? (results?.[0][autoIncrementAttribute.columnName]);
-
-    this.instance[autoIncrementAttribute.attributeName] = id;
   }
 }

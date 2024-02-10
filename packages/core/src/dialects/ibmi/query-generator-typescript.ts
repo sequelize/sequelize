@@ -1,5 +1,7 @@
+import type { AttributeOptions } from '../../model';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { isModelStatic } from '../../utils/model-utils';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -7,8 +9,10 @@ import {
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { QueryWithBindParams, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
+  BulkInsertQueryOptions,
+  InsertQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RenameTableQueryOptions,
@@ -217,5 +221,74 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
     ]);
+  }
+
+  bulkInsertQuery(
+    tableName: TableNameOrModel,
+    values: Array<Record<string, unknown>>,
+    options?: BulkInsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): string {
+    const query = super.bulkInsertQuery(tableName, values, { ...options, returning: false }, attributeHash);
+
+    if (options?.returning) {
+      const model = isModelStatic(tableName) ? tableName : options.model;
+      const attributeMap = new Map<string, AttributeOptions>();
+      if (model) {
+        for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+          attributeMap.set(attribute?.columnName ?? column, attribute);
+        }
+      } else if (attributeHash) {
+        for (const [column, attribute] of Object.entries(attributeHash)) {
+          attributeMap.set(attribute?.columnName ?? column, attribute);
+        }
+      }
+
+      return joinSQLFragments([
+        'SELECT',
+        this.#internals.getReturnFields(options, attributeMap).join(', '),
+        'FROM FINAL TABLE (',
+        query,
+        ')',
+      ]);
+    }
+
+    return query;
+  }
+
+  insertQuery(
+    tableName: TableNameOrModel,
+    value: Record<string, unknown>,
+    options?: InsertQueryOptions,
+    attributeHash?: Record<string, AttributeOptions>,
+  ): QueryWithBindParams {
+    const { query, bind } = super.insertQuery(tableName, value, { ...options, returning: false }, attributeHash);
+
+    if (options?.returning) {
+      const model = isModelStatic(tableName) ? tableName : options.model;
+      const attributeMap = new Map<string, AttributeOptions>();
+      if (model) {
+        for (const [column, attribute] of model.modelDefinition.physicalAttributes.entries()) {
+          attributeMap.set(attribute?.columnName ?? column, attribute);
+        }
+      } else if (attributeHash) {
+        for (const [column, attribute] of Object.entries(attributeHash)) {
+          attributeMap.set(attribute?.columnName ?? column, attribute);
+        }
+      }
+
+      return {
+        query: joinSQLFragments([
+          'SELECT',
+          this.#internals.getReturnFields(options, attributeMap).join(', '),
+          'FROM FINAL TABLE (',
+          query,
+          ')',
+        ]),
+        bind,
+      };
+    }
+
+    return { query, bind };
   }
 }
