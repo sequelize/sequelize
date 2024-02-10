@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.37](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.36...v7.0.0-alpha.37) (2024-02-10)
+
+**Note:** Version bump only for package @sequelize/validator.js
+
+
+
+
+
 # [7.0.0-alpha.36](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.35...v7.0.0-alpha.36) (2024-02-01)
 
 **Note:** Version bump only for package @sequelize/validator.js

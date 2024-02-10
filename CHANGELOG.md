@@ -3,6 +3,23 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.37](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.36...v7.0.0-alpha.37) (2024-02-10)
+
+
+### Bug Fixes
+
+* fix `NOT` operator sometimes producing incorrect queries ([#17044](https://github.com/sequelize/sequelize/issues/17044)) ([63ba367](https://github.com/sequelize/sequelize/commit/63ba367cd3f19fbaadee2e0daf1a0eb71808983b))
+* make `importModels` support non-default CJS exports ([#16844](https://github.com/sequelize/sequelize/issues/16844)) ([bf53c9f](https://github.com/sequelize/sequelize/commit/bf53c9f7c1d60561a91c5dda0ba4e830907af61e))
+
+
+### Features
+
+* **postgres:** add MACADDR8 DataType ([#17059](https://github.com/sequelize/sequelize/issues/17059)) ([c64b3c2](https://github.com/sequelize/sequelize/commit/c64b3c2e775dd2b30addee36c1484e385ff01a9c))
+
+
+
+
+
 # [7.0.0-alpha.36](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.35...v7.0.0-alpha.36) (2024-02-01)
 
 
