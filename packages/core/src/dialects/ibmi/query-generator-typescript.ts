@@ -1,5 +1,6 @@
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -19,8 +20,6 @@ import { IBMiQueryGeneratorInternal } from './query-generator-internal.js';
 import type { IBMiDialect } from './index.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
-const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
-const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -89,9 +88,9 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'renameTableQuery',
-        this.dialect.name,
+        this.dialect,
         RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -110,9 +109,9 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
-        this.dialect.name,
+        this.dialect,
         TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -180,7 +179,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
         options,

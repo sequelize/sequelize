@@ -51,7 +51,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,

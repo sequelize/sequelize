@@ -4,6 +4,7 @@ import { inspect } from 'node:util';
 import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -14,7 +15,6 @@ import isPlainObject from 'lodash/isPlainObject';
 const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
@@ -101,9 +101,9 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }

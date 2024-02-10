@@ -1,6 +1,7 @@
 import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
 import {
@@ -20,10 +21,7 @@ import type {
 import { SnowflakeQueryGeneratorInternal } from './query-generator-internal.js';
 import type { SnowflakeDialect } from './index.js';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([]);
-const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
-const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -47,9 +45,9 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -63,9 +61,9 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'listDatabasesQuery',
-        this.dialect.name,
+        this.dialect,
         LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_DATABASES_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -106,9 +104,9 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
-        this.dialect.name,
+        this.dialect,
         TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -120,7 +118,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'showConstraintsQuery',
-        this.dialect.name,
+        this.dialect,
         SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
         SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
         options,

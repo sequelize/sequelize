@@ -2,6 +2,7 @@ import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
+import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -26,7 +27,6 @@ import type { MssqlDialect } from './index.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
-const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -44,7 +44,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -158,9 +158,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
-        this.dialect.name,
+        this.dialect,
         TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -256,7 +256,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
         REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
         options,
