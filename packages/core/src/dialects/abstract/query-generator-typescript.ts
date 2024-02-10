@@ -790,7 +790,7 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
       if (!modelDefinition) {
-        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model or model definition.');
+        throw new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
       }
 
       const pks = join(

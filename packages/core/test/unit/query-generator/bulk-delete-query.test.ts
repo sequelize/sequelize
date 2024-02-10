@@ -2,7 +2,7 @@ import { DataTypes, literal } from '@sequelize/core';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const limitNotSupportedError = new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+const limitNotSupportedError = new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
 
 describe('QueryGenerator#bulkDeleteQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
