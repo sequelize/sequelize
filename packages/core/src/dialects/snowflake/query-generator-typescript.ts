@@ -1,3 +1,4 @@
+import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
@@ -9,7 +10,6 @@ import {
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -17,6 +17,8 @@ import type {
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
+import { SnowflakeQueryGeneratorInternal } from './query-generator-internal.js';
+import type { SnowflakeDialect } from './index.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([]);
 const LIST_DATABASES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([]);
@@ -27,8 +29,18 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
  * Temporary class to ease the TypeScript migration
  */
 export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalSchemaNames() {
-    return ['INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys'];
+  readonly #internals: SnowflakeQueryGeneratorInternal;
+
+  constructor(
+    dialect: SnowflakeDialect,
+    internals: SnowflakeQueryGeneratorInternal = new SnowflakeQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+
+    this.#internals = internals;
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
@@ -62,10 +74,9 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
     if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
+      schemasToSkip = [...schemasToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -86,7 +97,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
       options?.schema
         ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABLE_SCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }
@@ -150,20 +161,5 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT CURRENT_VERSION() AS "version"';
-  }
-
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      fragment += ` LIMIT NULL`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
   }
 }

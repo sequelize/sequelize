@@ -1,9 +1,5 @@
-import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { MariaDbQueryGenerator } from './query-generator.js';
+import type { MariaDbDialect } from './index.js';
 
-export class MariaDbQueryInterface extends AbstractQueryInterface {
-  queryGenerator: MariaDbQueryGenerator;
-
-  constructor(sequelize: Sequelize, queryGenerator: MariaDbQueryGenerator);
-}
+export class MariaDbQueryInterface<Dialect extends MariaDbDialect = MariaDbDialect>
+  extends AbstractQueryInterface<Dialect> {}

@@ -1,20 +1,20 @@
-import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { FetchDatabaseVersionOptions } from '../abstract/query-interface.types.js';
-import type { PostgresQueryGenerator } from './query-generator.js';
+import type { PostgresDialect } from './index.js';
 
-export class PostgresQueryInterfaceTypescript extends AbstractQueryInterface {
+export class PostgresQueryInterfaceTypescript<Dialect extends PostgresDialect = PostgresDialect>
+  extends AbstractQueryInterface<Dialect> {
+
   #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: PostgresQueryGenerator,
+    dialect: Dialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    internalQueryInterface ??= new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    internalQueryInterface ??= new AbstractQueryInterfaceInternal(dialect);
 
-    super(sequelize, queryGenerator, internalQueryInterface);
+    super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
   }
 

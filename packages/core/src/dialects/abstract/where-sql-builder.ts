@@ -10,7 +10,7 @@ import { SQL_NULL } from '../../expression-builders/json-sql-null.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { Value } from '../../expression-builders/value.js';
 import { Where } from '../../expression-builders/where.js';
-import type { Expression, ModelStatic, WhereOptions } from '../../index.js';
+import type { AbstractDialect, Expression, ModelStatic, WhereOptions } from '../../index.js';
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
@@ -74,6 +74,8 @@ class ObjectPool<T> {
 const pojoWherePool = new ObjectPool<PojoWhere>(() => new PojoWhere(), 20);
 
 export class WhereSqlBuilder {
+  readonly #dialect: AbstractDialect;
+
   #operatorMap: Record<symbol, string> = {
     [Op.eq]: '=',
     [Op.ne]: '!=',
@@ -113,18 +115,20 @@ export class WhereSqlBuilder {
   #jsonType: NormalizedDataType | undefined;
   #arrayOfTextType: NormalizedDataType | undefined;
 
-  constructor(protected readonly queryGenerator: AbstractQueryGenerator) {
-    this.#jsonType = this.dialect.supports.dataTypes.JSON
-      ? new DataTypes.JSON().toDialectDataType(queryGenerator.dialect)
+  constructor(dialect: AbstractDialect) {
+    this.#dialect = dialect;
+
+    this.#jsonType = dialect.supports.dataTypes.JSON
+      ? new DataTypes.JSON().toDialectDataType(dialect)
       : undefined;
 
-    this.#arrayOfTextType = this.dialect.supports.dataTypes.ARRAY
-      ? new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(queryGenerator.dialect)
+    this.#arrayOfTextType = dialect.supports.dataTypes.ARRAY
+      ? new DataTypes.ARRAY(new DataTypes.TEXT()).toDialectDataType(dialect)
       : undefined;
   }
 
-  protected get dialect() {
-    return this.queryGenerator.dialect;
+  get #queryGenerator(): AbstractQueryGenerator {
+    return this.#dialect.queryGenerator;
   }
 
   setOperatorKeyword(op: symbol, keyword: string): void {
@@ -152,7 +156,7 @@ export class WhereSqlBuilder {
     try {
       return this.#handleRecursiveNotOrAndWithImplicitAndArray(where, (piece: PojoWhere | BaseSqlExpression) => {
         if (piece instanceof BaseSqlExpression) {
-          return this.queryGenerator.formatSqlExpression(piece, options);
+          return this.#queryGenerator.formatSqlExpression(piece, options);
         }
 
         return this.formatPojoWhere(piece, options);
@@ -339,7 +343,7 @@ export class WhereSqlBuilder {
 
     let rightSql: string;
     if (right instanceof Literal) {
-      rightSql = this.queryGenerator.escape(right, rightEscapeOptions);
+      rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right)) {
       if (right.length === 0) {
         // NOT IN () does not exist in SQL, so we need to return a condition that is:
@@ -351,13 +355,13 @@ export class WhereSqlBuilder {
 
         rightSql = '(NULL)';
       } else {
-        rightSql = this.queryGenerator.escapeList(right, rightEscapeOptions);
+        rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
       }
     } else {
       throw new TypeError('Operators Op.in and Op.notIn must be called with an array of values, or a literal');
     }
 
-    const leftSql = this.queryGenerator.escape(left, leftEscapeOptions);
+    const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
 
     return `${leftSql} ${this.#operatorMap[operator]} ${rightSql}`;
   }
@@ -406,13 +410,13 @@ export class WhereSqlBuilder {
     const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
     const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
 
-    const leftSql = this.queryGenerator.escape(left, leftEscapeOptions);
+    const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
 
     let rightSql: string;
     if (right instanceof BaseSqlExpression) {
-      rightSql = this.queryGenerator.escape(right, rightEscapeOptions);
+      rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right) && right.length === 2) {
-      rightSql = `${this.queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.queryGenerator.escape(right[1], rightEscapeOptions)}`;
+      rightSql = `${this.#queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.#queryGenerator.escape(right[1], rightEscapeOptions)}`;
     } else {
       throw new Error('Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.');
     }
@@ -474,7 +478,7 @@ export class WhereSqlBuilder {
         leftDataType,
         operator,
         right,
-        new DataTypes.RANGE(leftDataType).toDialectDataType(this.dialect),
+        new DataTypes.RANGE(leftDataType).toDialectDataType(this.#dialect),
         options,
       );
     }
@@ -568,7 +572,7 @@ export class WhereSqlBuilder {
       return this.formatBinaryOperation(left, leftDataType, operator, startToken + right + endToken, rightDataType, options);
     }
 
-    const escapedPercent = this.dialect.escapeString('%');
+    const escapedPercent = this.#dialect.escapeString('%');
     const literalBuilder: Array<string | BaseSqlExpression> = [`CONCAT(`];
     if (start) {
       literalBuilder.push(escapedPercent, ', ');
@@ -628,9 +632,9 @@ export class WhereSqlBuilder {
       throw new TypeError(`Operator Op.${operator.description} does not exist or is not supported by this dialect.`);
     }
 
-    const leftSql = this.queryGenerator.escape(left, { ...options, type: leftDataType ?? rightDataType });
+    const leftSql = this.#queryGenerator.escape(left, { ...options, type: leftDataType ?? rightDataType });
     const rightSql = this.#formatOpAnyAll(right, rightDataType ?? leftDataType)
-      || this.queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
+      || this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }
@@ -659,12 +663,12 @@ export class WhereSqlBuilder {
         ? value[Op.values] as unknown[]
         : [value[Op.values]];
 
-      const valueSql = operand.map(v => `(${this.queryGenerator.escape(v, options)})`).join(', ');
+      const valueSql = operand.map(v => `(${this.#queryGenerator.escape(v, options)})`).join(', ');
 
       return `VALUES ${valueSql}`;
     }
 
-    return this.queryGenerator.escape(value, { type: type && new DataTypes.ARRAY(type) });
+    return this.#queryGenerator.escape(value, { type: type && new DataTypes.ARRAY(type) });
   }
 
   /**
@@ -822,7 +826,7 @@ export class WhereSqlBuilder {
   #getOperandType(operand: Expression, model: Nullish<ModelStatic>): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
       // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?
-      return this.dialect.sequelize.normalizeDataType(operand.type);
+      return this.#dialect.sequelize.normalizeDataType(operand.type);
     }
 
     if (operand instanceof JsonPath) {
@@ -877,10 +881,6 @@ export function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.
 function wrapWithNot(sql: string): string {
   if (!sql) {
     return '';
-  }
-
-  if (sql.startsWith('(') && sql.endsWith(')')) {
-    return `NOT ${sql}`;
   }
 
   return `NOT (${sql})`;

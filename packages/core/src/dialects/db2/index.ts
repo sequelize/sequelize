@@ -58,12 +58,9 @@ export class Db2Dialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'db2');
-    this.connectionManager = new Db2ConnectionManager(this, sequelize);
-    this.queryGenerator = new Db2QueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);
+    this.connectionManager = new Db2ConnectionManager(this);
+    this.queryGenerator = new Db2QueryGenerator(this);
+    this.queryInterface = new Db2QueryInterface(this);
 
     this.registerDataTypeParser(['CHAR () FOR BIT DATA', 'VARCHAR () FOR BIT DATA'], value => {
       return value.toString();

@@ -2,7 +2,7 @@ import isEmpty from 'lodash/isEmpty';
 import { BaseError, UnknownConstraintError } from '../../errors';
 import type { AttributeOptions } from '../../model';
 import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
+import type { QueryRawOptions } from '../../sequelize';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { DataType } from '../abstract/data-types';
 import type { TableNameOrModel } from '../abstract/query-generator-typescript';
@@ -17,24 +17,21 @@ import type {
   RemoveConstraintOptions,
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
-import type { SqliteQueryGenerator } from './query-generator';
 import { SqliteQueryInterfaceInternal } from './query-interface-internal';
 import type { SqliteColumnsDescription } from './query-interface.types';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
+import type { SqliteDialect } from './index.js';
 
-export class SqliteQueryInterface extends AbstractQueryInterface {
-  readonly queryGenerator: SqliteQueryGenerator;
+export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect> extends AbstractQueryInterface<Dialect> {
   readonly #internalQueryInterface: SqliteQueryInterfaceInternal;
 
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: SqliteQueryGenerator,
+    dialect: Dialect,
     internalQueryInterface?: SqliteQueryInterfaceInternal,
   ) {
-    internalQueryInterface ??= new SqliteQueryInterfaceInternal(sequelize, queryGenerator);
+    internalQueryInterface ??= new SqliteQueryInterfaceInternal(dialect);
 
-    super(sequelize, queryGenerator, internalQueryInterface);
-    this.queryGenerator = queryGenerator;
+    super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
   }
 
@@ -135,7 +132,7 @@ export class SqliteQueryInterface extends AbstractQueryInterface {
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    const constraintSnippet = this.queryGenerator._getConstraintSnippet(tableName, options);
+    const constraintSnippet = this.queryGenerator._TEMPORARY_getConstraintSnippet(tableName, options);
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,

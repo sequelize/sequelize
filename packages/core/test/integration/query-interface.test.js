@@ -10,9 +10,8 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
-const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe('QueryInterface', () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
@@ -27,9 +26,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const schemaNames = await this.queryInterface.listSchemas();
         await this.queryInterface.createSchema('newSchema');
         const newSchemaNames = await this.queryInterface.listSchemas();
-        if (!current.dialect.supports.schemas) {
-          return;
-        }
 
         expect(newSchemaNames).to.have.length(schemaNames.length + 1);
       });

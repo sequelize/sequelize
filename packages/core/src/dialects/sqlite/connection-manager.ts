@@ -3,7 +3,6 @@ import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
-import type { Sequelize } from '../../sequelize.js';
 import { map } from '../../utils/iterators.js';
 import { logger } from '../../utils/logger';
 import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
@@ -25,8 +24,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
   private readonly lib: Lib;
   private readonly connections = new Map<string, SqliteConnection>();
 
-  constructor(dialect: SqliteDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: SqliteDialect) {
+    super(dialect);
 
     // We attempt to parse file location from a connection uri
     // but we shouldn't match sequelize default host.

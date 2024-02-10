@@ -11,14 +11,16 @@ import {
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   BulkDeleteQueryOptions,
+  GetConstraintSnippetQueryOptions,
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
+import { SqliteQueryGeneratorInternal } from './query-generator-internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types';
+import type { SqliteDialect } from './index.js';
 
 const LIST_TABLES_QUERY_SUPPORTED_OPTIONS = new Set<keyof ListTablesQueryOptions>();
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -28,6 +30,17 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
  * Temporary class to ease the TypeScript migration
  */
 export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
+  readonly #internals: SqliteQueryGeneratorInternal;
+
+  constructor(
+    dialect: SqliteDialect,
+    internals: SqliteQueryGeneratorInternal = new SqliteQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
   describeTableQuery(tableName: TableNameOrModel) {
     return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
   }
@@ -205,22 +218,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
   }
 
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT -1`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
-  }
-
   bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {
     const table = this.quoteTable(tableName);
     const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
@@ -230,7 +227,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
         `DELETE FROM ${table} WHERE rowid IN (`,
         `SELECT rowid FROM ${table}`,
         options.where ? this.whereQuery(options.where, whereOptions) : '',
-        this._addLimitAndOffset(options),
+        this.#internals.addLimitAndOffset(options),
         ')',
       ]);
     }
@@ -239,5 +236,15 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `DELETE FROM ${table}`,
       options.where ? this.whereQuery(options.where, whereOptions) : '',
     ]);
+  }
+
+  /**
+   * Temporary function until we have moved the query generation of addConstraint here.
+   *
+   * @param tableName
+   * @param options
+   */
+  _TEMPORARY_getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions): string {
+    return this.#internals.getConstraintSnippet(tableName, options);
   }
 }
