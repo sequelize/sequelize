@@ -100,7 +100,7 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
  * but that the dialect they use does not support.
  *
  * @param methodName The name of the method that received the options
- * @param dialect The name of the dialect to which the implementation belongs
+ * @param dialect The dialect to which the implementation belongs
  * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
  * @param supportedOptions The subset of options that this dialect *actually does* support.
  * @param receivedOptions The user provided options passed to the method.

@@ -1,7 +1,7 @@
 import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_ARRAY, EMPTY_SET } from '../../utils/object.js';
+import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -211,7 +211,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
         'removeIndexQuery',
         this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_ARRAY,
+        EMPTY_SET,
         options,
       );
     }
