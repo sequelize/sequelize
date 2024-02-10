@@ -1,7 +1,6 @@
 'use strict';
 
 import retry from 'retry-as-promised';
-import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
@@ -1033,10 +1032,6 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   close() {
     return this.connectionManager.close();
-  }
-
-  normalizeDataType(Type) {
-    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {

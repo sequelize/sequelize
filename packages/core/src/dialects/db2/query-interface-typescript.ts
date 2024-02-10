@@ -1,8 +1,9 @@
 import { QueryTypes } from '../../query-types';
 import { AbstractQueryInterface } from '../abstract/query-interface';
 import type { QiDropAllSchemasOptions } from '../abstract/query-interface.types';
+import type { Db2Dialect } from './index.js';
 
-export class Db2QueryInterfaceTypeScript extends AbstractQueryInterface {
+export class Db2QueryInterfaceTypeScript<Dialect extends Db2Dialect = Db2Dialect> extends AbstractQueryInterface<Dialect> {
   async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
     const skip = options?.skip || [];
     const allSchemas = await this.listSchemas(options);

@@ -12,10 +12,11 @@ import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
 import type { MapView } from './immutability.js';
 import { combinedIterator, map } from './iterators.js';
+import type { ReadOnlyRecord } from './types.js';
 import { getComplexKeys } from './where.js';
 
-export const EMPTY_OBJECT = Object.freeze(Object.create(null));
-export const EMPTY_ARRAY = Object.freeze([]);
+export const EMPTY_OBJECT: ReadOnlyRecord<PropertyKey, never> = Object.freeze(Object.create(null));
+export const EMPTY_ARRAY: readonly never[] = Object.freeze([]);
 
 /**
  * Deeply merges object `b` into `a`.

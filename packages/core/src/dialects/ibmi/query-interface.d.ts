@@ -1,9 +1,4 @@
-import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { IBMiQueryGenerator } from './query-generator.js';
+import type { IBMiDialect } from './index.js';
 
-export class IBMiQueryInterface extends AbstractQueryInterface {
-  queryGenerator: IBMiQueryGenerator;
-
-  constructor(sequelize: Sequelize, queryGenerator: IBMiQueryGenerator);
-}
+export class IBMiQueryInterface<Dialect extends IBMiDialect = IBMiDialect> extends AbstractQueryInterface<Dialect> {}

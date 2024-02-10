@@ -10,7 +10,6 @@ import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { Op } = require('../../operators');
 
 /**
  * list of reserved words in Snowflake
@@ -26,13 +25,6 @@ const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
-    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
