@@ -585,7 +585,7 @@ export interface QueryOptions extends QueryRawOptions {
    * Either an object of named parameter replacements in the format `:param` or an array of unnamed
    * replacements to replace `?` in your SQL.
    */
-  replacements?: BindOrReplacements;
+  replacements?: BindOrReplacements | undefined;
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {

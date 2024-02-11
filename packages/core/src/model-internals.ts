@@ -1,11 +1,14 @@
 import NodeUtil from 'node:util';
+import { BelongsToAssociation } from './associations/index.js';
 import type { IndexOptions } from './dialects/abstract/query-interface.js';
 import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Attributes, Model, Transactionable } from './model';
+import type { Attributes, Filterable, Model, ModelStatic, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
+import { isDevEnv } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
+import { cloneDeepPlainValues, freezeDescendants } from './utils/object.js';
 // TODO: strictly type this file during the TS migration of model.js
 
 // The goal of this file is to include the different private methods that are currently present on the Model class.
@@ -258,4 +261,41 @@ Either add a primary key to this model, or use one of the following alternatives
         `.trim(),
     );
   }
+}
+
+export function assertHasWhereOptions(options: Filterable | undefined): void {
+  if (options?.where == null) {
+    throw new Error('As a safeguard, this method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
+  }
+}
+
+export function ensureOptionsAreImmutable<T extends object>(options: T): T {
+  if (isDevEnv()) {
+    // Users should not mutate any mutable value inside `options`, and instead mutate the `options` object directly
+    // This ensures `options` remains immutable while limiting ourselves to a shallow clone in production,
+    // improving performance.
+    return freezeDescendants(cloneDeepPlainValues(options, true));
+  }
+
+  return options;
+}
+
+/**
+ * Returns all BelongsTo associations in the entire Sequelize instance that target the given model.
+ *
+ * @param target
+ */
+export function getBelongsToAssociationsWithTarget(target: ModelStatic): BelongsToAssociation[] {
+  const sequelize = target.sequelize;
+
+  const associations: BelongsToAssociation[] = [];
+  for (const model of sequelize.modelManager.all) {
+    for (const association of Object.values(model.associations)) {
+      if (association instanceof BelongsToAssociation && association.target === target) {
+        associations.push(association);
+      }
+    }
+  }
+
+  return associations;
 }

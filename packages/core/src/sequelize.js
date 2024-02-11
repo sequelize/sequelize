@@ -17,6 +17,7 @@ import { json } from './expression-builders/json.js';
 import { Literal, literal } from './expression-builders/literal.js';
 import { Where, where } from './expression-builders/where.js';
 import { setTransactionFromCls } from './model-internals.js';
+import { ManualOnDelete } from './model-repository.types.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
@@ -1200,6 +1201,7 @@ Sequelize.useInflection = useInflection;
 
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
+Sequelize.ManualOnDelete = ManualOnDelete;
 
 /**
  * Expose various errors available

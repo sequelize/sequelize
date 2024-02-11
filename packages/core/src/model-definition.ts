@@ -158,10 +158,8 @@ export class ModelDefinition<M extends Model = Model> {
    */
   #indexes: IndexOptions[] = [];
 
-  /**
-   * @deprecated Temporary property to be able to use elements that have not migrated to ModelDefinition yet.
-   */
-  readonly #model: ModelStatic<M>;
+  // TODO: associated model can be any class, not just ModelStatic.
+  readonly model: ModelStatic<M>;
 
   get modelName(): string {
     return this.options.modelName;
@@ -190,7 +188,7 @@ export class ModelDefinition<M extends Model = Model> {
     }
 
     this.#sequelize = modelOptions.sequelize;
-    this.#model = model;
+    this.model = model;
 
     const globalOptions = this.#sequelize.options;
 
@@ -497,7 +495,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           columnName,
 
           // @ts-expect-error -- undocumented legacy property, to be removed.
-          Model: this.#model,
+          Model: this.model,
 
           // undocumented legacy property, to be removed.
           _modelAttribute: true,
@@ -508,7 +506,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           builtAttribute.type
             = builtAttribute.type.withUsageContext({
               // TODO: Repository Pattern - replace with ModelDefinition
-              model: this.#model,
+              model: this.model,
               attributeName,
               sequelize: this.sequelize,
             });
@@ -712,7 +710,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       if (index.name === newName) {
         throw new Error(`Sequelize tried to give the name "${newName}" to index:
 ${NodeUtil.inspect(newIndex)}
-on model "${this.#model.name}", but that name is already taken by index:
+on model "${this.modelName}", but that name is already taken by index:
 ${NodeUtil.inspect(index)}
 
 Specify a different name for either index to resolve this issue.`);
