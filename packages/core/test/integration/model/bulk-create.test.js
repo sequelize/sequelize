@@ -296,7 +296,7 @@ describe('Model', () => {
       await UserWithLength.bulkCreate([{ length: 42 }, { length: 11 }]);
     });
 
-    it('stores the sequelize date in createdAt', async function () {
+    it('stores the current date in createdAt', async function () {
       const data = [{ username: 'Peter', uniqueName: '1' },
         { username: 'Paul', uniqueName: '2' }];
 
