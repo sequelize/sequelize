@@ -4,7 +4,7 @@ import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
-import { getTestDialectTeaser, sequelize } from '../../support';
+import { beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -61,30 +61,36 @@ describe(getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('optimizations using bulk create, destroy and update', () => {
-    class User extends Model<InferAttributes<User>> {
-      declare setTasks: HasManySetAssociationsMixin<Task, number>;
-    }
+    const vars = beforeAll2(() => {
+      class User extends Model<InferAttributes<User>> {
+        declare setTasks: HasManySetAssociationsMixin<Task, number>;
+      }
 
-    class Task extends Model<InferAttributes<Task>> {}
+      class Task extends Model<InferAttributes<Task>> {}
 
-    User.init({ username: DataTypes.STRING }, { sequelize });
-    Task.init({ title: DataTypes.STRING }, { sequelize });
-    User.hasMany(Task);
+      User.init({ username: DataTypes.STRING }, { sequelize });
+      Task.init({ title: DataTypes.STRING }, { sequelize });
+      User.hasMany(Task);
 
-    const user = User.build({
-      id: 42,
-    });
-    const task1 = Task.build({
-      id: 15,
-    });
-    const task2 = Task.build({
-      id: 16,
+      const user = User.build({
+        id: 42,
+      });
+      const task1 = Task.build({
+        id: 15,
+      });
+      const task2 = Task.build({
+        id: 16,
+      });
+
+      return { User, Task, user, task1, task2 };
     });
 
     let findAll: SinonStub;
     let update: SinonStub;
 
     beforeEach(() => {
+      const { Task } = vars;
+
       findAll = sinon.stub(Task, 'findAll').resolves([]);
       update = sinon.stub(Task, 'update').resolves([0]);
     });
@@ -95,12 +101,16 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('uses one update statement for addition', async () => {
+      const { user, task1, task2 } = vars;
+
       await user.setTasks([task1, task2]);
       expect(findAll).to.have.been.calledOnce;
       expect(update).to.have.been.calledOnce;
     });
 
     it('uses one delete from statement', async () => {
+      const { user, task1, task2 } = vars;
+
       findAll
         .onFirstCall().resolves([])
         .onSecondCall()
@@ -118,10 +128,16 @@ describe(getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('mixin', () => {
-    const User = sequelize.define('User');
-    const Task = sequelize.define('Task');
+    const vars = beforeAll2(() => {
+      const User = sequelize.define('User');
+      const Task = sequelize.define('Task');
+
+      return { User, Task };
+    });
 
     it('should mixin association methods', () => {
+      const { User, Task } = vars;
+
       const as = Math.random().toString();
       const association = User.hasMany(Task, { as });
 
@@ -137,6 +153,8 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should not override custom methods', () => {
+      const { User, Task } = vars;
+
       const methods = {
         getTasks: 'get',
         countTasks: 'count',
@@ -167,6 +185,8 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should not override attributes', () => {
+      const { Task } = vars;
+
       class Project extends Model<InferAttributes<Project>> {
         declare hasTasks: boolean | null;
       }

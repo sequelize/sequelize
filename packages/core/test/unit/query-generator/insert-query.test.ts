@@ -1,16 +1,22 @@
 import { expect } from 'chai';
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: literal(':name'),
     }, {}, {
@@ -29,6 +35,8 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('supports named bind parameters in literals', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$lastName'),
@@ -48,6 +56,8 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses positional bind parameters in literals', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
@@ -67,6 +77,8 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses bind parameters in literals even with bindParams: false', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
@@ -90,6 +102,8 @@ describe('QueryGenerator#insertQuery', () => {
       return;
     }
 
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.tableName, {
       numbers: [1, 2, 3],
     });
@@ -106,6 +120,8 @@ describe('QueryGenerator#insertQuery', () => {
 
   describe('returning', () => {
     it('supports returning: true', () => {
+      const { User } = vars;
+
       const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
@@ -125,6 +141,8 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
+      const { User } = vars;
+
       const { query } = queryGenerator.insertQuery(User.table, {
         firstName: 'John',
       }, User.getAttributes(), {
@@ -145,6 +163,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
+      const { User } = vars;
 
       expectsql(() => {
         return queryGenerator.insertQuery(User.table, {

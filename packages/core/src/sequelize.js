@@ -21,8 +21,15 @@ import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
 import { isString } from './utils/check.js';
-import { noSequelizeDataType } from './utils/deprecations';
+import {
+  noGetDialect,
+  noGetQueryInterface,
+  noSequelizeDataType,
+  noSequelizeIsDefined,
+  noSequelizeModel,
+} from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
@@ -35,11 +42,10 @@ import { BelongsToAssociation } from './associations/belongs-to';
 import { HasOneAssociation } from './associations/has-one';
 import { BelongsToManyAssociation } from './associations/belongs-to-many';
 import { HasManyAssociation } from './associations/has-many';
+import { Model } from './model';
 
-const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { ConstraintChecking, Deferrable } = require('./deferrable');
-const { ModelManager } = require('./model-manager');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
@@ -427,13 +433,6 @@ export class Sequelize extends SequelizeTypeScript {
       throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
     }
 
-    /**
-     * Models are stored here under the name given to `sequelize.define`
-     */
-    this.models = {};
-    this.modelManager = new ModelManager(this);
-    this.connectionManager = this.dialect.connectionManager;
-
     if (options.models) {
       this.addModels(options.models);
     }
@@ -446,8 +445,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {string} The specified dialect.
    */
-  // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
+    noGetDialect();
+
     return this.options.dialect;
   }
 
@@ -465,8 +465,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
-  // TODO [>=8]: deprecate & remove
   getQueryInterface() {
+    noGetQueryInterface();
+
     return this.queryInterface;
   }
 
@@ -506,7 +507,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    */
-  define(modelName, attributes = {}, options = {}) {
+  define(modelName, attributes = EMPTY_OBJECT, options = EMPTY_OBJECT) {
+    options = shallowClonePojo(options);
+
     options.modelName = modelName;
     options.sequelize = this;
 
@@ -526,11 +529,9 @@ export class Sequelize extends SequelizeTypeScript {
    * @returns {Model} Specified model
    */
   model(modelName) {
-    if (!this.isDefined(modelName)) {
-      throw new Error(`${modelName} has not been defined`);
-    }
+    noSequelizeModel();
 
-    return this.modelManager.getModel(modelName);
+    return this.models.getOrThrow(modelName);
   }
 
   /**
@@ -541,7 +542,9 @@ export class Sequelize extends SequelizeTypeScript {
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
-    return this.modelManager.models.some(model => model.name === modelName);
+    noSequelizeIsDefined();
+
+    return this.models.hasByName(modelName);
   }
 
   /**
@@ -815,10 +818,10 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // no models defined, just authenticate
-    if (this.modelManager.models.length === 0) {
+    if (this.models.size === 0) {
       await this.authenticate(options);
     } else {
-      const models = this.modelManager.getModelsTopoSortedByForeignKey();
+      const models = this.models.getModelsTopoSortedByForeignKey();
       if (models == null) {
         return this._syncModelsWithCyclicReferences(options);
       }
@@ -850,7 +853,7 @@ Use Sequelize#query if you wish to use replacements.`);
     if (this.dialect.name === 'sqlite') {
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
-        for (const model of this.modelManager.models) {
+        for (const model of this.models) {
           await model.sync(options);
         }
       });
@@ -859,12 +862,12 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // create all tables, but don't create foreign key constraints
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.sync({ ...options, withoutForeignKeyConstraints: true });
     }
 
     // add foreign key constraints
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.sync({ ...options, force: false, alter: true });
     }
   }
@@ -881,12 +884,12 @@ Use Sequelize#query if you wish to use replacements.`);
   async drop(options) {
     // if 'cascade' is specified, we don't have to worry about cyclic dependencies.
     if (options && options.cascade) {
-      for (const model of this.modelManager.models) {
+      for (const model of this.models) {
         await model.drop(options);
       }
     }
 
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
 
     // no cyclic dependency between models, we can delete them in an order that will not cause an error.
     if (sortedModels) {
@@ -898,7 +901,7 @@ Use Sequelize#query if you wish to use replacements.`);
     if (this.dialect.name === 'sqlite') {
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
-        for (const model of this.modelManager.models) {
+        for (const model of this.models) {
           await model.drop(options);
         }
       });
@@ -907,7 +910,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
@@ -915,7 +918,7 @@ Use Sequelize#query if you wish to use replacements.`);
       }));
     }
 
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.drop(options);
     }
   }

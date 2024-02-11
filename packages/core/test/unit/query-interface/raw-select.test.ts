@@ -1,12 +1,16 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#rawSelect', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -14,6 +18,7 @@ describe('QueryInterface#rawSelect', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse user-provided data as replacements', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.rawSelect(User.table, {

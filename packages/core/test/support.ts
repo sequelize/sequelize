@@ -11,6 +11,7 @@ import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'm
 import sinonChai from 'sinon-chai';
 import { Sequelize } from '@sequelize/core';
 import type { Dialect, Options } from '@sequelize/core';
+import { isNodeError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -445,9 +446,7 @@ export function minifySql(sql: string): string {
 export const sequelize = createSequelizeInstance();
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
-  for (const model of sequelizeInstance.modelManager.all) {
-    sequelizeInstance.modelManager.removeModel(model);
-  }
+  sequelizeInstance.removeAllModels();
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
@@ -524,4 +523,27 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
 
 export function typeTest(_name: string, _callback: () => void): void {
   // This function doesn't do anything. a type test is only checked by TSC and never runs.
+}
+
+export async function unlinkIfExists(filePath: string): Promise<void> {
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (error) {
+    if (isNodeError(error) && error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+}
+
+const SQLITE_DATABASES_DIR = path.join(__dirname, 'sqlite-databases');
+
+export function getSqliteDatabasePath(name: string): string {
+  return path.join(SQLITE_DATABASES_DIR, name);
+}
+
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof after !== 'undefined') {
+  after(async () => {
+    return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
+  });
 }

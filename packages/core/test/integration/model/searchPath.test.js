@@ -1,8 +1,6 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
@@ -30,7 +28,7 @@ describe('SearchPath in Model Methods', () => {
     return vars.sequelize.close();
   });
 
-  before(function () {
+  beforeEach('build restaurant tables', async function () {
     const { sequelize } = vars;
 
     this.Restaurant = sequelize.define('restaurant', {
@@ -60,10 +58,6 @@ describe('SearchPath in Model Methods', () => {
       foreignKey: 'restaurant_id',
       foreignKeyConstraints: false,
     });
-  });
-
-  beforeEach('build restaurant tables', async function () {
-    const { sequelize } = vars;
 
     const Restaurant = this.Restaurant;
 

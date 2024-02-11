@@ -3,12 +3,16 @@ import { expect } from 'chai';
 import { BelongsToManyAssociation, Model } from '@sequelize/core';
 import type { InferAttributes, NonAttribute } from '@sequelize/core';
 import { BelongsTo, BelongsToMany, HasMany, HasOne } from '@sequelize/core/decorators-legacy';
-import { sequelize, typeTest } from '../../support';
+import { resetSequelizeInstance, sequelize, typeTest } from '../../support';
 
 const CANNOT_INHERIT_ASSOCIATION_ERROR = /Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from/;
 const CANNOT_USE_AS_ERROR = 'The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.';
 
 describe('@BelongsTo', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a belongsTo association', () => {
     class User extends Model<InferAttributes<User>> {}
 
@@ -20,7 +24,7 @@ describe('@BelongsTo', () => {
       declare user2: User;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @BelongsTo(seq => seq.model('User'), 'userId')
+      @BelongsTo(seq => seq.models.getOrThrow('User'), 'userId')
       declare user3: User;
 
       declare userId: number;
@@ -153,6 +157,10 @@ describe('@BelongsTo', () => {
 });
 
 describe('@HasOne', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a hasOne association', () => {
     class User extends Model<InferAttributes<User>> {
       @HasOne(() => Profile, 'userId')
@@ -236,6 +244,10 @@ describe('@HasOne', () => {
 });
 
 describe('@HasMany', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a hasMany association', () => {
     class User extends Model<InferAttributes<User>> {
       @HasMany(() => Profile, 'userId')
@@ -319,6 +331,10 @@ describe('@HasMany', () => {
 });
 
 describe('@BelongsToMany', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a belongsToMany association', () => {
     class User extends Model<InferAttributes<User>> {
       @BelongsToMany(() => Role, {

@@ -441,16 +441,15 @@ export function initModel<M extends Model>(
     model,
   );
 
-  registerModelDefinition(model, modelDefinition);
-
   Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
+
+  registerModelDefinition(model, modelDefinition);
 
   // @ts-expect-error -- TODO: type
   model._scope = model.options.defaultScope;
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.modelManager.addModel(model);
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);

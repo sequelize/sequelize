@@ -883,8 +883,8 @@ function normalizeThroughOptions<M extends Model>(
     model = through.model;
   } else if (typeof through.model === 'function') { // model class provided as a forward reference
     model = through.model(sequelize);
-  } else if (sequelize.isDefined(through.model)) { // model name provided: get if exists, create if not
-    model = sequelize.model<M>(through.model);
+  } else if (sequelize.models.hasByName(through.model)) { // model name provided: get if exists, create if not
+    model = sequelize.models.getOrThrow<M>(through.model);
   } else {
     const sourceTable = source.table;
 

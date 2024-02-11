@@ -273,6 +273,10 @@ export function freezeDescendants<T extends object>(obj: T): T {
   return obj;
 }
 
+export function shallowClonePojo<T extends object>(obj: T): T {
+  return Object.assign(pojo(), obj);
+}
+
 export function cloneDeepPlainValues<T>(value: T, transferUnclonables?: boolean): T {
   if (Array.isArray(value)) {
     return value.map(val => cloneDeepPlainValues(val, transferUnclonables)) as T;
