@@ -41,7 +41,7 @@ Please find upgrade information to major versions here:
 - [Databases Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
-- [Slack](https://join.slack.com/t/sequelize/shared_invite/zt-1igt9hx8h-tGWU4AI1bRPvkRdEK5wnuQ)
+- [Slack](https://sequelize.org/slack)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### :wrench: Tools

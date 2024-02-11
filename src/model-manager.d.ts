@@ -10,6 +10,7 @@ export class ModelManager {
   public addModel<T extends ModelType>(model: T): T;
   public removeModel(model: ModelType): void;
   public getModel(against: unknown, options?: { attribute?: string }): typeof Model;
+  public findModel(callback: (model: typeof Model) => boolean): typeof Model | undefined
 
   /**
    * Returns an array that lists every model, sorted in order

@@ -121,6 +121,8 @@ export class OracleQuery extends AbstractQuery {
         bindDef.push(...Object.values(this.options.inbindAttributes));
         bindDef.push(...outParameters);
         this.bindParameters = parameters;
+      } else if (this.isRawQuery()) {
+        this.bindParameters = parameters;
       } else {
         Object.values(parameters).forEach(value => {
           bindParameters.push(value);

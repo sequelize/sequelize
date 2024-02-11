@@ -28,8 +28,10 @@ OracleDialect.prototype.supports = _.merge(_.cloneDeep(AbstractDialect.prototype
   'VALUES ()': true,
   'LIMIT ON UPDATE': true,
   IGNORE: ' IGNORE',
-  lock: false,
-  forShare: ' IN SHARE MODE',
+  lock: true,
+  lockOuterJoinFailure: true,
+  forShare: 'FOR UPDATE',
+  skipLocked: true,
   index: {
     collate: false,
     length: false,

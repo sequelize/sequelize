@@ -550,7 +550,7 @@ class AbstractQuery {
 
       // Keys are the same for all rows, so only need to compute them on the first row
       if (rowsI === 0) {
-        keys = Object.keys(row);
+        keys = _.sortBy(Object.keys(row), item => [item.split('.').length]);
         keyLength = keys.length;
       }
 

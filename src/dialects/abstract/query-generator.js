@@ -364,8 +364,31 @@ class QueryGenerator {
         // If no conflict target columns were specified, use the primary key names from options.upsertKeys
         const conflictKeys = options.upsertKeys.map(attr => this.quoteIdentifier(attr));
         const updateKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=EXCLUDED.${this.quoteIdentifier(attr)}`);
-        onDuplicateKeyUpdate = ` ON CONFLICT (${conflictKeys.join(',')}) DO UPDATE SET ${updateKeys.join(',')}`;
+
+        let whereClause = false;
+        if (options.conflictWhere) {
+          if (!this._dialect.supports.inserts.onConflictWhere) {
+            throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
+          }
+
+          whereClause = this.whereQuery(options.conflictWhere, options);
+        }
+
+        // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
+        onDuplicateKeyUpdate = [
+          'ON CONFLICT',
+          '(',
+          conflictKeys.join(','),
+          ')',
+          whereClause,
+          'DO UPDATE SET',
+          updateKeys.join(',')
+        ];
       } else { // mysql / maria
+        if (options.conflictWhere) {
+          throw new Error(`conflictWhere not supported for dialect ${this._dialect.name}`);
+        }
+
         const valueKeys = options.updateOnDuplicate.map(attr => `${this.quoteIdentifier(attr)}=VALUES(${this.quoteIdentifier(attr)})`);
         onDuplicateKeyUpdate = `${this._dialect.supports.inserts.updateOnDuplicate} ${valueKeys.join(',')}`;
       }
@@ -1858,11 +1881,7 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       }
     }
 
-    if (this.options.minifyAliases && asRight.length > 63) {
-      const alias = `%${topLevelInfo.options.includeAliases.size}`;
-
-      topLevelInfo.options.includeAliases.set(alias, asRight);
-    }
+    this.aliasAs(asRight, topLevelInfo);
 
     return {
       join: include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
@@ -2004,6 +2023,8 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       throughWhere = this.getWhereConditions(through.where, this.sequelize.literal(this.quoteIdentifier(throughAs)), through.model);
     }
 
+    this.aliasAs(includeAs.internalAs, topLevelInfo);
+
     // Generate a wrapped join so that the through table join can be dependent on the target join
     joinBody = `( ${this.quoteTable(throughTable, throughAs)} INNER JOIN ${this.quoteTable(include.model.getTableName(), includeAs.internalAs)} ON ${targetJoinOn}`;
     if (throughWhere) {
@@ -2029,6 +2050,18 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       condition: joinCondition,
       attributes
     };
+  }
+
+  /*
+   * Appends to the alias cache if the alias 64+ characters long and minifyAliases is true.
+   * This helps to avoid character limits in PostgreSQL.
+   */
+  aliasAs(as, topLevelInfo) {
+    if (this.options.minifyAliases && as.length >= 64) {
+      const alias = `%${topLevelInfo.options.includeAliases.size}`;
+
+      topLevelInfo.options.includeAliases.set(alias, as);
+    }
   }
 
   /*
