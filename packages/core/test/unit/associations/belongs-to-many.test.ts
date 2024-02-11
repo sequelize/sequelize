@@ -280,7 +280,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task1' });
 
-      expect(sequelize.models.user_task1.getAttributes()).to.contain.all.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.getOrThrow('user_task1').getAttributes()).to.contain.all.keys(['createdAt', 'updatedAt']);
     });
 
     it('allows me to override the global timestamps option', () => {
@@ -289,7 +289,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: { model: 'user_task2', timestamps: false } });
 
-      expect(sequelize.models.user_task2.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.getOrThrow('user_task2').getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
     });
 
     it('follows the global timestamps false option', () => {
@@ -304,7 +304,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task3' });
 
-      expect(sequelize2.models.user_task3.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize2.models.getOrThrow('user_task3').getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
     });
   });
 

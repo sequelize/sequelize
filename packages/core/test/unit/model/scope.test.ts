@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import type { FindOptions } from '@sequelize/core';
 import { DataTypes, Op, Sequelize, col, literal, where } from '@sequelize/core';
 // eslint-disable-next-line import/order -- sequelize cannot be imported right now since there will be too many typing errors
-import { getTestDialectTeaser, resetSequelizeInstance } from '../../support';
+import { beforeEach2, getTestDialectTeaser, resetSequelizeInstance } from '../../support';
 
 const sequelize = require('../../support').sequelize;
 
@@ -107,39 +107,47 @@ describe(getTestDialectTeaser('Model'), () => {
 
   describe('withScope', () => {
     describe('attribute exclude / include', () => {
-      const User2 = sequelize.define('user', {
-        password: DataTypes.STRING,
-        value: DataTypes.INTEGER,
-        name: DataTypes.STRING,
-      }, {
-        defaultScope: {
-          attributes: {
-            exclude: ['password'],
-          },
-        },
-        scopes: {
-          aScope: {
+      const vars = beforeEach2(() => {
+        const User = sequelize.define('User', {
+          password: DataTypes.STRING,
+          value: DataTypes.INTEGER,
+          name: DataTypes.STRING,
+        }, {
+          defaultScope: {
             attributes: {
-              exclude: ['value'],
+              exclude: ['password'],
             },
           },
-        },
+          scopes: {
+            aScope: {
+              attributes: {
+                exclude: ['value'],
+              },
+            },
+          },
+        });
+
+        return { User };
       });
 
       it('should not expand attributes', () => {
-        expect(User2._scope.attributes).to.deep.equal({ exclude: ['password'] });
+        const { User } = vars;
+        expect(User._scope.attributes).to.deep.equal({ exclude: ['password'] });
       });
 
       it('should not expand attributes', () => {
-        expect(User2.withScope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
+        const { User } = vars;
+        expect(User.withScope('aScope')._scope.attributes).to.deep.equal({ exclude: ['value'] });
       });
 
       it('should unite attributes with array', () => {
-        expect(User2.withScope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
+        const { User } = vars;
+        expect(User.withScope('aScope', 'defaultScope')._scope.attributes).to.deep.equal({ exclude: ['value', 'password'] });
       });
 
       it('should not modify the original scopes when merging them', () => {
-        expect(User2.withScope('defaultScope', 'aScope').options.defaultScope!.attributes).to.deep.equal({ exclude: ['password'] });
+        const { User } = vars;
+        expect(User.withScope('defaultScope', 'aScope').options.defaultScope!.attributes).to.deep.equal({ exclude: ['password'] });
       });
     });
 
@@ -364,12 +372,18 @@ describe(getTestDialectTeaser('Model'), () => {
         },
       };
 
-      const TestModel = sequelize.define('testModel', {}, {
-        scopes: testModelScopes,
+      const vars = beforeEach2(() => {
+        const TestModel = sequelize.define('TestModel', {}, {
+          scopes: testModelScopes,
+        });
+
+        return { TestModel };
       });
 
       describe('attributes', () => {
         it('should group 2 similar attributes with an Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereAttributeIs1', 'whereAttributeIs2'])._scope;
           const expected = {
             where: {
@@ -383,6 +397,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple similar attributes with an unique Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereAttributeIs1', 'whereAttributeIs2', 'whereAttributeIs3'])._scope;
           const expected = {
             where: {
@@ -397,6 +413,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group different attributes with an Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereAttributeIs1', 'whereOtherAttributeIs4'])._scope;
           const expected = {
             where: {
@@ -412,6 +430,8 @@ describe(getTestDialectTeaser('Model'), () => {
 
       describe('and operators', () => {
         it('should concatenate 2 Op.and into an unique one', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2'])._scope;
           const expected = {
             where: {
@@ -427,6 +447,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should concatenate multiple Op.and into an unique one', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2', 'whereOpAnd3'])._scope;
           const expected = {
             where: {
@@ -446,6 +468,8 @@ describe(getTestDialectTeaser('Model'), () => {
 
       describe('or operators', () => {
         it('should group 2 Op.or with an Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2'])._scope;
           const expected = {
             where: {
@@ -459,6 +483,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.or with an unique Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2', 'whereOpOr3'])._scope;
           const expected = {
             where: {
@@ -473,6 +499,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.or and Op.and with an unique Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpOr1', 'whereOpOr2', 'whereOpAnd1', 'whereOpAnd2'])._scope;
           const expected = {
             where: {
@@ -490,6 +518,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group multiple Op.and and Op.or with an unique Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereOpAnd1', 'whereOpAnd2', 'whereOpOr1', 'whereOpOr2'])._scope;
           const expected = {
             where: {
@@ -509,6 +539,8 @@ describe(getTestDialectTeaser('Model'), () => {
 
       describe('sequelize where', () => {
         it('should group 2 sequelize.where with an Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereSequelizeWhere1', 'whereSequelizeWhere2'])._scope;
           const expected = {
             where: {
@@ -522,6 +554,8 @@ describe(getTestDialectTeaser('Model'), () => {
         });
 
         it('should group 2 sequelize.where and other scopes with an Op.and', () => {
+          const { TestModel } = vars;
+
           const scope = TestModel.withScope(['whereAttributeIs1', 'whereOpAnd1', 'whereOpOr1', 'whereSequelizeWhere1'])._scope;
           const expected = {
             where: {

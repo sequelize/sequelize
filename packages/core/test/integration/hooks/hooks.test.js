@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     after(function () {
       this.sequelize.hooks.removeAllListeners();
-      this.sequelize.modelManager.removeModel(this.model);
+      this.sequelize.removeAllModels();
     });
   });
 

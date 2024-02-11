@@ -450,7 +450,6 @@ export function initModel<M extends Model>(
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.modelManager.addModel(model);
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);

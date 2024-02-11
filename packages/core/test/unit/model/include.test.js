@@ -11,11 +11,11 @@ const current   = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('all', () => {
-    const Referral = current.define('referral');
-
-    Referral.belongsTo(Referral);
-
     it('can expand nested self-reference', () => {
+      const Referral = current.define('referral');
+
+      Referral.belongsTo(Referral);
+
       const options = { include: [{ all: true, nested: true }] };
 
       Referral._expandIncludeAll(options, Referral);

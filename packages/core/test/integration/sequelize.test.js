@@ -230,15 +230,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('define', () => {
     it('adds a new dao to the dao manager', function () {
-      const count = this.sequelize.modelManager.all.length;
+      const count = this.sequelize.models.size;
       this.sequelize.define('foo', { title: DataTypes.STRING });
-      expect(this.sequelize.modelManager.all.length).to.equal(count + 1);
+      expect(this.sequelize.models.size).to.equal(count + 1);
     });
 
     it('adds a new dao to sequelize.models', function () {
-      expect(this.sequelize.models.bar).to.equal(undefined);
+      expect(this.sequelize.models.get('bar')).to.equal(undefined);
       const Bar = this.sequelize.define('bar', { title: DataTypes.STRING });
-      expect(this.sequelize.models.bar).to.equal(Bar);
+      expect(this.sequelize.models.get('bar')).to.equal(Bar);
     });
 
     it('overwrites global options', () => {

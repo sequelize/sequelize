@@ -1,17 +1,13 @@
 'use strict';
 
-const chai = require('chai');
+const { expect } = require('chai');
 const sinon = require('sinon');
-
-const expect = chai.expect;
 const { Sequelize, Op, DataTypes } = require('@sequelize/core');
+const { sequelize, rand } = require('../../support');
 
-const Support = require('../../support');
+const dialect = sequelize.dialect;
 
-const current = Support.sequelize;
-const dialect = current.dialect;
-
-describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+describe('InstanceValidator', () => {
   describe('validations', () => {
     const checks = {
       is: {
@@ -189,7 +185,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         validations[validator] = validatorDetails.spec || {};
         validations[validator].msg = message;
 
-        const UserFail = this.sequelize.define(`User${Support.rand()}`, {
+        const UserFail = this.sequelize.define(`User${rand()}`, {
           name: {
             type: DataTypes.STRING,
             validate: validations,
@@ -234,7 +230,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           // No default
         }
 
-        const UserSuccess = this.sequelize.define(`User${Support.rand()}`, {
+        const UserSuccess = this.sequelize.define(`User${rand()}`, {
           name: {
             type: DataTypes.STRING,
             validate: validations,
@@ -273,12 +269,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   if (dialect.supports.dataTypes.DECIMAL) {
     describe('DECIMAL validator', () => {
-      const User = current.define('user', {
-        decimal: DataTypes.DECIMAL(10, 2),
-      });
+      let User;
 
       before(function () {
-        this.stub = sinon.stub(current, 'queryRaw').callsFake(async () => [User.build({}), 1]);
+        User = sequelize.define('user', {
+          decimal: DataTypes.DECIMAL(10, 2),
+        });
+
+        this.stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1]);
       });
 
       after(function () {
@@ -311,16 +309,18 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   }
 
   describe('datatype validations', () => {
-    const User = current.define('user', {
-      integer: DataTypes.INTEGER,
-      name: DataTypes.STRING,
-      awesome: DataTypes.BOOLEAN,
-      uid: DataTypes.UUID,
-      date: DataTypes.DATE,
-    });
+    let User;
 
     before(function () {
-      this.stub = sinon.stub(current, 'queryRaw').callsFake(async () => [User.build({}), 1]);
+      User = sequelize.define('user', {
+        integer: DataTypes.INTEGER,
+        name: DataTypes.STRING,
+        awesome: DataTypes.BOOLEAN,
+        uid: DataTypes.UUID,
+        date: DataTypes.DATE,
+      });
+
+      this.stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1]);
     });
 
     after(function () {
@@ -452,32 +452,34 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions', () => {
-    const User = current.define('user', {
-      integer: {
-        type: DataTypes.INTEGER,
+    let User;
+
+    before(function () {
+      User = sequelize.define('user', {
+        integer: {
+          type: DataTypes.INTEGER,
+          validate: {
+            customFn(val, next) {
+              if (val < 0) {
+                next('integer must be greater or equal zero');
+              } else {
+                next();
+              }
+            },
+          },
+        },
+        name: DataTypes.STRING,
+      }, {
         validate: {
-          customFn(val, next) {
-            if (val < 0) {
-              next('integer must be greater or equal zero');
-            } else {
-              next();
+          customFn() {
+            if (this.get('name') === 'error') {
+              throw new Error('Error from model validation promise');
             }
           },
         },
-      },
-      name: DataTypes.STRING,
-    }, {
-      validate: {
-        customFn() {
-          if (this.get('name') === 'error') {
-            throw new Error('Error from model validation promise');
-          }
-        },
-      },
-    });
+      });
 
-    before(function () {
-      this.stub = sinon.stub(current, 'queryRaw').resolves([User.build(), 1]);
+      this.stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1]);
     });
 
     after(function () {
@@ -536,20 +538,22 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   describe('custom validation functions returning promises', () => {
-    const User = current.define('user', {
-      name: DataTypes.STRING,
-    }, {
-      validate: {
-        async customFn() {
-          if (this.get('name') === 'error') {
-            throw new Error('Error from model validation promise');
-          }
-        },
-      },
-    });
+    let User;
 
     before(function () {
-      this.stub = sinon.stub(current, 'queryRaw').resolves([User.build(), 1]);
+      User = sequelize.define('user', {
+        name: DataTypes.STRING,
+      }, {
+        validate: {
+          async customFn() {
+            if (this.get('name') === 'error') {
+              throw new Error('Error from model validation promise');
+            }
+          },
+        },
+      });
+
+      this.stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1]);
     });
 
     after(function () {
@@ -604,7 +608,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('with allowNull set to true', () => {
       before(function () {
-        this.User = current.define('user', {
+        this.User = sequelize.define('user', {
           integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
@@ -615,7 +619,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           },
         });
 
-        this.stub = sinon.stub(current, 'queryRaw').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(sequelize, 'queryRaw').resolves([this.User.build(), 1]);
       });
 
       after(function () {
@@ -674,7 +678,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     describe('with allowNull set to false', () => {
       before(function () {
-        this.User = current.define('user', {
+        this.User = sequelize.define('user', {
           integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
@@ -685,7 +689,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           },
         });
 
-        this.stub = sinon.stub(current, 'queryRaw').resolves([this.User.build(), 1]);
+        this.stub = sinon.stub(sequelize, 'queryRaw').resolves([this.User.build(), 1]);
       });
 
       after(function () {

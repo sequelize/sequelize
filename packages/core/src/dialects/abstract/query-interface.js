@@ -534,7 +534,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = isObject(tableName) ? tableName : { tableName };
-    const model = options.model ? options.model : find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : find(this.sequelize.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

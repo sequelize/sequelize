@@ -17,10 +17,11 @@ import {
 } from './hooks-legacy.js';
 import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
+import { listenForModelDefinition, removeModelDefinition } from './model-definition.js';
 import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
-import type { ModelManager } from './model-manager.js';
+import { ModelSetView } from './model-set-view.js';
 import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
@@ -161,9 +162,7 @@ export const SUPPORTED_DIALECTS = Object.freeze(['mysql', 'postgres', 'sqlite', 
  */
 export abstract class SequelizeTypeScript {
   // created by the Sequelize subclass. Will eventually be migrated here.
-  abstract readonly modelManager: ModelManager;
   abstract readonly dialect: AbstractDialect;
-  declare readonly connectionManager: AbstractConnectionManager;
   declare readonly options: NormalizedOptions;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
@@ -270,8 +269,34 @@ export abstract class SequelizeTypeScript {
     return this.dialect.queryGenerator;
   }
 
+  get connectionManager(): AbstractConnectionManager {
+    return this.dialect.connectionManager;
+  }
+
   private _setupTransactionCls() {
     this.#transactionCls = new AsyncLocalStorage<Transaction>();
+  }
+
+  #models = new Set<ModelStatic>();
+  readonly models = new ModelSetView(this, this.#models);
+
+  get modelManager(): never {
+    throw new Error('Sequelize#modelManager was removed. Use Sequelize#models instead.');
+  }
+
+  constructor() {
+    // Synchronize ModelDefinition map with the registered models set
+    listenForModelDefinition(model => {
+      // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
+      if (model.sequelize === this as Sequelize) {
+        // TODO: follow-up PR
+        // if (this.models.hasByName(model.name)) {
+        //   throw new Error(`A model with the name ${inspect(model.name)} was already registered in this Sequelize instance.`);
+        // }
+
+        this.#models.add(model);
+      }
+    });
   }
 
   addModels(models: ModelStatic[]) {
@@ -288,6 +313,14 @@ export abstract class SequelizeTypeScript {
         this,
       );
     }
+  }
+
+  removeAllModels() {
+    for (const model of this.#models) {
+      removeModelDefinition(model);
+    }
+
+    this.#models.clear();
   }
 
   /**
@@ -476,8 +509,8 @@ export abstract class SequelizeTypeScript {
    * @param options
    */
   async destroyAll(options?: Omit<DestroyOptions, 'where' | 'limit' | 'truncate'>) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
+    const models: Iterable<ModelStatic> = sortedModels ?? this.models;
 
     // It does not make sense to apply a limit to something that will run on all models
     if (options && 'limit' in options) {
@@ -501,8 +534,9 @@ export abstract class SequelizeTypeScript {
    * @param options The options passed to {@link Model.truncate}, plus "withoutForeignKeyChecks".
    */
   async truncate(options?: SequelizeTruncateOptions): Promise<void> {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
+    const models: ModelStatic[] = sortedModels ?? [...this.models];
+
     const hasCyclicDependencies = sortedModels == null;
 
     if (hasCyclicDependencies && !options?.cascade && !options?.withoutForeignKeyChecks) {

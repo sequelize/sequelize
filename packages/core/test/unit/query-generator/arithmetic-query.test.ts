@@ -1,12 +1,16 @@
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#arithmeticQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   it('uses the specified operator', async () => {
     const sqlPlus = queryGenerator.arithmeticQuery(
@@ -78,6 +82,8 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
+    const { User } = vars;
+
     const sql = queryGenerator.arithmeticQuery(
       '+',
       User.table,

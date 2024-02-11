@@ -445,9 +445,7 @@ export function minifySql(sql: string): string {
 export const sequelize = createSequelizeInstance();
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
-  for (const model of sequelizeInstance.modelManager.all) {
-    sequelizeInstance.modelManager.removeModel(model);
-  }
+  sequelizeInstance.removeAllModels();
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context

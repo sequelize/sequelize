@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(Person.associations.Parents.otherKey).to.eq('PersonId');
     expect(Person.associations.Childs.otherKey).to.eq('ChildId');
 
-    const rawAttributes = Object.keys(this.sequelize.models.Family.getAttributes());
+    const rawAttributes = Object.keys(this.sequelize.models.get('Family').getAttributes());
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
     expect(rawAttributes.length).to.equal(4);
 
