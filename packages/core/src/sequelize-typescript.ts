@@ -287,12 +287,16 @@ export abstract class SequelizeTypeScript {
   constructor() {
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
+      const modelName = model.modelDefinition.modelName;
+
       // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
       if (model.sequelize === this as Sequelize) {
-        // TODO: follow-up PR
-        // if (this.models.hasByName(model.name)) {
-        //   throw new Error(`A model with the name ${inspect(model.name)} was already registered in this Sequelize instance.`);
-        // }
+        const existingModel = this.models.get(modelName);
+        if (existingModel) {
+          this.#models.delete(existingModel);
+          // TODO: require the user to explicitly remove the previous model first.
+          // throw new Error(`A model with the name ${inspect(model.name)} was already registered in this Sequelize instance.`);
+        }
 
         this.#models.add(model);
       }

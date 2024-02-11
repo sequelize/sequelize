@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('throws an error if the dao being accessed is undefined', function () {
       expect(() => {
         this.sequelize.model('Project');
-      }).to.throw(/project has not been defined/i);
+      }).to.throw(`Model 'Project' was not added to this Sequelize instance`);
     });
 
     it('returns the dao factory defined by daoName', function () {

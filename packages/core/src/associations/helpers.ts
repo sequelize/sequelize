@@ -77,11 +77,7 @@ export function getModel<M extends Model>(
   model: string | ModelStatic<M>,
 ): ModelStatic<M> | null {
   if (typeof model === 'string') {
-    if (!sequelize.isDefined(model)) {
-      return null;
-    }
-
-    return sequelize.model(model);
+    return sequelize.models.get(model)! ?? null;
   }
 
   return model;

@@ -1,6 +1,7 @@
+import { inspect } from 'node:util';
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
-import type { ModelStatic } from './model';
+import type { Model, ModelStatic } from './model';
 import type { SequelizeTypeScript } from './sequelize-typescript.js';
 import { SetView } from './utils/immutability.js';
 
@@ -13,15 +14,15 @@ export class ModelSetView extends SetView<ModelStatic> {
     this.#sequelize = sequelize;
   }
 
-  get(modelName: string): ModelStatic | undefined {
-    return this.find(model => model.name === modelName);
+  get<M extends Model = Model>(modelName: string): ModelStatic<M> | undefined {
+    return this.find(model => model.modelDefinition.modelName === modelName) as ModelStatic<M> | undefined;
   }
 
-  getOrThrow(modelName: string): ModelStatic {
-    const model = this.get(modelName);
+  getOrThrow<M extends Model = Model>(modelName: string): ModelStatic<M> {
+    const model = this.get<M>(modelName);
 
     if (!model) {
-      throw new Error(`Model ${modelName} was not added to this Sequelize instance.`);
+      throw new Error(`Model ${inspect(modelName)} was not added to this Sequelize instance.`);
     }
 
     return model;

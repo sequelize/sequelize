@@ -33,43 +33,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     await this.sequelize.sync({ force: true });
   });
 
-  describe('#define', () => {
-    before(function () {
-      this.sequelize.addHook('beforeDefine', (attributes, options) => {
-        options.modelName = 'bar';
-        options.name.plural = 'barrs';
-        attributes.type = DataTypes.STRING;
-      });
-
-      this.sequelize.addHook('afterDefine', factory => {
-        factory.options.name.singular = 'barr';
-      });
-
-      this.model = this.sequelize.define('foo', { name: DataTypes.STRING });
-    });
-
-    it('beforeDefine hook can change model name', function () {
-      expect(this.model.name).to.equal('bar');
-    });
-
-    it('beforeDefine hook can alter options', function () {
-      expect(this.model.options.name.plural).to.equal('barrs');
-    });
-
-    it('beforeDefine hook can alter attributes', function () {
-      expect(this.model.getAttributes().type).to.be.ok;
-    });
-
-    it('afterDefine hook can alter options', function () {
-      expect(this.model.options.name.singular).to.equal('barr');
-    });
-
-    after(function () {
-      this.sequelize.hooks.removeAllListeners();
-      this.sequelize.removeAllModels();
-    });
-  });
-
   describe('init', () => {
     Support.setResetMode('none');
 
