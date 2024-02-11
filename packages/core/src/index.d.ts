@@ -98,4 +98,5 @@ export { where, Where } from './expression-builders/where.js';
 export { JSON_NULL } from './expression-builders/json-sql-null.js';
 export { SQL_NULL } from './expression-builders/json-sql-null.js';
 
+export { ModelRepository } from './model-repository.js';
 export * from './model-repository.types.js';

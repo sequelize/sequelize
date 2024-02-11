@@ -100,5 +100,6 @@ export const ValidationErrorItemType = Pkg.ValidationErrorItemType;
 export const isModelStatic = Pkg.isModelStatic;
 export const isSameInitialModel = Pkg.isSameInitialModel;
 export const importModels = Pkg.importModels;
+export const ManualOnDelete = Pkg.ManualOnDelete;
 
 export { default } from './index.js';
