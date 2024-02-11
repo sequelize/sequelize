@@ -8,8 +8,7 @@ const Support = require('./support');
 
 const dialect = Support.getTestDialect();
 const { Sequelize } = require('@sequelize/core');
-const fs = require('node:fs/promises');
-const path = require('node:path');
+const { unlinkIfExists, getSqliteDatabasePath } = require('../support');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -101,20 +100,10 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       return;
     }
 
-    const dbPath = path.join(__dirname, '../tmp', 'test.sqlite');
-
-    async function deleteFileIfExists(path) {
-      try {
-        await fs.unlink(path);
-      } catch (error) {
-        if (error.code !== 'ENOENT') {
-          throw error;
-        }
-      }
-    }
+    const dbPath = getSqliteDatabasePath('test.sqlite');
 
     function deleteTempFiles() {
-      return deleteFileIfExists(dbPath);
+      return unlinkIfExists(dbPath);
     }
 
     before(deleteTempFiles);

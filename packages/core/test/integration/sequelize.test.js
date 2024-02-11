@@ -35,15 +35,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite');
+        const sequelize = new Sequelize('sqlite://test/sqlite-databases/connection-string-test1.sqlite');
         Support.destroySequelizeAfterTest(sequelize);
       });
       it('should work with connection strings (2)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite/');
-        Support.destroySequelizeAfterTest(sequelize);
-      });
-      it('should work with connection strings (3)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite2/lol?reconnect=true');
+        const sequelize = new Sequelize('sqlite://test/sqlite-databases/connection-string-test2.sqlite?reconnect=true');
         Support.destroySequelizeAfterTest(sequelize);
       });
     }
