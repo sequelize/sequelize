@@ -13,7 +13,7 @@ import type {
 import type { Deferrable } from './deferrable';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { IndexField, IndexOptions, TableName } from './dialects/abstract/query-interface';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
