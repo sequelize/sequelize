@@ -154,8 +154,6 @@ export class ModelRepository<M extends Model = Model> {
       await modelDefinition.hooks.runAsync('_UNSTABLE_beforeBulkDestroy', options);
     }
 
-    Object.freeze(options);
-
     let result: number;
     const cascadingAssociations = this.#getCascadingDeleteAssociations(options);
     if (cascadingAssociations.length > 0 && !options.transaction) {
@@ -184,6 +182,9 @@ export class ModelRepository<M extends Model = Model> {
     const modelDefinition = this.#modelDefinition;
 
     if (cascadingAssociations.length > 0) {
+      // TODO: if we know this is the last cascade,
+      //  we can avoid the fetch and call bulkDestroy directly instead of destroyMany.
+      // TODO: only fetch the attributes that are referenced by a foreign key, not all attributes.
       const instances = await modelDefinition.model.findAll(options) as M[];
 
       await this.#manuallyCascadeDestroy(instances, cascadingAssociations, options);

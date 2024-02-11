@@ -117,6 +117,7 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'beforeSave', 'afterSave',
   'beforeBulkCreate', 'afterBulkCreate',
   'beforeBulkDestroy', 'afterBulkDestroy',
+  '_UNSTABLE_beforeBulkDestroy', '_UNSTABLE_afterBulkDestroy',
   'beforeBulkRestore', 'afterBulkRestore',
   'beforeBulkUpdate', 'afterBulkUpdate',
   'beforeCount',

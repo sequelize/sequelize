@@ -5,7 +5,7 @@ import { Attribute, BelongsTo, NotNull } from '@sequelize/core/decorators-legacy
 import { beforeAll2, expectPerDialect, sequelize, toMatchSql } from '../../support';
 import { setResetMode } from '../support';
 
-describe('ModelRepository#_UNSTABLE_destroy', () => {
+describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
   setResetMode('destroy');
 
   const vars = beforeAll2(async () => {
@@ -55,13 +55,14 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
 
       const spy = sinon.spy(sequelize, 'queryRaw');
 
-      await User.modelRepository._UNSTABLE_destroy(user, { manualOnDelete: ManualOnDelete.all });
+      await User.modelRepository._UNSTABLE_bulkDestroy({ where: { id: user.id }, manualOnDelete: ManualOnDelete.all });
 
       const calls = spy.getCalls().map(call => call.args[0]);
 
       expectPerDialect(() => calls, {
         default: toMatchSql([
           'START TRANSACTION;',
+          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
           'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
           'DELETE FROM [Tasks] WHERE [id] = 1',
@@ -71,6 +72,7 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
         ]),
         mssql: toMatchSql([
           'BEGIN TRANSACTION;',
+          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
           'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
           'DELETE FROM [Tasks] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
@@ -80,6 +82,7 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
         ]),
         sqlite: toMatchSql([
           'BEGIN DEFERRED TRANSACTION;',
+          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
           'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
           'DELETE FROM [Tasks] WHERE [id] = 1',
@@ -99,7 +102,9 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
 
       const calls = await sequelize.transaction(async transaction => {
         const spy = sinon.spy(sequelize, 'queryRaw');
-        await User.modelRepository._UNSTABLE_destroy(user, {
+
+        await User.modelRepository._UNSTABLE_bulkDestroy({
+          where: { id: user.id },
           manualOnDelete: ManualOnDelete.all,
           transaction,
         });
@@ -109,6 +114,7 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
 
       expectPerDialect(() => calls, {
         default: toMatchSql([
+          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
           'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
           'DELETE FROM [Tasks] WHERE [id] = 1',
@@ -116,6 +122,7 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           'DELETE FROM [Users] WHERE [id] = 1',
         ]),
         mssql: toMatchSql([
+          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
           'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
           'DELETE FROM [Tasks] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',

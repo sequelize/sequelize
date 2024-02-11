@@ -181,7 +181,10 @@ afterEach('database reset', async () => {
         break;
 
       case 'truncate':
-        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
+        await sequelizeInstance.truncate({
+          ...sequelizeInstance.dialect.supports.truncate,
+          withoutForeignKeyChecks: sequelizeInstance.dialect.supports.constraints.foreignKeyChecksDisableable,
+        });
         break;
 
       case 'destroy':
