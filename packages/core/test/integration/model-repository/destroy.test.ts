@@ -78,6 +78,15 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           'DELETE FROM [Users] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           'COMMIT TRANSACTION;',
         ]),
+        db2: toMatchSql([
+          'BEGIN TRANSACTION;',
+          'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
+          'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
+          'DELETE FROM [Tasks] WHERE [id] = 1',
+          'DELETE FROM [Projects] WHERE [id] = 1',
+          'DELETE FROM [Users] WHERE [id] = 1',
+          'COMMIT TRANSACTION;',
+        ], { genericQuotes: true }),
         sqlite: toMatchSql([
           'BEGIN DEFERRED TRANSACTION;',
           'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
