@@ -387,7 +387,7 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
     let tableName;
     let columnName;
     if ('model' in context) {
-      tableName = context.model.getTableName();
+      tableName = context.model.table;
 
       const attribute = context.model.getAttributes()[context.attributeName];
       columnName = attribute.field ?? context.attributeName;

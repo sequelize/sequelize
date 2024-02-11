@@ -413,9 +413,6 @@ export class AbstractQueryGeneratorTypeScript {
       throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
     }
 
-    // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
-    delete tableIdentifier.toString;
-
     return {
       ...tableIdentifier,
       schema: options?.schema || tableIdentifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
@@ -444,7 +441,7 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (isModelStatic(param)) {
-      param = param.getTableName();
+      param = param.table;
     }
 
     const tableName = this.extractTableDetails(param);

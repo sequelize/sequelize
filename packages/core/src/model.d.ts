@@ -2235,13 +2235,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): ModelStatic<M>;
 
   /**
-   * Get the table name of the model, including the schema.
-   * The method will return The name as a string if the model has no schema,
-   * or an object with `tableName`, `schema` and `delimiter` properties.
-   */
-  static getTableName(): TableNameWithSchema;
-
-  /**
    * Creates a copy of this model, with one or more scopes applied.
    *
    * See {@link https://sequelize.org/docs/v7/other-topics/scopes/} to learn more about scopes.

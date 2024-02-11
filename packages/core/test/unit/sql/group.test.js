@@ -11,7 +11,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
 
     return expectsql(
       sql.selectQuery(
-        options.table || model && model.getTableName(),
+        options.table || model && model.table,
         options,
         options.model,
       ),

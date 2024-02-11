@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await User.sync({ force: true });
-      const indexes = (await this.sequelize.queryInterface.showIndex(User.getTableName()))
+      const indexes = (await this.sequelize.queryInterface.showIndex(User.table))
         .filter(index => !index.primary);
 
       expect(indexes).to.have.length(1);
@@ -1020,21 +1020,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               case 'postgres':
               case 'db2':
               case 'ibmi': {
-                expect(this.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+                expect(this.UserSpecialSync.table.toString()).to.equal('"special"."UserSpecials"');
                 expect(UserPublic).to.include('INSERT INTO "UserPublics"');
 
                 break;
               }
 
               case 'sqlite': {
-                expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
+                expect(this.UserSpecialSync.table.toString()).to.equal('`special.UserSpecials`');
                 expect(UserPublic).to.include('INSERT INTO `UserPublics`');
 
                 break;
               }
 
               case 'mssql': {
-                expect(this.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
+                expect(this.UserSpecialSync.table.toString()).to.equal('[special].[UserSpecials]');
                 expect(UserPublic).to.include('INSERT INTO [UserPublics]');
 
                 break;
@@ -1043,7 +1043,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               case 'mysql':
               case 'mariadb':
               default: {
-                expect(this.UserSpecialSync.getTableName().toString()).to.equal('`special`.`UserSpecials`');
+                expect(this.UserSpecialSync.table.toString()).to.equal('`special`.`UserSpecials`');
                 expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
 
                 break;

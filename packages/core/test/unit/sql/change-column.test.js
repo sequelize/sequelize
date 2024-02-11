@@ -37,7 +37,7 @@ describe('QueryInterface#changeColumn', () => {
   it('properly generate alter queries', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.getTableName(), 'level_id', {
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
       type: DataTypes.FLOAT,
       allowNull: false,
     });
@@ -56,7 +56,7 @@ describe('QueryInterface#changeColumn', () => {
   it('properly generate alter queries for foreign keys', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.getTableName(), 'level_id', {
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
       type: DataTypes.INTEGER,
       references: {
         table: 'level',

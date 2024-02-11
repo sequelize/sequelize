@@ -20,7 +20,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
 
     return expectsql(
       sql.selectQuery(
-        options.table || model && model.getTableName(),
+        options.table || model && model.table,
         options,
         options.model,
       ),

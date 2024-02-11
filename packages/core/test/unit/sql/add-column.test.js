@@ -18,7 +18,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     if (['mysql', 'mariadb'].includes(current.dialect.name)) {
       it('properly generate alter queries', () => {
-        return expectsql(sql.addColumnQuery(User.getTableName(), 'level_id', current.normalizeAttribute({
+        return expectsql(sql.addColumnQuery(User.table, 'level_id', current.normalizeAttribute({
           type: DataTypes.FLOAT,
           allowNull: false,
         })), {
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('properly generate alter queries for foreign keys', () => {
-        return expectsql(sql.addColumnQuery(User.getTableName(), 'level_id', current.normalizeAttribute({
+        return expectsql(sql.addColumnQuery(User.table, 'level_id', current.normalizeAttribute({
           type: DataTypes.INTEGER,
           references: {
             table: 'level',
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('properly generate alter queries with FIRST', () => {
-        return expectsql(sql.addColumnQuery(User.getTableName(), 'test_added_col_first', current.normalizeAttribute({
+        return expectsql(sql.addColumnQuery(User.table, 'test_added_col_first', current.normalizeAttribute({
           type: DataTypes.STRING,
           first: true,
         })), {
@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('properly generates alter queries with column level comment', () => {
-        return expectsql(sql.addColumnQuery(User.getTableName(), 'column_with_comment', current.normalizeAttribute({
+        return expectsql(sql.addColumnQuery(User.table, 'column_with_comment', current.normalizeAttribute({
           type: DataTypes.STRING,
           comment: 'This is a comment',
         })), {
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('defaults the schema to the one set in the Sequelize options', () => {
       const User = customSequelize.define('User', {}, { timestamps: false });
 
-      return expectsql(customSql.addColumnQuery(User.getTableName(), 'level_id', customSequelize.normalizeAttribute({
+      return expectsql(customSql.addColumnQuery(User.table, 'level_id', customSequelize.normalizeAttribute({
         type: DataTypes.FLOAT,
         allowNull: false,
       })), {
