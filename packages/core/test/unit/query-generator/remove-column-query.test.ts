@@ -40,6 +40,16 @@ describe('QueryGenerator#removeColumnQuery', () => {
     });
   });
 
+  it('generates a query that drops a column from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.removeColumnQuery(myDefinition, 'myColumn'), {
+      default: 'ALTER TABLE [MyModels] DROP COLUMN [myColumn]',
+      sqlite: notSupportedError,
+    });
+  });
+
   it('generates a query that drops a column with schema', () => {
     expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',

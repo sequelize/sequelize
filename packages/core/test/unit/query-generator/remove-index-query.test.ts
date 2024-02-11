@@ -98,6 +98,20 @@ describe('QueryGenerator#removeIndexQuery', () => {
     });
   });
 
+  it('produces a DROP INDEX query from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.removeIndexQuery(myDefinition, 'user_foo_bar'), {
+      default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
+      sqlite: 'DROP INDEX `user_foo_bar`',
+      ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
+      db2: `DROP INDEX "user_foo_bar"`,
+      postgres: `DROP INDEX "public"."user_foo_bar"`,
+      snowflake: notImplementedError,
+    });
+  });
+
   it('produces a DROP INDEX query from a table and schema', () => {
     expectsql(() => queryGenerator.removeIndexQuery({ tableName: 'myTable', schema: 'mySchema' }, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,

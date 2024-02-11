@@ -2,7 +2,7 @@ import { ForeignKeyConstraintError } from '../../errors';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import { TransactionNestMode } from '../../transaction';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { TableOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
 import type { SqliteQueryGenerator } from './query-generator';
 import type { SqliteColumnsDescription } from './query-interface.types';
@@ -31,7 +31,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
    * @param options
    */
   async alterTableInternal(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columns: SqliteColumnsDescription,
     options?: QueryRawOptions,
   ): Promise<void> {

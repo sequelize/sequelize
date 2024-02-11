@@ -10,7 +10,7 @@ import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -51,7 +51,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
@@ -67,7 +67,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -81,7 +81,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -113,7 +113,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
@@ -122,7 +122,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {

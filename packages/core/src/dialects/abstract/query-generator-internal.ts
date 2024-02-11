@@ -13,7 +13,7 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
-import type { EscapeOptions, TableNameOrModel } from './query-generator-typescript.js';
+import type { EscapeOptions, TableOrModel } from './query-generator-typescript.js';
 import type { AddLimitOffsetOptions, GetConstraintSnippetQueryOptions } from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
@@ -44,7 +44,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     return EMPTY_ARRAY;
   }
 
-  getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
+  getConstraintSnippet(tableName: TableOrModel, options: GetConstraintSnippetQueryOptions) {
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.queryGenerator.quoteIdentifier(field);

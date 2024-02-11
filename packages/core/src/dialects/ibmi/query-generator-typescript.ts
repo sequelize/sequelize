@@ -8,7 +8,7 @@ import {
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -46,7 +46,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -81,8 +81,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     if (options) {
@@ -105,7 +105,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -119,7 +119,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -152,7 +152,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [+odbc]: check if the query also works when capitalized (for consistency)
@@ -172,7 +172,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -209,7 +209,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
   }
 
-  tableExistsQuery(tableName: TableNameOrModel): string {
+  tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([

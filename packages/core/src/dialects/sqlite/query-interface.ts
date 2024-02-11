@@ -5,7 +5,7 @@ import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions } from '../../sequelize';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { DataType } from '../abstract/data-types';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { TableOrModel } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,
@@ -48,7 +48,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     });
   }
 
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<SqliteColumnsDescription> {
+  async describeTable(tableName: TableOrModel, options?: DescribeTableOptions): Promise<SqliteColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -123,7 +123,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     }
   }
 
-  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
+  async addConstraint(tableName: TableOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {
       throw new Error('Fields must be specified through options.fields');
     }
@@ -154,7 +154,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
   }
 
   async removeConstraint(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     constraintName: string,
     options?: RemoveConstraintOptions,
   ): Promise<void> {
@@ -206,7 +206,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
-  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+  async showConstraints(tableName: TableOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,
@@ -412,7 +412,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
    * @param options
    */
   async removeColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     removeColumn: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
@@ -433,7 +433,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
    * @param options
    */
   async changeColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columnName: string,
     dataTypeOrOptions: DataType | AttributeOptions,
     options?: QueryRawOptions,
@@ -462,7 +462,7 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
    * @param options
    */
   async renameColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     attrNameBefore: string,
     attrNameAfter: string,
     options?: QueryRawOptions,

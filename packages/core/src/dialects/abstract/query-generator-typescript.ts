@@ -55,11 +55,6 @@ import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
 
-/**
- * @deprecated use {@link TableOrModel}.
- */
-export type TableNameOrModel = TableName | ModelStatic;
-
 export type TableOrModel = TableName | ModelStatic | ModelDefinition;
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -241,11 +236,11 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
-  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string {
+  dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {
     if (options) {
       rejectInvalidOptions(
         'dropTableQuery',
@@ -268,8 +263,8 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     const beforeTable = this.extractTableDetails(beforeTableName);
@@ -282,11 +277,11 @@ export class AbstractQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTableName)}`;
   }
 
-  truncateTableQuery(_tableName: TableNameOrModel, _options?: TruncateTableQueryOptions): string | string[] {
+  truncateTableQuery(_tableName: TableOrModel, _options?: TruncateTableQueryOptions): string | string[] {
     throw new Error(`truncateTableQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  removeColumnQuery(tableName: TableNameOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
+  removeColumnQuery(tableName: TableOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
     if (options) {
       rejectInvalidOptions(
         'removeColumnQuery',
@@ -307,7 +302,7 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  addConstraintQuery(tableName: TableNameOrModel, options: AddConstraintQueryOptions): string {
+  addConstraintQuery(tableName: TableOrModel, options: AddConstraintQueryOptions): string {
     if (!this.dialect.supports.constraints.add) {
       throw new Error(`Add constraint queries are not supported by ${this.dialect.name} dialect`);
     }
@@ -320,7 +315,7 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+  removeConstraintQuery(tableName: TableOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
     if (!this.dialect.supports.constraints.remove) {
       throw new Error(`Remove constraint queries are not supported by ${this.dialect.name} dialect`);
     }
@@ -368,16 +363,16 @@ export class AbstractQueryGeneratorTypeScript {
     return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
   }
 
-  showConstraintsQuery(_tableName: TableNameOrModel, _options?: ShowConstraintsQueryOptions): string {
+  showConstraintsQuery(_tableName: TableOrModel, _options?: ShowConstraintsQueryOptions): string {
     throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  showIndexesQuery(_tableName: TableNameOrModel): string {
+  showIndexesQuery(_tableName: TableOrModel): string {
     throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   removeIndexQuery(
-    _tableName: TableNameOrModel,
+    _tableName: TableOrModel,
     _indexNameOrAttributes: string | string [],
     _options?: RemoveIndexQueryOptions,
   ): string {
@@ -392,7 +387,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param _columnName The name of the column. Not supported by SQLite.
    * @returns The generated SQL query.
    */
-  getForeignKeyQuery(_tableName: TableNameOrModel, _columnName?: string): Error {
+  getForeignKeyQuery(_tableName: TableOrModel, _columnName?: string): Error {
     throw new Error(`getForeignKeyQuery has been deprecated. Use showConstraintsQuery instead.`);
   }
 
@@ -403,7 +398,7 @@ export class AbstractQueryGeneratorTypeScript {
    * @param _tableName The table or associated model.
    * @param _foreignKey The name of the foreign key constraint.
    */
-  dropForeignKeyQuery(_tableName: TableNameOrModel, _foreignKey: string): Error {
+  dropForeignKeyQuery(_tableName: TableOrModel, _foreignKey: string): Error {
     throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
@@ -521,7 +516,7 @@ export class AbstractQueryGeneratorTypeScript {
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
 
-  isSameTable(tableA: TableNameOrModel, tableB: TableNameOrModel) {
+  isSameTable(tableA: TableOrModel, tableB: TableOrModel) {
     if (tableA === tableB) {
       return true;
     }
@@ -719,7 +714,7 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`${this.dialect.name} did not implement versionQuery`);
   }
 
-  tableExistsQuery(tableName: TableNameOrModel): string {
+  tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;

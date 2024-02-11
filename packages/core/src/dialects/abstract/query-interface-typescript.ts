@@ -13,7 +13,7 @@ import {
   showAllToListTables,
 } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
-import type { TableNameOrModel, TableOrModel } from './query-generator-typescript.js';
+import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
@@ -221,7 +221,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName Table name to drop
    * @param options   Query options
    */
-  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+  async dropTable(tableName: TableOrModel, options?: QiDropTableOptions): Promise<void> {
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, options);
@@ -289,8 +289,8 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options
    */
   async renameTable(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableOptions,
   ): Promise<void> {
     const sql = this.queryGenerator.renameTableQuery(beforeTableName, afterTableName, options);
@@ -304,7 +304,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName - The name of the table or model
    * @param options - Query options
    */
-  async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
+  async tableExists(tableName: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
     const sql = this.queryGenerator.tableExistsQuery(tableName);
     const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
 
@@ -334,7 +334,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName
    * @param options Query options
    */
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
+  async describeTable(tableName: TableOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -384,7 +384,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName
    * @param options
    */
-  async truncate(tableName: TableNameOrModel, options?: QiTruncateTableOptions): Promise<void> {
+  async truncate(tableName: TableOrModel, options?: QiTruncateTableOptions): Promise<void> {
     const sql = this.queryGenerator.truncateTableQuery(tableName, options);
     const queryOptions = { ...options, raw: true, type: QueryTypes.RAW };
     if (Array.isArray(sql)) {
@@ -402,7 +402,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options
    */
   async removeColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columnName: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
@@ -502,7 +502,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName - Table name where you want to add a constraint
    * @param options - An object to define the constraint name, type etc
    */
-  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
+  async addConstraint(tableName: TableOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {
       throw new Error('Fields must be specified through options.fields');
     }
@@ -535,7 +535,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options -Query options
    */
   async removeConstraint(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     constraintName: string,
     options?: RemoveConstraintOptions,
   ): Promise<void> {
@@ -544,7 +544,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+  async showConstraints(tableName: TableOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
     const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
     const constraintMap = new Map<string, ConstraintDescription>();
@@ -621,7 +621,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param _tableNames
    * @param _options
    */
-  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+  getForeignKeysForTables(_tableNames: TableOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
   }
 
@@ -632,7 +632,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param _tableName
    * @param _options
    */
-  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
+  getForeignKeyReferencesForTable(_tableName: TableOrModel, _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
   }
 

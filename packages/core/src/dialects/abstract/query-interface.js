@@ -311,7 +311,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Show indexes on a table
    *
-   * @param {TableNameOrModel} tableName
+   * @param {TableOrModel} tableName
    * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}

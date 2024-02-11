@@ -55,6 +55,17 @@ describe('QueryGenerator#addConstraintQuery', () => {
       });
     });
 
+    it('generates a query that adds a check constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => queryGenerator.addConstraintQuery(myDefinition, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
+        default: 'ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
+        sqlite: notSupportedError,
+        snowflake: checkNotSupportedError,
+      });
+    });
+
     it('generates a query that adds a check constraint with schema', () => {
       expectsql(() => queryGenerator.addConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
@@ -115,6 +126,17 @@ describe('QueryGenerator#addConstraintQuery', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => queryGenerator.addConstraintQuery(MyModel, { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
+        default: defaultNotSupportedError,
+        mssql: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
+        sqlite: notSupportedError,
+      });
+    });
+
+    it('generates a query that adds a default constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => queryGenerator.addConstraintQuery(myDefinition, { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
         default: defaultNotSupportedError,
         mssql: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
         sqlite: notSupportedError,
@@ -194,6 +216,16 @@ describe('QueryGenerator#addConstraintQuery', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => queryGenerator.addConstraintQuery(MyModel, { type: 'UNIQUE', fields: ['username'] }), {
+        default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
+        sqlite: notSupportedError,
+      });
+    });
+
+    it('generates a query that adds a unique constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => queryGenerator.addConstraintQuery(myDefinition, { type: 'UNIQUE', fields: ['username'] }), {
         default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
         sqlite: notSupportedError,
       });
@@ -298,6 +330,18 @@ describe('QueryGenerator#addConstraintQuery', () => {
       });
     });
 
+    it('generates a query that adds a foreign key constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+      const OtherModel = sequelize.define('OtherModel', {});
+      const otherDefinition = OtherModel.modelDefinition;
+
+      expectsql(() => queryGenerator.addConstraintQuery(myDefinition, { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: otherDefinition, field: 'id' } }), {
+        default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
+        sqlite: notSupportedError,
+      });
+    });
+
     it('generates a query that adds a foreign key constraint with schema', () => {
       expectsql(() => queryGenerator.addConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: { tableName: 'otherTable', schema: 'mySchema' }, field: 'id' } }), {
         default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
@@ -368,6 +412,16 @@ describe('QueryGenerator#addConstraintQuery', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => queryGenerator.addConstraintQuery(MyModel, { type: 'PRIMARY KEY', fields: ['username'] }), {
+        default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
+        sqlite: notSupportedError,
+      });
+    });
+
+    it('generates a query that adds a primary key constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => queryGenerator.addConstraintQuery(myDefinition, { type: 'PRIMARY KEY', fields: ['username'] }), {
         default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
         sqlite: notSupportedError,
       });
