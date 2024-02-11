@@ -15,7 +15,7 @@ import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize'
 import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator-typescript';
 import type { AddColumnQueryOptions } from './query-generator.js';
 import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
@@ -286,13 +286,13 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
    * Adds a new index to a table
    */
   addIndex(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   addIndex(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -314,7 +314,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   /**
    * Shows the index of a table
    */
-  showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
+  showIndex(tableName: TableOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
 
   /**
    * Put a name to an index
@@ -506,7 +506,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
 
   // TODO: rename to "describeColumn"
   assertTableHasColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columnName: string,
     options?: QueryRawOptions
   ): Promise<ColumnsDescription>;

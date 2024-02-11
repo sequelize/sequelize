@@ -28,6 +28,15 @@ describe('QueryGenerator#dropTableQuery', () => {
     });
   });
 
+  it('produces a query that drops a table from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
+      default: `DROP TABLE IF EXISTS [MyModels]`,
+    });
+  });
+
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,

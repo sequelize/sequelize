@@ -5,7 +5,7 @@ import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
 import type { Nullish } from '../../utils/types';
-import type { TableNameOrModel } from './query-generator-typescript';
+import type { TableOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
@@ -99,11 +99,11 @@ export interface AddPrimaryKeyConstraintQueryOptions extends BaseConstraintQuery
 export interface AddForeignKeyConstraintQueryOptions extends BaseConstraintQueryOptions {
   type: 'FOREIGN KEY';
   references: {
-    table: TableNameOrModel,
+    table: TableOrModel,
     field?: string,
     fields: string[],
   } | {
-    table: TableNameOrModel,
+    table: TableOrModel,
     field: string,
     fields?: string[],
   };
@@ -132,11 +132,11 @@ export interface GetConstraintSnippetQueryOptions {
   where?: WhereOptions<any>;
   defaultValue?: unknown;
   references?: {
-    table: TableNameOrModel,
+    table: TableOrModel,
     field?: string,
     fields: string[],
   } | {
-    table: TableNameOrModel,
+    table: TableOrModel,
     field: string,
     fields?: string[],
   };

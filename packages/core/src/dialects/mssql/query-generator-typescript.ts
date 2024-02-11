@@ -10,7 +10,7 @@ import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
@@ -83,7 +83,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -132,8 +132,8 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     const beforeTable = this.extractTableDetails(beforeTableName);
@@ -154,7 +154,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -185,7 +185,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -227,7 +227,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
     const objectId = table?.schema ? `${table.schema}.${table.tableName}` : `${table.tableName}`;
 
@@ -249,7 +249,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -303,7 +303,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return 'NEWID()';
   }
 
-  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions) {
+  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {
     const sql = super.bulkDeleteQuery(tableName, options);
 
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;

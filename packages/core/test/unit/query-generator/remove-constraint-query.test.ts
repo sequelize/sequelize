@@ -48,6 +48,16 @@ describe('QueryGenerator#removeConstraintQuery', () => {
     });
   });
 
+  it('generates a query that drops a constraint from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.removeConstraintQuery(myDefinition, 'myConstraint'), {
+      default: 'ALTER TABLE [MyModels] DROP CONSTRAINT [myConstraint]',
+      sqlite: notSupportedError,
+    });
+  });
+
   it('generates a query that drops a constraint with schema', () => {
     expectsql(() => queryGenerator.removeConstraintQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',

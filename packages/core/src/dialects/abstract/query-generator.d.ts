@@ -11,7 +11,7 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { TableNameOrModel } from './query-generator-typescript.js';
+import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
@@ -123,7 +123,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   createTableQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions

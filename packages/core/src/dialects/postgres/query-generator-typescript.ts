@@ -4,7 +4,7 @@ import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
@@ -79,7 +79,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -119,8 +119,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     const beforeTable = this.extractTableDetails(beforeTableName);
@@ -141,7 +141,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     return joinSQLFragments([
       `TRUNCATE ${this.quoteTable(tableName)}`,
       options?.restartIdentity ? 'RESTART IDENTITY' : '',
@@ -149,7 +149,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     // Postgres converts camelCased alias to lowercase unless quoted
@@ -184,7 +184,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [>=6]: refactor the query to use pg_indexes
@@ -200,7 +200,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {

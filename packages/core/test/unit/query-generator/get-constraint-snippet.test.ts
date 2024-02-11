@@ -56,6 +56,16 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       });
     });
 
+    it('generates a constraint snippet for a check constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => internals.getConstraintSnippet(myDefinition, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
+        default: 'CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
+        snowflake: checkNotSupportedError,
+      });
+    });
+
     it('generates a constraint snippet for a check constraint with schema', () => {
       expectsql(() => internals.getConstraintSnippet({ tableName: 'myTable', schema: 'mySchema' }, { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } }), {
         default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
@@ -111,6 +121,16 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => internals.getConstraintSnippet(MyModel, { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
+        default: defaultNotSupportedError,
+        mssql: `CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
+      });
+    });
+
+    it('generates a constraint snippet for a default constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => internals.getConstraintSnippet(myDefinition, { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' }), {
         default: defaultNotSupportedError,
         mssql: `CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
       });
@@ -182,6 +202,15 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => internals.getConstraintSnippet(MyModel, { type: 'UNIQUE', fields: ['username'] }), {
+        default: `CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
+      });
+    });
+
+    it('generates a constraint snippet for a unique constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => internals.getConstraintSnippet(myDefinition, { type: 'UNIQUE', fields: ['username'] }), {
         default: `CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
       });
     });
@@ -273,6 +302,17 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       });
     });
 
+    it('generates a constraint snippet for a foreign key constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+      const OtherModel = sequelize.define('OtherModel', {});
+      const otherDefinition = OtherModel.modelDefinition;
+
+      expectsql(() => internals.getConstraintSnippet(myDefinition, { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: otherDefinition, field: 'id' } }), {
+        default: `CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
+      });
+    });
+
     it('generates a constraint snippet for a foreign key constraint with schema', () => {
       expectsql(() => internals.getConstraintSnippet({ tableName: 'myTable', schema: 'mySchema' }, { type: 'FOREIGN KEY', fields: ['otherId'], references: { table: { tableName: 'otherTable', schema: 'mySchema' }, field: 'id' } }), {
         default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
@@ -338,6 +378,15 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       const MyModel = sequelize.define('MyModel', {});
 
       expectsql(() => internals.getConstraintSnippet(MyModel, { type: 'PRIMARY KEY', fields: ['username'] }), {
+        default: `CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
+      });
+    });
+
+    it('generates a constraint snippet for a primary key constraint for a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(() => internals.getConstraintSnippet(myDefinition, { type: 'PRIMARY KEY', fields: ['username'] }), {
         default: `CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
       });
     });

@@ -28,6 +28,19 @@ describe('QueryGenerator#renameTableQuery', () => {
     });
   });
 
+  it('produces a query that renames the table from a model definition', () => {
+    const OldModel = sequelize.define('oldModel', {});
+    const oldDefinition = OldModel.modelDefinition;
+    const NewModel = sequelize.define('newModel', {});
+    const newDefinition = NewModel.modelDefinition;
+
+    expectsql(() => queryGenerator.renameTableQuery(oldDefinition, newDefinition), {
+      default: 'ALTER TABLE [oldModels] RENAME TO [newModels]',
+      mssql: `EXEC sp_rename '[oldModels]', N'newModels'`,
+      'db2 ibmi': 'RENAME TABLE "oldModels" TO "newModels"',
+    });
+  });
+
   it('throws an error if `options.changeSchema` is not set when moving table to another schema', () => {
     expectsql(() => queryGenerator.renameTableQuery({ tableName: 'oldTable', schema: 'oldSchema' }, { tableName: 'newTable', schema: 'newSchema' }), {
       default: changeSchemaNotSetError,

@@ -35,6 +35,19 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
     });
   });
 
+  it('produces a delete query with a limit using a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(queryGenerator.bulkDeleteQuery(myDefinition, { where: { name: 'barry' }, limit: 10 }), {
+      default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
+      mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      sqlite: 'DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = \'barry\' LIMIT 10)',
+      'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
+      'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
+    });
+  });
+
   // you'll find more replacement tests in query-generator tests
   it('produces a delete query with named replacements in literals', () => {
     const MyModel = sequelize.define('MyModel', {});

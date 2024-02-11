@@ -3,7 +3,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { TableOrModel } from '../abstract/query-generator-typescript';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
@@ -84,7 +84,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
@@ -100,7 +100,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -114,7 +114,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'showConstraintsQuery',
