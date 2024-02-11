@@ -100,14 +100,12 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       return;
     }
 
-    const dbPath = getSqliteDatabasePath('test.sqlite');
+    const dbPath = getSqliteDatabasePath('rw-options-test.sqlite');
 
-    function deleteTempFiles() {
-      return unlinkIfExists(dbPath);
-    }
+    before(() => {
+      unlinkIfExists(dbPath);
+    });
 
-    before(deleteTempFiles);
-    afterEach(deleteTempFiles);
     it('should respect READONLY / READWRITE connection modes', async () => {
       const sequelizeReadOnly0 = new Sequelize({
         dialect: 'sqlite',
