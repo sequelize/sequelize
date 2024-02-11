@@ -156,21 +156,45 @@ export class ModelRepository<M extends Model = Model> {
 
     Object.freeze(options);
 
+    let result: number;
     const cascadingAssociations = this.#getCascadingDeleteAssociations(options);
-    if (cascadingAssociations.length > 0) {
+    if (cascadingAssociations.length > 0 && !options.transaction) {
+      result = await this.#sequelize.transaction(async transaction => {
+        options.transaction = transaction;
+        Object.freeze(options);
 
+        return this.#bulkDestroyInternal(cascadingAssociations, options);
+      });
+    } else {
+      Object.freeze(options);
+      result = await this.#bulkDestroyInternal(cascadingAssociations, options);
+    }
+
+    if (mayRunHook('_UNSTABLE_afterBulkDestroy', options.noHooks)) {
+      await modelDefinition.hooks.runAsync('_UNSTABLE_afterBulkDestroy', options, result);
+    }
+
+    return result;
+  }
+
+  async #bulkDestroyInternal(
+    cascadingAssociations: readonly BelongsToAssociation[],
+    options: BulkDestroyOptions,
+  ): Promise<number> {
+    const modelDefinition = this.#modelDefinition;
+
+    if (cascadingAssociations.length > 0) {
       const instances = await modelDefinition.model.findAll(options) as M[];
 
       await this.#manuallyCascadeDestroy(instances, cascadingAssociations, options);
     }
 
-    let result: number;
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
     if (deletedAtAttributeName && !options.hardDelete) {
       throw new Error('ModelRepository#_UNSTABLE_bulkDestroy does not support paranoid deletion yet.');
       // const deletedAtAttribute = modelDefinition.attributes.getOrThrow(deletedAtAttributeName);
 
-      // result = await this.#queryInterface.bulkUpdate(
+      // return this.#queryInterface.bulkUpdate(
       //   modelDefinition,
       //   pojo({
       //     [deletedAtAttributeName]: new Date(),
@@ -183,15 +207,9 @@ export class ModelRepository<M extends Model = Model> {
       //   ),
       //   options,
       // );
-    } else {
-      result = await this.#queryInterface.bulkDelete(this.#modelDefinition, options);
     }
 
-    if (mayRunHook('_UNSTABLE_afterBulkDestroy', options.noHooks)) {
-      await modelDefinition.hooks.runAsync('_UNSTABLE_afterBulkDestroy', options, result);
-    }
-
-    return result;
+    return this.#queryInterface.bulkDelete(this.#modelDefinition, options);
   }
 
   #getCascadingDeleteAssociations(
