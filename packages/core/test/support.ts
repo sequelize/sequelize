@@ -541,6 +541,9 @@ export function getSqliteDatabasePath(name: string): string {
   return path.join(SQLITE_DATABASES_DIR, name);
 }
 
-after(async () => {
-  return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
-});
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof after !== 'undefined') {
+  after(async () => {
+    return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
+  });
+}
