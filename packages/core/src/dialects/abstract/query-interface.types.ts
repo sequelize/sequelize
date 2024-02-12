@@ -140,5 +140,15 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
 
+/** Options accepted by {@link AbstractQueryInterface#_createSavepoint} */
+export interface CreateSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+  savepointName: string;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#_rollbackSavepoint} */
+export interface RollbackSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+  savepointName: string;
+}
+
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
 export interface QiBulkDeleteOptions extends BulkDeleteQueryOptions, Omit<QueryRawOptions, 'raw' | 'type'> { }

@@ -217,4 +217,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
     ]);
   }
+
+  createSavepointQuery(savepointName: string): string {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
 }

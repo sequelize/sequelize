@@ -402,6 +402,32 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
+  /**
+   * Returns a query that creates a savepoint.
+   *
+   * @param savepointName
+   */
+  createSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  /**
+   * Returns a query that rollbacks a savepoint.
+   *
+   * @param savepointName
+   */
+  rollbackSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
   // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
     tableOrModel: TableOrModel,

@@ -236,4 +236,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
   }
+
+  createSavepointQuery(savepointName: string): string {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
 }

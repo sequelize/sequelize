@@ -280,6 +280,14 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  createSavepointQuery(savepointName: string): string {
+    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  rollbackSavepointQuery(savepointName: string): string {
+    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)}`;
+  }
+
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
     if (!unquote) {
       throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);
