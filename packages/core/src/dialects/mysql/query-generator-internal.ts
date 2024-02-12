@@ -22,6 +22,7 @@ export class MySqlQueryGeneratorInternal<
   }
 
   addLimitAndOffset(options: AddLimitOffsetOptions) {
-    return formatMySqlStyleLimitOffset(options, this.queryGenerator);
+    // Due to https://github.com/sidorares/node-mysql2/issues/1239 we cannot use bind parameters for LIMIT and OFFSET
+    return formatMySqlStyleLimitOffset({ ...options, bindParam: undefined }, this.queryGenerator);
   }
 }
