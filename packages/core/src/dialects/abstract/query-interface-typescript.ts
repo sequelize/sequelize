@@ -20,6 +20,7 @@ import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
+  CommitTransactionOptions,
   ConstraintDescription,
   CreateDatabaseOptions,
   CreateSavepointOptions,
@@ -41,7 +42,10 @@ import type {
   RemoveConstraintOptions,
   RenameTableOptions,
   RollbackSavepointOptions,
+  RollbackTransactionOptions,
+  SetIsolationLevelOptions,
   ShowConstraintsOptions,
+  StartTransactionOptions,
 } from './query-interface.types';
 import type { AbstractDialect } from './index.js';
 
@@ -713,6 +717,28 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
+   * Commit an already started transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _commitTransaction(transaction: Transaction, options: CommitTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to commit a transaction without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.commitTransactionQuery();
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      transaction,
+      supportsSearchPath: false,
+      [COMPLETES_TRANSACTION]: true,
+    });
+  }
+
+  /**
    * Create a new savepoint.
    *
    * This is an internal method used by `sequelize.transaction()` use at your own risk.
@@ -757,6 +783,75 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       supportsSearchPath: false,
       [COMPLETES_TRANSACTION]: true,
     });
+  }
+
+  /**
+   * Rollback (revert) a transaction that hasn't been committed.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _rollbackTransaction(transaction: Transaction, options: RollbackTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to rollback a transaction without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.rollbackTransactionQuery();
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      transaction,
+      supportsSearchPath: false,
+      [COMPLETES_TRANSACTION]: true,
+    });
+  }
+
+  /**
+   * Set the isolation level of a transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _setIsolationLevel(transaction: Transaction, options: SetIsolationLevelOptions): Promise<void> {
+    if (!this.queryGenerator.dialect.supports.settingIsolationLevelDuringTransaction) {
+      throw new Error(`Changing the isolation level during the transaction is not supported by ${this.sequelize.dialect.name}.`);
+    }
+
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to set the isolation level for a transaction without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.setIsolationLevelQuery(options.isolationLevel);
+    await this.sequelize.queryRaw(sql, { ...options, transaction, supportsSearchPath: false });
+  }
+
+  /**
+   * Begin a new transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _startTransaction(transaction: Transaction, options: StartTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to start a transaction without the transaction object.');
+    }
+
+    const queryOptions = { ...options, transaction, supportsSearchPath: false };
+    if (queryOptions.isolationLevel && !this.queryGenerator.dialect.supports.settingIsolationLevelDuringTransaction) {
+      const sql = this.queryGenerator.setIsolationLevelQuery(queryOptions.isolationLevel);
+      await this.sequelize.queryRaw(sql, queryOptions);
+    }
+
+    const sql = this.queryGenerator.startTransactionQuery(options);
+    await this.sequelize.queryRaw(sql, queryOptions);
+    if (queryOptions.isolationLevel && this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
+      await transaction.setIsolationLevel(queryOptions.isolationLevel);
+    }
   }
 
   /**

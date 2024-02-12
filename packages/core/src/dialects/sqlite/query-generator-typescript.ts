@@ -1,4 +1,5 @@
 import { randomBytes } from 'node:crypto';
+import { IsolationLevel } from '../../transaction';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
@@ -8,6 +9,7 @@ import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
@@ -17,6 +19,7 @@ import type {
   ListTablesQueryOptions,
   RemoveColumnQueryOptions,
   ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import { SqliteQueryGeneratorInternal } from './query-generator-internal.js';
@@ -216,6 +219,40 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
    */
   foreignKeyCheckQuery(tableName: TableOrModel) {
     return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
+  }
+
+  setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
+    switch (isolationLevel) {
+      case IsolationLevel.REPEATABLE_READ:
+        throw new Error(`The ${isolationLevel} isolation level is not supported by ${this.dialect.name}.`);
+      case IsolationLevel.READ_UNCOMMITTED:
+        return 'PRAGMA read_uncommitted = 1';
+      case IsolationLevel.READ_COMMITTED:
+        throw new Error(`The ${isolationLevel} isolation level is not supported by ${this.dialect.name}.`);
+      case IsolationLevel.SERIALIZABLE:
+        return 'PRAGMA read_uncommitted = 0';
+      default:
+        throw new Error(`Unknown isolation level: ${isolationLevel}`);
+    }
+  }
+
+  startTransactionQuery(options?: StartTransactionQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'startTransactionQuery',
+        this.dialect,
+        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.startTransaction,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'BEGIN',
+      // Use the transaction type from the options, or the default transaction type from the dialect
+      options?.transactionType ?? this.sequelize.options.transactionType,
+      'TRANSACTION',
+    ]);
   }
 
   bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {

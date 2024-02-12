@@ -97,6 +97,9 @@ export class PostgresDialect extends AbstractDialect {
       cascade: true,
       ifExists: true,
     },
+    startTransaction: {
+      readOnly: true,
+    },
     delete: {
       modelWithLimit: true,
     },

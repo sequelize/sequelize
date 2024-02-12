@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -286,6 +287,10 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   rollbackSavepointQuery(savepointName: string): string {
     return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  generateTransactionId(): string {
+    return randomBytes(10).toString('hex');
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {

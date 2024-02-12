@@ -5,7 +5,7 @@ import { IBMiConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types.js';
 import { IBMiQuery } from './query';
 import { IBMiQueryGenerator } from './query-generator';
-import { IBMiQueryInterface } from './query-interface';
+import { IBMiQueryInterface } from './query-interface.js';
 
 export class IBMiDialect extends AbstractDialect {
 
@@ -13,7 +13,7 @@ export class IBMiDialect extends AbstractDialect {
     {
       'VALUES ()': true,
       'ON DUPLICATE KEY': false,
-      transactions: false,
+      connectionTransactionMethods: true,
       bulkDefault: true,
       index: {
         using: false,

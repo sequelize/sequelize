@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -239,5 +240,9 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   createSavepointQuery(savepointName: string): string {
     return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
+
+  generateTransactionId(): string {
+    return randomBytes(10).toString('hex');
   }
 }

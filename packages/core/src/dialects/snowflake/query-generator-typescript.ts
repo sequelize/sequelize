@@ -8,6 +8,7 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
@@ -16,6 +17,7 @@ import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import { SnowflakeQueryGeneratorInternal } from './query-generator-internal.js';
@@ -159,5 +161,19 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SELECT CURRENT_VERSION() AS "version"';
+  }
+
+  startTransactionQuery(options?: StartTransactionQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'startTransactionQuery',
+        this.dialect,
+        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.startTransaction,
+        options,
+      );
+    }
+
+    return options?.transactionName ? `START TRANSACTION NAME ${this.quoteIdentifier(options.transactionName)}` : 'START TRANSACTION';
   }
 }

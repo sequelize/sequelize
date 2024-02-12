@@ -1,5 +1,6 @@
 import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
+import type { IsolationLevel } from '../../transaction';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
@@ -14,6 +15,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from './query-generator.types';
 
@@ -140,6 +142,9 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
 
+/** Options accepted by {@link AbstractQueryInterface#_commitTransaction} */
+export interface CommitTransactionOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> { }
+
 /** Options accepted by {@link AbstractQueryInterface#_createSavepoint} */
 export interface CreateSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   savepointName: string;
@@ -148,6 +153,19 @@ export interface CreateSavepointOptions extends Omit<QueryRawOptions, 'connectio
 /** Options accepted by {@link AbstractQueryInterface#_rollbackSavepoint} */
 export interface RollbackSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   savepointName: string;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#_rollbackTransaction} */
+export interface RollbackTransactionOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> { }
+
+/** Options accepted by {@link AbstractQueryInterface#_setIsolationLevel} */
+export interface SetIsolationLevelOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+  isolationLevel: IsolationLevel;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#_startTransaction} */
+export interface StartTransactionOptions extends StartTransactionQueryOptions, Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+  isolationLevel?: IsolationLevel | null | undefined;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */

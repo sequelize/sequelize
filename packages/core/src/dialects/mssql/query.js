@@ -66,36 +66,10 @@ export class MsSqlQuery extends AbstractQuery {
 
   async _run(connection, sql, parameters) {
     this.sql = sql;
-    const { options } = this;
 
     const complete = this._logQuery(sql, debug, parameters);
 
     const query = new Promise((resolve, reject) => {
-      // TRANSACTION SUPPORT
-      if (sql.startsWith('BEGIN TRANSACTION')) {
-        connection.beginTransaction(error => (error ? reject(error) : resolve([])), options.transaction.name, connection.lib.ISOLATION_LEVEL[options.isolationLevel]);
-
-        return;
-      }
-
-      if (sql.startsWith('COMMIT TRANSACTION')) {
-        connection.commitTransaction(error => (error ? reject(error) : resolve([])));
-
-        return;
-      }
-
-      if (sql.startsWith('ROLLBACK TRANSACTION')) {
-        connection.rollbackTransaction(error => (error ? reject(error) : resolve([])), options.transaction.name);
-
-        return;
-      }
-
-      if (sql.startsWith('SAVE TRANSACTION')) {
-        connection.saveTransaction(error => (error ? reject(error) : resolve([])), options.transaction.name);
-
-        return;
-      }
-
       const rows = [];
       const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
 

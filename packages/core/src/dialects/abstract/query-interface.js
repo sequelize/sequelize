@@ -14,7 +14,6 @@ import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 
 const DataTypes = require('../../data-types');
-const { Transaction } = require('../../transaction');
 const { QueryTypes } = require('../../query-types');
 
 /**
@@ -770,85 +769,5 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   ensureEnums() {
     // noop by default
-  }
-
-  async setIsolationLevel(transaction, value, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to set isolation level for a transaction without transaction object!');
-    }
-
-    if (transaction.parent || !value) {
-      // Not possible to set a separate isolation level for savepoints
-      return;
-    }
-
-    options = { ...options, transaction: transaction.parent || transaction };
-
-    const sql = this.queryGenerator.setIsolationLevelQuery(value, {
-      parent: transaction.parent,
-    });
-
-    if (!sql) {
-      return;
-    }
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  async startTransaction(transaction, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to start a transaction without transaction object!');
-    }
-
-    options = { ...options, transaction: transaction.parent || transaction };
-    options.transaction.name = transaction.parent ? transaction.name : undefined;
-    const sql = this.queryGenerator.startTransactionQuery(transaction);
-
-    return await this.sequelize.queryRaw(sql, options);
-  }
-
-  async commitTransaction(transaction, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to commit a transaction without transaction object!');
-    }
-
-    if (transaction.parent) {
-      // Savepoints cannot be committed
-      return;
-    }
-
-    options = {
-      ...options,
-      transaction: transaction.parent || transaction,
-      supportsSearchPath: false,
-      completesTransaction: true,
-    };
-
-    const sql = this.queryGenerator.commitTransactionQuery(transaction);
-    const promise = this.sequelize.queryRaw(sql, options);
-
-    transaction.finished = 'commit';
-
-    return await promise;
-  }
-
-  async rollbackTransaction(transaction, options) {
-    if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to rollback a transaction without transaction object!');
-    }
-
-    options = {
-      ...options,
-      transaction: transaction.parent || transaction,
-      supportsSearchPath: false,
-      completesTransaction: true,
-    };
-    options.transaction.name = transaction.parent ? transaction.name : undefined;
-    const sql = this.queryGenerator.rollbackTransactionQuery(transaction);
-    const promise = this.sequelize.queryRaw(sql, options);
-
-    transaction.finished = 'rollback';
-
-    return await promise;
   }
 }
