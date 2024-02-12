@@ -111,7 +111,7 @@ if (Support.sequelize.dialect.supports.upserts) {
             hookCalled++;
           });
 
-          const user0 = await this.User.create({ mood: 'sad', username: 'leafninja' });
+          await this.User.create({ mood: 'sad', username: 'leafninja' });
           const [user] = await this.User.upsert({ mood: 'upset', username: 'leafninja' });
 
           expect(user.mood).to.equal('happy');
