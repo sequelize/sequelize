@@ -663,12 +663,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
             await this.sp1.rollback();
             const users = await this.User.findAll({ transaction: this.transaction });
-            // SAVE TRANSACTION command commits for db2.
-            // There is no odbc API for save command.
-            // Db2 does not support nested transaction. So, save transaction
-            // is getting translated into commit and begin transaction.
-            const len = dialect === 'db2' ? 1 : 0;
-            expect(users).to.have.length(len);
+            expect(users).to.have.length(0);
 
             await this.transaction.rollback();
           });
@@ -719,9 +714,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           await user.update({ username: 'bar' }, { transaction: t2 });
           await t1.rollback();
           const users = await User.findAll();
-          // Db2 does not support nested transaction.
-          const len = dialect === 'db2' ? 1 : 0;
-          expect(users.length).to.equal(len);
+          expect(users.length).to.equal(0);
         });
       });
     }

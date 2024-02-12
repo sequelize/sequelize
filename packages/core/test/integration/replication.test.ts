@@ -3,11 +3,12 @@ import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
 import {
   beforeEach2,
+  createSequelizeInstance,
   destroySequelizeAfterTest,
   getConnectionOptionsWithoutPool,
-  getSequelizeInstance,
   getTestDialect,
   getTestDialectTeaser,
+  sequelize as instance,
   setResetMode,
 } from './support';
 
@@ -22,7 +23,7 @@ describe(getTestDialectTeaser('Replication'), () => {
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
       const sandbox = sinon.createSandbox();
-      const sequelize = getSequelizeInstance('', '', '', {
+      const sequelize = createSequelizeInstance({
         replication: {
           write: getConnectionOptionsWithoutPool(),
           read: [getConnectionOptionsWithoutPool()],
@@ -81,13 +82,15 @@ describe(getTestDialectTeaser('Replication'), () => {
       expectReadCalls();
     });
 
-    it('should run read-only transactions on the replica', async () => {
-      await deps.sequelize.transaction({ readOnly: true }, async transaction => {
-        return deps.User.findAll({ transaction });
-      });
+    if (instance.dialect.supports.startTransaction.readOnly) {
+      it('should run read-only transactions on the replica', async () => {
+        await deps.sequelize.transaction({ readOnly: true }, async transaction => {
+          return deps.User.findAll({ transaction });
+        });
 
-      expectReadCalls();
-    });
+        expectReadCalls();
+      });
+    }
 
     it('should run non-read-only transactions on the primary', async () => {
       await deps.sequelize.transaction(async transaction => {
