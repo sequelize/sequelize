@@ -7,6 +7,13 @@ import type { Connection, ConstraintChecking, Logging, Sequelize } from './index
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
 /**
+ * This an option for {@link QueryRawOptions} which indicates if the query completes the transaction
+ *
+ * @private do not expose outside sequelize
+ */
+export const COMPLETES_TRANSACTION = Symbol('completesTransaction');
+
+/**
  * The transaction object is used to identify a running transaction.
  * It is created by calling `Sequelize.transaction()`.
  * To run a query under a transaction, you should pass the transaction in the options object.
