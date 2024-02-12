@@ -1,12 +1,12 @@
 'use strict';
 
-const util = require('node:util');
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support   = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
+const { beforeAll2 } = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -14,23 +14,21 @@ const sql = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-  describe('order', () => {
-    const testsql = (options, expectation) => {
-      const model = options.model;
+describe('QueryGenerator#selectQuery with "order"', () => {
+  function expectSelect(options, expectation) {
+    const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.selectQuery(
-            options.table || model && model.getTableName(),
-            options,
-            options.model,
-          ),
-          expectation,
-        );
-      });
-    };
+    return expectsql(
+      sql.selectQuery(
+        options.table || model && model.getTableName(),
+        options,
+        options.model,
+      ),
+      expectation,
+    );
+  }
 
+  const vars = beforeAll2(() => {
     // models
     const User = Support.sequelize.define('User', {
       id: {
@@ -186,6 +184,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     Project.hasMany(Task, {
       as: 'Tasks',
       foreignKey: 'project_id',
+      inverse: 'Project',
     });
 
     Task.belongsTo(Project, {
@@ -196,6 +195,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     Task.hasMany(Subtask, {
       as: 'Subtasks',
       foreignKey: 'task_id',
+      inverse: 'Task',
     });
 
     Subtask.belongsTo(Task, {
@@ -203,7 +203,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       foreignKey: 'task_id',
     });
 
-    testsql({
+    return { User, Project, ProjectUser, Task, Subtask };
+  });
+
+  it('supports "order"', () => {
+    const { Task, Subtask, Project } = vars;
+
+    expectSelect({
       model: Subtask,
       attributes: [
         'id',
@@ -321,8 +327,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       default: 'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at];',
       postgres: 'SELECT "Subtask"."id", "Subtask"."name", "Subtask"."createdAt", "Task"."id" AS "Task.id", "Task"."name" AS "Task.name", "Task"."created_at" AS "Task.createdAt", "Task->Project"."id" AS "Task.Project.id", "Task->Project"."name" AS "Task.Project.name", "Task->Project"."created_at" AS "Task.Project.createdAt" FROM "subtask" AS "Subtask" INNER JOIN "task" AS "Task" ON "Subtask"."task_id" = "Task"."id" INNER JOIN "project" AS "Task->Project" ON "Task"."project_id" = "Task->Project"."id" ORDER BY "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Task->Project"."created_at" ASC, "Task->Project"."created_at", "Task"."created_at" ASC, "Task"."created_at", "Subtask"."created_at" ASC, "Subtask"."created_at", "Subtask"."created_at";',
     });
+  });
 
-    testsql({
+  it('supports random ordering', () => {
+    const { Subtask } = vars;
+
+    expectSelect({
       model: Subtask,
       attributes: ['id', 'name'],
       order: [
@@ -338,51 +348,61 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
       sqlite: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
     });
+  });
 
-    describe('Invalid', () => {
-      it('Error on invalid association', () => {
-        return expect(Subtask.findAll({
-          order: [
-            [Project, 'createdAt', 'ASC'],
-          ],
-        })).to.eventually.be.rejectedWith(Error, 'Invalid Include received: no associations exist between "Subtask" and "Project"');
-      });
+  describe('Invalid', () => {
+    it('Error on invalid association', () => {
+      const { Project, Subtask } = vars;
 
-      it('Error on invalid structure', () => {
-        return expect(Subtask.findAll({
-          order: [
-            [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC'],
-          ],
-        })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
-      });
+      return expect(Subtask.findAll({
+        order: [
+          [Project, 'createdAt', 'ASC'],
+        ],
+      })).to.eventually.be.rejectedWith(Error, 'Invalid Include received: no associations exist between "Subtask" and "Project"');
+    });
 
-      it('Error when the order is a string', () => {
-        return expect(Subtask.findAll({
-          order: 'i am a silly string',
-        })).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
-      });
+    it('Error on invalid structure', () => {
+      const { Task, Subtask } = vars;
 
-      it('Error when the order contains a `{raw: "..."}` object', () => {
-        return expect(Subtask.findAll({
-          order: [
+      return expect(Subtask.findAll({
+        order: [
+          [Subtask.associations.Task, 'createdAt', Task.associations.Project, 'ASC'],
+        ],
+      })).to.eventually.be.rejectedWith(Error, 'Unknown structure passed to order / group: Project');
+    });
+
+    it('Error when the order is a string', () => {
+      const { Subtask } = vars;
+
+      return expect(Subtask.findAll({
+        order: 'i am a silly string',
+      })).to.eventually.be.rejectedWith(Error, 'Order must be type of array or instance of a valid sequelize method.');
+    });
+
+    it('Error when the order contains a `{raw: "..."}` object', () => {
+      const { Subtask } = vars;
+
+      return expect(Subtask.findAll({
+        order: [
+          {
+            raw: 'this should throw an error',
+          },
+        ],
+      })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
+    });
+
+    it('Error when the order contains a `{raw: "..."}` object wrapped in an array', () => {
+      const { Subtask } = vars;
+
+      return expect(Subtask.findAll({
+        order: [
+          [
             {
               raw: 'this should throw an error',
             },
           ],
-        })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
-      });
-
-      it('Error when the order contains a `{raw: "..."}` object wrapped in an array', () => {
-        return expect(Subtask.findAll({
-          order: [
-            [
-              {
-                raw: 'this should throw an error',
-              },
-            ],
-          ],
-        })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
-      });
+        ],
+      })).to.eventually.be.rejectedWith(Error, 'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.');
     });
   });
 });

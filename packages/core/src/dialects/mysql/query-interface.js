@@ -3,7 +3,6 @@
 import { getObjectFromMap } from '../../utils/object';
 import { assertNoReservedBind, combineBinds } from '../../utils/sql';
 
-const sequelizeErrors = require('../../errors');
 const { AbstractQueryInterface } = require('../abstract/query-interface');
 const { QueryTypes } = require('../../query-types');
 
@@ -17,25 +16,10 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeColumn(tableName, columnName, options) {
-    options = options || {};
+    const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
+    await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
 
-    const [results] = await this.sequelize.queryRaw(
-      this.queryGenerator.getForeignKeyQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
-
-    // Exclude primary key constraint
-    if (results.length > 0 && results[0].constraintName !== 'PRIMARY') {
-      await Promise.all(results.map(constraint => this.sequelize.queryRaw(
-        this.queryGenerator.dropForeignKeyQuery(tableName, constraint.constraintName),
-        { raw: true, ...options },
-      )));
-    }
-
-    return await this.sequelize.queryRaw(
-      this.queryGenerator.removeColumnQuery(tableName, columnName),
-      { raw: true, ...options },
-    );
+    await super.removeColumn(tableName, columnName, options);
   }
 
   /**
@@ -61,33 +45,5 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
     options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
-  }
-
-  /**
-   * @override
-   */
-  async removeConstraint(tableName, constraintName, options) {
-    const queryOptions = { ...options, raw: true, constraintName };
-    const constraints = await this.showConstraints(tableName, queryOptions);
-
-    const constraint = constraints[0];
-    if (!constraint || !constraint.constraintType) {
-      throw new sequelizeErrors.UnknownConstraintError(
-        {
-          message: `Constraint ${constraintName} on table ${tableName} does not exist`,
-          constraint: constraintName,
-          table: tableName,
-        },
-      );
-    }
-
-    let query;
-    if (constraint.constraintType === 'FOREIGN KEY') {
-      query = this.queryGenerator.dropForeignKeyQuery(tableName, constraintName);
-    } else {
-      query = this.queryGenerator.removeIndexQuery(tableName, constraint.constraintName);
-    }
-
-    return this.sequelize.queryRaw(query, queryOptions);
   }
 }

@@ -51,12 +51,10 @@ if (dialect.startsWith('mssql')) {
 
       await this.sequelize.sync({ force: true });
 
-      const [vyom, shakti, nikita, arya] = await User.bulkCreate([
-        { UserName: 'Vayom' },
-        { UserName: 'Shaktimaan' },
-        { UserName: 'Nikita' },
-        { UserName: 'Aryamaan' },
-      ], { returning: true });
+      const vyom = await User.create({ UserName: 'Vayom' });
+      const shakti = await User.create({ UserName: 'Shaktimaan' });
+      const nikita = await User.create({ UserName: 'Nikita' });
+      const arya = await User.create({ UserName: 'Aryamaan' });
 
       await Promise.all([
         vyom.createLoginLog(),
@@ -82,8 +80,8 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(logs).to.have.length(2);
-      expect(logs[0].User.get('UserName')).to.equal('Shaktimaan');
-      expect(logs[1].User.get('UserName')).to.equal('Aryamaan');
+      expect(logs[0].user.get('UserName')).to.equal('Shaktimaan');
+      expect(logs[1].user.get('UserName')).to.equal('Aryamaan');
 
       // #11258 and similar
       const otherLogs = await LoginLog.findAll({
@@ -103,8 +101,8 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(otherLogs).to.have.length(2);
-      expect(otherLogs[0].User.get('UserName')).to.equal('Aryamaan');
-      expect(otherLogs[1].User.get('UserName')).to.equal('Shaktimaan');
+      expect(otherLogs[0].user.get('UserName')).to.equal('Aryamaan');
+      expect(otherLogs[1].user.get('UserName')).to.equal('Shaktimaan');
 
       // Separate queries can apply order freely
       const separateUsers = await User.findAll({
@@ -129,9 +127,9 @@ if (dialect.startsWith('mssql')) {
 
       expect(separateUsers).to.have.length(2);
       expect(separateUsers[0].get('UserName')).to.equal('Aryamaan');
-      expect(separateUsers[0].get('LoginLogs')).to.have.length(1);
+      expect(separateUsers[0].get('loginLogs')).to.have.length(1);
       expect(separateUsers[1].get('UserName')).to.equal('Shaktimaan');
-      expect(separateUsers[1].get('LoginLogs')).to.have.length(1);
+      expect(separateUsers[1].get('loginLogs')).to.have.length(1);
     });
 
     it('allow referencing FK to different tables in a schema with onDelete, #10125', async function () {
@@ -191,7 +189,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(MAX)');
     });
@@ -202,7 +200,7 @@ if (dialect.startsWith('mssql')) {
       }, { freezeTableName: true });
 
       await Users.sync({ force: true });
-      const metadata = await this.sequelize.getQueryInterface().describeTable('_Users');
+      const metadata = await this.sequelize.queryInterface.describeTable('_Users');
       const username = metadata.username;
       expect(username.type).to.include('(10)');
     });

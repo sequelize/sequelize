@@ -8,7 +8,9 @@ import {
 } from './hooks-legacy.js';
 import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
 import { staticModelHooks } from './model-hooks.js';
-import type { Model } from './model.js';
+import type { ModelRepository } from './model-repository.js';
+import { getModelRepository } from './model-repository.js';
+import type { DestroyOptions, Model } from './model.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
 import type { PartialBy } from './utils/types.js';
@@ -41,7 +43,7 @@ export class ModelTypeScript {
   }
 
   static get queryGenerator(): AbstractQueryGenerator {
-    return this.queryInterface.queryGenerator;
+    return this.sequelize.queryGenerator;
   }
 
   /**
@@ -69,8 +71,20 @@ export class ModelTypeScript {
     return getModelDefinition(this);
   }
 
+  get modelDefinition(): ModelDefinition {
+    return (this.constructor as ModelStatic).modelDefinition;
+  }
+
+  static get modelRepository(): ModelRepository {
+    return getModelRepository(this.modelDefinition);
+  }
+
+  get modelRepository(): ModelRepository {
+    return (this.constructor as ModelStatic).modelRepository;
+  }
+
   /**
-   * An object hash from alias to association object
+   * An object hash from alias to the association object
    */
   static get associations(): { [associationName: string]: Association } {
     return this.modelDefinition.associations;
@@ -384,7 +398,7 @@ export class ModelTypeScript {
     // TODO no deprecation warning is issued here, as this is still used internally.
     //  Start emitting a warning once we have removed all internal usages.
 
-    const queryGenerator = this.sequelize.queryInterface.queryGenerator;
+    const queryGenerator = this.sequelize.queryGenerator;
 
     return {
       ...this.table,
@@ -396,6 +410,21 @@ export class ModelTypeScript {
         return queryGenerator.quoteTable(this);
       },
     };
+  }
+
+  /**
+   * Works like the {@link Model#destroy} instance method, but is capable of deleting multiple instances in one query.
+   * Unlike {@link Model.destroy}, this method takes instances, not a `where` option.
+   *
+   * @param instances The instances to delete.
+   * @param options Options.
+   */
+  static async _UNSTABLE_destroyMany<M extends Model>(
+    this: ModelStatic<M>,
+    instances: M | M[],
+    options?: DestroyOptions<Attributes<M>>,
+  ): Promise<number> {
+    return this.modelRepository._UNSTABLE_destroy(instances, options);
   }
 }
 
@@ -412,16 +441,15 @@ export function initModel<M extends Model>(
     model,
   );
 
-  registerModelDefinition(model, modelDefinition);
-
   Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
+
+  registerModelDefinition(model, modelDefinition);
 
   // @ts-expect-error -- TODO: type
   model._scope = model.options.defaultScope;
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.modelManager.addModel(model);
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);

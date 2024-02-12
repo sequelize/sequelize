@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Op, json } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe('[POSTGRES Specific] DAO', () => {
   if (dialect !== 'postgres') {
@@ -239,7 +239,7 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+      const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
       expect(enums).to.have.length(1);
       expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
     });
@@ -255,7 +255,7 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+      const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
       expect(enums).to.have.length(1);
       expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
     });
@@ -309,7 +309,7 @@ describe('[POSTGRES Specific] DAO', () => {
         });
 
         await User.sync();
-        const enums = await this.sequelize.getQueryInterface().pgListEnums(User.getTableName());
+        const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
         expect(enums).to.have.length(1);
         expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
       });
@@ -895,7 +895,7 @@ describe('[POSTGRES Specific] DAO', () => {
   describe('[POSTGRES] Unquoted identifiers', () => {
     it('can insert and select', async function () {
       this.sequelize.options.quoteIdentifiers = false;
-      this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = false;
+      this.sequelize.queryGenerator.options.quoteIdentifiers = false;
 
       this.User = this.sequelize.define('Userxs', {
         username: DataTypes.STRING,
@@ -932,14 +932,14 @@ describe('[POSTGRES Specific] DAO', () => {
         });
 
       this.sequelize.options.quoteIndentifiers = true;
-      this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = true;
+      this.sequelize.queryGenerator.options.quoteIdentifiers = true;
       this.sequelize.options.logging = false;
       expect(count).to.equal(1);
     });
 
     it('can select nested include', async function () {
       this.sequelize.options.quoteIdentifiers = false;
-      this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = false;
+      this.sequelize.queryGenerator.options.quoteIdentifiers = false;
       this.Professor = this.sequelize.define('Professor', {
         fullName: DataTypes.STRING,
       }, {
@@ -985,17 +985,17 @@ describe('[POSTGRES Specific] DAO', () => {
           {
             id: 1,
             name: 'Transfiguration',
-            ProfessorId: 1,
+            professorId: 1,
           },
           {
             id: 2,
             name: 'Potions',
-            ProfessorId: 2,
+            professorId: 2,
           },
           {
             id: 3,
             name: 'Defence Against the Dark Arts',
-            ProfessorId: 2,
+            professorId: 2,
           },
         ]);
 
@@ -1057,10 +1057,10 @@ describe('[POSTGRES Specific] DAO', () => {
 
         expect(professors.length).to.eql(2);
         expect(professors[0].fullName).to.eql('Albus Dumbledore');
-        expect(professors[0].Classes.length).to.eql(1);
-        expect(professors[0].Classes[0].Students.length).to.eql(3);
+        expect(professors[0].classes.length).to.eql(1);
+        expect(professors[0].classes[0].students.length).to.eql(3);
       } finally {
-        this.sequelize.getQueryInterface().queryGenerator.options.quoteIdentifiers = true;
+        this.sequelize.queryGenerator.options.quoteIdentifiers = true;
       }
     });
   });

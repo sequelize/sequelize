@@ -1,19 +1,15 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../support');
+const { expect } = require('chai');
+const { sequelize, createMultiTransactionalTestSequelizeInstance, beforeEach2 } = require('../support');
 const { DataTypes, Op, col } = require('@sequelize/core');
 
-const dialectName = Support.getTestDialect();
-const dialect = Support.sequelize.dialect;
-const current = Support.sequelize;
+const dialect = sequelize.dialect;
+const dialectName = dialect.name;
 
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   beforeEach(async function () {
-    const sequelize = await Support.createMultiTransactionalTestSequelizeInstance(this.sequelize);
-    this.customSequelize = sequelize;
+    this.customSequelize = await createMultiTransactionalTestSequelizeInstance(this.sequelize);
 
     this.User = this.customSequelize.define('User', {
       username: DataTypes.STRING,
@@ -53,7 +49,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('bulkCreate', () => {
-    if (current.dialect.supports.transactions) {
+    if (dialect.supports.transactions) {
       it('supports transactions', async function () {
         const User = this.customSequelize.define('User', {
           username: DataTypes.STRING,
@@ -418,7 +414,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           tableName: 'Dummy',
         });
 
-        await Support.dropTestSchemas(this.customSequelize);
         await this.customSequelize.createSchema('space1');
         await Dummy.sync({ force: true });
 
@@ -429,8 +424,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.inserts.ignoreDuplicates
-        || current.dialect.supports.inserts.onConflictDoNothing) {
+    if (dialect.supports.inserts.ignoreDuplicates
+        || dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', async function () {
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
@@ -468,7 +463,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.inserts.updateOnDuplicate) {
+    if (dialect.supports.inserts.updateOnDuplicate) {
       describe('updateOnDuplicate', () => {
         it('should support the updateOnDuplicate option', async function () {
           const data = [
@@ -761,7 +756,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
 
-        if (current.dialect.supports.inserts.conflictFields) {
+        if (dialect.supports.inserts.conflictFields) {
           it('should respect the conflictAttributes option', async function () {
             const Permissions = this.customSequelize.define(
               'permissions',
@@ -859,39 +854,45 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           describe('conflictWhere', () => {
-            const Memberships = current.define(
-              'memberships',
-              {
-                // ID of the member (no foreign key constraint for testing purposes)
-                user_id: DataTypes.INTEGER,
-                // ID of what the member is a member of
-                foreign_id: DataTypes.INTEGER,
-                time_deleted: DataTypes.DATE,
-              },
-              {
-                createdAt: false,
-                updatedAt: false,
-                deletedAt: 'time_deleted',
-                indexes: [
-                  {
-                    fields: ['user_id', 'foreign_id'],
-                    unique: true,
-                    where: { time_deleted: null },
-                  },
-                ],
-              },
-            );
-
             const options = {
               conflictWhere: { time_deleted: null },
               conflictAttributes: ['user_id', 'foreign_id'],
               updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted'],
             };
 
-            beforeEach(() => Memberships.sync({ force: true }));
+            const vars = beforeEach2(async () => {
+              const Memberships = sequelize.define(
+                'memberships',
+                {
+                  // ID of the member (no foreign key constraint for testing purposes)
+                  user_id: DataTypes.INTEGER,
+                  // ID of what the member is a member of
+                  foreign_id: DataTypes.INTEGER,
+                  time_deleted: DataTypes.DATE,
+                },
+                {
+                  createdAt: false,
+                  updatedAt: false,
+                  deletedAt: 'time_deleted',
+                  indexes: [
+                    {
+                      fields: ['user_id', 'foreign_id'],
+                      unique: true,
+                      where: { time_deleted: null },
+                    },
+                  ],
+                },
+              );
+
+              await Memberships.sync({ force: true });
+
+              return { Memberships };
+            });
 
             it('should insert items with conflictWhere', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const { Memberships } = vars;
+
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: null,
@@ -910,7 +911,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             it('should not conflict with soft deleted memberships', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const { Memberships } = vars;
+
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: new Date(),
@@ -944,7 +947,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             it('should upsert existing memberships', async () => {
-              const memberships = new Array(10).fill().map((_, i) => ({
+              const { Memberships } = vars;
+
+              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                 user_id: i + 1,
                 foreign_id: i + 20,
                 time_deleted: i % 2 ? new Date() : null,
@@ -986,43 +991,47 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           });
 
-          if (
-            current.dialect.supports.inserts.onConflictWhere
-          ) {
+          if (dialect.supports.inserts.onConflictWhere) {
             describe('conflictWhere', () => {
-              const Memberships = current.define(
-                'memberships',
-                {
-                  // ID of the member (no foreign key constraint for testing purposes)
-                  user_id: DataTypes.INTEGER,
-                  // ID of what the member is a member of
-                  foreign_id: DataTypes.INTEGER,
-                  time_deleted: DataTypes.DATE,
-                },
-                {
-                  createdAt: false,
-                  updatedAt: false,
-                  deletedAt: 'time_deleted',
-                  indexes: [
-                    {
-                      fields: ['user_id', 'foreign_id'],
-                      unique: true,
-                      where: { time_deleted: null },
-                    },
-                  ],
-                },
-              );
-
               const options = {
                 conflictWhere: { time_deleted: null },
                 conflictAttributes: ['user_id', 'foreign_id'],
                 updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted'],
               };
 
-              beforeEach(() => Memberships.sync({ force: true }));
+              const vars = beforeEach2(async () => {
+                const Memberships = sequelize.define(
+                  'memberships',
+                  {
+                    // ID of the member (no foreign key constraint for testing purposes)
+                    user_id: DataTypes.INTEGER,
+                    // ID of what the member is a member of
+                    foreign_id: DataTypes.INTEGER,
+                    time_deleted: DataTypes.DATE,
+                  },
+                  {
+                    createdAt: false,
+                    updatedAt: false,
+                    deletedAt: 'time_deleted',
+                    indexes: [
+                      {
+                        fields: ['user_id', 'foreign_id'],
+                        unique: true,
+                        where: { time_deleted: null },
+                      },
+                    ],
+                  },
+                );
+
+                await Memberships.sync({ force: true });
+
+                return { Memberships };
+              });
 
               it('should insert items with conflictWhere', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const { Memberships } = vars;
+
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: null,
@@ -1041,7 +1050,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
 
               it('should not conflict with soft deleted memberships', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const { Memberships } = vars;
+
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: new Date(),
@@ -1075,7 +1086,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
 
               it('should upsert existing memberships', async () => {
-                const memberships = new Array(10).fill().map((_, i) => ({
+                const { Memberships } = vars;
+
+                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
                   user_id: i + 1,
                   foreign_id: i + 20,
                   time_deleted: i % 2 ? new Date() : null,
@@ -1121,7 +1134,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.returnValues) {
+    if (dialect.supports.returnValues) {
       describe('return values', () => {
         it('should make the auto incremented values available on the returned instances', async function () {
           const User = this.customSequelize.define('user', {});

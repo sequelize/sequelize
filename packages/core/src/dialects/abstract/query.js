@@ -177,14 +177,6 @@ export class AbstractQuery {
     this.instance[autoIncrementAttribute] = id;
   }
 
-  isShowTablesQuery() {
-    return this.options.type === QueryTypes.SHOWTABLES;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.flatMap(resultSet => Object.values(resultSet));
-  }
-
   isShowIndexesQuery() {
     return this.options.type === QueryTypes.SHOWINDEXES;
   }
@@ -205,12 +197,8 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.BULKUPDATE;
   }
 
-  isBulkDeleteQuery() {
-    return this.options.type === QueryTypes.BULKDELETE;
-  }
-
-  isForeignKeysQuery() {
-    return this.options.type === QueryTypes.FOREIGNKEYS;
+  isDeleteQuery() {
+    return this.options.type === QueryTypes.DELETE;
   }
 
   isUpdateQuery() {
@@ -470,13 +458,11 @@ export class AbstractQuery {
     let itemHash;
     let parentHash;
     let topHash;
-    const results = checkExisting ? [] : new Array(rowsLength);
+    const results = checkExisting ? [] : Array.from({ length: rowsLength });
     const resultMap = {};
     const includeMap = {};
     // Result variables for the respective functions
     let $keyPrefix;
-    let $keyPrefixString;
-    let $prevKeyPrefixString;
     let $prevKeyPrefix;
     let $lastKeyPrefix;
     let $current;
@@ -546,6 +532,9 @@ export class AbstractQuery {
       return lastKeyPrefixMemo[key];
     };
 
+    // sort the array by the level of their depth calculated by dot.
+    const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
+
     const getUniqueKeyAttributes = model => {
       let uniqueKeyAttributes = chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
@@ -566,7 +555,7 @@ export class AbstractQuery {
 
       // Keys are the same for all rows, so only need to compute them on the first row
       if (rowsI === 0) {
-        keys = Object.keys(row);
+        keys = sortByDepth(Object.keys(row));
         keyLength = keys.length;
       }
 
@@ -598,7 +587,6 @@ export class AbstractQuery {
         // The string prefix isn't actualy needed
         // We use it so keyPrefix for different keys will resolve to the same array if they have the same prefix
         // TODO: Find a better way?
-        $keyPrefixString = keyPrefixString(key, keyPrefixStringMemo);
         $keyPrefix = keyPrefix(key);
 
         // On the first row we compute the includeMap
@@ -701,7 +689,6 @@ export class AbstractQuery {
         values[removeKeyPrefix(key)] = row[key];
         prevKey = key;
         $prevKeyPrefix = $keyPrefix;
-        $prevKeyPrefixString = $keyPrefixString;
       }
 
       if (checkExisting) {

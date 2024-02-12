@@ -1,7 +1,6 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 
@@ -13,40 +12,6 @@ const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescrip
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
-  createSchemaQuery(schemaName, options) {
-    return joinSQLFragments([
-      'CREATE SCHEMA IF NOT EXISTS',
-      this.quoteIdentifier(schemaName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropSchemaQuery(schemaName) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schemaName)};`;
-  }
-
-  // TODO: typescript - protected
-  _getTechnicalSchemaNames() {
-    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'mysql', 'information_schema', 'performance_schema'];
-  }
-
-  listSchemasQuery(options) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
-    if (Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
-    }
-
-    return joinSQLFragments([
-      'SELECT SCHEMA_NAME as schema_name',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
-      ';',
-    ]);
-  }
-
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
@@ -127,19 +92,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     ]);
   }
 
-  showTablesQuery(schemaName) {
-    let query = 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'';
-    if (schemaName) {
-      query += ` AND TABLE_SCHEMA = ${this.escape(schemaName)}`;
-    } else {
-      const technicalSchemas = this._getTechnicalSchemaNames();
-
-      query += ` AND TABLE_SCHEMA NOT IN (${technicalSchemas.map(schema => this.escape(schema)).join(', ')})`;
-    }
-
-    return `${query};`;
-  }
-
   addColumnQuery(table, key, dataType, options = {}) {
     const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 
@@ -159,19 +111,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         tableName: table,
         foreignKey: key,
       }),
-      ';',
-    ]);
-  }
-
-  removeColumnQuery(tableName, attributeName, options = {}) {
-    const ifExists = options.ifExists ? 'IF EXISTS' : '';
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      ifExists,
-      this.quoteIdentifier(attributeName),
       ';',
     ]);
   }
@@ -217,26 +156,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    let query = `DELETE FROM ${this.quoteTable(tableName)}`;
-
-    const escapeOptions = { ...options, model };
-    const whereSql = this.whereQuery(where, escapeOptions);
-    if (whereSql) {
-      query += ` ${whereSql}`;
-    }
-
-    if (options.limit) {
-      query += ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    }
-
-    return query;
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -258,7 +177,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 
@@ -318,23 +237,5 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
   }
 }

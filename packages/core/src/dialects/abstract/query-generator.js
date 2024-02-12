@@ -6,15 +6,14 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
-import { rejectInvalidOptions } from '../../utils/check';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
+import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
-
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -26,32 +25,21 @@ import isPlainObject from 'lodash/isPlainObject';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
+import { Association } from '../../associations/base';
+import { BelongsToAssociation } from '../../associations/belongs-to';
+import { BelongsToManyAssociation } from '../../associations/belongs-to-many';
+import { HasManyAssociation } from '../../associations/has-many';
 
 const util = require('node:util');
 const crypto = require('node:crypto');
 
 const DataTypes = require('../../data-types');
-const { Association } = require('../../associations/base');
-const { BelongsTo } = require('../../associations/belongs-to');
-const { BelongsToMany } = require('../../associations/belongs-to-many');
-const { HasMany } = require('../../associations/has-many');
 const { Op } = require('../../operators');
 const sequelizeError = require('../../errors');
-const { IndexHints } = require('../../index-hints');
 const { _validateIncludedElements } = require('../../model-internals');
 
-/**
- * List of possible options listed in {@link CreateDatabaseQueryOptions}.
- * It is used to validate the options passed to {@link AbstractQueryGenerator#createDatabaseQuery},
- * as not all of them are supported by all dialects.
- */
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'encoding', 'ctype', 'template']);
-export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset']);
-export const LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS = new Set(['skip']);
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['collate', 'charset', 'engine', 'rowFormat', 'comment', 'initialAutoIncrement', 'uniqueKeys']);
-export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set(['cascade']);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
 
 /**
  * Abstract Query Generator
@@ -59,72 +47,14 @@ export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifExists']);
  * @private
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  createDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
-    }
+  #internals;
 
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  dropDatabaseQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but dropDatabaseQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  listDatabasesQuery() {
-    if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
-    }
-
-    throw new Error(`Databases are not supported in ${this.dialect.name}.`);
-  }
-
-  createSchemaQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but createSchemaQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropSchemaQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but dropSchemaQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  listSchemasQuery() {
-    if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
-    }
-
-    throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-  }
-
-  dropTableQuery(tableName, options) {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
-
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect.name,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `DROP TABLE IF EXISTS ${this.quoteTable(tableName)};`;
-  }
-
-  renameTableQuery(before, after) {
-    return `ALTER TABLE ${this.quoteTable(before)} RENAME TO ${this.quoteTable(after)};`;
+  constructor(
+    dialect,
+    internals = new AbstractQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+    this.#internals = internals;
   }
 
   /**
@@ -903,10 +833,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else if (item instanceof Association) {
           const previousAssociation = collection[i - 1];
 
-          // BelongsToMany.throughModel are a special case. We want
+          // BelongsToManyAssociation.throughModel are a special case. We want
           //  through model to be loaded under the model's name instead of the association name,
           //  because we want them to be available under the model's name in the entity's data.
-          if (previousAssociation instanceof BelongsToMany && item === previousAssociation.fromSourceToThroughOne) {
+          if (previousAssociation instanceof BelongsToManyAssociation && item === previousAssociation.fromSourceToThroughOne) {
             tableNames[i] = previousAssociation.throughModel.name;
           } else {
             tableNames[i] = item.as;
@@ -1112,14 +1042,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         if (typeof options.groupedLimit.on === 'string') {
           whereKey = options.groupedLimit.on;
-        } else if (options.groupedLimit.on instanceof HasMany) {
+        } else if (options.groupedLimit.on instanceof HasManyAssociation) {
           whereKey = options.groupedLimit.on.identifierField;
         }
 
         // TODO: do not use a placeholder!
         const placeholder = '"$PLACEHOLDER$" = true';
 
-        if (options.groupedLimit.on instanceof BelongsToMany) {
+        if (options.groupedLimit.on instanceof BelongsToManyAssociation) {
           // BTM includes needs to join the through table on to check ID
           groupedTableName = options.groupedLimit.on.throughModel.name;
 
@@ -1274,15 +1204,58 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orders = this.getQueryOrders(options, model, subQuery);
       if (orders.mainQueryOrder.length > 0) {
         mainQueryItems.push(` ORDER BY ${orders.mainQueryOrder.join(', ')}`);
+      } else if (!subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
 
       if (orders.subQueryOrder.length > 0) {
         subQueryItems.push(` ORDER BY ${orders.subQueryOrder.join(', ')}`);
+      } else if (subQuery && (options.limit != null || options.offset)) {
+        if (!isModelStatic(model)) {
+          throw new Error('Cannot use offset or limit without a model or order being set');
+        }
+
+        // Always order by primary key if order is not specified and limit/offset is not null
+        const pks = [];
+        for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+          const attribute = mainModelAttributes.get(pkAttrName);
+          pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+        }
+
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      }
+    } else if (options.limit != null || options.offset) {
+      if (!isModelStatic(model)) {
+        throw new Error('Cannot use offset or limit without a model or order being set');
+      }
+
+      // Always order by primary key if order is not specified and limit/offset is not null
+      const pks = [];
+      for (const pkAttrName of mainModelDefinition.primaryKeysAttributeNames) {
+        const attribute = mainModelAttributes.get(pkAttrName);
+        pks.push(attribute.columnName !== pkAttrName ? attribute.columnName : pkAttrName);
+      }
+
+      if (subQuery) {
+        subQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
+      } else {
+        mainQueryItems.push(` ORDER BY ${pks.map(pk => `${mainTable.quotedAs}.${this.quoteIdentifier(pk)}`).join(', ')}`);
       }
     }
 
     // Add LIMIT, OFFSET to sub or main query
-    const limitOrder = this.addLimitAndOffset(options, mainTable.model);
+    const limitOrder = this.#internals.addLimitAndOffset(options);
     if (limitOrder && !options.groupedLimit) {
       if (subQuery) {
         subQueryItems.push(limitOrder);
@@ -1419,7 +1392,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         if (attr instanceof Literal) {
           // We trust the user to rename the field correctly
-          return this.formatLiteral(attr, options);
+          return this.#internals.formatLiteral(attr, options);
         }
 
         if (attr instanceof BaseSqlExpression) {
@@ -1584,10 +1557,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const left = association.source;
     const leftAttributes = left.modelDefinition.attributes;
 
-    const attrNameLeft = association instanceof BelongsTo
+    const attrNameLeft = association instanceof BelongsToAssociation
       ? association.foreignKey
       : association.sourceKeyAttribute;
-    const columnNameLeft = association instanceof BelongsTo
+    const columnNameLeft = association instanceof BelongsToAssociation
       ? association.identifierField
       : leftAttributes.get(association.sourceKeyAttribute).columnName;
     let asLeft;
@@ -1595,7 +1568,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const right = include.model;
     const rightAttributes = right.modelDefinition.attributes;
     const tableRight = right.getTableName();
-    const fieldRight = association instanceof BelongsTo
+    const fieldRight = association instanceof BelongsToAssociation
       ? rightAttributes.get(association.targetKey).columnName
       : association.identifierField;
     let asRight = include.as;
@@ -2078,30 +2051,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (options.groupedLimit) {
       fragment += ` AS ${mainTableAs}`;
-    }
-
-    return fragment;
-  }
-
-  /**
-   * Returns an SQL fragment for adding result constraints.
-   *
-   * @param  {object} options An object with selectQuery options.
-   * @param {ModelStatic} model
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
     }
 
     return fragment;

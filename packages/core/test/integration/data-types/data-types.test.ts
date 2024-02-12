@@ -12,7 +12,7 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
+import { DataTypes, Model, QueryTypes, ValidationError, fn, sql } from '@sequelize/core';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 import 'moment-timezone';
 
@@ -1229,6 +1229,90 @@ describe('DataTypes', () => {
     });
   });
 
+  describe('UUID default values', () => {
+    beforeAll2(async () => {
+      if (dialect.name === 'postgres') {
+        await sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+      }
+    });
+
+    it('supports sql.uuidV1', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV1,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV1.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV1.asJavaScript,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV4,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.UUID,
+          allowNull: false,
+          defaultValue: sql.uuidV4.asJavaScript,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+  });
+
   describe('BLOB', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
@@ -1648,6 +1732,45 @@ describe('DataTypes', () => {
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab', '01:23:45:67:89:ab');
+    });
+  });
+
+  describe('MACADDR8', () => {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      it('throws, as it is not supported', async () => {
+        expect(() => {
+          sequelize.define('User', {
+            attr: DataTypes.MACADDR8,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the MACADDR8 data type.`);
+      });
+
+      return;
+    }
+
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare attr: string;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.MACADDR8,
+          allowNull: false,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    it('accepts strings', async () => {
+      await testSimpleInOut(vars.User, 'attr', '01:23:45:67:89:ab:cd:ef', '01:23:45:67:89:ab:cd:ef');
+    });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab:cd:ef', '01:23:45:67:89:ab:cd:ef');
     });
   });
 });

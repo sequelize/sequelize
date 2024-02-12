@@ -75,10 +75,6 @@ export class SqliteQuery extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      return results.map(row => row.name);
-    }
-
     if (this.isShowConstraintsQuery()) {
       return result;
     }
@@ -134,19 +130,7 @@ export class SqliteQuery extends AbstractQuery {
       return result;
     }
 
-    if (this.sql.includes('PRAGMA foreign_keys;')) {
-      return results[0];
-    }
-
-    if (this.sql.includes('PRAGMA foreign_keys')) {
-      return results;
-    }
-
-    if (this.options.type === QueryTypes.FOREIGNKEYS) {
-      return results;
-    }
-
-    if ([QueryTypes.BULKUPDATE, QueryTypes.BULKDELETE].includes(this.options.type)) {
+    if ([QueryTypes.BULKUPDATE, QueryTypes.DELETE].includes(this.options.type)) {
       return metaData.changes;
     }
 
@@ -183,8 +167,6 @@ export class SqliteQuery extends AbstractQuery {
         return;
       }
 
-      const query = this;
-
       if (!parameters) {
         parameters = [];
       }
@@ -216,7 +198,7 @@ export class SqliteQuery extends AbstractQuery {
 
       complete();
 
-      return query._handleQueryResponse(response.statement, response.results);
+      return this._handleQueryResponse(response.statement, response.results);
     };
 
     if (method === 'all') {
@@ -259,6 +241,7 @@ export class SqliteQuery extends AbstractQuery {
           }
 
           // node-sqlite3 passes the statement object as `this` to the callback
+          // eslint-disable-next-line no-invalid-this
           resolve({ statement: this, results });
         });
       });
@@ -276,6 +259,7 @@ export class SqliteQuery extends AbstractQuery {
           }
 
           // node-sqlite3 passes the statement object as `this` to the callback
+          // eslint-disable-next-line no-invalid-this
           resolve({ statement: this, results });
         });
       });
@@ -366,7 +350,7 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   getDatabaseMethod() {
-    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.options.type === QueryTypes.BULKDELETE) {
+    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.isDeleteQuery()) {
       return 'run';
     }
 

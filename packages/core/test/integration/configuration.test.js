@@ -8,9 +8,7 @@ const Support = require('./support');
 
 const dialect = Support.getTestDialect();
 const { Sequelize } = require('@sequelize/core');
-const fs = require('node:fs');
-const path = require('node:path');
-const { promisify } = require('node:util');
+const { unlinkIfExists, getSqliteDatabasePath } = require('../support');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -98,82 +96,81 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
   });
 
   describe('Instantiation with arguments', () => {
-    if (dialect === 'sqlite') {
-      it('should respect READONLY / READWRITE connection modes', async () => {
-        const p = path.join(__dirname, '../tmp', 'foo.sqlite');
-        const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
-        const createTableBar = 'CREATE TABLE bar (baz TEXT);';
-
-        const testAccess = () => {
-          return promisify(fs.access)(p, fs.R_OK | fs.W_OK);
-        };
-
-        try {
-          try {
-            await promisify(fs.unlink)(p);
-          } catch (error) {
-            expect(error.code).to.equal('ENOENT');
-          }
-
-          const sequelizeReadOnly0 = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READONLY,
-            },
-          });
-          Support.destroySequelizeAfterTest(sequelizeReadOnly0);
-
-          const sequelizeReadWrite0 = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE,
-            },
-          });
-          Support.destroySequelizeAfterTest(sequelizeReadWrite0);
-
-          expect(sequelizeReadOnly0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
-          expect(sequelizeReadWrite0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
-
-          await Promise.all([
-            sequelizeReadOnly0.query(createTableFoo)
-              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
-            sequelizeReadWrite0.query(createTableFoo)
-              .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
-          ]);
-
-          // By default, sqlite creates a connection that's READWRITE | CREATE
-          const sequelize = new Sequelize('sqlite://foo', {
-            storage: p,
-          });
-
-          Support.destroySequelizeAfterTest(sequelize);
-          await testAccess(await sequelize.query(createTableFoo));
-          const sequelizeReadOnly = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READONLY,
-            },
-          });
-          Support.destroySequelizeAfterTest(sequelizeReadOnly);
-
-          const sequelizeReadWrite = new Sequelize('sqlite://foo', {
-            storage: p,
-            dialectOptions: {
-              mode: sqlite3.OPEN_READWRITE,
-            },
-          });
-          Support.destroySequelizeAfterTest(sequelizeReadWrite);
-
-          await Promise.all([
-            sequelizeReadOnly.query(createTableBar)
-              .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
-            sequelizeReadWrite.query(createTableBar),
-          ]);
-        } finally {
-          await promisify(fs.unlink)(p);
-        }
-      });
+    if (dialect !== 'sqlite') {
+      return;
     }
+
+    const dbPath = getSqliteDatabasePath('rw-options-test.sqlite');
+
+    before(() => {
+      unlinkIfExists(dbPath);
+    });
+
+    it('should respect READONLY / READWRITE connection modes', async () => {
+      const sequelizeReadOnly0 = new Sequelize({
+        dialect: 'sqlite',
+        storage: dbPath,
+        dialectOptions: {
+          mode: sqlite3.OPEN_READONLY,
+        },
+      });
+      Support.destroySequelizeAfterTest(sequelizeReadOnly0);
+
+      const sequelizeReadWrite0 = new Sequelize({
+        dialect: 'sqlite',
+        storage: dbPath,
+        dialectOptions: {
+          mode: sqlite3.OPEN_READWRITE,
+        },
+      });
+      Support.destroySequelizeAfterTest(sequelizeReadWrite0);
+
+      expect(sequelizeReadOnly0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
+      expect(sequelizeReadWrite0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
+
+      const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
+      await Promise.all([
+        sequelizeReadOnly0.query(createTableFoo)
+          .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
+        sequelizeReadWrite0.query(createTableFoo)
+          .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
+      ]);
+
+      // By default, sqlite creates a connection that's READWRITE | CREATE
+      // So this query will create a DB file
+      const sequelize = new Sequelize({
+        dialect: 'sqlite',
+        storage: dbPath,
+      });
+
+      Support.destroySequelizeAfterTest(sequelize);
+      await sequelize.query(createTableFoo);
+      // await testAccess(roPath);
+      const sequelizeReadOnly = new Sequelize({
+        dialect: 'sqlite',
+        storage: dbPath,
+        dialectOptions: {
+          mode: sqlite3.OPEN_READONLY,
+        },
+      });
+      Support.destroySequelizeAfterTest(sequelizeReadOnly);
+
+      const sequelizeReadWrite = new Sequelize({
+        dialect: 'sqlite',
+        storage: dbPath,
+        dialectOptions: {
+          mode: sqlite3.OPEN_READWRITE,
+        },
+      });
+      Support.destroySequelizeAfterTest(sequelizeReadWrite);
+
+      const createTableBar = 'CREATE TABLE bar (baz TEXT);';
+      await Promise.all([
+        sequelizeReadOnly.query(createTableBar)
+          .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
+        sequelizeReadWrite.query(createTableBar),
+      ]);
+    });
   });
 
 });

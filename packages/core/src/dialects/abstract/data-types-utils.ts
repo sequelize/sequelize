@@ -26,6 +26,10 @@ export function normalizeDataType(Type: string, dialect: AbstractDialect): strin
 export function normalizeDataType(
   Type: DataTypeClassOrInstance | string,
   dialect: AbstractDialect,
+): AbstractDataType<unknown> | string;
+export function normalizeDataType(
+  Type: DataTypeClassOrInstance | string,
+  dialect: AbstractDialect,
 ): AbstractDataType<unknown> | string {
   if (typeof Type === 'string') {
     return Type;
@@ -99,5 +103,5 @@ export function getDataTypeParser(dialect: AbstractDialect, dataType: DataTypeCl
 
 export function throwUnsupportedDataType(dialect: AbstractDialect, typeName: string): never {
   throw new Error(`${dialect.name} does not support the ${typeName} data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 }

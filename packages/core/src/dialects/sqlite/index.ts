@@ -47,6 +47,9 @@ export class SqliteDialect extends AbstractDialect {
       unquoted: false,
       quoted: false,
     },
+    truncate: {
+      restartIdentity: false,
+    },
   });
 
   readonly defaultVersion = '3.8.0';
@@ -60,16 +63,9 @@ export class SqliteDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'sqlite');
-    this.connectionManager = new SqliteConnectionManager(this, sequelize);
-    this.queryGenerator = new SqliteQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-
-    this.queryInterface = new SqliteQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new SqliteConnectionManager(this);
+    this.queryGenerator = new SqliteQueryGenerator(this);
+    this.queryInterface = new SqliteQueryInterface(this);
   }
 
   createBindCollector() {

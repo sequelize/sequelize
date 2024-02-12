@@ -97,16 +97,16 @@ export function mergeAttributeOptions(
   options: Partial<AttributeOptions>,
   overrideOnConflict: boolean,
 ): Partial<AttributeOptions> {
-  for (const [optionName, optionValue] of Object.entries(options)) {
-    if (!(optionName in existingOptions)) {
-      // @ts-expect-error -- runtime type checking is enforced by model
+  for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof AttributeOptions, any]>) {
+    if (existingOptions[optionName] === undefined) {
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
+      // @ts-ignore -- this function is very fuzzy in terms of typing due to how generic it is.
       existingOptions[optionName] = optionValue;
       continue;
     }
 
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
-      // @ts-expect-error -- dynamic type, not worth typing
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
         if ((subOptionName in existingOptions[optionName]!) && !overrideOnConflict) {
           throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
@@ -137,7 +137,6 @@ export function mergeAttributeOptions(
       continue;
     }
 
-    // @ts-expect-error -- dynamic type, not worth typing
     if (optionValue === existingOptions[optionName] || overrideOnConflict) {
       continue;
     }

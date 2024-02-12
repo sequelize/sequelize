@@ -8,7 +8,6 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const dialect = Support.getTestDialect();
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {
@@ -439,7 +438,6 @@ if (current.dialect.supports.groupedLimit) {
 
         User.Tasks = User.hasMany(Task, { as: 'tasks' });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('archive');
         await this.sequelize.sync({ force: true });
 
@@ -481,11 +479,10 @@ if (current.dialect.supports.groupedLimit) {
         expect(result[1].tasks.length).to.equal(2);
         expect(result[1].tasks[0].title).to.equal('a');
         expect(result[1].tasks[1].title).to.equal('c');
+        await this.sequelize.queryInterface.dropAllTables({ schema: 'archive' });
         await this.sequelize.dropSchema('archive');
-        const schemas = await this.sequelize.showAllSchemas();
-        if (['postgres', 'mssql', 'mariadb'].includes(dialect)) {
-          expect(schemas).to.not.have.property('archive');
-        }
+        const schemas = await this.sequelize.queryInterface.listSchemas();
+        expect(schemas).to.not.include('archive');
       });
 
       it('should work with required non-separate parent and required child', async function () {
@@ -509,7 +506,7 @@ if (current.dialect.supports.groupedLimit) {
             required: true,
             include: [{
               association: User.Tasks,
-              attributes: ['UserId'],
+              attributes: ['userId'],
               separate: true,
               include: [{
                 association: Task.User,
@@ -525,10 +522,10 @@ if (current.dialect.supports.groupedLimit) {
 
         expect(results.length).to.equal(1);
         expect(results[0].id).to.equal(1);
-        expect(results[0].User.id).to.equal(2);
-        expect(results[0].User.Tasks.length).to.equal(1);
-        expect(results[0].User.Tasks[0].User.id).to.equal(2);
-        expect(results[0].User.Tasks[0].User.Company.id).to.equal(3);
+        expect(results[0].user.id).to.equal(2);
+        expect(results[0].user.tasks.length).to.equal(1);
+        expect(results[0].user.tasks[0].user.id).to.equal(2);
+        expect(results[0].user.tasks[0].user.company.id).to.equal(3);
       });
     });
   });

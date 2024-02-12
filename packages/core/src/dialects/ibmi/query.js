@@ -96,10 +96,6 @@ export class IBMiQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isShowIndexesQuery()) {
       return this.handleShowIndexesQuery(data);
     }
@@ -125,12 +121,8 @@ export class IBMiQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery() || this.isUpsertQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery() || this.isUpsertQuery()) {
       return data.count;
-    }
-
-    if (this.isForeignKeysQuery()) {
-      return data;
     }
 
     if (this.isInsertQuery(data)) {
@@ -217,6 +209,14 @@ export class IBMiQuery extends AbstractQuery {
       const uniqueConstraintCodes = [
         -803, // A violation of the constraint imposed by a unique index or a unique constraint occurred.
       ];
+
+      /**
+       * Check for ODBC connection errors by looking at the SQL state. This will allow for an IPL
+       * on the IBM i to be detected and the connection to be re-established.
+       */
+      if (odbcError.state === '08S01') {
+        return new sequelizeErrors.ConnectionRefusedError(err);
+      }
 
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
         return new sequelizeErrors.ForeignKeyConstraintError({

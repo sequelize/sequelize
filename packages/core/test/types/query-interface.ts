@@ -1,4 +1,4 @@
-import type { AbstractQueryInterface } from '@sequelize/core';
+import type { AbstractQueryInterface, TableNameWithSchema } from '@sequelize/core';
 import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
@@ -58,7 +58,7 @@ async function test() {
   await queryInterface.dropTable('nameOfTheExistingTable');
   await queryInterface.dropTable({ schema: '<schema>', tableName: 'nameOfTheExistingTable' });
 
-  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' });
 
   const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo' }, [{}], {});
 
@@ -80,7 +80,7 @@ async function test() {
     { schema: '<schema>', tableName: 'User' },
   );
 
-  const tableNames: string[] = await queryInterface.showAllTables();
+  const tableNames: TableNameWithSchema[] = await queryInterface.listTables();
 
   /*
   attributes will be something like:
@@ -234,12 +234,6 @@ async function test() {
     },
   });
   await queryInterface.select(null, { schema: '<schema>', tableName: 'Person' }, {
-    where: {
-      a: 1,
-    },
-  });
-
-  await queryInterface.delete(null, 'Person', {
     where: {
       a: 1,
     },

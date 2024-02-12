@@ -27,24 +27,24 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     }]);
 
     await Project.bulkCreate([{
-      UserId: 1,
+      userId: 1,
       title: 'republic',
     }, {
-      UserId: 2,
+      userId: 2,
       title: 'empire',
     }]);
 
     await Task.bulkCreate([{
-      ProjectId: 1,
+      projectId: 1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      projectId: 1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'rule everything',
     }]);
 
@@ -85,24 +85,24 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     }]);
 
     await Project.bulkCreate([{
-      UserId: 1,
+      userId: 1,
       title: 'republic',
     }, {
-      UserId: 2,
+      userId: 2,
       title: 'empire',
     }]);
 
     await Task.bulkCreate([{
-      ProjectId: 1,
+      projectId: 1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      projectId: 1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'rule everything',
     }]);
 
@@ -148,24 +148,24 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
     }]);
 
     await Project.bulkCreate([{
-      UserId: 1,
+      userId: 1,
       title: 'republic',
     }, {
-      UserId: 2,
+      userId: 2,
       title: 'empire',
     }]);
 
     await Task.bulkCreate([{
-      ProjectId: 1,
+      projectId: 1,
       title: 'fight empire',
     }, {
-      ProjectId: 1,
+      projectId: 1,
       title: 'stablish republic',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'destroy rebel alliance',
     }, {
-      ProjectId: 2,
+      projectId: 2,
       title: 'rule everything',
     }]);
 

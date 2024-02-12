@@ -1,5 +1,5 @@
 import type {
-  BelongsTo,
+  BelongsToAssociation,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
@@ -21,7 +21,7 @@ export class User extends Model<
   InferCreationAttributes<User, { omit: NonUserAttributes }>
 > {
   static associations: {
-    group: BelongsTo<User, UserGroup>,
+    group: BelongsToAssociation<User, UserGroup>,
   };
 
   declare id: CreationOptional<number>;
@@ -81,7 +81,7 @@ User.init(
 );
 
 User.afterSync(() => {
-  sequelize.getQueryInterface().addIndex(User.table, {
+  sequelize.queryInterface.addIndex(User.table, {
     fields: ['lastName'],
     using: 'BTREE',
     name: 'lastNameIdx',

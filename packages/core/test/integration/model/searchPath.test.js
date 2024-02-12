@@ -1,8 +1,6 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
@@ -30,7 +28,7 @@ describe('SearchPath in Model Methods', () => {
     return vars.sequelize.close();
   });
 
-  before(function () {
+  beforeEach('build restaurant tables', async function () {
     const { sequelize } = vars;
 
     this.Restaurant = sequelize.define('restaurant', {
@@ -60,10 +58,6 @@ describe('SearchPath in Model Methods', () => {
       foreignKey: 'restaurant_id',
       foreignKeyConstraints: false,
     });
-  });
-
-  beforeEach('build restaurant tables', async function () {
-    const { sequelize } = vars;
 
     const Restaurant = this.Restaurant;
 
@@ -71,13 +65,6 @@ describe('SearchPath in Model Methods', () => {
     await sequelize.createSchema('schema_two');
     await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_ONE });
     await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_TWO });
-  });
-
-  afterEach('drop schemas', async () => {
-    const { sequelize } = vars;
-
-    await sequelize.dropSchema('schema_one');
-    await sequelize.dropSchema('schema_two');
   });
 
   describe('enum case', () => {

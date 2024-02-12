@@ -1,11 +1,10 @@
 import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { createUnspecifiedOrderedBindCollector, escapeMysqlMariaDbString } from '../../utils/sql';
 import { AbstractDialect } from '../abstract';
 import type { SupportableNumericOptions } from '../abstract';
 import { MySqlConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMySqlDbDataTypeParsers } from './data-types.db.js';
-import { escapeMysqlString } from './mysql-utils';
 import { MySqlQuery } from './query';
 import { MySqlQueryGenerator } from './query-generator';
 import { MySqlQueryInterface } from './query-interface';
@@ -36,9 +35,7 @@ export class MysqlDialect extends AbstractDialect {
         using: 1,
       },
       constraints: {
-        check: false,
         foreignKeyChecksDisableable: true,
-        remove: false,
       },
       indexViaAlter: true,
       indexHints: true,
@@ -58,9 +55,18 @@ export class MysqlDialect extends AbstractDialect {
         quoted: true,
       },
       REGEXP: true,
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
       maxExecutionTimeHint: {
         select: true,
+      },
+      createSchema: {
+        charset: true,
+        collate: true,
+        ifNotExists: true,
+      },
+      dropSchema: {
+        ifExists: true,
       },
     },
   );
@@ -69,24 +75,18 @@ export class MysqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
-  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/5.7/en/data-types.html';
+  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html';
 
   // minimum supported version
-  readonly defaultVersion = '5.7.0';
+  readonly defaultVersion = '8.0.19';
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mysql');
-    this.connectionManager = new MySqlConnectionManager(this, sequelize);
-    this.queryGenerator = new MySqlQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new MySqlQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MySqlConnectionManager(this);
+    this.queryGenerator = new MySqlQueryGenerator(this);
+    this.queryInterface = new MySqlQueryInterface(this);
 
     registerMySqlDbDataTypeParsers(this);
   }
@@ -96,7 +96,11 @@ export class MysqlDialect extends AbstractDialect {
   }
 
   escapeString(value: string): string {
-    return escapeMysqlString(value);
+    return escapeMysqlMariaDbString(value);
+  }
+
+  escapeJson(value: unknown): string {
+    return `CAST(${super.escapeJson(value)} AS JSON)`;
   }
 
   canBackslashEscape() {

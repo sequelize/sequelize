@@ -1,7 +1,7 @@
 'use strict';
 
 import { removeNullishValuesFromHash } from '../../utils/format';
-import { EMPTY_OBJECT } from '../../utils/object.js';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { rejectInvalidOptions } from '../../utils/check';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
@@ -13,18 +13,15 @@ import isObject from 'lodash/isObject';
 const { Transaction } = require('../../transaction');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-// TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
-const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set();
-
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
+    // TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -99,29 +96,13 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return this.replaceBooleanDefaults(sql);
   }
 
-  addLimitAndOffset(options, model) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT -1`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
-  }
-
   addColumnQuery(table, key, dataType, options) {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -134,10 +115,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
 
     return this.replaceBooleanDefaults(sql);
-  }
-
-  showTablesQuery() {
-    return 'SELECT name FROM `sqlite_master` WHERE type=\'table\' and name!=\'sqlite_sequence\';';
   }
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
@@ -190,28 +167,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  truncateTableQuery(tableName, options = {}) {
-    return [
-      `DELETE FROM ${this.quoteTable(tableName)}`,
-      options.restartIdentity ? `; DELETE FROM ${this.quoteTable('sqlite_sequence')} WHERE ${this.quoteIdentifier('name')} = ${this.quoteTable(tableName)};` : '',
-    ].join('');
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    defaults(options, this.options);
-
-    let whereClause = this.whereQuery(where, { ...options, model });
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (options.limit) {
-      whereClause = `WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${whereClause} LIMIT ${this.escape(options.limit, options)})`;
-    }
-
-    return `DELETE FROM ${this.quoteTable(tableName)} ${whereClause}`.trim();
-  }
-
   attributesToSQL(attributes, options) {
     const result = {};
     for (const name in attributes) {
@@ -225,7 +180,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
           sql += ' NOT NULL';
         }
 
-        if (defaultValueSchemable(attribute.defaultValue)) {
+        if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value
           // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
@@ -274,35 +229,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
-  renameColumnQuery(tableName, attrNameBefore, attrNameAfter, attributes) {
-
-    let backupTableName;
-
-    attributes = this.attributesToSQL(attributes);
-
-    if (typeof tableName === 'object') {
-      backupTableName = {
-        tableName: `${tableName.tableName}_backup`,
-        schema: tableName.schema,
-      };
-    } else {
-      backupTableName = `${tableName}_backup`;
-    }
-
-    const quotedTableName = this.quoteTable(tableName);
-    const quotedBackupTableName = this.quoteTable(backupTableName);
-    const attributeNamesImport = Object.keys(attributes).map(attr => (attrNameAfter === attr ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}` : this.quoteIdentifier(attr))).join(', ');
-    const attributeNamesExport = Object.keys(attributes).map(attr => this.quoteIdentifier(attr)).join(', ');
-
-    // Temporary tables don't support foreign keys, so creating a temporary table will not allow foreign keys to be preserved
-    return `${this.createTableQuery(backupTableName, attributes)
-    }INSERT INTO ${quotedBackupTableName} SELECT ${attributeNamesImport} FROM ${quotedTableName};`
-      + `DROP TABLE ${quotedTableName};${
-        this.createTableQuery(tableName, attributes)
-      }INSERT INTO ${quotedTableName} SELECT ${attributeNamesExport} FROM ${quotedBackupTableName};`
-      + `DROP TABLE ${quotedBackupTableName};`;
-  }
-
   startTransactionQuery(transaction) {
     if (transaction.parent) {
       return `SAVEPOINT ${this.quoteIdentifier(transaction.name)};`;
@@ -328,14 +254,5 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   replaceBooleanDefaults(sql) {
     return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
-  }
-
-  /**
-   * Generates an SQL query to check if there are any foreign key violations in the db schema
-   *
-   * @param {string} tableName  The name of the table
-   */
-  foreignKeyCheckQuery(tableName) {
-    return `PRAGMA foreign_key_check(${this.quoteTable(tableName)});`;
   }
 }

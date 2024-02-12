@@ -34,10 +34,7 @@ export class Transaction {
    * Creates a new transaction instance
    *
    * @param sequelize A configured sequelize Instance
-   * @param options An object with options
-   * @param [options.type] Sets the type of the transaction. Sqlite only
-   * @param [options.isolationLevel] Sets the isolation level of the transaction.
-   * @param [options.constraintChecking] Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   * @param options The transaction options.
    */
   constructor(sequelize: Sequelize, options: TransactionOptions) {
     this.sequelize = sequelize;
@@ -85,7 +82,7 @@ export class Transaction {
     }
 
     try {
-      await this.sequelize.getQueryInterface().commitTransaction(this, this.options);
+      await this.sequelize.queryInterface.commitTransaction(this, this.options);
 
       await this.#dispatchHooks(this.#afterCommitHooks);
       await this.#dispatchHooks(this.#afterHooks);
@@ -116,7 +113,7 @@ export class Transaction {
     try {
       await this
         .sequelize
-        .getQueryInterface()
+        .queryInterface
         .rollbackTransaction(this, this.options);
 
       await this.#dispatchHooks(this.#afterRollbackHooks);
@@ -179,13 +176,13 @@ export class Transaction {
     if (this.options.constraintChecking) {
       await this
         .sequelize
-        .getQueryInterface()
+        .queryInterface
         .deferConstraints(this.options.constraintChecking, { transaction: this });
     }
   }
 
   async begin() {
-    const queryInterface = this.sequelize.getQueryInterface();
+    const queryInterface = this.sequelize.queryInterface;
 
     if (this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction) {
       await queryInterface.startTransaction(this, this.options);
@@ -526,8 +523,20 @@ export interface TransactionOptions extends Logging {
    * Used to determine whether sequelize is allowed to use a read replication server.
    */
   readOnly?: boolean | undefined;
+
+  /**
+   * Sets the isolation level of the transaction.
+   */
   isolationLevel?: IsolationLevel | null | undefined;
+
+  /**
+   * Sets the type of the transaction. Sqlite only
+   */
   type?: TransactionType | undefined;
+
+  /**
+   * Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   */
   constraintChecking?: ConstraintChecking | Class<ConstraintChecking> | undefined;
 
   /**

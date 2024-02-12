@@ -11,15 +11,17 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
 } from '../../model';
-import type { QueryRawOptions, QueryRawOptionsWithModel, Sequelize } from '../../sequelize';
+import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { IsolationLevel, Transaction } from '../../transaction';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from './query-generator-typescript';
-import type { AbstractQueryGenerator, AddColumnQueryOptions, RemoveColumnQueryOptions } from './query-generator.js';
+import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator-typescript';
+import type { AddColumnQueryOptions } from './query-generator.js';
+import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import type { QiDropAllSchemasOptions } from './query-interface.types.js';
+import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
+import type { AbstractDialect } from './index.js';
 
 interface Replaceable {
   /**
@@ -34,16 +36,12 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
-export interface QiSelectOptions extends QueryRawOptions, Replaceable, Filterable<any> {
+export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
 
 export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
-}
-
-export interface QiDeleteOptions extends QueryRawOptions, Replaceable {
-  limit?: number | Literal | null | undefined;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
@@ -69,15 +67,6 @@ export interface QueryInterfaceCreateTableOptions extends QueryRawOptions, Colla
    * Used for compound unique keys.
    */
   uniqueKeys?: { [indexName: string]: { fields: string[] } };
-}
-
-export interface QueryInterfaceDropTableOptions extends QueryRawOptions {
-  cascade?: boolean;
-  force?: boolean;
-}
-
-export interface QueryInterfaceDropAllTablesOptions extends QueryRawOptions {
-  skip?: string[];
 }
 
 export interface TableNameWithSchema {
@@ -130,7 +119,7 @@ export interface IndexOptions {
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
    */
-  type?: IndexType;
+  type?: IndexType | undefined;
 
   /**
    * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
@@ -189,18 +178,10 @@ export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptions
 
 export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
 
-export interface CreateDatabaseOptions extends CollateCharsetOptions, QueryRawOptions {
-  encoding?: string;
-}
-
 export interface FunctionParam {
   type: string;
   name?: string;
   direction?: string;
-}
-
-export interface DatabaseDescription {
-  name: string;
 }
 
 export interface IndexFieldDescription {
@@ -221,8 +202,6 @@ export interface IndexDescription {
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
-
-export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions, Replaceable { }
 
 export interface CreateTableAttributeOptions<M extends Model = Model>
   extends AttributeOptions<M> {
@@ -251,24 +230,8 @@ export type CreateTableAttributes<
  *
 * This interface is available through {@link Sequelize#queryInterface}.
 */
-export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
-  /**
-   * Returns the dialect-specific sql generator.
-   *
-   * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
-   */
-  queryGenerator: AbstractQueryGenerator;
-
-  /**
-   * Returns the current sequelize instance.
-   */
-  sequelize: Sequelize;
-
-  /**
-   * Drops all tables
-   */
-  dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void>;
-
+export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDialect>
+  extends AbstractQueryInterfaceTypeScript<Dialect> {
   /**
    * Creates a table with specified attributes.
    *
@@ -283,36 +246,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ): Promise<void>;
 
   /**
-   * Drops the specified table.
-   *
-   * @param tableName Table name.
-   * @param options   Query options, particularly "force".
-   */
-  dropTable(tableName: TableName, options?: QueryInterfaceDropTableOptions): Promise<void>;
-
-  /**
-   * Drops all tables.
-   *
-   * @param options
-   */
-  dropAllTables(options?: QueryInterfaceDropAllTablesOptions): Promise<void>;
-
-  /**
    * Drops all defined enums
    *
    * @param options
    */
   dropAllEnums(options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Renames a table
-   */
-  renameTable(before: TableName, after: TableName, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Returns all tables
-   */
-  showAllTables(options?: QueryRawOptions): Promise<string[]>;
 
   /**
    * Adds a new column to a table
@@ -322,15 +260,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     key: string,
     attribute: AttributeOptions | DataType,
     options?: AddColumnOptions
-  ): Promise<void>;
-
-  /**
-   * Removes a column from a table
-   */
-  removeColumn(
-    table: TableName,
-    attribute: string,
-    options?: RemoveColumnOptions,
   ): Promise<void>;
 
   /**
@@ -357,13 +286,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * Adds a new index to a table
    */
   addIndex(
-    tableName: TableName,
+    tableName: TableOrModel,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
     rawTablename?: string
   ): Promise<void>;
   addIndex(
-    tableName: TableName,
+    tableName: TableOrModel,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
     rawTablename?: string
   ): Promise<void>;
@@ -385,22 +314,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Shows the index of a table
    */
-  showIndex(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
+  showIndex(tableName: TableOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
 
   /**
    * Put a name to an index
    */
   nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
-
-  /**
-   * Returns all foreign key constraints of requested tables
-   */
-  getForeignKeysForTables(tableNames: string[], options?: QueryRawOptions): Promise<object>;
-
-  /**
-   * Get foreign key references details for the table
-   */
-  getForeignKeyReferencesForTable(tableName: TableName, options?: QueryRawOptions): Promise<object>;
 
   /**
    * Inserts a new record
@@ -448,26 +367,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): Promise<object>;
-
-  /**
-   * Deletes a row
-   */
-  delete(
-    instance: Model | null,
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiDeleteOptions,
-  ): Promise<object>;
-
-  /**
-   * Deletes multiple rows at once
-   */
-  bulkDelete(
-    tableName: TableName,
-    identifier: WhereOptions<any>,
-    options?: QiOptionsWithReplacements,
-    model?: ModelStatic
   ): Promise<object>;
 
   /**
@@ -605,18 +504,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   rollbackTransaction(transaction: Transaction, options?: QueryRawOptions): Promise<void>;
 
-  /**
-   * Creates a database
-   */
-  createDatabase(name: string, options?: CreateDatabaseOptions): Promise<void>;
-
-  /**
-   * Creates a database
-   */
-  dropDatabase(name: string, options?: QueryRawOptions): Promise<void>;
-
-  /**
-   * Lists all available databases
-   */
-  listDatabases(options?: QueryRawOptions): Promise<DatabaseDescription[]>;
+  // TODO: rename to "describeColumn"
+  assertTableHasColumn(
+    tableName: TableOrModel,
+    columnName: string,
+    options?: QueryRawOptions
+  ): Promise<ColumnsDescription>;
 }

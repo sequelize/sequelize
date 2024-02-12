@@ -9,6 +9,7 @@ const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes, QueryError } = require('@sequelize/core');
 const { Logger } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js');
+const { beforeAll2 } = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('_warnOnInvalidOptions', () => {
@@ -41,12 +42,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('method findAll', () => {
-    const MyModel = current.define('model', {
-      name: DataTypes.STRING,
-    }, { timestamps: false });
+    const vars = beforeAll2(() => {
+      const MyModel = current.define('MyModel', {
+        name: DataTypes.STRING,
+      }, { timestamps: false });
+
+      return { MyModel };
+    });
 
     before(function () {
-      this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => MyModel.build({}));
+      const { MyModel } = vars;
+
+      this.stub = sinon.stub(current.queryInterface, 'select').callsFake(() => MyModel.build({}));
       this._warnOnInvalidOptionsStub = sinon.stub(MyModel, '_warnOnInvalidOptions');
     });
 
@@ -62,17 +69,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     describe('handles input validation', () => {
       it('calls _warnOnInvalidOptions', function () {
+        const { MyModel } = vars;
+
         MyModel.findAll();
         expect(this._warnOnInvalidOptionsStub.calledOnce).to.equal(true);
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', async () => {
+        const { MyModel } = vars;
+
         await expect(MyModel.findAll({ attributes: 'name' })).to.be.rejectedWith(QueryError);
       });
     });
 
     describe('attributes include / exclude', () => {
       it('allows me to include additional attributes', async function () {
+        const { MyModel } = vars;
+
         await MyModel.findAll({
           attributes: {
             include: ['foobar'],
@@ -87,6 +100,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('allows me to exclude attributes', async function () {
+        const { MyModel } = vars;
+
         await MyModel.findAll({
           attributes: {
             exclude: ['name'],
@@ -99,6 +114,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('include takes precendence over exclude', async function () {
+        const { MyModel } = vars;
+
         await MyModel.findAll({
           attributes: {
             exclude: ['name'],

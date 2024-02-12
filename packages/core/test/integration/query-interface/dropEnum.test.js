@@ -11,11 +11,7 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
-    this.queryInterface = this.sequelize.getQueryInterface();
-  });
-
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
+    this.queryInterface = this.sequelize.queryInterface;
   });
 
   describe('dropEnum', () => {

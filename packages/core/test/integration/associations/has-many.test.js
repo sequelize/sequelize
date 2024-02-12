@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       Group.hasMany(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
       Group.hasMany(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
 
-      expect(Object.keys(Group.associations)).to.deep.equal(['Users', 'primaryUsers', 'secondaryUsers']);
+      expect(Object.keys(Group.associations)).to.deep.equal(['users', 'primaryUsers', 'secondaryUsers']);
     });
   });
 
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       const user0 = await User.create({
         username: 'John',
-        Tasks: [{
+        tasks: [{
           title: 'Get rich', active: true,
         }],
       }, {
@@ -49,8 +49,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       await Promise.all([
-        user0.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
-        user0.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true }),
+        user0.get('tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
+        user0.get('tasks')[0].createSubtask({ title: 'Engage rock stars', active: true }),
       ]);
 
       const user = user0;
@@ -352,7 +352,6 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });
 
-          await Support.dropTestSchemas(this.sequelize);
           await this.sequelize.createSchema('work');
           await User.sync({ force: true });
           await Task.sync({ force: true });
@@ -456,11 +455,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           expect(users[1].tasks[1].subtasks.length).to.equal(2);
           expect(users[1].tasks[1].subtasks[0].title).to.equal('b');
           expect(users[1].tasks[1].subtasks[1].title).to.equal('a');
+          await this.sequelize.queryInterface.dropAllTables({ schema: 'work' });
           await this.sequelize.dropSchema('work');
-          const schemas = await this.sequelize.showAllSchemas();
-          if (['postgres', 'mssql'].includes(dialect) || schemas === 'mariadb') {
-            expect(schemas).to.be.empty;
-          }
+          const schemas = await this.sequelize.queryInterface.listSchemas();
+          expect(schemas).to.not.include('work');
         });
       });
     }
@@ -499,8 +497,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         this.Label.belongsTo(this.Article);
         this.Article.hasMany(this.Label);
 
-        expect(Object.keys(this.Label.getAttributes())).to.deep.equal(['id', 'text', 'ArticleId']);
-        expect(Object.keys(this.Label.getAttributes()).length).to.equal(3);
+        expect(Object.keys(this.Label.getAttributes())).to.deep.equal(['id', 'text', 'articleId']);
       });
 
       if (current.dialect.supports.transactions) {
@@ -715,10 +712,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           const t = await sequelize.startUnmanagedTransaction();
           await article.addLabel(label, { transaction: t });
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id }, transaction: undefined });
+          const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: undefined });
           expect(labels0.length).to.equal(0);
 
-          const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
+          const labels = await Label.findAll({ where: { articleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();
         });
@@ -813,7 +810,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const article0 = await Article.create({ title: 'foo' });
         await article0.createLabel({ text: 'bar' });
         const article = article0;
-        const labels = await Label.findAll({ where: { ArticleId: article.id } });
+        const labels = await Label.findAll({ where: { articleId: article.id } });
         expect(labels.length).to.equal(1);
       });
 
@@ -834,7 +831,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         const article = await Article.create({ title: 'foo' });
         const label = await article.createLabel({ text: 'bar' }, { logging: spy });
         expect(spy.calledOnce).to.be.true;
-        expect(label.ArticleId).to.equal(article.id);
+        expect(label.articleId).to.equal(article.id);
       });
 
       if (current.dialect.supports.transactions) {
@@ -851,9 +848,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           await article.createLabel({ text: 'bar' }, { transaction: t });
           const labels1 = await Label.findAll();
           expect(labels1.length).to.equal(0);
-          const labels0 = await Label.findAll({ where: { ArticleId: article.id } });
+          const labels0 = await Label.findAll({ where: { articleId: article.id } });
           expect(labels0.length).to.equal(0);
-          const labels = await Label.findAll({ where: { ArticleId: article.id }, transaction: t });
+          const labels = await Label.findAll({ where: { articleId: article.id }, transaction: t });
           expect(labels.length).to.equal(1);
           await t.rollback();
         });
@@ -1020,7 +1017,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         await user.setTasks([task0]);
         await user.destroy();
         const task = await task0.reload();
-        expect(task.UserId).to.equal(null);
+        expect(task.userId).to.equal(null);
       });
 
       it('sets to CASCADE if allowNull: false', async function () {
@@ -1032,7 +1029,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const user = await User.create({ username: 'foo' });
-        await Task.create({ title: 'task', UserId: user.id });
+        await Task.create({ title: 'task', userId: user.id });
         await user.destroy();
         const tasks = await Task.findAll();
         expect(tasks).to.be.empty;
@@ -1055,7 +1052,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         await user.setTasks([task0]);
         await user.destroy();
         await task.reload();
-        expect(task.UserId).to.equal(user.id);
+        expect(task.userId).to.equal(user.id);
       });
 
       it('can cascade deletes', async function () {
@@ -1099,10 +1096,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           // `WHERE` clause
 
           const tableName = User.getTableName();
-          await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
-          expect(tasks[0].UserId).to.equal(999);
+          expect(tasks[0].userId).to.equal(999);
         });
       }
 
@@ -1160,7 +1157,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           const tableName = User.getTableName();
 
           try {
-            tasks = await user.sequelize.getQueryInterface().update(user, tableName, { id: 999 }, { id: user.id });
+            tasks = await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           } catch (error) {
             if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
               throw error;
@@ -1183,8 +1180,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       User.hasMany(Account);
 
-      expect(Account.getAttributes().UserId).to.exist;
-      expect(Account.getAttributes().UserId.field).to.equal('user_id');
+      expect(Account.getAttributes().userId).to.exist;
+      expect(Account.getAttributes().userId.field).to.equal('user_id');
     });
 
     it('should use model name when using camelcase', function () {
@@ -1193,8 +1190,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
       User.hasMany(Account);
 
-      expect(Account.getAttributes().UserId).to.exist;
-      expect(Account.getAttributes().UserId.field).to.equal('UserId');
+      expect(Account.getAttributes().userId).to.exist;
+      expect(Account.getAttributes().userId.field).to.equal('userId');
     });
 
     it('can specify data type for auto-generated relational keys', async function () {
@@ -1225,7 +1222,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       User.hasMany(Task);
 
       await this.sequelize.sync({ force: true });
-      expect(Task.getAttributes().UserId.type instanceof DataTypes.STRING).to.be.ok;
+      expect(Task.getAttributes().userId.type instanceof DataTypes.STRING).to.be.ok;
     });
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {
@@ -1450,7 +1447,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           },
         },
       });
+
       Child.belongsTo(Parent, {
+        as: 'Parent',
         foreignKey: 'parent',
         targetKey: 'id',
         inverse: {
@@ -1513,8 +1512,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       });
 
       expect(user).to.be.ok;
-      expect(user.Tasks.length).to.equal(1);
-      expect(user.Tasks[0].title).to.equal('Active Task');
+      expect(user.tasks.length).to.equal(1);
+      expect(user.tasks[0].title).to.equal('Active Task');
     });
   });
 

@@ -11,9 +11,9 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { QueryGeneratorOptions, TableNameOrModel } from './query-generator-typescript.js';
+import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { AttributeToSqlOptions, QueryWithBindParams } from './query-generator.types.js';
+import type { AttributeToSqlOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -50,28 +50,9 @@ type UpdateOptions = ParameterOptions & {
   bindParam?: false | ((value: unknown) => string),
 };
 
-type DeleteOptions = ParameterOptions & {
-  limit?: number | Literal | null | undefined,
-};
-
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>,
 };
-
-// keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateDatabaseQueryOptions {
-  collate?: string;
-  charset?: string;
-  encoding?: string;
-  ctype?: string;
-  template?: string;
-}
-
-// keep CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateSchemaQueryOptions {
-  collate?: string;
-  charset?: string;
-}
 
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {
@@ -88,25 +69,9 @@ export interface CreateTableQueryOptions {
    | { [indexName: string]: { fields: string[] } };
 }
 
-// keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface DropTableQueryOptions {
-  cascade?: boolean;
-}
-
-// keep LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface ListSchemasQueryOptions {
-  /** List of schemas to exclude from output */
-  skip?: string[];
-}
-
 // keep ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface AddColumnQueryOptions {
   ifNotExists?: boolean;
-}
-
-// keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveColumnQueryOptions {
-  ifExists?: boolean;
 }
 
 /**
@@ -116,8 +81,6 @@ export interface RemoveColumnQueryOptions {
  * through {@link Sequelize#queryGenerator}.
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  constructor(options: QueryGeneratorOptions);
-
   generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
@@ -142,12 +105,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: AddColumnQueryOptions,
   ): string;
 
-  removeColumnQuery(
-    table: TableNameOrModel,
-    attributeName: string,
-    options?: RemoveColumnQueryOptions,
-  ): string;
-
   updateQuery(
     tableName: TableName,
     attrValueHash: object,
@@ -155,13 +112,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: UpdateOptions,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): { query: string, bind?: unknown[] };
-
-  deleteQuery(
-    tableName: TableName,
-    where?: WhereOptions,
-    options?: DeleteOptions,
-    model?: ModelStatic<Model>,
-  ): string;
 
   arithmeticQuery(
     operator: string,
@@ -173,24 +123,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   ): string;
 
   createTableQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     // TODO: rename attributes to columns and accept a map of attributes in the implementation when migrating to TS, see https://github.com/sequelize/sequelize/pull/15526/files#r1143840411
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions
   ): string;
-  dropTableQuery(tableName: TableNameOrModel, options?: DropTableQueryOptions): string;
-  renameTableQuery(before: TableNameOrModel, after: TableNameOrModel): string;
-
-  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string;
-  dropSchemaQuery(schemaName: string): string | QueryWithBindParams;
-
-  listSchemasQuery(options?: ListSchemasQueryOptions): string;
-
-  createDatabaseQuery(databaseName: string, options?: CreateDatabaseQueryOptions): string;
-  dropDatabaseQuery(databaseName: string): string;
-  listDatabasesQuery(): string;
-
-  dropForeignKeyQuery(tableName: TableNameOrModel, foreignKey: string): string;
 
   /**
    * Creates a function that can be used to collect bind parameters.

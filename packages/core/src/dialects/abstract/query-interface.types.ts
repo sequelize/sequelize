@@ -1,10 +1,25 @@
+import type { Deferrable } from '../../deferrable';
 import type { QueryRawOptions } from '../../sequelize';
-import type { CreateSchemaQueryOptions, ListSchemasQueryOptions } from './query-generator';
 import type {
   AddConstraintQueryOptions,
+  BulkDeleteQueryOptions,
+  CreateDatabaseQueryOptions,
+  CreateSchemaQueryOptions,
+  DropSchemaQueryOptions,
+  DropTableQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from './query-generator.types';
+
+export interface DatabaseDescription {
+  name: string;
+}
 
 export interface ColumnDescription {
   type: string;
@@ -20,7 +35,7 @@ export type ColumnsDescription = Record<string, ColumnDescription>;
 export type ConstraintType = 'CHECK' | 'DEFAULT' | 'FOREIGN KEY' | 'PRIMARY KEY' | 'UNIQUE';
 
 export interface RawConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -39,7 +54,7 @@ export interface RawConstraintDescription {
 }
 
 export interface ConstraintDescription {
-  constrainCatalog?: string;
+  constraintCatalog?: string;
   constraintSchema: string;
   constraintName: string;
   constraintType: ConstraintType;
@@ -53,23 +68,34 @@ export interface ConstraintDescription {
   deleteAction?: string;
   updateAction?: string;
   definition?: string;
-  isDeferrable?: string;
-  initiallyDeferred?: string;
+  deferrable?: Deferrable;
 }
+
+/** Options accepted by {@link AbstractQueryInterface#createDatabase} */
+export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#listDatabases} */
+export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
 export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
 
-/** Options accepted by {@link AbstractQueryInterface#showAllSchemas} */
-export interface ShowAllSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
+/** Options accepted by {@link AbstractQueryInterface#dropSchema} */
+export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#listSchemas} */
+export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
-export interface QiDropAllSchemasOptions extends QueryRawOptions {
+export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOptions {
   /**
    * List of schemas to skip dropping (i.e., list of schemas to keep)
    */
   skip?: string[];
 }
+
+/** Options accepted by {@link AbstractQueryInterface#listTables} */
+export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
@@ -83,7 +109,24 @@ export interface DescribeTableOptions extends QueryRawOptions {
   schemaDelimiter?: string;
 }
 
+/** Options accepted by {@link AbstractQueryInterface#dropTable} */
+export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
+export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTableOptions {
+  skip?: string[];
+}
+
+/** Options accepted by {@link AbstractQueryInterface#renameTable} */
+export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#truncate} */
+export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions { }
+
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
+
+/** Options accepted by {@link AbstractQueryInterface#removeColumn} */
+export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#addConstraint} */
 export type AddConstraintOptions = AddConstraintQueryOptions & QueryRawOptions;
@@ -96,3 +139,6 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
+
+/** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
+export interface QiBulkDeleteOptions extends BulkDeleteQueryOptions, Omit<QueryRawOptions, 'raw' | 'type'> { }

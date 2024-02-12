@@ -1,6 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
 import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import type { AbstractQueryGenerator } from '../dialects/abstract/query-generator.js';
+import type { AddLimitOffsetOptions } from '../dialects/abstract/query-generator.types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { BindOrReplacements } from '../sequelize.js';
 
@@ -164,7 +166,7 @@ function mapBindParametersAndReplacements(
         }
 
         // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
-        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\)|,|$|\s|::|;)/i);
+        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\]|\)|,|$|\s|::|;)/i);
         const bindParamName = match?.groups?.name;
         if (!bindParamName) {
           continue;
@@ -281,7 +283,7 @@ function escapeValueWithBackCompat(value: unknown, dialect: AbstractDialect, esc
 }
 
 function canPrecedeNewToken(char: string | undefined): boolean {
-  return char === undefined || /[\s(>,=]/.test(char);
+  return char === undefined || /[\s([>,=]/.test(char);
 }
 
 /**
@@ -433,4 +435,57 @@ function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
   }
 
   return out;
+}
+
+export function escapeMysqlMariaDbString(value: string): string {
+  // eslint-disable-next-line no-control-regex -- \u001A is intended to be in this regex
+  value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, s => {
+    switch (s) {
+      case '\0':
+        return '\\0';
+      case '\n':
+        return '\\n';
+      case '\r':
+        return '\\r';
+      case '\b':
+        return '\\b';
+      case '\t':
+        return '\\t';
+      case '\u001A':
+        return '\\Z';
+      default:
+        return `\\${s}`;
+    }
+  });
+
+  return `'${value}'`;
+}
+
+export function formatDb2StyleLimitOffset(options: AddLimitOffsetOptions, queryGenerator: AbstractQueryGenerator): string {
+  let fragment = '';
+  if (options.offset) {
+    fragment += ` OFFSET ${queryGenerator.escape(options.offset, options)} ROWS`;
+  }
+
+  if (options.limit != null) {
+    fragment += ` FETCH NEXT ${queryGenerator.escape(options.limit, options)} ROWS ONLY`;
+  }
+
+  return fragment;
+}
+
+export function formatMySqlStyleLimitOffset(options: AddLimitOffsetOptions, queryGenerator: AbstractQueryGenerator): string {
+  let fragment = '';
+  if (options.limit != null) {
+    fragment += ` LIMIT ${queryGenerator.escape(options.limit, options)}`;
+  } else if (options.offset) {
+    // limit must be specified if offset is specified.
+    fragment += ` LIMIT 18446744073709551615`;
+  }
+
+  if (options.offset) {
+    fragment += ` OFFSET ${queryGenerator.escape(options.offset, options)}`;
+  }
+
+  return fragment;
 }

@@ -17,10 +17,22 @@ import { EMPTY_OBJECT, cloneDeep, defaults, flattenObjectDeep, getObjectFromMap,
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { ModelTypeScript } from './model-typescript';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { Association, BelongsTo, BelongsToMany, HasMany, HasOne } from './associations';
+import {
+  Association,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
+  HasManyAssociation,
+  HasOneAssociation,
+} from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
-import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import {
+  _validateIncludedElements,
+  combineIncludes,
+  getModelPkWhere,
+  setTransactionFromCls,
+  throwInvalidInclude,
+} from './model-internals';
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
@@ -120,8 +132,8 @@ export class Model extends ModelTypeScript {
 
     options = {
       isNewRecord: true,
-      _schema: this.constructor.modelDefinition.table.schema,
-      _schemaDelimiter: this.constructor.modelDefinition.table.delimiter,
+      _schema: this.modelDefinition.table.schema,
+      _schemaDelimiter: this.modelDefinition.table.delimiter,
       ...options,
       model: this.constructor,
     };
@@ -159,7 +171,7 @@ export class Model extends ModelTypeScript {
     values = { ...values };
 
     if (options.isNewRecord) {
-      const modelDefinition = this.constructor.modelDefinition;
+      const modelDefinition = this.modelDefinition;
 
       const defaults = modelDefinition.defaultValues.size > 0
         ? mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
@@ -455,7 +467,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
         // 'fromSourceToThroughOne' is a bit hacky and should not be included when { all: true } is specified
         //  because its parent 'belongsToMany' will be replaced by it in query generator.
-        if (association.parentAssociation instanceof BelongsToMany
+        if (association.parentAssociation instanceof BelongsToManyAssociation
           && association === association.parentAssociation.fromSourceToThroughOne) {
           return;
         }
@@ -542,7 +554,7 @@ ${associationOwner._getAssociationDebugList()}`);
     include.as ||= association.as;
 
     // If through, we create a pseudo child include, to ease our parsing later on
-    if (association instanceof BelongsToMany) {
+    if (association instanceof BelongsToManyAssociation) {
       if (!include.include) {
         include.include = [];
       }
@@ -600,7 +612,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (include.separate === true) {
-      if (!(include.association instanceof HasMany)) {
+      if (!(include.association instanceof HasManyAssociation)) {
         throw new TypeError('Only HasMany associations support include.separate');
       }
 
@@ -764,7 +776,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined });
       tableExists = false;
     } else {
       tableExists = await this.queryInterface.tableExists(tableName, options);
@@ -780,7 +792,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (tableExists && options.alter) {
       const tableInfos = await Promise.all([
         this.queryInterface.describeTable(tableName, options),
-        this.queryInterface.getForeignKeyReferencesForTable(tableName, options),
+        this.queryInterface.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' }),
       ]);
 
       const columns = tableInfos[0];
@@ -825,11 +837,11 @@ ${associationOwner._getAssociationDebugList()}`);
             // Find existed foreign keys
             for (const foreignKeyReference of foreignKeyReferences) {
               const constraintName = foreignKeyReference.constraintName;
-              if ((Boolean(constraintName)
+              if ((constraintName
                 && (foreignKeyReference.tableCatalog ? foreignKeyReference.tableCatalog === database : true)
                 && (schema ? foreignKeyReference.tableSchema === schema : true)
                 && foreignKeyReference.referencedTableName === foreignReferenceTableName
-                && foreignKeyReference.referencedColumnName === references.key
+                && foreignKeyReference.referencedColumnNames.includes(references.key)
                 && (foreignReferenceSchema
                     ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
                     : true)
@@ -884,7 +896,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(this.getTableName(options), options);
+    return await this.queryInterface.dropTable(this, options);
   }
 
   /**
@@ -1697,6 +1709,14 @@ ${associationOwner._getAssociationDebugList()}`);
       delete instance[attributeName];
     }
 
+    // If there are associations in the instance, we assign them as properties on the instance
+    // so that they can be accessed directly, instead of having to call `get` and `set`.
+    // class properties re-assign them to whatever value was set on the class property (or undefined if none)
+    // so this workaround re-assigns the association after the instance was created.
+    for (const associationName of Object.keys(this.modelDefinition.associations)) {
+      instance[associationName] = instance.getDataValue(associationName);
+    }
+
     return instance;
   }
 
@@ -2185,7 +2205,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }));
       } else {
         if (options.include && options.include.length > 0) {
-          await Promise.all(options.include.filter(include => include.association instanceof BelongsTo).map(async include => {
+          await Promise.all(options.include.filter(include => include.association instanceof BelongsToAssociation).map(async include => {
             const associationInstances = [];
             const associationInstanceIndexToInstanceMap = [];
 
@@ -2318,8 +2338,8 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (options.include && options.include.length > 0) {
-        await Promise.all(options.include.filter(include => !(include.association instanceof BelongsTo
-          || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
+        await Promise.all(options.include.filter(include => !(include.association instanceof BelongsToAssociation
+          || include.parent && include.parent.association instanceof BelongsToManyAssociation)).map(async include => {
           const associationInstances = [];
           const associationInstanceIndexToInstanceMap = [];
 
@@ -2331,7 +2351,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
             for (const associationInstance of associated) {
               if (associationInstance) {
-                if (!(include.association instanceof BelongsToMany)) {
+                if (!(include.association instanceof BelongsToManyAssociation)) {
                   associationInstance.set(include.association.foreignKey, instance.get(include.association.sourceKey || instance.constructor.primaryKeyAttribute, { raw: true }), { raw: true });
                   Object.assign(associationInstance, include.association.scope);
                 }
@@ -2356,7 +2376,7 @@ ${associationOwner._getAssociationDebugList()}`);
           );
 
           const createdAssociationInstances = await recursiveBulkCreate(associationInstances, includeOptions);
-          if (include.association instanceof BelongsToMany) {
+          if (include.association instanceof BelongsToManyAssociation) {
             const valueSets = [];
 
             for (const idx in createdAssociationInstances) {
@@ -2438,8 +2458,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
-   * Destroys all instances of the model.
-   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
+   * Truncates the table associated with the model.
    *
    * __Danger__: This will completely empty your table!
    *
@@ -2447,12 +2466,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async truncate(options) {
-    // TODO: this method currently uses DELETE FROM if the table is paranoid. Truncate should always ignore paranoid.
-    // TODO [>=7]: throw if options.cascade is specified but unsupported in the given dialect.
-    options = cloneDeep(options) ?? {};
-    options.truncate = true;
-
-    return await this.destroy(options);
+    await this.queryInterface.truncate(this, options);
   }
 
   /**
@@ -2461,6 +2475,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param  {object} options destroy options
    * @returns {Promise<number>} The number of destroyed rows
    */
+  // TODO: add _UNSTABLE_bulkDestroy, aimed to be a replacement,
+  //  which does the same thing but uses `noHooks` instead of `hooks` and `hardDelete` instead of `force`,
+  //  and does not accept `individualHooks`
   static async destroy(options) {
     options = cloneDeep(options) ?? {};
 
@@ -2468,12 +2485,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     this._injectScope(options);
 
-    if (!options || !(options.where || options.truncate)) {
-      throw new Error('Missing where or truncate attribute in the options parameter of model.destroy.');
+    if (options && 'truncate' in options) {
+      throw new Error('Model#destroy does not support the truncate option. Use Model#truncate instead.');
     }
 
-    if (!options.truncate && !isPlainObject(options.where) && !Array.isArray(options.where) && !(options.where instanceof BaseSqlExpression)) {
-      throw new Error('Expected plain object, array or sequelize method in the options.where parameter of model.destroy.');
+    if (!options?.where) {
+      throw new Error('As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
     }
 
     const modelDefinition = this.modelDefinition;
@@ -2483,11 +2500,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       individualHooks: false,
       force: false,
-      cascade: false,
-      restartIdentity: false,
     });
-
-    options.type = QueryTypes.BULKDELETE;
 
     mapOptionFieldNames(options, this);
     options.model = this;
@@ -2532,7 +2545,7 @@ ${associationOwner._getAssociationDebugList()}`);
       attrValueHash[deletedAtColumnName] = new Date();
       result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
     } else {
-      result = await this.queryInterface.bulkDelete(this.getTableName(options), options.where, options, this);
+      result = await this.queryInterface.bulkDelete(this, options);
     }
 
     // Run afterDestroy hook on each record individually
@@ -3106,44 +3119,7 @@ Instead of specifying a Model, either:
    * @returns {object}
    */
   where(checkVersion, nullIfImpossible) {
-    const modelDefinition = this.constructor.modelDefinition;
-
-    if (modelDefinition.primaryKeysAttributeNames.size === 0) {
-      if (nullIfImpossible) {
-        return null;
-      }
-
-      throw new Error(
-        `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition. Either add a primary key to this model, or use one of the following alternatives:
-
-- instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
-- instance method "reload": Use the static "findOne" method instead.
-- instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
-        `.trim(),
-      );
-    }
-
-    const where = Object.create(null);
-
-    for (const attributeName of modelDefinition.primaryKeysAttributeNames) {
-      const attrVal = this.get(attributeName, { raw: true });
-      if (attrVal == null) {
-        if (nullIfImpossible) {
-          return null;
-        }
-
-        throw new TypeError(`This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attributeName}". Make sure that attribute was not excluded when retrieving the model from the database.`);
-      }
-
-      where[attributeName] = attrVal;
-    }
-
-    const versionAttr = modelDefinition.versionAttributeName;
-    if (checkVersion && versionAttr) {
-      where[versionAttr] = this.get(versionAttr, { raw: true });
-    }
-
-    return where;
+    return getModelPkWhere(this, checkVersion, nullIfImpossible);
   }
 
   toString() {
@@ -3200,7 +3176,7 @@ Instead of specifying a Model, either:
 
     options = options ?? EMPTY_OBJECT;
 
-    const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
+    const { attributes, attributesWithGetters } = this.modelDefinition;
 
     if (attributeName) {
       const attribute = attributes.get(attributeName);
@@ -3285,7 +3261,7 @@ Instead of specifying a Model, either:
     let values;
     let originalValue;
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     if (typeof key === 'object' && key !== null) {
       values = key;
@@ -3528,7 +3504,6 @@ Instead of specifying a Model, either:
 
     const include = this._options.includeMap[key];
     const association = include.association;
-    const accessor = key;
     const primaryKeyAttribute = include.model.primaryKeyAttribute;
     const childOptions = {
       isNewRecord: this.isNewRecord,
@@ -3549,10 +3524,10 @@ Instead of specifying a Model, either:
         }
 
         isEmpty = value && value[primaryKeyAttribute] === null || value === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty ? null : include.model.build(value, childOptions);
+        this[key] = this.dataValues[key] = isEmpty ? null : include.model.build(value, childOptions);
       } else {
         isEmpty = value[0] && value[0][primaryKeyAttribute] === null;
-        this[accessor] = this.dataValues[accessor] = isEmpty ? [] : include.model.bulkBuild(value, childOptions);
+        this[key] = this.dataValues[key] = isEmpty ? [] : include.model.bulkBuild(value, childOptions);
       }
     }
   }
@@ -3587,7 +3562,7 @@ Instead of specifying a Model, either:
 
     setTransactionFromCls(options, this.sequelize);
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     if (!options.fields) {
       if (this.isNewRecord) {
@@ -3704,7 +3679,7 @@ Instead of specifying a Model, either:
     }
 
     if (options.fields.length > 0 && this.isNewRecord && this._options.include && this._options.include.length > 0) {
-      await Promise.all(this._options.include.filter(include => include.association instanceof BelongsTo).map(async include => {
+      await Promise.all(this._options.include.filter(include => include.association instanceof BelongsToAssociation).map(async include => {
         const instance = this.get(include.as);
         if (!instance) {
           return;
@@ -3788,8 +3763,8 @@ Instead of specifying a Model, either:
     Object.assign(result.dataValues, values);
     if (wasNewRecord && this._options.include && this._options.include.length > 0) {
       await Promise.all(
-        this._options.include.filter(include => !(include.association instanceof BelongsTo
-          || include.parent && include.parent.association instanceof BelongsToMany)).map(async include => {
+        this._options.include.filter(include => !(include.association instanceof BelongsToAssociation
+          || include.parent && include.parent.association instanceof BelongsToManyAssociation)).map(async include => {
           let instances = this.get(include.as);
 
           if (!instances) {
@@ -3812,7 +3787,7 @@ Instead of specifying a Model, either:
 
           // Instances will be updated in place so we can safely treat HasOne like a HasMany
           await Promise.all(instances.map(async instance => {
-            if (include.association instanceof BelongsToMany) {
+            if (include.association instanceof BelongsToManyAssociation) {
               await instance.save(includeOptions);
               const values0 = {
                 [include.association.foreignKey]: this.get(this.constructor.primaryKeyAttribute, { raw: true }),
@@ -3970,14 +3945,12 @@ Instead of specifying a Model, either:
 
     setTransactionFromCls(options, this.sequelize);
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     // Run before hook
     if (options.hooks) {
-      await this.constructor.hooks.runAsync('beforeDestroy', this, options);
+      await modelDefinition.hooks.runAsync('beforeDestroy', this, options);
     }
-
-    const where = this.where(true);
 
     let result;
     if (modelDefinition.timestampAttributeNames.deletedAt && options.force === false) {
@@ -3993,12 +3966,15 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this, this.constructor.getTableName(options), where, { type: QueryTypes.DELETE, limit: null, ...options });
+      // TODO: replace "hooks" with "noHooks" in this method and call ModelRepository.destroy instead of queryInterface.delete
+      const where = this.where(true);
+
+      result = await this.constructor.queryInterface.bulkDelete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook
     if (options.hooks) {
-      await this.constructor.hooks.runAsync('afterDestroy', this, options);
+      await modelDefinition.hooks.runAsync('afterDestroy', this, options);
     }
 
     return result;
@@ -4013,7 +3989,7 @@ Instead of specifying a Model, either:
    * @returns {boolean}
    */
   isSoftDeleted() {
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
     if (!deletedAtAttributeName) {
@@ -4038,7 +4014,7 @@ Instead of specifying a Model, either:
    * @returns {Promise}
    */
   async restore(options) {
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
 
     if (!deletedAtAttributeName) {
@@ -4155,8 +4131,8 @@ Instead of specifying a Model, either:
       return false;
     }
 
-    const modelDefinition = this.constructor.modelDefinition;
-    const otherModelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
+    const otherModelDefinition = this.modelDefinition;
 
     if (modelDefinition !== otherModelDefinition) {
       return false;
@@ -4209,10 +4185,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The model that will be associated with a hasMany relationship
    * @param {object} options Options for the association
-   * @returns {HasMany} The newly defined association (also available in {@link Model.associations}).
+   * @returns {HasManyAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static hasMany(target, options) {
-    return HasMany.associate(AssociationSecret, this, target, options);
+    return HasManyAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4235,10 +4211,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target Target model
    * @param {object} options belongsToMany association options
-   * @returns {BelongsToMany} The newly defined association (also available in {@link Model.associations}).
+   * @returns {BelongsToManyAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsToMany(target, options) {
-    return BelongsToMany.associate(AssociationSecret, this, target, options);
+    return BelongsToManyAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4254,10 +4230,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The model that will be associated with hasOne relationship
    * @param {object} [options] hasOne association options
-   * @returns {HasOne} The newly defined association (also available in {@link Model.associations}).
+   * @returns {HasOneAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static hasOne(target, options) {
-    return HasOne.associate(AssociationSecret, this, target, options);
+    return HasOneAssociation.associate(AssociationSecret, this, target, options);
   }
 
   /**
@@ -4273,10 +4249,10 @@ Instead of specifying a Model, either:
    *
    * @param {Model} target The target model
    * @param {object} [options] belongsTo association options
-   * @returns {BelongsTo} The newly defined association (also available in {@link Model.associations}).
+   * @returns {BelongsToAssociation} The newly defined association (also available in {@link Model.associations}).
    */
   static belongsTo(target, options) {
-    return BelongsTo.associate(AssociationSecret, this, target, options);
+    return BelongsToAssociation.associate(AssociationSecret, this, target, options);
   }
 }
 

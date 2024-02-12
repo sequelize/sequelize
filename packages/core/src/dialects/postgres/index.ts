@@ -60,6 +60,7 @@ export class PostgresDialect extends AbstractDialect {
       DECIMAL: { unconstrained: true, NaN: true, infinity: true },
       CIDR: true,
       MACADDR: true,
+      MACADDR8: true,
       INET: true,
     },
     jsonOperations: true,
@@ -72,11 +73,32 @@ export class PostgresDialect extends AbstractDialect {
     searchPath: true,
     escapeStringConstants: true,
     globalTimeZoneConfig: true,
+    uuidV1Generation: true,
+    uuidV4Generation: true,
     dropTable: {
       cascade: true,
     },
     truncate: {
       cascade: true,
+      restartIdentity: true,
+    },
+    removeColumn: {
+      cascade: true,
+      ifExists: true,
+    },
+    renameTable: {
+      changeSchemaAndTable: false,
+    },
+    createSchema: {
+      authorization: true,
+      ifNotExists: true,
+    },
+    dropSchema: {
+      cascade: true,
+      ifExists: true,
+    },
+    delete: {
+      modelWithLimit: true,
     },
   });
 
@@ -93,15 +115,9 @@ export class PostgresDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'postgres');
-    this.connectionManager = new PostgresConnectionManager(this, sequelize);
-    this.queryGenerator = new PostgresQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new PostgresQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new PostgresConnectionManager(this);
+    this.queryGenerator = new PostgresQueryGenerator(this);
+    this.queryInterface = new PostgresQueryInterface(this);
 
     registerPostgresDbDataTypeParsers(this);
   }

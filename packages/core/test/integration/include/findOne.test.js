@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       expect(user).to.be.ok;
-      expect(user.Tasks.length).to.equal(0);
+      expect(user.tasks.length).to.equal(0);
     });
 
     it('should include a model with a where clause when the PK field name and attribute name are different', async function () {
@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       expect(user).to.be.ok;
-      expect(user.Tasks.length).to.equal(1);
+      expect(user.tasks.length).to.equal(1);
     });
 
     it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', async function () {
@@ -253,7 +253,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       expect(foundTask).to.be.ok;
-      expect(foundTask.User.username).to.equal('bob');
+      expect(foundTask.user.username).to.equal('bob');
     });
 
     it('should support many levels of belongsTo (with a lower level having a where)', async function () {

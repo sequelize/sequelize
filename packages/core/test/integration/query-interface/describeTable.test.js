@@ -11,11 +11,7 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.sequelize.options.quoteIdenifiers = true;
-    this.queryInterface = this.sequelize.getQueryInterface();
-  });
-
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
+    this.queryInterface = this.sequelize.queryInterface;
   });
 
   describe('describeTable', () => {
@@ -36,13 +32,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(metadata0.username2).not.to.be.undefined;
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
-
-        await this.sequelize.dropSchema('test_meta');
       });
     }
 
     it('rejects when no data is available', async function () {
-      const table = this.queryInterface.queryGenerator.extractTableDetails('_some_random_missing_table');
+      const table = this.sequelize.queryGenerator.extractTableDetails('_some_random_missing_table');
       await expect(
         this.queryInterface.describeTable(table),
       ).to.be.rejectedWith(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
@@ -180,6 +174,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(metalumni.dod.primaryKey).to.eql(false);
       expect(metalumni.ctrycod.primaryKey).to.eql(false);
       expect(metalumni.city.primaryKey).to.eql(false);
+    });
+
+    it('should correctly return the columns when the table contains a dot in the name', async function () {
+      const User = this.sequelize.define('my.user', {
+        name: DataTypes.STRING,
+      }, { freezeTableName: true });
+
+      await User.sync({ force: true });
+      const metadata = await this.queryInterface.describeTable('my.user');
+
+      expect(metadata).to.haveOwnProperty('name');
     });
   });
 });

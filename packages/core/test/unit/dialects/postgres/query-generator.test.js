@@ -5,18 +5,12 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Op, DataTypes } = require('@sequelize/core');
+const { Op } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/postgres/query-generator.js');
 const Support = require('../../../support');
 
-const customSequelize = Support.createSequelizeInstance({
-  schema: 'custom',
-});
-
 const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
-
-const current = Support.sequelize;
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
@@ -170,16 +164,6 @@ if (dialect.startsWith('postgres')) {
           context: QueryGenerator,
           needsSequelize: true,
         }, {
-          title: 'uses limit 0',
-          arguments: ['myTable', { limit: 0 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 0;',
-          context: QueryGenerator,
-        }, {
-          title: 'omits offset 0',
-          arguments: ['myTable', { offset: 0 }],
-          expectation: 'SELECT * FROM "myTable";',
-          context: QueryGenerator,
-        }, {
           title: 'single string argument should be quoted',
           arguments: ['myTable', { group: 'name' }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name";',
@@ -209,22 +193,12 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM "myTable" GROUP BY "name", "title";',
         }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10;',
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" LIMIT 10 OFFSET 2;',
-        }, {
-          title: 'uses offset even if no limit was passed',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM "myTable" OFFSET 2;',
-        }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
           expectation: 'SELECT * FROM "mySchema"."myTable";',
         }, {
           title: 'string in array should escape \' as \'\'',
           arguments: ['myTable', { where: { aliases: { [Op.contains]: ['Queen\'s'] } } }],
-          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\'];',
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."aliases" @> ARRAY[\'Queen\'\'s\']::VARCHAR(255)[];',
         },
 
         // Variants when quoteIdentifiers is false
@@ -259,19 +233,6 @@ if (dialect.startsWith('postgres')) {
         }, {
           arguments: ['myTable', { group: ['name', 'title'] }],
           expectation: 'SELECT * FROM myTable GROUP BY name, title;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM myTable LIMIT 10 OFFSET 2;',
-          context: { options: { quoteIdentifiers: false } },
-        }, {
-          title: 'uses offset even if no limit was passed',
-          arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM myTable OFFSET 2;',
           context: { options: { quoteIdentifiers: false } },
         }, {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
@@ -763,56 +724,6 @@ if (dialect.startsWith('postgres')) {
           expectation: 'ALTER TRIGGER "oldTrigger" ON "myTable" RENAME TO "newTrigger";',
         },
       ],
-
-      getForeignKeyReferenceQuery: [
-        {
-          arguments: ['myTable', 'myColumn'],
-          expectation: 'SELECT '
-            + 'DISTINCT tc.constraint_name as constraint_name, '
-            + 'tc.constraint_schema as constraint_schema, '
-            + 'tc.constraint_catalog as constraint_catalog, '
-            + 'tc.table_name as table_name,'
-            + 'tc.table_schema as table_schema,'
-            + 'tc.table_catalog as table_catalog,'
-            + 'tc.initially_deferred as initially_deferred,'
-            + 'tc.is_deferrable as is_deferrable,'
-            + 'kcu.column_name as column_name,'
-            + 'ccu.table_schema  AS referenced_table_schema,'
-            + 'ccu.table_catalog  AS referenced_table_catalog,'
-            + 'ccu.table_name  AS referenced_table_name,'
-            + 'ccu.column_name AS referenced_column_name '
-            + 'FROM information_schema.table_constraints AS tc '
-            + 'JOIN information_schema.key_column_usage AS kcu '
-            + 'ON tc.constraint_name = kcu.constraint_name '
-            + 'JOIN information_schema.constraint_column_usage AS ccu '
-            + 'ON ccu.constraint_name = tc.constraint_name '
-            + 'WHERE constraint_type = \'FOREIGN KEY\' AND tc.table_name=\'myTable\' AND  kcu.column_name = \'myColumn\'',
-        },
-        {
-          arguments: [{ schema: 'mySchema', tableName: 'myTable' }, 'myColumn'],
-          expectation: 'SELECT '
-            + 'DISTINCT tc.constraint_name as constraint_name, '
-            + 'tc.constraint_schema as constraint_schema, '
-            + 'tc.constraint_catalog as constraint_catalog, '
-            + 'tc.table_name as table_name,'
-            + 'tc.table_schema as table_schema,'
-            + 'tc.table_catalog as table_catalog,'
-            + 'tc.initially_deferred as initially_deferred,'
-            + 'tc.is_deferrable as is_deferrable,'
-            + 'kcu.column_name as column_name,'
-            + 'ccu.table_schema  AS referenced_table_schema,'
-            + 'ccu.table_catalog  AS referenced_table_catalog,'
-            + 'ccu.table_name  AS referenced_table_name,'
-            + 'ccu.column_name AS referenced_column_name '
-            + 'FROM information_schema.table_constraints AS tc '
-            + 'JOIN information_schema.key_column_usage AS kcu '
-            + 'ON tc.constraint_name = kcu.constraint_name '
-            + 'JOIN information_schema.constraint_column_usage AS ccu '
-            + 'ON ccu.constraint_name = tc.constraint_name '
-            + 'WHERE constraint_type = \'FOREIGN KEY\' AND tc.table_name=\'myTable\' AND  kcu.column_name = \'myColumn\''
-            + ' AND tc.table_schema = \'mySchema\'',
-        },
-      ],
     };
 
     each(suites, (tests, suiteTitle) => {
@@ -825,7 +736,7 @@ if (dialect.startsWith('postgres')) {
               ...test.context?.options,
             });
 
-            const queryGenerator = newSequelize.queryInterface.queryGenerator;
+            const queryGenerator = newSequelize.queryGenerator;
 
             if (test.needsSequelize) {
               if (typeof test.arguments[1] === 'function') {
@@ -846,10 +757,7 @@ if (dialect.startsWith('postgres')) {
 
     describe('fromArray()', () => {
       beforeEach(function () {
-        this.queryGenerator = new QueryGenerator({
-          sequelize: this.sequelize,
-          dialect: this.sequelize.dialect,
-        });
+        this.queryGenerator = new QueryGenerator(this.sequelize.dialect);
       });
 
       const tests = [
@@ -881,34 +789,6 @@ if (dialect.startsWith('postgres')) {
           const convertedText = this.queryGenerator.fromArray(test.arguments);
           expect(convertedText).to.deep.equal(test.expectation);
         });
-      });
-    });
-
-    describe('With custom schema in Sequelize options', () => {
-      beforeEach(function () {
-        this.queryGenerator = new QueryGenerator({
-          sequelize: customSequelize,
-          dialect: customSequelize.dialect,
-        });
-      });
-
-      const customSchemaSuites = {
-        showTablesQuery: [
-          {
-            title: 'showTablesQuery defaults to the schema set in Sequelize options',
-            arguments: [],
-            expectation: `SELECT table_name FROM information_schema.tables WHERE table_schema = 'custom' AND table_type LIKE '%TABLE' AND table_name != 'spatial_ref_sys';`,
-          },
-        ],
-      };
-
-      each(customSchemaSuites, (customSchemaTests, customSchemaSuiteTitle) => {
-        for (const customSchemaTest of customSchemaTests) {
-          it(customSchemaTest.title, function () {
-            const convertedText = customSchemaTest.arguments ? this.queryGenerator[customSchemaSuiteTitle](...customSchemaTest.arguments) : this.queryGenerator[customSchemaSuiteTitle]();
-            expect(convertedText).to.equal(customSchemaTest.expectation);
-          });
-        }
       });
     });
   });

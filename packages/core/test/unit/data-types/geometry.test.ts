@@ -5,7 +5,7 @@ import { testDataTypeSql } from './_utils';
 const dialect = sequelize.dialect;
 
 describe('GEOMETRY', () => {
-  const unsupportedError = new Error(`${dialect.name} does not support the GEOMETRY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+  const unsupportedError = new Error(`${dialect.name} does not support the GEOMETRY data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
   testDataTypeSql('GEOMETRY', DataTypes.GEOMETRY, {
     default: unsupportedError,
     'postgres mysql mariadb': 'GEOMETRY',

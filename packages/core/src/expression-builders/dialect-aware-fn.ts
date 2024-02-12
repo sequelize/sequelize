@@ -7,7 +7,7 @@ import { JsonPath } from './json-path.js';
 
 /**
  * Unlike {@link Fn}, this class does not accept a function name.
- * It must instead be extended by a class that implements the {@link apply} method, in which
+ * It must instead be extended by a class that implements the {@link applyForDialect} method, in which
  * the function name is provided.
  *
  * The goal of this class is to allow dialect-specific functions to be used in a cross-dialect way.
@@ -38,7 +38,39 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
     return 0;
   }
 
-  abstract apply(dialect: AbstractDialect, options?: EscapeOptions): string;
+  abstract supportsDialect(dialect: AbstractDialect): boolean;
+
+  abstract applyForDialect(dialect: AbstractDialect, options?: EscapeOptions): string;
+
+  supportsJavaScript(): boolean {
+    return false;
+  }
+
+  applyForJavaScript(): unknown {
+    throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
+  }
+
+  /**
+   * This getter is designed to be used as an attribute's default value.
+   * This is useful when the SQL version must be bypassed due to a limitation of the dialect that Sequelize cannot detect,
+   * such as a missing extension.
+   *
+   * ```ts
+   * const User = sequelize.define('User', {
+   *   uuid: {
+   *     type: DataTypes.UUID,
+   *     defaultValue: sql.uuidV4.asJavaScript,
+   *   },
+   * });
+   * ```
+   */
+  get asJavaScript(): () => unknown {
+    if (!this.supportsJavaScript()) {
+      throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
+    }
+
+    return () => this.applyForJavaScript();
+  }
 
   static build<M extends DialectAwareFn>(this: Class<M>, ...args: DialectAwareFn['args']): M {
     return new this(...args);
@@ -57,7 +89,11 @@ export class Unquote extends DialectAwareFn {
     return 1;
   }
 
-  apply(dialect: AbstractDialect, options?: EscapeOptions): string {
+  supportsDialect(dialect: AbstractDialect): boolean {
+    return dialect.supports.jsonOperations;
+  }
+
+  applyForDialect(dialect: AbstractDialect, options?: EscapeOptions): string {
     const arg = this.args[0];
 
     if (arg instanceof JsonPath) {

@@ -16,6 +16,7 @@ import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_ARRAY } from '../../utils/object.js';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
@@ -1617,10 +1618,21 @@ export class JSON extends AbstractDataType<any> {
    * We stringify null too.
    */
   acceptsNull(): boolean {
-    return true;
+    const sequelize = this._getDialect().sequelize;
+
+    return sequelize.options.nullJsonStringification !== 'sql';
   }
 
   toBindableValue(value: any): string {
+    if (value === null) {
+      const sequelize = this._getDialect().sequelize;
+
+      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
+      if (isExplicit) {
+        throw new Error(`Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`);
+      }
+    }
+
     return globalThis.JSON.stringify(value);
   }
 
@@ -1913,9 +1925,13 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   }
 }
 
+export interface UuidOptions {
+ version: 1 | 4 | 'all';
+}
+
 /**
  * A column storing a unique universal identifier.
- * Use with `UUIDV1` or `UUIDV4` for default values.
+ * Use with `sql.uuidV1` or `sql.uuidV4` for default values.
  *
  * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
@@ -1924,7 +1940,8 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * ```ts
  * const User = sequelize.define('User', {
  *   id: {
- *     type: DataTypes.UUID,
+ *     type: DataTypes.UUID.V4,
+ *     defaultValue: sql.uuidV4,
  *   },
  * });
  * ```
@@ -1935,10 +1952,42 @@ export class UUID extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUID';
 
+  readonly options: UuidOptions;
+
+  constructor(options?: Partial<UuidOptions>) {
+    super();
+
+    this.options = {
+      version: options?.version ?? 'all',
+    };
+  }
+
+  get V4() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 4,
+    });
+  }
+
+  static get V4() {
+    return new this({ version: 4 });
+  }
+
+  get V1() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 1,
+    });
+  }
+
+  static get V1() {
+    return new this({ version: 1 });
+  }
+
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isUUID(value)) {
+    if (typeof value !== 'string' || !Validator.isUUID(value, this.options.version)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid uuid', value),
+        util.format(`%O is not a valid uuid (version: ${this.options.version})`, value),
       );
     }
   }
@@ -1952,19 +2001,9 @@ export class UUID extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v1 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV1,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V1` (data type) & `sql.uuidV1` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV1 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
@@ -1986,19 +2025,9 @@ export class UUIDV1 extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v4 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV4,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V4` (data type) & `sql.uuidV4` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV4 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
@@ -2120,8 +2149,22 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   }
 }
 
+/**
+ * If an array, each element in the array is a possible value for the ENUM.
+ *
+ * If a record (plain object, typescript enum),
+ * it will use the keys as the list of possible values for the ENUM, in the order specified by the Object.
+ * This is designed to be used with TypeScript enums, but it can be used with plain objects as well.
+ * Because we don't handle any mapping between the enum keys and values, we require that they be the same.
+ */
+type EnumValues<Member extends string> = readonly Member[] | Record<Member, Member>;
+
 export interface EnumOptions<Member extends string> {
-  values: Member[];
+  values: EnumValues<Member>;
+}
+
+export interface NormalizedEnumOptions<Member extends string> {
+  values: readonly Member[];
 }
 
 /**
@@ -2144,40 +2187,26 @@ export interface EnumOptions<Member extends string> {
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'ENUM';
-  readonly options: EnumOptions<Member>;
+  readonly options: NormalizedEnumOptions<Member>;
 
   /**
    * @param options either array of values or options object with values array. It also supports variadic values.
    */
   constructor(options: EnumOptions<Member>);
-  constructor(members: Member[]);
+  constructor(members: EnumValues<Member>);
   constructor(...members: Member[]);
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
   constructor(...args:
     | [options: EnumOptions<Member>]
-    | [members: Member[]]
+    | [members: EnumValues<Member>]
     | [...members: Member[]]
   );
-  constructor(...args: [Member[] | Member | EnumOptions<Member>, ...Member[]]) {
+  constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    let values: Member[];
-    if (isObject(args[0])) {
-      if (args.length > 1) {
-        throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
-      }
-
-      if (Array.isArray(args[0])) {
-        values = args[0];
-      } else {
-        values = args[0].values;
-      }
-    } else {
-      // @ts-expect-error -- we'll assert in the next line whether this is the right type
-      values = args;
-    }
+    const values: readonly Member[] = this.#getEnumValues(args);
 
     if (values.length === 0) {
       throw new TypeError(`
@@ -2211,6 +2240,47 @@ sequelize.define('MyModel', {
     this.options = {
       values,
     };
+  }
+
+  #getEnumValues(args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]): readonly Member[] {
+    if (args.length === 0) {
+      return EMPTY_ARRAY;
+    }
+
+    const [first, ...rest] = args;
+
+    if (isString(first)) {
+      return [first, ...rest];
+    }
+
+    if (rest.length > 0) {
+      throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
+    }
+
+    let enumOrArray: EnumValues<Member>;
+    if (!Array.isArray(first) && 'values' in first && typeof first.values !== 'string') {
+      // This is the option bag
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first.values;
+    } else {
+      // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+      enumOrArray = first;
+    }
+
+    if (Array.isArray(enumOrArray)) {
+      return [...enumOrArray];
+    }
+
+    // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
+    const theEnum: Record<Member, Member> = enumOrArray;
+    const enumKeys = Object.keys(theEnum) as Member[];
+    for (const enumKey of enumKeys) {
+      if (theEnum[enumKey] !== enumKey) {
+        throw new TypeError(`DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.`);
+      }
+    }
+
+    return enumKeys;
   }
 
   validate(value: any): asserts value is Member {
@@ -2631,7 +2701,7 @@ export class MACADDR extends AbstractDataType<string> {
   }
 
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '48' })) {
       ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid MACADDR', value),
       );
@@ -2640,6 +2710,44 @@ export class MACADDR extends AbstractDataType<string> {
 
   toSql(): string {
     return 'MACADDR';
+  }
+}
+
+/**
+ * The MACADDR type stores MAC addresses. Takes 8 bytes
+ *
+ * Only available for Postgres
+ *
+ * __Fallback policy:__
+ * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.MACADDR8
+ * ```
+ *
+ * @category DataTypes
+ */
+export class MACADDR8 extends AbstractDataType<string> {
+  /** @hidden */
+  static readonly [kDataTypeIdentifier]: string = 'MACADDR8';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      throwUnsupportedDataType(dialect, 'MACADDR8');
+    }
+  }
+
+  validate(value: any) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '64' })) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid MACADDR8', value),
+      );
+    }
+  }
+
+  toSql(): string {
+    return 'MACADDR8';
   }
 }
 

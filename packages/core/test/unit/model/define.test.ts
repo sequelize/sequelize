@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
+import { beforeAll2, createSequelizeInstance, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
@@ -313,13 +313,101 @@ describe('Model', () => {
         if (!['mysql', 'mariadb'].includes(dialectName)) {
           // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.eq(true, 'console.warn was not called');
+
           // @ts-expect-error -- only used in testing
-          expect(console.warn.args[0][0]).to.contain(`does not support FLOAT with scale or precision specified. These options are ignored.`);
+          const warnings = console.warn.args.map(args => args[0]);
+          expect(warnings.some(
+            (msg: string) => msg.includes(`does not support FLOAT with scale or precision specified. These options are ignored.`),
+          )).to.eq(true, 'warning was not logged');
         } else {
           // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
         }
       });
+    });
+
+    describe('with defaultTimestampPrecision', () => {
+      describe('not specified', () => {
+        it('should add the automatic timestamp columns with the default precision of 6', async () => {
+          const newSequelize = createSequelizeInstance();
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 6);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 6);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 6);
+        });
+      });
+
+      describe('set to a number', () => {
+        it('should add the automatic timestamp columns with the specified precision', async () => {
+          const newSequelize = createSequelizeInstance({
+            defaultTimestampPrecision: 4,
+          });
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 4);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 4);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 4);
+        });
+      });
+
+      describe('set to null', () => {
+        it('should add the automatic timestamp columns with no specified precision', async () => {
+          const newSequelize = createSequelizeInstance({
+            defaultTimestampPrecision: null,
+          });
+          const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
+
+          const { physicalAttributes } = MyModel.modelDefinition;
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', undefined);
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', undefined);
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', undefined);
+        });
+      });
+    });
+  });
+
+  describe('afterDefine / beforeDefine', () => {
+    const vars = beforeAll2(() => {
+      sequelize.hooks.addListener('beforeDefine', (attributes, options) => {
+        options.modelName = 'bar';
+        options.name!.plural = 'barrs';
+        attributes.type = DataTypes.STRING;
+      });
+
+      sequelize.hooks.addListener('afterDefine', factory => {
+        factory.options.name.singular = 'barr';
+      });
+
+      const TestModel = sequelize.define('foo', { name: DataTypes.STRING });
+
+      return { TestModel };
+    });
+
+    it('beforeDefine hook can change model name', () => {
+      const { TestModel } = vars;
+      expect(TestModel.name).to.equal('bar');
+    });
+
+    it('beforeDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.plural).to.equal('barrs');
+    });
+
+    it('beforeDefine hook can alter attributes', () => {
+      const { TestModel } = vars;
+      expect(TestModel.getAttributes().type).to.be.ok;
+    });
+
+    it('afterDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.singular).to.equal('barr');
+    });
+
+    after(() => {
+      sequelize.hooks.removeAllListeners();
     });
   });
 });

@@ -1,9 +1,9 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
-import type { Sequelize } from '../../sequelize.js';
+import { checkFileExists } from '../../utils/fs.js';
 import { map } from '../../utils/iterators.js';
 import { logger } from '../../utils/logger';
 import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
@@ -25,8 +25,8 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
   private readonly lib: Lib;
   private readonly connections = new Map<string, SqliteConnection>();
 
-  constructor(dialect: SqliteDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: SqliteDialect) {
+    super(dialect);
 
     // We attempt to parse file location from a connection uri
     // but we shouldn't match sequelize default host.
@@ -50,6 +50,10 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
   async getConnection(options: GetConnectionOptions): Promise<SqliteConnection> {
     const connectionUuid = options.uuid || 'default';
 
+    if (this.sequelize.options.storage && this.sequelize.options.host) {
+      throw new Error('The host and storage options cannot be set at the same time');
+    }
+
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
     const storage = this.sequelize.options.storage
       ?? this.sequelize.options.host
@@ -68,9 +72,9 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
     const storageDir = path.dirname(storage);
 
-    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0 && !fs.existsSync(storageDir)) {
+    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0 && !await checkFileExists(storageDir)) {
       // automatic path provision for `options.storage`
-      fs.mkdirSync(storageDir, { recursive: true });
+      await fs.mkdir(storageDir, { recursive: true });
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {

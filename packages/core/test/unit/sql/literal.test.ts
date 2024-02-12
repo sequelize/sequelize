@@ -19,7 +19,7 @@ describe('json', () => {
     };
 
     expectsql(() => queryGenerator.escape(json(conditions)), {
-      postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk'] = '"G"') AND "another_json_field"->'x' = '1'`,
+      postgres: `("metadata"->'language' = '"icelandic"' AND "metadata"#>ARRAY['pg_rating','dk']::VARCHAR(255)[] = '"G"') AND "another_json_field"->'x' = '1'`,
       sqlite: `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
       mariadb: `(json_compact(json_extract(\`metadata\`,'$.language')) = '"icelandic"' AND json_compact(json_extract(\`metadata\`,'$.pg_rating.dk')) = '"G"') AND json_compact(json_extract(\`another_json_field\`,'$.x')) = '1'`,
       mysql: `(json_extract(\`metadata\`,'$.language') = CAST('"icelandic"' AS JSON) AND json_extract(\`metadata\`,'$.pg_rating.dk') = CAST('"G"' AS JSON)) AND json_extract(\`another_json_field\`,'$.x') = CAST('1' AS JSON)`,
@@ -30,7 +30,7 @@ describe('json', () => {
     const path = 'metadata.pg_rating.dk';
 
     expectsql(() => queryGenerator.escape(json(path)), {
-      postgres: `"metadata"#>ARRAY['pg_rating','dk']`,
+      postgres: `"metadata"#>ARRAY['pg_rating','dk']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.dk'))`,
       'sqlite mysql': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
     });
@@ -38,7 +38,7 @@ describe('json', () => {
 
   it('supports numbers in the dot notation', () => {
     expectsql(() => queryGenerator.escape(json('profile.id.0.1')), {
-      postgres: `"profile"#>ARRAY['id','0','1']`,
+      postgres: `"profile"#>ARRAY['id','0','1']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
       'sqlite mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
     });
@@ -49,7 +49,7 @@ describe('json', () => {
     const value = 'U';
 
     expectsql(() => queryGenerator.escape(json(path, value)), {
-      postgres: `"metadata"#>ARRAY['pg_rating','is'] = '"U"'`,
+      postgres: `"metadata"#>ARRAY['pg_rating','is']::VARCHAR(255)[] = '"U"'`,
       sqlite: `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.is')) = '"U"'`,
       mysql: `json_extract(\`metadata\`,'$.pg_rating.is') = CAST('"U"' AS JSON)`,
@@ -147,6 +147,7 @@ describe('fn', () => {
 
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,
+      postgres: `concat(ARRAY['abc']::VARCHAR(255)[])`,
     });
   });
 });

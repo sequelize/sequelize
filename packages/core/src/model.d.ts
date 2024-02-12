@@ -1,13 +1,13 @@
 import type { SetRequired } from 'type-fest';
 import type {
   Association,
-  BelongsTo,
-  BelongsToMany,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
   BelongsToManyOptions,
   BelongsToOptions,
-  HasMany,
+  HasManyAssociation,
   HasManyOptions,
-  HasOne,
+  HasOneAssociation,
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
@@ -866,7 +866,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: number | Literal;
+  offset?: Nullish<number | Literal>;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
@@ -1170,13 +1170,25 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
  */
 export interface TruncateOptions extends Logging, Transactionable, Hookable {
   /**
-   * Only used in conjunction with TRUNCATE. Truncates all tables that have foreign-key references to the
+   * Truncates all tables that have foreign-key references to the
    * named table, or to any tables added to the group due to CASCADE.
    *
    * @default false
    */
   cascade?: boolean;
 
+  /**
+   * Automatically restart sequences owned by columns of the truncated table
+   *
+   * @default false
+   */
+  restartIdentity?: boolean;
+}
+
+/**
+ * Options accepted by {@link Model.destroy}.
+ */
+export interface DestroyOptions<TAttributes = any> extends Logging, Transactionable, Hookable, Filterable<TAttributes> {
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
    * after destroy hooks on each row
@@ -1196,29 +1208,6 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
    * @default false
    */
   force?: boolean;
-
-  /**
-   * Only used in conjunction with `truncate`.
-   * Automatically restart sequences owned by columns of the truncated table
-   *
-   * @default false
-   */
-  restartIdentity?: boolean;
-}
-
-/**
- * Options accepted by {@link Model.destroy}.
- */
-export interface DestroyOptions<TAttributes = any> extends TruncateOptions, Filterable<TAttributes> {
-  /**
-   * If set to true, dialects that support it will use TRUNCATE instead of DELETE FROM. If a table is
-   * truncated the where and limit options are ignored.
-   *
-   * __Danger__: This will completely empty your table!
-   *
-   * @deprecated use {@link Model.truncate}.
-   */
-  truncate?: boolean;
 }
 
 /**
@@ -1678,7 +1667,7 @@ export interface AttributeOptions<M extends Model = Model> {
   /**
    * A string or a data type.
    *
-   * @see https://sequelize.org/docs/v7/other-topics/other-data-types/
+   * @see https://sequelize.org/docs/v7/models/data-types/
    */
   type: DataType;
 
@@ -2656,8 +2645,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<M[]>;
 
   /**
-   * Destroys all instances of the model.
-   * This is a convenient method for `MyModel.destroy({ truncate: true })`.
+   * Truncates the table associated with the model.
    *
    * __Danger__: This will completely empty your table!
    */
@@ -2795,7 +2783,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOne<S, T, SKey, TKey>;
+  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOneAssociation<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -2817,7 +2805,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: BelongsToOptions<SKey, TKey>): BelongsTo<S, T, SKey, TKey>;
+  >(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: BelongsToOptions<SKey, TKey>,
+  ): BelongsToAssociation<S, T, SKey, TKey>;
 
   /**
    * Defines a 1:n association between two models.
@@ -2839,7 +2831,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasManyOptions<SKey, TKey>): HasMany<S, T, SKey, TKey>;
+  >(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: HasManyOptions<SKey, TKey>,
+  ): HasManyAssociation<S, T, SKey, TKey>;
 
   /**
    * Create an N:M association with a join table. Defining `through` is required.
@@ -2871,7 +2867,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     TKey extends AttributeNames<T>,
   >(
     this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
-  ): BelongsToMany<S, T, ThroughModel, SKey, TKey>;
+  ): BelongsToManyAssociation<S, T, ThroughModel, SKey, TKey>;
 
   /**
    * @private
@@ -2949,9 +2945,6 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * If called with a dot.seperated key on a JSON/JSONB attribute it will set the value nested and flag the
    * entire object as changed.
-   *
-   * @param options.raw If set to true, field and virtual setters will be ignored
-   * @param options.reset Clear all previously set data values
    */
   // TODO: 'key' accepts nested paths for JSON values (json.property)
   set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;

@@ -4,9 +4,12 @@ services:
     image: mcr.microsoft.com/mssql/server:2017-latest
     environment:
       ACCEPT_EULA: Y
-      SA_PASSWORD: Password12!
+      MSSQL_PID: Developer
+      MSSQL_SA_PASSWORD: Password12!
     ports:
       - 22019:1433
+    volumes:
+      - mssql-oldest:/var/opt/mssql
     healthcheck:
       test: ["CMD", "/opt/mssql-tools/bin/sqlcmd", "-S", "localhost", "-U", "SA", "-P", "Password12!", "-l", "30", "-Q", "SELECT 1"]
       interval: 3s
@@ -16,3 +19,7 @@ services:
 networks:
   default:
     name: sequelize-mssql-oldest-network
+
+volumes:
+  mssql-oldest:
+    name: sequelize-mssql-oldest-volume

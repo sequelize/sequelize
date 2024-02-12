@@ -2,6 +2,8 @@ import { AsyncLocalStorage } from 'node:async_hooks';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
+import { normalizeDataType, validateDataType } from './dialects/abstract/data-types-utils.js';
+import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
 import type { EscapeOptions } from './dialects/abstract/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './dialects/abstract/query-interface.types.js';
@@ -15,10 +17,11 @@ import {
 } from './hooks-legacy.js';
 import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
+import { listenForModelDefinition, removeModelDefinition } from './model-definition.js';
 import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
-import type { ModelManager } from './model-manager.js';
+import { ModelSetView } from './model-set-view.js';
 import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
@@ -27,15 +30,19 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
+import { isNullish, isString } from './utils/check.js';
+import { showAllToListSchemas } from './utils/deprecations.js';
 import type { PartialBy } from './utils/types.js';
 import type {
   CreateSchemaOptions,
+  DataType,
+  DataTypeClassOrInstance,
   DestroyOptions,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
+  QiListSchemasOptions,
   QueryOptions,
-  ShowAllSchemasOptions,
   SyncOptions,
   TruncateOptions,
 } from '.';
@@ -146,6 +153,8 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
+export const SUPPORTED_DIALECTS = Object.freeze(['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql', 'mariadb', 'mssql', 'db2', 'snowflake', 'ibmi'] as const);
+
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
  * This is a temporary class used to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
@@ -153,9 +162,7 @@ type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
  */
 export abstract class SequelizeTypeScript {
   // created by the Sequelize subclass. Will eventually be migrated here.
-  abstract readonly modelManager: ModelManager;
   abstract readonly dialect: AbstractDialect;
-  declare readonly connectionManager: AbstractConnectionManager;
   declare readonly options: NormalizedOptions;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
@@ -262,8 +269,38 @@ export abstract class SequelizeTypeScript {
     return this.dialect.queryGenerator;
   }
 
+  get connectionManager(): AbstractConnectionManager {
+    return this.dialect.connectionManager;
+  }
+
   private _setupTransactionCls() {
     this.#transactionCls = new AsyncLocalStorage<Transaction>();
+  }
+
+  #models = new Set<ModelStatic>();
+  readonly models = new ModelSetView(this, this.#models);
+
+  get modelManager(): never {
+    throw new Error('Sequelize#modelManager was removed. Use Sequelize#models instead.');
+  }
+
+  constructor() {
+    // Synchronize ModelDefinition map with the registered models set
+    listenForModelDefinition(model => {
+      const modelName = model.modelDefinition.modelName;
+
+      // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
+      if (model.sequelize === this as Sequelize) {
+        const existingModel = this.models.get(modelName);
+        if (existingModel) {
+          this.#models.delete(existingModel);
+          // TODO: require the user to explicitly remove the previous model first.
+          // throw new Error(`A model with the name ${inspect(model.name)} was already registered in this Sequelize instance.`);
+        }
+
+        this.#models.add(model);
+      }
+    });
   }
 
   addModels(models: ModelStatic[]) {
@@ -280,6 +317,14 @@ export abstract class SequelizeTypeScript {
         this,
       );
     }
+  }
+
+  removeAllModels() {
+    for (const model of this.#models) {
+      removeModelDefinition(model);
+    }
+
+    this.#models.clear();
   }
 
   /**
@@ -468,16 +513,14 @@ export abstract class SequelizeTypeScript {
    * @param options
    */
   async destroyAll(options?: Omit<DestroyOptions, 'where' | 'limit' | 'truncate'>) {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
+    const models: Iterable<ModelStatic> = sortedModels ?? this.models;
 
     // It does not make sense to apply a limit to something that will run on all models
     if (options && 'limit' in options) {
       throw new Error('sequelize.destroyAll does not support the limit option.');
     }
 
-    // We will eventually remove the "truncate" option from Model.destroy, in favor of using Model.truncate,
-    // so we don't support it in new methods.
     if (options && 'truncate' in options) {
       throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
     }
@@ -495,8 +538,9 @@ export abstract class SequelizeTypeScript {
    * @param options The options passed to {@link Model.truncate}, plus "withoutForeignKeyChecks".
    */
   async truncate(options?: SequelizeTruncateOptions): Promise<void> {
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
-    const models = sortedModels || this.modelManager.models;
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
+    const models: ModelStatic[] = sortedModels ?? [...this.models];
+
     const hasCyclicDependencies = sortedModels == null;
 
     if (hasCyclicDependencies && !options?.cascade && !options?.withoutForeignKeyChecks) {
@@ -572,10 +616,13 @@ export abstract class SequelizeTypeScript {
   /**
    * Alias of {@link AbstractQueryInterface#showAllSchemas}
    *
+   * @deprecated Use {@link AbstractQueryInterface#listSchemas} instead
    * @param options
    */
-  async showAllSchemas(options?: ShowAllSchemasOptions) {
-    return this.queryInterface.showAllSchemas(options);
+  async showAllSchemas(options?: QiListSchemasOptions) {
+    showAllToListSchemas();
+
+    return this.queryInterface.listSchemas(options);
   }
 
   /**
@@ -620,5 +667,35 @@ export abstract class SequelizeTypeScript {
    */
   async fetchDatabaseVersion(options?: QueryRawOptions) {
     return this.queryInterface.fetchDatabaseVersion(options);
+  }
+
+  /**
+   * Validate a value against a field specification
+   *
+   * @param value The value to validate
+   * @param type The DataType to validate against
+   */
+  validateValue(value: unknown, type: DataType) {
+    if (this.options.noTypeValidation || isNullish(value)) {
+      return;
+    }
+
+    if (isString(type)) {
+      return;
+    }
+
+    type = this.normalizeDataType(type);
+
+    const error = validateDataType(value, type);
+    if (error) {
+      throw error;
+    }
+  }
+
+  normalizeDataType(Type: string): string;
+  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
+  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any> {
+    return normalizeDataType(Type, this.dialect);
   }
 }

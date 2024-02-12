@@ -180,7 +180,7 @@ export class Db2Query extends AbstractQuery {
         data.unshift(outparams);
       }
 
-      return this.formatResults(data, datalen, metadata, connection);
+      return this.formatResults(data, datalen, metadata);
     }
 
     return this.formatResults(data, affectedRows);
@@ -202,7 +202,7 @@ export class Db2Query extends AbstractQuery {
     });
   }
 
-  filterSQLError(err, sql, connection) {
+  filterSQLError(err, _sql, _connection) {
     // This error is safe to ignore:
     // [IBM][CLI Driver][DB2/LINUXX8664] SQL0605W  The index was not created because an index "x" with a matching definition already exists.  SQLSTATE=01550
     if (err.message.search('SQL0605W') !== -1) {
@@ -229,10 +229,9 @@ export class Db2Query extends AbstractQuery {
    * @param {Array} data - The result of the query execution.
    * @param {Integer} rowCount - The number of affected rows.
    * @param {Array} metadata - Metadata of the returned result set.
-   * @param {object} conn - The connection object.
    * @private
    */
-  formatResults(data, rowCount, metadata, conn) {
+  formatResults(data, rowCount, metadata) {
     let result = this.instance;
     if (this.isInsertQuery(data, metadata)) {
       this.handleInsertQuery(data, metadata);
@@ -247,9 +246,7 @@ export class Db2Query extends AbstractQuery {
       }
     }
 
-    if (this.isShowTablesQuery()) {
-      result = data;
-    } else if (this.isDescribeQuery()) {
+    if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
@@ -271,20 +268,12 @@ export class Db2Query extends AbstractQuery {
       result = this.handleSelectQuery(data);
     } else if (this.isUpsertQuery()) {
       result = data;
-    } else if (this.isDropSchemaQuery()) {
-      result = data[0];
-      if (conn) {
-        const query = 'DROP TABLE ERRORSCHEMA.ERRORTABLE';
-        conn.querySync(query);
-      }
     } else if (this.isCallQuery()) {
       result = data;
     } else if (this.isBulkUpdateQuery()) {
       result = data.length;
-    } else if (this.isBulkDeleteQuery()) {
+    } else if (this.isDeleteQuery()) {
       result = rowCount;
-    } else if (this.isForeignKeysQuery()) {
-      result = data;
     } else if (this.isInsertQuery() || this.isUpdateQuery()) {
       result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
@@ -297,15 +286,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return result;
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => {
-      return {
-        tableName: resultSet.TABLE_NAME,
-        schema: resultSet.TABLE_SCHEMA,
-      };
-    });
   }
 
   formatError(err, conn, parameters) {
@@ -399,16 +379,6 @@ export class Db2Query extends AbstractQuery {
     }
 
     return new sequelizeErrors.DatabaseError(err);
-  }
-
-  isDropSchemaQuery() {
-    let result = false;
-
-    if (this.sql.startsWith('CALL SYSPROC.ADMIN_DROP_SCHEMA')) {
-      result = true;
-    }
-
-    return result;
   }
 
   isShowOrDescribeQuery() {

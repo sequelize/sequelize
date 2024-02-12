@@ -77,11 +77,7 @@ export function getModel<M extends Model>(
   model: string | ModelStatic<M>,
 ): ModelStatic<M> | null {
   if (typeof model === 'string') {
-    if (!sequelize.isDefined(model)) {
-      return null;
-    }
-
-    return sequelize.model(model);
+    return sequelize.models.get(model)! ?? null;
   }
 
   return model;
@@ -243,6 +239,16 @@ export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks' | 'forei
   foreignKey: ForeignKeyOptions<any>,
 };
 
+export function normalizeInverseAssociation<T extends { as?: unknown }>(
+  inverse: T | string | undefined,
+): T | undefined {
+  if (typeof inverse === 'string') {
+    return { as: inverse } as T;
+  }
+
+  return inverse;
+}
+
 export function normalizeBaseAssociationOptions<T extends AssociationOptions<any>>(
   associationType: AssociationStatic<any>,
   options: T,
@@ -280,8 +286,11 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       };
     }
   } else {
-    as = isMultiAssociation ? target.options.name.plural : target.options.name.singular;
-    name = target.options.name;
+    as = lowerFirst(isMultiAssociation ? target.options.name.plural : target.options.name.singular);
+    name = {
+      plural: lowerFirst(target.options.name.plural),
+      singular: lowerFirst(target.options.name.singular),
+    };
   }
 
   return removeUndefined({

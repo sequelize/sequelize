@@ -44,12 +44,25 @@ export class MssqlDialect extends AbstractDialect {
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
       GEOMETRY: false,
     },
+    uuidV4Generation: true,
     jsonOperations: true,
     jsonExtraction: {
       unquoted: true,
       quoted: false,
     },
     tableHints: true,
+    removeColumn: {
+      ifExists: true,
+    },
+    renameTable: {
+      changeSchemaAndTable: false,
+    },
+    createSchema: {
+      authorization: true,
+    },
+    delete: {
+      modelWithLimit: true,
+    },
   });
 
   readonly connectionManager: MsSqlConnectionManager;
@@ -71,15 +84,9 @@ export class MssqlDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mssql');
-    this.connectionManager = new MsSqlConnectionManager(this, sequelize);
-    this.queryGenerator = new MsSqlQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new MsSqlQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MsSqlConnectionManager(this);
+    this.queryGenerator = new MsSqlQueryGenerator(this);
+    this.queryInterface = new MsSqlQueryInterface(this);
 
     registerMsSqlDbDataTypeParsers(this);
   }

@@ -183,6 +183,7 @@ export type DialectSupports = {
     CIDR: boolean,
     INET: boolean,
     MACADDR: boolean,
+    MACADDR8: boolean,
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
       infinity: boolean,
@@ -214,12 +215,16 @@ export type DialectSupports = {
   searchPath: boolean,
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
-   * enables the ability to use backslash escapes inside of the string.
+   * enables the ability to use backslash escapes inside the string.
    */
   escapeStringConstants: boolean,
 
   /** Whether this dialect supports changing the global timezone option */
   globalTimeZoneConfig: boolean,
+  /** Whether this dialect provides a native way to generate UUID v1 values */
+  uuidV1Generation: boolean,
+  /** Whether this dialect provides a native way to generate UUID v4 values */
+  uuidV4Generation: boolean,
   dropTable: {
     cascade: boolean,
   },
@@ -228,6 +233,30 @@ export type DialectSupports = {
   },
   truncate: {
     cascade: boolean,
+    restartIdentity: boolean,
+  },
+  removeColumn: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
+  renameTable: {
+    changeSchema: boolean,
+    changeSchemaAndTable: boolean,
+  },
+  createSchema: {
+    authorization: boolean,
+    charset: boolean,
+    collate: boolean,
+    comment: boolean,
+    ifNotExists: boolean,
+    replace: boolean,
+  },
+  dropSchema: {
+    cascade: boolean,
+    ifExists: boolean,
+  },
+  delete: {
+    modelWithLimit: boolean,
   },
 };
 
@@ -325,6 +354,7 @@ export abstract class AbstractDialect {
       DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
       CIDR: false,
       MACADDR: false,
+      MACADDR8: false,
       INET: false,
       JSON: false,
       JSONB: false,
@@ -357,6 +387,8 @@ export abstract class AbstractDialect {
     searchPath: false,
     escapeStringConstants: false,
     globalTimeZoneConfig: false,
+    uuidV1Generation: false,
+    uuidV4Generation: false,
     dropTable: {
       cascade: false,
     },
@@ -365,6 +397,30 @@ export abstract class AbstractDialect {
     },
     truncate: {
       cascade: false,
+      restartIdentity: false,
+    },
+    removeColumn: {
+      cascade: false,
+      ifExists: false,
+    },
+    renameTable: {
+      changeSchema: true,
+      changeSchemaAndTable: true,
+    },
+    createSchema: {
+      authorization: false,
+      charset: false,
+      collate: false,
+      comment: false,
+      ifNotExists: false,
+      replace: false,
+    },
+    dropSchema: {
+      cascade: false,
+      ifExists: false,
+    },
+    delete: {
+      modelWithLimit: false,
     },
   };
 
@@ -491,6 +547,11 @@ export abstract class AbstractDialect {
     value = value.replaceAll('\'', '\'\'');
 
     return `'${value}'`;
+  }
+
+  // Keep the logic of this class synchronized with the logic in the JSON DataType.
+  escapeJson(value: unknown): string {
+    return this.escapeString(JSON.stringify(value));
   }
 
   /**

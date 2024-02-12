@@ -25,4 +25,3 @@ export class Literal extends BaseSqlExpression {
 export function literal(val: string | Array<string | BaseSqlExpression>): Literal {
   return new Literal(val);
 }
-

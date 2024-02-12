@@ -85,7 +85,7 @@ export { List } from './expression-builders/list.js';
 export { Value } from './expression-builders/value.js';
 export { Identifier } from './expression-builders/identifier.js';
 export { Attribute } from './expression-builders/attribute.js';
-export { JsonPath } from './expression-builders/json-path.js';
+export { JsonPath, jsonPath } from './expression-builders/json-path.js';
 export { AssociationPath } from './expression-builders/association-path.js';
 
 // All functions are available on sql.x, but these are exported for backwards compatibility
@@ -95,3 +95,5 @@ export { col, Col } from './expression-builders/col.js';
 export { cast, Cast } from './expression-builders/cast.js';
 export { json } from './expression-builders/json.js';
 export { where, Where } from './expression-builders/where.js';
+export { JSON_NULL } from './expression-builders/json-sql-null.js';
+export { SQL_NULL } from './expression-builders/json-sql-null.js';

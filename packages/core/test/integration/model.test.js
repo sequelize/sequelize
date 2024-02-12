@@ -7,21 +7,16 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError, col } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
 
-const current = Support.sequelize;
-const semver = require('semver');
-
 // ⚠️ Do not add tests to this file. Tests should be added to the new test suite in test/integration/model/<method-name>.ts
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  let isMySQL8;
-
   before(function () {
     this.clock = sinon.useFakeTimers();
   });
@@ -31,8 +26,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   beforeEach(async function () {
-    isMySQL8 = dialectName === 'mysql' && semver.satisfies(current.options.databaseVersion, '>=8.0.0');
-
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -58,10 +51,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('uses checks to make sure dao factory is not leaking on multiple define', function () {
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
-      const factorySize = this.sequelize.modelManager.all.length;
+      const factorySize = this.sequelize.models.size;
 
       this.sequelize.define('SuperUser', {}, { freezeTableName: false });
-      const factorySize2 = this.sequelize.modelManager.all.length;
+      const factorySize2 = this.sequelize.models.size;
 
       expect(factorySize).to.equal(factorySize2);
     });
@@ -337,12 +330,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    describe('descending indices (MySQL 8 specific)', () => {
-      it('complains about missing support for descending indexes', async function () {
-        if (!isMySQL8) {
-          return;
-        }
+    describe('descending indices (MySQL specific)', () => {
+      if (dialectName !== 'mysql') {
+        return;
+      }
 
+      it('complains about missing support for descending indexes', async function () {
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -377,10 +370,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works fine with InnoDB', async function () {
-        if (!isMySQL8) {
-          return;
-        }
-
         const indices = [{
           name: 'a_b_uniq',
           unique: true,
@@ -648,11 +637,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const product = Product.build({
           id: 1,
           title: 'Chair',
-          Tags: [
+          tags: [
             { id: 1, name: 'Alpha' },
             { id: 2, name: 'Beta' },
           ],
-          User: {
+          user: {
             id: 1,
             first_name: 'Mick',
             last_name: 'Hansen',
@@ -664,11 +653,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
-        expect(product.Tags).to.be.ok;
-        expect(product.Tags.length).to.equal(2);
-        expect(product.Tags[0]).to.be.instanceof(Tag);
-        expect(product.User).to.be.ok;
-        expect(product.User).to.be.instanceof(User);
+        expect(product.tags).to.be.ok;
+        expect(product.tags.length).to.equal(2);
+        expect(product.tags[0]).to.be.instanceof(Tag);
+        expect(product.user).to.be.ok;
+        expect(product.user).to.be.instanceof(User);
       });
 
       it('should support includes with aliases', function () {
@@ -901,21 +890,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
       });
 
-      afterEach(async function () {
-        try {
-          await this.sequelize.dropSchema('schema_test');
-        } finally {
-          await this.sequelize.dropSchema('special');
-          await this.sequelize.dropSchema('prefix');
-        }
-      });
-
       it('should be able to drop with schemas', async function () {
         await this.UserSpecial.drop();
       });
 
       it('should be able to list schemas', async function () {
-        const schemas = await this.sequelize.showAllSchemas();
+        const schemas = await this.sequelize.queryInterface.listSchemas();
 
         const expectedSchemas = {
           // "sequelize_test" is the default schema, which some dialects will not delete
@@ -988,7 +968,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
-        await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.queryInterface.createSchema('prefix');
 
         let test = false;
@@ -1175,8 +1154,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(async function () {
       this.Author = this.sequelize.define('author', { firstName: DataTypes.STRING });
 
-      await this.sequelize.getQueryInterface().dropTable('posts', { force: true });
-      await this.sequelize.getQueryInterface().dropTable('authors', { force: true });
+      await this.sequelize.queryInterface.dropTable('posts', { force: true });
+      await this.sequelize.queryInterface.dropTable('authors', { force: true });
 
       await this.Author.sync();
     });
@@ -1195,12 +1174,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('uses a table name as a string and references the author table', async function () {
@@ -1214,12 +1193,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.getForeignKeyReferencesForTable(Post.getTableName());
+      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, { constraintType: 'FOREIGN KEY' });
 
       expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnName).to.eq('authorId');
+      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
       expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnName).to.eq('id');
+      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
     it('throws an error if the referenced table name is invalid', async function () {
@@ -1248,11 +1227,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       } catch (error) {
         switch (dialectName) {
           case 'mysql': {
-            if (isMySQL8) {
-              expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
-            } else {
-              expect(error.message).to.match(/Cannot add foreign key constraint/);
-            }
+            expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
             break;
           }
@@ -1439,7 +1414,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
-        where: this.sequelize.literal(`${this.sequelize.queryInterface.queryGenerator.quoteIdentifiers('Projects.title')} = ${this.sequelize.queryInterface.queryGenerator.escape('republic')}`),
+        where: this.sequelize.literal(`${this.sequelize.queryGenerator.quoteIdentifiers('projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`),
         include: [
           { model: this.Project },
         ],
@@ -1452,12 +1427,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should not overwrite a specified deletedAt by setting paranoid: false', async function () {
       let tableName = '';
       if (this.User.name) {
-        tableName = `${this.sequelize.queryInterface.queryGenerator.quoteIdentifier(this.User.name)}.`;
+        tableName = `${this.sequelize.queryGenerator.quoteIdentifier(this.User.name)}.`;
       }
 
       const users = await this.User.findAll({
         paranoid: false,
-        where: this.sequelize.literal(`${tableName + this.sequelize.queryInterface.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
+        where: this.sequelize.literal(`${tableName + this.sequelize.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `),
         include: [
           { model: this.Project },
         ],

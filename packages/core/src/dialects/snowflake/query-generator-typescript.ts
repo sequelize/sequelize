@@ -1,17 +1,130 @@
+import { Op } from '../../operators.js';
+import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableNameOrModel } from '../abstract/query-generator-typescript';
-import type { ShowConstraintsQueryOptions } from '../abstract/query-generator.types';
+import type { TableOrModel } from '../abstract/query-generator-typescript';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
+  SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator-typescript';
+import type {
+  CreateDatabaseQueryOptions,
+  ListDatabasesQueryOptions,
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
+} from '../abstract/query-generator.types';
+import { SnowflakeQueryGeneratorInternal } from './query-generator-internal.js';
+import type { SnowflakeDialect } from './index.js';
+
+const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['constraintName', 'constraintType']);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  describeTableQuery(tableName: TableNameOrModel) {
+  readonly #internals: SnowflakeQueryGeneratorInternal;
+
+  constructor(
+    dialect: SnowflakeDialect,
+    internals: SnowflakeQueryGeneratorInternal = new SnowflakeQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+
+    this.#internals = internals;
+  }
+
+  createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'createDatabaseQuery',
+        this.dialect,
+        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      `CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`,
+    ]);
+  }
+
+  listDatabasesQuery(options?: ListDatabasesQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'listDatabasesQuery',
+        this.dialect,
+        LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return `SHOW DATABASES`;
+  }
+
+  listSchemasQuery(options?: ListSchemasQueryOptions) {
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip = [...schemasToSkip, ...options.skip];
+    }
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS "schema"',
+      'FROM INFORMATION_SCHEMA.SCHEMATA',
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
+  }
+
+  describeTableQuery(tableName: TableOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  listTablesQuery(options?: ListTablesQueryOptions) {
+    return joinSQLFragments([
+      'SELECT TABLE_NAME AS "tableName",',
+      'TABLE_SCHEMA AS "schema"',
+      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      options?.schema
+        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
+        : `AND TABLE_SCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+    ]);
+  }
+
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return `TRUNCATE ${this.quoteTable(tableName)}`;
+  }
+
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'showConstraintsQuery',
+        this.dialect,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+        SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -34,6 +147,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
       'ORDER BY c.CONSTRAINT_NAME',
     ]);
   }

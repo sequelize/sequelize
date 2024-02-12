@@ -14,41 +14,7 @@ if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
     beforeEach(function () {
       this.sequelize.options.quoteIdenifiers = true;
-      this.queryInterface = this.sequelize.getQueryInterface();
-    });
-
-    describe('createSchema', () => {
-      beforeEach(async function () {
-        // make sure we don't have a pre-existing schema called testSchema.
-        await this.queryInterface.dropSchema('testschema').catch(() => {});
-      });
-
-      it('creates a schema', async function () {
-        await this.queryInterface.createSchema('testschema');
-
-        const res = await this.sequelize.query(`
-            SELECT schema_name
-            FROM information_schema.schemata
-            WHERE schema_name = 'testschema';
-          `, { type: this.sequelize.QueryTypes.SELECT });
-
-        expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.equal('testschema');
-      });
-
-      it('works even when schema exists', async function () {
-        await this.queryInterface.createSchema('testschema');
-        await this.queryInterface.createSchema('testschema');
-
-        const res = await this.sequelize.query(`
-            SELECT schema_name
-            FROM information_schema.schemata
-            WHERE schema_name = 'testschema';
-          `, { type: this.sequelize.QueryTypes.SELECT });
-
-        expect(res, 'query results').to.not.be.empty;
-        expect(res[0].schema_name).to.equal('testschema');
-      });
+      this.queryInterface = this.sequelize.queryInterface;
     });
 
     describe('fetchDatabaseVersion', () => {

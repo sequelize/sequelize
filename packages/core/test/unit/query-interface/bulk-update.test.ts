@@ -1,12 +1,16 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes, Op, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#bulkUpdate', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -14,9 +18,10 @@ describe('QueryInterface#bulkUpdate', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.getQueryInterface().bulkUpdate(
+    await sequelize.queryInterface.bulkUpdate(
       User.table,
       {
         // values
@@ -36,7 +41,7 @@ describe('QueryInterface#bulkUpdate', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2`,
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
     });
@@ -48,9 +53,10 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
+    const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.getQueryInterface().bulkUpdate(
+    await expect(sequelize.queryInterface.bulkUpdate(
       User.table,
       {
         firstName: literal('$sequelize_test'),
@@ -65,9 +71,10 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().bulkUpdate(
+    await sequelize.queryInterface.bulkUpdate(
       User.table,
       {
         firstName: 'newName',
@@ -83,7 +90,7 @@ describe('QueryInterface#bulkUpdate', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $one',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $one);`,
     });
@@ -95,9 +102,10 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().bulkUpdate(
+    await sequelize.queryInterface.bulkUpdate(
       User.table,
       {
         firstName: 'newName',
@@ -113,7 +121,7 @@ describe('QueryInterface#bulkUpdate', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $1',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $1);`,
     });

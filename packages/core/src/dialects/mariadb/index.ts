@@ -1,8 +1,7 @@
 import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { createUnspecifiedOrderedBindCollector, escapeMysqlMariaDbString } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { escapeMysqlString } from '../mysql/mysql-utils';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
@@ -57,7 +56,22 @@ export class MariaDbDialect extends AbstractDialect {
         unquoted: true,
         quoted: true,
       },
+      uuidV1Generation: true,
       globalTimeZoneConfig: true,
+      removeColumn: {
+        ifExists: true,
+      },
+      createSchema: {
+        charset: true,
+        collate: true,
+        // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
+        // comment: true,
+        ifNotExists: true,
+        replace: true,
+      },
+      dropSchema: {
+        ifExists: true,
+      },
     },
   );
 
@@ -74,15 +88,9 @@ export class MariaDbDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mariadb');
-    this.connectionManager = new MariaDbConnectionManager(this, sequelize);
-    this.queryGenerator = new MariaDbQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new MariaDbQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MariaDbConnectionManager(this);
+    this.queryGenerator = new MariaDbQueryGenerator(this);
+    this.queryInterface = new MariaDbQueryInterface(this);
 
     registerMariaDbDbDataTypeParsers(this);
   }
@@ -92,7 +100,7 @@ export class MariaDbDialect extends AbstractDialect {
   }
 
   escapeString(value: string) {
-    return escapeMysqlString(value);
+    return escapeMysqlMariaDbString(value);
   }
 
   canBackslashEscape() {

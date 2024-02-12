@@ -1,12 +1,16 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#increment', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -14,9 +18,10 @@ describe('QueryInterface#increment', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.getQueryInterface().increment(
+    await sequelize.queryInterface.increment(
       User,
       User.table,
       // where
@@ -38,7 +43,7 @@ describe('QueryInterface#increment', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: `UPDATE [Users] SET [age]=[age]+ ':age',[name]=':name' WHERE [firstName] = ':firstName'`,
       postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
       mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':firstName'`,

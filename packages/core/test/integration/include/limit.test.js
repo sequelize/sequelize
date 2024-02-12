@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
 
@@ -251,7 +251,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             required: true,
             through: {
               where: {
-                HobbyName: 'archery',
+                hobbyName: 'archery',
               },
             },
           }],
@@ -634,7 +634,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             required: true,
             through: {
               where: {
-                HobbyName: 'archery',
+                hobbyName: 'archery',
               },
             },
           }],

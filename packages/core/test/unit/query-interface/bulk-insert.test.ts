@@ -2,22 +2,27 @@ import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
 import { DataTypes, Transaction } from '@sequelize/core';
-import { expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
+import { beforeAll2, expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
   });
 
   it('uses minimal insert queries when rows <=1000', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.getQueryInterface().bulkInsert(User.table, users);
+    await sequelize.queryInterface.bulkInsert(User.table, users);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -30,11 +35,12 @@ describe('QueryInterface#bulkInsert', () => {
   });
 
   it('uses minimal insert queries when rows >1000', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.getQueryInterface().bulkInsert(User.table, users, { transaction });
+    await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -48,9 +54,10 @@ describe('QueryInterface#bulkInsert', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.getQueryInterface().bulkInsert(User.table, [{
+    await sequelize.queryInterface.bulkInsert(User.table, [{
       firstName: ':injection',
     }], {
       replacements: {

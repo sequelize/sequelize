@@ -1,12 +1,16 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#delete', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -14,15 +18,13 @@ describe('QueryInterface#delete', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    const instance = User.build();
-
-    await sequelize.getQueryInterface().delete(
-      instance,
-      User.table,
-      { firstName: ':id' },
+    await sequelize.queryInterface.bulkDelete(
+      User,
       {
+        where: { firstName: ':id' },
         replacements: {
           limit: 1,
           id: '123',
@@ -32,7 +34,7 @@ describe('QueryInterface#delete', () => {
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
-    expectsql(firstCall.args[0] as string, {
+    expectsql(firstCall.args[0], {
       default: `DELETE FROM [Users] WHERE [firstName] = ':id'`,
       mssql: `DELETE FROM [Users] WHERE [firstName] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });

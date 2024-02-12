@@ -4,7 +4,7 @@ import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { BelongsTo } from './associations/belongs-to';
+import { BelongsToAssociation } from './associations/belongs-to';
 
 import difference from 'lodash/difference';
 import forIn from 'lodash/forIn';
@@ -31,7 +31,7 @@ export class InstanceValidator {
     };
 
     if (options.fields && !options.skip) {
-      options.skip = difference(Array.from(modelInstance.constructor.modelDefinition.attributes.keys()), options.fields);
+      options.skip = difference(Array.from(modelInstance.modelDefinition.attributes.keys()), options.fields);
     } else {
       options.skip ??= [];
     }
@@ -136,7 +136,7 @@ export class InstanceValidator {
     // promisify all attribute invocations
     const validators = [];
 
-    const { attributes } = this.modelInstance.constructor.modelDefinition;
+    const { attributes } = this.modelInstance.modelDefinition;
 
     for (const attribute of attributes.values()) {
       const attrName = attribute.attributeName;
@@ -213,7 +213,7 @@ export class InstanceValidator {
     // Promisify each validator
     const validators = [];
 
-    const attribute = this.modelInstance.constructor.modelDefinition.attributes.get(attributeName);
+    const attribute = this.modelInstance.modelDefinition.attributes.get(attributeName);
 
     forIn(attribute.validate, (test, validatorType) => {
       if (['isUrl', 'isURL', 'isEmail'].includes(validatorType)) {
@@ -371,9 +371,9 @@ export class InstanceValidator {
    */
   _validateSchema(attribute, attributeName, value) {
     if (attribute.allowNull === false && value == null) {
-      const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsTo && association.foreignKey === attribute.fieldName);
+      const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsToAssociation && association.foreignKey === attribute.fieldName);
       if (!association || !this.modelInstance.get(association.as)) {
-        const modelDefinition = this.modelInstance.constructor.modelDefinition;
+        const modelDefinition = this.modelInstance.modelDefinition;
         const validators = modelDefinition.attributes.get(attributeName)?.validate;
         const errMsg = get(validators, 'notNull.msg', `${this.modelInstance.constructor.name}.${attributeName} cannot be null`);
 

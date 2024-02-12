@@ -1,24 +1,16 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_OBJECT } from '../../utils/object.js';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
-import {
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { Op } = require('../../operators');
 
 /**
  * list of reserved words in Snowflake
@@ -30,86 +22,14 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set(['charset', 'collate']);
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
-const LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS = new Set();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
-const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['collate', 'charset', 'rowFormat', 'comment', 'uniqueKeys']);
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
-    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
-
-  createDatabaseQuery(databaseName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect.name,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'CREATE DATABASE IF NOT EXISTS',
-      this.quoteIdentifier(databaseName),
-      options?.charset && `DEFAULT CHARACTER SET ${this.escape(options.charset)}`,
-      options?.collate && `DEFAULT COLLATE ${this.escape(options.collate)}`,
-      ';',
-    ]);
-  }
-
-  dropDatabaseQuery(databaseName) {
-    return `DROP DATABASE IF EXISTS ${this.quoteIdentifier(databaseName)};`;
-  }
-
-  listDatabasesQuery() {
-    return `SHOW DATABASES;`;
-  }
-
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `CREATE SCHEMA IF NOT EXISTS ${this.quoteIdentifier(schema)};`;
-  }
-
-  dropSchemaQuery(schema) {
-    return `DROP SCHEMA IF EXISTS ${this.quoteIdentifier(schema)} CASCADE;`;
-  }
-
-  listSchemasQuery(options) {
-    if (options) {
-      rejectInvalidOptions(
-        'listSchemasQuery',
-        this.dialect.name,
-        LIST_SCHEMAS_QUERY_SUPPORTABLE_OPTIONS,
-        LIST_SCHEMAS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return `SHOW SCHEMAS;`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -182,17 +102,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       table,
       `(${attributesClause})`,
       options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
-      options.charset && `DEFAULT CHARSET=${options.charset}`,
-      options.collate && `COLLATE ${options.collate}`,
-      options.rowFormat && `ROW_FORMAT=${options.rowFormat}`,
-      ';',
-    ]);
-  }
-
-  showTablesQuery(database) {
-    return joinSQLFragments([
-      'SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = \'BASE TABLE\'',
-      database ? `AND TABLE_SCHEMA = ${this.escape(database)}` : 'AND TABLE_SCHEMA NOT IN ( \'INFORMATION_SCHEMA\', \'PERFORMANCE_SCHEMA\', \'SYS\')',
       ';',
     ]);
   }
@@ -201,9 +110,9 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -218,26 +127,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         tableName: table,
         foreignKey: key,
       }),
-      ';',
-    ]);
-  }
-
-  removeColumnQuery(tableName, attributeName, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect.name,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP',
-      this.quoteIdentifier(attributeName),
       ';',
     ]);
   }
@@ -306,58 +195,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return joinSQLFragments([
-      'TRUNCATE',
-      this.quoteTable(tableName),
-    ]);
-  }
-
-  deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
-    const escapeOptions = { ...options, model };
-
-    const table = this.quoteTable(tableName);
-    const limit = options.limit && ` LIMIT ${this.escape(options.limit, escapeOptions)}`;
-    let primaryKeys = '';
-    let primaryKeysSelection = '';
-
-    let whereClause = this.whereQuery(where, escapeOptions);
-    if (whereClause) {
-      whereClause = ` ${whereClause}`;
-    }
-
-    if (limit) {
-      if (!model) {
-        throw new Error('Cannot LIMIT delete without a model.');
-      }
-
-      const pks = Object.values(model.primaryKeys).map(pk => this.quoteIdentifier(pk.field)).join(',');
-
-      primaryKeys = model.primaryKeyAttributes.length > 1 ? `(${pks})` : pks;
-      primaryKeysSelection = pks;
-
-      return joinSQLFragments([
-        'DELETE FROM',
-        table,
-        'WHERE',
-        primaryKeys,
-        'IN (SELECT',
-        primaryKeysSelection,
-        'FROM',
-        table,
-        whereClause,
-        limit,
-        ')',
-      ]);
-    }
-
-    return joinSQLFragments([
-      'DELETE FROM',
-      table,
-      whereClause,
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -379,7 +216,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (!typeWithoutDefault.has(attributeString)
       && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue)) {
+      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
@@ -462,36 +299,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     return dataType;
-  }
-
-  /**
-   * Generates an SQL query that removes a foreign key from a table.
-   *
-   * @param  {string} tableName  The name of the table.
-   * @param  {string} foreignKey The name of the foreign key constraint.
-   * @returns {string}            The generated sql query.
-   * @private
-   */
-  dropForeignKeyQuery(tableName, foreignKey) {
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'DROP FOREIGN KEY',
-      this.quoteIdentifier(foreignKey),
-      ';',
-    ]);
-  }
-
-  addLimitAndOffset(options) {
-    if (options.offset) {
-      return ` LIMIT ${this.escape(options.limit ?? null, options)} OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    if (options.limit != null) {
-      return ` LIMIT ${this.escape(options.limit, options)}`;
-    }
-
-    return '';
   }
 
   /**

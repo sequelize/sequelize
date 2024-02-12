@@ -1,12 +1,11 @@
 'use strict';
 
 const Support = require('../../support');
-const { DataTypes, Model, Op } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const util = require('node:util');
-const chai = require('chai');
 const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
+const { beforeAll2 } = require('../../support');
 
-const expect = chai.expect;
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const sql = current.dialect.queryGenerator;
@@ -18,18 +17,22 @@ const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('select', () => {
-    const testsql = function (options, expectation, testFunction = it) {
+    function expectSelect(options, expectation) {
       const model = options.model;
 
+      return expectsql(
+        () => sql.selectQuery(
+          options.table || model && model.getTableName(),
+          options,
+          options.model,
+        ),
+        expectation,
+      );
+    }
+
+    const testsql = function (options, expectation, testFunction = it) {
       testFunction(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          () => sql.selectQuery(
-            options.table || model && model.getTableName(),
-            options,
-            options.model,
-          ),
-          expectation,
-        );
+        expectSelect(options, expectation);
       });
     };
 
@@ -76,359 +79,554 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }, {
       default: `SELECT [User].* FROM (${
         [
-          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC LIMIT 3) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC LIMIT 3) AS sub`,
+        ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+      }) AS [User];`,
+      'db2 ibmi': `SELECT [User].* FROM (${
+        [
+          `SELECT * FROM (SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 1 ORDER BY "last_name" ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+          `SELECT * FROM (SELECT "email", "first_name" AS "firstName", "last_name" AS "lastName" FROM "User" WHERE "User"."companyId" = 5 ORDER BY "last_name" ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+        ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+      }) AS [User];`,
+      mssql: `SELECT [User].* FROM (${
+        [
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 1 ORDER BY [last_name] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+          `SELECT * FROM (SELECT [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [User] WHERE [User].[companyId] = 5 ORDER BY [last_name] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
         ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
       }) AS [User];`,
     });
 
-    (function () {
-      const User = Support.sequelize.define('user', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          field: 'id_user',
-        },
+    describe('With BelongsToMany', () => {
+      const vars = beforeAll2(() => {
+        const User = Support.sequelize.define('user', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            field: 'id_user',
+          },
+        });
+
+        const Project = Support.sequelize.define('project', {
+          title: DataTypes.STRING,
+        });
+
+        const ProjectUser = Support.sequelize.define('project_user', {
+          userId: {
+            type: DataTypes.INTEGER,
+            field: 'user_id',
+          },
+          projectId: {
+            type: DataTypes.INTEGER,
+            field: 'project_id',
+          },
+        }, { timestamps: false });
+
+        User.Projects = User.belongsToMany(Project, { through: ProjectUser });
+        Project.belongsToMany(User, { through: ProjectUser });
+
+        return { User, Project, ProjectUser };
       });
-      const Project = Support.sequelize.define('project', {
-        title: DataTypes.STRING,
-      });
 
-      const ProjectUser = Support.sequelize.define('project_user', {
-        userId: {
-          type: DataTypes.INTEGER,
-          field: 'user_id',
-        },
-        projectId: {
-          type: DataTypes.INTEGER,
-          field: 'project_id',
-        },
-      }, { timestamps: false });
+      it('supports groupedLimit', () => {
+        const { User } = vars;
 
-      User.Projects = User.belongsToMany(Project, { through: ProjectUser });
-      Project.belongsToMany(User, { through: ProjectUser });
-
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        attributes: [
-          ['id_user', 'id'],
-        ],
-        order: [
-          ['last_name', 'ASC'],
-        ],
-        groupedLimit: {
-          limit: 3,
-          on: User.Projects,
-          values: [
-            1,
-            5,
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          attributes: [
+            ['id_user', 'id'],
           ],
-        },
-      }, {
-        default: `SELECT [user].* FROM (${
-          [
-            `SELECT * FROM (
+          order: [
+            ['last_name', 'ASC'],
+          ],
+          groupedLimit: {
+            limit: 3,
+            on: User.Projects,
+            values: [
+              1,
+              5,
+            ],
+          },
+        }, {
+          default: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 1
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-            `SELECT * FROM (
+              `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          'db2 ibmi': `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          mssql: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 1
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        });
       });
 
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        attributes: [
-          ['id_user', 'id'],
-        ],
-        order: [
-          ['last_name', 'ASC'],
-        ],
-        groupedLimit: {
-          limit: 3,
-          through: {
-            where: {
-              status: 1,
-            },
-          },
-          on: User.Projects,
-          values: [
-            1,
-            5,
+      it('supports groupedLimit with through', () => {
+        const { User } = vars;
+
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          attributes: [
+            ['id_user', 'id'],
           ],
-        },
-      }, {
-        default: `SELECT [user].* FROM (${
-          [
-            `SELECT * FROM (
+          order: [
+            ['last_name', 'ASC'],
+          ],
+          groupedLimit: {
+            limit: 3,
+            through: {
+              where: {
+                status: 1,
+              },
+            },
+            on: User.Projects,
+            values: [
+              1,
+              5,
+            ],
+          },
+        }, {
+          default: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND ([project_user].[project_id] = 1
                 AND [project_user].[status] = 1)
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-            `SELECT * FROM (
+              `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND ([project_user].[project_id] = 5
                 AND [project_user].[status] = 1)
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          'db2 ibmi': `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 1
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 5
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          mssql: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 1
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[last_name] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND ([project_user].[project_id] = 5
+                AND [project_user].[status] = 1)
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        });
+
       });
 
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        attributes: [
-          ['id_user', 'id'],
-        ],
-        order: [
-          ['id_user', 'ASC'],
-        ],
-        where: {
-          age: {
-            [Op.gte]: 21,
-          },
-        },
-        groupedLimit: {
-          limit: 3,
-          on: User.Projects,
-          values: [
-            1,
-            5,
+      it('supports groupedLimit with through and where', () => {
+        const { User } = vars;
+
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          attributes: [
+            ['id_user', 'id'],
           ],
-        },
-      }, {
-        default: `SELECT [user].* FROM (${
-          [
-            `SELECT * FROM (
+          order: [
+            ['id_user', 'ASC'],
+          ],
+          where: {
+            age: {
+              [Op.gte]: 21,
+            },
+          },
+          groupedLimit: {
+            limit: 3,
+            on: User.Projects,
+            values: [
+              1,
+              5,
+            ],
+          },
+        }, {
+          default: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
                SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
                FROM [users] AS [user]
                INNER JOIN [project_users] AS [project_user]
                  ON [user].[id_user] = [project_user].[user_id]
                  AND [project_user].[project_id] = 1
                WHERE [user].[age] >= 21
-               ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+               ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-            `SELECT * FROM (
+              `SELECT * FROM (
               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
               FROM [users] AS [user]
               INNER JOIN [project_users] AS [project_user]
                 ON [user].[id_user] = [project_user].[user_id]
                 AND [project_user].[project_id] = 5
               WHERE [user].[age] >= 21
-              ORDER BY [subquery_order_0] ASC${current.dialect.name === 'mssql' ? ', [user].[id_user]' : ''}${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}
+              ORDER BY [subquery_order_0] ASC LIMIT 3
             ) AS sub`,
-          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
-        }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          'db2 ibmi': `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+               FROM [users] AS [user]
+               INNER JOIN [project_users] AS [project_user]
+                 ON [user].[id_user] = [project_user].[user_id]
+                 AND [project_user].[project_id] = 1
+               WHERE [user].[age] >= 21
+               ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              WHERE [user].[age] >= 21
+              ORDER BY [subquery_order_0] ASC FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+          mssql: `SELECT [user].* FROM (${
+            [
+              `SELECT * FROM (
+               SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+               FROM [users] AS [user]
+               INNER JOIN [project_users] AS [project_user]
+                 ON [user].[id_user] = [project_user].[user_id]
+                 AND [project_user].[project_id] = 1
+               WHERE [user].[age] >= 21
+               ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+              `SELECT * FROM (
+              SELECT [user].[id_user] AS [id], [user].[id_user] AS [subquery_order_0], [project_user].[user_id] AS [project_user.userId], [project_user].[project_id] AS [project_user.projectId]
+              FROM [users] AS [user]
+              INNER JOIN [project_users] AS [project_user]
+                ON [user].[id_user] = [project_user].[user_id]
+                AND [project_user].[project_id] = 5
+              WHERE [user].[age] >= 21
+              ORDER BY [subquery_order_0] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
+            ) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] ORDER BY [subquery_order_0] ASC;`,
+        });
       });
-    }());
+    });
 
-    (function () {
-      const User = Support.sequelize.define('user', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          field: 'id_user',
+    describe('With HasMany', () => {
+      const vars = beforeAll2(() => {
+        const User = Support.sequelize.define('user', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+            field: 'id_user',
+          },
+          email: DataTypes.STRING,
+          firstName: {
+            type: DataTypes.STRING,
+            field: 'first_name',
+          },
+          lastName: {
+            type: DataTypes.STRING,
+            field: 'last_name',
+          },
         },
-        email: DataTypes.STRING,
-        firstName: {
-          type: DataTypes.STRING,
-          field: 'first_name',
+        {
+          tableName: 'users',
+        });
+        const Post = Support.sequelize.define('Post', {
+          title: DataTypes.STRING,
+          userId: {
+            type: DataTypes.INTEGER,
+            field: 'user_id',
+          },
         },
-        lastName: {
-          type: DataTypes.STRING,
-          field: 'last_name',
+        {
+          tableName: 'post',
+        });
+
+        User.Posts = User.hasMany(Post, { foreignKey: 'userId', as: 'POSTS' });
+
+        const Comment = Support.sequelize.define('Comment', {
+          title: DataTypes.STRING,
+          postId: {
+            type: DataTypes.INTEGER,
+            field: 'post_id',
+          },
         },
-      },
-      {
-        tableName: 'users',
-      });
-      const Post = Support.sequelize.define('Post', {
-        title: DataTypes.STRING,
-        userId: {
-          type: DataTypes.INTEGER,
-          field: 'user_id',
-        },
-      },
-      {
-        tableName: 'post',
-      });
+        {
+          tableName: 'comment',
+        });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'userId', as: 'POSTS' });
+        Post.Comments = Post.hasMany(Comment, { foreignKey: 'postId', as: 'COMMENTS' });
 
-      const Comment = Support.sequelize.define('Comment', {
-        title: DataTypes.STRING,
-        postId: {
-          type: DataTypes.INTEGER,
-          field: 'post_id',
-        },
-      },
-      {
-        tableName: 'comment',
-      });
-
-      Post.Comments = Post.hasMany(Comment, { foreignKey: 'postId', as: 'COMMENTS' });
-
-      const include = _validateIncludedElements({
-        include: [{
-          attributes: ['title'],
-          association: User.Posts,
-        }],
-        model: User,
-      }).include;
-
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        include,
-        attributes: [
-          ['id_user', 'id'],
-          'email',
-          ['first_name', 'firstName'],
-          ['last_name', 'lastName'],
-        ],
-        order: [
-          ['last_name', 'ASC'],
-        ],
-        groupedLimit: {
-          limit: 3,
-          on: 'companyId',
-          values: [
-            1,
-            5,
-          ],
-        },
-      }, {
-        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
-          [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: [['last_name', 'ASC']] })}) AS sub`,
-          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
-      });
-
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        include,
-        attributes: [
-          ['id_user', 'id'],
-          'email',
-          ['first_name', 'firstName'],
-          ['last_name', 'lastName'],
-        ],
-        // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
-        // as [[[last_name]]]
-        order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
-        limit: 30,
-        offset: 10,
-        hasMultiAssociation: true, // must be set only for mssql dialect here
-        subQuery: true,
-      }, {
-        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC${
-          sql.addLimitAndOffset({
-            limit: 30,
-            offset: 10,
-            order: [['`user`.`last_name`', 'ASC']],
-          })
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
-        ibmi: `${`SELECT "user".*, "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title" FROM (SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName" FROM "users" AS "user" ORDER BY "user"."""last_name""" ASC`}${
-          sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['`user`.`last_name`', 'ASC']] })
-        }) AS "user" LEFT OUTER JOIN "post" AS "POSTS" ON "user"."id_user" = "POSTS"."user_id" ORDER BY "user"."""last_name""" ASC`,
-      });
-
-      // By default, SELECT with include of a multi association & limit will be ran as a subQuery
-      //  This checks the result when the query is forced to be ran without a subquery
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        include,
-        attributes: [
-          ['id_user', 'id'],
-          'email',
-          ['first_name', 'firstName'],
-          ['last_name', 'lastName'],
-        ],
-        // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
-        // as [[[last_name]]]
-        order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
-        limit: 30,
-        offset: 10,
-        hasMultiAssociation: true, // must be set only for mssql dialect here
-        subQuery: false,
-      }, {
-        default: Support.minifySql(`SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
-          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
-          ON [user].[id_user] = [POSTS].[user_id]
-          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC
-          ${sql.addLimitAndOffset({ limit: 30, offset: 10, order: [['last_name', 'ASC']], include }, User)};
-        `),
-      });
-
-      const nestedInclude = _validateIncludedElements({
-        include: [{
-          attributes: ['title'],
-          association: User.Posts,
+        const include = _validateIncludedElements({
           include: [{
             attributes: ['title'],
-            association: Post.Comments,
+            association: User.Posts,
           }],
-        }],
-        model: User,
-      }).include;
+          model: User,
+        }).include;
 
-      testsql({
-        table: User.getTableName(),
-        model: User,
-        include: nestedInclude,
-        attributes: [
-          ['id_user', 'id'],
-          'email',
-          ['first_name', 'firstName'],
-          ['last_name', 'lastName'],
-        ],
-        order: [
-          ['last_name', 'ASC'],
-        ],
-        groupedLimit: {
-          limit: 3,
-          on: 'companyId',
-          values: [
-            1,
-            5,
-          ],
-        },
-      }, {
-        default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
-          [
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-            `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC${sql.addLimitAndOffset({ limit: 3, order: ['last_name', 'ASC'] })}) AS sub`,
-          ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
-        }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+        return { User, Post, include };
       });
-    }());
+
+      it('supports groupedLimit', () => {
+        const { User, include } = vars;
+
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          include,
+          attributes: [
+            ['id_user', 'id'],
+            'email',
+            ['first_name', 'firstName'],
+            ['last_name', 'lastName'],
+          ],
+          order: [
+            ['last_name', 'ASC'],
+          ],
+          groupedLimit: {
+            limit: 3,
+            on: 'companyId',
+            values: [
+              1,
+              5,
+            ],
+          },
+        }, {
+          default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+          'db2 ibmi': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+          mssql: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id];`,
+        });
+      });
+
+      it('supports order, limit, offset', () => {
+        const { User, include } = vars;
+
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          include,
+          attributes: [
+            ['id_user', 'id'],
+            'email',
+            ['first_name', 'firstName'],
+            ['last_name', 'lastName'],
+          ],
+          // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
+          // as [[[last_name]]]
+          order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+          limit: 30,
+          offset: 10,
+          hasMultiAssociation: true, // must be set only for mssql dialect here
+          subQuery: true,
+        }, {
+          default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
+          'db2 ibmi mssql': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title] FROM (SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName] FROM [users] AS [user] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id_user] = [POSTS].[user_id] ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC;`,
+        });
+      });
+
+      it('supports order, limit, offset without subQuery', () => {
+        const { User, include } = vars;
+
+        // By default, SELECT with include of a multi association & limit will be ran as a subQuery
+        //  This checks the result when the query is forced to be ran without a subquery
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          include,
+          attributes: [
+            ['id_user', 'id'],
+            'email',
+            ['first_name', 'firstName'],
+            ['last_name', 'lastName'],
+          ],
+          // [last_name] is not wrapped in a literal, so it's a column name and must be escaped
+          // as [[[last_name]]]
+          order: [['[last_name]'.replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT).replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT), 'ASC']],
+          limit: 30,
+          offset: 10,
+          hasMultiAssociation: true, // must be set only for mssql dialect here
+          subQuery: false,
+        }, {
+          default: `SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
+          ON [user].[id_user] = [POSTS].[user_id]
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC LIMIT 30 OFFSET 10;`,
+          'db2 ibmi mssql': `SELECT [user].[id_user] AS [id], [user].[email], [user].[first_name] AS [firstName], [user].[last_name] AS [lastName], [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title]
+          FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
+          ON [user].[id_user] = [POSTS].[user_id]
+          ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`,
+        });
+      });
+
+      it('supports nested includes', () => {
+        const { User, Post } = vars;
+        const nestedInclude = _validateIncludedElements({
+          include: [{
+            attributes: ['title'],
+            association: User.Posts,
+            include: [{
+              attributes: ['title'],
+              association: Post.Comments,
+            }],
+          }],
+          model: User,
+        }).include;
+
+        expectSelect({
+          table: User.getTableName(),
+          model: User,
+          include: nestedInclude,
+          attributes: [
+            ['id_user', 'id'],
+            'email',
+            ['first_name', 'firstName'],
+            ['last_name', 'lastName'],
+          ],
+          order: [
+            ['last_name', 'ASC'],
+          ],
+          groupedLimit: {
+            limit: 3,
+            on: 'companyId',
+            values: [
+              1,
+              5,
+            ],
+          },
+        }, {
+          default: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC LIMIT 3) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+          'db2 ibmi': `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC FETCH NEXT 3 ROWS ONLY) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+          mssql: `SELECT [user].*, [POSTS].[id] AS [POSTS.id], [POSTS].[title] AS [POSTS.title], [POSTS->COMMENTS].[id] AS [POSTS.COMMENTS.id], [POSTS->COMMENTS].[title] AS [POSTS.COMMENTS.title] FROM (${
+            [
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 1 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+              `SELECT * FROM (SELECT [id_user] AS [id], [email], [first_name] AS [firstName], [last_name] AS [lastName] FROM [users] AS [user] WHERE [user].[companyId] = 5 ORDER BY [lastName] ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY) AS sub`,
+            ].join(current.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')
+          }) AS [user] LEFT OUTER JOIN [post] AS [POSTS] ON [user].[id] = [POSTS].[user_id] LEFT OUTER JOIN [comment] AS [POSTS->COMMENTS] ON [POSTS].[id] = [POSTS->COMMENTS].[post_id];`,
+        });
+      });
+    });
 
     it('include (left outer join)', () => {
       const User = Support.sequelize.define('User', {
@@ -458,8 +656,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User,
       }, User), {
-        ibmi: 'SELECT "User"."name", "User"."age", "Posts"."id" AS "Posts.id", "Posts"."title" AS "Posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "Posts" ON "User"."id" = "Posts"."user_id"',
-        default: 'SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];',
+        ibmi: 'SELECT "User"."name", "User"."age", "posts"."id" AS "posts.id", "posts"."title" AS "posts.title" FROM "User" AS "User" LEFT OUTER JOIN "Post" AS "posts" ON "User"."id" = "posts"."user_id"',
+        default: 'SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] LEFT OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];',
       });
     });
 
@@ -492,7 +690,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include,
         model: User,
       }, User), {
-        default: `SELECT [User].[name], [User].[age], [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [Posts] ON [User].[id] = [Posts].[user_id];`,
+        default: `SELECT [User].[name], [User].[age], [posts].[id] AS [posts.id], [posts].[title] AS [posts.title] FROM [User] AS [User] ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [Post] AS [posts] ON [User].[id] = [posts].[user_id];`,
       });
     });
 
@@ -560,23 +758,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     describe('include (subQuery alias)', () => {
-      const User = Support.sequelize.define('User', {
-        name: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-      },
-      {
-        freezeTableName: true,
-      });
-      const Post = Support.sequelize.define('Post', {
-        title: DataTypes.STRING,
-      },
-      {
-        freezeTableName: true,
-      });
+      const vars = beforeAll2(() => {
+        const User = Support.sequelize.define('User', {
+          name: DataTypes.STRING,
+          age: DataTypes.INTEGER,
+        }, {
+          freezeTableName: true,
+        });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'postaliasname' });
+        const Post = Support.sequelize.define('Post', {
+          title: DataTypes.STRING,
+        }, {
+          freezeTableName: true,
+        });
+
+        User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'postaliasname' });
+
+        return { User };
+      });
 
       it('w/o filters', () => {
+        const { User } = vars;
+
         expectsql(sql.selectQuery('User', {
           table: User.getTableName(),
           model: User,
@@ -596,11 +799,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] LIMIT 1) IS NOT NULL) AS [User];`,
+          'db2 ibmi': 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
+          mssql: 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
         });
       });
 
       it('w/ nested column filter', () => {
+        const { User } = vars;
+
         expectsql(() => sql.selectQuery('User', {
           table: User.getTableName(),
           model: User,
@@ -621,7 +834,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'SELECT [User].* FROM '
             + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
             + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
-            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'postaliasname' }, User)} ) IS NOT NULL) AS [User];`,
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] LIMIT 1) IS NOT NULL) AS [User];`,
+          'db2 ibmi': 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
+          mssql: 'SELECT [User].* FROM '
+            + '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] '
+            + 'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] '
+            + `WHERE [postaliasname].[title] = ${sql.escape('test')} AND ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
         });
       });
     });
@@ -651,7 +872,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         table: Company.getTableName(),
         model: Company,
         attributes: ['name', 'public'],
-        where: { '$Users.Profession.name$': 'test', [Op.and]: { scopeId: [42] } },
+        where: { '$Users.profession.name$': 'test', [Op.and]: { scopeId: [42] } },
         include: _validateIncludedElements({
           include: [{
             association: Company.Users,
@@ -671,14 +892,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         subQuery: true,
       }, Company), {
         default: 'SELECT [Company].* FROM ('
-        + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
-        + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
-        + 'INNER JOIN [Professions] AS [Users->Profession] ON [Users].[professionId] = [Users->Profession].[id] '
-        + `WHERE ([Company].[scopeId] IN (42) AND [Users->Profession].[name] = ${sql.escape('test')}) AND ( `
-        + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
-        + 'INNER JOIN [Professions] AS [Profession] ON [Users].[professionId] = [Profession].[id] '
-        + `WHERE [Users].[companyId] = [Company].[id]${sql.addLimitAndOffset({ limit: 1, tableAs: 'Users' }, User)} `
-        + `) IS NOT NULL${sql.addLimitAndOffset({ limit: 5, offset: 0, tableAs: 'Company' }, Company)}) AS [Company];`,
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] LIMIT 1`
+          + `) IS NOT NULL ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
+        'db2 ibmi': 'SELECT [Company].* FROM ('
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] FETCH NEXT 1 ROWS ONLY`
+          + `) IS NOT NULL ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
+        mssql: 'SELECT [Company].* FROM ('
+          + 'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] '
+          + 'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] '
+          + 'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] '
+          + `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ( `
+          + 'SELECT [Users].[companyId] FROM [Users] AS [Users] '
+          + 'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] '
+          + `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Users].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY`
+          + `) IS NOT NULL ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) AS [Company];`,
       });
     });
 
@@ -802,7 +1041,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         });
 
-        User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+        // association name is Pascal case to test quoteIdentifier: false
+        User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
         expectsql(sql.selectQuery('User', {
           attributes: ['name', 'age'],
@@ -868,7 +1108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
-  describe('queryIdentifiers: false', () => {
+  describe('quoteIdentifiers: false', () => {
     beforeEach(() => {
       sql.options.quoteIdentifiers = false;
     });
@@ -911,7 +1151,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      // association name is Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
@@ -952,8 +1193,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
-      Post.Comments = Post.hasMany(Comment, { foreignKey: 'post_id' });
+      // association names are Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+      Post.Comments = Post.hasMany(Comment, { foreignKey: 'post_id', as: 'Comments' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age'],
@@ -999,7 +1241,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         freezeTableName: true,
       });
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      // association name is Pascal case to test quoteIdentifier: false
+      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age', ['status.label', 'statuslabel']],

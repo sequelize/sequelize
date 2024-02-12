@@ -4,7 +4,7 @@ const noop = () => { /* noop */ };
 
 export const noTrueLogging = deprecate(noop, 'The logging-option should be either a function or false. Default: console.log', 'SEQUELIZE0002');
 export const noDoubleNestedGroup = deprecate(noop, 'Passing a double nested nested array to `group` is unsupported and will be removed in v6.', 'SEQUELIZE0005');
-export const unsupportedEngine = deprecate(noop, 'This database engine version is not supported, please update your database server. More information https://github.com/sequelize/sequelize/blob/main/ENGINE.md', 'SEQUELIZE0006');
+export const unsupportedEngine = deprecate(noop, 'This database engine version is not supported, please update your database server. More information https://sequelize.org/releases/', 'SEQUELIZE0006');
 export const useErrorCause = deprecate(noop, 'The "parent" and "original" properties in Sequelize errors have been replaced with the native "cause" property. Use that one instead.', 'SEQUELIZE0007');
 export const scopeRenamedToWithScope = deprecate(noop, 'Model.scope has been renamed to Model.withScope, and Model.unscoped has been renamed to Model.withoutScope', 'SEQUELIZE0008');
 export const schemaRenamedToWithSchema = deprecate(noop, 'Model.schema has been renamed to Model.withSchema', 'SEQUELIZE0009');
@@ -23,3 +23,11 @@ export const noNewModel = deprecate(noop, `Do not use "new YourModel()" to insta
 export const noOpCol = deprecate(noop, 'Do not use Op.col, use col(), attribute(), or identifier() instead. Read more about these in the Raw Queries guide in the sequelize docs.', 'SEQUELIZE0021');
 export const noSqlJson = deprecate(noop, 'The json() function used to generate JSON queries is deprecated. All of its features are available through where(), attribute() or jsonPath(). Some of its features have been removed but can be replicated using the "sql" tag. See our Sequelize 7 upgrade guide.', 'SEQUELIZE0022');
 export const alwaysQuoteIdentifiers = deprecate(noop, 'Setting "quoteIdentifiers" to false is unsafe and it will be removed in v8.', 'SEQUELIZE0023');
+export const showAllToListSchemas = deprecate(noop, 'Do not use "showAllSchemas". Use QueryInterface#listSchemas instead.', 'SEQUELIZE0024');
+export const showAllToListTables = deprecate(noop, 'Do not use "showAllTables". Use QueryInterface#listTables instead.', 'SEQUELIZE0025');
+export const noDataTypesUuid = deprecate(noop, 'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1 or sql.uuidV4 instead.', 'SEQUELIZE0026');
+export const encodeHost = deprecate(noop, 'Use a URL encoded host instead of adding it as a host query string', 'SEQUELIZE0027');
+export const noSequelizeModel = deprecate(noop, 'Do not use sequelize.model(). Use sequelize.models.get or sequelize.models.getOrThrow instead.', 'SEQUELIZE0028');
+export const noSequelizeIsDefined = deprecate(noop, 'Do not use sequelize.isDefined(). Use sequelize.models.hasByName instead.', 'SEQUELIZE0029');
+export const noGetQueryInterface = deprecate(noop, 'Do not use sequelize.getQueryInterface(). Use sequelize.queryInterface instead.', 'SEQUELIZE0030');
+export const noGetDialect = deprecate(noop, 'Do not use sequelize.getDialect(). Use sequelize.dialect.name instead.', 'SEQUELIZE0031');

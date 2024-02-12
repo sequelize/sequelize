@@ -1,11 +1,17 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import uniq from 'lodash/uniq';
 import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
+import {
+  createSequelizeInstance,
+  getSqliteDatabasePath,
+  getTestDialect,
+  rand,
+  resetSequelizeInstance,
+  sequelize,
+} from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -88,7 +94,7 @@ export async function createMultiTransactionalTestSequelizeInstance(
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
+    const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);
     }
@@ -181,11 +187,11 @@ afterEach('database reset', async () => {
         break;
 
       case 'truncate':
-        await sequelizeInstance.truncate({ restartIdentity: true });
+        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
         break;
 
       case 'destroy':
-        await sequelizeInstance.destroyAll({ cascade: true, force: true });
+        await sequelizeInstance.destroyAll({ force: true });
         break;
 
       default:
@@ -222,16 +228,16 @@ The following methods can be used to mark a sequelize instance for automatic dis
 });
 
 async function clearDatabaseInternal(customSequelize: Sequelize) {
-  const qi = customSequelize.getQueryInterface();
+  const qi = customSequelize.queryInterface;
   await qi.dropAllTables();
-  customSequelize.modelManager.models = [];
-  customSequelize.models = {};
+  resetSequelizeInstance(customSequelize);
 
   if (qi.dropAllEnums) {
     await qi.dropAllEnums();
   }
 
   await dropTestSchemas(customSequelize);
+  await dropTestDatabases(customSequelize);
 }
 
 export async function clearDatabase(customSequelize: Sequelize = sequelize) {
@@ -253,6 +259,24 @@ afterEach('no running queries checker', () => {
   }
 });
 
+export async function dropTestDatabases(customSequelize: Sequelize = sequelize) {
+  if (!customSequelize.dialect.supports.multiDatabases) {
+    return;
+  }
+
+  const qi = customSequelize.queryInterface;
+  const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
+  if (getTestDialect() === 'db2') {
+    for (const db of databases) {
+      // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+      // eslint-disable-next-line no-await-in-loop
+      await qi.dropDatabase(db.name);
+    }
+  } else {
+    await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+  }
+}
+
 export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   if (!customSequelize.dialect.supports.schemas) {
     await customSequelize.drop({});
@@ -260,26 +284,7 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  const schemas = await customSequelize.showAllSchemas();
-  const schemasPromise = [];
-  for (const schema of schemas) {
-    // @ts-expect-error -- TODO: type return value of "showAllSchemas"
-    const schemaName = schema.name ? schema.name : schema;
-    if (schemaName !== customSequelize.config.database) {
-      const promise = customSequelize.dropSchema(schemaName);
-
-      if (getTestDialect() === 'db2') {
-        // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-        // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-        // eslint-disable-next-line no-await-in-loop
-        await promise;
-      } else {
-        schemasPromise.push(promise);
-      }
-    }
-  }
-
-  await Promise.all(schemasPromise);
+  await customSequelize.queryInterface.dropAllSchemas({ skip: [customSequelize.config.database] });
 }
 
 export * from '../support';

@@ -1,11 +1,12 @@
 'use strict';
 
 import retry from 'retry-as-promised';
-import { normalizeDataType } from './dialects/abstract/data-types-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { Identifier } from './expression-builders/identifier';
 import { JsonPath } from './expression-builders/json-path';
+import { JSON_NULL, SQL_NULL } from './expression-builders/json-sql-null.js';
 import { Value } from './expression-builders/value';
 import { List } from './expression-builders/list';
 import { sql } from './expression-builders/sql';
@@ -20,22 +21,31 @@ import { SequelizeTypeScript } from './sequelize-typescript';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
 import { isString } from './utils/check.js';
-import { noSequelizeDataType } from './utils/deprecations';
+import {
+  noGetDialect,
+  noGetQueryInterface,
+  noSequelizeDataType,
+  noSequelizeIsDefined,
+  noSequelizeModel,
+} from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import { EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { importModels } from './import-models.js';
-
 import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import { BelongsToAssociation } from './associations/belongs-to';
+import { HasOneAssociation } from './associations/has-one';
+import { BelongsToManyAssociation } from './associations/belongs-to-many';
+import { HasManyAssociation } from './associations/has-many';
+import { Model } from './model';
 
-const { Model } = require('./model');
 const DataTypes = require('./data-types');
 const { ConstraintChecking, Deferrable } = require('./deferrable');
-const { ModelManager } = require('./model-manager');
 const { QueryTypes } = require('./query-types');
 const { TableHints } = require('./table-hints');
 const { IndexHints } = require('./index-hints');
@@ -45,10 +55,6 @@ const Validator = require('./utils/validator-extras').validator;
 const { Op } = require('./operators');
 const deprecations = require('./utils/deprecations');
 const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
-const { BelongsTo } = require('./associations/belongs-to');
-const { HasOne } = require('./associations/has-one');
-const { BelongsToMany } = require('./associations/belongs-to-many');
-const { HasMany } = require('./associations/has-many');
 require('./utils/dayjs');
 
 /**
@@ -175,6 +181,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {object}   [options.sync={}] Default options for sequelize.sync
    * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
    * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
+   * @param {number|null} [options.defaultTimestampPrecision] The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models. Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
    * @param {string|boolean} [options.clientMinMessages='warning'] (Deprecated) The PostgreSQL `client_min_messages` session parameter. Set to `false` to not override the database's default.
    * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
    * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
@@ -273,6 +280,8 @@ export class Sequelize extends SequelizeTypeScript {
       logQueryParameters: false,
       disableClsTransactions: false,
       defaultTransactionNestMode: TransactionNestMode.reuse,
+      defaultTimestampPrecision: 6,
+      nullJsonStringification: 'json',
       ...options,
       pool: defaults(options.pool || {}, {
         max: 5,
@@ -424,13 +433,6 @@ export class Sequelize extends SequelizeTypeScript {
       throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
     }
 
-    /**
-     * Models are stored here under the name given to `sequelize.define`
-     */
-    this.models = {};
-    this.modelManager = new ModelManager(this);
-    this.connectionManager = this.dialect.connectionManager;
-
     if (options.models) {
       this.addModels(options.models);
     }
@@ -443,8 +445,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {string} The specified dialect.
    */
-  // TODO [>=8]: rename to getDialectName or remove
   getDialect() {
+    noGetDialect();
+
     return this.options.dialect;
   }
 
@@ -462,8 +465,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
-  // TODO [>=8]: deprecate & remove
   getQueryInterface() {
+    noGetQueryInterface();
+
     return this.queryInterface;
   }
 
@@ -503,7 +507,9 @@ export class Sequelize extends SequelizeTypeScript {
    *
    * sequelize.models.modelName // The model will now be available in models under the name given to define
    */
-  define(modelName, attributes = {}, options = {}) {
+  define(modelName, attributes = EMPTY_OBJECT, options = EMPTY_OBJECT) {
+    options = shallowClonePojo(options);
+
     options.modelName = modelName;
     options.sequelize = this;
 
@@ -523,11 +529,9 @@ export class Sequelize extends SequelizeTypeScript {
    * @returns {Model} Specified model
    */
   model(modelName) {
-    if (!this.isDefined(modelName)) {
-      throw new Error(`${modelName} has not been defined`);
-    }
+    noSequelizeModel();
 
-    return this.modelManager.getModel(modelName);
+    return this.models.getOrThrow(modelName);
   }
 
   /**
@@ -538,7 +542,9 @@ export class Sequelize extends SequelizeTypeScript {
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
-    return this.modelManager.models.some(model => model.name === modelName);
+    noSequelizeIsDefined();
+
+    return this.models.hasByName(modelName);
   }
 
   /**
@@ -588,6 +594,10 @@ export class Sequelize extends SequelizeTypeScript {
   async query(sql, options) {
     options = { ...this.options.query, ...options };
 
+    if (sql instanceof BaseSqlExpression) {
+      sql = this.queryGenerator.formatSqlExpression(sql, options);
+    }
+
     if (typeof sql === 'object') {
       throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
     }
@@ -618,7 +628,6 @@ Use Sequelize#query if you wish to use replacements.`);
     options = { ...this.options.query, ...options, bindParameterOrder: null };
 
     let bindParameters;
-    let bindParameterOrder;
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
@@ -805,14 +814,14 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop(options);
+      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
     }
 
     // no models defined, just authenticate
-    if (this.modelManager.models.length === 0) {
+    if (this.models.size === 0) {
       await this.authenticate(options);
     } else {
-      const models = this.modelManager.getModelsTopoSortedByForeignKey();
+      const models = this.models.getModelsTopoSortedByForeignKey();
       if (models == null) {
         return this._syncModelsWithCyclicReferences(options);
       }
@@ -844,7 +853,7 @@ Use Sequelize#query if you wish to use replacements.`);
     if (this.dialect.name === 'sqlite') {
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
-        for (const model of this.modelManager.models) {
+        for (const model of this.models) {
           await model.sync(options);
         }
       });
@@ -853,12 +862,12 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // create all tables, but don't create foreign key constraints
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.sync({ ...options, withoutForeignKeyConstraints: true });
     }
 
     // add foreign key constraints
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.sync({ ...options, force: false, alter: true });
     }
   }
@@ -875,12 +884,12 @@ Use Sequelize#query if you wish to use replacements.`);
   async drop(options) {
     // if 'cascade' is specified, we don't have to worry about cyclic dependencies.
     if (options && options.cascade) {
-      for (const model of this.modelManager.models) {
+      for (const model of this.models) {
         await model.drop(options);
       }
     }
 
-    const sortedModels = this.modelManager.getModelsTopoSortedByForeignKey();
+    const sortedModels = this.models.getModelsTopoSortedByForeignKey();
 
     // no cyclic dependency between models, we can delete them in an order that will not cause an error.
     if (sortedModels) {
@@ -892,7 +901,7 @@ Use Sequelize#query if you wish to use replacements.`);
     if (this.dialect.name === 'sqlite') {
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
-        for (const model of this.modelManager.models) {
+        for (const model of this.models) {
           await model.drop(options);
         }
       });
@@ -901,16 +910,15 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
-    for (const model of this.modelManager.models) {
-      const tableName = model.getTableName();
-      const foreignKeys = await this.queryInterface.getForeignKeyReferencesForTable(tableName, options);
+    for (const model of this.models) {
+      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
 
       await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(tableName, foreignKey.constraintName, options);
+        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
       }));
     }
 
-    for (const model of this.modelManager.models) {
+    for (const model of this.models) {
       await model.drop(options);
     }
   }
@@ -1027,10 +1035,6 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   close() {
     return this.connectionManager.close();
-  }
-
-  normalizeDataType(Type) {
-    return normalizeDataType(Type, this.dialect);
   }
 
   normalizeAttribute(attribute) {
@@ -1152,10 +1156,10 @@ Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 Sequelize.Model = Model;
 
 Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsTo = BelongsTo;
-Sequelize.HasOne = HasOne;
-Sequelize.HasMany = HasMany;
-Sequelize.BelongsToMany = BelongsToMany;
+Sequelize.BelongsToAssociation = BelongsToAssociation;
+Sequelize.HasOneAssociation = HasOneAssociation;
+Sequelize.HasManyAssociation = HasManyAssociation;
+Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
@@ -1196,6 +1200,9 @@ Sequelize.prototype.Association = Sequelize.Association = Association;
  * @param {object} _inflection - `inflection` module
  */
 Sequelize.useInflection = useInflection;
+
+Sequelize.SQL_NULL = SQL_NULL;
+Sequelize.JSON_NULL = JSON_NULL;
 
 /**
  * Expose various errors available

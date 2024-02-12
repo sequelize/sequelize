@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
     describe('field', () => {
       beforeEach(async function () {
-        const queryInterface = this.sequelize.getQueryInterface();
+        const queryInterface = this.sequelize.queryInterface;
 
         this.User = this.sequelize.define('user', {
           id: {
@@ -244,7 +244,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('increment should work', async function () {
-        await this.Comment.destroy({ truncate: true });
+        await this.Comment.truncate();
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.increment('likes');
         const comment = await comment0.reload();
@@ -252,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('decrement should work', async function () {
-        await this.Comment.destroy({ truncate: true });
+        await this.Comment.truncate();
         const comment1 = await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const comment0 = await comment1.decrement('likes');
         const comment = await comment0.reload();
@@ -260,7 +260,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('sum should work', async function () {
-        await this.Comment.destroy({ truncate: true });
+        await this.Comment.truncate();
         await this.Comment.create({ note: 'oh boy, here I go again', likes: 23 });
         const likes = await this.Comment.sum('likes');
         expect(likes).to.equal(23);

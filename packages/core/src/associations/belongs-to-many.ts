@@ -28,9 +28,9 @@ import type {
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
-import { removeUndefined } from '../utils/object.js';
-import { camelize } from '../utils/string.js';
-import type { AllowArray } from '../utils/types.js';
+import { EMPTY_ARRAY, EMPTY_OBJECT, removeUndefined } from '../utils/object.js';
+import { camelize, singularize } from '../utils/string.js';
+import type { AllowIterable, RequiredBy } from '../utils/types.js';
 import { MultiAssociation } from './base';
 import type {
   Association,
@@ -41,9 +41,9 @@ import type {
   MultiAssociationOptions,
   NormalizedAssociationOptions,
 } from './base';
-import type { BelongsTo } from './belongs-to';
-import { HasMany } from './has-many';
-import { HasOne } from './has-one';
+import type { BelongsToAssociation } from './belongs-to.js';
+import { HasManyAssociation } from './has-many.js';
+import { HasOneAssociation } from './has-one.js';
 import {
   AssociationSecret,
   defineAssociation,
@@ -51,6 +51,7 @@ import {
   mixinMethods,
   normalizeBaseAssociationOptions,
   normalizeForeignKeyOptions,
+  normalizeInverseAssociation,
 } from './helpers';
 import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 
@@ -106,7 +107,8 @@ function addInclude(findOptions: FindOptions, include: Includeable) {
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsToMany(Project)` the getter will be `user.getProjects()`.
  */
-export class BelongsToMany<
+// Note: this class is named BelongsToManyAssociation instead of BelongsToMany to prevent naming conflicts with the BelongsToMany decorator
+export class BelongsToManyAssociation<
   SourceModel extends Model = Model,
   TargetModel extends Model = Model,
   ThroughModel extends Model = Model,
@@ -135,21 +137,21 @@ export class BelongsToMany<
   }
 
   /**
-   * @deprecated use {@link BelongsToMany#foreignKey}
+   * @deprecated use {@link BelongsToManyAssociation#foreignKey}
    */
   get identifier() {
     return this.foreignKey;
   }
 
   /**
-   * The corresponding column name of {@link BelongsToMany#foreignKey}
+   * The corresponding column name of {@link BelongsToManyAssociation#foreignKey}
    */
   get identifierField(): string {
     return this.fromThroughToSource.identifierField;
   }
 
   /**
-   * The corresponding column name of {@link BelongsToMany#otherKey}
+   * The corresponding column name of {@link BelongsToManyAssociation#otherKey}
    */
   get foreignIdentifierField() {
     return this.pairedWith.identifierField;
@@ -186,25 +188,25 @@ export class BelongsToMany<
   /**
    * The corresponding association this entity is paired with.
    */
-  pairedWith: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
+  pairedWith: BelongsToManyAssociation<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>;
 
   // intermediary associations
   // these create the actual associations on the model. Remove them would be a breaking change.
-  readonly fromSourceToThrough: HasMany<SourceModel, ThroughModel, SourceKey, any>;
-  readonly fromSourceToThroughOne: HasOne<SourceModel, ThroughModel, SourceKey, any>;
-  get fromThroughToSource(): BelongsTo<ThroughModel, SourceModel, any, SourceKey> {
+  readonly fromSourceToThrough: HasManyAssociation<SourceModel, ThroughModel, SourceKey, any>;
+  readonly fromSourceToThroughOne: HasOneAssociation<SourceModel, ThroughModel, SourceKey, any>;
+  get fromThroughToSource(): BelongsToAssociation<ThroughModel, SourceModel, any, SourceKey> {
     return this.fromSourceToThrough.inverse;
   }
 
-  get fromTargetToThrough(): HasMany<TargetModel, ThroughModel, TargetKey, any> {
+  get fromTargetToThrough(): HasManyAssociation<TargetModel, ThroughModel, TargetKey, any> {
     return this.pairedWith.fromSourceToThrough;
   }
 
-  get fromTargetToThroughOne(): HasOne<TargetModel, ThroughModel, TargetKey, any> {
+  get fromTargetToThroughOne(): HasOneAssociation<TargetModel, ThroughModel, TargetKey, any> {
     return this.pairedWith.fromSourceToThroughOne;
   }
 
-  get fromThroughToTarget(): BelongsTo<ThroughModel, TargetModel, any, TargetKey> {
+  get fromThroughToTarget(): BelongsToAssociation<ThroughModel, TargetModel, any, TargetKey> {
     return this.pairedWith.fromThroughToSource;
   }
 
@@ -221,23 +223,24 @@ export class BelongsToMany<
     source: ModelStatic<SourceModel>,
     target: ModelStatic<TargetModel>,
     options: NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
-    pair?: BelongsToMany<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
+    pair?: BelongsToManyAssociation<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
   ) {
     super(secret, source, target, options, parent);
 
     try {
-      this.pairedWith = pair ?? BelongsToMany.associate<TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey>(
+      this.pairedWith = pair ?? BelongsToManyAssociation.associate<
+        TargetModel, SourceModel, ThroughModel, TargetKey, SourceKey
+      >(
         secret,
         target,
         source,
         removeUndefined({
           ...options,
-          // note: we can't just use '...options.inverse' because we need to set to underfined if the option wasn't set
+          // note: we can't just use '...options.inverse' because we need to set to undefined if the option wasn't set
           as: options.inverse?.as,
           scope: options.inverse?.scope,
           foreignKeyConstraints: options.inverse?.foreignKeyConstraints,
-
           inverse: removeUndefined({
             as: options.as,
             scope: options.scope,
@@ -247,6 +250,12 @@ export class BelongsToMany<
           targetKey: options.sourceKey,
           foreignKey: options.otherKey,
           otherKey: options.foreignKey,
+          throughAssociations: {
+            toSource: options.throughAssociations.toTarget,
+            fromSource: options.throughAssociations.fromTarget,
+            toTarget: options.throughAssociations.toSource,
+            fromTarget: options.throughAssociations.fromSource,
+          },
           through: removeUndefined({
             ...options.through,
             scope: undefined,
@@ -275,44 +284,60 @@ export class BelongsToMany<
 
     const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
 
-    this.fromSourceToThrough = HasMany.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
-      scope: this.through.scope,
-      foreignKey: {
-        ...this.options.foreignKey,
-        allowNull: this.options.foreignKey.allowNull ?? false,
-        name: this.options.foreignKey.name || (
+    this.fromSourceToThrough = HasManyAssociation.associate(
+      AssociationSecret,
+      this.source,
+      this.throughModel,
+      removeUndefined({
+        as: options.throughAssociations.fromSource || `${this.name.plural}${upperFirst(this.pairedWith.name.plural)}`,
+        scope: this.through.scope,
+        foreignKey: {
+          ...this.options.foreignKey,
+          allowNull: this.options.foreignKey.allowNull ?? false,
+          name: this.options.foreignKey.name || (
           this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
             : camelize(`${this.source.options.name.singular}_${sourceKey}`)
-        ),
-      },
-      sourceKey: this.options.sourceKey,
-      foreignKeyConstraints: this.options.foreignKeyConstraints,
-      hooks: this.options.hooks,
-      inverse: {
-        as: this.pairedWith.name.singular,
-      },
-    }), this);
+          ),
+        },
+        sourceKey: this.options.sourceKey,
+        foreignKeyConstraints: this.options.foreignKeyConstraints,
+        hooks: this.options.hooks,
+        inverse: {
+          as: options.throughAssociations.toSource || this.pairedWith.name.singular,
+        },
+      }),
+      this,
+    );
 
-    this.fromSourceToThroughOne = HasOne.associate(AssociationSecret, this.source, this.throughModel, removeUndefined({
-      as: `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
-      scope: this.through.scope,
-      // foreignKey: this.options.foreignKey,
-      foreignKey: {
-        ...this.options.foreignKey,
-        allowNull: this.options.foreignKey.allowNull ?? false,
-        name: this.options.foreignKey.name || (
+    this.fromSourceToThroughOne = HasOneAssociation.associate(
+      AssociationSecret,
+      this.source,
+      this.throughModel,
+      removeUndefined({
+        as: options.throughAssociations.fromSource
+        ? singularize(options.throughAssociations.fromSource)
+        : `${this.name.singular}${upperFirst(this.pairedWith.name.singular)}`,
+        scope: this.through.scope,
+        // foreignKey: this.options.foreignKey,
+        foreignKey: {
+          ...this.options.foreignKey,
+          allowNull: this.options.foreignKey.allowNull ?? false,
+          name: this.options.foreignKey.name || (
           this.isSelfAssociation ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
             : camelize(`${this.source.options.name.singular}_${sourceKey}`)
-        ),
-      },
-      sourceKey: this.options.sourceKey,
-      foreignKeyConstraints: this.options.foreignKeyConstraints,
-      hooks: this.options.hooks,
-      inverse: {
-        as: this.pairedWith.name.singular,
-      },
-    }), this);
+          ),
+        },
+        sourceKey: this.options.sourceKey,
+        foreignKeyConstraints: this.options.foreignKeyConstraints,
+        hooks: this.options.hooks,
+        inverse: {
+          as: options.throughAssociations.toSource
+          ? singularize(options.throughAssociations.toSource)
+          : this.pairedWith.name.singular,
+        },
+      }),
+      this,
+    );
 
     // Get singular and plural names, trying to uppercase the first letter, unless the model forbids it
     const plural = upperFirst(this.options.name.plural);
@@ -401,22 +426,27 @@ Add your own primary key to the through model, on different attributes than the 
     source: ModelStatic<S>,
     target: ModelStatic<T>,
     options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
-    pair?: BelongsToMany<T, S, ThroughModel, TargetKey, SourceKey>,
+    pair?: BelongsToManyAssociation<T, S, ThroughModel, TargetKey, SourceKey>,
     parent?: Association<any>,
-  ): BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey> {
+  ): BelongsToManyAssociation<S, T, ThroughModel, SourceKey, TargetKey> {
     return defineAssociation<
-      BelongsToMany<S, T, ThroughModel, SourceKey, TargetKey>,
+      BelongsToManyAssociation<S, T, ThroughModel, SourceKey, TargetKey>,
       BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
       NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
-    >(BelongsToMany, source, target, options, parent, normalizeOptions, newOptions => {
+    >(BelongsToManyAssociation, source, target, options, parent, normalizeBelongsToManyOptions, newOptions => {
       // self-associations must always set their 'as' parameter
       if (isSameInitialModel(source, target)
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse?.as || options.as === options.inverse.as)) {
+        && (
+          // use 'options' because this will always be set in 'newOptions'
+          !options.as
+          || !newOptions.inverse?.as
+          || options.as === newOptions.inverse.as
+        )
+      ) {
         throw new AssociationError('Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
       }
 
-      return new BelongsToMany(secret, source, target, newOptions, pair, parent);
+      return new BelongsToManyAssociation(secret, source, target, newOptions, pair, parent);
     });
   }
 
@@ -528,17 +558,17 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async has(
     sourceInstance: SourceModel,
-    targetInstancesOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    targetInstancesOrPks: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyHasAssociationMixinOptions<TargetModel>,
   ): Promise<boolean> {
-    if (!Array.isArray(targetInstancesOrPks)) {
-      targetInstancesOrPks = [targetInstancesOrPks];
-    }
+    const targets = this.toInstanceOrPkArray(targetInstancesOrPks);
 
-    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targetInstancesOrPks.map(instance => {
+    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map(instance => {
       if (instance instanceof this.target) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion -- needed for TS < 5.0
-        return (instance as TargetModel).get(this.targetKey);
+        // TODO: remove eslint-disable once we drop support for < 5.2
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
+        // @ts-ignore
+        return instance.get(this.targetKey);
       }
 
       return instance as TargetModel[TargetKey];
@@ -578,7 +608,7 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async set(
     sourceInstance: SourceModel,
-    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    newInstancesOrPrimaryKeys: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options: BelongsToManySetAssociationsMixinOptions<TargetModel> = {},
   ): Promise<void> {
     const sourceKey = this.sourceKey;
@@ -586,7 +616,7 @@ Add your own primary key to the through model, on different attributes than the 
     const foreignKey = this.foreignKey;
     const otherKey = this.otherKey;
 
-    const newInstances = newInstancesOrPrimaryKeys === null ? [] : this.toInstanceArray(newInstancesOrPrimaryKeys);
+    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
     const where: WhereOptions = {
       [foreignKey]: sourceInstance.get(sourceKey),
@@ -604,7 +634,7 @@ Add your own primary key to the through model, on different attributes than the 
         association: this.fromThroughToTarget,
         where: this.scope,
         required: true,
-      }] : [],
+      }] : EMPTY_ARRAY,
     });
 
     const obsoleteTargets: Array<TargetModel | Exclude<TargetModel[TargetKey], any[]>> = [];
@@ -644,15 +674,13 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async add(
     sourceInstance: SourceModel,
-    newInstancesOrPrimaryKeys: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    newInstancesOrPrimaryKeys: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyAddAssociationsMixinOptions<TargetModel>,
   ): Promise<void> {
-    // If newInstances is null or undefined, no-op
-    if (!newInstancesOrPrimaryKeys) {
+    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
+    if (newInstances.length === 0) {
       return;
     }
-
-    const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -660,7 +688,7 @@ Add your own primary key to the through model, on different attributes than the 
       ...this.through.scope,
     };
 
-    let currentRows: any[] = [];
+    let currentRows: readonly any[] = EMPTY_ARRAY;
     if (this.through?.unique ?? true) {
       // @ts-expect-error -- the findAll call is raw, no model here
       currentRows = await this.through.model.findAll({
@@ -687,8 +715,8 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async #updateAssociations(
     sourceInstance: SourceModel,
-    currentThroughRows: ThroughModel[],
-    newTargets: TargetModel[],
+    currentThroughRows: readonly ThroughModel[],
+    newTargets: readonly TargetModel[],
     options?:
       & { through?: JoinTableAttributes }
       & BulkCreateOptions<Attributes<ThroughModel>>
@@ -699,7 +727,7 @@ Add your own primary key to the through model, on different attributes than the 
     const foreignKey = this.foreignKey;
     const otherKey = this.otherKey;
 
-    const defaultAttributes = options?.through || {};
+    const defaultAttributes = options?.through || EMPTY_OBJECT;
 
     const promises: Array<Promise<any>> = [];
     const unassociatedTargets: TargetModel[] = [];
@@ -778,10 +806,13 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async remove(
     sourceInstance: SourceModel,
-    targetInstanceOrPks: AllowArray<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
+    targetInstanceOrPks: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options?: BelongsToManyRemoveAssociationMixinOptions,
   ): Promise<void> {
     const targetInstance = this.toInstanceArray(targetInstanceOrPks);
+    if (targetInstance.length === 0) {
+      return;
+    }
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -830,7 +861,7 @@ Add your own primary key to the through model, on different attributes than the 
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
-Object.defineProperty(BelongsToMany, 'name', {
+Object.defineProperty(BelongsToManyAssociation, 'name', {
   value: 'BelongsToMany',
 });
 
@@ -852,8 +883,8 @@ function normalizeThroughOptions<M extends Model>(
     model = through.model;
   } else if (typeof through.model === 'function') { // model class provided as a forward reference
     model = through.model(sequelize);
-  } else if (sequelize.isDefined(through.model)) { // model name provided: get if exists, create if not
-    model = sequelize.model<M>(through.model);
+  } else if (sequelize.models.hasByName(through.model)) { // model name provided: get if exists, create if not
+    model = sequelize.models.getOrThrow<M>(through.model);
   } else {
     const sourceTable = source.table;
 
@@ -875,7 +906,7 @@ function normalizeThroughOptions<M extends Model>(
   });
 }
 
-function normalizeOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
+function normalizeBelongsToManyOptions<SourceKey extends string, TargetKey extends string, ThroughModel extends Model>(
   type: AssociationStatic<any>,
   options: BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>,
   source: ModelStatic<Model>,
@@ -894,10 +925,12 @@ function normalizeOptions<SourceKey extends string, TargetKey extends string, Th
 
   return normalizeBaseAssociationOptions(type, {
     ...options,
+    inverse: normalizeInverseAssociation(options.inverse),
     otherKey: normalizeForeignKeyOptions(options.otherKey),
     through: removeUndefined(isThroughOptions(options.through)
       ? normalizeThroughOptions(source, target, options.through, sequelize)
       : normalizeThroughOptions(source, target, { model: options.through }, sequelize)),
+    throughAssociations: options?.throughAssociations ? removeUndefined(options.throughAssociations) : EMPTY_OBJECT,
   }, source, target);
 }
 
@@ -955,8 +988,11 @@ type NormalizedBelongsToManyOptions<
   TargetKey extends string,
   ThroughModel extends Model,
 > =
-  & Omit<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'through' | 'as' | 'hooks' | 'foreignKey'>
-  & { through: NormalizedThroughOptions<ThroughModel> }
+  & Omit<RequiredBy<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>, 'throughAssociations'>, 'through' | 'as' | 'hooks' | 'foreignKey' | 'inverse'>
+  & {
+    through: NormalizedThroughOptions<ThroughModel>,
+    inverse?: Exclude<BelongsToManyOptions<SourceKey, TargetKey, ThroughModel>['inverse'], string>,
+  }
   & Pick<NormalizedAssociationOptions<string>, 'as' | 'name' | 'hooks' | 'foreignKey'>;
 
 type NormalizedThroughOptions<ThroughModel extends Model> = Omit<ThroughOptions<ThroughModel>, 'model'> & {
@@ -974,9 +1010,9 @@ export interface BelongsToManyOptions<
   ThroughModel extends Model = Model,
 > extends MultiAssociationOptions<AttributeNames<ThroughModel>> {
   /**
-   * Configures this association on the target model.
+   * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: {
+  inverse?: string | undefined | {
     as?: AssociationOptions<string>['as'],
     scope?: MultiAssociationOptions<string>['scope'],
     foreignKeyConstraints?: AssociationOptions<string>['foreignKeyConstraints'],
@@ -993,12 +1029,48 @@ export interface BelongsToManyOptions<
 
   /**
    * The name of the table that is used to join source and target in n:m associations. Can also be a
-   * sequelize model if you want to define the junction table yourself and add extra attributes to it.
+   * Sequelize model if you want to define the junction table yourself and add extra attributes to it.
    */
   through: MaybeForwardedModelStatic<ThroughModel> | string | ThroughOptions<ThroughModel>;
 
   /**
-   * The name of the foreign key in the join table (representing the target model) or an object representing
+   * Configures the name of the associations that will be defined between the source model and the through model,
+   * as well as between the target model and the through model.
+   */
+  throughAssociations?: {
+    /**
+     * The name of the HasMany association going from the Source model to the Through model.
+     *
+     * By default, the association will be the name of the BelongsToMany association
+     * + the name of the inverse BelongsToMany association.
+     */
+    fromSource?: string | undefined,
+
+    /**
+     * The name of the BelongsTo association going from the Through model to the Source model.
+     *
+     * By default, the association name will be the name of the inverse BelongsToMany association, singularized.
+     */
+    toSource?: string | undefined,
+
+    /**
+     * The name of the HasMany association going from the Target model to the Through model.
+     *
+     * By default, the association will be the name of the Inverse BelongsToMany association
+     * + the name of the BelongsToMany association.
+     */
+    fromTarget?: string | undefined,
+
+    /**
+     * The name of the BelongsTo association going from the Through model to the Target model.
+     *
+     * By default, the association name will be the name of the parent BelongsToMany association, singularized.
+     */
+    toTarget?: string | undefined,
+  };
+
+  /**
+   * The name of the foreign key attribute in the through model (representing the target model) or an object representing
    * the type definition for the other column (see `Sequelize.define` for syntax). When using an object, you
    * can add a `name` property to set the name of the colum. Defaults to the name of target + primary key of
    * target
@@ -1006,14 +1078,14 @@ export interface BelongsToManyOptions<
   otherKey?: AttributeNames<ThroughModel> | ForeignKeyOptions<AttributeNames<ThroughModel>>;
 
   /**
-   * The name of the field to use as the key for the association in the source table. Defaults to the primary
-   * key of the source table
+   * The name of the attribute to use as the key for the association in the source table.
+   * Defaults to the primary key attribute of the source model
    */
   sourceKey?: SourceKey;
 
   /**
-   * The name of the field to use as the key for the association in the target table. Defaults to the primary
-   * key of the target table
+   * The name of the attribute to use as the key for the association in the target table.
+   * Defaults to the primary key attribute of the target model
    */
   targetKey?: TargetKey;
 }
@@ -1095,7 +1167,7 @@ export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Mo
  * @see Model.belongsToMany
  */
 export type BelongsToManySetAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<TModel | TModelPrimaryKey>,
+  newAssociations?: Iterable<TModel | TModelPrimaryKey> | null,
   options?: BelongsToManySetAssociationsMixinOptions<TModel>
 ) => Promise<void>;
 
@@ -1127,7 +1199,7 @@ export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
  * @see Model.belongsToMany
  */
 export type BelongsToManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Array<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey>,
   options?: BelongsToManyAddAssociationsMixinOptions<T>
 ) => Promise<void>;
 
@@ -1240,7 +1312,7 @@ export interface BelongsToManyRemoveAssociationsMixinOptions extends InstanceDes
  * @see Model.belongsToMany
  */
 export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
-  associationsToRemove?: Array<TModel | TModelPrimaryKey>,
+  associationsToRemove?: Iterable<TModel | TModelPrimaryKey>,
   options?: BelongsToManyRemoveAssociationsMixinOptions
 ) => Promise<void>;
 
@@ -1294,7 +1366,7 @@ export interface BelongsToManyHasAssociationsMixinOptions<T extends Model>
  * @see Model.belongsToMany
  */
 export type BelongsToManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
-  targets: Array<TModel | TModelPrimaryKey>,
+  targets: Iterable<TModel | TModelPrimaryKey>,
   options?: BelongsToManyHasAssociationsMixinOptions<TModel>
 ) => Promise<boolean>;
 

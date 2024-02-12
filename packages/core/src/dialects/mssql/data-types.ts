@@ -200,10 +200,6 @@ export class JSON extends BaseTypes.JSON {
   // TODO: add constraint
   //  https://learn.microsoft.com/en-us/sql/t-sql/functions/isjson-transact-sql?view=sql-server-ver16
 
-  toBindableValue(value: any): string {
-    return globalThis.JSON.stringify(value);
-  }
-
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {
 

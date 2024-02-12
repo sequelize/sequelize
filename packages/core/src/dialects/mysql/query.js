@@ -14,6 +14,7 @@ const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
 const ER_NO_REFERENCED_ROW = 1452;
+const ER_CONSTRAINT_NOT_FOUND = 3940;
 
 const debug = logger.debugContext('sql:mysql');
 
@@ -125,10 +126,6 @@ export class MySqlQuery extends AbstractQuery {
       return this.handleSelectQuery(data);
     }
 
-    if (this.isShowTablesQuery()) {
-      return this.handleShowTablesQuery(data);
-    }
-
     if (this.isDescribeQuery()) {
       result = {};
 
@@ -156,12 +153,8 @@ export class MySqlQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isBulkDeleteQuery()) {
+    if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
       return data.affectedRows;
-    }
-
-    if (this.isForeignKeysQuery()) {
-      return data;
     }
 
     if (this.isUpsertQuery()) {
@@ -241,16 +234,23 @@ export class MySqlQuery extends AbstractQuery {
         });
       }
 
+      case ER_CONSTRAINT_NOT_FOUND: {
+        const constraintMatch = err.sql.match(/(?:constraint|index) `(.+?)`/i);
+        const constraint = constraintMatch ? constraintMatch[1] : undefined;
+        const tableMatch = err.sql.match(/table `(.+?)`/i);
+        const table = tableMatch ? tableMatch[1] : undefined;
+
+        return new sequelizeErrors.UnknownConstraintError({
+          message: err.text,
+          constraint,
+          table,
+          cause: err,
+        });
+      }
+
       default:
         return new sequelizeErrors.DatabaseError(err);
     }
-  }
-
-  handleShowTablesQuery(results) {
-    return results.map(resultSet => ({
-      tableName: resultSet.TABLE_NAME,
-      schema: resultSet.TABLE_SCHEMA,
-    }));
   }
 
   handleShowIndexesQuery(data) {
