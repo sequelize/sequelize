@@ -1308,7 +1308,7 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | (keyof TAttributes)[];
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
