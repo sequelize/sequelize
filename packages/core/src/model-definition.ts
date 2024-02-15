@@ -158,10 +158,8 @@ export class ModelDefinition<M extends Model = Model> {
    */
   #indexes: IndexOptions[] = [];
 
-  /**
-   * @deprecated Temporary property to be able to use elements that have not migrated to ModelDefinition yet.
-   */
-  readonly #model: ModelStatic<M>;
+  // TODO: associated model can be any class, not just ModelStatic.
+  readonly model: ModelStatic<M>;
 
   get modelName(): string {
     return this.options.modelName;
@@ -190,7 +188,7 @@ export class ModelDefinition<M extends Model = Model> {
     }
 
     this.#sequelize = modelOptions.sequelize;
-    this.#model = model;
+    this.model = model;
 
     const globalOptions = this.#sequelize.options;
 
@@ -232,11 +230,6 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     this.options.name.singular ??= this.options.modelName;
 
     this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
-
-    // if you call "define" multiple times for the same modelName, do not clutter the factory
-    if (this.sequelize.isDefined(this.modelName)) {
-      this.sequelize.modelManager.removeModel(this.sequelize.modelManager.getModel(this.modelName)!);
-    }
 
     if (this.options.hooks) {
       this.hooks.addListeners(this.options.hooks);
@@ -497,7 +490,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           columnName,
 
           // @ts-expect-error -- undocumented legacy property, to be removed.
-          Model: this.#model,
+          Model: this.model,
 
           // undocumented legacy property, to be removed.
           _modelAttribute: true,
@@ -508,7 +501,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           builtAttribute.type
             = builtAttribute.type.withUsageContext({
               // TODO: Repository Pattern - replace with ModelDefinition
-              model: this.#model,
+              model: this.model,
               attributeName,
               sequelize: this.sequelize,
             });
@@ -712,7 +705,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       if (index.name === newName) {
         throw new Error(`Sequelize tried to give the name "${newName}" to index:
 ${NodeUtil.inspect(newIndex)}
-on model "${this.#model.name}", but that name is already taken by index:
+on model "${this.modelName}", but that name is already taken by index:
 ${NodeUtil.inspect(index)}
 
 Specify a different name for either index to resolve this issue.`);
@@ -791,6 +784,15 @@ Specify a different name for either index to resolve this issue.`);
 
     return association.target.modelDefinition.#getAssociationFromPathMut(associationPath);
   }
+
+  isParanoid(): boolean {
+    return Boolean(this.timestampAttributeNames.deletedAt);
+  }
+}
+
+const modelDefinitionListeners = new Set<(model: ModelStatic) => void>();
+export function listenForModelDefinition(callback: (model: ModelStatic) => void): void {
+  modelDefinitionListeners.add(callback);
 }
 
 const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition<any>>();
@@ -801,6 +803,14 @@ export function registerModelDefinition<M extends Model>(model: ModelStatic<M>, 
   }
 
   modelDefinitions.set(model, modelDefinition);
+
+  for (const listener of modelDefinitionListeners) {
+    listener(model);
+  }
+}
+
+export function removeModelDefinition(model: ModelStatic): void {
+  modelDefinitions.delete(model);
 }
 
 export function hasModelDefinition(model: ModelStatic): boolean {

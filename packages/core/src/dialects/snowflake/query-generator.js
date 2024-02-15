@@ -1,6 +1,7 @@
 'use strict';
 
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { rejectInvalidOptions } from '../../utils/check';
@@ -10,7 +11,6 @@ import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 
 const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const { Op } = require('../../operators');
 
 /**
  * list of reserved words in Snowflake
@@ -22,22 +22,14 @@ const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,c
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
-  constructor(options) {
-    super(options);
-
-    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
-    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -118,9 +110,9 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }

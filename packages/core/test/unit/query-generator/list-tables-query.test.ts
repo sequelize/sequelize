@@ -38,7 +38,7 @@ describe('QueryGenerator#listTablesQuery', () => {
       ibmi: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM QSYS2.SYSTABLES WHERE TABLE_TYPE = 'T' AND TABLE_SCHEMA NOT LIKE 'Q%' AND TABLE_SCHEMA NOT LIKE 'SYS%' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
       mssql: `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U' AND s.name = N'dbo' ORDER BY s.name, t.name`,
       mysql: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'sequelize_test' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      sqlite: `SELECT name AS \`tableName\` FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'`,
+      sqlite: buildInvalidOptionReceivedError('listTablesQuery', 'sqlite', ['schema']),
       mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'sequelize_test' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
       postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema = 'public' ORDER BY table_schema, table_name`,
       snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'PUBLIC' ORDER BY TABLE_SCHEMA, TABLE_NAME`,

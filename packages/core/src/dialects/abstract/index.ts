@@ -189,6 +189,7 @@ export type DialectSupports = {
     CIDR: boolean,
     INET: boolean,
     MACADDR: boolean,
+    MACADDR8: boolean,
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
       infinity: boolean,
@@ -361,6 +362,7 @@ export abstract class AbstractDialect {
       DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
       CIDR: false,
       MACADDR: false,
+      MACADDR8: false,
       INET: false,
       JSON: false,
       JSONB: false,

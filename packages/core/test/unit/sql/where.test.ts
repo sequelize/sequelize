@@ -76,41 +76,43 @@ class TestModel extends Model<InferAttributes<TestModel>> {
 
 type TestModelWhere = WhereOptions<Attributes<TestModel>>;
 
-TestModel.init({
-  intAttr1: DataTypes.INTEGER,
-  intAttr2: DataTypes.INTEGER,
-  nullableIntAttr: DataTypes.INTEGER,
-
-  ...(dialectSupportsArray() && {
-    intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
-    intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
-    dateRangeAttr: DataTypes.RANGE(DataTypes.DATE(3)),
-  }),
-
-  stringAttr: DataTypes.STRING,
-  binaryAttr: DataTypes.BLOB,
-  dateAttr: DataTypes.DATE(3),
-  booleanAttr: DataTypes.BOOLEAN,
-  bigIntAttr: DataTypes.BIGINT,
-
-  aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
-
-  ...(dialectSupportsJson() && {
-    jsonAttr: { type: DataTypes.JSON },
-    aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
-  }),
-
-  ...(dialectSupportsJsonB() && {
-    jsonbAttr: { type: DataTypes.JSONB },
-    aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
-    jsonbTypeLiteralAttr: { type: DataTypes.JSONB },
-    jsonbInterfaceAttr: { type: DataTypes.JSONB },
-  }),
-
-  uuidAttr: DataTypes.UUID,
-}, { sequelize });
-
 describe(getTestDialectTeaser('SQL'), () => {
+  before(() => {
+    TestModel.init({
+      intAttr1: DataTypes.INTEGER,
+      intAttr2: DataTypes.INTEGER,
+      nullableIntAttr: DataTypes.INTEGER,
+
+      ...(dialectSupportsArray() && {
+        intArrayAttr: DataTypes.ARRAY(DataTypes.INTEGER),
+        intRangeAttr: DataTypes.RANGE(DataTypes.INTEGER),
+        dateRangeAttr: DataTypes.RANGE(DataTypes.DATE(3)),
+      }),
+
+      stringAttr: DataTypes.STRING,
+      binaryAttr: DataTypes.BLOB,
+      dateAttr: DataTypes.DATE(3),
+      booleanAttr: DataTypes.BOOLEAN,
+      bigIntAttr: DataTypes.BIGINT,
+
+      aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
+
+      ...(dialectSupportsJson() && {
+        jsonAttr: { type: DataTypes.JSON },
+        aliasedJsonAttr: { type: DataTypes.JSON, field: 'aliased_json' },
+      }),
+
+      ...(dialectSupportsJsonB() && {
+        jsonbAttr: { type: DataTypes.JSONB },
+        aliasedJsonbAttr: { type: DataTypes.JSONB, field: 'aliased_jsonb' },
+        jsonbTypeLiteralAttr: { type: DataTypes.JSONB },
+        jsonbInterfaceAttr: { type: DataTypes.JSONB },
+      }),
+
+      uuidAttr: DataTypes.UUID,
+    }, { sequelize });
+  });
+
   describe('whereQuery', () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(

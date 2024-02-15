@@ -1,22 +1,20 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
-
-import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { FetchDatabaseVersionOptions, QiDropAllTablesOptions } from '../abstract/query-interface.types.js';
-import type { OracleQueryGenerator } from './query-generator.js';
+import { OracleDialect } from './index.js';
 
-export class OracleQueryInterfaceTypescript extends AbstractQueryInterface {
+export class OracleQueryInterfaceTypescript<Dialect extends OracleDialect = OracleDialect> extends AbstractQueryInterface {
+
   #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: OracleQueryGenerator,
+    dialect: Dialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    internalQueryInterface ??= new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    internalQueryInterface ??= new AbstractQueryInterfaceInternal(dialect);
 
-    super(sequelize, queryGenerator, internalQueryInterface);
+    super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
   }
 

@@ -26,7 +26,13 @@ import {
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
-import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import {
+  _validateIncludedElements,
+  combineIncludes,
+  getModelPkWhere,
+  setTransactionFromCls,
+  throwInvalidInclude,
+} from './model-internals';
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
@@ -126,8 +132,8 @@ export class Model extends ModelTypeScript {
 
     options = {
       isNewRecord: true,
-      _schema: this.constructor.modelDefinition.table.schema,
-      _schemaDelimiter: this.constructor.modelDefinition.table.delimiter,
+      _schema: this.modelDefinition.table.schema,
+      _schemaDelimiter: this.modelDefinition.table.delimiter,
       ...options,
       model: this.constructor,
     };
@@ -165,7 +171,7 @@ export class Model extends ModelTypeScript {
     values = { ...values };
 
     if (options.isNewRecord) {
-      const modelDefinition = this.constructor.modelDefinition;
+      const modelDefinition = this.modelDefinition;
 
       const defaults = modelDefinition.defaultValues.size > 0
         ? mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
@@ -2468,6 +2474,9 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param  {object} options destroy options
    * @returns {Promise<number>} The number of destroyed rows
    */
+  // TODO: add _UNSTABLE_bulkDestroy, aimed to be a replacement,
+  //  which does the same thing but uses `noHooks` instead of `hooks` and `hardDelete` instead of `force`,
+  //  and does not accept `individualHooks`
   static async destroy(options) {
     options = cloneDeep(options) ?? {};
 
@@ -3109,44 +3118,7 @@ Instead of specifying a Model, either:
    * @returns {object}
    */
   where(checkVersion, nullIfImpossible) {
-    const modelDefinition = this.constructor.modelDefinition;
-
-    if (modelDefinition.primaryKeysAttributeNames.size === 0) {
-      if (nullIfImpossible) {
-        return null;
-      }
-
-      throw new Error(
-        `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition. Either add a primary key to this model, or use one of the following alternatives:
-
-- instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
-- instance method "reload": Use the static "findOne" method instead.
-- instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
-        `.trim(),
-      );
-    }
-
-    const where = Object.create(null);
-
-    for (const attributeName of modelDefinition.primaryKeysAttributeNames) {
-      const attrVal = this.get(attributeName, { raw: true });
-      if (attrVal == null) {
-        if (nullIfImpossible) {
-          return null;
-        }
-
-        throw new TypeError(`This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attributeName}". Make sure that attribute was not excluded when retrieving the model from the database.`);
-      }
-
-      where[attributeName] = attrVal;
-    }
-
-    const versionAttr = modelDefinition.versionAttributeName;
-    if (checkVersion && versionAttr) {
-      where[versionAttr] = this.get(versionAttr, { raw: true });
-    }
-
-    return where;
+    return getModelPkWhere(this, checkVersion, nullIfImpossible);
   }
 
   toString() {
@@ -3203,7 +3175,7 @@ Instead of specifying a Model, either:
 
     options = options ?? EMPTY_OBJECT;
 
-    const { attributes, attributesWithGetters } = this.constructor.modelDefinition;
+    const { attributes, attributesWithGetters } = this.modelDefinition;
 
     if (attributeName) {
       const attribute = attributes.get(attributeName);
@@ -3288,7 +3260,7 @@ Instead of specifying a Model, either:
     let values;
     let originalValue;
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     if (typeof key === 'object' && key !== null) {
       values = key;
@@ -3589,7 +3561,7 @@ Instead of specifying a Model, either:
 
     setTransactionFromCls(options, this.sequelize);
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     if (!options.fields) {
       if (this.isNewRecord) {
@@ -3972,14 +3944,12 @@ Instead of specifying a Model, either:
 
     setTransactionFromCls(options, this.sequelize);
 
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     // Run before hook
     if (options.hooks) {
-      await this.constructor.hooks.runAsync('beforeDestroy', this, options);
+      await modelDefinition.hooks.runAsync('beforeDestroy', this, options);
     }
-
-    const where = this.where(true);
 
     let result;
     if (modelDefinition.timestampAttributeNames.deletedAt && options.force === false) {
@@ -3995,12 +3965,15 @@ Instead of specifying a Model, either:
 
       result = await this.save({ ...options, hooks: false });
     } else {
-      result = await this.constructor.queryInterface.delete(this.constructor, { limit: null, ...options, where });
+      // TODO: replace "hooks" with "noHooks" in this method and call ModelRepository.destroy instead of queryInterface.delete
+      const where = this.where(true);
+
+      result = await this.constructor.queryInterface.bulkDelete(this.constructor, { limit: null, ...options, where });
     }
 
     // Run after hook
     if (options.hooks) {
-      await this.constructor.hooks.runAsync('afterDestroy', this, options);
+      await modelDefinition.hooks.runAsync('afterDestroy', this, options);
     }
 
     return result;
@@ -4015,7 +3988,7 @@ Instead of specifying a Model, either:
    * @returns {boolean}
    */
   isSoftDeleted() {
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
 
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
     if (!deletedAtAttributeName) {
@@ -4040,7 +4013,7 @@ Instead of specifying a Model, either:
    * @returns {Promise}
    */
   async restore(options) {
-    const modelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
 
     if (!deletedAtAttributeName) {
@@ -4157,8 +4130,8 @@ Instead of specifying a Model, either:
       return false;
     }
 
-    const modelDefinition = this.constructor.modelDefinition;
-    const otherModelDefinition = this.constructor.modelDefinition;
+    const modelDefinition = this.modelDefinition;
+    const otherModelDefinition = this.modelDefinition;
 
     if (modelDefinition !== otherModelDefinition) {
       return false;

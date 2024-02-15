@@ -7,21 +7,17 @@ import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
 import {
-  deleteToBulkDelete,
   noSchemaDelimiterParameter,
   noSchemaParameter,
   showAllToListSchemas,
   showAllToListTables,
 } from '../../utils/deprecations';
-import type { RequiredBy } from '../../utils/types';
 import type { Connection } from './connection-manager.js';
-import type { AbstractQueryGenerator } from './query-generator';
-import type { TableNameOrModel } from './query-generator-typescript.js';
+import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
-  BulkDeleteOptions,
   ColumnsDescription,
   ConstraintDescription,
   CreateDatabaseOptions,
@@ -32,6 +28,7 @@ import type {
   DropSchemaOptions,
   FetchDatabaseVersionOptions,
   ListDatabasesOptions,
+  QiBulkDeleteOptions,
   QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
@@ -43,6 +40,7 @@ import type {
   RenameTableOptions,
   ShowConstraintsOptions,
 } from './query-interface.types';
+import type { AbstractDialect } from './index.js';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -51,26 +49,30 @@ export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Pro
  * This is a temporary class used to progressively migrate the AbstractQueryInterface class to TypeScript by slowly moving its functions here.
  * Always use {@link AbstractQueryInterface} instead.
  */
-export class AbstractQueryInterfaceTypeScript {
-  readonly sequelize: Sequelize;
-  readonly queryGenerator: AbstractQueryGenerator;
+export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = AbstractDialect> {
+  readonly dialect: Dialect;
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   /**
-   * @param sequelize The sequelize instance.
-   * @param queryGenerator The query generator of the dialect used by the current Sequelize instance.
+   * @param dialect The dialect instance.
    * @param internalQueryInterface The internal query interface to use.
    *                               Defaults to a new instance of {@link AbstractQueryInterfaceInternal}.
    *                               Your dialect may replace this with a custom implementation.
    */
   constructor(
-    sequelize: Sequelize,
-    queryGenerator: AbstractQueryGenerator,
+    dialect: Dialect,
     internalQueryInterface?: AbstractQueryInterfaceInternal,
   ) {
-    this.sequelize = sequelize;
-    this.queryGenerator = queryGenerator;
-    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(sequelize, queryGenerator);
+    this.dialect = dialect;
+    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
+  }
+
+  get sequelize(): Sequelize {
+    return this.dialect.sequelize;
+  }
+
+  get queryGenerator(): Dialect['queryGenerator'] {
+    return this.dialect.queryGenerator;
   }
 
   /**
@@ -219,7 +221,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName Table name to drop
    * @param options   Query options
    */
-  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+  async dropTable(tableName: TableOrModel, options?: QiDropTableOptions): Promise<void> {
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, options);
@@ -287,8 +289,8 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async renameTable(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableOptions,
   ): Promise<void> {
     const sql = this.queryGenerator.renameTableQuery(beforeTableName, afterTableName, options);
@@ -302,7 +304,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName - The name of the table or model
    * @param options - Query options
    */
-  async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
+  async tableExists(tableName: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
     const sql = this.queryGenerator.tableExistsQuery(tableName);
     const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
 
@@ -332,7 +334,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName
    * @param options Query options
    */
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
+  async describeTable(tableName: TableOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -382,7 +384,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName
    * @param options
    */
-  async truncate(tableName: TableNameOrModel, options?: QiTruncateTableOptions): Promise<void> {
+  async truncate(tableName: TableOrModel, options?: QiTruncateTableOptions): Promise<void> {
     const sql = this.queryGenerator.truncateTableQuery(tableName, options);
     const queryOptions = { ...options, raw: true, type: QueryTypes.RAW };
     if (Array.isArray(sql)) {
@@ -400,7 +402,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options
    */
   async removeColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columnName: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
@@ -500,7 +502,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param tableName - Table name where you want to add a constraint
    * @param options - An object to define the constraint name, type etc
    */
-  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
+  async addConstraint(tableName: TableOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {
       throw new Error('Fields must be specified through options.fields');
     }
@@ -533,7 +535,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param options -Query options
    */
   async removeConstraint(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     constraintName: string,
     options?: RemoveConstraintOptions,
   ): Promise<void> {
@@ -542,7 +544,7 @@ export class AbstractQueryInterfaceTypeScript {
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+  async showConstraints(tableName: TableOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
     const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
     const constraintMap = new Map<string, ConstraintDescription>();
@@ -619,7 +621,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param _tableNames
    * @param _options
    */
-  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+  getForeignKeysForTables(_tableNames: TableOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
   }
 
@@ -630,7 +632,7 @@ export class AbstractQueryInterfaceTypeScript {
    * @param _tableName
    * @param _options
    */
-  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
+  getForeignKeyReferencesForTable(_tableName: TableOrModel, _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
   }
 
@@ -708,30 +710,14 @@ export class AbstractQueryInterfaceTypeScript {
   }
 
   /**
-   * Delete records from a table
+   * Deletes records from a table
    *
-   * @param tableName
+   * @param tableOrModel
    * @param options
    */
-  async delete(tableName: TableNameOrModel, options: RequiredBy<BulkDeleteOptions, 'where'>): Promise<number> {
-    deleteToBulkDelete();
-    const deleteOptions = { ...options };
-    const sql = this.queryGenerator.bulkDeleteQuery(tableName, deleteOptions);
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete deleteOptions.replacements;
-
-    return this.sequelize.queryRaw(sql, { ...deleteOptions, raw: true, type: QueryTypes.DELETE });
-  }
-
-  /**
-   * Delete multiple records from a table
-   *
-   * @param tableName
-   * @param options
-   */
-  async bulkDelete(tableName: TableNameOrModel, options?: BulkDeleteOptions): Promise<number> {
+  async bulkDelete(tableOrModel: TableOrModel, options?: QiBulkDeleteOptions): Promise<number> {
     const bulkDeleteOptions = { ...options };
-    const sql = this.queryGenerator.bulkDeleteQuery(tableName, bulkDeleteOptions);
+    const sql = this.queryGenerator.bulkDeleteQuery(tableOrModel, bulkDeleteOptions);
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete bulkDeleteOptions.replacements;
 

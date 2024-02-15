@@ -3,49 +3,45 @@ import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
+import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type {
-  EscapeOptions,
-  QueryGeneratorOptions,
-  RemoveIndexQueryOptions,
-  TableNameOrModel,
-} from '../abstract/query-generator-typescript';
-import type {
-  AddLimitOffsetOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
-
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
-const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
+import { MySqlQueryGeneratorInternal } from './query-generator-internal.js';
+import type { MysqlDialect } from './index.js';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  constructor(options: QueryGeneratorOptions) {
-    super(options);
+  readonly #internals: MySqlQueryGeneratorInternal;
 
-    this.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
-    this.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
-  }
+  constructor(
+    dialect: MysqlDialect,
+    internals: MySqlQueryGeneratorInternal = new MySqlQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
 
-  protected _getTechnicalSchemaNames() {
-    return ['MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys'];
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+
+    this.#internals = internals;
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
     if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
+      schemasToSkip = [...schemasToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -55,7 +51,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
@@ -66,18 +62,18 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
       options?.schema
         ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABLE_SCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
-        this.dialect.name,
+        this.dialect,
         TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -85,7 +81,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -117,7 +113,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
@@ -126,16 +122,16 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -170,21 +166,5 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   getUuidV1FunctionCall(): string {
     return 'UUID()';
-  }
-
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
   }
 }

@@ -1,31 +1,26 @@
 'use strict';
 
-const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const util        = require('node:util');
+const { sequelize, expectsql, beforeAll2 } = require('../../support');
 
-const expectsql   = Support.expectsql;
-const current     = Support.sequelize;
-const sql         = current.dialect.queryGenerator;
+const sql = sequelize.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-  describe('group', () => {
-    const testsql = function (options, expectation) {
-      const model = options.model;
+describe('QueryGenerator#selectQuery with "group"', () => {
+  function expectSelect(options, expectation) {
+    const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.selectQuery(
-            options.table || model && model.getTableName(),
-            options,
-            options.model,
-          ),
-          expectation,
-        );
-      });
-    };
+    return expectsql(
+      sql.selectQuery(
+        options.table || model && model.getTableName(),
+        options,
+        options.model,
+      ),
+      expectation,
+    );
+  }
 
-    const User = Support.sequelize.define('User', {
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
       name: {
         type: DataTypes.STRING,
         field: 'name',
@@ -33,7 +28,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
     });
 
-    testsql({
+    return { User };
+  });
+
+  it('supports simple GROUP BY', () => {
+    const { User } = vars;
+
+    expectSelect({
       model: User,
       group: ['name'],
     }, {
@@ -45,8 +46,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       oracle: `SELECT * FROM "Users" "User" GROUP BY "name";`,
     });
+  });
 
-    testsql({
+  it('does not add GROUP BY if it is empty', () => {
+    const { User } = vars;
+
+    expectSelect({
       model: User,
       group: [],
     }, {

@@ -7,7 +7,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
@@ -43,8 +43,8 @@ export interface MsSqlConnection extends Connection, TediousConnection {
 export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConnection> {
   lib: Lib;
 
-  constructor(dialect: MssqlDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: MssqlDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('tedious') as Lib;
   }
 

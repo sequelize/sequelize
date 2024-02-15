@@ -2,7 +2,7 @@ import { DataTypes, literal } from '@sequelize/core';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const limitNotSupportedError = new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+const limitNotSupportedError = new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
 
 describe('QueryGenerator#bulkDeleteQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -28,6 +28,20 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
     const MyModel = sequelize.define('MyModel', {});
 
     expectsql(queryGenerator.bulkDeleteQuery(MyModel, { where: { name: 'barry' }, limit: 10 }), {
+      default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
+      mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      sqlite: 'DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = \'barry\' LIMIT 10)',
+      'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
+      'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
+      oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= 10 AND "name" = 'barry')`,
+    });
+  });
+
+  it('produces a delete query with a limit using a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(queryGenerator.bulkDeleteQuery(myDefinition, { where: { name: 'barry' }, limit: 10 }), {
       default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
       mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite: 'DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = \'barry\' LIMIT 10)',

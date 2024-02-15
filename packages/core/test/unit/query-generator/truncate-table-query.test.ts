@@ -53,6 +53,20 @@ describe('QueryGenerator#truncateTableQuery', () => {
     });
   });
 
+  it('produces a TRUNCATE TABLE query for a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectPerDialect(() => queryGenerator.truncateTableQuery(myDefinition), {
+      mssql: 'TRUNCATE TABLE [MyModels]',
+      sqlite: ['DELETE FROM `MyModels`'],
+      'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
+      'mariadb mysql': 'TRUNCATE `MyModels`',
+      'postgres snowflake': 'TRUNCATE "MyModels"',
+      oracle: `TRUNCATE TABLE "MyModels"`,
+    });
+  });
+
   it('produces a TRUNCATE TABLE query from a table and schema', () => {
     expectPerDialect(() => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       mssql: 'TRUNCATE TABLE [mySchema].[myTable]',

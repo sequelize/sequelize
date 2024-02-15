@@ -1,11 +1,6 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
-import type { Sequelize } from '../../sequelize.js';
-import type { OracleQueryGenerator } from './query-generator.js';
-import { OracleQueryInterfaceTypescript } from './query-interface-typescript.js';
+import { AbstractQueryInterface } from '../abstract/query-interface.js';
+import { OracleDialect } from './index.js';
 
-export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
-  queryGenerator: OracleQueryGenerator;
-
-  constructor(sequelize: Sequelize, queryGenerator: OracleQueryGenerator);
-}
+export class OracleQueryInterface<Dialect extends OracleDialect = OracleDialect> extends AbstractQueryInterface<Dialect> {}

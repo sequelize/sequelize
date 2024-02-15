@@ -1,9 +1,5 @@
-import type { Sequelize } from '../../sequelize.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { SnowflakeQueryGenerator } from './query-generator.js';
+import type { SnowflakeDialect } from './index.js';
 
-export class SnowflakeQueryInterface extends AbstractQueryInterface {
-  queryGenerator: SnowflakeQueryGenerator;
-
-  constructor(sequelize: Sequelize, queryGenerator: SnowflakeQueryGenerator);
-}
+export class SnowflakeQueryInterface<Dialect extends SnowflakeDialect = SnowflakeDialect>
+  extends AbstractQueryInterface<Dialect> {}

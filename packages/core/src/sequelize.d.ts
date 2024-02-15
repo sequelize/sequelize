@@ -1,7 +1,6 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { AbstractDialect } from './dialects/abstract';
-import type { AbstractConnectionManager } from './dialects/abstract/connection-manager';
-import type { AbstractDataType, DataType, DataTypeClassOrInstance } from './dialects/abstract/data-types.js';
+import type { DataType } from './dialects/abstract/data-types.js';
 import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import type { ColumnsDescription, RawConstraintDescription } from './dialects/abstract/query-interface.types';
 import type { BaseSqlExpression, DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
@@ -25,7 +24,6 @@ import type {
   Poolable,
   Transactionable,
 } from './model';
-import type { ModelManager } from './model-manager';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 import type { SUPPORTED_DIALECTS, SequelizeHooks } from './sequelize-typescript.js';
 import type { RequiredBy } from './utils/types.js';
@@ -585,7 +583,7 @@ export interface QueryOptions extends QueryRawOptions {
    * Either an object of named parameter replacements in the format `:param` or an array of unnamed
    * replacements to replace `?` in your SQL.
    */
-  replacements?: BindOrReplacements;
+  replacements?: BindOrReplacements | undefined;
 }
 
 export interface QueryOptionsWithType<T extends QueryTypes> extends QueryOptions {
@@ -789,17 +787,6 @@ export class Sequelize extends SequelizeTypeScript {
 
   readonly dialect: AbstractDialect;
 
-  readonly modelManager: ModelManager;
-
-  readonly connectionManager: AbstractConnectionManager;
-
-  /**
-   * Dictionary of all models linked with this instance.
-   */
-  models: {
-    [key: string]: ModelStatic,
-  };
-
   /**
    * Instantiate sequelize with name of database, username and password
    *
@@ -920,6 +907,7 @@ export class Sequelize extends SequelizeTypeScript {
    * Fetch a Model which is already defined
    *
    * @param modelName The name of a model defined with Sequelize.define
+   * @deprecated use {@link Sequelize#models} instead.
    */
   model<M extends Model = Model>(modelName: string): ModelStatic<M>;
 
@@ -927,6 +915,7 @@ export class Sequelize extends SequelizeTypeScript {
    * Checks whether a model with the given name is defined
    *
    * @param modelName The name of a model defined with Sequelize.define
+   * @deprecated use {@link Sequelize#models} instead.
    */
   isDefined(modelName: string): boolean;
 
@@ -1032,10 +1021,6 @@ export class Sequelize extends SequelizeTypeScript {
   close(): Promise<void>;
 
   normalizeAttribute<M extends Model = Model>(attribute: AttributeOptions<M> | DataType): AttributeOptions<M>;
-
-  normalizeDataType(Type: string): string;
-  normalizeDataType(Type: DataTypeClassOrInstance): AbstractDataType<any>;
-  normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
 
   /**
    * Returns the installed version of Sequelize

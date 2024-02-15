@@ -2,6 +2,7 @@ import type { AfterAssociateEventData, AssociationOptions, BeforeAssociateEventD
 import type { AsyncHookReturn } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import type { ValidationOptions } from './instance-validator.js';
+import type { DestroyManyOptions } from './model-repository.types.js';
 import type {
   BulkCreateOptions,
   CountOptions,
@@ -27,6 +28,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterCreate(attributes: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
   beforeDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
   afterDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
+  beforeDestroyMany(instances: M[], options: DestroyManyOptions): AsyncHookReturn;
+  afterDestroyMany(instances: readonly M[], options: DestroyManyOptions, deletedCount: number): AsyncHookReturn;
   beforeRestore(instance: M, options: InstanceRestoreOptions): AsyncHookReturn;
   afterRestore(instance: M, options: InstanceRestoreOptions): AsyncHookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): AsyncHookReturn;
@@ -105,6 +108,7 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'beforeValidate', 'afterValidate', 'validationFailed',
   'beforeCreate', 'afterCreate',
   'beforeDestroy', 'afterDestroy',
+  'beforeDestroyMany', 'afterDestroyMany',
   'beforeRestore', 'afterRestore',
   'beforeUpdate', 'afterUpdate',
   'beforeUpsert', 'afterUpsert',

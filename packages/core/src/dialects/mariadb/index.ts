@@ -1,8 +1,7 @@
 import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
+import { createUnspecifiedOrderedBindCollector, escapeMysqlMariaDbString } from '../../utils/sql';
 import type { SupportableNumericOptions } from '../abstract';
 import { AbstractDialect } from '../abstract';
-import { escapeMysqlMariaDbString } from '../mysql/mysql-utils.js';
 import { MariaDbConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types';
 import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
@@ -89,15 +88,9 @@ export class MariaDbDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'mariadb');
-    this.connectionManager = new MariaDbConnectionManager(this, sequelize);
-    this.queryGenerator = new MariaDbQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new MariaDbQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.connectionManager = new MariaDbConnectionManager(this);
+    this.queryGenerator = new MariaDbQueryGenerator(this);
+    this.queryInterface = new MariaDbQueryInterface(this);
 
     registerMariaDbDbDataTypeParsers(this);
   }

@@ -10,7 +10,7 @@ import {
   InvalidConnectionError,
 } from '../../errors/index.js';
 import semver from 'semver';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { OracleDialect } from './index.js';
@@ -29,8 +29,8 @@ export interface OracleConnection extends Connection, oracledbConnection {
 
 export class OracleConnectionManager extends AbstractConnectionManager<OracleConnection> {
   lib: Lib;
-  constructor(dialect: OracleDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: OracleDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('oracledb') as Lib;
     this.extendLib();
   }

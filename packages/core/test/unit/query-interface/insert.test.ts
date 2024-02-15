@@ -1,13 +1,17 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#insert', () => {
   const dialect = sequelize.dialect;
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -16,6 +20,7 @@ describe('QueryInterface#insert', () => {
   // you'll find more replacement tests in query-generator tests
   // Oracle nedds bindDefinitions to be defined for outBinds which can't be obtained with bind and replacement present together.
   (dialect.name === 'oracle' ? it.skip : it)('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {
@@ -42,6 +47,7 @@ describe('QueryInterface#insert', () => {
   });
 
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
+    const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
     await expect(sequelize.queryInterface.insert(null, User.table, {
@@ -55,6 +61,7 @@ describe('QueryInterface#insert', () => {
 
   // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
   (dialect.name === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {
@@ -81,6 +88,7 @@ describe('QueryInterface#insert', () => {
   });
 
   (dialect.name === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.insert(null, User.table, {

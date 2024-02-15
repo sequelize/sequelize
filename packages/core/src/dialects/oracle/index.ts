@@ -76,16 +76,10 @@ export class OracleDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'oracle');
-    this.connectionManager = new OracleConnectionManager(this, sequelize);
+    this.connectionManager = new OracleConnectionManager(this);
     // this.connectionManager.initPools();
-    this.queryGenerator = new OracleQueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new OracleQueryInterface(
-      sequelize,
-      this.queryGenerator,
-    );
+    this.queryGenerator = new OracleQueryGenerator(this);
+    this.queryInterface = new OracleQueryInterface(this);
   }
 
   getDefaultSchema(): string {

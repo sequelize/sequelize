@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
+import { beforeAll2, createSequelizeInstance, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
@@ -366,6 +366,48 @@ describe('Model', () => {
           expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', undefined);
         });
       });
+    });
+  });
+
+  describe('afterDefine / beforeDefine', () => {
+    const vars = beforeAll2(() => {
+      sequelize.hooks.addListener('beforeDefine', (attributes, options) => {
+        options.modelName = 'bar';
+        options.name!.plural = 'barrs';
+        attributes.type = DataTypes.STRING;
+      });
+
+      sequelize.hooks.addListener('afterDefine', factory => {
+        factory.options.name.singular = 'barr';
+      });
+
+      const TestModel = sequelize.define('foo', { name: DataTypes.STRING });
+
+      return { TestModel };
+    });
+
+    it('beforeDefine hook can change model name', () => {
+      const { TestModel } = vars;
+      expect(TestModel.name).to.equal('bar');
+    });
+
+    it('beforeDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.plural).to.equal('barrs');
+    });
+
+    it('beforeDefine hook can alter attributes', () => {
+      const { TestModel } = vars;
+      expect(TestModel.getAttributes().type).to.be.ok;
+    });
+
+    it('afterDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.singular).to.equal('barr');
+    });
+
+    after(() => {
+      sequelize.hooks.removeAllListeners();
     });
   });
 });

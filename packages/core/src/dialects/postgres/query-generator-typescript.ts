@@ -4,10 +4,9 @@ import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
@@ -16,6 +15,8 @@ import type {
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
+import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+import type { PostgresDialect } from './index.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
 
@@ -23,19 +24,21 @@ const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQuer
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalDatabaseNames() {
-    return ['postgres'];
-  }
+  readonly #internals: PostgresQueryGeneratorInternal;
 
-  protected _getTechnicalSchemaNames() {
-    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  constructor(
+    dialect: PostgresDialect,
+    internals: PostgresQueryGeneratorInternal = new PostgresQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    this.#internals = internals;
   }
 
   listDatabasesQuery(options?: ListDatabasesQueryOptions) {
-    const databasesToSkip = this._getTechnicalDatabaseNames();
-
+    let databasesToSkip = this.#internals.getTechnicalDatabaseNames();
     if (options && Array.isArray(options?.skip)) {
-      databasesToSkip.push(...options.skip);
+      databasesToSkip = [...databasesToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -48,7 +51,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -65,7 +68,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+    const schemasToSkip = ['public', ...this.#internals.getTechnicalSchemaNames()];
 
     if (options && Array.isArray(options?.skip)) {
       schemasToSkip.push(...options.skip);
@@ -76,7 +79,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -110,14 +113,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
       options?.schema
         ? `AND table_schema = ${this.escape(options.schema)}`
-        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY table_schema, table_name',
     ]);
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     const beforeTable = this.extractTableDetails(beforeTableName);
@@ -138,7 +141,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     return joinSQLFragments([
       `TRUNCATE ${this.quoteTable(tableName)}`,
       options?.restartIdentity ? 'RESTART IDENTITY' : '',
@@ -146,7 +149,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     // Postgres converts camelCased alias to lowercase unless quoted
@@ -181,7 +184,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [>=6]: refactor the query to use pg_indexes
@@ -197,7 +200,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -259,18 +262,5 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   versionQuery() {
     return 'SHOW SERVER_VERSION';
-  }
-
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    }
-
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
   }
 }

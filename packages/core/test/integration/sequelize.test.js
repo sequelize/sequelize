@@ -35,15 +35,11 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'sqlite') {
       it('should work with connection strings (1)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite');
+        const sequelize = new Sequelize('sqlite://test/sqlite-databases/connection-string-test1.sqlite');
         Support.destroySequelizeAfterTest(sequelize);
       });
       it('should work with connection strings (2)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite/');
-        Support.destroySequelizeAfterTest(sequelize);
-      });
-      it('should work with connection strings (3)', () => {
-        const sequelize = new Sequelize('sqlite://test.sqlite2/lol?reconnect=true');
+        const sequelize = new Sequelize('sqlite://test/sqlite-databases/connection-string-test2.sqlite?reconnect=true');
         Support.destroySequelizeAfterTest(sequelize);
       });
     }
@@ -216,7 +212,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('throws an error if the dao being accessed is undefined', function () {
       expect(() => {
         this.sequelize.model('Project');
-      }).to.throw(/project has not been defined/i);
+      }).to.throw(`Model 'Project' was not added to this Sequelize instance`);
     });
 
     it('returns the dao factory defined by daoName', function () {
@@ -230,15 +226,15 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('define', () => {
     it('adds a new dao to the dao manager', function () {
-      const count = this.sequelize.modelManager.all.length;
+      const count = this.sequelize.models.size;
       this.sequelize.define('foo', { title: DataTypes.STRING });
-      expect(this.sequelize.modelManager.all.length).to.equal(count + 1);
+      expect(this.sequelize.models.size).to.equal(count + 1);
     });
 
     it('adds a new dao to sequelize.models', function () {
-      expect(this.sequelize.models.bar).to.equal(undefined);
+      expect(this.sequelize.models.get('bar')).to.equal(undefined);
       const Bar = this.sequelize.define('bar', { title: DataTypes.STRING });
-      expect(this.sequelize.models.bar).to.equal(Bar);
+      expect(this.sequelize.models.get('bar')).to.equal(Bar);
     });
 
     it('overwrites global options', () => {

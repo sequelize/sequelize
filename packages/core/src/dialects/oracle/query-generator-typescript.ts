@@ -2,6 +2,7 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { generateIndexName } from '../../utils/string';
+import { EMPTY_SET } from '../../utils/object.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
@@ -11,20 +12,24 @@ import {
   REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { AddLimitOffsetOptions, BulkDeleteQueryOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
+import type { BulkDeleteQueryOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
 import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
-import { isModelStatic } from '../../utils/model-utils';
-
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
-const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
-const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveColumnQueryOptions>();
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateSchemaQueryOptions>();
-const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>();
+import { isModelStatic, extractModelDefinition } from '../../utils/model-utils';
+import { OracleQueryGeneratorInternal } from './query-generator-internal';
+import type { OracleDialect } from './index.js';
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  describeTableQuery(tableName: TableNameOrModel) {
+  readonly #internals: OracleQueryGeneratorInternal;
+
+  constructor(dialect: OracleDialect, internals: OracleQueryGeneratorInternal = new OracleQueryGeneratorInternal(dialect)) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
     const currTableName = this.getCatalogName(table.tableName);
     const schema = this.getCatalogName(table.schema);
@@ -45,16 +50,16 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options: RemoveIndexQueryOptions,
   ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -117,7 +122,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return [tableName, schemaName];
   }
 
-  removeConstraintQuery(tableName: TableNameOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+  removeConstraintQuery(tableName: TableOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
     if (constraintName.startsWith('sys')) {
       return joinSQLFragments([
         'ALTER TABLE',
@@ -132,32 +137,17 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
   }
 
-  _addLimitAndOffset(options : AddLimitOffsetOptions) {
-    let fragment = '';
-    const offset = options.offset || 0;
-
-    if (options.offset || options.limit) {
-      fragment += ` OFFSET ${this.escape(offset, options)} ROWS`;
-    }
-
-    if (options.limit) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
-  }
-
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     if (options) {
       rejectInvalidOptions(
         'renameTableQuery',
-        this.dialect.name,
+        this.dialect,
         RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -176,12 +166,12 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return '';
   }
 
-  removeColumnQuery(tableName: TableNameOrModel, attributeName: string, options: RemoveColumnQueryOptions): string {
+  removeColumnQuery(tableName: TableOrModel, attributeName: string, options: RemoveColumnQueryOptions): string {
     rejectInvalidOptions(
       'removeColumnQuery',
-      this.dialect.name,
+      this.dialect,
       REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-      REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+      EMPTY_SET,
       options,
     );
     return joinSQLFragments([
@@ -196,9 +186,9 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -248,21 +238,22 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options: TruncateTableQueryOptions): string {
+  truncateTableQuery(tableName: TableOrModel, options: TruncateTableQueryOptions): string {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
-        this.dialect.name,
+        this.dialect,
         TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
-  bulkDeleteQuery(tableName: TableNameOrModel, options: BulkDeleteQueryOptions): string {
+  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions): string {
     const table = this.quoteTable(tableName);
+    const modelDefinition = extractModelDefinition(tableName);
     const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
     let queryTmpl;
 
@@ -270,8 +261,8 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     whereClause = whereClause.replace('WHERE', '');
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
-      if (!isModelStatic(tableName)) {
-        throw new Error('Cannot use LIMIT with bulkDeleteQuery without a model.');
+      if (!modelDefinition) {
+        throw new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
       }
 
       const whereTmpl = whereClause ? ` AND ${whereClause}` : '';

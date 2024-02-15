@@ -10,10 +10,7 @@ const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/core/_non-se
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
     before(function () {
-      this.queryGenerator = new QueryGenerator({
-        sequelize: this.sequelize,
-        dialect: this.sequelize.dialect,
-      });
+      this.queryGenerator = new QueryGenerator(this.sequelize.dialect);
     });
 
     it('upsertQuery with falsey values', function () {

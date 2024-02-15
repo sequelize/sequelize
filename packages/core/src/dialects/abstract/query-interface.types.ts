@@ -141,4 +141,4 @@ export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, Q
 export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
-export interface BulkDeleteOptions extends BulkDeleteQueryOptions, QueryRawOptions { }
+export interface QiBulkDeleteOptions extends BulkDeleteQueryOptions, Omit<QueryRawOptions, 'raw' | 'type'> { }

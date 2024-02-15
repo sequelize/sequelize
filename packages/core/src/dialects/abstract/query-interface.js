@@ -311,7 +311,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Show indexes on a table
    *
-   * @param {TableNameOrModel} tableName
+   * @param {TableOrModel} tableName
    * @param {object}    [options] Query options
    *
    * @returns {Promise<Array>}
@@ -346,7 +346,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = cloneDeep(options) ?? {};
-    const modelDefinition = instance?.constructor.modelDefinition;
+    const modelDefinition = instance?.modelDefinition;
 
     options.hasTrigger = modelDefinition?.options.hasTrigger;
     const { query, bind } = this.queryGenerator.insertQuery(
@@ -480,7 +480,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    const modelDefinition = instance?.constructor.modelDefinition;
+    const modelDefinition = instance?.modelDefinition;
 
     options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
@@ -534,7 +534,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
     const table = isObject(tableName) ? tableName : { tableName };
-    const model = options.model ? options.model : find(this.sequelize.modelManager.models, { tableName: table.tableName });
+    const model = options.model ? options.model : find(this.sequelize.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;

@@ -1,12 +1,16 @@
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { DataTypes, Op, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#bulkUpdate', () => {
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   afterEach(() => {
     sinon.restore();
@@ -14,6 +18,7 @@ describe('QueryInterface#bulkUpdate', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     await sequelize.queryInterface.bulkUpdate(
@@ -49,6 +54,7 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
+    const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
     await expect(sequelize.queryInterface.bulkUpdate(
@@ -66,6 +72,7 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.bulkUpdate(
@@ -97,6 +104,7 @@ describe('QueryInterface#bulkUpdate', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
     await sequelize.queryInterface.bulkUpdate(

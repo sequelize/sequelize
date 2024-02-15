@@ -1,11 +1,17 @@
 import fs from 'node:fs';
-import path from 'node:path';
 import uniq from 'lodash/uniq';
 import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
+import {
+  createSequelizeInstance,
+  getSqliteDatabasePath,
+  getTestDialect,
+  rand,
+  resetSequelizeInstance,
+  sequelize,
+} from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -88,7 +94,7 @@ export async function createMultiTransactionalTestSequelizeInstance(
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
+    const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);
     }
@@ -224,8 +230,7 @@ The following methods can be used to mark a sequelize instance for automatic dis
 async function clearDatabaseInternal(customSequelize: Sequelize) {
   const qi = customSequelize.queryInterface;
   await qi.dropAllTables();
-  customSequelize.modelManager.models = [];
-  customSequelize.models = {};
+  resetSequelizeInstance(customSequelize);
 
   if (qi.dropAllEnums) {
     await qi.dropAllEnums();

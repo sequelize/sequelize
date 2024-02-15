@@ -75,7 +75,7 @@ class Model1 extends Model {}
 
 class Model2 extends Model {}
 
-const MyModel: ModelStatic<Model1> = sequelize.models.asd;
+const MyModel: ModelStatic<Model1> = sequelize.models.getOrThrow('asd');
 MyModel.hasOne(Model2);
 MyModel.findAll();
 

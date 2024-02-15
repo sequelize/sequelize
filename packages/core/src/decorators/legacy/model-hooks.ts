@@ -83,6 +83,9 @@ export const AfterCreate = createHookDecorator('afterCreate');
 export const BeforeDestroy = createHookDecorator('beforeDestroy');
 export const AfterDestroy = createHookDecorator('afterDestroy');
 
+export const BeforeDestroyMany = createHookDecorator('beforeDestroyMany');
+export const AfterDestroyMany = createHookDecorator('afterDestroyMany');
+
 export const BeforeFind = createHookDecorator('beforeFind');
 export const BeforeFindAfterExpandIncludeAll = createHookDecorator('beforeFindAfterExpandIncludeAll');
 export const BeforeFindAfterOptions = createHookDecorator('beforeFindAfterOptions');

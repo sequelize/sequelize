@@ -33,6 +33,19 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
+  it('produces a query to create a table from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(queryGenerator.createTableQuery(myDefinition, { myColumn: 'DATE' }), {
+      default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
+      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "MyModels" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+    });
+  });
+
   it('produces a query to create a table with schema in tableName object', () => {
     expectsql(queryGenerator.createTableQuery({ tableName: 'myTable', schema: 'mySchema' }, { myColumn: 'DATE' }), {
       default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',

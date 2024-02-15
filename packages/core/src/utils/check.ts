@@ -1,4 +1,5 @@
 import pickBy from 'lodash/pickBy';
+import type { AbstractDialect } from '../dialects/abstract/index.js';
 import { BaseError } from '../errors/index.js';
 import { Where } from '../expression-builders/where.js';
 
@@ -70,6 +71,10 @@ export function isPlainObject(value: unknown): value is object {
   return prototype === null || prototype === Object.prototype;
 }
 
+export function isDevEnv(): boolean {
+  return process.env.NODE_ENV !== 'production';
+}
+
 /**
  * Returns whether `value` is using the nested syntax for attributes.
  *
@@ -99,26 +104,64 @@ export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where>
  * but that the dialect they use does not support.
  *
  * @param methodName The name of the method that received the options
- * @param dialectName The name of the dialect to which the implementation belongs
+ * @param dialect The dialect to which the implementation belongs
  * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
  * @param supportedOptions The subset of options that this dialect *actually does* support.
- * @param receivedOptions The user provided options that were passed to the method.
+ * @param receivedOptions The user provided options passed to the method.
  */
-export function rejectInvalidOptions(
+export function rejectInvalidOptions<T extends string>(
   methodName: string,
-  dialectName: string,
-  allSupportableOptions: Set<string>,
-  supportedOptions: Set<string>,
+  dialect: AbstractDialect,
+  allSupportableOptions: Set<T>,
+  supportedOptions: Iterable<T> | Partial<Record<T, boolean>>,
   receivedOptions: object,
 ): void {
-  const receivedOptionNames = Object.keys(pickBy(receivedOptions));
+  const receivedOptionNames = Object.keys(
+    // This removes any undefined or false values from the object
+    // It is therefore _essential_ that boolean options are false by default!
+    pickBy(receivedOptions, value => value !== undefined && value !== false),
+  );
+  const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
+
   const unsupportedOptions = receivedOptionNames.filter(optionName => {
-    return allSupportableOptions.has(optionName) && !supportedOptions.has(optionName);
+    return allSupportableOptions.has(optionName as T) && !parsedSupportedOptions.has(optionName);
   });
 
   if (unsupportedOptions.length > 0) {
-    throw buildInvalidOptionReceivedError(methodName, dialectName, unsupportedOptions);
+    throw buildInvalidOptionReceivedError(methodName, dialect.name, unsupportedOptions);
   }
+}
+
+const SUPPORTED_OPTIONS_CACHE = new WeakMap<AbstractDialect, Map<string, Set<string>>>();
+
+function parseSupportedOptions(
+  dialect: AbstractDialect,
+  methodName: string,
+  rawSupportedOptions: Iterable<string> | Partial<Record<string, boolean>>,
+): Set<string> {
+  let dialectCache = SUPPORTED_OPTIONS_CACHE.get(dialect);
+  if (!dialectCache) {
+    dialectCache = new Map();
+    SUPPORTED_OPTIONS_CACHE.set(dialect, dialectCache);
+  }
+
+  let supportedOptions: Set<string> | undefined = dialectCache.get(methodName);
+  if (!supportedOptions) {
+    if (isIterable(rawSupportedOptions)) {
+      supportedOptions = new Set(rawSupportedOptions);
+    } else {
+      supportedOptions = new Set();
+      for (const optionName of Object.keys(rawSupportedOptions)) {
+        if (rawSupportedOptions[optionName]) {
+          supportedOptions.add(optionName);
+        }
+      }
+    }
+
+    dialectCache.set(methodName, supportedOptions);
+  }
+
+  return supportedOptions;
 }
 
 export function buildInvalidOptionReceivedError(methodName: string, dialectName: string, invalidOptions: string[]): Error {

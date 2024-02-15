@@ -3,6 +3,7 @@
 'use strict';
 
 import { rejectInvalidOptions } from '../../utils/check';
+import { EMPTY_SET } from '../../utils/object.js';
 import { addTicks, quoteIdentifier } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
@@ -18,7 +19,6 @@ const _ = require('lodash');
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
 const Transaction = require('../../transaction');
 
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
 /**
@@ -60,7 +60,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -337,9 +337,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }

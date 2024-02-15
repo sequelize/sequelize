@@ -26,6 +26,10 @@ export function normalizeDataType(Type: string, dialect: AbstractDialect): strin
 export function normalizeDataType(
   Type: DataTypeClassOrInstance | string,
   dialect: AbstractDialect,
+): AbstractDataType<unknown> | string;
+export function normalizeDataType(
+  Type: DataTypeClassOrInstance | string,
+  dialect: AbstractDialect,
 ): AbstractDataType<unknown> | string {
   if (typeof Type === 'string') {
     return Type;

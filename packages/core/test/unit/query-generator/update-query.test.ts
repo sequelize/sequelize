@@ -1,16 +1,22 @@
 import { expect } from 'chai';
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
+      firstName: DataTypes.STRING,
+    }, { timestamps: false });
+
+    return { User };
+  });
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: literal(':name'),
     }, literal('name = :name'), {
@@ -28,6 +34,8 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('generates extra bind params', async () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
@@ -47,6 +55,8 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('does not generate extra bind params with bindParams: false', async () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.updateQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),

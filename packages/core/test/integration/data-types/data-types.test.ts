@@ -1782,6 +1782,45 @@ describe('DataTypes', () => {
       await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab', '01:23:45:67:89:ab');
     });
   });
+
+  describe('MACADDR8', () => {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      it('throws, as it is not supported', async () => {
+        expect(() => {
+          sequelize.define('User', {
+            attr: DataTypes.MACADDR8,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the MACADDR8 data type.`);
+      });
+
+      return;
+    }
+
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare attr: string;
+      }
+
+      User.init({
+        attr: {
+          type: DataTypes.MACADDR8,
+          allowNull: false,
+        },
+      }, { sequelize });
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    it('accepts strings', async () => {
+      await testSimpleInOut(vars.User, 'attr', '01:23:45:67:89:ab:cd:ef', '01:23:45:67:89:ab:cd:ef');
+    });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab:cd:ef', '01:23:45:67:89:ab:cd:ef');
+    });
+  });
 });
 
 export async function testSimpleInOut<M extends Model, Key extends keyof CreationAttributes<M>>(

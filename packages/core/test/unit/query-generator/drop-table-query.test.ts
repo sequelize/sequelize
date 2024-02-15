@@ -31,6 +31,16 @@ describe('QueryGenerator#dropTableQuery', () => {
     });
   });
 
+  it('produces a query that drops a table from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
+      default: `DROP TABLE IF EXISTS [MyModels]`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`
+    });
+  });
+
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
