@@ -361,7 +361,7 @@ export class OracleQuery extends AbstractQuery {
             if (typeid.indexOf('(') > -1 && modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN') {
               typeid = typeid.substr(0, typeid.indexOf('('));
             }
-            const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);  //TODO: PROBABLY OWN PARSER LIKE OTHERS
+            const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);
             if (value !== null & parser) {
               value = parser(value);
             }
@@ -438,7 +438,8 @@ export class OracleQuery extends AbstractQuery {
             .replace(/'/g, ''); /* jshint ignore: line */
         }
 
-        if (!(modelAttributes[_result.COLUMN_NAME] in result)) {
+        // no need to add additional entries for column already in.
+        if (!(modelAttributes[_result.COLUMN_NAME] in result) && !(_result.COLUMN_NAME in result)) {
           let key = modelAttributes[_result.COLUMN_NAME];
           if (!key) {
             key = _result.COLUMN_NAME;
