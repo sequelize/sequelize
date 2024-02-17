@@ -12,7 +12,9 @@ on:
   check_suite:
     types:
       - completed
-  status: {}
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   automerge:
     runs-on: ubuntu-latest
