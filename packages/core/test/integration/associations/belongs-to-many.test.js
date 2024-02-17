@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Sequelize, Op, AssociationError } = require('@sequelize/core');
 const assert = require('node:assert');
 const sinon = require('sinon');
 
@@ -3090,6 +3090,98 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await worker.removeTasks([tasks0[2].id, tasks0[3].id]);
         const tasks = await worker.getTasks();
         expect(tasks.length).to.equal(1);
+      });
+    });
+
+    describe('multiple different attributes for each association', () => {
+      beforeEach(async function () {
+        this.User = this.sequelize.define('User', {});
+        this.Project = this.sequelize.define('Project', {});
+        this.UserProjects = this.sequelize.define('UserProjects', {
+          status: DataTypes.STRING,
+          data: DataTypes.INTEGER,
+        });
+
+        this.User.belongsToMany(this.Project, { through: this.UserProjects });
+        this.Project.belongsToMany(this.User, { through: this.UserProjects });
+
+        await this.sequelize.sync();
+
+        this.users = await Promise.all([
+          this.User.create(),
+          this.User.create(),
+          this.User.create(),
+        ]);
+
+        this.projects = await Promise.all([
+          this.Project.create(),
+          this.Project.create(),
+          this.Project.create(),
+        ]);
+      });
+
+      it('should accept an object to be used for all associations', async function () {
+        await this.users[0].addProjects(this.projects, {
+          through: { status: 'great', data: 123 },
+        });
+        const projects = await this.users[0].getProjects();
+
+        expect(projects.length).to.equal(3);
+        projects.forEach(project => {
+          expect(project.UserProject.status).to.equal('great');
+          expect(project.UserProject.data).to.equal(123);
+        });
+      });
+
+      it('should throw errow when the lenth of the array of attributes is different than associations', async function () {
+        // Three projects are beeing associated but only 2 diferent attributes are provided within the "through" array
+        const promise = this.users[0].addProjects(this.projects, {
+          through: [
+            { status: 'great', data: 123 },
+            { status: 'great', data: 123 },
+          ],
+        });
+
+        expect(promise).to.be.rejectedWith(AssociationError);
+      });
+
+      it('should accept an array to be used for each association accordingly with "add" mixin', async function () {
+        await this.users[0].addProjects(this.projects, {
+          through: [
+            { status: 'great', data: 123 },
+            { status: 'fine', data: 456 },
+            { status: 'wrong', data: 789 },
+          ],
+        });
+        const projects = await this.users[0].getProjects();
+
+        expect(projects.length).to.equal(3);
+        expect((projects.find(project => project.id === this.projects[0].id))?.UserProject).to.exist.and.to.include({ status: 'great', data: 123 });
+        expect((projects.find(project => project.id === this.projects[1].id))?.UserProject).to.exist.and.to.include({ status: 'fine', data: 456 });
+        expect((projects.find(project => project.id === this.projects[2].id))?.UserProject).to.exist.and.to.include({ status: 'wrong', data: 789 });
+      });
+
+      it('should accept an array to be used for each association accordingly with "set" mixin', async function () {
+        await this.users[0].setProjects(this.projects.slice(0, 2), {
+          through: [
+            { status: 'bad', data: 0 },
+            { status: 'ok', data: 0 },
+          ],
+        });
+
+        await this.users[0].setProjects(this.projects, {
+          through: [
+            { status: 'great', data: 123 },
+            { status: 'fine', data: 456 },
+            { status: 'wrong', data: 789 },
+          ],
+        });
+        const projects = await this.users[0].getProjects();
+
+        expect(projects.length).to.equal(3);
+        expect((projects.find(project => project.id === this.projects[0].id))?.UserProject).to.exist.and.to.include({ status: 'great', data: 123 });
+        expect((projects.find(project => project.id === this.projects[1].id))?.UserProject).to.exist.and.to.include({ status: 'fine', data: 456 });
+        expect((projects.find(project => project.id === this.projects[2].id))?.UserProject).to.exist.and.to.include({ status: 'wrong', data: 789 });
       });
     });
   });

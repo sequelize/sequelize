@@ -718,7 +718,7 @@ Add your own primary key to the through model, on different attributes than the 
     currentThroughRows: readonly ThroughModel[],
     newTargets: readonly TargetModel[],
     options?:
-      & { through?: JoinTableAttributes }
+      & { through?: JoinTableAttributes | JoinTableAttributes[] }
       & BulkCreateOptions<Attributes<ThroughModel>>
       & Omit<UpdateOptions<Attributes<ThroughModel>>, 'where'>,
   ) {
@@ -729,42 +729,57 @@ Add your own primary key to the through model, on different attributes than the 
 
     const defaultAttributes = options?.through || EMPTY_OBJECT;
 
+    const multipleAttributes = Array.isArray(defaultAttributes);
+    const defaultAttributesArray: JoinTableAttributes[] = multipleAttributes ? defaultAttributes : [defaultAttributes];
+
+    // Check that there are the same new targets than attributes to match one to one
+    if (multipleAttributes && defaultAttributesArray.length !== newTargets.length) {
+      throw new AssociationError(`Error when adding or updating association between ${this.source.name} and ${newTargets.length} instances of ${this.target.name} when providing ${defaultAttributesArray.length} objects for the join table.
+The number of ${this.target.name} to associate (${newTargets.length}), and the number of entries in the "through" option (${defaultAttributesArray.length}) must be the same.`);
+    }
+
     const promises: Array<Promise<any>> = [];
-    const unassociatedTargets: TargetModel[] = [];
+    const unassociatedTargets: Array<{ newInstance: TargetModel, index: number }> = [];
     // the 'through' table of these targets has changed
-    const changedTargets: TargetModel[] = [];
-    for (const newInstance of newTargets) {
+    const changedTargets: Array<{ newInstance: TargetModel, index: number }> = [];
+    for (const [index, newInstance] of newTargets.entries()) {
       const existingThroughRow = currentThroughRows.find(throughRow => {
         // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
         return throughRow[otherKey] === newInstance.get(targetKey);
       });
 
       if (!existingThroughRow) {
-        unassociatedTargets.push(newInstance);
+        unassociatedTargets.push({ newInstance, index });
 
         continue;
       }
 
       // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
       const throughAttributes = newInstance[this.through.model.name];
-      const attributes = { ...defaultAttributes, ...throughAttributes };
+      const attributes = {
+        ...(defaultAttributesArray[multipleAttributes ? index : 0]),
+        ...throughAttributes,
+      };
 
       if (Object.keys(attributes).some(attribute => {
         // @ts-expect-error -- existingThroughRow is raw
         return attributes[attribute] !== existingThroughRow[attribute];
       })) {
-        changedTargets.push(newInstance);
+        changedTargets.push({ newInstance, index });
       }
     }
 
     if (unassociatedTargets.length > 0) {
       const bulk = unassociatedTargets.map(unassociatedTarget => {
         // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
-        const throughAttributes = unassociatedTarget[this.through.model.name];
-        const attributes = { ...defaultAttributes, ...throughAttributes };
+        const throughAttributes = unassociatedTarget.newInstance[this.through.model.name];
+        const attributes = {
+          ...(defaultAttributesArray[multipleAttributes ? unassociatedTarget.index : 0]),
+          ...throughAttributes,
+        };
 
         attributes[foreignKey] = sourceInstance.get(sourceKey);
-        attributes[otherKey] = unassociatedTarget.get(targetKey);
+        attributes[otherKey] = unassociatedTarget.newInstance.get(targetKey);
 
         Object.assign(attributes, this.through.scope);
 
@@ -777,7 +792,10 @@ Add your own primary key to the through model, on different attributes than the 
     for (const changedTarget of changedTargets) {
       // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
       let throughAttributes = changedTarget[this.through.model.name];
-      const attributes = { ...defaultAttributes, ...throughAttributes };
+      const attributes = {
+        ...(defaultAttributesArray[multipleAttributes ? changedTarget.index : 0]),
+        ...throughAttributes,
+      };
       // Quick-fix for subtle bug when using existing objects that might have the through model attached (not as an attribute object)
       if (throughAttributes instanceof this.through.model) {
         throughAttributes = {};
@@ -785,7 +803,7 @@ Add your own primary key to the through model, on different attributes than the 
 
       const where: WhereOptions = {
         [foreignKey]: sourceInstance.get(sourceKey),
-        [otherKey]: changedTarget.get(targetKey),
+        [otherKey]: changedTarget.newInstance.get(targetKey),
       };
 
       promises.push(this.through.model.update(attributes, {
@@ -1149,7 +1167,7 @@ export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Mo
   /**
    * Additional attributes for the join table.
    */
-  through?: JoinTableAttributes;
+  through?: JoinTableAttributes | JoinTableAttributes[];
 }
 
 /**
@@ -1181,7 +1199,7 @@ export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
     BulkCreateOptions<Attributes<TModel>>,
     InstanceUpdateOptions<Attributes<TModel>>,
     InstanceDestroyOptions {
-  through?: JoinTableAttributes;
+  through?: JoinTableAttributes | JoinTableAttributes[];
 }
 
 /**
