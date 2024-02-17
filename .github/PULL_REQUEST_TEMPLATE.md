@@ -16,12 +16,13 @@ If unsure about something, just do as best as you're able.
 
 <!-- NOTE: these things are not required to open a PR and can be done afterwards / while the PR is open. -->
 
-## Description Of Change
+## Description of Changes
 
 <!-- Please provide a description of the change here. -->
 
-## Todos
+## List of Breaking Changes
 
-- [ ] <!-- e.g. #1 feature: Extend the type script definition -->
-- [ ] <!-- e.g. #2 test: Does this also work with MySQL 8? -->
-- [ ] <!-- ... -->
+<!-- If you have any breaking changes, you should list them below. -->
+<!-- Anything added below this comment group will automatically be added to our changelog. -->
+<!-- Do not modify the next line! It is used by our bot! -->
+<!-- [BREAKING CHANGES START] -->
