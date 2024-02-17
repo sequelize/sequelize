@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - v7
+      - renovate/**
   pull_request:
   merge_group:
 
@@ -246,7 +247,7 @@ jobs:
         test-postgres,
         test-oldest-latest
       ]
-    if: github.event_name == 'push'
+    if: github.ref == 'refs/heads/v7'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
