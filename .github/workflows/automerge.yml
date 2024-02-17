@@ -9,6 +9,7 @@ on:
   pull_request_review:
     types:
       - submitted
+      - dismissed
   check_suite:
     types:
       - completed
@@ -17,6 +18,8 @@ concurrency:
   cancel-in-progress: true
 jobs:
   automerge:
+    # restrict the review events that trigger this workflow as all review replies count as pull_request_review
+    if: ${{ !github.event.review || (github.event.review.state == 'APPROVED' || github.event.review.state == 'DISMISSED') }}
     runs-on: ubuntu-latest
     steps:
       - name: automerge
