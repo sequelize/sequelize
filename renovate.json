@@ -6,7 +6,6 @@
     ":semanticCommitScopeDisabled"
   ],
   "automergeStrategy": "squash",
-  "automergeType": "branch",
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "platformAutomerge": true,
