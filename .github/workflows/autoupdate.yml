@@ -3,13 +3,8 @@ on:
   push:
     branches:
       - main
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 jobs:
   autoupdate:
-    # restrict the review events that trigger this workflow as all review replies count as pull_request_review
-    if: ${{ !github.event.review || (github.event.review.state == 'APPROVED' || github.event.review.state == 'DISMISSED') }}
     runs-on: ubuntu-latest
     steps:
       - uses: docker://chinthakagodawita/autoupdate-action:v1
