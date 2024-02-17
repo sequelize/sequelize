@@ -24,5 +24,9 @@ If unsure about something, just do as best as you're able.
 
 <!-- If you have any breaking changes, you should list them below. -->
 <!-- Anything added below this comment group will automatically be added to our changelog. -->
+<!-- The breaking changes convention follow https://www.conventionalcommits.org/en/v1.0.0/ -->
+<!-- Each breaking change must start with "BREAKING CHANGE:" and be followed by a description of the change. -->
+<!-- Please leave an empty line after the marker -->
 <!-- Do not modify the next line! It is used by our bot! -->
-<!-- [BREAKING CHANGES START] -->
+`[BREAKING CHANGES START]`
+

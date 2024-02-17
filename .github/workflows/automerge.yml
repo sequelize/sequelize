@@ -25,6 +25,6 @@ jobs:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
           MERGE_METHOD: 'squash'
           MERGE_COMMIT_MESSAGE: "pull-request-title-and-description"
-          MERGE_COMMIT_MESSAGE_REGEX: '<!-- \\[BREAKING CHANGES START] -->(.*)'
+          MERGE_COMMIT_MESSAGE_REGEX: '`\\[BREAKING CHANGES START]`'
           MERGE_DELETE_BRANCH: 'true'
           MERGE_RETRIES: '0'
