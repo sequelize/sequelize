@@ -1567,7 +1567,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     /* Attributes for the right side */
     const right = include.model;
     const rightAttributes = right.modelDefinition.attributes;
-    const tableRight = right.getTableName();
+    const tableRight = right.table;
     const fieldRight = association instanceof BelongsToAssociation
       ? rightAttributes.get(association.targetKey).columnName
       : association.identifierField;
@@ -1720,7 +1720,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
     const through = include.through;
-    const throughTable = through.model.getTableName();
+    const throughTable = through.model.table;
     const throughAs = `${includeAs.internalAs}->${through.as}`;
     const externalThroughAs = `${includeAs.externalAs}.${through.as}`;
 
@@ -1808,7 +1808,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.getTableName(), { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.table, { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
@@ -1874,7 +1874,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     topInclude.association = undefined;
 
     if (topInclude.through && Object(topInclude.through.model) === topInclude.through.model) {
-      query = this.selectQuery(topInclude.through.model.getTableName(), {
+      query = this.selectQuery(topInclude.through.model.table, {
         attributes: [topInclude.through.model.primaryKeyField],
         include: _validateIncludedElements({
           model: topInclude.through.model,
@@ -1908,7 +1908,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
       ].join(' = ');
 
-      query = this.selectQuery(topInclude.model.getTableName(), {
+      query = this.selectQuery(topInclude.model.table, {
         attributes: [targetField],
         include: _validateIncludedElements(topInclude).include,
         model: topInclude.model,

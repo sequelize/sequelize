@@ -30,7 +30,7 @@ describe('QueryInterface#select', () => {
     });
 
     it('selects only the first two records', async () => {
-      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.getTableName(), {
+      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
         limit: 2,
         offset: 0,
       });
@@ -41,7 +41,7 @@ describe('QueryInterface#select', () => {
     });
 
     it('selects only the last two records', async () => {
-      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.getTableName(), {
+      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
         limit: 2,
         offset: 1,
       });
@@ -52,7 +52,7 @@ describe('QueryInterface#select', () => {
     });
 
     it('supports literals with replacements', async () => {
-      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.getTableName(), {
+      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
         limit: literal(':limit'),
         offset: literal(':offset'),
         replacements: {
@@ -71,7 +71,7 @@ describe('QueryInterface#select', () => {
     it('fetches records with alias minification', async () => {
       await vars.User.create({ name: 'Sourav' });
 
-      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.getTableName(), {
+      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
         minifyAliases: true,
         where: { name: 'Sourav' },
       });

@@ -239,7 +239,7 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
+      const enums = await this.sequelize.queryInterface.pgListEnums(User.table);
       expect(enums).to.have.length(1);
       expect(enums[0].enum_value).to.deep.equal(['neutral', 'happy', 'sad', 'ecstatic', 'meh', 'joyful']);
     });
@@ -255,7 +255,7 @@ describe('[POSTGRES Specific] DAO', () => {
       });
 
       await User.sync();
-      const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
+      const enums = await this.sequelize.queryInterface.pgListEnums(User.table);
       expect(enums).to.have.length(1);
       expect(enums[0].enum_value).to.deep.equal(['0', '1', '2', '3', '4', '5', '6', '7']);
     });
@@ -309,7 +309,7 @@ describe('[POSTGRES Specific] DAO', () => {
         });
 
         await User.sync();
-        const enums = await this.sequelize.queryInterface.pgListEnums(User.getTableName());
+        const enums = await this.sequelize.queryInterface.pgListEnums(User.table);
         expect(enums).to.have.length(1);
         expect(enums[0].enum_value).to.deep.equal(['view', 'access', 'edit', 'write', 'check', 'delete']);
       });
