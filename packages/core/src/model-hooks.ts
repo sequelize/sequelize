@@ -9,6 +9,7 @@ import type {
   CreateOptions,
   DestroyOptions,
   FindOptions,
+  GroupedCountResultItem,
   InstanceDestroyOptions,
   InstanceRestoreOptions,
   InstanceUpdateOptions,
@@ -18,14 +19,15 @@ import type {
   UpdateOptions,
   UpsertOptions,
 } from './model.js';
+import { isOverwrittenModelHook } from './sequelize-typescript.js';
 import type { SyncOptions } from './sequelize.js';
 
 export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   beforeValidate(instance: M, options: ValidationOptions): AsyncHookReturn;
   afterValidate(instance: M, options: ValidationOptions): AsyncHookReturn;
   validationFailed(instance: M, options: ValidationOptions, error: unknown): AsyncHookReturn;
-  beforeCreate(attributes: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
-  afterCreate(attributes: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
+  beforeCreate(instance: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
+  afterCreate(instance: M, options: CreateOptions<TAttributes>): AsyncHookReturn;
   beforeDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
   afterDestroy(instance: M, options: InstanceDestroyOptions): AsyncHookReturn;
   beforeDestroyMany(instances: M[], options: DestroyManyOptions): AsyncHookReturn;
@@ -34,8 +36,8 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterRestore(instance: M, options: InstanceRestoreOptions): AsyncHookReturn;
   beforeUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): AsyncHookReturn;
   afterUpdate(instance: M, options: InstanceUpdateOptions<TAttributes>): AsyncHookReturn;
-  beforeUpsert(attributes: M, options: UpsertOptions<TAttributes>): AsyncHookReturn;
-  afterUpsert(attributes: [ M, boolean | null ], options: UpsertOptions<TAttributes>): AsyncHookReturn;
+  beforeUpsert(attributes: TAttributes, options: UpsertOptions<TAttributes>): AsyncHookReturn;
+  afterUpsert(results: [M, boolean | null], options: UpsertOptions<TAttributes>): AsyncHookReturn;
   beforeSave(
     instance: M,
     options: InstanceUpdateOptions<TAttributes> | CreateOptions<TAttributes>
@@ -57,6 +59,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
    * A hook that is run at the start of {@link Model.count}
    */
   beforeCount(options: CountOptions<TAttributes>): AsyncHookReturn;
+  afterCount(results: number | GroupedCountResultItem[], options: CountOptions<TAttributes>): AsyncHookReturn;
 
   /**
    * A hook that is run before a find (select) query
@@ -79,7 +82,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   /**
    * A hook that is run after a find (select) query
    */
-  afterFind(instancesOrInstance: readonly M[] | M | null, options: FindOptions<TAttributes>): AsyncHookReturn;
+  afterFind(results: readonly M[] | M | null, options: FindOptions<TAttributes>): AsyncHookReturn;
 
   /**
    * A hook that is run at the start of {@link Model.sync}
@@ -104,7 +107,7 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   afterDefinitionRefresh(): void;
 }
 
-export const validModelHooks: Array<keyof ModelHooks> = [
+export const VALID_MODEL_HOOKS = Object.freeze([
   'beforeValidate', 'afterValidate', 'validationFailed',
   'beforeCreate', 'afterCreate',
   'beforeDestroy', 'afterDestroy',
@@ -117,14 +120,14 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'beforeBulkDestroy', 'afterBulkDestroy',
   'beforeBulkRestore', 'afterBulkRestore',
   'beforeBulkUpdate', 'afterBulkUpdate',
-  'beforeCount',
+  'beforeCount', 'afterCount',
   'beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions', 'afterFind',
   'beforeSync', 'afterSync',
   'beforeAssociate', 'afterAssociate',
   'beforeDefinitionRefresh', 'afterDefinitionRefresh',
-];
+] as const satisfies ReadonlyArray<keyof ModelHooks>);
 
-export const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHooks, async (
+export const staticModelHooks = new HookHandlerBuilder<ModelHooks>(VALID_MODEL_HOOKS, async (
   eventTarget,
   isAsync,
   hookName: keyof ModelHooks,
@@ -137,9 +140,23 @@ export const staticModelHooks = new HookHandlerBuilder<ModelHooks>(validModelHoo
     throw new Error('Model must be initialized before running hooks on it.');
   }
 
+  if (isOverwrittenModelHook(hookName)) {
+    if (isAsync) {
+      // @ts-expect-error -- too difficult to type, not worth the work
+      await model.sequelize.hooks.runAsync(hookName, model, ...args);
+    } else {
+      // @ts-expect-error -- too difficult to type, not worth the work
+      model.sequelize.hooks.runSync(hookName, model, ...args);
+    }
+
+    return;
+  }
+
   if (isAsync) {
+    // @ts-expect-error -- too difficult to type, not worth the work
     await model.sequelize.hooks.runAsync(hookName, ...args);
   } else {
+    // @ts-expect-error -- too difficult to type, not worth the work
     model.sequelize.hooks.runSync(hookName, ...args);
   }
 });

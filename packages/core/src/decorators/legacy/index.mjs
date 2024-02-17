@@ -46,6 +46,7 @@ export const AfterBulkCreate = Pkg.AfterBulkCreate;
 export const AfterBulkDestroy = Pkg.AfterBulkDestroy;
 export const AfterBulkRestore = Pkg.AfterBulkRestore;
 export const AfterBulkUpdate = Pkg.AfterBulkUpdate;
+export const AfterCount = Pkg.AfterCount;
 export const AfterCreate = Pkg.AfterCreate;
 export const AfterDestroy = Pkg.AfterDestroy;
 export const AfterDestroyMany = Pkg.AfterDestroyMany;

@@ -1584,6 +1584,10 @@ ${associationOwner._getAssociationDebugList()}`);
       }));
     }
 
+    if (options.hooks) {
+      await this.hooks.runAsync('afterCount', result, options);
+    }
+
     return result;
   }
 

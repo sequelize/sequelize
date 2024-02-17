@@ -19,7 +19,7 @@ import type { AsyncHookReturn, HookHandler } from './hooks.js';
 import { HookHandlerBuilder } from './hooks.js';
 import { listenForModelDefinition, removeModelDefinition } from './model-definition.js';
 import type { ModelHooks } from './model-hooks.js';
-import { validModelHooks } from './model-hooks.js';
+import { VALID_MODEL_HOOKS } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
 import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
@@ -47,7 +47,26 @@ import type {
   TruncateOptions,
 } from '.';
 
-export interface SequelizeHooks extends ModelHooks {
+/**
+ * Hooks that are inherited from {@link ModelHooks}, but with an extra "Model" parameter
+ * before the model cannot be inferred from the other arguments.
+ */
+const SEQUELIZE_OVERWRITTEN_MODEL_HOOKS = [
+  'beforeUpsert', 'afterUpsert',
+  'beforeBulkDestroy', 'afterBulkDestroy',
+  'beforeBulkRestore', 'afterBulkRestore',
+  'beforeBulkUpdate', 'afterBulkUpdate',
+  'beforeCount', 'afterCount',
+  'beforeFind', 'beforeFindAfterExpandIncludeAll', 'beforeFindAfterOptions', 'afterFind',
+  'beforeSync', 'afterSync',
+  'beforeDefinitionRefresh', 'afterDefinitionRefresh',
+] as const;
+
+export function isOverwrittenModelHook(hookName: string): hookName is typeof SEQUELIZE_OVERWRITTEN_MODEL_HOOKS[number] {
+  return SEQUELIZE_OVERWRITTEN_MODEL_HOOKS.includes(hookName as any);
+}
+
+export interface SequelizeHooks extends Omit<ModelHooks, typeof SEQUELIZE_OVERWRITTEN_MODEL_HOOKS[number]> {
   /**
    * A hook that is run at the start of {@link Sequelize#define} and {@link Model.init}
    */
@@ -99,6 +118,27 @@ export interface SequelizeHooks extends ModelHooks {
    * A hook that is run after a connection to the pool
    */
   afterPoolAcquire(connection: Connection, options?: GetConnectionOptions): AsyncHookReturn;
+
+  // inherited from model hooks, but with an extra "Model" parameter
+
+  beforeUpsert(model: ModelStatic, ...args: Parameters<ModelHooks['beforeUpsert']>): ReturnType<ModelHooks['beforeUpsert']>;
+  afterUpsert(model: ModelStatic, ...args: Parameters<ModelHooks['afterUpsert']>): ReturnType<ModelHooks['afterUpsert']>;
+  beforeBulkDestroy(model: ModelStatic, ...args: Parameters<ModelHooks['beforeBulkDestroy']>): ReturnType<ModelHooks['beforeBulkDestroy']>;
+  afterBulkDestroy(model: ModelStatic, ...args: Parameters<ModelHooks['afterBulkDestroy']>): ReturnType<ModelHooks['afterBulkDestroy']>;
+  beforeBulkRestore(model: ModelStatic, ...args: Parameters<ModelHooks['beforeBulkRestore']>): ReturnType<ModelHooks['beforeBulkRestore']>;
+  afterBulkRestore(model: ModelStatic, ...args: Parameters<ModelHooks['afterBulkRestore']>): ReturnType<ModelHooks['afterBulkRestore']>;
+  beforeBulkUpdate(model: ModelStatic, ...args: Parameters<ModelHooks['beforeBulkUpdate']>): ReturnType<ModelHooks['beforeBulkUpdate']>;
+  afterBulkUpdate(model: ModelStatic, ...args: Parameters<ModelHooks['afterBulkUpdate']>): ReturnType<ModelHooks['afterBulkUpdate']>;
+  beforeCount(model: ModelStatic, ...args: Parameters<ModelHooks['beforeCount']>): ReturnType<ModelHooks['beforeCount']>;
+  afterCount(model: ModelStatic, ...args: Parameters<ModelHooks['afterCount']>): ReturnType<ModelHooks['afterCount']>;
+  beforeFind(model: ModelStatic, ...args: Parameters<ModelHooks['beforeFind']>): ReturnType<ModelHooks['beforeFind']>;
+  beforeFindAfterExpandIncludeAll(model: ModelStatic, ...args: Parameters<ModelHooks['beforeFindAfterExpandIncludeAll']>): ReturnType<ModelHooks['beforeFindAfterExpandIncludeAll']>;
+  beforeFindAfterOptions(model: ModelStatic, ...args: Parameters<ModelHooks['beforeFindAfterOptions']>): ReturnType<ModelHooks['beforeFindAfterOptions']>;
+  afterFind(model: ModelStatic, ...args: Parameters<ModelHooks['afterFind']>): ReturnType<ModelHooks['afterFind']>;
+  beforeSync(model: ModelStatic, ...args: Parameters<ModelHooks['beforeSync']>): ReturnType<ModelHooks['beforeSync']>;
+  afterSync(model: ModelStatic, ...args: Parameters<ModelHooks['afterSync']>): ReturnType<ModelHooks['afterSync']>;
+  beforeDefinitionRefresh(model: ModelStatic, ...args: Parameters<ModelHooks['beforeDefinitionRefresh']>): ReturnType<ModelHooks['beforeDefinitionRefresh']>;
+  afterDefinitionRefresh(model: ModelStatic, ...args: Parameters<ModelHooks['afterDefinitionRefresh']>): ReturnType<ModelHooks['afterDefinitionRefresh']>;
 }
 
 export interface StaticSequelizeHooks {
@@ -147,7 +187,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
   'beforeDisconnect', 'afterDisconnect',
   'beforeDefine', 'afterDefine',
   'beforePoolAcquire', 'afterPoolAcquire',
-  ...validModelHooks,
+  ...VALID_MODEL_HOOKS,
 ]);
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;

@@ -1,5 +1,13 @@
 import { expectTypeOf } from 'expect-type';
-import type { ConnectionOptions, FindOptions, QueryOptions, SaveOptions, UpsertOptions } from '@sequelize/core';
+import type {
+  Attributes,
+  ConnectionOptions,
+  FindOptions,
+  ModelStatic,
+  QueryOptions,
+  SaveOptions,
+  UpsertOptions,
+} from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
 import type {
   AfterAssociateEventData,
@@ -13,36 +21,25 @@ import type {
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
+import type { SequelizeHooks } from '../../types/sequelize-typescript.js';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {
   class TestModel extends Model {}
 
-  const hooks: Partial<ModelHooks<TestModel>> = {
-    validationFailed(m, options, error) {
-      expectTypeOf(m).toEqualTypeOf<TestModel>();
+  const commonHooks = {
+    validationFailed(instance, options, error) {
+      expectTypeOf(instance).toEqualTypeOf<TestModel>();
       expectTypeOf(options).toEqualTypeOf<ValidationOptions>();
       expectTypeOf(error).toEqualTypeOf<unknown>();
     },
-    beforeSave(m, options) {
-      expectTypeOf(m).toEqualTypeOf<TestModel>();
+    beforeSave(instance, options) {
+      expectTypeOf(instance).toEqualTypeOf<TestModel>();
       expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
     },
-    afterSave(m, options) {
-      expectTypeOf(m).toEqualTypeOf<TestModel>();
+    afterSave(instance, options) {
+      expectTypeOf(instance).toEqualTypeOf<TestModel>();
       expectTypeOf(options).toMatchTypeOf<SaveOptions>(); // TODO consider `.toEqualTypeOf` instead ?
-    },
-    afterFind(m, options) {
-      expectTypeOf(m).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
-      expectTypeOf(options).toEqualTypeOf<FindOptions>();
-    },
-    beforeUpsert(m, options) {
-      expectTypeOf(m).toEqualTypeOf<TestModel>();
-      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
-    },
-    afterUpsert(m, options) {
-      expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
-      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
     beforeAssociate(data, options) {
       expectTypeOf(data).toEqualTypeOf<BeforeAssociateEventData>();
@@ -52,25 +49,60 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
       expectTypeOf(data).toEqualTypeOf<AfterAssociateEventData>();
       expectTypeOf(options).toEqualTypeOf<AssociationOptions<any>>();
     },
-  };
+  } as const satisfies Partial<ModelHooks<TestModel, Attributes<TestModel>>>;
 
-  const sequelize = new Sequelize('uri', { hooks });
-  TestModel.init({}, { sequelize, hooks });
+  const modelHooks = {
+    ...commonHooks,
+    beforeUpsert(data, options) {
+      expectTypeOf(data).toEqualTypeOf<Attributes<TestModel>>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    afterUpsert(output, options) {
+      expectTypeOf(output).toEqualTypeOf<[ TestModel, boolean | null ]>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    afterFind(results, options) {
+      expectTypeOf(results).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
+      expectTypeOf(options).toEqualTypeOf<FindOptions>();
+    },
+  } as const satisfies Partial<ModelHooks<TestModel, Attributes<TestModel>>>;
 
-  TestModel.addHook('beforeSave', hooks.beforeSave!);
-  TestModel.addHook('afterSave', hooks.afterSave!);
-  TestModel.addHook('afterFind', hooks.afterFind!);
-  TestModel.addHook('beforeUpsert', hooks.beforeUpsert!);
-  TestModel.addHook('afterUpsert', hooks.afterUpsert!);
+  const sequelizeHooks = {
+    ...commonHooks,
+    beforeUpsert(model, data, options) {
+      expectTypeOf(model).toEqualTypeOf<ModelStatic>();
+      expectTypeOf(data).toEqualTypeOf<Attributes<TestModel>>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    afterUpsert(model, output, options) {
+      expectTypeOf(model).toEqualTypeOf<ModelStatic>();
+      expectTypeOf(output).toEqualTypeOf<[ TestModel, boolean | null ]>();
+      expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
+    },
+    afterFind(model, output, options) {
+      expectTypeOf(model).toEqualTypeOf<ModelStatic>();
+      expectTypeOf(output).toEqualTypeOf<readonly TestModel[] | TestModel | null>();
+      expectTypeOf(options).toEqualTypeOf<FindOptions>();
+    },
+  } as const satisfies Partial<SequelizeHooks>;
 
-  TestModel.beforeSave(hooks.beforeSave!);
-  TestModel.afterSave(hooks.afterSave!);
-  TestModel.afterFind(hooks.afterFind!);
+  const sequelize = new Sequelize('uri', { hooks: sequelizeHooks });
+  TestModel.init({}, { sequelize, hooks: modelHooks });
 
-  sequelize.beforeSave(hooks.beforeSave!);
-  sequelize.afterSave(hooks.afterSave!);
-  sequelize.afterFind(hooks.afterFind!);
-  sequelize.afterFind('namedAfterFind', hooks.afterFind!);
+  TestModel.addHook('beforeSave', modelHooks.beforeSave);
+  TestModel.addHook('afterSave', modelHooks.afterSave);
+  TestModel.addHook('afterFind', modelHooks.afterFind);
+  TestModel.addHook('beforeUpsert', modelHooks.beforeUpsert);
+  TestModel.addHook('afterUpsert', modelHooks.afterUpsert);
+
+  TestModel.beforeSave(modelHooks.beforeSave);
+  TestModel.afterSave(modelHooks.afterSave);
+  TestModel.afterFind(modelHooks.afterFind);
+
+  sequelize.beforeSave(sequelizeHooks.beforeSave);
+  sequelize.afterSave(sequelizeHooks.afterSave);
+  sequelize.afterFind(sequelizeHooks.afterFind);
+  sequelize.afterFind('namedAfterFind', sequelizeHooks.afterFind);
 }
 
 // #12959
