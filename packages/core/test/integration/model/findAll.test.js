@@ -8,7 +8,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, literal } = require('@sequelize/core');
 
 const dayjs = require('dayjs');
 const promiseProps = require('p-props');

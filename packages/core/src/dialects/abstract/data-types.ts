@@ -6,6 +6,8 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
+import type { Fn } from '../../expression-builders/fn';
+import type { Literal } from '../../expression-builders/literal';
 import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
@@ -2045,14 +2047,18 @@ export class UUIDV4 extends AbstractDataType<string> {
   }
 }
 
+export type IncludeAsCallback = (includeAs: string) => [Literal | Fn, string];
+
+type VirtualAttributeDependencies = string[] | IncludeAsCallback;
+
 export interface VirtualOptions {
   returnType?: DataTypeClassOrInstance | undefined;
-  attributeDependencies?: string[] | undefined;
+  attributeDependencies?: VirtualAttributeDependencies;
 }
 
 export interface NormalizedVirtualOptions {
   returnType: DataTypeClassOrInstance | undefined;
-  attributeDependencies: string[];
+  attributeDependencies: VirtualAttributeDependencies;
 }
 
 /**
@@ -2106,14 +2112,14 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
 
   options: NormalizedVirtualOptions;
 
-  constructor(returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]);
+  constructor(returnType?: DataTypeClassOrInstance, attributeDependencies?: VirtualAttributeDependencies);
   constructor(options?: VirtualOptions);
 
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
   constructor(...args:
-    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
+    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: VirtualAttributeDependencies]
     | [options?: VirtualOptions]
   );
 
@@ -2121,7 +2127,8 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
    * @param [returnTypeOrOptions] return type for virtual type, or an option bag
    * @param [attributeDependencies] array of attributes this virtual type is dependent on
    */
-  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
+  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions,
+    attributeDependencies?: VirtualAttributeDependencies) {
     super();
 
     const returnType = returnTypeOrOptions == null ? undefined
