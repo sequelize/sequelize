@@ -1,4 +1,10 @@
-import { allowDeprecationsInSuite, createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
+import {
+  allowDeprecationsInSuite,
+  createSequelizeInstance,
+  expectsql,
+  getTestDialect,
+  sequelize,
+} from '../../support';
 
 const dialectName = getTestDialect();
 
@@ -17,7 +23,9 @@ describe('QueryGenerator#dropDatabaseQuery', () => {
   });
 
   it('omits quotes if quoteIdentifiers is false', async () => {
-    const noQuoteQueryGenerator = createSequelizeInstance({ quoteIdentifiers: false }).queryGenerator;
+    const noQuoteQueryGenerator = createSequelizeInstance({
+      quoteIdentifiers: false,
+    }).queryGenerator;
 
     expectsql(() => noQuoteQueryGenerator.dropDatabaseQuery('myDatabase'), {
       default: notSupportedError,
