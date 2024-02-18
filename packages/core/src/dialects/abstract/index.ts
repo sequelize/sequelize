@@ -261,7 +261,7 @@ export type DialectSupports = {
     ifExists: boolean;
   };
   delete: {
-    modelWithLimit: boolean;
+    limit: boolean;
   };
 };
 
@@ -455,7 +455,7 @@ export abstract class AbstractDialect {
       ifExists: false,
     },
     delete: {
-      modelWithLimit: false,
+      limit: true,
     },
   };
 

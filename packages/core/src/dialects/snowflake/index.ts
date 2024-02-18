@@ -56,7 +56,7 @@ export class SnowflakeDialect extends AbstractDialect {
       ifExists: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
     },
   });
 

@@ -66,7 +66,7 @@ export class MssqlDialect extends AbstractDialect {
       useBegin: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
     },
   });
 
