@@ -17,7 +17,8 @@ export function registerMariaDbDbDataTypeParsers(dialect: MariaDbDialect) {
     }
 
     const timeZone = dialect.sequelize.options.timezone;
-    if (timeZone === '+00:00') { // default value
+    if (timeZone === '+00:00') {
+      // default value
       // mariadb returns a UTC date string that looks like the following:
       // 2022-01-01 00:00:00
       // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.

@@ -30,7 +30,9 @@ describe('QueryGenerator#createDatabaseQuery', () => {
   it('supports the encoding option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { encoding: 'UTF8' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['encoding']),
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, [
+        'encoding',
+      ]),
       postgres: `CREATE DATABASE "myDatabase" ENCODING = 'UTF8'`,
     });
   });
@@ -38,7 +40,9 @@ describe('QueryGenerator#createDatabaseQuery', () => {
   it('supports the ctype option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { ctype: 'zh_TW.UTF-8' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['ctype']),
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, [
+        'ctype',
+      ]),
       postgres: `CREATE DATABASE "myDatabase" LC_CTYPE = 'zh_TW.UTF-8'`,
     });
   });
@@ -46,7 +50,9 @@ describe('QueryGenerator#createDatabaseQuery', () => {
   it('supports the template option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { template: 'template0' }), {
       default: notSupportedError,
-      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['template']),
+      'mssql snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, [
+        'template',
+      ]),
       postgres: `CREATE DATABASE "myDatabase" TEMPLATE = 'template0'`,
     });
   });
@@ -54,7 +60,11 @@ describe('QueryGenerator#createDatabaseQuery', () => {
   it('supports the charset option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { charset: 'utf8mb4' }), {
       default: notSupportedError,
-      'mssql postgres snowflake': buildInvalidOptionReceivedError('createDatabaseQuery', dialectName, ['charset']),
+      'mssql postgres snowflake': buildInvalidOptionReceivedError(
+        'createDatabaseQuery',
+        dialectName,
+        ['charset'],
+      ),
     });
   });
 

@@ -24,19 +24,30 @@ describe('QueryGenerator#truncateTableQuery', () => {
   });
 
   it('produces a TRUNCATE TABLE query with RESTART IDENTITY for a table', () => {
-    expectPerDialect(() => queryGenerator.truncateTableQuery('myTable', { restartIdentity: true }), {
-      default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['restartIdentity']),
-      sqlite: ['DELETE FROM `myTable`', 'DELETE FROM `sqlite_sequence` WHERE `name` = \'myTable\''],
-      postgres: `TRUNCATE "myTable" RESTART IDENTITY`,
-    });
+    expectPerDialect(
+      () => queryGenerator.truncateTableQuery('myTable', { restartIdentity: true }),
+      {
+        default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, [
+          'restartIdentity',
+        ]),
+        sqlite: ['DELETE FROM `myTable`', "DELETE FROM `sqlite_sequence` WHERE `name` = 'myTable'"],
+        postgres: `TRUNCATE "myTable" RESTART IDENTITY`,
+      },
+    );
   });
 
   it('produces a TRUNCATE TABLE query with CASCADE and RESTART IDENTITY query for a table', () => {
-    expectPerDialect(() => queryGenerator.truncateTableQuery('myTable', { cascade: true, restartIdentity: true }), {
-      default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade', 'restartIdentity']),
-      sqlite: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
-      postgres: `TRUNCATE "myTable" RESTART IDENTITY CASCADE`,
-    });
+    expectPerDialect(
+      () => queryGenerator.truncateTableQuery('myTable', { cascade: true, restartIdentity: true }),
+      {
+        default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, [
+          'cascade',
+          'restartIdentity',
+        ]),
+        sqlite: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
+        postgres: `TRUNCATE "myTable" RESTART IDENTITY CASCADE`,
+      },
+    );
   });
 
   it('produces a TRUNCATE TABLE query for a model', () => {
@@ -51,24 +62,47 @@ describe('QueryGenerator#truncateTableQuery', () => {
     });
   });
 
-  it('produces a TRUNCATE TABLE query from a table and schema', () => {
-    expectPerDialect(() => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
-      mssql: 'TRUNCATE TABLE [mySchema].[myTable]',
-      sqlite: ['DELETE FROM `mySchema.myTable`'],
-      'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
-      'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
-      'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+  it('produces a TRUNCATE TABLE query for a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectPerDialect(() => queryGenerator.truncateTableQuery(myDefinition), {
+      mssql: 'TRUNCATE TABLE [MyModels]',
+      sqlite: ['DELETE FROM `MyModels`'],
+      'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
+      'mariadb mysql': 'TRUNCATE `MyModels`',
+      'postgres snowflake': 'TRUNCATE "MyModels"',
     });
   });
 
+  it('produces a TRUNCATE TABLE query from a table and schema', () => {
+    expectPerDialect(
+      () => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema' }),
+      {
+        mssql: 'TRUNCATE TABLE [mySchema].[myTable]',
+        sqlite: ['DELETE FROM `mySchema.myTable`'],
+        'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
+        'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
+        'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+      },
+    );
+  });
+
   it('produces a TRUNCATE TABLE query from a table and default schema', () => {
-    expectPerDialect(() => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
-      mssql: 'TRUNCATE TABLE [myTable]',
-      sqlite: ['DELETE FROM `myTable`'],
-      'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
-      'mariadb mysql': 'TRUNCATE `myTable`',
-      'postgres snowflake': 'TRUNCATE "myTable"',
-    });
+    expectPerDialect(
+      () =>
+        queryGenerator.truncateTableQuery({
+          tableName: 'myTable',
+          schema: dialect.getDefaultSchema(),
+        }),
+      {
+        mssql: 'TRUNCATE TABLE [myTable]',
+        sqlite: ['DELETE FROM `myTable`'],
+        'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
+        'mariadb mysql': 'TRUNCATE `myTable`',
+        'postgres snowflake': 'TRUNCATE "myTable"',
+      },
+    );
   });
 
   it('produces a TRUNCATE TABLE query from a table and globally set schema', () => {
@@ -90,9 +124,17 @@ describe('QueryGenerator#truncateTableQuery', () => {
       return;
     }
 
-    expectPerDialect(() => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: ['DELETE FROM `mySchemacustommyTable`'],
-    });
+    expectPerDialect(
+      () =>
+        queryGenerator.truncateTableQuery({
+          tableName: 'myTable',
+          schema: 'mySchema',
+          delimiter: 'custom',
+        }),
+      {
+        sqlite: ['DELETE FROM `mySchemacustommyTable`'],
+      },
+    );
   });
 
   it('produces a TRUNCATE TABLE query with RESTART IDENTITY for a table with schema and custom delimiter argument', () => {
@@ -101,8 +143,18 @@ describe('QueryGenerator#truncateTableQuery', () => {
       return;
     }
 
-    expectPerDialect(() => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, { restartIdentity: true }), {
-      sqlite: ['DELETE FROM `mySchemacustommyTable`', 'DELETE FROM `sqlite_sequence` WHERE `name` = \'mySchemacustommyTable\''],
-    });
+    expectPerDialect(
+      () =>
+        queryGenerator.truncateTableQuery(
+          { tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' },
+          { restartIdentity: true },
+        ),
+      {
+        sqlite: [
+          'DELETE FROM `mySchemacustommyTable`',
+          "DELETE FROM `sqlite_sequence` WHERE `name` = 'mySchemacustommyTable'",
+        ],
+      },
+    );
   });
 });

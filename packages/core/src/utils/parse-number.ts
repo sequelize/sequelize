@@ -13,13 +13,19 @@ const BASE10_NUMBER_SCIENTIFIC_REGEX = /^[-+]?[0-9]*(\.[0-9]+)?([eE][-+]?[0-9]+)
 export function parseNumber(value: string | bigint): number {
   if (typeof value === 'bigint') {
     if (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) {
-      throw new TypeError(`Cannot cast BigInt ${value} to Number, because the value would be outside of the Safe Integer range.`);
+      throw new TypeError(
+        `Cannot cast BigInt ${value} to Number, because the value would be outside of the Safe Integer range.`,
+      );
     }
 
     return Number(value);
   }
 
-  if (!BASE10_NUMBER_SCIENTIFIC_REGEX.test(value) && value !== 'Infinity' && value !== '-Infinity') {
+  if (
+    !BASE10_NUMBER_SCIENTIFIC_REGEX.test(value) &&
+    value !== 'Infinity' &&
+    value !== '-Infinity'
+  ) {
     return Number.NaN;
   }
 
@@ -30,7 +36,10 @@ export function parseNumber(value: string | bigint): number {
   return Number(value);
 }
 
-export function parseNumberOrThrow(value: string | bigint, ErrorClass: Class<Error> = SyntaxError): number {
+export function parseNumberOrThrow(
+  value: string | bigint,
+  ErrorClass: Class<Error> = SyntaxError,
+): number {
   const result = parseNumber(value);
 
   if (Number.isNaN(result)) {
@@ -45,7 +54,9 @@ const BASE10_INTEGER_REGEX = /^[-+]?[0-9]+$/;
 export function parseBigInt(value: number | string): bigint {
   if (typeof value === 'number') {
     if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-      throw new TypeError(`Cannot cast Number ${value} to BigInt, because the value is already outside of the Safe Integer range. You need to use a String or BigInt instead of a Number for this value.`);
+      throw new TypeError(
+        `Cannot cast Number ${value} to BigInt, because the value is already outside of the Safe Integer range. You need to use a String or BigInt instead of a Number for this value.`,
+      );
     }
   } else if (!BASE10_INTEGER_REGEX.test(value)) {
     throw new SyntaxError(`Cannot parse String ${value} as a BigInt.`);

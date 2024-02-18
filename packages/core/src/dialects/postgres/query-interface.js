@@ -32,14 +32,18 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       const type = attribute.type;
 
       if (
-        type instanceof DataTypes.ENUM
-        || type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM // ARRAY sub type is ENUM
+        type instanceof DataTypes.ENUM ||
+        (type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
         sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
-        promises.push(this.sequelize.queryRaw(
-          sql,
-          { ...options, plain: true, raw: true, type: QueryTypes.SELECT },
-        ));
+        promises.push(
+          this.sequelize.queryRaw(sql, {
+            ...options,
+            plain: true,
+            raw: true,
+            type: QueryTypes.SELECT,
+          }),
+        );
       }
     }
 
@@ -48,7 +52,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
     let enumIdx = 0;
 
     // This little function allows us to re-use the same code that prepends or appends new value to enum array
-    const addEnumValue = (field, value, relativeValue, position = 'before', spliceStart = promises.length) => {
+    const addEnumValue = (
+      field,
+      value,
+      relativeValue,
+      position = 'before',
+      spliceStart = promises.length,
+    ) => {
       const valueOptions = { ...options };
       valueOptions.before = null;
       valueOptions.after = null;
@@ -64,9 +74,10 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       }
 
       promises.splice(spliceStart, 0, () => {
-        return this.sequelize.queryRaw(this.queryGenerator.pgEnumAdd(
-          tableName, field, value, valueOptions,
-        ), valueOptions);
+        return this.sequelize.queryRaw(
+          this.queryGenerator.pgEnumAdd(tableName, field, value, valueOptions),
+          valueOptions,
+        );
       });
     };
 
@@ -77,13 +88,16 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       const field = attribute.field || keys[i];
 
       if (
-        type instanceof DataTypes.ENUM
-        || type instanceof DataTypes.ARRAY && enumType instanceof DataTypes.ENUM // ARRAY sub type is ENUM
+        type instanceof DataTypes.ENUM ||
+        (type instanceof DataTypes.ARRAY && enumType instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
         // If the enum type doesn't exist then create it
         if (!results[enumIdx]) {
           promises.push(() => {
-            return this.sequelize.queryRaw(this.queryGenerator.pgEnum(tableName, field, enumType, options), { ...options, raw: true });
+            return this.sequelize.queryRaw(
+              this.queryGenerator.pgEnum(tableName, field, enumType, options),
+              { ...options, raw: true },
+            );
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
@@ -114,7 +128,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
                 break;
               }
 
-              addEnumValue(field, newValuesBefore[reverseIdx], lastOldEnumValue, 'before', promisesLength);
+              addEnumValue(
+                field,
+                newValuesBefore[reverseIdx],
+                lastOldEnumValue,
+                'before',
+                promisesLength,
+              );
             }
 
             // we detect the most 'right' position of old value in new enum array so we can append new values to it
@@ -135,8 +155,10 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       }
     }
 
-    const result = await promises
-      .reduce(async (promise, asyncFunction) => await asyncFunction(await promise), Promise.resolve());
+    const result = await promises.reduce(
+      async (promise, asyncFunction) => await asyncFunction(await promise),
+      Promise.resolve(),
+    );
 
     // If ENUM processed, then refresh OIDs
     if (promises.length > 0) {
@@ -155,7 +177,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
    * @returns {Promise}
    */
   async dropEnum(enumName, options) {
-    options = options || {};
+    options ||= {};
 
     return this.sequelize.queryRaw(
       this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(enumName)),
@@ -171,14 +193,22 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
    * @returns {Promise}
    */
   async dropAllEnums(options) {
-    options = options || {};
+    options ||= {};
 
     const enums = await this.pgListEnums(null, options);
 
-    return await Promise.all(enums.map(result => this.sequelize.queryRaw(
-      this.queryGenerator.pgEnumDrop(null, null, this.queryGenerator.quoteIdentifier(result.enum_name)),
-      { ...options, raw: true },
-    )));
+    return await Promise.all(
+      enums.map(result =>
+        this.sequelize.queryRaw(
+          this.queryGenerator.pgEnumDrop(
+            null,
+            null,
+            this.queryGenerator.quoteIdentifier(result.enum_name),
+          ),
+          { ...options, raw: true },
+        ),
+      ),
+    );
   }
 
   /**
@@ -190,10 +220,15 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
    * @returns {Promise}
    */
   async pgListEnums(tableName, options) {
-    options = options || {};
+    options ||= {};
     const sql = this.queryGenerator.pgListEnums(tableName);
 
-    return this.sequelize.queryRaw(sql, { ...options, plain: false, raw: true, type: QueryTypes.SELECT });
+    return this.sequelize.queryRaw(sql, {
+      ...options,
+      plain: false,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
   }
 
   /**
@@ -206,14 +241,18 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
     await super.dropTable(tableName, options);
     const promises = [];
     // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
-    const model = this.sequelize.modelManager.findModel(model => this.queryGenerator.isSameTable(model.table, tableName));
+    const model = this.sequelize.models.find(model =>
+      this.queryGenerator.isSameTable(model.table, tableName),
+    );
 
     if (!model) {
       // Do nothing when model is not available
       return;
     }
 
-    const getTableName = (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) + tableName;
+    const getTableName =
+      (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) +
+      tableName;
 
     const attributes = model.modelDefinition.attributes;
 
@@ -223,11 +262,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       }
 
       const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
-      promises.push(this.sequelize.queryRaw(sql, {
-        ...options,
-        raw: true,
-        supportsSearchPath: false,
-      }));
+      promises.push(
+        this.sequelize.queryRaw(sql, {
+          ...options,
+          raw: true,
+          supportsSearchPath: false,
+        }),
+      );
     }
 
     await Promise.all(promises);

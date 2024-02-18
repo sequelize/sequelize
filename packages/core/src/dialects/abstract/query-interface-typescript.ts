@@ -1,11 +1,12 @@
-import assert from 'node:assert';
 import isEmpty from 'lodash/isEmpty';
-import { Deferrable } from '../../deferrable';
+import assert from 'node:assert';
 import type { ConstraintChecking } from '../../deferrable';
+import { Deferrable } from '../../deferrable';
 import { BaseError } from '../../errors';
 import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
+import { COMPLETES_TRANSACTION, Transaction } from '../../transaction';
 import {
   noSchemaDelimiterParameter,
   noSchemaParameter,
@@ -13,14 +14,17 @@ import {
   showAllToListTables,
 } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
-import type { TableNameOrModel, TableOrModel } from './query-generator-typescript.js';
+import type { AbstractDialect } from './index.js';
+import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
+  CommitTransactionOptions,
   ConstraintDescription,
   CreateDatabaseOptions,
+  CreateSavepointOptions,
   CreateSchemaOptions,
   DatabaseDescription,
   DeferConstraintsOptions,
@@ -38,9 +42,12 @@ import type {
   RemoveColumnOptions,
   RemoveConstraintOptions,
   RenameTableOptions,
+  RollbackSavepointOptions,
+  RollbackTransactionOptions,
+  SetIsolationLevelOptions,
   ShowConstraintsOptions,
+  StartTransactionOptions,
 } from './query-interface.types';
-import type { AbstractDialect } from './index.js';
 
 export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
 
@@ -59,12 +66,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    *                               Defaults to a new instance of {@link AbstractQueryInterfaceInternal}.
    *                               Your dialect may replace this with a custom implementation.
    */
-  constructor(
-    dialect: Dialect,
-    internalQueryInterface?: AbstractQueryInterfaceInternal,
-  ) {
+  constructor(dialect: Dialect, internalQueryInterface?: AbstractQueryInterfaceInternal) {
     this.dialect = dialect;
-    this.#internalQueryInterface = internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
+    this.#internalQueryInterface =
+      internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
   }
 
   get sequelize(): Sequelize {
@@ -107,7 +112,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   async listDatabases(options?: ListDatabasesOptions): Promise<DatabaseDescription[]> {
     const sql = this.queryGenerator.listDatabasesQuery(options);
 
-    return this.sequelize.queryRaw<DatabaseDescription>(sql, { ...options, type: QueryTypes.SELECT });
+    return this.sequelize.queryRaw<DatabaseDescription>(sql, {
+      ...options,
+      type: QueryTypes.SELECT,
+    });
   }
 
   /**
@@ -116,9 +124,14 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options Query Options
    */
   async fetchDatabaseVersion(options?: FetchDatabaseVersionOptions): Promise<string> {
-    const payload = await this.#internalQueryInterface.fetchDatabaseVersionRaw<{ version: string }>(options);
+    const payload = await this.#internalQueryInterface.fetchDatabaseVersionRaw<{ version: string }>(
+      options,
+    );
 
-    assert(payload.version != null, 'Expected the version query to produce an object that includes a `version` property.');
+    assert(
+      payload.version != null,
+      'Expected the version query to produce an object that includes a `version` property.',
+    );
 
     return payload.version;
   }
@@ -221,7 +234,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName Table name to drop
    * @param options   Query options
    */
-  async dropTable(tableName: TableNameOrModel, options?: QiDropTableOptions): Promise<void> {
+  async dropTable(tableName: TableOrModel, options?: QiDropTableOptions): Promise<void> {
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, options);
@@ -246,9 +259,14 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts
     for (const tableName of tableNames) {
       // eslint-disable-next-line no-await-in-loop
-      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      const foreignKeys = await this.showConstraints(tableName, {
+        ...options,
+        constraintType: 'FOREIGN KEY',
+      });
       // eslint-disable-next-line no-await-in-loop
-      await Promise.all(foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)));
+      await Promise.all(
+        foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)),
+      );
     }
 
     // Drop all the tables loop to avoid deadlocks and timeouts
@@ -266,7 +284,11 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   async listTables(options?: QiListTablesOptions): Promise<TableNameWithSchema[]> {
     const sql = this.queryGenerator.listTablesQuery(options);
 
-    return this.sequelize.queryRaw<TableNameWithSchema>(sql, { ...options, raw: true, type: QueryTypes.SELECT });
+    return this.sequelize.queryRaw<TableNameWithSchema>(sql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
   }
 
   /**
@@ -289,8 +311,8 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options
    */
   async renameTable(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableOptions,
   ): Promise<void> {
     const sql = this.queryGenerator.renameTableQuery(beforeTableName, afterTableName, options);
@@ -304,7 +326,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName - The name of the table or model
    * @param options - Query options
    */
-  async tableExists(tableName: TableNameOrModel, options?: QueryRawOptions): Promise<boolean> {
+  async tableExists(tableName: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
     const sql = this.queryGenerator.tableExistsQuery(tableName);
     const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
 
@@ -334,7 +356,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName
    * @param options Query options
    */
-  async describeTable(tableName: TableNameOrModel, options?: DescribeTableOptions): Promise<ColumnsDescription> {
+  async describeTable(
+    tableName: TableOrModel,
+    options?: DescribeTableOptions,
+  ): Promise<ColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -355,7 +380,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     }
 
     const sql = this.queryGenerator.describeTableQuery(table);
-    const queryOptions: QueryRawOptionsWithType<QueryTypes.DESCRIBE> = { ...options, type: QueryTypes.DESCRIBE };
+    const queryOptions: QueryRawOptionsWithType<QueryTypes.DESCRIBE> = {
+      ...options,
+      type: QueryTypes.DESCRIBE,
+    };
 
     try {
       const data = await this.sequelize.queryRaw(sql, queryOptions);
@@ -365,13 +393,17 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (isEmpty(data)) {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(
+          `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
+        );
       }
 
       return data;
     } catch (error: unknown) {
       if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(
+          `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
+        );
       }
 
       throw error;
@@ -384,7 +416,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName
    * @param options
    */
-  async truncate(tableName: TableNameOrModel, options?: QiTruncateTableOptions): Promise<void> {
+  async truncate(tableName: TableOrModel, options?: QiTruncateTableOptions): Promise<void> {
     const sql = this.queryGenerator.truncateTableQuery(tableName, options);
     const queryOptions = { ...options, raw: true, type: QueryTypes.RAW };
     if (Array.isArray(sql)) {
@@ -402,7 +434,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options
    */
   async removeColumn(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     columnName: string,
     options?: RemoveColumnOptions,
   ): Promise<void> {
@@ -502,7 +534,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName - Table name where you want to add a constraint
    * @param options - An object to define the constraint name, type etc
    */
-  async addConstraint(tableName: TableNameOrModel, options: AddConstraintOptions): Promise<void> {
+  async addConstraint(tableName: TableOrModel, options: AddConstraintOptions): Promise<void> {
     if (!options.fields) {
       throw new Error('Fields must be specified through options.fields');
     }
@@ -516,7 +548,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async deferConstraints(constraintChecking: ConstraintChecking, options?: DeferConstraintsOptions): Promise<void> {
+  async deferConstraints(
+    constraintChecking: ConstraintChecking,
+    options?: DeferConstraintsOptions,
+  ): Promise<void> {
     setTransactionFromCls(options ?? {}, this.sequelize);
     if (!options?.transaction) {
       throw new Error('Missing transaction in deferConstraints option.');
@@ -535,7 +570,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options -Query options
    */
   async removeConstraint(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     constraintName: string,
     options?: RemoveConstraintOptions,
   ): Promise<void> {
@@ -544,9 +579,16 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.RAW });
   }
 
-  async showConstraints(tableName: TableNameOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+  async showConstraints(
+    tableName: TableOrModel,
+    options?: ShowConstraintsOptions,
+  ): Promise<ConstraintDescription[]> {
     const sql = this.queryGenerator.showConstraintsQuery(tableName, options);
-    const rawConstraints = await this.sequelize.queryRaw(sql, { ...options, raw: true, type: QueryTypes.SHOWCONSTRAINTS });
+    const rawConstraints = await this.sequelize.queryRaw(sql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SHOWCONSTRAINTS,
+    });
     const constraintMap = new Map<string, ConstraintDescription>();
     for (const {
       columnNames,
@@ -564,14 +606,14 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       if (constraint) {
         if (columnNames) {
           constraint.columnNames = constraint.columnNames
-          ? [...new Set([...constraint.columnNames, columnNames])]
-          : [columnNames];
+            ? [...new Set([...constraint.columnNames, columnNames])]
+            : [columnNames];
         }
 
         if (referencedColumnNames) {
           constraint.referencedColumnNames = constraint.referencedColumnNames
-          ? [...new Set([...constraint.referencedColumnNames, referencedColumnNames])]
-          : [referencedColumnNames];
+            ? [...new Set([...constraint.referencedColumnNames, referencedColumnNames])]
+            : [referencedColumnNames];
         }
       } else {
         const constraintData: ConstraintDescription = { ...rawConstraint };
@@ -604,7 +646,11 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
         }
 
         if (this.sequelize.dialect.supports.constraints.deferrable) {
-          constraintData.deferrable = isDeferrable ? (initiallyDeferred === 'YES' ? Deferrable.INITIALLY_DEFERRED : Deferrable.INITIALLY_IMMEDIATE) : Deferrable.NOT;
+          constraintData.deferrable = isDeferrable
+            ? initiallyDeferred === 'YES'
+              ? Deferrable.INITIALLY_DEFERRED
+              : Deferrable.INITIALLY_IMMEDIATE
+            : Deferrable.NOT;
         }
 
         constraintMap.set(rawConstraint.constraintName, constraintData);
@@ -621,7 +667,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param _tableNames
    * @param _options
    */
-  getForeignKeysForTables(_tableNames: TableNameOrModel[], _options?: QueryRawOptions): Error {
+  getForeignKeysForTables(_tableNames: TableOrModel[], _options?: QueryRawOptions): Error {
     throw new Error(`getForeignKeysForTables has been deprecated. Use showConstraints instead.`);
   }
 
@@ -632,8 +678,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param _tableName
    * @param _options
    */
-  getForeignKeyReferencesForTable(_tableName: TableNameOrModel, _options?: QueryRawOptions): Error {
-    throw new Error(`getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`);
+  getForeignKeyReferencesForTable(_tableName: TableOrModel, _options?: QueryRawOptions): Error {
+    throw new Error(
+      `getForeignKeyReferencesForTable has been deprecated. Use showConstraints instead.`,
+    );
   }
 
   /**
@@ -658,7 +706,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param cb
    */
   async withoutForeignKeyChecks<T>(cb: WithoutForeignKeyChecksCallback<T>): Promise<T>;
-  async withoutForeignKeyChecks<T>(options: QueryRawOptions, cb: WithoutForeignKeyChecksCallback<T>): Promise<T>;
+  async withoutForeignKeyChecks<T>(
+    options: QueryRawOptions,
+    cb: WithoutForeignKeyChecksCallback<T>,
+  ): Promise<T>;
   async withoutForeignKeyChecks<T>(
     optionsOrCallback: QueryRawOptions | WithoutForeignKeyChecksCallback<T>,
     maybeCallback?: WithoutForeignKeyChecksCallback<T>,
@@ -685,7 +736,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     });
   }
 
-  async #withoutForeignKeyChecks<T>(options: QueryRawOptions, cb: WithoutForeignKeyChecksCallback<T>): Promise<T> {
+  async #withoutForeignKeyChecks<T>(
+    options: QueryRawOptions,
+    cb: WithoutForeignKeyChecksCallback<T>,
+  ): Promise<T> {
     try {
       await this.unsafeToggleForeignKeyChecks(false, options);
 
@@ -702,11 +756,174 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param enable
    * @param options
    */
-  async unsafeToggleForeignKeyChecks(
-    enable: boolean,
-    options?: QueryRawOptions,
+  async unsafeToggleForeignKeyChecks(enable: boolean, options?: QueryRawOptions): Promise<void> {
+    await this.sequelize.queryRaw(
+      this.queryGenerator.getToggleForeignKeyChecksQuery(enable),
+      options,
+    );
+  }
+
+  /**
+   * Commit an already started transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _commitTransaction(
+    transaction: Transaction,
+    options: CommitTransactionOptions,
   ): Promise<void> {
-    await this.sequelize.queryRaw(this.queryGenerator.getToggleForeignKeyChecksQuery(enable), options);
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to commit a transaction without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.commitTransactionQuery();
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      transaction,
+      supportsSearchPath: false,
+      [COMPLETES_TRANSACTION]: true,
+    });
+  }
+
+  /**
+   * Create a new savepoint.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _createSavepoint(transaction: Transaction, options: CreateSavepointOptions): Promise<void> {
+    if (!this.queryGenerator.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.sequelize.dialect.name}.`);
+    }
+
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to create a savepoint without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.createSavepointQuery(options.savepointName);
+    await this.sequelize.queryRaw(sql, { ...options, transaction, supportsSearchPath: false });
+  }
+
+  /**
+   * Rollback to a savepoint.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _rollbackSavepoint(
+    transaction: Transaction,
+    options: RollbackSavepointOptions,
+  ): Promise<void> {
+    if (!this.queryGenerator.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.sequelize.dialect.name}.`);
+    }
+
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to rollback a savepoint without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.rollbackSavepointQuery(options.savepointName);
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      transaction,
+      supportsSearchPath: false,
+      [COMPLETES_TRANSACTION]: true,
+    });
+  }
+
+  /**
+   * Rollback (revert) a transaction that hasn't been committed.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _rollbackTransaction(
+    transaction: Transaction,
+    options: RollbackTransactionOptions,
+  ): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to rollback a transaction without the transaction object.');
+    }
+
+    const sql = this.queryGenerator.rollbackTransactionQuery();
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      transaction,
+      supportsSearchPath: false,
+      [COMPLETES_TRANSACTION]: true,
+    });
+  }
+
+  /**
+   * Set the isolation level of a transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _setIsolationLevel(
+    transaction: Transaction,
+    options: SetIsolationLevelOptions,
+  ): Promise<void> {
+    if (!this.queryGenerator.dialect.supports.settingIsolationLevelDuringTransaction) {
+      throw new Error(
+        `Changing the isolation level during the transaction is not supported by ${this.sequelize.dialect.name}.`,
+      );
+    }
+
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error(
+        'Unable to set the isolation level for a transaction without the transaction object.',
+      );
+    }
+
+    const sql = this.queryGenerator.setIsolationLevelQuery(options.isolationLevel);
+    await this.sequelize.queryRaw(sql, { ...options, transaction, supportsSearchPath: false });
+  }
+
+  /**
+   * Begin a new transaction.
+   *
+   * This is an internal method used by `sequelize.transaction()` use at your own risk.
+   *
+   * @param transaction
+   * @param options
+   */
+  async _startTransaction(
+    transaction: Transaction,
+    options: StartTransactionOptions,
+  ): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to start a transaction without the transaction object.');
+    }
+
+    const queryOptions = { ...options, transaction, supportsSearchPath: false };
+    if (
+      queryOptions.isolationLevel &&
+      !this.queryGenerator.dialect.supports.settingIsolationLevelDuringTransaction
+    ) {
+      const sql = this.queryGenerator.setIsolationLevelQuery(queryOptions.isolationLevel);
+      await this.sequelize.queryRaw(sql, queryOptions);
+    }
+
+    const sql = this.queryGenerator.startTransactionQuery(options);
+    await this.sequelize.queryRaw(sql, queryOptions);
+    if (
+      queryOptions.isolationLevel &&
+      this.sequelize.dialect.supports.settingIsolationLevelDuringTransaction
+    ) {
+      await transaction.setIsolationLevel(queryOptions.isolationLevel);
+    }
   }
 
   /**
@@ -721,6 +938,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete bulkDeleteOptions.replacements;
 
-    return this.sequelize.queryRaw(sql, { ...bulkDeleteOptions, raw: true, type: QueryTypes.DELETE });
+    return this.sequelize.queryRaw(sql, {
+      ...bulkDeleteOptions,
+      raw: true,
+      type: QueryTypes.DELETE,
+    });
   }
 }

@@ -1,7 +1,7 @@
-import { expect } from 'chai';
-import { spy } from 'sinon';
 import type { CreateSchemaQueryOptions } from '@sequelize/core';
 import { DataTypes, QueryTypes, sql } from '@sequelize/core';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 import { sequelize } from '../support';
 
 const { dialect } = sequelize;
@@ -14,9 +14,15 @@ const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 describe('QueryInterface#{create,drop,list}Schema', () => {
   if (!dialect.supports.schemas) {
     it('should throw, indicating that the method is not supported', async () => {
-      await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
-      await expect(queryInterface.dropSchema(testSchema)).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
-      await expect(queryInterface.listSchemas()).to.be.rejectedWith(`Schemas are not supported in ${dialect.name}.`);
+      await expect(queryInterface.createSchema(testSchema)).to.be.rejectedWith(
+        `Schemas are not supported in ${dialect.name}.`,
+      );
+      await expect(queryInterface.dropSchema(testSchema)).to.be.rejectedWith(
+        `Schemas are not supported in ${dialect.name}.`,
+      );
+      await expect(queryInterface.listSchemas()).to.be.rejectedWith(
+        `Schemas are not supported in ${dialect.name}.`,
+      );
     });
 
     return;
@@ -34,11 +40,17 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
   if (dialect.supports.createSchema.authorization) {
     it('creates a schema with an authorization', async () => {
       if (dialect.name === 'mssql') {
-        await sequelize.query(`IF SUSER_ID (N'myUser') IS NULL CREATE LOGIN [myUser] WITH PASSWORD = 'Password12!'`);
-        await sequelize.query(`IF DATABASE_PRINCIPAL_ID (N'myUser') IS NULL CREATE USER [myUser] FOR LOGIN [myUser]`);
+        await sequelize.query(
+          `IF SUSER_ID (N'myUser') IS NULL CREATE LOGIN [myUser] WITH PASSWORD = 'Password12!'`,
+        );
+        await sequelize.query(
+          `IF DATABASE_PRINCIPAL_ID (N'myUser') IS NULL CREATE USER [myUser] FOR LOGIN [myUser]`,
+        );
         await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
       } else if (dialect.name === 'postgres') {
-        await sequelize.query(`DROP ROLE IF EXISTS "myUser"; CREATE ROLE "myUser" WITH LOGIN PASSWORD 'Password12!' CREATEDB`);
+        await sequelize.query(
+          `DROP ROLE IF EXISTS "myUser"; CREATE ROLE "myUser" WITH LOGIN PASSWORD 'Password12!' CREATEDB`,
+        );
         await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
       } else {
         await queryInterface.createSchema(testSchema, { authorization: sql`CURRENT_USER` });
@@ -48,10 +60,16 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
       if (['mssql', 'postgres'].includes(dialect.name)) {
-        const [result] = await sequelize.query<{ schema_owner: string }>(`SELECT schema_owner FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+        const [result] = await sequelize.query<{ schema_owner: string }>(
+          `SELECT schema_owner FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`,
+          { type: QueryTypes.SELECT },
+        );
         expect(result.schema_owner).to.equal('myUser');
       } else if (dialect.name === 'db2') {
-        const [result] = await sequelize.query<{ OWNER: string }>(`SELECT OWNER FROM syscat.schemata WHERE SCHEMANAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+        const [result] = await sequelize.query<{ OWNER: string }>(
+          `SELECT OWNER FROM syscat.schemata WHERE SCHEMANAME = '${testSchema}'`,
+          { type: QueryTypes.SELECT },
+        );
         expect(result.OWNER).to.equal('CURRENT_USER');
       }
 
@@ -71,7 +89,10 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
-      const [result] = await sequelize.query<{ DEFAULT_CHARACTER_SET_NAME: string }>(`SELECT DEFAULT_CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      const [result] = await sequelize.query<{ DEFAULT_CHARACTER_SET_NAME: string }>(
+        `SELECT DEFAULT_CHARACTER_SET_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`,
+        { type: QueryTypes.SELECT },
+      );
       expect(result.DEFAULT_CHARACTER_SET_NAME).to.equal('utf8mb4');
     });
   }
@@ -82,7 +103,10 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
-      const [result] = await sequelize.query<{ DEFAULT_COLLATION_NAME: string }>(`SELECT DEFAULT_COLLATION_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      const [result] = await sequelize.query<{ DEFAULT_COLLATION_NAME: string }>(
+        `SELECT DEFAULT_COLLATION_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`,
+        { type: QueryTypes.SELECT },
+      );
       expect(result.DEFAULT_COLLATION_NAME).to.equal('latin2_general_ci');
     });
   }
@@ -93,7 +117,10 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
-      const [result] = await sequelize.query<{ SCHEMA_COMMENT: string }>(`SELECT SCHEMA_COMMENT FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`, { type: QueryTypes.SELECT });
+      const [result] = await sequelize.query<{ SCHEMA_COMMENT: string }>(
+        `SELECT SCHEMA_COMMENT FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${testSchema}'`,
+        { type: QueryTypes.SELECT },
+      );
       expect(result.SCHEMA_COMMENT).to.equal('myComment');
     });
   }
@@ -116,7 +143,10 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
       const postCreationSchemas = await queryInterface.listSchemas();
       expect(postCreationSchemas).to.include(testSchema, 'createSchema did not create testSchema');
 
-      await queryInterface.createTable({ tableName: 'testTable', schema: testSchema }, { id: { type: DataTypes.INTEGER, primaryKey: true } });
+      await queryInterface.createTable(
+        { tableName: 'testTable', schema: testSchema },
+        { id: { type: DataTypes.INTEGER, primaryKey: true } },
+      );
       await queryInterface.createSchema(testSchema, { replace: true });
       const postReplaceSchemas = await queryInterface.listSchemas();
       const postReplaceTables = await queryInterface.listTables({ schema: testSchema });

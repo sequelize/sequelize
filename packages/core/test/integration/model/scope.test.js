@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -9,53 +9,56 @@ const Support = require('../support');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     beforeEach(async function () {
-      this.ScopeMe = this.sequelize.define('ScopeMe', {
-        username: DataTypes.STRING,
-        email: DataTypes.STRING,
-        access_level: DataTypes.INTEGER,
-        other_value: DataTypes.INTEGER,
-      }, {
-        scopes: {
-          lowAccess: {
-            attributes: ['other_value', 'access_level'],
-            where: {
-              access_level: {
-                [Op.lte]: 5,
+      this.ScopeMe = this.sequelize.define(
+        'ScopeMe',
+        {
+          username: DataTypes.STRING,
+          email: DataTypes.STRING,
+          access_level: DataTypes.INTEGER,
+          other_value: DataTypes.INTEGER,
+        },
+        {
+          scopes: {
+            lowAccess: {
+              attributes: ['other_value', 'access_level'],
+              where: {
+                access_level: {
+                  [Op.lte]: 5,
+                },
               },
             },
-          },
-          withName: {
-            attributes: ['username'],
-          },
-          highAccess: {
-            where: {
-              [Op.or]: [
-                { access_level: { [Op.gte]: 5 } },
-                { access_level: { [Op.eq]: 10 } },
-              ],
+            withName: {
+              attributes: ['username'],
             },
-          },
-          lessThanFour: {
-            where: {
-              [Op.and]: [
-                { access_level: { [Op.lt]: 4 } },
-              ],
-            },
-          },
-          issue8473: {
-            where: {
-              [Op.or]: {
-                access_level: 3,
-                other_value: 10,
+            highAccess: {
+              where: {
+                [Op.or]: [{ access_level: { [Op.gte]: 5 } }, { access_level: { [Op.eq]: 10 } }],
               },
-              access_level: 5,
             },
-          },
-          like_t: {
-            where: Sequelize.where(Sequelize.fn('LOWER', Sequelize.col('username')), Op.like, '%t%'),
+            lessThanFour: {
+              where: {
+                [Op.and]: [{ access_level: { [Op.lt]: 4 } }],
+              },
+            },
+            issue8473: {
+              where: {
+                [Op.or]: {
+                  access_level: 3,
+                  other_value: 10,
+                },
+                access_level: 5,
+              },
+            },
+            like_t: {
+              where: Sequelize.where(
+                Sequelize.fn('LOWER', Sequelize.col('username')),
+                Op.like,
+                '%t%',
+              ),
+            },
           },
         },
-      });
+      );
 
       await this.sequelize.sync({ force: true });
       const records = [

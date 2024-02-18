@@ -1,7 +1,12 @@
-import sinon from 'sinon';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, ManualOnDelete, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, NotNull } from '@sequelize/core/decorators-legacy';
+import sinon from 'sinon';
 import { beforeAll2, expectPerDialect, sequelize, toMatchSql } from '../../support';
 import { setResetMode } from '../support';
 
@@ -78,24 +83,30 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           'DELETE FROM [Users] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           'COMMIT TRANSACTION;',
         ]),
-        db2: toMatchSql([
-          'BEGIN TRANSACTION;',
-          'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
-          'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
-          'DELETE FROM [Tasks] WHERE [id] = 1',
-          'DELETE FROM [Projects] WHERE [id] = 1',
-          'DELETE FROM [Users] WHERE [id] = 1',
-          'COMMIT TRANSACTION;',
-        ], { genericQuotes: true }),
-        sqlite: toMatchSql([
-          'BEGIN DEFERRED TRANSACTION;',
-          'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
-          'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
-          'DELETE FROM [Tasks] WHERE [id] = 1',
-          'DELETE FROM [Projects] WHERE [id] = 1',
-          'DELETE FROM [Users] WHERE [id] = 1',
-          'COMMIT;',
-        ], { genericQuotes: true }),
+        db2: toMatchSql(
+          [
+            'BEGIN TRANSACTION;',
+            'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
+            'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
+            'DELETE FROM [Tasks] WHERE [id] = 1',
+            'DELETE FROM [Projects] WHERE [id] = 1',
+            'DELETE FROM [Users] WHERE [id] = 1',
+            'COMMIT TRANSACTION;',
+          ],
+          { genericQuotes: true },
+        ),
+        sqlite: toMatchSql(
+          [
+            'BEGIN DEFERRED TRANSACTION;',
+            'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
+            'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
+            'DELETE FROM [Tasks] WHERE [id] = 1',
+            'DELETE FROM [Projects] WHERE [id] = 1',
+            'DELETE FROM [Users] WHERE [id] = 1',
+            'COMMIT;',
+          ],
+          { genericQuotes: true },
+        ),
       });
     });
 

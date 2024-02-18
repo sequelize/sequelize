@@ -1,19 +1,3 @@
-import { isDecoratedModel } from './decorators/shared/model.js';
-import {
-  legacyBuildAddAnyHook,
-  legacyBuildAddHook,
-  legacyBuildHasHook,
-  legacyBuildRemoveHook,
-  legacyBuildRunHook,
-} from './hooks-legacy.js';
-import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
-import { staticModelHooks } from './model-hooks.js';
-import type { ModelRepository } from './model-repository.js';
-import { getModelRepository } from './model-repository.js';
-import type { DestroyOptions, Model } from './model.js';
-import { noModelTableName } from './utils/deprecations.js';
-import { getObjectFromMap } from './utils/object.js';
-import type { PartialBy } from './utils/types.js';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -31,6 +15,27 @@ import type {
   Sequelize,
   TableNameWithSchema,
 } from '.';
+import { isDecoratedModel } from './decorators/shared/model.js';
+import {
+  legacyBuildAddAnyHook,
+  legacyBuildAddHook,
+  legacyBuildHasHook,
+  legacyBuildRemoveHook,
+  legacyBuildRunHook,
+} from './hooks-legacy.js';
+import {
+  ModelDefinition,
+  getModelDefinition,
+  hasModelDefinition,
+  registerModelDefinition,
+} from './model-definition.js';
+import { staticModelHooks } from './model-hooks.js';
+import type { ModelRepository } from './model-repository.js';
+import { getModelRepository } from './model-repository.js';
+import type { DestroyOptions, Model } from './model.js';
+import { noModelTableName } from './utils/deprecations.js';
+import { getObjectFromMap } from './utils/object.js';
+import type { PartialBy } from './utils/types.js';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -253,7 +258,11 @@ export class ModelTypeScript {
   static beforeCount = legacyBuildAddHook(staticModelHooks, 'beforeCount');
 
   static beforeFind = legacyBuildAddHook(staticModelHooks, 'beforeFind');
-  static beforeFindAfterExpandIncludeAll = legacyBuildAddHook(staticModelHooks, 'beforeFindAfterExpandIncludeAll');
+  static beforeFindAfterExpandIncludeAll = legacyBuildAddHook(
+    staticModelHooks,
+    'beforeFindAfterExpandIncludeAll',
+  );
+
   static beforeFindAfterOptions = legacyBuildAddHook(staticModelHooks, 'beforeFindAfterOptions');
   static afterFind = legacyBuildAddHook(staticModelHooks, 'afterFind');
 
@@ -309,11 +318,15 @@ export class ModelTypeScript {
     options: InitOptions<M>,
   ): MS {
     if (isDecoratedModel(this)) {
-      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
+      throw new Error(
+        `Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`,
+      );
     }
 
     if (!options.sequelize) {
-      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+      throw new Error(
+        'Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.',
+      );
     }
 
     initModel(this, attributes, options);
@@ -380,7 +393,9 @@ export class ModelTypeScript {
 
   static assertIsInitialized(): void {
     if (!this.isInitialized()) {
-      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
+      throw new Error(
+        `Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`,
+      );
     }
   }
 
@@ -395,8 +410,7 @@ export class ModelTypeScript {
    * @deprecated use {@link modelDefinition} or {@link table}.
    */
   static getTableName(): TableNameWithSchema {
-    // TODO no deprecation warning is issued here, as this is still used internally.
-    //  Start emitting a warning once we have removed all internal usages.
+    noModelTableName();
 
     const queryGenerator = this.sequelize.queryGenerator;
 
@@ -435,22 +449,17 @@ export function initModel<M extends Model>(
 ): void {
   options.modelName ||= model.name;
 
-  const modelDefinition = new ModelDefinition(
-    attributes,
-    options,
-    model,
-  );
-
-  registerModelDefinition(model, modelDefinition);
+  const modelDefinition = new ModelDefinition(attributes, options, model);
 
   Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
+
+  registerModelDefinition(model, modelDefinition);
 
   // @ts-expect-error -- TODO: type
   model._scope = model.options.defaultScope;
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.modelManager.addModel(model);
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);
@@ -471,7 +480,9 @@ function addAttributeGetterAndSetters(model: ModelStatic) {
 
     if (attributeName in TmpModel.prototype) {
       // @ts-expect-error -- TODO: type sequelize.log
-      model.sequelize.log(`Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`);
+      model.sequelize.log(
+        `Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
+      );
 
       continue;
     }

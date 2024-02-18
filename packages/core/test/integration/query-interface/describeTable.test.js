@@ -21,9 +21,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           username1: DataTypes.STRING,
         });
 
-        const MyTable2 = this.sequelize.define('my_table', {
-          username2: DataTypes.STRING,
-        }, { schema: 'test_meta' });
+        const MyTable2 = this.sequelize.define(
+          'my_table',
+          {
+            username2: DataTypes.STRING,
+          },
+          { schema: 'test_meta' },
+        );
 
         await this.sequelize.createSchema('test_meta');
         await MyTable1.sync({ force: true });
@@ -37,22 +41,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('rejects when no data is available', async function () {
       const table = this.sequelize.queryGenerator.extractTableDetails('_some_random_missing_table');
-      await expect(
-        this.queryInterface.describeTable(table),
-      ).to.be.rejectedWith(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+      await expect(this.queryInterface.describeTable(table)).to.be.rejectedWith(
+        `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
+      );
     });
 
     it('reads the metadata of the table', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.STRING,
-        city: {
-          type: DataTypes.STRING,
-          defaultValue: null,
-          comment: 'Users City',
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: DataTypes.STRING,
+          city: {
+            type: DataTypes.STRING,
+            defaultValue: null,
+            comment: 'Users City',
+          },
+          isAdmin: DataTypes.BOOLEAN,
+          enumVals: DataTypes.ENUM('hello', 'world'),
         },
-        isAdmin: DataTypes.BOOLEAN,
-        enumVals: DataTypes.ENUM('hello', 'world'),
-      }, { freezeTableName: true });
+        { freezeTableName: true },
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.queryInterface.describeTable('_Users');
@@ -133,7 +141,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.special).to.be.instanceof(Array);
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
-        expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
+        expect(enumVals.type).to.eql("ENUM('hello','world')");
       }
 
       if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
@@ -143,22 +151,31 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should correctly determine the primary key columns', async function () {
-      const Country = this.sequelize.define('_Country', {
-        code: { type: DataTypes.STRING, primaryKey: true },
-        name: { type: DataTypes.STRING, allowNull: false },
-      }, { freezeTableName: true });
-      const Alumni = this.sequelize.define('_Alumni', {
-        year: { type: DataTypes.INTEGER, primaryKey: true },
-        num: { type: DataTypes.INTEGER, primaryKey: true },
-        username: { type: DataTypes.STRING, allowNull: false, unique: true },
-        dob: { type: DataTypes.DATEONLY, allowNull: false },
-        dod: { type: DataTypes.DATEONLY, allowNull: true },
-        city: { type: DataTypes.STRING, allowNull: false },
-        ctrycod: {
-          type: DataTypes.STRING, allowNull: false,
-          references: { model: Country, key: 'code' },
+      const Country = this.sequelize.define(
+        '_Country',
+        {
+          code: { type: DataTypes.STRING, primaryKey: true },
+          name: { type: DataTypes.STRING, allowNull: false },
         },
-      }, { freezeTableName: true });
+        { freezeTableName: true },
+      );
+      const Alumni = this.sequelize.define(
+        '_Alumni',
+        {
+          year: { type: DataTypes.INTEGER, primaryKey: true },
+          num: { type: DataTypes.INTEGER, primaryKey: true },
+          username: { type: DataTypes.STRING, allowNull: false, unique: true },
+          dob: { type: DataTypes.DATEONLY, allowNull: false },
+          dod: { type: DataTypes.DATEONLY, allowNull: true },
+          city: { type: DataTypes.STRING, allowNull: false },
+          ctrycod: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            references: { model: Country, key: 'code' },
+          },
+        },
+        { freezeTableName: true },
+      );
 
       await Country.sync({ force: true });
       const metacountry = await this.queryInterface.describeTable('_Country');
@@ -177,9 +194,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should correctly return the columns when the table contains a dot in the name', async function () {
-      const User = this.sequelize.define('my.user', {
-        name: DataTypes.STRING,
-      }, { freezeTableName: true });
+      const User = this.sequelize.define(
+        'my.user',
+        {
+          name: DataTypes.STRING,
+        },
+        { freezeTableName: true },
+      );
 
       await User.sync({ force: true });
       const metadata = await this.queryInterface.describeTable('my.user');

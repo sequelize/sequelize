@@ -1,5 +1,5 @@
-import NodeUtil from 'node:util';
 import maxBy from 'lodash/maxBy';
+import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/index.js';
 import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
@@ -10,7 +10,9 @@ function removeUnsupportedIntegerOptions(
   dialect: AbstractDialect,
 ) {
   if (dataType.options.length != null) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.constructor.name}' with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support '${dataType.constructor.name}' with length specified. This options is ignored.`,
+    );
 
     delete dataType.options.length;
   }
@@ -27,7 +29,9 @@ export class BLOB extends BaseTypes.BLOB {
     // in mssql, anything above 8000 bytes must be MAX
 
     if (this.options.length != null && this.options.length.toLowerCase() !== 'tiny') {
-      dialect.warnDataTypeIssue(`${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`,
+      );
     }
   }
 
@@ -57,7 +61,9 @@ export class TEXT extends BaseTypes.TEXT {
     // in mssql, anything above 8000 bytes must be MAX
 
     if (this.options.length != null && this.options.length.toLowerCase() !== 'tiny') {
-      dialect.warnDataTypeIssue(`${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name}: ${this.getDataTypeId()} cannot limit its size beyond length=tiny. This option is ignored, in favor of the highest size possible.`,
+      );
     }
   }
 
@@ -202,14 +208,18 @@ export class JSON extends BaseTypes.JSON {
 
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {
-
-      throw new BaseError(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+      throw new BaseError(
+        `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
+      );
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(
+        `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
+        { cause: error },
+      );
     }
   }
 

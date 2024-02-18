@@ -1,7 +1,12 @@
-import sinon from 'sinon';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, ManualOnDelete, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, NotNull } from '@sequelize/core/decorators-legacy';
+import sinon from 'sinon';
 import { beforeAll2, expectPerDialect, sequelize, toMatchSql } from '../../support';
 import { setResetMode } from '../support';
 
@@ -55,7 +60,10 @@ describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
 
       const spy = sinon.spy(sequelize, 'queryRaw');
 
-      await User.modelRepository._UNSTABLE_bulkDestroy({ where: { id: user.id }, manualOnDelete: ManualOnDelete.all });
+      await User.modelRepository._UNSTABLE_bulkDestroy({
+        where: { id: user.id },
+        manualOnDelete: ManualOnDelete.all,
+      });
 
       const calls = spy.getCalls().map(call => call.args[0]);
 
@@ -80,26 +88,32 @@ describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
           'DELETE FROM [Users] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           'COMMIT TRANSACTION;',
         ]),
-        db2: toMatchSql([
-          'BEGIN TRANSACTION;',
-          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
-          'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
-          'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
-          'DELETE FROM [Tasks] WHERE [id] = 1',
-          'DELETE FROM [Projects] WHERE [id] = 1',
-          'DELETE FROM [Users] WHERE [id] = 1',
-          'COMMIT TRANSACTION;',
-        ], { genericQuotes: true }),
-        sqlite: toMatchSql([
-          'BEGIN DEFERRED TRANSACTION;',
-          'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
-          'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
-          'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
-          'DELETE FROM [Tasks] WHERE [id] = 1',
-          'DELETE FROM [Projects] WHERE [id] = 1',
-          'DELETE FROM [Users] WHERE [id] = 1',
-          'COMMIT;',
-        ], { genericQuotes: true }),
+        db2: toMatchSql(
+          [
+            'BEGIN TRANSACTION;',
+            'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
+            'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
+            'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
+            'DELETE FROM [Tasks] WHERE [id] = 1',
+            'DELETE FROM [Projects] WHERE [id] = 1',
+            'DELETE FROM [Users] WHERE [id] = 1',
+            'COMMIT TRANSACTION;',
+          ],
+          { genericQuotes: true },
+        ),
+        sqlite: toMatchSql(
+          [
+            'BEGIN DEFERRED TRANSACTION;',
+            'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',
+            'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
+            'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',
+            'DELETE FROM [Tasks] WHERE [id] = 1',
+            'DELETE FROM [Projects] WHERE [id] = 1',
+            'DELETE FROM [Users] WHERE [id] = 1',
+            'COMMIT;',
+          ],
+          { genericQuotes: true },
+        ),
       });
     });
 

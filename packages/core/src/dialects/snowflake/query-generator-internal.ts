@@ -2,11 +2,18 @@ import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-inte
 import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
 import type { SnowflakeDialect } from './index.js';
 
-const TECHNICAL_SCHEMA_NAMES = Object.freeze(['INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys']);
+const TECHNICAL_SCHEMA_NAMES = Object.freeze([
+  'INFORMATION_SCHEMA',
+  'PERFORMANCE_SCHEMA',
+  'SYS',
+  'information_schema',
+  'performance_schema',
+  'sys',
+]);
 
-export class SnowflakeQueryGeneratorInternal<Dialect extends SnowflakeDialect = SnowflakeDialect>
-  extends AbstractQueryGeneratorInternal<Dialect> {
-
+export class SnowflakeQueryGeneratorInternal<
+  Dialect extends SnowflakeDialect = SnowflakeDialect,
+> extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalSchemaNames() {
     return TECHNICAL_SCHEMA_NAMES;
   }

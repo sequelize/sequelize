@@ -3,12 +3,12 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -16,8 +16,8 @@ import type {
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
-import { IBMiQueryGeneratorInternal } from './query-generator-internal.js';
 import type { IBMiDialect } from './index.js';
+import { IBMiQueryGeneratorInternal } from './query-generator-internal.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -46,7 +46,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -81,8 +81,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     if (options) {
@@ -99,13 +99,15 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const afterTable = this.extractTableDetails(afterTableName);
 
     if (beforeTable.schema !== afterTable.schema) {
-      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+      throw new Error(
+        `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
+      );
     }
 
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -119,7 +121,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -146,13 +148,17 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND c.TABLE_SCHEMA =',
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
       options?.columnName ? `AND k.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
-      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
+      options?.constraintName
+        ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}`
+        : '',
+      options?.constraintType
+        ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}`
+        : '',
       'ORDER BY c.CONSTRAINT_NAME, k.ORDINAL_POSITION, fk.ORDINAL_POSITION',
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [+odbc]: check if the query also works when capitalized (for consistency)
@@ -172,7 +178,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -196,7 +202,9 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'BEGIN',
-      options?.ifExists ? `IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = ${this.quoteIdentifier(indexName)}) THEN` : '',
+      options?.ifExists
+        ? `IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = ${this.quoteIdentifier(indexName)}) THEN`
+        : '',
       `DROP INDEX ${this.quoteIdentifier(indexName)};`,
       'COMMIT;',
       options?.ifExists ? 'END IF;' : '',
@@ -209,12 +217,16 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'SELECT CONCAT(OS_VERSION, CONCAT(\'.\', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO';
   }
 
-  tableExistsQuery(tableName: TableNameOrModel): string {
+  tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
       `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = `,
       table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
     ]);
+  }
+
+  createSavepointQuery(savepointName: string): string {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
   }
 }

@@ -13,6 +13,8 @@ export class SnowflakeDialect extends AbstractDialect {
     'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
+    savepoints: false,
+    isolationLevels: false,
     settingIsolationLevelDuringTransaction: false,
     inserts: {
       ignoreDuplicates: ' IGNORE',
@@ -58,7 +60,9 @@ export class SnowflakeDialect extends AbstractDialect {
     },
   });
 
-  readonly dataTypesDocumentationUrl = 'https://docs.snowflake.com/en/sql-reference/data-types.html';
+  readonly dataTypesDocumentationUrl =
+    'https://docs.snowflake.com/en/sql-reference/data-types.html';
+
   // TODO: fix the minimum supported version
   readonly defaultVersion = '5.7.0';
   readonly Query = SnowflakeQuery;
@@ -69,7 +73,9 @@ export class SnowflakeDialect extends AbstractDialect {
   readonly queryInterface: SnowflakeQueryInterface;
 
   constructor(sequelize: Sequelize) {
-    console.warn('The Snowflake dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.');
+    console.warn(
+      'The Snowflake dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.',
+    );
 
     super(sequelize, DataTypes, 'snowflake');
     this.connectionManager = new SnowflakeConnectionManager(this);

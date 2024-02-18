@@ -1,16 +1,17 @@
+import { randomBytes } from 'node:crypto';
 import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import {
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
@@ -20,8 +21,8 @@ import type {
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
-import { Db2QueryGeneratorInternal } from './query-generator-internal.js';
 import type { Db2Dialect } from './index.js';
+import { Db2QueryGeneratorInternal } from './query-generator-internal.js';
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -29,7 +30,10 @@ import type { Db2Dialect } from './index.js';
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: Db2QueryGeneratorInternal;
 
-  constructor(dialect: Db2Dialect, internals: Db2QueryGeneratorInternal = new Db2QueryGeneratorInternal(dialect)) {
+  constructor(
+    dialect: Db2Dialect,
+    internals: Db2QueryGeneratorInternal = new Db2QueryGeneratorInternal(dialect),
+  ) {
     super(dialect, internals);
 
     internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP_LIKE');
@@ -64,7 +68,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -93,14 +97,17 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM SYSCAT.TABLES WHERE TYPE = 'T'`,
       options?.schema
         ? `AND TABSCHEMA = ${this.escape(options.schema)}`
-        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     if (options) {
@@ -117,13 +124,15 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const afterTable = this.extractTableDetails(afterTableName);
 
     if (beforeTable.schema !== afterTable.schema) {
-      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+      throw new Error(
+        `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
+      );
     }
 
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -152,7 +161,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -177,12 +186,14 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
       options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.TYPE = ${this.escape(this.#getConstraintType(options.constraintType))}` : '',
+      options?.constraintType
+        ? `AND c.TYPE = ${this.escape(this.#getConstraintType(options.constraintType))}`
+        : '',
       'ORDER BY c.CONSTNAME, k.COLSEQ, fk.COLSEQ',
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -202,7 +213,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -231,9 +242,17 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }
 
-  tableExistsQuery(tableName: TableNameOrModel): string {
+  tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
+  }
+
+  createSavepointQuery(savepointName: string): string {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
+
+  generateTransactionId(): string {
+    return randomBytes(10).toString('hex');
   }
 }

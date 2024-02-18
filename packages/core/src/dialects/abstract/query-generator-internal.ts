@@ -13,10 +13,13 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
-import type { EscapeOptions, TableNameOrModel } from './query-generator-typescript.js';
-import type { AddLimitOffsetOptions, GetConstraintSnippetQueryOptions } from './query-generator.types.js';
-import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 import type { AbstractDialect } from './index.js';
+import type { EscapeOptions, TableOrModel } from './query-generator-typescript.js';
+import type {
+  AddLimitOffsetOptions,
+  GetConstraintSnippetQueryOptions,
+} from './query-generator.types.js';
+import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {
   readonly dialect: Dialect;
@@ -44,7 +47,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     return EMPTY_ARRAY;
   }
 
-  getConstraintSnippet(tableName: TableNameOrModel, options: GetConstraintSnippetQueryOptions) {
+  getConstraintSnippet(tableName: TableOrModel, options: GetConstraintSnippetQueryOptions) {
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.queryGenerator.quoteIdentifier(field);
@@ -55,7 +58,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
       }
 
       if (field.attribute) {
-        throw new Error('The field.attribute property has been removed. Use the field.name property instead');
+        throw new Error(
+          'The field.attribute property has been removed. Use the field.name property instead',
+        );
       }
 
       if (!field.name) {
@@ -65,17 +70,21 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
       return this.queryGenerator.quoteIdentifier(field.name);
     });
 
-    const constraintNameParts = options.name ? null : options.fields.map(field => {
-      if (typeof field === 'string') {
-        return field;
-      }
+    const constraintNameParts = options.name
+      ? null
+      : options.fields.map(field => {
+          if (typeof field === 'string') {
+            return field;
+          }
 
-      if (field instanceof BaseSqlExpression) {
-        throw new TypeError(`The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`);
-      }
+          if (field instanceof BaseSqlExpression) {
+            throw new TypeError(
+              `The constraint name must be provided explicitly if one of Sequelize's method (literal(), col(), etc…) is used in the constraint's fields`,
+            );
+          }
 
-      return field.name;
-    });
+          return field.name;
+        });
 
     let constraintSnippet;
     const table = this.queryGenerator.extractTableDetails(tableName);
@@ -88,7 +97,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
           throw new Error(`Check constraints are not supported by ${this.dialect.name} dialect`);
         }
 
-        const constraintName = this.queryGenerator.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_ck`);
+        const constraintName = this.queryGenerator.quoteIdentifier(
+          options.name || `${table.tableName}_${fieldsSqlString}_ck`,
+        );
         constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.queryGenerator.whereItemsQuery(options.where)})`;
         break;
       }
@@ -98,7 +109,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
           throw new Error(`Unique constraints are not supported by ${this.dialect.name} dialect`);
         }
 
-        const constraintName = this.queryGenerator.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_uk`);
+        const constraintName = this.queryGenerator.quoteIdentifier(
+          options.name || `${table.tableName}_${fieldsSqlString}_uk`,
+        );
         constraintSnippet = `CONSTRAINT ${constraintName} UNIQUE (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
           constraintSnippet += ` ${this.getDeferrableConstraintSnippet(options.deferrable)}`;
@@ -116,17 +129,23 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
           throw new Error('Default value must be specified for DEFAULT CONSTRAINT');
         }
 
-        const constraintName = this.queryGenerator.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_df`);
+        const constraintName = this.queryGenerator.quoteIdentifier(
+          options.name || `${table.tableName}_${fieldsSqlString}_df`,
+        );
         constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.queryGenerator.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
         break;
       }
 
       case 'PRIMARY KEY': {
         if (!this.dialect.supports.constraints.primaryKey) {
-          throw new Error(`Primary key constraints are not supported by ${this.dialect.name} dialect`);
+          throw new Error(
+            `Primary key constraints are not supported by ${this.dialect.name} dialect`,
+          );
         }
 
-        const constraintName = this.queryGenerator.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_pk`);
+        const constraintName = this.queryGenerator.quoteIdentifier(
+          options.name || `${table.tableName}_${fieldsSqlString}_pk`,
+        );
         constraintSnippet = `CONSTRAINT ${constraintName} PRIMARY KEY (${fieldsSqlQuotedString})`;
         if (options.deferrable) {
           constraintSnippet += ` ${this.getDeferrableConstraintSnippet(options.deferrable)}`;
@@ -137,26 +156,34 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
 
       case 'FOREIGN KEY': {
         if (!this.dialect.supports.constraints.foreignKey) {
-          throw new Error(`Foreign key constraints are not supported by ${this.dialect.name} dialect`);
+          throw new Error(
+            `Foreign key constraints are not supported by ${this.dialect.name} dialect`,
+          );
         }
 
         const references = options.references;
         if (!references || !references.table || !(references.field || references.fields)) {
-          throw new Error('Invalid foreign key constraint options. `references` object with `table` and `field` must be specified');
+          throw new Error(
+            'Invalid foreign key constraint options. `references` object with `table` and `field` must be specified',
+          );
         }
 
         const referencedTable = this.queryGenerator.extractTableDetails(references.table);
-        const constraintName = this.queryGenerator.quoteIdentifier(options.name || `${table.tableName}_${fieldsSqlString}_${referencedTable.tableName}_fk`);
-        const quotedReferences
-          = references.field !== undefined
-          ? this.queryGenerator.quoteIdentifier(references.field)
-          : references.fields!.map(f => this.queryGenerator.quoteIdentifier(f)).join(', ');
+        const constraintName = this.queryGenerator.quoteIdentifier(
+          options.name || `${table.tableName}_${fieldsSqlString}_${referencedTable.tableName}_fk`,
+        );
+        const quotedReferences =
+          references.field !== undefined
+            ? this.queryGenerator.quoteIdentifier(references.field)
+            : references.fields!.map(f => this.queryGenerator.quoteIdentifier(f)).join(', ');
         const referencesSnippet = `${this.queryGenerator.quoteTable(referencedTable)} (${quotedReferences})`;
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
         if (options.onUpdate) {
           if (!this.dialect.supports.constraints.onUpdate) {
-            throw new Error(`Foreign key constraint with onUpdate is not supported by ${this.dialect.name} dialect`);
+            throw new Error(
+              `Foreign key constraint with onUpdate is not supported by ${this.dialect.name} dialect`,
+            );
           }
 
           constraintSnippet += ` ON UPDATE ${options.onUpdate.toUpperCase()}`;
@@ -174,7 +201,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
       }
 
       default: {
-        throw new Error(`Constraint type ${options.type} is not supported by ${this.dialect.name} dialect`);
+        throw new Error(
+          `Constraint type ${options.type} is not supported by ${this.dialect.name} dialect`,
+        );
       }
     }
 
@@ -220,13 +249,15 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
   }
 
   formatLiteral(piece: Literal, options?: EscapeOptions): string {
-    const sql = piece.val.map(part => {
-      if (part instanceof BaseSqlExpression) {
-        return this.queryGenerator.formatSqlExpression(part, options);
-      }
+    const sql = piece.val
+      .map(part => {
+        if (part instanceof BaseSqlExpression) {
+          return this.queryGenerator.formatSqlExpression(part, options);
+        }
 
-      return part;
-    }).join('');
+        return part;
+      })
+      .join('');
 
     if (options?.replacements) {
       return injectReplacements(sql, this.dialect, options.replacements, {
@@ -245,8 +276,8 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     const modelDefinition = options?.model ? extractModelDefinition(options.model) : null;
 
     // This handles special attribute syntaxes like $association.references$, json.paths, and attribute::casting
-    const columnName = modelDefinition?.getColumnNameLoose(piece.attributeName)
-      ?? piece.attributeName;
+    const columnName =
+      modelDefinition?.getColumnNameLoose(piece.attributeName) ?? piece.attributeName;
 
     if (options?.mainAlias) {
       return `${this.queryGenerator.quoteIdentifier(options.mainAlias)}.${this.queryGenerator.quoteIdentifier(columnName)}`;
@@ -258,10 +289,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   formatFn(piece: Fn, options?: EscapeOptions): string {
     // arguments of a function can be anything, it's not necessarily the type of the attribute,
     // so we need to remove the type from their escape options
-    const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
-    const args = piece.args.map(arg => {
-      return this.queryGenerator.escape(arg, argEscapeOptions);
-    }).join(', ');
+    const argEscapeOptions =
+      piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
+    const args = piece.args
+      .map(arg => {
+        return this.queryGenerator.escape(arg, argEscapeOptions);
+      })
+      .join(', ');
 
     return `${piece.fn}(${args})`;
   }
@@ -269,10 +303,13 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   formatDialectAwareFn(piece: DialectAwareFn, options?: EscapeOptions): string {
     // arguments of a function can be anything, it's not necessarily the type of the attribute,
     // so we need to remove the type from their escape options
-    const argEscapeOptions = piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
+    const argEscapeOptions =
+      piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
 
     if (!piece.supportsDialect(this.dialect)) {
-      throw new Error(`Function ${piece.constructor.name} is not supported by ${this.dialect.name}.`);
+      throw new Error(
+        `Function ${piece.constructor.name} is not supported by ${this.dialect.name}.`,
+      );
     }
 
     return piece.applyForDialect(this.dialect, argEscapeOptions);
@@ -281,7 +318,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   formatCast(cast: Cast, options?: EscapeOptions) {
     const type = this.sequelize.normalizeDataType(cast.type);
 
-    const castSql = wrapAmbiguousWhere(cast.expression, this.queryGenerator.escape(cast.expression, { ...options, type }));
+    const castSql = wrapAmbiguousWhere(
+      cast.expression,
+      this.queryGenerator.escape(cast.expression, { ...options, type }),
+    );
     const targetSql = attributeTypeToSql(type).toUpperCase();
 
     // TODO: if we're casting to the same SQL DataType, we could skip the SQL cast (but keep the JS cast)

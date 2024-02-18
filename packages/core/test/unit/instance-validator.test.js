@@ -4,9 +4,11 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { InstanceValidator } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
+const {
+  InstanceValidator,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
 const sinon = require('sinon');
-const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');
+const { DataTypes, ValidationError: SequelizeValidationError } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   beforeEach(function () {
@@ -77,7 +79,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       const instanceValidator = new InstanceValidator(User.build());
       const result = instanceValidator.validate();
 
-      await expect(result).to.be.rejectedWith(SequelizeValidationError, /user\.name cannot be null/);
+      await expect(result).to.be.rejectedWith(
+        SequelizeValidationError,
+        /user\.name cannot be null/,
+      );
     });
   });
 
@@ -116,7 +121,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         throw new Error('after validation error');
       });
 
-      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith('after validation error');
+      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith(
+        'after validation error',
+      );
     });
 
     describe('validatedFailed hook', () => {

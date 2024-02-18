@@ -1,7 +1,7 @@
-import { expect } from 'chai';
-import omit from 'lodash/omit';
 import { Model, sql } from '@sequelize/core';
 import { Table } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import omit from 'lodash/omit';
 import { sequelize } from '../../support';
 
 describe(`@Table legacy decorator`, () => {
@@ -18,7 +18,9 @@ describe(`@Table legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+    expect(() => Test.init({}, { sequelize })).to.throw(
+      /pass your model to the Sequelize constructor/,
+    );
   });
 
   it('supports specifying options', () => {
@@ -55,15 +57,19 @@ describe(`@Table legacy decorator`, () => {
 
   it('merges indexes', () => {
     @Table({
-      indexes: [{
-        fields: ['id'],
-        unique: true,
-      }],
+      indexes: [
+        {
+          fields: ['id'],
+          unique: true,
+        },
+      ],
     })
     @Table({
-      indexes: [{
-        fields: ['createdAt'],
-      }],
+      indexes: [
+        {
+          fields: ['createdAt'],
+        },
+      ],
     })
     class User extends Model {}
 
@@ -89,10 +95,12 @@ describe(`@Table legacy decorator`, () => {
     class ParentModel extends Model {}
 
     @Table({
-      indexes: [{
-        fields: ['id'],
-        unique: true,
-      }],
+      indexes: [
+        {
+          fields: ['id'],
+          unique: true,
+        },
+      ],
     })
     class User extends ParentModel {}
 
@@ -258,9 +266,7 @@ describe(`@Table legacy decorator`, () => {
       indexes: [
         {
           name: 'index1',
-          fields: [
-            literal,
-          ],
+          fields: [literal],
         },
       ],
       hooks: {
@@ -311,9 +317,7 @@ describe(`@Table legacy decorator`, () => {
       indexes: [
         {
           name: 'index1',
-          fields: [
-            literal,
-          ],
+          fields: [literal],
         },
       ],
       hooks: {
@@ -322,11 +326,26 @@ describe(`@Table legacy decorator`, () => {
     });
 
     // must be the same value but a different instance (cloned)
-    expect(baseOptions.scopes).not.to.equal(inheritedOptions.scopes, 'scopes option must be a different instance');
-    expect(baseOptions.defaultScope).not.to.equal(inheritedOptions.defaultScope, 'defaultScope option must be a different instance');
-    expect(baseOptions.indexes).not.to.equal(inheritedOptions.indexes, 'indexes option must be a different instance');
-    expect(baseOptions.hooks).not.to.equal(inheritedOptions.hooks, 'indexes option must be a different instance');
-    expect(baseOptions.validate).not.to.equal(inheritedOptions.validate, 'validate option must be a different instance');
+    expect(baseOptions.scopes).not.to.equal(
+      inheritedOptions.scopes,
+      'scopes option must be a different instance',
+    );
+    expect(baseOptions.defaultScope).not.to.equal(
+      inheritedOptions.defaultScope,
+      'defaultScope option must be a different instance',
+    );
+    expect(baseOptions.indexes).not.to.equal(
+      inheritedOptions.indexes,
+      'indexes option must be a different instance',
+    );
+    expect(baseOptions.hooks).not.to.equal(
+      inheritedOptions.hooks,
+      'indexes option must be a different instance',
+    );
+    expect(baseOptions.validate).not.to.equal(
+      inheritedOptions.validate,
+      'validate option must be a different instance',
+    );
   });
 
   it('overwrites defaultScope', () => {

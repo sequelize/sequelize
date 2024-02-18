@@ -6,19 +6,23 @@ import { buildJsonPath } from '../../utils/json.js';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type {
+  EscapeOptions,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types.js';
-import { MariaDbQueryGeneratorInternal } from './query-generator-internal.js';
 import type { MariaDbDialect } from './index.js';
+import { MariaDbQueryGeneratorInternal } from './query-generator-internal.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -54,7 +58,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
   }
 
@@ -65,12 +69,15 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
       options?.schema
         ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABLE_SCHEMA NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);
   }
 
-  truncateTableQuery(tableName: TableNameOrModel, options?: TruncateTableQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
         'truncateTableQuery',
@@ -84,7 +91,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -110,18 +117,22 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
       `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
       options?.columnName ? `AND kcu.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
-      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
+      options?.constraintName
+        ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}`
+        : '',
+      options?.constraintType
+        ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}`
+        : '',
       'ORDER BY c.CONSTRAINT_NAME, kcu.ORDINAL_POSITION',
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -156,7 +167,11 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+  jsonPathExtractionQuery(
+    sqlExpression: string,
+    path: ReadonlyArray<number | string>,
+    unquote: boolean,
+  ): string {
     const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
 
     if (unquote) {

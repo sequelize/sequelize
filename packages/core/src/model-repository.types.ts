@@ -45,15 +45,15 @@ export interface CommonDestroyOptions {
 /**
  * Used by {@link ModelRepository#_UNSTABLE_destroy}
  */
-export interface DestroyManyOptions extends
-  NewHookable<'beforeDestroyMany' | 'afterDestroyMany'>,
-  Omit<QiBulkDeleteOptions, 'where' | 'limit'>,
-  CommonDestroyOptions {}
+export interface DestroyManyOptions
+  extends NewHookable<'beforeDestroyMany' | 'afterDestroyMany'>,
+    Omit<QiBulkDeleteOptions, 'where' | 'limit'>,
+    CommonDestroyOptions {}
 
 /**
  * Used by {@link ModelRepository#_UNSTABLE_bulkDestroy}
  */
-export interface BulkDestroyOptions extends
-  NewHookable<'_UNSTABLE_beforeBulkDestroy' | '_UNSTABLE_afterBulkDestroy'>,
-  StrictRequiredBy<QiBulkDeleteOptions, 'where'>,
-  CommonDestroyOptions {}
+export interface BulkDestroyOptions
+  extends NewHookable<'_UNSTABLE_beforeBulkDestroy' | '_UNSTABLE_afterBulkDestroy'>,
+    StrictRequiredBy<QiBulkDeleteOptions, 'where'>,
+    CommonDestroyOptions {}

@@ -1,9 +1,9 @@
-import { expect } from 'chai';
-import each from 'lodash/each';
-import sinon from 'sinon';
 import type { CreationOptional, ModelStatic, NonAttribute } from '@sequelize/core';
 import { DataTypes, Deferrable, Model } from '@sequelize/core';
 import { BelongsTo } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import each from 'lodash/each';
+import sinon from 'sinon';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('belongsTo'), () => {
@@ -13,7 +13,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.belongsTo();
-    }).to.throw(`User.belongsTo was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.belongsTo was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('warn on invalid options', () => {
@@ -22,7 +24,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     expect(() => {
       User.belongsTo(Task, { targetKey: 'wowow' });
-    }).to.throwWithCause('Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first');
+    }).to.throwWithCause(
+      'Unknown attribute "wowow" passed as targetKey, define this attribute on model "Task" first',
+    );
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -54,8 +58,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const Person = sequelize.define('person', {});
     const Car = sequelize.define('car', {});
 
-    expect(() => Car.belongsTo(Person, { foreignKey: 'person' }))
-      .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
+    expect(() => Car.belongsTo(Person, { foreignKey: 'person' })).to.throw(
+      "Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change the \"as\" options in your association definition",
+    );
   });
 
   it('should throw an error if an association clashes with the name of an already defined attribute', () => {
@@ -64,8 +69,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
       person: DataTypes.INTEGER,
     });
 
-    expect(() => Car.belongsTo(Person, { as: 'person' }))
-      .to.throw('Naming collision between attribute \'person\' and association \'person\' on model car. To remedy this, change the "as" options in your association definition');
+    expect(() => Car.belongsTo(Person, { as: 'person' })).to.throw(
+      "Naming collision between attribute 'person' and association 'person' on model car. To remedy this, change the \"as\" options in your association definition",
+    );
   });
 
   it('generates a default association name', () => {
@@ -85,7 +91,10 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
     BarProject.belongsTo(BarUser, { foreignKey: 'userId' });
 
-    expect(BarProject.getAttributes().userId.allowNull).to.eq(undefined, 'allowNull should be undefined');
+    expect(BarProject.getAttributes().userId.allowNull).to.eq(
+      undefined,
+      'allowNull should be undefined',
+    );
   });
 
   it('sets the foreign key default onDelete to CASCADE if allowNull: false', async () => {
@@ -148,12 +157,16 @@ describe(getTestDialectTeaser('belongsTo'), () => {
   });
 
   it(`uses the model's singular name to generate the foreign key name`, () => {
-    const Book = sequelize.define('Book', {}, {
-      name: {
-        singular: 'Singular',
-        plural: 'Plural',
+    const Book = sequelize.define(
+      'Book',
+      {},
+      {
+        name: {
+          singular: 'Singular',
+          plural: 'Plural',
+        },
       },
-    });
+    );
 
     const Log = sequelize.define('Log', {}, {});
 
@@ -212,7 +225,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');

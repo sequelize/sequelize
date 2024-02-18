@@ -1,8 +1,9 @@
-import fs from 'node:fs';
+import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
+import { checkFileExists } from '../../utils/fs.js';
 import { map } from '../../utils/iterators.js';
 import { logger } from '../../utils/logger';
 import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
@@ -54,9 +55,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
     }
 
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
-    const storage = this.sequelize.options.storage
-      ?? this.sequelize.options.host
-      ?? ':memory:';
+    const storage = this.sequelize.options.storage ?? this.sequelize.options.host ?? ':memory:';
 
     const inMemory = storage === ':memory:';
 
@@ -71,9 +70,13 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
     const storageDir = path.dirname(storage);
 
-    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0 && !fs.existsSync(storageDir)) {
+    if (
+      !inMemory &&
+      (readWriteMode & this.lib.OPEN_CREATE) !== 0 &&
+      !(await checkFileExists(storageDir))
+    ) {
       // automatic path provision for `options.storage`
-      fs.mkdirSync(storageDir, { recursive: true });
+      await fs.mkdir(storageDir, { recursive: true });
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {

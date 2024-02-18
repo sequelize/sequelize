@@ -20,7 +20,7 @@ yarn add @sequelize/validator.js
 
 ## Usage
 
-__⚠️ As indicated in the validator.js documentation, the library validates and sanitizes strings only.__
+**⚠️ As indicated in the validator.js documentation, the library validates and sanitizes strings only.**
 
 To add validation to your model, decorate your model attributes with the decorators exported by this library.
 

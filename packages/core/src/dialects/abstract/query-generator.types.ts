@@ -4,8 +4,9 @@ import type { Literal } from '../../expression-builders/literal';
 import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
+import type { TransactionType } from '../../transaction';
 import type { Nullish } from '../../utils/types';
-import type { TableNameOrModel } from './query-generator-typescript';
+import type { TableOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
@@ -74,7 +75,7 @@ export interface RemoveColumnQueryOptions {
 export interface BaseConstraintQueryOptions {
   name?: string;
   type: ConstraintType;
-  fields: Array<string | BaseSqlExpression | { attribute?: string, name: string }>;
+  fields: Array<string | BaseSqlExpression | { attribute?: string; name: string }>;
 }
 
 export interface AddCheckConstraintQueryOptions extends BaseConstraintQueryOptions {
@@ -98,22 +99,24 @@ export interface AddPrimaryKeyConstraintQueryOptions extends BaseConstraintQuery
 
 export interface AddForeignKeyConstraintQueryOptions extends BaseConstraintQueryOptions {
   type: 'FOREIGN KEY';
-  references: {
-    table: TableNameOrModel,
-    field?: string,
-    fields: string[],
-  } | {
-    table: TableNameOrModel,
-    field: string,
-    fields?: string[],
-  };
+  references:
+    | {
+        table: TableOrModel;
+        field?: string;
+        fields: string[];
+      }
+    | {
+        table: TableOrModel;
+        field: string;
+        fields?: string[];
+      };
   onDelete?: ReferentialAction;
   onUpdate?: ReferentialAction;
   deferrable?: Deferrable;
 }
 
 export type AddConstraintQueryOptions =
-  AddCheckConstraintQueryOptions
+  | AddCheckConstraintQueryOptions
   | AddUniqueConstraintQueryOptions
   | AddDefaultConstraintQueryOptions
   | AddPrimaryKeyConstraintQueryOptions
@@ -122,24 +125,30 @@ export type AddConstraintQueryOptions =
 export interface GetConstraintSnippetQueryOptions {
   name?: string;
   type: ConstraintType;
-  fields: Array<string | BaseSqlExpression | {
-    /**
-     * @deprecated use `name` instead
-     */
-    attribute?: string,
-    name: string,
-  }>;
+  fields: Array<
+    | string
+    | BaseSqlExpression
+    | {
+        /**
+         * @deprecated use `name` instead
+         */
+        attribute?: string;
+        name: string;
+      }
+  >;
   where?: WhereOptions<any>;
   defaultValue?: unknown;
-  references?: {
-    table: TableNameOrModel,
-    field?: string,
-    fields: string[],
-  } | {
-    table: TableNameOrModel,
-    field: string,
-    fields?: string[],
-  };
+  references?:
+    | {
+        table: TableOrModel;
+        field?: string;
+        fields: string[];
+      }
+    | {
+        table: TableOrModel;
+        field: string;
+        fields?: string[];
+      };
   onDelete?: ReferentialAction;
   onUpdate?: ReferentialAction;
   deferrable?: Deferrable;
@@ -156,6 +165,13 @@ export interface ShowConstraintsQueryOptions {
   columnName?: string;
   constraintName?: string;
   constraintType?: ConstraintType;
+}
+
+// keep START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface StartTransactionQueryOptions {
+  readOnly?: boolean;
+  transactionName?: string;
+  transactionType?: TransactionType | undefined;
 }
 
 export interface AttributeToSqlOptions {

@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -13,29 +13,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('types', () => {
       describe('VIRTUAL', () => {
         beforeEach(async function () {
-          this.User = this.sequelize.define('user', {
-            storage: DataTypes.STRING,
-            field1: {
-              type: DataTypes.VIRTUAL,
-              set(val) {
-                this.setDataValue('storage', val);
-                this.setDataValue('field1', val);
+          this.User = this.sequelize.define(
+            'user',
+            {
+              storage: DataTypes.STRING,
+              field1: {
+                type: DataTypes.VIRTUAL,
+                set(val) {
+                  this.setDataValue('storage', val);
+                  this.setDataValue('field1', val);
+                },
+                get() {
+                  return this.getDataValue('field1');
+                },
               },
-              get() {
-                return this.getDataValue('field1');
+              field2: {
+                type: DataTypes.VIRTUAL,
+                get() {
+                  return 42;
+                },
+              },
+              virtualWithDefault: {
+                type: DataTypes.VIRTUAL,
+                defaultValue: 'cake',
               },
             },
-            field2: {
-              type: DataTypes.VIRTUAL,
-              get() {
-                return 42;
-              },
-            },
-            virtualWithDefault: {
-              type: DataTypes.VIRTUAL,
-              defaultValue: 'cake',
-            },
-          }, { timestamps: false });
+            { timestamps: false },
+          );
 
           this.Task = this.sequelize.define('task', {});
           this.Project = this.sequelize.define('project', {});
@@ -59,7 +63,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             field2: 'field2_value',
           });
 
-          expect(user.get()).to.deep.equal({ storage: 'field1_value', field1: 'field1_value', virtualWithDefault: 'cake', field2: 42, id: null });
+          expect(user.get()).to.deep.equal({
+            storage: 'field1_value',
+            field1: 'field1_value',
+            virtualWithDefault: 'cake',
+            field2: 42,
+            id: null,
+          });
         });
 
         it('should be ignored in table creation', async function () {
@@ -76,15 +86,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               logging: this.sqlAssert,
             }),
             this.Task.findAll({
-              include: [
-                this.User,
-              ],
+              include: [this.User],
               logging: this.sqlAssert,
             }),
             this.Project.findAll({
-              include: [
-                this.User,
-              ],
+              include: [this.User],
               logging: this.sqlAssert,
             }),
           ]);
@@ -102,12 +108,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
           let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
           if (dialect === 'mssql') {
-            boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
+            boolQuery =
+              'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
           } else if (['db2', 'ibmi'].includes(dialect)) {
             boolQuery = '1 AS "someBoolean"';
           }
 
-          const post = await Post.findOne({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
+          const post = await Post.findOne({
+            attributes: ['id', 'text', Sequelize.literal(boolQuery)],
+          });
           expect(post.get('someBoolean')).to.be.ok;
           expect(post.get().someBoolean).to.be.ok;
         });
@@ -123,33 +132,46 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(user0.virtualWithDefault).to.equal('cake');
           expect(user0.storage).to.equal('something');
 
-          const user = await user0.update({
-            field1: 'something else',
-          }, {
-            fields: ['storage'],
-          });
+          const user = await user0.update(
+            {
+              field1: 'something else',
+            },
+            {
+              fields: ['storage'],
+            },
+          );
 
           expect(user.virtualWithDefault).to.equal('cake');
           expect(user.storage).to.equal('something else');
         });
 
         it('should be ignored in bulkCreate and and bulkUpdate', async function () {
-          await this.User.bulkCreate([{
-            field1: 'something',
-          }], {
-            logging: this.sqlAssert,
-          });
+          await this.User.bulkCreate(
+            [
+              {
+                field1: 'something',
+              },
+            ],
+            {
+              logging: this.sqlAssert,
+            },
+          );
 
           const users = await this.User.findAll();
           expect(users[0].storage).to.equal('something');
         });
 
         it('should be able to exclude with attributes', async function () {
-          await this.User.bulkCreate([{
-            field1: 'something',
-          }], {
-            logging: this.sqlAssert,
-          });
+          await this.User.bulkCreate(
+            [
+              {
+                field1: 'something',
+              },
+            ],
+            {
+              logging: this.sqlAssert,
+            },
+          );
 
           const users0 = await this.User.findAll({
             logging: this.sqlAssert,
@@ -179,10 +201,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await user0.createTask();
 
           const tasks = await this.Task.findAll({
-            include: [{
-              attributes: ['field2', 'id'],
-              model: this.User,
-            }],
+            include: [
+              {
+                attributes: ['field2', 'id'],
+                model: this.User,
+              },
+            ],
           });
 
           const user = tasks[0].user.get();

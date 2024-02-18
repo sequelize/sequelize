@@ -1,7 +1,7 @@
-import assert from 'node:assert';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
+import assert from 'node:assert';
 import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
@@ -21,12 +21,12 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
-import { Association } from './base';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
+import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
 
 /**
  * One-to-one association
@@ -48,7 +48,6 @@ export class BelongsToAssociation<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
-
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -105,11 +104,15 @@ export class BelongsToAssociation<
     const targetAttributes = target.modelDefinition.attributes;
 
     if (!targetAttributes.has(targetKey)) {
-      throw new Error(`Unknown attribute "${options.targetKey}" passed as targetKey, define this attribute on model "${target.name}" first`);
+      throw new Error(
+        `Unknown attribute "${options.targetKey}" passed as targetKey, define this attribute on model "${target.name}" first`,
+      );
     }
 
     if ('keyType' in options) {
-      throw new TypeError('Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.');
+      throw new TypeError(
+        'Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.',
+      );
     }
 
     super(secret, source, target, options, parent);
@@ -119,7 +122,10 @@ export class BelongsToAssociation<
     // For Db2 server, a reference column of a FOREIGN KEY must be unique
     // else, server throws SQL0573N error. Hence, setting it here explicitly
     // for non primary columns.
-    if (target.sequelize.options.dialect === 'db2' && targetAttributes.get(this.targetKey)!.primaryKey !== true) {
+    if (
+      target.sequelize.options.dialect === 'db2' &&
+      targetAttributes.get(this.targetKey)!.primaryKey !== true
+    ) {
       // TODO: throw instead
       this.target.modelDefinition.rawAttributes[this.targetKey].unique = true;
     }
@@ -158,7 +164,8 @@ export class BelongsToAssociation<
     // on the association, or request an `onDelete` or `onUpdate` behavior
     if (options.foreignKeyConstraints !== false) {
       const existingReference = existingForeignKey?.references
-        ? (normalizeReference(existingForeignKey.references) ?? existingForeignKey.references) as AttributeReferencesOptions
+        ? ((normalizeReference(existingForeignKey.references) ??
+            existingForeignKey.references) as AttributeReferencesOptions)
         : undefined;
 
       const queryGenerator = this.source.sequelize.queryGenerator;
@@ -172,20 +179,25 @@ export class BelongsToAssociation<
       const newReference: AttributeReferencesOptions = {};
       if (existingReferencedTable) {
         if (!isEqual(existingReferencedTable, newReferencedTable)) {
-          throw new Error(`Foreign key ${this.foreignKey} on ${this.source.name} already references ${queryGenerator.quoteTable(existingReferencedTable)}, but this association needs to make it reference ${queryGenerator.quoteTable(newReferencedTable)} instead.`);
+          throw new Error(
+            `Foreign key ${this.foreignKey} on ${this.source.name} already references ${queryGenerator.quoteTable(existingReferencedTable)}, but this association needs to make it reference ${queryGenerator.quoteTable(newReferencedTable)} instead.`,
+          );
         }
       } else {
         newReference.table = newReferencedTable;
       }
 
       if (existingReference?.key && existingReference.key !== this.targetKeyField) {
-        throw new Error(`Foreign key ${this.foreignKey} on ${this.source.name} already references column ${existingReference.key}, but this association needs to make it reference ${this.targetKeyField} instead.`);
+        throw new Error(
+          `Foreign key ${this.foreignKey} on ${this.source.name} already references column ${existingReference.key}, but this association needs to make it reference ${this.targetKeyField} instead.`,
+        );
       }
 
       newReference.key = this.targetKeyField;
 
       newForeignKeyAttribute.references = newReference;
-      newForeignKeyAttribute.onDelete ??= newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
+      newForeignKeyAttribute.onDelete ??=
+        newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
       newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
     }
 
@@ -227,7 +239,9 @@ export class BelongsToAssociation<
           break;
 
         default:
-          throw new Error(`Invalid option received for "inverse.type": ${options.inverse.type} is not recognised. Expected "hasMany" or "hasOne"`);
+          throw new Error(
+            `Invalid option received for "inverse.type": ${options.inverse.type} is not recognised. Expected "hasMany" or "hasOne"`,
+          );
       }
     }
   }
@@ -237,7 +251,7 @@ export class BelongsToAssociation<
     T extends Model,
     SourceKey extends AttributeNames<S>,
     TargetKey extends AttributeNames<T>,
-    >(
+  >(
     secret: symbol,
     source: ModelStatic<S>,
     target: ModelStatic<T>,
@@ -248,16 +262,29 @@ export class BelongsToAssociation<
       BelongsToAssociation<S, T, SourceKey, TargetKey>,
       BelongsToOptions<SourceKey, TargetKey>,
       NormalizedBelongsToOptions<SourceKey, TargetKey>
-    >(BelongsToAssociation, source, target, options, parent, normalizeBaseAssociationOptions, normalizedOptions => {
-      // self-associations must always set their 'as' parameter
-      if (isSameInitialModel(source, target) && options.inverse
-        // use 'options' because this will always be set in 'newOptions'
-        && (!options.as || !options.inverse.as || options.as === options.inverse.as)) {
-        throw new AssociationError(`Both options "as" and "inverse.as" must be defined for belongsTo self-associations, and their value must be different, if you specify the 'inverse' option.`);
-      }
+    >(
+      BelongsToAssociation,
+      source,
+      target,
+      options,
+      parent,
+      normalizeBaseAssociationOptions,
+      normalizedOptions => {
+        // self-associations must always set their 'as' parameter
+        if (
+          isSameInitialModel(source, target) &&
+          options.inverse &&
+          // use 'options' because this will always be set in 'newOptions'
+          (!options.as || !options.inverse.as || options.as === options.inverse.as)
+        ) {
+          throw new AssociationError(
+            `Both options "as" and "inverse.as" must be defined for belongsTo self-associations, and their value must be different, if you specify the 'inverse' option.`,
+          );
+        }
 
-      return new BelongsToAssociation(secret, source, target, normalizedOptions, parent);
-    });
+        return new BelongsToAssociation(secret, source, target, normalizedOptions, parent);
+      },
+    );
   }
 
   #mixin(modelPrototype: Model): void {
@@ -283,7 +310,10 @@ export class BelongsToAssociation<
    * @param options find options
    */
   async get(instances: S, options?: BelongsToGetAssociationMixinOptions<T>): Promise<T | null>;
-  async get(instances: S[], options?: BelongsToGetAssociationMixinOptions<T>): Promise<Map<any, T | null>>;
+  async get(
+    instances: S[],
+    options?: BelongsToGetAssociationMixinOptions<T>,
+  ): Promise<Map<any, T | null>>;
   async get(
     instances: S | S[],
     options?: BelongsToGetAssociationMixinOptions<T>,
@@ -294,13 +324,17 @@ export class BelongsToAssociation<
     if (options.scope != null) {
       if (!options.scope) {
         Target = Target.withoutScope();
-      } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
+      } else if (options.scope !== true) {
+        // 'true' means default scope. Which is the same as not doing anything.
         Target = Target.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Target = Target.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
+      Target = Target.withSchema({
+        schema: options.schema,
+        schemaDelimiter: options.schemaDelimiter,
+      });
     }
 
     let isManyMode = true;
@@ -314,7 +348,8 @@ export class BelongsToAssociation<
 
     if (instances.length > 1) {
       where[this.targetKey] = {
-        [Op.in]: instances.map(instance => instance.get(this.foreignKey))
+        [Op.in]: instances
+          .map(instance => instance.get(this.foreignKey))
           // only fetch entities that actually have a foreign key set
           .filter(foreignKey => foreignKey != null),
       };
@@ -322,23 +357,18 @@ export class BelongsToAssociation<
       const foreignKeyValue = instances[0].get(this.foreignKey);
 
       if (this.targetKeyIsPrimary && !options.where) {
-        return Target.findByPk(
-          foreignKeyValue as any,
-          options,
-        );
+        return Target.findByPk(foreignKeyValue as any, options);
       }
 
       where[this.targetKey] = foreignKeyValue;
       options.limit = null;
     }
 
-    options.where = options.where
-      ? { [Op.and]: [where, options.where] }
-      : where;
+    options.where = options.where ? { [Op.and]: [where, options.where] } : where;
 
     if (isManyMode) {
       const results = await Target.findAll(options);
-      const result: Map<any, T | null> = new Map();
+      const result = new Map<any, T | null>();
 
       for (const instance of results) {
         result.set(instance.get(this.targetKey, { raw: true }), instance);
@@ -412,15 +442,18 @@ Object.defineProperty(BelongsToAssociation, 'name', {
   value: 'BelongsTo',
 });
 
-export type NormalizedBelongsToOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<BelongsToOptions<SourceKey, TargetKey>>;
+export type NormalizedBelongsToOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+> = NormalizeBaseAssociationOptions<BelongsToOptions<SourceKey, TargetKey>>;
 
 /**
  * Options provided when associating models with belongsTo relationship
  *
  * @see Association class belongsTo method
  */
-export interface BelongsToOptions<SourceKey extends string, TargetKey extends string> extends AssociationOptions<SourceKey> {
+export interface BelongsToOptions<SourceKey extends string, TargetKey extends string>
+  extends AssociationOptions<SourceKey> {
   /**
    * The name of the field to use as the key for the association in the target table. Defaults to the primary
    * key of the target table
@@ -428,9 +461,9 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
   targetKey?: TargetKey;
 
   inverse?: {
-    type: 'hasMany' | 'hasOne',
-    as?: string,
-    scope?: AssociationOptions<any>['scope'],
+    type: 'hasMany' | 'hasOne';
+    as?: string;
+    scope?: AssociationOptions<any>['scope'];
   };
 }
 
@@ -439,7 +472,8 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
  *
  * @see BelongsToGetAssociationMixin
  */
-export interface BelongsToGetAssociationMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
+export interface BelongsToGetAssociationMixinOptions<T extends Model>
+  extends FindOptions<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -469,15 +503,17 @@ export interface BelongsToGetAssociationMixinOptions<T extends Model> extends Fi
 // TODO: in the future, type the return value based on whether the foreign key is nullable or not on the source model.
 //   if nullable, return TModel | null
 //   https://github.com/sequelize/meetings/issues/14
-export type BelongsToGetAssociationMixin<T extends Model> =
-  (options?: BelongsToGetAssociationMixinOptions<T>) => Promise<T | null>;
+export type BelongsToGetAssociationMixin<T extends Model> = (
+  options?: BelongsToGetAssociationMixinOptions<T>,
+) => Promise<T | null>;
 
 /**
  * The options for the setAssociation mixin of the belongsTo association.
  *
  * @see BelongsToSetAssociationMixin
  */
-export interface BelongsToSetAssociationMixinOptions<T extends Model> extends SaveOptions<Attributes<T>> {
+export interface BelongsToSetAssociationMixinOptions<T extends Model>
+  extends SaveOptions<Attributes<T>> {
   /**
    * Skip saving this after setting the foreign key if false.
    */
@@ -502,7 +538,7 @@ export interface BelongsToSetAssociationMixinOptions<T extends Model> extends Sa
  */
 export type BelongsToSetAssociationMixin<T extends Model, TargetKeyType> = (
   newAssociation?: T | TargetKeyType,
-  options?: BelongsToSetAssociationMixinOptions<T>
+  options?: BelongsToSetAssociationMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -511,7 +547,8 @@ export type BelongsToSetAssociationMixin<T extends Model, TargetKeyType> = (
  * @see BelongsToCreateAssociationMixin
  */
 export interface BelongsToCreateAssociationMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>>, BelongsToSetAssociationMixinOptions<T> {}
+  extends CreateOptions<Attributes<T>>,
+    BelongsToSetAssociationMixinOptions<T> {}
 
 /**
  * The createAssociation mixin applied to models with belongsTo.
@@ -529,5 +566,5 @@ export interface BelongsToCreateAssociationMixinOptions<T extends Model>
  */
 export type BelongsToCreateAssociationMixin<T extends Model> = (
   values?: CreationAttributes<T>,
-  options?: BelongsToCreateAssociationMixinOptions<T>
+  options?: BelongsToCreateAssociationMixinOptions<T>,
 ) => Promise<T>;

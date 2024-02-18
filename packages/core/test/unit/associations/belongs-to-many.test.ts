@@ -1,7 +1,3 @@
-import { expect } from 'chai';
-import each from 'lodash/each';
-import type { SinonStub } from 'sinon';
-import sinon from 'sinon';
 import type {
   BelongsToManyAssociation,
   BelongsToManySetAssociationsMixin,
@@ -18,7 +14,16 @@ import {
   HasOneAssociation,
   Model,
 } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialectTeaser, resetSequelizeInstance, sequelize } from '../../support';
+import { expect } from 'chai';
+import each from 'lodash/each';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
+import {
+  createSequelizeInstance,
+  getTestDialectTeaser,
+  resetSequelizeInstance,
+  sequelize,
+} from '../../support';
 
 describe(getTestDialectTeaser('belongsToMany'), () => {
   beforeEach(() => {
@@ -31,7 +36,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.belongsToMany();
-    }).to.throw(`User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.belongsToMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('creates the join table when through is a string', async () => {
@@ -46,20 +53,24 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
   it('should not inherit scopes from parent to join table', () => {
     const A = sequelize.define('a');
-    const B = sequelize.define('b', {}, {
-      defaultScope: {
-        where: {
-          foo: 'bar',
-        },
-      },
-      scopes: {
-        baz: {
+    const B = sequelize.define(
+      'b',
+      {},
+      {
+        defaultScope: {
           where: {
-            fooz: 'zab',
+            foo: 'bar',
+          },
+        },
+        scopes: {
+          baz: {
+            where: {
+              fooz: 'zab',
+            },
           },
         },
       },
-    });
+    );
 
     B.belongsToMany(A, { through: 'AB' });
 
@@ -71,13 +82,17 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
   it('should not inherit validations from parent to join table', () => {
     const A = sequelize.define('a');
-    const B = sequelize.define('b', {}, {
-      validate: {
-        validateModel() {
-          return true;
+    const B = sequelize.define(
+      'b',
+      {},
+      {
+        validate: {
+          validateModel() {
+            return true;
+          },
         },
       },
-    });
+    );
 
     B.belongsToMany(A, { through: 'AB' });
 
@@ -199,8 +214,16 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       },
     });
 
-    expect(Object.keys(User.associations).sort()).to.deep.eq(['fromSource', 'fromSources', 'groups']);
-    expect(Object.keys(Group.associations).sort()).to.deep.eq(['fromTarget', 'fromTargets', 'members']);
+    expect(Object.keys(User.associations).sort()).to.deep.eq([
+      'fromSource',
+      'fromSources',
+      'groups',
+    ]);
+    expect(Object.keys(Group.associations).sort()).to.deep.eq([
+      'fromTarget',
+      'fromTargets',
+      'members',
+    ]);
     expect(Object.keys(GroupUser.associations).sort()).to.deep.eq(['toSource', 'toTarget']);
   });
 
@@ -236,7 +259,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     expect(() => {
       Post.belongsToMany(User, { through: { model: 'UserPost' } });
-    }).to.throw('You have defined two associations with the same name "users" on the model "Post". Use another alias using the "as" parameter');
+    }).to.throw(
+      'You have defined two associations with the same name "users" on the model "Post". Use another alias using the "as" parameter',
+    );
   });
 
   it('generates a default association name', () => {
@@ -261,7 +286,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       // @ts-expect-error -- see above
       const errorFunction3 = () => User.belongsToMany(Task, { through: null });
       for (const errorFunction of [errorFunction1, errorFunction2, errorFunction3]) {
-        expect(errorFunction).to.throwWithCause(AssociationError, `${User.name}.belongsToMany(${Task.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`);
+        expect(errorFunction).to.throwWithCause(
+          AssociationError,
+          `${User.name}.belongsToMany(${Task.name}) requires a through model, set the "through", or "through.model" options to either a string or a model`,
+        );
       }
     });
 
@@ -269,7 +297,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const User = sequelize.define('User', {});
 
       const errorFunction = User.belongsToMany.bind(User, User, { through: 'jointable' });
-      expect(errorFunction).to.throwWithCause(AssociationError, 'Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.');
+      expect(errorFunction).to.throwWithCause(
+        AssociationError,
+        'Both options "as" and "inverse.as" must be defined for belongsToMany self-associations, and their value must be different.',
+      );
     });
   });
 
@@ -280,7 +311,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task1' });
 
-      expect(sequelize.models.user_task1.getAttributes()).to.contain.all.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.getOrThrow('user_task1').getAttributes()).to.contain.all.keys([
+        'createdAt',
+        'updatedAt',
+      ]);
     });
 
     it('allows me to override the global timestamps option', () => {
@@ -289,7 +323,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: { model: 'user_task2', timestamps: false } });
 
-      expect(sequelize.models.user_task2.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize.models.getOrThrow('user_task2').getAttributes()).not.to.contain.any.keys([
+        'createdAt',
+        'updatedAt',
+      ]);
     });
 
     it('follows the global timestamps false option', () => {
@@ -304,7 +341,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       User.belongsToMany(Task, { through: 'user_task3' });
 
-      expect(sequelize2.models.user_task3.getAttributes()).not.to.contain.any.keys(['createdAt', 'updatedAt']);
+      expect(sequelize2.models.getOrThrow('user_task3').getAttributes()).not.to.contain.any.keys([
+        'createdAt',
+        'updatedAt',
+      ]);
     });
   });
 
@@ -317,28 +357,34 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         declare setTasks: BelongsToManySetAssociationsMixin<Task, number>;
       }
 
-      User.init({
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      User.init(
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          username: DataTypes.STRING,
         },
-        username: DataTypes.STRING,
-      }, { sequelize });
+        { sequelize },
+      );
 
       class Task extends Model<InferAttributes<Task>> {
         declare id: CreationOptional<number>;
         declare title: string | null;
       }
 
-      Task.init({
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      Task.init(
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          title: DataTypes.STRING,
         },
-        title: DataTypes.STRING,
-      }, { sequelize });
+        { sequelize },
+      );
 
       const UserTasks = sequelize.define('UserTasks', {});
 
@@ -378,7 +424,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const { user, task1, task2, UserTasks } = getEntities();
 
       (UserTasks.findAll as SinonStub)
-        .onFirstCall().resolves([])
+        .onFirstCall()
+        .resolves([])
         .onSecondCall()
         .resolves([
           { userId: 42, taskId: 15 },
@@ -397,7 +444,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const User = sequelize.define('User', {});
       const Place = sequelize.define('Place', {});
 
-      const Places = User.belongsToMany(Place, { through: 'user_places', foreignKey: 'user_id', otherKey: 'place_id' });
+      const Places = User.belongsToMany(Place, {
+        through: 'user_places',
+        foreignKey: 'user_id',
+        otherKey: 'place_id',
+      });
       const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
@@ -413,15 +464,23 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     it('should infer otherKey from paired BTM relationship with a through model defined', () => {
       const User = sequelize.define('User', {});
       const Place = sequelize.define('Place', {});
-      const UserPlace = sequelize.define('UserPlace', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const UserPlace = sequelize.define(
+        'UserPlace',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      const Places = User.belongsToMany(Place, { through: UserPlace, foreignKey: 'user_id', otherKey: 'place_id' });
+      const Places = User.belongsToMany(Place, {
+        through: UserPlace,
+        foreignKey: 'user_id',
+        otherKey: 'place_id',
+      });
       const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
@@ -439,7 +498,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     it('should infer foreign keys (camelCase)', () => {
       const Person = sequelize.define('Person');
       const PersonChildren = sequelize.define('PersonChildren');
-      const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
+      const Children = Person.belongsToMany(Person, {
+        as: 'Children',
+        through: PersonChildren,
+        inverse: { as: 'Parents' },
+      });
 
       expect(Children.foreignKey).to.equal('parentId');
       expect(Children.otherKey).to.equal('childId');
@@ -450,7 +513,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     it('should infer foreign keys (snake_case)', () => {
       const Person = sequelize.define('Person', {}, { underscored: true });
       const PersonChildren = sequelize.define('PersonChildren', {}, { underscored: true });
-      const Children = Person.belongsToMany(Person, { as: 'Children', through: PersonChildren, inverse: { as: 'Parents' } });
+      const Children = Person.belongsToMany(Person, {
+        as: 'Children',
+        through: PersonChildren,
+        inverse: { as: 'Parents' },
+      });
 
       expect(Children.foreignKey).to.equal('parentId');
       expect(Children.otherKey).to.equal('childId');
@@ -503,7 +570,11 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const User = sequelize.define('User', { user_id: DataTypes.UUID });
       const Place = sequelize.define('Place', { place_id: DataTypes.UUID });
 
-      const Places = User.belongsToMany(Place, { through: 'user_places', sourceKey: 'user_id', targetKey: 'place_id' });
+      const Places = User.belongsToMany(Place, {
+        through: 'user_places',
+        sourceKey: 'user_id',
+        targetKey: 'place_id',
+      });
       const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
@@ -519,15 +590,23 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     it('should infer targetKey from paired BTM relationship with a through model defined', () => {
       const User = sequelize.define('User', { user_id: DataTypes.UUID });
       const Place = sequelize.define('Place', { place_id: DataTypes.UUID });
-      const UserPlace = sequelize.define('UserPlace', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const UserPlace = sequelize.define(
+        'UserPlace',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      const Places = User.belongsToMany(Place, { through: UserPlace, sourceKey: 'user_id', targetKey: 'place_id' });
+      const Places = User.belongsToMany(Place, {
+        through: UserPlace,
+        sourceKey: 'user_id',
+        targetKey: 'place_id',
+      });
       const Users = Place.getAssociation('users') as BelongsToManyAssociation;
 
       expect(Places.pairedWith).to.equal(Users);
@@ -551,19 +630,31 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
-      const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        foreignKey: 'productId',
+        otherKey: 'tagId',
+      });
+      const TagProducts = Tag.belongsToMany(Product, {
+        through: ProductTag,
+        foreignKey: 'tagId',
+        otherKey: 'productId',
+      });
 
       expect(ProductTags.fromThroughToSource).to.be.an.instanceOf(BelongsToAssociation);
       expect(ProductTags.fromThroughToTarget).to.be.an.instanceOf(BelongsToAssociation);
@@ -578,7 +669,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'productId', 'tagId'].sort(),
+      );
     });
 
     it('should setup hasMany relations to source and target from join model with defined foreign/other keys', () => {
@@ -588,19 +681,31 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
-      const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        foreignKey: 'productId',
+        otherKey: 'tagId',
+      });
+      const TagProducts = Tag.belongsToMany(Product, {
+        through: ProductTag,
+        foreignKey: 'tagId',
+        otherKey: 'productId',
+      });
 
       expect(ProductTags.fromSourceToThrough).to.be.an.instanceOf(HasManyAssociation);
       expect(ProductTags.fromTargetToThrough).to.be.an.instanceOf(HasManyAssociation);
@@ -615,7 +720,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromTargetToThrough.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'tagId', 'productId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'tagId', 'productId'].sort(),
+      );
     });
 
     it('should setup hasOne relations to source and target from join model with defined foreign/other keys', () => {
@@ -625,19 +732,31 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productId', otherKey: 'tagId' });
-      const TagProducts = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagId', otherKey: 'productId' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        foreignKey: 'productId',
+        otherKey: 'tagId',
+      });
+      const TagProducts = Tag.belongsToMany(Product, {
+        through: ProductTag,
+        foreignKey: 'tagId',
+        otherKey: 'productId',
+      });
 
       expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
       expect(ProductTags.fromTargetToThroughOne).to.be.an.instanceOf(HasOneAssociation);
@@ -652,7 +771,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromTargetToThroughOne.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'productId', 'tagId'].sort(),
+      );
     });
 
     it('should setup hasOne relations to source and target from join model with defined source keys', () => {
@@ -664,21 +785,32 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         name: DataTypes.STRING,
         tagSecondaryId: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, sourceKey: 'productSecondaryId', targetKey: 'tagSecondaryId' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        sourceKey: 'productSecondaryId',
+        targetKey: 'tagSecondaryId',
+      });
       const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
-      expect(ProductTags.foreignKey).to.equal('productProductSecondaryId', 'generated foreign key for source name (product) + source key (productSecondaryId) should result in productProductSecondaryId');
+      expect(ProductTags.foreignKey).to.equal(
+        'productProductSecondaryId',
+        'generated foreign key for source name (product) + source key (productSecondaryId) should result in productProductSecondaryId',
+      );
       expect(TagProducts.foreignKey).to.equal('tagTagSecondaryId');
 
       expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
@@ -694,7 +826,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(ProductTags.fromTargetToThroughOne.sourceKey).to.equal(ProductTags.targetKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productProductSecondaryId', 'tagTagSecondaryId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'productProductSecondaryId', 'tagTagSecondaryId'].sort(),
+      );
     });
 
     it('should setup belongsTo relations to source and target from join model with only foreign keys defined', () => {
@@ -704,18 +838,26 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        foreignKey: 'product_ID',
+        otherKey: 'tag_ID',
+      });
       const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
       expect(ProductTags.fromThroughToSource).to.be.ok;
@@ -731,7 +873,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'product_ID', 'tag_ID'].sort(),
+      );
     });
 
     it('should setup hasOne relations to source and target from join model with only foreign keys defined', () => {
@@ -741,18 +885,26 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
-      const ProductTags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_ID', otherKey: 'tag_ID' });
+      const ProductTags = Product.belongsToMany(Tag, {
+        through: ProductTag,
+        foreignKey: 'product_ID',
+        otherKey: 'tag_ID',
+      });
       const TagProducts = Tag.getAssociation('products') as BelongsToManyAssociation;
 
       expect(ProductTags.fromSourceToThroughOne).to.be.an.instanceOf(HasOneAssociation);
@@ -768,7 +920,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromTargetToThroughOne.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'product_ID', 'tag_ID'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'product_ID', 'tag_ID'].sort(),
+      );
     });
 
     it('should setup belongsTo relations to source and target from join model with no foreign keys defined', () => {
@@ -778,16 +932,20 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Tag = sequelize.define('Tag', {
         name: DataTypes.STRING,
       });
-      const ProductTag = sequelize.define('ProductTag', {
-        id: {
-          primaryKey: true,
-          type: DataTypes.INTEGER,
-          autoIncrement: true,
+      const ProductTag = sequelize.define(
+        'ProductTag',
+        {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+          },
+          priority: DataTypes.INTEGER,
         },
-        priority: DataTypes.INTEGER,
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
       const ProductTags = Product.belongsToMany(Tag, { through: ProductTag });
       const TagProducts = Tag.belongsToMany(Product, { through: ProductTag });
@@ -805,7 +963,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(TagProducts.fromThroughToTarget.foreignKey).to.equal(TagProducts.otherKey);
 
       expect(Object.keys(ProductTag.getAttributes()).length).to.equal(4);
-      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(['id', 'priority', 'productId', 'tagId'].sort());
+      expect(Object.keys(ProductTag.getAttributes()).sort()).to.deep.equal(
+        ['id', 'priority', 'productId', 'tagId'].sort(),
+      );
     });
   });
 
@@ -861,15 +1021,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     it('correctly generates a foreign/other key when none are defined', () => {
       const User = sequelize.define('user', {});
-      const UserFollower = sequelize.define('userFollowers', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      const UserFollower = sequelize.define(
+        'userFollowers',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
         },
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
       const UserFollowers = User.belongsToMany(User, {
         as: 'Followers',
@@ -935,8 +1099,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
       const throughModel = MyUsers.through.model;
 
-      expect(Object.keys(throughModel.getAttributes()).sort())
-        .to.deep.equal(['userId', 'groupId', 'createdAt', 'updatedAt'].sort());
+      expect(Object.keys(throughModel.getAttributes()).sort()).to.deep.equal(
+        ['userId', 'groupId', 'createdAt', 'updatedAt'].sort(),
+      );
 
       expect(throughModel === MyGroups.through.model);
       expect(throughModel.getAttributes().userId.onUpdate).to.equal('RESTRICT');
@@ -973,13 +1138,26 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const Through = MyUsers.through.model;
 
-      expect(Object.keys(Through.getAttributes()).sort())
-        .to.deep.equal(['userId', 'groupId', 'createdAt', 'updatedAt'].sort());
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(
+        ['userId', 'groupId', 'createdAt', 'updatedAt'].sort(),
+      );
 
-      expect(Through.getAttributes().userId.onUpdate).to.equal('RESTRICT', 'UserId.onUpdate should have been RESTRICT');
-      expect(Through.getAttributes().userId.onDelete).to.equal('SET NULL', 'UserId.onDelete should have been SET NULL');
-      expect(Through.getAttributes().groupId.onUpdate).to.equal('SET NULL', 'GroupId.OnUpdate should have been SET NULL');
-      expect(Through.getAttributes().groupId.onDelete).to.equal('RESTRICT', 'GroupId.onDelete should have been RESTRICT');
+      expect(Through.getAttributes().userId.onUpdate).to.equal(
+        'RESTRICT',
+        'UserId.onUpdate should have been RESTRICT',
+      );
+      expect(Through.getAttributes().userId.onDelete).to.equal(
+        'SET NULL',
+        'UserId.onDelete should have been SET NULL',
+      );
+      expect(Through.getAttributes().groupId.onUpdate).to.equal(
+        'SET NULL',
+        'GroupId.OnUpdate should have been SET NULL',
+      );
+      expect(Through.getAttributes().groupId.onDelete).to.equal(
+        'RESTRICT',
+        'GroupId.onDelete should have been RESTRICT',
+      );
     });
 
     it('makes the foreign keys primary keys', () => {
@@ -996,7 +1174,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
       const Through = association.throughModel;
 
-      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['createdAt', 'updatedAt', 'groupId', 'userId'].sort());
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(
+        ['createdAt', 'updatedAt', 'groupId', 'userId'].sort(),
+      );
       expect(Through.getAttributes().userId.primaryKey).to.be.true;
       expect(Through.getAttributes().groupId.primaryKey).to.be.true;
       // @ts-expect-error -- this property does not exist after normalization
@@ -1041,14 +1221,24 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const Through = MyUsers.through.model;
       expect(Through === MyGroups.through.model);
 
-      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(['id', 'createdAt', 'updatedAt', 'id_user_very_long_field', 'id_group_very_long_field'].sort());
+      expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(
+        [
+          'id',
+          'createdAt',
+          'updatedAt',
+          'id_user_very_long_field',
+          'id_group_very_long_field',
+        ].sort(),
+      );
 
-      expect(Through.getIndexes()).to.deep.equal([{
-        name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
-        unique: true,
-        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-        column: 'id_user_very_long_field',
-      }]);
+      expect(Through.getIndexes()).to.deep.equal([
+        {
+          name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
+          unique: true,
+          fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+          column: 'id_user_very_long_field',
+        },
+      ]);
 
       // @ts-expect-error -- this property does not exist after normalization
       expect(Through.getAttributes().id_user_very_long_field.unique).to.be.undefined;
@@ -1095,12 +1285,14 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
 
-      expect(UserGroup.getIndexes()).to.deep.equal([{
-        name: 'custom_user_group_unique',
-        unique: true,
-        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-        column: 'id_user_very_long_field',
-      }]);
+      expect(UserGroup.getIndexes()).to.deep.equal([
+        {
+          name: 'custom_user_group_unique',
+          unique: true,
+          fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+          column: 'id_user_very_long_field',
+        },
+      ]);
 
       // @ts-expect-error -- this property does not exist after normalization
       expect(UserGroup.getAttributes().id_user_very_long_field.unique).to.be.undefined;
@@ -1156,7 +1348,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(afterAssociateArgs.length).to.equal(2);
 
         const firstArg = afterAssociateArgs[0];
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('BelongsToMany');

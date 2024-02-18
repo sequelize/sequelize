@@ -28,6 +28,15 @@ describe('QueryGenerator#dropTableQuery', () => {
     });
   });
 
+  it('produces a query that drops a table from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
+      default: `DROP TABLE IF EXISTS [MyModels]`,
+    });
+  });
+
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
@@ -36,9 +45,13 @@ describe('QueryGenerator#dropTableQuery', () => {
   });
 
   it('produces a query that drops a table with default schema', () => {
-    expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
-      default: `DROP TABLE IF EXISTS [myTable]`,
-    });
+    expectsql(
+      () =>
+        queryGenerator.dropTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }),
+      {
+        default: `DROP TABLE IF EXISTS [myTable]`,
+      },
+    );
   });
 
   it('produces a query that drops a table from a table and globally set schema', () => {
@@ -57,8 +70,16 @@ describe('QueryGenerator#dropTableQuery', () => {
       return;
     }
 
-    expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
-    });
+    expectsql(
+      () =>
+        queryGenerator.dropTableQuery({
+          tableName: 'myTable',
+          schema: 'mySchema',
+          delimiter: 'custom',
+        }),
+      {
+        sqlite: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
+      },
+    );
   });
 });

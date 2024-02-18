@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, or, and } = require('@sequelize/core');
+const { and, DataTypes, or, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
@@ -73,7 +73,8 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsTo(Company, { as: 'Employer' });
       User.belongsTo(Company, { as: 'SecondaryEmployer' });
 
-      await expect(User.findOne({ include: [Company] })).to.be.rejectedWith(`
+      await expect(User.findOne({ include: [Company] })).to.be.rejectedWith(
+        `
 Ambiguous Include received:
 You're trying to include the model "Company", but is associated to "User" multiple times.
 
@@ -87,7 +88,8 @@ Instead of specifying a Model, either:
    include: {
      association: 'Employer',
    },
-`.trim());
+`.trim(),
+      );
     });
 
     it('supports a belongsTo association reference includeable', async function () {
@@ -119,24 +121,25 @@ Instead of specifying a Model, either:
         Table1Id: table1.get('id'),
       });
 
-      await Table3.bulkCreate([
+      await Table3.bulkCreate(
+        [
+          {
+            Table2Id: table2.get('id'),
+            value: 5,
+          },
+          {
+            Table2Id: table2.get('id'),
+            value: 7,
+          },
+        ],
         {
-          Table2Id: table2.get('id'),
-          value: 5,
+          validate: true,
         },
-        {
-          Table2Id: table2.get('id'),
-          value: 7,
-        },
-      ], {
-        validate: true,
-      });
+      );
 
       const result = await Table1.findAll({
         raw: true,
-        attributes: [
-          [Sequelize.fn('SUM', Sequelize.col('table2.Tables3.value')), 'sum'],
-        ],
+        attributes: [[Sequelize.fn('SUM', Sequelize.col('table2.Tables3.value')), 'sum']],
         include: [
           {
             model: Table2,
@@ -172,9 +175,7 @@ Instead of specifying a Model, either:
       });
 
       const user = await User.findOne({
-        include: [
-          { association: Employer, where: { name: 'CyberCorp' } },
-        ],
+        include: [{ association: Employer, where: { name: 'CyberCorp' } }],
       });
 
       expect(user).to.be.ok;
@@ -260,16 +261,17 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
       const user0 = await User.create();
 
-      await Promise.all([user0.createTask({
-        title: 'trivial',
-      }), user0.createTask({
-        title: 'pursuit',
-      })]);
+      await Promise.all([
+        user0.createTask({
+          title: 'trivial',
+        }),
+        user0.createTask({
+          title: 'pursuit',
+        }),
+      ]);
 
       const user = await User.findOne({
-        include: [
-          { association: Tasks, where: { title: 'trivial' } },
-        ],
+        include: [{ association: Tasks, where: { title: 'trivial' } }],
       });
 
       expect(user).to.be.ok;
@@ -322,9 +324,7 @@ Instead of specifying a Model, either:
         include: [
           {
             model: User,
-            include: [
-              { model: Group },
-            ],
+            include: [{ model: Group }],
           },
         ],
       });
@@ -343,21 +343,21 @@ Instead of specifying a Model, either:
 
       await this.sequelize.sync({ force: true });
 
-      const task0 = await Task.create({
-        user: {},
-        group: {},
-      }, {
-        include: [User, Group],
-      });
+      const task0 = await Task.create(
+        {
+          user: {},
+          group: {},
+        },
+        {
+          include: [User, Group],
+        },
+      );
 
       const task = await Task.findOne({
         where: {
           id: task0.id,
         },
-        include: [
-          { model: User },
-          { model: Group },
-        ],
+        include: [{ model: User }, { model: Group }],
       });
 
       expect(task.user).to.be.ok;
@@ -375,12 +375,15 @@ Instead of specifying a Model, either:
 
       await this.sequelize.sync({ force: true });
 
-      const user = await User.create({
-        task: {},
-        group: {},
-      }, {
-        include: [Task, Group],
-      });
+      const user = await User.create(
+        {
+          task: {},
+          group: {},
+        },
+        {
+          include: [Task, Group],
+        },
+      );
 
       const group = await Group.findOne({
         where: {
@@ -389,9 +392,7 @@ Instead of specifying a Model, either:
         include: [
           {
             model: User,
-            include: [
-              { model: Task },
-            ],
+            include: [{ model: Task }],
           },
         ],
       });
@@ -411,16 +412,14 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
       await Project.bulkCreate([{ id: 1 }, { id: 2 }]);
 
-      const user0 = await User.create({
-        tasks: [
-          { projectId: 1 },
-          { projectId: 2 },
-          { projectId: 1 },
-          { projectId: 2 },
-        ],
-      }, {
-        include: [Task],
-      });
+      const user0 = await User.create(
+        {
+          tasks: [{ projectId: 1 }, { projectId: 2 }, { projectId: 1 }, { projectId: 2 }],
+        },
+        {
+          include: [Task],
+        },
+      );
 
       const user = await User.findOne({
         where: {
@@ -429,9 +428,7 @@ Instead of specifying a Model, either:
         include: [
           {
             model: Task,
-            include: [
-              { model: Project },
-            ],
+            include: [{ model: Project }],
           },
         ],
       });
@@ -455,12 +452,15 @@ Instead of specifying a Model, either:
 
       await this.sequelize.sync({ force: true });
 
-      const project = await Project.create({
-        workers: [{}],
-        tasks: [{}, {}, {}, {}],
-      }, {
-        include: [Worker, Task],
-      });
+      const project = await Project.create(
+        {
+          workers: [{}],
+          tasks: [{}, {}, {}, {}],
+        },
+        {
+          include: [Worker, Task],
+        },
+      );
 
       const worker = await Worker.findOne({
         where: {
@@ -469,9 +469,7 @@ Instead of specifying a Model, either:
         include: [
           {
             model: Project,
-            include: [
-              { model: Task },
-            ],
+            include: [{ model: Task }],
           },
         ],
       });
@@ -497,24 +495,18 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
 
       const [products, tags] = await Promise.all([
-        User.create({
-          id: 1,
-          products: [
-            { title: 'Chair' },
-            { title: 'Desk' },
-            { title: 'Dress' },
-            { title: 'Bed' },
-          ],
-        }, {
-          include: [Product],
-        }).then(() => {
+        User.create(
+          {
+            id: 1,
+            products: [{ title: 'Chair' }, { title: 'Desk' }, { title: 'Dress' }, { title: 'Bed' }],
+          },
+          {
+            include: [Product],
+          },
+        ).then(() => {
           return Product.findAll({ order: [['id']] });
         }),
-        Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => {
+        Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => {
           return Tag.findAll({ order: [['id']] });
         }),
       ]);
@@ -532,15 +524,10 @@ Instead of specifying a Model, either:
         include: [
           {
             model: Product,
-            include: [
-              { model: Tag },
-            ],
+            include: [{ model: Tag }],
           },
         ],
-        order: [
-          User.getAttributes().id,
-          [Product, 'id'],
-        ],
+        order: [User.getAttributes().id, [Product, 'id']],
       });
 
       expect(user.products.length).to.equal(4);
@@ -596,30 +583,43 @@ Instead of specifying a Model, either:
       await this.sequelize.sync({ force: true });
 
       const [product1, product2, user0, tags] = await Promise.all([
-        Product.create({
-          id: 1,
-          title: 'Chair',
-          prices: [{ value: 5 }, { value: 10 }],
-        }, { include: [Price] }),
-        Product.create({
-          id: 2,
-          title: 'Desk',
-          prices: [{ value: 5 }, { value: 10 }, { value: 15 }, { value: 20 }],
-        }, { include: [Price] }),
-        User.create({
-          id: 1,
-          Memberships: [
-            { id: 1, group: { name: 'Developers' }, rank: { name: 'Admin', canInvite: 1, canRemove: 1 } },
-            { id: 2, group: { name: 'Designers' }, rank: { name: 'Member', canInvite: 1, canRemove: 0 } },
-          ],
-        }, {
-          include: { model: GroupMember, as: 'Memberships', include: [Group, Rank] },
-        }),
-        Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => {
+        Product.create(
+          {
+            id: 1,
+            title: 'Chair',
+            prices: [{ value: 5 }, { value: 10 }],
+          },
+          { include: [Price] },
+        ),
+        Product.create(
+          {
+            id: 2,
+            title: 'Desk',
+            prices: [{ value: 5 }, { value: 10 }, { value: 15 }, { value: 20 }],
+          },
+          { include: [Price] },
+        ),
+        User.create(
+          {
+            id: 1,
+            Memberships: [
+              {
+                id: 1,
+                group: { name: 'Developers' },
+                rank: { name: 'Admin', canInvite: 1, canRemove: 1 },
+              },
+              {
+                id: 2,
+                group: { name: 'Designers' },
+                rank: { name: 'Member', canInvite: 1, canRemove: 0 },
+              },
+            ],
+          },
+          {
+            include: { model: GroupMember, as: 'Memberships', include: [Group, Rank] },
+          },
+        ),
+        Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => {
           return Tag.findAll();
         }),
       ]);
@@ -635,17 +635,13 @@ Instead of specifying a Model, either:
         where: { id: 1 },
         include: [
           {
-            model: GroupMember, as: 'Memberships', include: [
-              Group,
-              Rank,
-            ],
+            model: GroupMember,
+            as: 'Memberships',
+            include: [Group, Rank],
           },
           {
-            model: Product, include: [
-              { model: Tag, as: 'tags' },
-              { model: Tag, as: 'Category' },
-              Price,
-            ],
+            model: Product,
+            include: [{ model: Tag, as: 'tags' }, { model: Tag, as: 'Category' }, Price],
           },
         ],
       });
@@ -683,18 +679,19 @@ Instead of specifying a Model, either:
 
       await this.sequelize.sync({ force: true });
 
-      await Task.create({
-        title: 'FooBar',
-        project: { title: 'BarFoo' },
-      }, {
-        include: [Project],
-      });
+      await Task.create(
+        {
+          title: 'FooBar',
+          project: { title: 'BarFoo' },
+        },
+        {
+          include: [Project],
+        },
+      );
 
       const tasks = await Task.findAll({
         attributes: ['title'],
-        include: [
-          { model: Project, attributes: ['title'] },
-        ],
+        include: [{ model: Project, attributes: ['title'] }],
       });
 
       expect(tasks[0].title).to.equal('FooBar');
@@ -724,8 +721,13 @@ Instead of specifying a Model, either:
       switch (dialect) {
         case 'mssql': {
           findAttributes = [
-            Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "postComments.someProperty"'),
-            [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2'],
+            Sequelize.literal(
+              'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "postComments.someProperty"',
+            ),
+            [
+              Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'),
+              'someProperty2',
+            ],
           ];
 
           break;
@@ -742,7 +744,9 @@ Instead of specifying a Model, either:
 
         case 'db2': {
           findAttributes = [
-            Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "postComments.someProperty"'),
+            Sequelize.literal(
+              'EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "postComments.someProperty"',
+            ),
             [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
           ];
 
@@ -778,7 +782,11 @@ Instead of specifying a Model, either:
         name: DataTypes.STRING,
       });
 
-      Group.belongsToMany(Group, { through: 'groups_outsourcing_companies', as: 'OutsourcingCompanies', inverse: { as: 'OutsourcedCompanies' } });
+      Group.belongsToMany(Group, {
+        through: 'groups_outsourcing_companies',
+        as: 'OutsourcingCompanies',
+        inverse: { as: 'OutsourcedCompanies' },
+      });
 
       await this.sequelize.sync({ force: true });
 
@@ -803,12 +811,20 @@ Instead of specifying a Model, either:
     });
 
     it('should support including date fields, with the correct timeszone', async function () {
-      const User = this.sequelize.define('user', {
-        dateField: DataTypes.DATE,
-      }, { timestamps: false });
-      const Group = this.sequelize.define('group', {
-        dateField: DataTypes.DATE,
-      }, { timestamps: false });
+      const User = this.sequelize.define(
+        'user',
+        {
+          dateField: DataTypes.DATE,
+        },
+        { timestamps: false },
+      );
+      const Group = this.sequelize.define(
+        'group',
+        {
+          dateField: DataTypes.DATE,
+        },
+        { timestamps: false },
+      );
 
       User.belongsToMany(Group, { through: 'group_user' });
       Group.belongsToMany(User, { through: 'group_user' });
@@ -866,10 +882,12 @@ Instead of specifying a Model, either:
       await group.addMember(member);
 
       const groups = await owner.getGroups({
-        include: [{
-          model: User,
-          as: 'Members',
-        }],
+        include: [
+          {
+            model: User,
+            as: 'Members',
+          },
+        ],
       });
 
       expect(groups.length).to.equal(1);
@@ -893,11 +911,7 @@ Instead of specifying a Model, either:
       User.bulkCreate([{}, {}, {}]).then(() => {
         return User.findAll();
       }),
-      Item.bulkCreate([
-        { test: 'abc' },
-        { test: 'def' },
-        { test: 'ghi' },
-      ]).then(() => {
+      Item.bulkCreate([{ test: 'abc' }, { test: 'def' }, { test: 'ghi' }]).then(() => {
         return Item.findAll();
       }),
     ]);
@@ -916,9 +930,7 @@ Instead of specifying a Model, either:
 
     it('should support and()', async function () {
       const result = await this.User.findAll({
-        include: [
-          { model: this.Item, where: and({ test: 'def' }) },
-        ],
+        include: [{ model: this.Item, where: and({ test: 'def' }) }],
       });
 
       expect(result.length).to.eql(1);
@@ -926,18 +938,23 @@ Instead of specifying a Model, either:
     });
 
     it('should support or()', async function () {
-      await expect(this.User.findAll({
-        include: [
-          {
-            model: this.Item,
-            where: or({
-              test: 'def',
-            }, {
-              test: 'abc',
-            }),
-          },
-        ],
-      })).to.eventually.have.length(2);
+      await expect(
+        this.User.findAll({
+          include: [
+            {
+              model: this.Item,
+              where: or(
+                {
+                  test: 'def',
+                },
+                {
+                  test: 'abc',
+                },
+              ),
+            },
+          ],
+        }),
+      ).to.eventually.have.length(2);
     });
   });
 
@@ -1006,10 +1023,12 @@ Instead of specifying a Model, either:
       ]);
 
       const groups = await Group.findAll({
-        include: [{
-          model: User,
-          right: true,
-        }],
+        include: [
+          {
+            model: User,
+            right: true,
+          },
+        ],
       });
 
       if (current.dialect.supports['RIGHT JOIN']) {
@@ -1060,11 +1079,13 @@ Instead of specifying a Model, either:
       await group2.destroy();
 
       const groups = await Group.findAll({
-        include: [{
-          model: User,
-          as: 'Members',
-          right: true,
-        }],
+        include: [
+          {
+            model: User,
+            as: 'Members',
+            right: true,
+          },
+        ],
       });
 
       if (current.dialect.supports['RIGHT JOIN']) {
@@ -1082,8 +1103,14 @@ Instead of specifying a Model, either:
       const Clearence = this.sequelize.define('Clearence', { level: DataTypes.INTEGER });
 
       Team.Members = Team.hasMany(Employee, { as: 'members' });
-      Employee.Clearence = Employee.hasOne(Clearence, { as: 'clearence', foreignKey: 'employeeId' });
-      Clearence.Employee = Clearence.belongsTo(Employee, { as: 'employee', foreignKey: 'employeeId' });
+      Employee.Clearence = Employee.hasOne(Clearence, {
+        as: 'clearence',
+        foreignKey: 'employeeId',
+      });
+      Clearence.Employee = Clearence.belongsTo(Employee, {
+        as: 'employee',
+        foreignKey: 'employeeId',
+      });
 
       this.Employee = Employee;
       this.Team = Team;
@@ -1181,6 +1208,5 @@ Instead of specifying a Model, either:
 
       expect(teams).to.have.length(1);
     });
-
   });
 });

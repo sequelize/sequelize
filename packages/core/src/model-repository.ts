@@ -11,7 +11,11 @@ import {
   getPrimaryKeyValueOrThrow,
   setTransactionFromCls,
 } from './model-internals.js';
-import type { BulkDestroyOptions, CommonDestroyOptions, DestroyManyOptions } from './model-repository.types.js';
+import type {
+  BulkDestroyOptions,
+  CommonDestroyOptions,
+  DestroyManyOptions,
+} from './model-repository.types.js';
 import { ManualOnDelete } from './model-repository.types.js';
 import type { Model, Transactionable } from './model.js';
 import { Op } from './operators.js';
@@ -53,7 +57,9 @@ export class ModelRepository<M extends Model = Model> {
     assertHasPrimaryKey(this.#modelDefinition);
     setTransactionFromCls(options, this.#sequelize);
 
-    const instances: M[] = Array.isArray(instanceOrInstances) ? [...instanceOrInstances] : [instanceOrInstances];
+    const instances: M[] = Array.isArray(instanceOrInstances)
+      ? [...instanceOrInstances]
+      : [instanceOrInstances];
     if (instances.length === 0) {
       return 0;
     }
@@ -185,14 +191,16 @@ export class ModelRepository<M extends Model = Model> {
       // TODO: if we know this is the last cascade,
       //  we can avoid the fetch and call bulkDestroy directly instead of destroyMany.
       // TODO: only fetch the attributes that are referenced by a foreign key, not all attributes.
-      const instances = await modelDefinition.model.findAll(options) as M[];
+      const instances = (await modelDefinition.model.findAll(options)) as M[];
 
       await this.#manuallyCascadeDestroy(instances, cascadingAssociations, options);
     }
 
     const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
     if (deletedAtAttributeName && !options.hardDelete) {
-      throw new Error('ModelRepository#_UNSTABLE_bulkDestroy does not support paranoid deletion yet.');
+      throw new Error(
+        'ModelRepository#_UNSTABLE_bulkDestroy does not support paranoid deletion yet.',
+      );
       // const deletedAtAttribute = modelDefinition.attributes.getOrThrow(deletedAtAttributeName);
 
       // return this.#queryInterface.bulkUpdate(
@@ -220,7 +228,11 @@ export class ModelRepository<M extends Model = Model> {
       return EMPTY_ARRAY;
     }
 
-    if (options.manualOnDelete === ManualOnDelete.paranoid && !options.hardDelete && this.#modelDefinition.isParanoid()) {
+    if (
+      options.manualOnDelete === ManualOnDelete.paranoid &&
+      !options.hardDelete &&
+      this.#modelDefinition.isParanoid()
+    ) {
       return EMPTY_ARRAY;
     }
 
@@ -230,7 +242,11 @@ export class ModelRepository<M extends Model = Model> {
       const source = association.source.modelDefinition;
       const foreignKey = source.physicalAttributes.getOrThrow(association.foreignKey);
 
-      return (foreignKey.onDelete === 'CASCADE' || foreignKey.onDelete === 'SET NULL' || foreignKey.onDelete === 'SET DEFAULT');
+      return (
+        foreignKey.onDelete === 'CASCADE' ||
+        foreignKey.onDelete === 'SET NULL' ||
+        foreignKey.onDelete === 'SET DEFAULT'
+      );
     });
   }
 
@@ -243,53 +259,57 @@ export class ModelRepository<M extends Model = Model> {
 
     const isSoftDelete = !options.hardDelete && this.#modelDefinition.isParanoid();
 
-    await Promise.all(cascadingAssociations.map(async association => {
-      const source = association.source.modelDefinition;
-      const foreignKey = source.physicalAttributes.getOrThrow(association.foreignKey);
+    await Promise.all(
+      cascadingAssociations.map(async association => {
+        const source = association.source.modelDefinition;
+        const foreignKey = source.physicalAttributes.getOrThrow(association.foreignKey);
 
-      switch (foreignKey.onDelete) {
-        case 'CASCADE': {
-          // Because the cascade can lead to further cascades,
-          // we need to fetch the instances first to recursively destroy them.
-          // TODO: if we know this is the last cascade,
-          //  we can avoid the fetch and call bulkDestroy directly instead of destroyMany.
-          // TODO: only fetch the attributes that are referenced by a foreign key, not all attributes.
-          const associatedInstances = await source.model.findAll({
-            transaction: options.transaction,
-            connection: options.connection,
-            where: {
-              [association.foreignKey]: instances.map(instance => instance.get(association.targetKey)),
-            },
-          });
+        switch (foreignKey.onDelete) {
+          case 'CASCADE': {
+            // Because the cascade can lead to further cascades,
+            // we need to fetch the instances first to recursively destroy them.
+            // TODO: if we know this is the last cascade,
+            //  we can avoid the fetch and call bulkDestroy directly instead of destroyMany.
+            // TODO: only fetch the attributes that are referenced by a foreign key, not all attributes.
+            const associatedInstances = await source.model.findAll({
+              transaction: options.transaction,
+              connection: options.connection,
+              where: {
+                [association.foreignKey]: instances.map(instance =>
+                  instance.get(association.targetKey),
+                ),
+              },
+            });
 
-          if (associatedInstances.length === 0) {
+            if (associatedInstances.length === 0) {
+              return;
+            }
+
+            if (isSoftDelete && !source.isParanoid()) {
+              throw new Error(`Trying to soft delete model ${this.#modelDefinition.modelName}, but it is associated with a non-paranoid model, ${source.modelName}, through ${association.name} with onDelete: 'CASCADE'.
+This would lead to an active record being associated with a deleted record.`);
+            }
+
+            await source.model.modelRepository._UNSTABLE_destroy(associatedInstances, options);
+
             return;
           }
 
-          if (isSoftDelete && !source.isParanoid()) {
-            throw new Error(`Trying to soft delete model ${this.#modelDefinition.modelName}, but it is associated with a non-paranoid model, ${source.modelName}, through ${association.name} with onDelete: 'CASCADE'.
-This would lead to an active record being associated with a deleted record.`);
+          case 'SET NULL': {
+            // TODO: implement once bulkUpdate is implemented
+            throw new Error('Manual cascades do not support SET NULL yet.');
           }
 
-          await source.model.modelRepository._UNSTABLE_destroy(associatedInstances, options);
+          case 'SET DEFAULT': {
+            // TODO: implement once bulkUpdate is implemented
+            throw new Error('Manual cascades do not support SET DEFAULT yet.');
+          }
 
-          return;
+          default:
+            throw new Error(`Unexpected onDelete action: ${foreignKey.onDelete}`);
         }
-
-        case 'SET NULL': {
-          // TODO: implement once bulkUpdate is implemented
-          throw new Error('Manual cascades do not support SET NULL yet.');
-        }
-
-        case 'SET DEFAULT': {
-          // TODO: implement once bulkUpdate is implemented
-          throw new Error('Manual cascades do not support SET DEFAULT yet.');
-        }
-
-        default:
-          throw new Error(`Unexpected onDelete action: ${foreignKey.onDelete}`);
-      }
-    }));
+      }),
+    );
   }
 
   // async save(instances: M[] | M): Promise<void> {}

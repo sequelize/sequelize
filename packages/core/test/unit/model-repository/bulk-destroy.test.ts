@@ -1,7 +1,7 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { Model } from '@sequelize/core';
+import { expect } from 'chai';
+import sinon from 'sinon';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
@@ -25,7 +25,9 @@ describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
     const repository = User.modelRepository;
 
     // @ts-expect-error -- testing that not specifying "where" leads to an error
-    await expect(repository._UNSTABLE_bulkDestroy({})).to.be.rejectedWith('requires explicitly specifying a "where"');
+    await expect(repository._UNSTABLE_bulkDestroy({})).to.be.rejectedWith(
+      'requires explicitly specifying a "where"',
+    );
   });
 
   it('creates a single DELETE query', async () => {

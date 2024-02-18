@@ -10,29 +10,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('update', () => {
       beforeEach(async function () {
-        this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: DataTypes.STRING,
-          email: DataTypes.STRING,
-          access_level: DataTypes.INTEGER,
-          other_value: DataTypes.INTEGER,
-        }, {
-          defaultScope: {
-            where: {
-              access_level: {
-                [Op.gte]: 5,
-              },
-            },
+        this.ScopeMe = this.sequelize.define(
+          'ScopeMe',
+          {
+            username: DataTypes.STRING,
+            email: DataTypes.STRING,
+            access_level: DataTypes.INTEGER,
+            other_value: DataTypes.INTEGER,
           },
-          scopes: {
-            lowAccess: {
+          {
+            defaultScope: {
               where: {
                 access_level: {
-                  [Op.lte]: 5,
+                  [Op.gte]: 5,
+                },
+              },
+            },
+            scopes: {
+              lowAccess: {
+                where: {
+                  access_level: {
+                    [Op.lte]: 5,
+                  },
                 },
               },
             },
           },
-        });
+        );
 
         await this.sequelize.sync({ force: true });
         const records = [
@@ -61,13 +65,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to apply other scopes', async function () {
         await this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: {} });
-        const users = await this.ScopeMe.unscoped().findAll({ where: { username: { [Op.ne]: 'ruben' } } });
+        const users = await this.ScopeMe.unscoped().findAll({
+          where: { username: { [Op.ne]: 'ruben' } },
+        });
         expect(users).to.have.length(1);
         expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
       });
 
       it('should be able to merge scopes with where', async function () {
-        await this.ScopeMe.scope('lowAccess').update({ username: 'ruben' }, { where: { username: 'dan' } });
+        await this.ScopeMe.scope('lowAccess').update(
+          { username: 'ruben' },
+          { where: { username: 'dan' } },
+        );
         const users = await this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
         expect(users).to.have.length(1);
         expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
