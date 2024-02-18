@@ -2939,7 +2939,7 @@ export abstract class Model<
    *
    * // Join model with additional attributes
    * const UserProjects = sequelize.define('UserProjects', {
-   *   started: Sequelize.BOOLEAN
+   *   started: DataTypes.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })
    * ```

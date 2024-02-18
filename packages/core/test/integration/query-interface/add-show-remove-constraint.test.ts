@@ -3,7 +3,7 @@ import { assert, expect } from 'chai';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
-const dialect = sequelize.getDialect();
+const dialect = sequelize.dialect.name;
 
 describe('QueryInterface#{add,show,removeConstraint}', () => {
   describe('Without schema', () => {

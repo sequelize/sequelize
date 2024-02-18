@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
-const dialect = sequelize.getDialect();
+const dialect = sequelize.dialect.name;
 const newDbName = 'myDB';
 
 describe('QueryInterface#{create,drop,list}Database', () => {
