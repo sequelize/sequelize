@@ -611,7 +611,6 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0020',
   'SEQUELIZE0021',
   'SEQUELIZE0022',
-  'SEQUELIZE0023',
   'SEQUELIZE0024',
   'SEQUELIZE0025',
   'SEQUELIZE0026',

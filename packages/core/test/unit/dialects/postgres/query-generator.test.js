@@ -16,6 +16,8 @@ const dayjs = require('dayjs');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
+
     const suites = {
       attributesToSQL: [
         {
