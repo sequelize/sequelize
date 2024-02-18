@@ -176,7 +176,7 @@ describe('@HasOne', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasOne(seq => seq.model('Profile'), 'userId')
+      @HasOne(seq => seq.models.getOrThrow('Profile'), 'userId')
       declare profile3: Profile;
     }
 
@@ -265,7 +265,7 @@ describe('@HasMany', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasMany(seq => seq.model('Profile'), { foreignKey: 'userId' })
+      @HasMany(seq => seq.models.getOrThrow('Profile'), { foreignKey: 'userId' })
       declare profile3: Profile;
     }
 
@@ -369,15 +369,15 @@ describe('@BelongsToMany', () => {
     expect(Role.associations.users.associationType).to.eq('BelongsToMany');
 
     expect(userToRole.target).to.eq(Role);
-    expect(userToRole.throughModel).to.eq(sequelize.model('UserRole'));
+    expect(userToRole.throughModel).to.eq(sequelize.models.getOrThrow('UserRole'));
   });
 
   it('supports lazy target & through', () => {
     class UserRole extends Model<InferAttributes<UserRole>> {}
 
     class User extends Model<InferAttributes<User>> {
-      @BelongsToMany(seq => seq.model('Role'), {
-        through: seq => seq.model('UserRole'),
+      @BelongsToMany(seq => seq.models.getOrThrow('Role'), {
+        through: seq => seq.models.getOrThrow('UserRole'),
         inverse: { as: 'users' },
       })
       declare roles: Role[];

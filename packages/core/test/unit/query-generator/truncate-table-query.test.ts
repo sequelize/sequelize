@@ -107,7 +107,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
 
   it('produces a TRUNCATE TABLE query from a table and globally set schema', () => {
     const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.getQueryInterface().queryGenerator;
+    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
 
     expectPerDialect(() => queryGeneratorSchema.truncateTableQuery('myTable'), {
       mssql: 'TRUNCATE TABLE [mySchema].[myTable]',

@@ -28,7 +28,7 @@ sequelize.transaction<void>(async transaction => {
       },
       model: User,
       transaction,
-      logging: true,
+      logging: console.debug,
     }),
   ).toEqualTypeOf<User[]>();
 });
