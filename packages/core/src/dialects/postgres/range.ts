@@ -1,8 +1,11 @@
-import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
+import NodeUtil from 'node:util';
 import type { InputRangePart, Rangable, Range, RangePart } from '../../model.js';
 
-function stringifyRangeBound<T extends {}>(bound: T | number | null, stringifyBoundary: (val: T) => string): string {
+function stringifyRangeBound<T extends {}>(
+  bound: T | number | null,
+  stringifyBoundary: (val: T) => string,
+): string {
   if (bound === null) {
     return '';
   }
@@ -40,7 +43,10 @@ function parseRangeBound<T>(bound: string, parseType: ParseValue<T>): T | number
   return parseType(bound);
 }
 
-export function stringify<T extends {}>(range: Rangable<T>, stringifyBoundary: (val: T) => string): string {
+export function stringify<T extends {}>(
+  range: Rangable<T>,
+  stringifyBoundary: (val: T) => string,
+): string {
   if (range.length === 0) {
     return 'empty';
   }
@@ -74,9 +80,7 @@ export function parse<T>(value: string, parser: ParseValue<T>): Range<T> {
     return [];
   }
 
-  const result = value
-    .slice(1, -1)
-    .split(',', 2);
+  const result = value.slice(1, -1).split(',', 2);
 
   if (result.length !== 2) {
     throw new TypeError(`Sequelize could not parse range "${value}" as its format is incompatible`);
@@ -96,10 +100,17 @@ export function isInputRangePart<T>(val: unknown): val is InputRangePart<T> {
   return isPlainObject(val) && Object.hasOwn(val as object, 'value');
 }
 
-export function buildRangeParser(subTypeParser: (value: unknown) => unknown): (value: unknown) => unknown {
+export function buildRangeParser(
+  subTypeParser: (value: unknown) => unknown,
+): (value: unknown) => unknown {
   return (value: unknown) => {
     if (typeof value !== 'string') {
-      throw new TypeError(NodeUtil.format(`Sequelize could not parse range "%O" as its format is incompatible`, value));
+      throw new TypeError(
+        NodeUtil.format(
+          `Sequelize could not parse range "%O" as its format is incompatible`,
+          value,
+        ),
+      );
     }
 
     return parse(value, subTypeParser);

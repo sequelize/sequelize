@@ -1,11 +1,14 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
+import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { quoteIdentifier } from '../../utils/dialect.js';
-import { rejectInvalidOptions } from '../../utils/check';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -18,7 +21,10 @@ const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescr
  *
  * @private
  */
-const SNOWFLAKE_RESERVED_WORDS = 'account,all,alter,and,any,as,between,by,case,cast,check,column,connect,connections,constraint,create,cross,current,current_date,current_time,current_timestamp,current_user,database,delete,distinct,drop,else,exists,false,following,for,from,full,grant,group,gscluster,having,ilike,in,increment,inner,insert,intersect,into,is,issue,join,lateral,left,like,localtime,localtimestamp,minus,natural,not,null,of,on,or,order,organization,qualify,regexp,revoke,right,rlike,row,rows,sample,schema,select,set,some,start,table,tablesample,then,to,trigger,true,try_cast,union,unique,update,using,values,view,when,whenever,where,with'.split(',');
+const SNOWFLAKE_RESERVED_WORDS =
+  'account,all,alter,and,any,as,between,by,case,cast,check,column,connect,connections,constraint,create,cross,current,current_date,current_time,current_timestamp,current_user,database,delete,distinct,drop,else,exists,false,following,for,from,full,grant,group,gscluster,having,ilike,in,increment,inner,insert,intersect,into,is,issue,join,lateral,left,like,localtime,localtimestamp,minus,natural,not,null,of,on,or,order,organization,qualify,regexp,revoke,right,rlike,row,rows,sample,schema,select,set,some,start,table,tablesample,then,to,trigger,true,try_cast,union,unique,update,using,values,view,when,whenever,where,with'.split(
+    ',',
+  );
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
@@ -75,7 +81,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -83,7 +89,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map((field) => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -101,7 +107,9 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       'CREATE TABLE IF NOT EXISTS',
       table,
       `(${attributesClause})`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
+      options.comment &&
+        typeof options.comment === 'string' &&
+        `COMMENT ${this.escape(options.comment)}`,
       ';',
     ]);
   }
@@ -132,13 +140,14 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   changeColumnQuery(tableName, attributes) {
-    const query = (...subQuerys) => joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(tableName),
-      'ALTER COLUMN',
-      ...subQuerys,
-      ';',
-    ]);
+    const query = (...subQuerys) =>
+      joinSQLFragments([
+        'ALTER TABLE',
+        this.quoteTable(tableName),
+        'ALTER COLUMN',
+        ...subQuerys,
+        ';',
+      ]);
     const sql = [];
     for (const attributeName in attributes) {
       let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
@@ -153,7 +162,13 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       }
 
       if (definition.includes('DEFAULT')) {
-        attrSql.push(query(this.quoteIdentifier(attributeName), 'SET DEFAULT', definition.match(/DEFAULT ([^;]+)/)[1]));
+        attrSql.push(
+          query(
+            this.quoteIdentifier(attributeName),
+            'SET DEFAULT',
+            definition.match(/DEFAULT ([^;]+)/)[1],
+          ),
+        );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
       } else if (!definition.includes('REFERENCES')) {
@@ -162,12 +177,22 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
       if (/UNIQUE;*$/.test(definition)) {
         definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql.push(query('ADD UNIQUE (', this.quoteIdentifier(attributeName), ')').replace('ALTER COLUMN', ''));
+        attrSql.push(
+          query('ADD UNIQUE (', this.quoteIdentifier(attributeName), ')').replace(
+            'ALTER COLUMN',
+            '',
+          ),
+        );
       }
 
       if (definition.includes('REFERENCES')) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
-        attrSql.push(query('ADD FOREIGN KEY (', this.quoteIdentifier(attributeName), ')', definition).replace('ALTER COLUMN', ''));
+        attrSql.push(
+          query('ADD FOREIGN KEY (', this.quoteIdentifier(attributeName), ')', definition).replace(
+            'ALTER COLUMN',
+            '',
+          ),
+        );
       } else {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'TYPE', definition));
       }
@@ -214,9 +239,11 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (!typeWithoutDefault.has(attributeString)
-      && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    if (
+      !typeWithoutDefault.has(attributeString) &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
@@ -315,12 +342,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const optQuoteIdentifiers = this.options.quoteIdentifiers !== false;
 
     if (
-      optForceQuote === true
+      optForceQuote === true ||
       // TODO [>7]: drop this.options.quoteIdentifiers. Always quote identifiers.
-      || optQuoteIdentifiers !== false
-      || identifier.includes('.')
-      || identifier.includes('->')
-      || SNOWFLAKE_RESERVED_WORDS.includes(identifier.toLowerCase())
+      optQuoteIdentifiers !== false ||
+      identifier.includes('.') ||
+      identifier.includes('->') ||
+      SNOWFLAKE_RESERVED_WORDS.includes(identifier.toLowerCase())
     ) {
       // In Snowflake if tables or attributes are created double-quoted,
       // they are also case sensitive. If they contain any uppercase

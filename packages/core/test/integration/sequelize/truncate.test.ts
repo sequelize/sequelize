@@ -1,6 +1,11 @@
-import { expect } from 'chai';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+} from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 
 interface IA extends Model<InferAttributes<IA>, InferCreationAttributes<IA>> {
@@ -41,14 +46,20 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction(async transaction => {
-        const a = await A.create({
-          bId: null,
-        }, { transaction });
+      await sequelize.transaction(async (transaction) => {
+        const a = await A.create(
+          {
+            bId: null,
+          },
+          { transaction },
+        );
 
-        const b = await B.create({
-          aId: a.id,
-        }, { transaction });
+        const b = await B.create(
+          {
+            aId: a.id,
+          },
+          { transaction },
+        );
 
         a.bId = b.id;
         await a.save({ transaction });
@@ -66,14 +77,20 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { withoutForeignKeyChecks: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction(async transaction => {
-        const a = await A.create({
-          bId: null,
-        }, { transaction });
+      await sequelize.transaction(async (transaction) => {
+        const a = await A.create(
+          {
+            bId: null,
+          },
+          { transaction },
+        );
 
-        const b = await B.create({
-          aId: a.id,
-        }, { transaction });
+        const b = await B.create(
+          {
+            aId: a.id,
+          },
+          { transaction },
+        );
 
         a.bId = b.id;
         await a.save({ transaction });

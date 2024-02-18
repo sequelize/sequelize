@@ -21,7 +21,11 @@ describe('QueryInterface#dropTable', () => {
         default: 'DROP TABLE IF EXISTS [myTable] CASCADE',
       });
     } else {
-      await expect(sequelize.queryInterface.dropTable('myTable', { cascade: true })).to.be.rejectedWith(`The following options are not supported by dropTableQuery in ${dialectName}: cascade`);
+      await expect(
+        sequelize.queryInterface.dropTable('myTable', { cascade: true }),
+      ).to.be.rejectedWith(
+        `The following options are not supported by dropTableQuery in ${dialectName}: cascade`,
+      );
     }
   });
 });

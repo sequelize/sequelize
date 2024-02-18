@@ -82,6 +82,5 @@ describe('Sequelize#log', () => {
       this.customSequelize.log(message, timeTaken, options);
       expect(this.spy.withArgs(message, timeTaken, options).calledOnce).to.be.true;
     });
-
   });
 });

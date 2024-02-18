@@ -2,7 +2,11 @@ import type { ColumnValidateOptions, ModelOptions } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { registerModelOptions } from '../shared/model.js';
 import { createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
-import { createOptionallyParameterizedPropertyDecorator, throwMustBeMethod, throwMustBeModel } from './decorator-utils.js';
+import {
+  createOptionallyParameterizedPropertyDecorator,
+  throwMustBeMethod,
+  throwMustBeModel,
+} from './decorator-utils.js';
 
 /**
  * Used to register a function that will be called when an attribute is being validated.
@@ -71,13 +75,15 @@ export const ModelValidator = createOptionallyParameterizedPropertyDecorator<und
       throwMustBeMethod('ModelValidator', target, propertyName);
     }
 
-    const validator = isStatic ? function validate() {
-      // When registered as a static method, the model is passed as the first parameter, and the context ("this") must be the class
-      /* eslint-disable @typescript-eslint/no-invalid-this */
-      // @ts-expect-error -- description above ^
-      property.call(target, this);
-      /* eslint-enable @typescript-eslint/no-invalid-this */
-    } : property;
+    const validator = isStatic
+      ? function validate() {
+          // When registered as a static method, the model is passed as the first parameter, and the context ("this") must be the class
+          /* eslint-disable @typescript-eslint/no-invalid-this */
+          // @ts-expect-error -- description above ^
+          property.call(target, this);
+          /* eslint-enable @typescript-eslint/no-invalid-this */
+        }
+      : property;
 
     registerModelOptions(targetClass, {
       validate: {

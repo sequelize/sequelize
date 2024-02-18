@@ -92,7 +92,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('preserves changes to instance', () => {
       it('beforeValidate', async function () {
-        this.User.beforeValidate(user => {
+        this.User.beforeValidate((user) => {
           user.mood = 'happy';
         });
 
@@ -103,7 +103,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('afterValidate', async function () {
-        this.User.afterValidate(user => {
+        this.User.afterValidate((user) => {
           user.mood = 'sad';
         });
 
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', async function () {
         let hookCalled = 0;
 
-        this.User.beforeSave(user => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -131,12 +131,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeUpdate', async function () {
         let hookCalled = 0;
 
-        this.User.beforeUpdate(user => {
+        this.User.beforeUpdate((user) => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave(user => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });

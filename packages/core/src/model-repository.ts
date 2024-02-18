@@ -47,7 +47,9 @@ export class ModelRepository<M extends Model = Model> {
     assertHasPrimaryKey(this.#modelDefinition);
     setTransactionFromCls(optionsClone, this.#sequelize);
 
-    const instances: M[] = Array.isArray(instanceOrInstances) ? [...instanceOrInstances] : [instanceOrInstances];
+    const instances: M[] = Array.isArray(instanceOrInstances)
+      ? [...instanceOrInstances]
+      : [instanceOrInstances];
     if (instances.length === 0) {
       return 0;
     }
@@ -84,7 +86,7 @@ export class ModelRepository<M extends Model = Model> {
     } else if (primaryKeys.size === 1 && !this.#modelDefinition.versionAttributeName) {
       const primaryKey: string = primaryKeys.values().next().value;
 
-      const values = instances.map(instance => getPrimaryKeyValueOrThrow(instance, primaryKey));
+      const values = instances.map((instance) => getPrimaryKeyValueOrThrow(instance, primaryKey));
 
       where = { [primaryKey]: values };
     } else {
@@ -92,7 +94,7 @@ export class ModelRepository<M extends Model = Model> {
         // Ideally, we'd use tuple comparison here, but that's not supported by Sequelize yet.
         // It would look like this:
         // WHERE (id1, id2) IN ((1, 2), (3, 4))
-        [Op.or]: instances.map(instance => getModelPkWhere(instance, true)!),
+        [Op.or]: instances.map((instance) => getModelPkWhere(instance, true)!),
       };
     }
 
@@ -109,7 +111,12 @@ export class ModelRepository<M extends Model = Model> {
     const result = await this.#queryInterface.bulkDelete(this.#modelDefinition, bulkDeleteOptions);
 
     if (mayRunHook('afterDestroyMany', optionsClone.noHooks)) {
-      await this.#modelDefinition.hooks.runAsync('afterDestroyMany', instances, optionsClone, result);
+      await this.#modelDefinition.hooks.runAsync(
+        'afterDestroyMany',
+        instances,
+        optionsClone,
+        result,
+      );
     }
 
     return result;

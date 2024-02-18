@@ -40,7 +40,7 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     for (const value of model.getIndexes()) {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
-        indexFields = value.fields.map(field => {
+        indexFields = value.fields.map((field) => {
           if (isPlainObject(field)) {
             return field.attribute;
           }
@@ -67,7 +67,14 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     options.type = QueryTypes.UPSERT;
     options.raw = true;
 
-    const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
+    const sql = this.queryGenerator.upsertQuery(
+      tableName,
+      insertValues,
+      updateValues,
+      where,
+      model,
+      options,
+    );
 
     delete options.replacements;
 
@@ -86,22 +93,20 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = mapValues(
-      attributes,
-      attribute => this.sequelize.normalizeAttribute(attribute),
-    );
+    attributes = mapValues(attributes, (attribute) => this.sequelize.normalizeAttribute(attribute));
 
     const modelTable = model?.table;
 
-    if (
-      !tableName.schema
-      && (options.schema || modelTable?.schema)
-    ) {
+    if (!tableName.schema && (options.schema || modelTable?.schema)) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
       tableName.schema = modelTable?.schema || options.schema || tableName.schema;
     }
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, { table: tableName, context: 'createTable', withoutForeignKeyConstraints: options.withoutForeignKeyConstraints });
+    attributes = this.queryGenerator.attributesToSQL(attributes, {
+      table: tableName,
+      context: 'createTable',
+      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
+    });
     sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
@@ -136,6 +141,8 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
    */
   async executeTableReorg(tableName) {
     // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
-    return await this.sequelize.query(`CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`);
+    return await this.sequelize.query(
+      `CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`,
+    );
   }
 }

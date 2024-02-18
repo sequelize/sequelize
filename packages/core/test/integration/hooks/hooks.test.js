@@ -21,14 +21,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       },
     });
 
-    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-      username: DataTypes.STRING,
-      mood: {
-        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+    this.ParanoidUser = this.sequelize.define(
+      'ParanoidUser',
+      {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+        },
       },
-    }, {
-      paranoid: true,
-    });
+      {
+        paranoid: true,
+      },
+    );
 
     await this.sequelize.sync({ force: true });
   });
@@ -37,12 +41,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     Support.setResetMode('none');
 
     const vars = Support.beforeAll2(() => {
-      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', options => {
+      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', (options) => {
         options.database = 'db2';
         options.host = 'server9';
       });
 
-      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', sequelize => {
+      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', (sequelize) => {
         sequelize.options.protocol = 'udp';
       });
 
@@ -80,20 +84,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should pass a DAO instance to the hook', async function () {
         let beforeHooked = false;
         let afterHooked = false;
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-        }, {
-          hooks: {
-            async beforeValidate(user) {
-              expect(user).to.be.instanceof(User);
-              beforeHooked = true;
-            },
-            async afterValidate(user) {
-              expect(user).to.be.instanceof(User);
-              afterHooked = true;
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING,
+          },
+          {
+            hooks: {
+              async beforeValidate(user) {
+                expect(user).to.be.instanceof(User);
+                beforeHooked = true;
+              },
+              async afterValidate(user) {
+                expect(user).to.be.instanceof(User);
+                afterHooked = true;
+              },
             },
           },
-        });
+        );
 
         await User.sync({ force: true });
         await User.create({ username: 'bob' });
@@ -106,20 +114,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should pass a DAO instance to the hook', async function () {
         let beforeHooked = false;
         let afterHooked = false;
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-        }, {
-          hooks: {
-            async beforeCreate(user) {
-              expect(user).to.be.instanceof(User);
-              beforeHooked = true;
-            },
-            async afterCreate(user) {
-              expect(user).to.be.instanceof(User);
-              afterHooked = true;
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING,
+          },
+          {
+            hooks: {
+              async beforeCreate(user) {
+                expect(user).to.be.instanceof(User);
+                beforeHooked = true;
+              },
+              async afterCreate(user) {
+                expect(user).to.be.instanceof(User);
+                afterHooked = true;
+              },
             },
           },
-        });
+        );
 
         await User.sync({ force: true });
         await User.create({ username: 'bob' });
@@ -132,20 +144,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should pass a DAO instance to the hook', async function () {
         let beforeHooked = false;
         let afterHooked = false;
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-        }, {
-          hooks: {
-            async beforeDestroy(user) {
-              expect(user).to.be.instanceof(User);
-              beforeHooked = true;
-            },
-            async afterDestroy(user) {
-              expect(user).to.be.instanceof(User);
-              afterHooked = true;
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING,
+          },
+          {
+            hooks: {
+              async beforeDestroy(user) {
+                expect(user).to.be.instanceof(User);
+                beforeHooked = true;
+              },
+              async afterDestroy(user) {
+                expect(user).to.be.instanceof(User);
+                afterHooked = true;
+              },
             },
           },
-        });
+        );
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'bob' });
@@ -159,20 +175,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('should pass a DAO instance to the hook', async function () {
         let beforeHooked = false;
         let afterHooked = false;
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-        }, {
-          hooks: {
-            async beforeUpdate(user) {
-              expect(user).to.be.instanceof(User);
-              beforeHooked = true;
-            },
-            async afterUpdate(user) {
-              expect(user).to.be.instanceof(User);
-              afterHooked = true;
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING,
+          },
+          {
+            hooks: {
+              async beforeUpdate(user) {
+                expect(user).to.be.instanceof(User);
+                beforeHooked = true;
+              },
+              async afterUpdate(user) {
+                expect(user).to.be.instanceof(User);
+                afterHooked = true;
+              },
             },
           },
-        });
+        );
 
         await User.sync({ force: true });
         const user = await User.create({ username: 'bob' });
@@ -209,7 +229,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(beforeHook).to.not.have.been.called;
         expect(afterHook).to.not.have.been.called;
       });
-
     });
 
     describe('on error', () => {
@@ -286,7 +305,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       afterEach(function () {
         this.sequelize.hooks.removeAllListeners();
       });
-
     });
 
     describe('on error', () => {
@@ -345,8 +363,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       expect(beforeHook).to.have.been.calledOnce;
       expect(afterHook).to.have.been.calledOnce;
-
     });
   });
-
 });

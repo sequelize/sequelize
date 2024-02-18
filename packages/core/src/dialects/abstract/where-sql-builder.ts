@@ -20,9 +20,9 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
-import { AbstractDataType } from './data-types.js';
-import * as DataTypes from './data-types.js';
 import type { NormalizedDataType } from './data-types.js';
+import * as DataTypes from './data-types.js';
+import { AbstractDataType } from './data-types.js';
 import type { FormatWhereOptions } from './query-generator-typescript.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
@@ -62,7 +62,7 @@ class ObjectPool<T> {
   }
 
   free(val: T): void {
-    if (this.#lastOccupiedIndex >= (this.#freeItems.length - 1)) {
+    if (this.#lastOccupiedIndex >= this.#freeItems.length - 1) {
       this.#freeItems.push(val);
 
       return;
@@ -142,12 +142,11 @@ export class WhereSqlBuilder {
    * @param where
    * @param options
    */
-  formatWhereOptions(
-    where: WhereOptions,
-    options: FormatWhereOptions = EMPTY_OBJECT,
-  ): string {
+  formatWhereOptions(where: WhereOptions, options: FormatWhereOptions = EMPTY_OBJECT): string {
     if (typeof where === 'string') {
-      throw new TypeError('Support for `{ where: \'raw query\' }` has been removed. Use `{ where: literal(\'raw query\') }` instead');
+      throw new TypeError(
+        "Support for `{ where: 'raw query' }` has been removed. Use `{ where: literal('raw query') }` instead",
+      );
     }
 
     if (where === undefined) {
@@ -155,17 +154,23 @@ export class WhereSqlBuilder {
     }
 
     try {
-      return this.#handleRecursiveNotOrAndWithImplicitAndArray(where, (piece: PojoWhere | BaseSqlExpression) => {
-        if (piece instanceof BaseSqlExpression) {
-          return this.#queryGenerator.formatSqlExpression(piece, options);
-        }
+      return this.#handleRecursiveNotOrAndWithImplicitAndArray(
+        where,
+        (piece: PojoWhere | BaseSqlExpression) => {
+          if (piece instanceof BaseSqlExpression) {
+            return this.#queryGenerator.formatSqlExpression(piece, options);
+          }
 
-        return this.formatPojoWhere(piece, options);
-      });
+          return this.formatPojoWhere(piece, options);
+        },
+      );
     } catch (error) {
-      throw new BaseError(`Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`, {
-        cause: error,
-      });
+      throw new BaseError(
+        `Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`,
+        {
+          cause: error,
+        },
+      );
     }
   }
 
@@ -186,7 +191,7 @@ export class WhereSqlBuilder {
     // Arrays in this method are treated as an implicit "AND" operator
     if (Array.isArray(input)) {
       return joinWithLogicalOperator(
-        input.map(part => {
+        input.map((part) => {
           if (part === undefined) {
             return '';
           }
@@ -201,7 +206,9 @@ export class WhereSqlBuilder {
     if (!isPlainObject(input)) {
       // @ts-expect-error -- This catches a scenario where the user did not respect the typing
       if (!(input instanceof BaseSqlExpression)) {
-        throw new TypeError(`Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${NodeUtil.inspect(input)} `);
+        throw new TypeError(
+          `Invalid Query: expected a plain object, an array or a sequelize SQL method but got ${NodeUtil.inspect(input)} `,
+        );
       }
 
       return handlePart(input);
@@ -209,7 +216,7 @@ export class WhereSqlBuilder {
 
     const keys = getComplexKeys(input);
 
-    const sqlArray = keys.map(operatorOrAttribute => {
+    const sqlArray = keys.map((operatorOrAttribute) => {
       if (operatorOrAttribute === Op.not) {
         const generatedResult = this.#handleRecursiveNotOrAndWithImplicitAndArray(
           // @ts-expect-error -- This is a recursive type, which TS does not handle well
@@ -231,7 +238,9 @@ export class WhereSqlBuilder {
 
       // it *has* to be an attribute now
       if (typeof operatorOrAttribute === 'symbol') {
-        throw new TypeError(`Invalid Query: ${NodeUtil.inspect(input)} includes the Symbol Operator Op.${operatorOrAttribute.description} but only attributes, Op.and, Op.or, and Op.not are allowed.`);
+        throw new TypeError(
+          `Invalid Query: ${NodeUtil.inspect(input)} includes the Symbol Operator Op.${operatorOrAttribute.description} but only attributes, Op.and, Op.or, and Op.not are allowed.`,
+        );
       }
 
       let pojoWhereObject;
@@ -260,10 +269,7 @@ export class WhereSqlBuilder {
    * @param pojoWhere The representation of the group.
    * @param options Option bag.
    */
-  formatPojoWhere(
-    pojoWhere: PojoWhere,
-    options: FormatWhereOptions = EMPTY_OBJECT,
-  ): string {
+  formatPojoWhere(pojoWhere: PojoWhere, options: FormatWhereOptions = EMPTY_OBJECT): string {
     const modelDefinition = options?.model ? extractModelDefinition(options.model) : null;
 
     // we need to parse the left operand early to determine the data type of the right operand
@@ -279,7 +285,8 @@ export class WhereSqlBuilder {
         // if the user used a JSON path in the where clause.
         if (leftDataType == null && left instanceof JsonPath) {
           leftDataType = this.#jsonType;
-        } else if (left !== pojoWhere.leftOperand) { // if "left" was wrapped in a JSON path, we need to get its data type again as it might have been cast
+        } else if (left !== pojoWhere.leftOperand) {
+          // if "left" was wrapped in a JSON path, we need to get its data type again as it might have been cast
           leftDataType = this.#getOperandType(left, modelDefinition);
         }
 
@@ -298,12 +305,17 @@ export class WhereSqlBuilder {
 
         if (operator == null) {
           if (right === null && leftDataType instanceof DataTypes.JSON) {
-            throw new Error(`When comparing against a JSON column, the JavaScript null value can be represented using either the JSON 'null', or the SQL NULL. You must be explicit about which one you mean by using Op.is or SQL_NULL for the SQL NULL; or Op.eq or JSON_NULL for the JSON 'null'. Learn more at https://sequelize.org/docs/v7/querying/json/`);
+            throw new Error(
+              `When comparing against a JSON column, the JavaScript null value can be represented using either the JSON 'null', or the SQL NULL. You must be explicit about which one you mean by using Op.is or SQL_NULL for the SQL NULL; or Op.eq or JSON_NULL for the JSON 'null'. Learn more at https://sequelize.org/docs/v7/querying/json/`,
+            );
           }
 
-          operator = Array.isArray(right) && !(leftDataType instanceof DataTypes.ARRAY) ? Op.in
-            : (right === null || right === SQL_NULL) ? Op.is
-            : Op.eq;
+          operator =
+            Array.isArray(right) && !(leftDataType instanceof DataTypes.ARRAY)
+              ? Op.in
+              : right === null || right === SQL_NULL
+                ? Op.is
+                : Op.eq;
         }
 
         // backwards compatibility
@@ -324,7 +336,14 @@ export class WhereSqlBuilder {
           return this[operator](left, leftDataType, operator, right, rightDataType, options);
         }
 
-        return this.formatBinaryOperation(left, leftDataType, operator, right, rightDataType, options);
+        return this.formatBinaryOperation(
+          left,
+          leftDataType,
+          operator,
+          right,
+          rightDataType,
+          options,
+        );
       },
     );
   }
@@ -361,7 +380,9 @@ export class WhereSqlBuilder {
         rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
       }
     } else {
-      throw new TypeError('Operators Op.in and Op.notIn must be called with an array of values, or a literal');
+      throw new TypeError(
+        'Operators Op.in and Op.notIn must be called with an array of values, or a literal',
+      );
     }
 
     const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
@@ -382,7 +403,9 @@ export class WhereSqlBuilder {
     options: FormatWhereOptions,
   ): string {
     if (right !== null && typeof right !== 'boolean' && !(right instanceof Literal)) {
-      throw new Error('Operators Op.is and Op.isNot can only be used with null, true, false or a literal.');
+      throw new Error(
+        'Operators Op.is and Op.isNot can only be used with null, true, false or a literal.',
+      );
     }
 
     // "IS" operator does not accept bind parameters, only literals
@@ -393,9 +416,7 @@ export class WhereSqlBuilder {
       };
     }
 
-    return this.formatBinaryOperation(
-      left, undefined, operator, right, undefined, options,
-    );
+    return this.formatBinaryOperation(left, undefined, operator, right, undefined, options);
   }
 
   protected [Op.notBetween](...args: Parameters<WhereSqlBuilder[typeof Op.between]>): string {
@@ -421,7 +442,9 @@ export class WhereSqlBuilder {
     } else if (Array.isArray(right) && right.length === 2) {
       rightSql = `${this.#queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.#queryGenerator.escape(right[1], rightEscapeOptions)}`;
     } else {
-      throw new Error('Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.');
+      throw new Error(
+        'Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.',
+      );
     }
 
     return `${leftSql} ${this.#operatorMap[operator]} ${rightSql}`;
@@ -471,10 +494,10 @@ export class WhereSqlBuilder {
 
     // This serializes VALUE contained RANGE
     if (
-      leftDataType instanceof AbstractDataType
-      && !(leftDataType instanceof DataTypes.RANGE)
-      && !(leftDataType instanceof DataTypes.ARRAY)
-      && Array.isArray(right)
+      leftDataType instanceof AbstractDataType &&
+      !(leftDataType instanceof DataTypes.RANGE) &&
+      !(leftDataType instanceof DataTypes.ARRAY) &&
+      Array.isArray(right)
     ) {
       return this.formatBinaryOperation(
         left,
@@ -500,7 +523,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, false, true);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.like,
+      right,
+      rightDataType,
+      options,
+      false,
+      true,
+    );
   }
 
   protected [Op.notStartsWith](
@@ -511,7 +543,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, false, true);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.notLike,
+      right,
+      rightDataType,
+      options,
+      false,
+      true,
+    );
   }
 
   protected [Op.endsWith](
@@ -522,7 +563,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, true, false);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.like,
+      right,
+      rightDataType,
+      options,
+      true,
+      false,
+    );
   }
 
   protected [Op.notEndsWith](
@@ -533,7 +583,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, true, false);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.notLike,
+      right,
+      rightDataType,
+      options,
+      true,
+      false,
+    );
   }
 
   protected [Op.substring](
@@ -544,7 +603,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.like, right, rightDataType, options, true, true);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.like,
+      right,
+      rightDataType,
+      options,
+      true,
+      true,
+    );
   }
 
   protected [Op.notSubstring](
@@ -555,7 +623,16 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    return this.formatSubstring(left, leftDataType, Op.notLike, right, rightDataType, options, true, true);
+    return this.formatSubstring(
+      left,
+      leftDataType,
+      Op.notLike,
+      right,
+      rightDataType,
+      options,
+      true,
+      true,
+    );
   }
 
   protected formatSubstring(
@@ -572,7 +649,14 @@ export class WhereSqlBuilder {
       const startToken = start ? '%' : '';
       const endToken = end ? '%' : '';
 
-      return this.formatBinaryOperation(left, leftDataType, operator, startToken + right + endToken, rightDataType, options);
+      return this.formatBinaryOperation(
+        left,
+        leftDataType,
+        operator,
+        startToken + right + endToken,
+        rightDataType,
+        options,
+      );
     }
 
     const escapedPercent = this.#dialect.escapeString('%');
@@ -589,7 +673,14 @@ export class WhereSqlBuilder {
 
     literalBuilder.push(')');
 
-    return this.formatBinaryOperation(left, leftDataType, operator, new Literal(literalBuilder), rightDataType, options);
+    return this.formatBinaryOperation(
+      left,
+      leftDataType,
+      operator,
+      new Literal(literalBuilder),
+      rightDataType,
+      options,
+    );
   }
 
   [Op.anyKeyExists](
@@ -604,7 +695,14 @@ export class WhereSqlBuilder {
       throw new Error('This dialect does not support Op.anyKeyExists');
     }
 
-    return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
+    return this.formatBinaryOperation(
+      left,
+      leftDataType,
+      operator,
+      right,
+      this.#arrayOfTextType,
+      options,
+    );
   }
 
   [Op.allKeysExist](
@@ -619,7 +717,14 @@ export class WhereSqlBuilder {
       throw new Error('This dialect does not support Op.allKeysExist');
     }
 
-    return this.formatBinaryOperation(left, leftDataType, operator, right, this.#arrayOfTextType, options);
+    return this.formatBinaryOperation(
+      left,
+      leftDataType,
+      operator,
+      right,
+      this.#arrayOfTextType,
+      options,
+    );
   }
 
   protected formatBinaryOperation(
@@ -632,12 +737,18 @@ export class WhereSqlBuilder {
   ) {
     const operatorSql = this.#operatorMap[operator];
     if (!operatorSql) {
-      throw new TypeError(`Operator Op.${operator.description} does not exist or is not supported by this dialect.`);
+      throw new TypeError(
+        `Operator Op.${operator.description} does not exist or is not supported by this dialect.`,
+      );
     }
 
-    const leftSql = this.#queryGenerator.escape(left, { ...options, type: leftDataType ?? rightDataType });
-    const rightSql = this.#formatOpAnyAll(right, rightDataType ?? leftDataType)
-      || this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
+    const leftSql = this.#queryGenerator.escape(left, {
+      ...options,
+      type: leftDataType ?? rightDataType,
+    });
+    const rightSql =
+      this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
+      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }
@@ -663,10 +774,12 @@ export class WhereSqlBuilder {
       const options = { type };
 
       const operand: unknown[] = Array.isArray(value[Op.values])
-        ? value[Op.values] as unknown[]
+        ? (value[Op.values] as unknown[])
         : [value[Op.values]];
 
-      const valueSql = operand.map(v => `(${this.#queryGenerator.escape(v, options)})`).join(', ');
+      const valueSql = operand
+        .map((v) => `(${this.#queryGenerator.escape(v, options)})`)
+        .join(', ');
 
       return `VALUES ${valueSql}`;
     }
@@ -690,26 +803,30 @@ export class WhereSqlBuilder {
     leftOperand: Expression,
     whereValue: WhereAttributeHashValue<any>,
     allowJsonPath: boolean,
-    handlePart: (
-      left: Expression,
-      operator: symbol | undefined,
-      right: Expression,
-    ) => string,
+    handlePart: (left: Expression, operator: symbol | undefined, right: Expression) => string,
     operator: typeof Op.and | typeof Op.or = Op.and,
     parentJsonPath: ReadonlyArray<string | number> = EMPTY_ARRAY,
   ): string {
     if (!isPlainObject(whereValue)) {
-      return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), undefined, whereValue);
+      return handlePart(
+        this.#wrapSimpleJsonPath(leftOperand, parentJsonPath),
+        undefined,
+        whereValue,
+      );
     }
 
     const stringKeys = Object.keys(whereValue);
     if (!allowJsonPath && stringKeys.length > 0) {
-      return handlePart(this.#wrapSimpleJsonPath(leftOperand, parentJsonPath), undefined, whereValue as Expression);
+      return handlePart(
+        this.#wrapSimpleJsonPath(leftOperand, parentJsonPath),
+        undefined,
+        whereValue as Expression,
+      );
     }
 
     const keys = [...stringKeys, ...getOperators(whereValue)];
 
-    const parts: string[] = keys.map(key => {
+    const parts: string[] = keys.map((key) => {
       // @ts-expect-error -- this recursive type is too difficult for TS to handle
       const value = whereValue[key];
 
@@ -762,14 +879,15 @@ export class WhereSqlBuilder {
 
       if (key === Op.and || key === Op.or) {
         if (Array.isArray(value)) {
-          const sqlParts = value
-            .map(v => this.#handleRecursiveNotOrAndNestedPathRecursive(
+          const sqlParts = value.map((v) =>
+            this.#handleRecursiveNotOrAndNestedPathRecursive(
               leftOperand,
               v,
               allowJsonPath,
               handlePart,
               Op.and,
-            ));
+            ),
+          );
 
           return joinWithLogicalOperator(sqlParts, key as typeof Op.and | typeof Op.or);
         }
@@ -789,7 +907,10 @@ export class WhereSqlBuilder {
     return joinWithLogicalOperator(parts, operator);
   }
 
-  #wrapSimpleJsonPath(operand: Expression, pathSegments: ReadonlyArray<string | number>): Expression {
+  #wrapSimpleJsonPath(
+    operand: Expression,
+    pathSegments: ReadonlyArray<string | number>,
+  ): Expression {
     if (pathSegments.length === 0) {
       return operand;
     }
@@ -807,9 +928,10 @@ export class WhereSqlBuilder {
     parentJsonPath: ReadonlyArray<string | number>,
     parsedPath: ParsedJsonPropertyKey,
   ): Expression {
-    const finalPathSegments = parentJsonPath.length > 0
-      ? [...parentJsonPath, ...parsedPath.pathSegments]
-      : parsedPath.pathSegments;
+    const finalPathSegments =
+      parentJsonPath.length > 0
+        ? [...parentJsonPath, ...parsedPath.pathSegments]
+        : parsedPath.pathSegments;
 
     operand = this.#wrapSimpleJsonPath(operand, finalPathSegments);
 
@@ -826,7 +948,10 @@ export class WhereSqlBuilder {
     return operand;
   }
 
-  #getOperandType(operand: Expression, modelDefinition: Nullish<ModelDefinition>): NormalizedDataType | undefined {
+  #getOperandType(
+    operand: Expression,
+    modelDefinition: Nullish<ModelDefinition>,
+  ): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
       // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?
       return this.#dialect.sequelize.normalizeDataType(operand.type);
@@ -859,10 +984,13 @@ export class WhereSqlBuilder {
   }
 }
 
-export function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.and | typeof Op.or): string {
+export function joinWithLogicalOperator(
+  sqlArray: string[],
+  operator: typeof Op.and | typeof Op.or,
+): string {
   const operatorSql = operator === Op.and ? ' AND ' : ' OR ';
 
-  sqlArray = sqlArray.filter(val => Boolean(val));
+  sqlArray = sqlArray.filter((val) => Boolean(val));
 
   if (sqlArray.length === 0) {
     return '';
@@ -872,13 +1000,15 @@ export function joinWithLogicalOperator(sqlArray: string[], operator: typeof Op.
     return sqlArray[0];
   }
 
-  return sqlArray.map(sql => {
-    if (/ AND | OR /i.test(sql)) {
-      return `(${sql})`;
-    }
+  return sqlArray
+    .map((sql) => {
+      if (/ AND | OR /i.test(sql)) {
+        return `(${sql})`;
+      }
 
-    return sql;
-  }).join(operatorSql);
+      return sql;
+    })
+    .join(operatorSql);
 }
 
 function wrapWithNot(sql: string): string {

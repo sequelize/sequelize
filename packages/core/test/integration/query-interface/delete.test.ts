@@ -1,7 +1,13 @@
-import { expect } from 'chai';
-import { DataTypes, Model } from '@sequelize/core';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { Attribute, AutoIncrement, NotNull, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
+import { DataTypes, Model } from '@sequelize/core';
+import {
+  Attribute,
+  AutoIncrement,
+  NotNull,
+  PrimaryKey,
+  Table,
+} from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -43,7 +49,9 @@ describe('QueryInterface#delete', () => {
 
     it('should delete a row', async () => {
       const beforeDelete = await vars.Level.findAll({ raw: true, where: { name: 'level1' } });
-      expect(beforeDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([{ name: 'level1', value: 5 }]);
+      expect(beforeDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([
+        { name: 'level1', value: 5 },
+      ]);
 
       const count = await queryInterface.bulkDelete(vars.Level, { where: { name: 'level1' } });
       expect(count).to.equal(1);
@@ -64,7 +72,9 @@ describe('QueryInterface#delete', () => {
       expect(count).to.equal(2);
 
       const afterDelete = await vars.Level.findAll({ raw: true });
-      expect(afterDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([{ name: 'level1', value: 5 }]);
+      expect(afterDelete.map(({ name, value }) => ({ name, value }))).to.deep.equal([
+        { name: 'level1', value: 5 },
+      ]);
     });
 
     it('should delete all rows', async () => {

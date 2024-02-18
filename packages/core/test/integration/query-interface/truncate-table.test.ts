@@ -1,7 +1,18 @@
-import { expect } from 'chai';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
-import { Attribute, AutoIncrement, BelongsTo, NotNull, PrimaryKey } from '@sequelize/core/decorators-legacy';
+import {
+  Attribute,
+  AutoIncrement,
+  BelongsTo,
+  NotNull,
+  PrimaryKey,
+} from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -29,11 +40,7 @@ describe('QueryInterface#truncate', () => {
 
   describe('Truncate', () => {
     beforeEach(async () => {
-      await vars.Level.bulkCreate([
-        { name: 'level1' },
-        { name: 'level2' },
-        { name: 'level3' },
-      ]);
+      await vars.Level.bulkCreate([{ name: 'level1' }, { name: 'level2' }, { name: 'level3' }]);
     });
 
     it('should truncate the table', async () => {
@@ -50,11 +57,7 @@ describe('QueryInterface#truncate', () => {
 
         expect(count).to.equal(0);
 
-        await vars.Level.bulkCreate([
-          { name: 'level1' },
-          { name: 'level2' },
-          { name: 'level3' },
-        ]);
+        await vars.Level.bulkCreate([{ name: 'level1' }, { name: 'level2' }, { name: 'level3' }]);
         const [level1, level2, level3, ...rest] = await vars.Level.findAll();
 
         expect(rest).to.have.length(0);

@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -45,10 +45,9 @@ describe('QueryInterface#dropTable', () => {
 
         await queryInterface.dropTable('levels', { cascade: true });
         const allTables = await queryInterface.listTables();
-        const tableNames = allTables.map(table => table.tableName);
+        const tableNames = allTables.map((table) => table.tableName);
         // Cascade only removes the foreign key constraint, not the related table
         expect(tableNames).to.deep.equal(['actors']);
-
       });
     }
   });
@@ -58,17 +57,20 @@ describe('QueryInterface#dropTable', () => {
       beforeEach(async () => {
         await queryInterface.createSchema('archive');
 
-        await queryInterface.createTable({ tableName: 'levels', schema: 'archive' }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
+        await queryInterface.createTable(
+          { tableName: 'levels', schema: 'archive' },
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: false,
+            },
           },
-          name: {
-            type: DataTypes.STRING,
-            allowNull: false,
-          },
-        });
+        );
       });
 
       it('should drop a table', async () => {

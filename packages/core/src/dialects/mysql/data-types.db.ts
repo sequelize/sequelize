@@ -12,9 +12,9 @@ import type { MysqlDialect } from './index.js';
  */
 export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
   /*
-  * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
-  * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
-  */
+   * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
+   * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
+   */
   dialect.registerDataTypeParser(['DATETIME'], (value: Field) => {
     const valueStr = value.string();
     if (valueStr === null) {
@@ -22,7 +22,8 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
     }
 
     const timeZone = dialect.sequelize.options.timezone;
-    if (timeZone === '+00:00') { // default value
+    if (timeZone === '+00:00') {
+      // default value
       // mysql returns a UTC date string that looks like the following:
       // 2022-01-01 00:00:00
       // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.

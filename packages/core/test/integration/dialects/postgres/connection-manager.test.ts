@@ -1,7 +1,11 @@
-import { expect } from 'chai';
 import type { Options } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
-import { createSingleTestSequelizeInstance, sequelize as defaultSequelize, getTestDialect } from '../../support';
+import { expect } from 'chai';
+import {
+  createSingleTestSequelizeInstance,
+  sequelize as defaultSequelize,
+  getTestDialect,
+} from '../../support';
 
 const dialect = getTestDialect();
 
@@ -25,32 +29,51 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should set client_min_messages to warning by default', async () => {
-    const result = await defaultSequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
+    const result = await defaultSequelize.query<{ client_min_messages: string }>(
+      'SHOW client_min_messages',
+      { type: QueryTypes.SELECT },
+    );
     expect(result[0].client_min_messages).to.equal('warning');
   });
 
   it('should allow overriding client_min_messages (deprecated in v7)', async () => {
     const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: 'ERROR' });
-    const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
+    const result = await sequelize.query<{ client_min_messages: string }>(
+      'SHOW client_min_messages',
+      { type: QueryTypes.SELECT },
+    );
     expect(result[0].client_min_messages).to.equal('error');
   });
 
   it('should not set client_min_messages if clientMinMessages is false (deprecated in v7)', async () => {
     const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: false });
-    const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
+    const result = await sequelize.query<{ client_min_messages: string }>(
+      'SHOW client_min_messages',
+      { type: QueryTypes.SELECT },
+    );
     // `notice` is Postgres's default
     expect(result[0].client_min_messages).to.equal('notice');
   });
 
   it('should allow overriding client_min_messages', async () => {
-    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { clientMinMessages: 'ERROR' } });
-    const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
+    const sequelize = createSingleTestSequelizeInstance({
+      dialectOptions: { clientMinMessages: 'ERROR' },
+    });
+    const result = await sequelize.query<{ client_min_messages: string }>(
+      'SHOW client_min_messages',
+      { type: QueryTypes.SELECT },
+    );
     expect(result[0].client_min_messages).to.equal('error');
   });
 
   it('should not set client_min_messages if clientMinMessages is ignore', async () => {
-    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { clientMinMessages: 'IGNORE' } });
-    const result = await sequelize.query<{ client_min_messages: string }>('SHOW client_min_messages', { type: QueryTypes.SELECT });
+    const sequelize = createSingleTestSequelizeInstance({
+      dialectOptions: { clientMinMessages: 'IGNORE' },
+    });
+    const result = await sequelize.query<{ client_min_messages: string }>(
+      'SHOW client_min_messages',
+      { type: QueryTypes.SELECT },
+    );
     // `notice` is Postgres's default
     expect(result[0].client_min_messages).to.equal('notice');
   });
@@ -64,8 +87,12 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should allow overriding session variables through the `options` param', async () => {
-    const sequelize = createSingleTestSequelizeInstance({ dialectOptions: { options: '-csearch_path=abc' } });
-    const result = await sequelize.query<{ search_path: string }>('SHOW search_path', { type: QueryTypes.SELECT });
+    const sequelize = createSingleTestSequelizeInstance({
+      dialectOptions: { options: '-csearch_path=abc' },
+    });
+    const result = await sequelize.query<{ search_path: string }>('SHOW search_path', {
+      type: QueryTypes.SELECT,
+    });
     expect(result[0].search_path).to.equal('abc');
   });
 });

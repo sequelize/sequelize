@@ -5,9 +5,13 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -15,13 +19,19 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   it('parses named replacements in literals', async () => {
     const { User } = vars;
 
-    const sql = queryGenerator.bulkInsertQuery(User.table, [{
-      firstName: literal(':injection'),
-    }], {
-      replacements: {
-        injection: 'a string',
+    const sql = queryGenerator.bulkInsertQuery(
+      User.table,
+      [
+        {
+          firstName: literal(':injection'),
+        },
+      ],
+      {
+        replacements: {
+          injection: 'a string',
+        },
       },
-    });
+    );
 
     expectsql(sql, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('a string');`,

@@ -60,7 +60,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -68,7 +68,8 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field))
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields
+          .map((field) => this.quoteIdentifier(field))
           .join(', ')})`;
       });
     }
@@ -88,7 +89,9 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       table,
       `(${attributesClause})`,
       `ENGINE=${options.engine}`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
+      options.comment &&
+        typeof options.comment === 'string' &&
+        `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.initialAutoIncrement && `AUTO_INCREMENT=${options.initialAutoIncrement}`,
@@ -175,7 +178,10 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this.dialect });
+    const attributeString = attributeTypeToSql(attribute.type, {
+      escape: this.escape.bind(this),
+      dialect: this.dialect,
+    });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -187,9 +193,11 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (!typeWithoutDefault.has(attributeString)
-      && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    if (
+      !typeWithoutDefault.has(attributeString) &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       const { defaultValue } = attribute;
       const escaped = this.escape(defaultValue);
       // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
@@ -218,7 +226,9 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
-        const fkName = this.quoteIdentifier(`${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`);
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+        );
 
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }
@@ -261,12 +271,16 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     const MAXIMUM_EXECUTION_TIME_VALUE = 4_294_967_295;
 
     if (options.maxExecutionTimeHintMs != null) {
-      if (Number.isSafeInteger(options.maxExecutionTimeHintMs)
-        && options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE
-        && options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE) {
+      if (
+        Number.isSafeInteger(options.maxExecutionTimeHintMs) &&
+        options.maxExecutionTimeHintMs >= MINIMUM_EXECUTION_TIME_VALUE &&
+        options.maxExecutionTimeHintMs <= MAXIMUM_EXECUTION_TIME_VALUE
+      ) {
         fragment += ` /*+ MAX_EXECUTION_TIME(${options.maxExecutionTimeHintMs}) */`;
       } else {
-        throw new Error(`maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`);
+        throw new Error(
+          `maxExecutionTimeMs must be between ${MINIMUM_EXECUTION_TIME_VALUE} and ${MAXIMUM_EXECUTION_TIME_VALUE}, but it is ${inspect(options.maxExecutionTimeHintMs)}`,
+        );
       }
     }
 

@@ -14,7 +14,6 @@ const deprecations = require('../../utils/deprecations');
 const crypto = require('node:crypto');
 
 export class AbstractQuery {
-
   constructor(connection, sequelize, options) {
     this.uuid = crypto.randomUUID();
     this.connection = connection;
@@ -88,7 +87,7 @@ export class AbstractQuery {
    * @private
    */
   run() {
-    throw new Error('The run method wasn\'t overwritten!');
+    throw new Error("The run method wasn't overwritten!");
   }
 
   /**
@@ -153,13 +152,13 @@ export class AbstractQuery {
     }
 
     // is insert query if sql contains insert into
-    result = result && this.sql.toLowerCase().startsWith('insert into');
+    result &&= this.sql.toLowerCase().startsWith('insert into');
 
     // is insert query if no results are passed or if the result has the inserted id
-    result = result && (!results || Object.hasOwn(results, this.getInsertIdField()));
+    result &&= (!results || Object.hasOwn(results, this.getInsertIdField()));
 
     // is insert query if no metadata are passed or if the metadata has the inserted id
-    result = result && (!metaData || Object.hasOwn(metaData, this.getInsertIdField()));
+    result &&= (!metaData || Object.hasOwn(metaData, this.getInsertIdField()));
 
     return result;
   }
@@ -170,9 +169,7 @@ export class AbstractQuery {
     }
 
     const autoIncrementAttribute = this.model.modelDefinition.autoIncrementAttributeName;
-    const id = results?.[this.getInsertIdField()]
-      ?? metaData?.[this.getInsertIdField()]
-      ?? null;
+    const id = results?.[this.getInsertIdField()] ?? metaData?.[this.getInsertIdField()] ?? null;
 
     this.instance[autoIncrementAttribute] = id;
   }
@@ -211,19 +208,25 @@ export class AbstractQuery {
     // Map raw fields to names if a mapping is provided
     if (this.options.fieldMap) {
       const fieldMap = this.options.fieldMap;
-      results = results.map(result => reduce(fieldMap, (result, name, field) => {
-        if (result[field] !== undefined && name !== field) {
-          result[name] = result[field];
-          delete result[field];
-        }
+      results = results.map((result) =>
+        reduce(
+          fieldMap,
+          (result, name, field) => {
+            if (result[field] !== undefined && name !== field) {
+              result[name] = result[field];
+              delete result[field];
+            }
 
-        return result;
-      }, result));
+            return result;
+          },
+          result,
+        ),
+      );
     }
 
     // Raw queries
     if (this.options.raw) {
-      result = results.map(result => {
+      result = results.map((result) => {
         let o = {};
 
         for (const key in result) {
@@ -238,34 +241,44 @@ export class AbstractQuery {
 
         return o;
       });
-    // Queries with include
+      // Queries with include
     } else if (this.options.hasJoin === true) {
-      results = AbstractQuery._groupJoinData(results, {
-        model: this.model,
-        includeMap: this.options.includeMap,
-        includeNames: this.options.includeNames,
-      }, {
-        checkExisting: this.options.hasMultiAssociation,
-      });
+      results = AbstractQuery._groupJoinData(
+        results,
+        {
+          model: this.model,
+          includeMap: this.options.includeMap,
+          includeNames: this.options.includeNames,
+        },
+        {
+          checkExisting: this.options.hasMultiAssociation,
+        },
+      );
 
-      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
-        isNewRecord: false,
-        include: this.options.include,
-        includeNames: this.options.includeNames,
-        includeMap: this.options.includeMap,
-        includeValidated: true,
-        attributes: this.options.originalAttributes || this.options.attributes,
-        raw: true,
-        comesFromDatabase: true,
-      });
-    // Regular queries
+      result = this.model.bulkBuild(
+        this._parseDataArrayByType(results, this.model, this.options.includeMap),
+        {
+          isNewRecord: false,
+          include: this.options.include,
+          includeNames: this.options.includeNames,
+          includeMap: this.options.includeMap,
+          includeValidated: true,
+          attributes: this.options.originalAttributes || this.options.attributes,
+          raw: true,
+          comesFromDatabase: true,
+        },
+      );
+      // Regular queries
     } else {
-      result = this.model.bulkBuild(this._parseDataArrayByType(results, this.model, this.options.includeMap), {
-        isNewRecord: false,
-        raw: true,
-        comesFromDatabase: true,
-        attributes: this.options.originalAttributes || this.options.attributes,
-      });
+      result = this.model.bulkBuild(
+        this._parseDataArrayByType(results, this.model, this.options.includeMap),
+        {
+          isNewRecord: false,
+          raw: true,
+          comesFromDatabase: true,
+          attributes: this.options.originalAttributes || this.options.attributes,
+        },
+      );
     }
 
     // return the first real model instance if options.plain is set (e.g. Model.find)
@@ -299,9 +312,17 @@ export class AbstractQuery {
       // hasOwnProperty is very important here. An include could be called "toString"
       if (includeMap && Object.hasOwn(includeMap, key)) {
         if (Array.isArray(values[key])) {
-          values[key] = this._parseDataArrayByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+          values[key] = this._parseDataArrayByType(
+            values[key],
+            includeMap[key].model,
+            includeMap[key].includeMap,
+          );
         } else {
-          values[key] = this._parseDataByType(values[key], includeMap[key].model, includeMap[key].includeMap);
+          values[key] = this._parseDataByType(
+            values[key],
+            includeMap[key].model,
+            includeMap[key].includeMap,
+          );
         }
 
         continue;
@@ -329,8 +350,8 @@ export class AbstractQuery {
   isShowOrDescribeQuery() {
     let result = false;
 
-    result = result || this.sql.toLowerCase().startsWith('show');
-    result = result || this.sql.toLowerCase().startsWith('describe');
+    result ||= this.sql.toLowerCase().startsWith('show');
+    result ||= this.sql.toLowerCase().startsWith('describe');
 
     return result;
   }
@@ -349,7 +370,8 @@ export class AbstractQuery {
   _logQuery(sql, debugContext, parameters) {
     const { connection, options } = this;
     const benchmark = this.sequelize.options.benchmark || options.benchmark;
-    const logQueryParameters = this.sequelize.options.logQueryParameters || options.logQueryParameters;
+    const logQueryParameters =
+      this.sequelize.options.logQueryParameters || options.logQueryParameters;
     const startTime = Date.now();
     let logParameter = '';
 
@@ -418,7 +440,6 @@ export class AbstractQuery {
    * @private
    */
   static _groupJoinData(rows, includeOptions, options) {
-
     /*
      * Assumptions
      * ID is not necessarily the first field
@@ -469,7 +490,7 @@ export class AbstractQuery {
     let $parent;
     // Map each key to an include option
     let previousPiece;
-    const buildIncludeMap = piece => {
+    const buildIncludeMap = (piece) => {
       if (Object.hasOwn($current.includeMap, piece)) {
         includeMap[key] = $current = $current.includeMap[piece];
         if (previousPiece) {
@@ -494,7 +515,7 @@ export class AbstractQuery {
 
     // Removes the prefix from a key ('id' for 'User.Results.id')
     const removeKeyPrefixMemo = {};
-    const removeKeyPrefix = key => {
+    const removeKeyPrefix = (key) => {
       if (!Object.hasOwn(removeKeyPrefixMemo, key)) {
         const index = key.lastIndexOf('.');
         removeKeyPrefixMemo[key] = key.slice(index === -1 ? 0 : index + 1);
@@ -505,7 +526,7 @@ export class AbstractQuery {
 
     // Calculates the array prefix of a key (['User', 'Results'] for 'User.Results.id')
     const keyPrefixMemo = {};
-    const keyPrefix = key => {
+    const keyPrefix = (key) => {
       // We use a double memo and keyPrefixString so that different keys with the same prefix will receive the same array instead of differnet arrays with equal values
       if (!Object.hasOwn(keyPrefixMemo, key)) {
         const prefixString = keyPrefixString(key, keyPrefixStringMemo);
@@ -521,7 +542,7 @@ export class AbstractQuery {
 
     // Calcuate the last item in the array prefix ('Results' for 'User.Results.id')
     const lastKeyPrefixMemo = {};
-    const lastKeyPrefix = key => {
+    const lastKeyPrefix = (key) => {
       if (!Object.hasOwn(lastKeyPrefixMemo, key)) {
         const prefix = keyPrefix(key);
         const length = prefix.length;
@@ -533,19 +554,19 @@ export class AbstractQuery {
     };
 
     // sort the array by the level of their depth calculated by dot.
-    const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
+    const sortByDepth = (keys) => keys.sort((a, b) => a.split('.').length - b.split('.').length);
 
-    const getUniqueKeyAttributes = model => {
+    const getUniqueKeyAttributes = (model) => {
       let uniqueKeyAttributes = chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
         .result(`${uniqueKeyAttributes.findKey()}.fields`)
-        .map(field => findKey(model.attributes, chr => chr.field === field))
+        .map((field) => findKey(model.attributes, (chr) => chr.field === field))
         .value();
 
       return uniqueKeyAttributes;
     };
 
-    const stringify = obj => (obj instanceof Buffer ? obj.toString('hex') : obj);
+    const stringify = (obj) => (obj instanceof Buffer ? obj.toString('hex') : obj);
     let primaryKeyAttributes;
     let uniqueKeyAttributes;
     let prefix;
@@ -661,7 +682,7 @@ export class AbstractQuery {
                   $parent[$lastKeyPrefix] = [];
                 }
 
-                $parent[$lastKeyPrefix].push(resultMap[itemHash] = values);
+                $parent[$lastKeyPrefix].push((resultMap[itemHash] = values));
               }
             }
 
@@ -748,7 +769,7 @@ export class AbstractQuery {
               $parent[$lastKeyPrefix] = [];
             }
 
-            $parent[$lastKeyPrefix].push(resultMap[itemHash] = values);
+            $parent[$lastKeyPrefix].push((resultMap[itemHash] = values));
           }
         }
 

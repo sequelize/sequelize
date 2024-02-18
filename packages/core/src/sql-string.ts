@@ -14,7 +14,10 @@ export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDat
   return type;
 }
 
-export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
+export function bestGuessDataTypeOfVal(
+  val: unknown,
+  dialect: AbstractDialect,
+): AbstractDataType<any> {
   // TODO: cache simple types
   switch (typeof val) {
     case 'bigint':
@@ -34,10 +37,14 @@ export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): 
     case 'object':
       if (Array.isArray(val)) {
         if (val.length === 0) {
-          throw new Error(`Could not guess type of value ${logger.inspect(val)} because it is an empty array`);
+          throw new Error(
+            `Could not guess type of value ${logger.inspect(val)} because it is an empty array`,
+          );
         }
 
-        return new DataTypes.ARRAY(bestGuessDataTypeOfVal(val[0], dialect)).toDialectDataType(dialect);
+        return new DataTypes.ARRAY(bestGuessDataTypeOfVal(val[0], dialect)).toDialectDataType(
+          dialect,
+        );
       }
 
       if (val instanceof Date) {

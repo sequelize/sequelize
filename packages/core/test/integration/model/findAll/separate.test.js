@@ -32,10 +32,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           LevelTwo.create({ name: 'testL22' }),
         ]);
 
-        await Promise.all([
-          project.addLevelTwo(level21),
-          project.addLevelTwo(level22),
-        ]);
+        await Promise.all([project.addLevelTwo(level21), project.addLevelTwo(level22)]);
 
         // one include case
         const projects0 = await Project.findAll({

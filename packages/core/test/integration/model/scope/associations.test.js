@@ -7,81 +7,99 @@ describe('Model scope with associations', () => {
   beforeEach(async function () {
     const sequelize = this.sequelize;
 
-    this.ScopeMe = this.sequelize.define('ScopeMe', {
-      username: DataTypes.STRING,
-      email: DataTypes.STRING,
-      access_level: DataTypes.INTEGER,
-      other_value: DataTypes.INTEGER,
-      parent_id: DataTypes.INTEGER,
-    }, {
-      defaultScope: {
-        where: {
-          access_level: {
-            [Op.gte]: 5,
-          },
-        },
+    this.ScopeMe = this.sequelize.define(
+      'ScopeMe',
+      {
+        username: DataTypes.STRING,
+        email: DataTypes.STRING,
+        access_level: DataTypes.INTEGER,
+        other_value: DataTypes.INTEGER,
+        parent_id: DataTypes.INTEGER,
       },
-      scopes: {
-        isTony: {
+      {
+        defaultScope: {
           where: {
-            username: 'tony',
+            access_level: {
+              [Op.gte]: 5,
+            },
           },
         },
-        includeActiveProjects() {
-          return {
-            include: [{
-              model: sequelize.models.getOrThrow('company'),
-              include: [sequelize.models.getOrThrow('project').scope('active')],
-            }],
-          };
+        scopes: {
+          isTony: {
+            where: {
+              username: 'tony',
+            },
+          },
+          includeActiveProjects() {
+            return {
+              include: [
+                {
+                  model: sequelize.models.getOrThrow('company'),
+                  include: [sequelize.models.getOrThrow('project').scope('active')],
+                },
+              ],
+            };
+          },
         },
       },
-    });
+    );
 
-    this.Project = this.sequelize.define('project', {
-      active: DataTypes.BOOLEAN,
-    }, {
-      scopes: {
-        active: {
-          where: {
-            active: true,
+    this.Project = this.sequelize.define(
+      'project',
+      {
+        active: DataTypes.BOOLEAN,
+      },
+      {
+        scopes: {
+          active: {
+            where: {
+              active: true,
+            },
           },
         },
       },
-    });
+    );
 
-    this.Company = this.sequelize.define('company', {
-      active: DataTypes.BOOLEAN,
-    }, {
-      defaultScope: {
-        where: { active: true },
+    this.Company = this.sequelize.define(
+      'company',
+      {
+        active: DataTypes.BOOLEAN,
       },
-      scopes: {
-        notActive: {
-          where: {
-            active: false,
+      {
+        defaultScope: {
+          where: { active: true },
+        },
+        scopes: {
+          notActive: {
+            where: {
+              active: false,
+            },
+          },
+          reversed: {
+            order: [['id', 'DESC']],
           },
         },
-        reversed: {
-          order: [['id', 'DESC']],
-        },
       },
-    });
+    );
 
-    this.Profile = this.sequelize.define('profile', {
-      active: DataTypes.BOOLEAN,
-    }, {
-      defaultScope: {
-        where: { active: true },
+    this.Profile = this.sequelize.define(
+      'profile',
+      {
+        active: DataTypes.BOOLEAN,
       },
-      scopes: {
-        notActive: {
-          where: {
-            active: false,
+      {
+        defaultScope: {
+          where: { active: true },
+        },
+        scopes: {
+          notActive: {
+            where: {
+              active: false,
+            },
           },
         },
       },
-    });
+    );
 
     this.Project.belongsToMany(this.Company, { through: 'CompanyProjects' });
     this.Company.belongsToMany(this.Project, { through: 'CompanyProjects' });
@@ -94,28 +112,62 @@ describe('Model scope with associations', () => {
     await this.sequelize.sync({ force: true });
 
     const [u1, u2, u3, u4, u5, c1, c2] = await Promise.all([
-      this.ScopeMe.create({ id: 1, username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10, parent_id: 1 }),
-      this.ScopeMe.create({ id: 2, username: 'tobi', email: 'tobi@fakeemail.com', access_level: 10, other_value: 11, parent_id: 2 }),
-      this.ScopeMe.create({ id: 3, username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7, parent_id: 1 }),
-      this.ScopeMe.create({ id: 4, username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7, parent_id: 1 }),
-      this.ScopeMe.create({ id: 5, username: 'bob', email: 'bob@foobar.com', access_level: 1, other_value: 9, parent_id: 5 }),
+      this.ScopeMe.create({
+        id: 1,
+        username: 'dan',
+        email: 'dan@sequelizejs.com',
+        access_level: 5,
+        other_value: 10,
+        parent_id: 1,
+      }),
+      this.ScopeMe.create({
+        id: 2,
+        username: 'tobi',
+        email: 'tobi@fakeemail.com',
+        access_level: 10,
+        other_value: 11,
+        parent_id: 2,
+      }),
+      this.ScopeMe.create({
+        id: 3,
+        username: 'tony',
+        email: 'tony@sequelizejs.com',
+        access_level: 3,
+        other_value: 7,
+        parent_id: 1,
+      }),
+      this.ScopeMe.create({
+        id: 4,
+        username: 'fred',
+        email: 'fred@foobar.com',
+        access_level: 3,
+        other_value: 7,
+        parent_id: 1,
+      }),
+      this.ScopeMe.create({
+        id: 5,
+        username: 'bob',
+        email: 'bob@foobar.com',
+        access_level: 1,
+        other_value: 9,
+        parent_id: 5,
+      }),
       this.Company.create({ id: 1, active: true }),
       this.Company.create({ id: 2, active: false }),
     ]);
 
-    await Promise.all([
-      c1.setUsers([u1, u2, u3, u4]),
-      c2.setUsers([u5]),
-    ]);
+    await Promise.all([c1.setUsers([u1, u2, u3, u4]), c2.setUsers([u5])]);
   });
 
   describe('include', () => {
     it('should scope columns properly', async function () {
       // Will error with ambigous column if id is not scoped properly to `Company`.`id`
-      await expect(this.Company.findAll({
-        where: { id: 1 },
-        include: [this.UserAssociation],
-      })).not.to.be.rejected;
+      await expect(
+        this.Company.findAll({
+          where: { id: 1 },
+          include: [this.UserAssociation],
+        }),
+      ).not.to.be.rejected;
     });
 
     it('should apply default scope when including an associations', async function () {
@@ -281,16 +333,20 @@ describe('Model scope with associations', () => {
     describe('with different format', () => {
       it('should not throw error', async function () {
         const Child = this.sequelize.define('Child');
-        const Parent = this.sequelize.define('Parent', {}, {
-          defaultScope: {
-            include: [{ model: Child }],
-          },
-          scopes: {
-            children: {
-              include: [Child],
+        const Parent = this.sequelize.define(
+          'Parent',
+          {},
+          {
+            defaultScope: {
+              include: [{ model: Child }],
+            },
+            scopes: {
+              children: {
+                include: [Child],
+              },
             },
           },
-        });
+        );
         Parent.addScope('alsoChildren', {
           include: [{ model: Child }],
         });
@@ -311,27 +367,35 @@ describe('Model scope with associations', () => {
         const Child = this.sequelize.define('Child', { name: DataTypes.STRING });
         const Parent = this.sequelize.define('Parent', { name: DataTypes.STRING });
         Parent.addScope('testScope1', {
-          include: [{
-            model: Child,
-            where: {
-              name: 'child2',
+          include: [
+            {
+              model: Child,
+              where: {
+                name: 'child2',
+              },
             },
-          }],
+          ],
         });
         Parent.hasMany(Child);
 
         await this.sequelize.sync({ force: true });
 
         await Promise.all([
-          Parent.create({ name: 'parent1' }).then(parent => parent.createChild({ name: 'child1' })),
-          Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' })),
+          Parent.create({ name: 'parent1' }).then((parent) =>
+            parent.createChild({ name: 'child1' }),
+          ),
+          Parent.create({ name: 'parent2' }).then((parent) =>
+            parent.createChild({ name: 'child2' }),
+          ),
         ]);
 
         const parent = await Parent.scope('testScope1').findOne({
-          include: [{
-            model: Child,
-            attributes: { exclude: ['name'] },
-          }],
+          include: [
+            {
+              model: Child,
+              attributes: { exclude: ['name'] },
+            },
+          ],
         });
 
         expect(parent.get('name')).to.equal('parent2');
@@ -343,17 +407,21 @@ describe('Model scope with associations', () => {
 
   describe('scope with options', () => {
     it('should return correct object included foreign_key', async function () {
-      const Child = this.sequelize.define('Child', {
-        secret: DataTypes.STRING,
-      }, {
-        scopes: {
-          public: {
-            attributes: {
-              exclude: ['secret'],
+      const Child = this.sequelize.define(
+        'Child',
+        {
+          secret: DataTypes.STRING,
+        },
+        {
+          scopes: {
+            public: {
+              attributes: {
+                exclude: ['secret'],
+              },
             },
           },
         },
-      });
+      );
       const Parent = this.sequelize.define('Parent');
       Child.belongsTo(Parent);
       Parent.hasOne(Child);
@@ -366,15 +434,19 @@ describe('Model scope with associations', () => {
     });
 
     it('should return correct object included foreign_key with defaultScope', async function () {
-      const Child = this.sequelize.define('Child', {
-        secret: DataTypes.STRING,
-      }, {
-        defaultScope: {
-          attributes: {
-            exclude: ['secret'],
+      const Child = this.sequelize.define(
+        'Child',
+        {
+          secret: DataTypes.STRING,
+        },
+        {
+          defaultScope: {
+            attributes: {
+              exclude: ['secret'],
+            },
           },
         },
-      });
+      );
       const Parent = this.sequelize.define('Parent');
       Child.belongsTo(Parent);
 

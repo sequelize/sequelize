@@ -71,25 +71,36 @@ export class MsSqlQuery extends AbstractQuery {
 
     const query = new Promise((resolve, reject) => {
       const rows = [];
-      const request = new connection.lib.Request(sql, (err, rowCount) => (err ? reject(err) : resolve([rows, rowCount])));
+      const request = new connection.lib.Request(sql, (err, rowCount) =>
+        (err ? reject(err) : resolve([rows, rowCount])),
+      );
 
       if (parameters) {
         if (Array.isArray(parameters)) {
           // eslint-disable-next-line unicorn/no-for-loop
           for (let i = 0; i < parameters.length; i++) {
             const paramType = this.getSQLTypeFromJsType(parameters[i], connection.lib.TYPES);
-            request.addParameter(String(i + 1), paramType.type, paramType.value, paramType.typeOptions);
+            request.addParameter(
+              String(i + 1),
+              paramType.type,
+              paramType.value,
+              paramType.typeOptions,
+            );
           }
         } else {
           forOwn(parameters, (parameter, parameterName) => {
             const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
-            request.addParameter(parameterName, paramType.type, paramType.value, paramType.typeOptions);
+            request.addParameter(
+              parameterName,
+              paramType.type,
+              paramType.value,
+              paramType.typeOptions,
+            );
           });
         }
-
       }
 
-      request.on('row', columns => {
+      request.on('row', (columns) => {
         rows.push(columns);
       });
 
@@ -112,7 +123,7 @@ export class MsSqlQuery extends AbstractQuery {
 
     if (Array.isArray(rows)) {
       const dialect = this.sequelize.dialect;
-      rows = rows.map(columns => {
+      rows = rows.map((columns) => {
         const row = {};
         for (const column of columns) {
           const parser = dialect.getParserForDatabaseDataType(column.metadata.type.type);
@@ -164,7 +175,7 @@ export class MsSqlQuery extends AbstractQuery {
       const result = {};
       for (const _result of data) {
         if (_result.Default) {
-          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replaceAll('\'', '');
+          _result.Default = _result.Default.replace("('", '').replace("')", '').replaceAll("'", '');
         }
 
         result[_result.Name] = {
@@ -176,10 +187,7 @@ export class MsSqlQuery extends AbstractQuery {
           comment: _result.Comment,
         };
 
-        if (
-          result[_result.Name].type.includes('CHAR')
-          && _result.Length
-        ) {
+        if (result[_result.Name].type.includes('CHAR') && _result.Length) {
           if (_result.Length === -1) {
             result[_result.Name].type += '(MAX)';
           } else {
@@ -245,11 +253,18 @@ export class MsSqlQuery extends AbstractQuery {
   formatError(err) {
     let match;
 
-    match = err.message.match(/Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'\. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s);
-    match = match || err.message.match(/Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s);
+    match = err.message.match(
+      /Violation of (?:UNIQUE|PRIMARY) KEY constraint '([^']*)'\. Cannot insert duplicate key in object '.*'\.(:? The duplicate key value is \((.*)\).)?/s,
+    );
+    match ||=
+      err.message.match(
+        /Cannot insert duplicate key row in object .* with unique index '(.*)'\.(:? The duplicate key value is \((.*)\).)?/s,
+      );
     if (match && match.length > 1) {
       let fields = {};
-      const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === match[1]);
+      const uniqueKey =
+        this.model &&
+        this.model.getIndexes().find((index) => index.unique && index.name === match[1]);
 
       let message = 'Validation error';
 
@@ -258,7 +273,7 @@ export class MsSqlQuery extends AbstractQuery {
       }
 
       if (match[3]) {
-        const values = match[3].split(',').map(part => part.trim());
+        const values = match[3].split(',').map((part) => part.trim());
         if (uniqueKey) {
           fields = zipObject(uniqueKey.fields, values);
         } else {
@@ -268,17 +283,24 @@ export class MsSqlQuery extends AbstractQuery {
 
       const errors = [];
       forOwn(fields, (value, field) => {
-        errors.push(new sequelizeErrors.ValidationErrorItem(
-          this.getUniqueConstraintErrorMessage(field),
-          'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-          field,
-          value,
-          this.instance,
-          'not_unique',
-        ));
+        errors.push(
+          new sequelizeErrors.ValidationErrorItem(
+            this.getUniqueConstraintErrorMessage(field),
+            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+            field,
+            value,
+            this.instance,
+            'not_unique',
+          ),
+        );
       });
 
-      const uniqueConstraintError = new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      const uniqueConstraintError = new sequelizeErrors.UniqueConstraintError({
+        message,
+        errors,
+        cause: err,
+        fields,
+      });
       if (err.errors?.length > 0) {
         return new sequelizeErrors.AggregateError([...err.errors, uniqueConstraintError]);
       }
@@ -286,7 +308,9 @@ export class MsSqlQuery extends AbstractQuery {
       return uniqueConstraintError;
     }
 
-    match = err.message.match(/The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./);
+    match = err.message.match(
+      /The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./,
+    );
     if (match && match.length > 1) {
       const fkConstraintError = new sequelizeErrors.ForeignKeyConstraintError({
         index: match[1],
@@ -305,7 +329,9 @@ export class MsSqlQuery extends AbstractQuery {
     if (err.errors?.length > 0) {
       let firstError;
       for (const [index, error] of err.errors.entries()) {
-        match = error.message.match(/Could not (?:create|drop) constraint(?: or index)?\. See previous errors\./);
+        match = error.message.match(
+          /Could not (?:create|drop) constraint(?: or index)?\. See previous errors\./,
+        );
         if (match && match.length > 0) {
           let constraint = err.sql.match(/(?:constraint|index) \[(.+?)]/i);
           constraint = constraint ? constraint[1] : undefined;
@@ -334,9 +360,15 @@ export class MsSqlQuery extends AbstractQuery {
   isShowOrDescribeQuery() {
     let result = false;
 
-    result = result || this.sql.toLowerCase().startsWith('select c.column_name as \'name\', c.data_type as \'type\', c.is_nullable as \'isnull\'');
-    result = result || this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
-    result = result || this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
+    result ||=
+      this.sql
+        .toLowerCase()
+        .startsWith(
+          "select c.column_name as 'name', c.data_type as 'type', c.is_nullable as 'isnull'",
+        );
+    result ||=
+      this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
+    result ||= this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
 
     return result;
   }
@@ -365,13 +397,13 @@ export class MsSqlQuery extends AbstractQuery {
         fields: curr.is_included_column
           ? []
           : [
-            {
-              attribute: curr.column_name,
-              length: undefined,
-              order: curr.is_descending_key ? 'DESC' : 'ASC',
-              collate: undefined,
-            },
-          ],
+              {
+                attribute: curr.column_name,
+                length: undefined,
+                order: curr.is_descending_key ? 'DESC' : 'ASC',
+                collate: undefined,
+              },
+            ],
         includes: curr.is_included_column ? [curr.column_name] : [],
         name: curr.index_name,
         tableName: undefined,
@@ -391,7 +423,7 @@ export class MsSqlQuery extends AbstractQuery {
     }
 
     // map column names to attribute names
-    insertedRows = insertedRows.map(row => {
+    insertedRows = insertedRows.map((row) => {
       const attributes = Object.create(null);
 
       for (const columnName of Object.keys(row)) {
@@ -408,9 +440,9 @@ export class MsSqlQuery extends AbstractQuery {
     const autoIncrementAttributeName = this.model.autoIncrementAttribute;
     let id = null;
 
-    id = id || insertedRows && insertedRows[0][this.getInsertIdField()];
-    id = id || metaData && metaData[this.getInsertIdField()];
-    id = id || insertedRows && insertedRows[0][autoIncrementAttributeName];
+    id ||= (insertedRows && insertedRows[0][this.getInsertIdField()]);
+    id ||= (metaData && metaData[this.getInsertIdField()]);
+    id ||= (insertedRows && insertedRows[0][autoIncrementAttributeName]);
 
     // assign values to existing instance
     this.instance[autoIncrementAttributeName] = id;

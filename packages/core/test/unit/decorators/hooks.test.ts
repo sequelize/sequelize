@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
@@ -39,6 +38,7 @@ import {
   BeforeValidate,
   ValidationFailed,
 } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 // map of hook name to hook decorator
@@ -91,7 +91,10 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
     });
 
     it('supports a "name" option', () => {
@@ -102,14 +105,20 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
       const hookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
 
       MyModel.removeHook(hookName as keyof ModelHooks, 'my-hook');
 
       const newHookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
 
-      expect(newHookCount).to.eq(hookCount - 1, `hook ${hookName} should be possible to remove by name`);
+      expect(newHookCount).to.eq(
+        hookCount - 1,
+        `hook ${hookName} should be possible to remove by name`,
+      );
     });
 
     it('supports symbol methods', () => {
@@ -120,7 +129,10 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
     });
 
     it('throws on non-static hooks', () => {

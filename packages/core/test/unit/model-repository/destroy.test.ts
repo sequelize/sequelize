@@ -1,8 +1,8 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, PrimaryKey, Table, Version } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import sinon from 'sinon';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('ModelRepository#destroy', () => {
@@ -16,7 +16,10 @@ describe('ModelRepository#destroy', () => {
       declare id: number;
     }
 
-    class CompositePk extends Model<InferAttributes<CompositePk>, InferCreationAttributes<CompositePk>> {
+    class CompositePk extends Model<
+      InferAttributes<CompositePk>,
+      InferCreationAttributes<CompositePk>
+    > {
       @PrimaryKey
       @Attribute(DataTypes.INTEGER)
       declare id1: number;
@@ -26,7 +29,10 @@ describe('ModelRepository#destroy', () => {
       declare id2: number;
     }
 
-    class VersionedSimpleId extends Model<InferAttributes<VersionedSimpleId>, InferCreationAttributes<VersionedSimpleId>> {
+    class VersionedSimpleId extends Model<
+      InferAttributes<VersionedSimpleId>,
+      InferCreationAttributes<VersionedSimpleId>
+    > {
       declare id: number;
 
       @Version
@@ -49,7 +55,9 @@ describe('ModelRepository#destroy', () => {
 
     const instance = NoPk.build();
 
-    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith('does not have a primary key attribute definition');
+    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith(
+      'does not have a primary key attribute definition',
+    );
   });
 
   it(`throws an error if the model's PK is not loaded`, async () => {
@@ -58,7 +66,9 @@ describe('ModelRepository#destroy', () => {
 
     const instance = SimpleId.build();
 
-    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith('missing the value of its primary key');
+    await expect(repository._UNSTABLE_destroy(instance)).to.be.rejectedWith(
+      'missing the value of its primary key',
+    );
   });
 
   it('creates an optimized query for single-entity deletions', async () => {
@@ -154,10 +164,7 @@ describe('ModelRepository#destroy', () => {
     await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(beforeDestroyManySpy.callCount).to.eq(1);
-    expect(beforeDestroyManySpy.getCall(0).args).to.deep.eq([
-      [instance1, instance2],
-      {},
-    ]);
+    expect(beforeDestroyManySpy.getCall(0).args).to.deep.eq([[instance1, instance2], {}]);
 
     expect(afterDestroyManySpy.callCount).to.eq(1);
     expect(afterDestroyManySpy.getCall(0).args).to.deep.eq([
@@ -198,7 +205,7 @@ describe('ModelRepository#destroy', () => {
     const instance2 = SimpleId.build({ id: 2 });
     const instance3 = SimpleId.build({ id: 3 });
 
-    SimpleId.hooks.addListener('beforeDestroyMany', instances => {
+    SimpleId.hooks.addListener('beforeDestroyMany', (instances) => {
       instances.push(instance3);
     });
 
@@ -220,7 +227,7 @@ describe('ModelRepository#destroy', () => {
 
     const instance1 = SimpleId.build({ id: 1 });
 
-    SimpleId.hooks.addListener('beforeDestroyMany', instances => {
+    SimpleId.hooks.addListener('beforeDestroyMany', (instances) => {
       // remove all instances
       instances.splice(0, instances.length);
     });

@@ -1,7 +1,3 @@
-import { assert, expect } from 'chai';
-import delay from 'delay';
-import type { SinonStub } from 'sinon';
-import sinon from 'sinon';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import {
   ConstraintChecking,
@@ -13,6 +9,10 @@ import {
   TransactionType,
 } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
+import { assert, expect } from 'chai';
+import delay from 'delay';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
 import {
   beforeAll2,
   createMultiTransactionalTestSequelizeInstance,
@@ -42,106 +42,181 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('nested managed transactions', () => {
     it('reuses the parent transaction by default', async () => {
-      await sequelize.transaction(async transaction1 => {
-        await sequelize.transaction({ transaction: transaction1 }, async transaction2 => {
-          expect(transaction1 === transaction2).to.equal(true, 'transaction1 and transaction2 should be the same');
+      await sequelize.transaction(async (transaction1) => {
+        await sequelize.transaction({ transaction: transaction1 }, async (transaction2) => {
+          expect(transaction1 === transaction2).to.equal(
+            true,
+            'transaction1 and transaction2 should be the same',
+          );
         });
       });
     });
 
     it('requires compatible options if nestMode is set to "reuse"', async () => {
-      await sequelize.transaction(async transaction1 => {
+      await sequelize.transaction(async (transaction1) => {
         if (sequelize.dialect.supports.startTransaction.transactionType) {
-          await expect(sequelize.transaction(
-            { transaction: transaction1, type: TransactionType.EXCLUSIVE },
-            async () => { /* noop */ },
-          )).to.be.rejectedWith('Requested transaction type (EXCLUSIVE) is not compatible with the one of the existing transaction (DEFERRED)');
+          await expect(
+            sequelize.transaction(
+              { transaction: transaction1, type: TransactionType.EXCLUSIVE },
+              async () => {
+                /* noop */
+              },
+            ),
+          ).to.be.rejectedWith(
+            'Requested transaction type (EXCLUSIVE) is not compatible with the one of the existing transaction (DEFERRED)',
+          );
         } else {
-          await expect(sequelize.transaction(
-            { transaction: transaction1, type: TransactionType.EXCLUSIVE },
-            async () => { /* noop */ },
-          )).to.be.rejectedWith(`The ${sequelize.dialect.name} dialect does not support transaction types.`);
+          await expect(
+            sequelize.transaction(
+              { transaction: transaction1, type: TransactionType.EXCLUSIVE },
+              async () => {
+                /* noop */
+              },
+            ),
+          ).to.be.rejectedWith(
+            `The ${sequelize.dialect.name} dialect does not support transaction types.`,
+          );
         }
 
-        await expect(sequelize.transaction(
-          { transaction: transaction1, isolationLevel: IsolationLevel.READ_UNCOMMITTED },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)');
+        await expect(
+          sequelize.transaction(
+            { transaction: transaction1, isolationLevel: IsolationLevel.READ_UNCOMMITTED },
+            async () => {
+              /* noop */
+            },
+          ),
+        ).to.be.rejectedWith(
+          'Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)',
+        );
 
-        await expect(sequelize.transaction(
-          { transaction: transaction1, constraintChecking: ConstraintChecking.IMMEDIATE },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)');
+        await expect(
+          sequelize.transaction(
+            { transaction: transaction1, constraintChecking: ConstraintChecking.IMMEDIATE },
+            async () => {
+              /* noop */
+            },
+          ),
+        ).to.be.rejectedWith(
+          'Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)',
+        );
 
-        await expect(sequelize.transaction(
-          { transaction: transaction1, readOnly: true },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested a transaction in read-only mode, which is not compatible with the existing read/write transaction');
+        await expect(
+          sequelize.transaction({ transaction: transaction1, readOnly: true }, async () => {
+            /* noop */
+          }),
+        ).to.be.rejectedWith(
+          'Requested a transaction in read-only mode, which is not compatible with the existing read/write transaction',
+        );
       });
     });
 
     it('creates a savepoint if nestMode is set to "savepoint"', async () => {
-      await sequelize.transaction(async transaction1 => {
+      await sequelize.transaction(async (transaction1) => {
         await sequelize.transaction(
           { transaction: transaction1, nestMode: TransactionNestMode.savepoint },
-          async transaction2 => {
-            expect(transaction1 === transaction2).to.equal(false, 'transaction1 and transaction2 should not be the same');
-            expect(transaction2.parent === transaction1).to.equal(true, 'transaction2.parent should be transaction1');
+          async (transaction2) => {
+            expect(transaction1 === transaction2).to.equal(
+              false,
+              'transaction1 and transaction2 should not be the same',
+            );
+            expect(transaction2.parent === transaction1).to.equal(
+              true,
+              'transaction2.parent should be transaction1',
+            );
           },
         );
       });
     });
 
     it('requires compatible options if nestMode is set to "savepoint"', async () => {
-      await sequelize.transaction(async transaction1 => {
-        const commonOptions = { transaction: transaction1, nestMode: TransactionNestMode.savepoint };
+      await sequelize.transaction(async (transaction1) => {
+        const commonOptions = {
+          transaction: transaction1,
+          nestMode: TransactionNestMode.savepoint,
+        };
 
         if (sequelize.dialect.supports.startTransaction.transactionType) {
-          await expect(sequelize.transaction(
-            { ...commonOptions, type: TransactionType.EXCLUSIVE },
-            async () => { /* noop */ },
-          )).to.be.rejectedWith('Requested transaction type (EXCLUSIVE) is not compatible with the one of the existing transaction (DEFERRED)');
+          await expect(
+            sequelize.transaction(
+              { ...commonOptions, type: TransactionType.EXCLUSIVE },
+              async () => {
+                /* noop */
+              },
+            ),
+          ).to.be.rejectedWith(
+            'Requested transaction type (EXCLUSIVE) is not compatible with the one of the existing transaction (DEFERRED)',
+          );
         } else {
-          await expect(sequelize.transaction(
-            { ...commonOptions, type: TransactionType.EXCLUSIVE },
-            async () => { /* noop */ },
-          )).to.be.rejectedWith(`The ${sequelize.dialect.name} dialect does not support transaction types.`);
+          await expect(
+            sequelize.transaction(
+              { ...commonOptions, type: TransactionType.EXCLUSIVE },
+              async () => {
+                /* noop */
+              },
+            ),
+          ).to.be.rejectedWith(
+            `The ${sequelize.dialect.name} dialect does not support transaction types.`,
+          );
         }
 
-        await expect(sequelize.transaction(
-          { ...commonOptions, isolationLevel: IsolationLevel.READ_UNCOMMITTED },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)');
+        await expect(
+          sequelize.transaction(
+            { ...commonOptions, isolationLevel: IsolationLevel.READ_UNCOMMITTED },
+            async () => {
+              /* noop */
+            },
+          ),
+        ).to.be.rejectedWith(
+          'Requested isolation level (READ UNCOMMITTED) is not compatible with the one of the existing transaction (unspecified)',
+        );
 
-        await expect(sequelize.transaction(
-          { ...commonOptions, constraintChecking: ConstraintChecking.IMMEDIATE },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)');
+        await expect(
+          sequelize.transaction(
+            { ...commonOptions, constraintChecking: ConstraintChecking.IMMEDIATE },
+            async () => {
+              /* noop */
+            },
+          ),
+        ).to.be.rejectedWith(
+          'Requested transaction constraintChecking (IMMEDIATE) is not compatible with the one of the existing transaction (none)',
+        );
 
-        await expect(sequelize.transaction(
-          { ...commonOptions, readOnly: true },
-          async () => { /* noop */ },
-        )).to.be.rejectedWith('Requested a transaction in read-only mode, which is not compatible with the existing read/write transaction');
+        await expect(
+          sequelize.transaction({ ...commonOptions, readOnly: true }, async () => {
+            /* noop */
+          }),
+        ).to.be.rejectedWith(
+          'Requested a transaction in read-only mode, which is not compatible with the existing read/write transaction',
+        );
       });
     });
 
     // sqlite cannot have more than one transaction at the same time, so separate is not available.
     if (dialectName !== 'sqlite') {
       it('creates a new transaction if nestMode is set to "separate"', async () => {
-        await sequelize.transaction(async transaction1 => {
+        await sequelize.transaction(async (transaction1) => {
           await sequelize.transaction(
             { transaction: transaction1, nestMode: TransactionNestMode.separate },
-            async transaction2 => {
-              expect(transaction1 === transaction2).to.equal(false, 'transaction1 and transaction2 should not be the same');
-              expect(transaction1.parent === null).to.equal(true, 'transaction1.parent should be null');
-              expect(transaction2.parent === null).to.equal(true, 'transaction2.parent should be null');
+            async (transaction2) => {
+              expect(transaction1 === transaction2).to.equal(
+                false,
+                'transaction1 and transaction2 should not be the same',
+              );
+              expect(transaction1.parent === null).to.equal(
+                true,
+                'transaction1.parent should be null',
+              );
+              expect(transaction2.parent === null).to.equal(
+                true,
+                'transaction2.parent should be null',
+              );
             },
           );
         });
       });
 
       it('does not care about option compatibility when nestMode is set to "separate"', async () => {
-        await sequelize.transaction(async transaction1 => {
+        await sequelize.transaction(async (transaction1) => {
           await sequelize.transaction(
             {
               transaction: transaction1,
@@ -155,7 +230,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
                 : undefined,
               readOnly: true,
             },
-            async () => { /* noop */
+            async () => {
+              /* noop */
             },
           );
         });
@@ -167,14 +243,17 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         defaultTransactionNestMode: TransactionNestMode.savepoint,
       });
 
-      await customSequelize.transaction(async transaction1 => {
-        await customSequelize.transaction(
-          { transaction: transaction1 },
-          async transaction2 => {
-            expect(transaction1 === transaction2).to.equal(false, 'transaction1 and transaction2 should not be the same');
-            expect(transaction2.parent === transaction1).to.equal(true, 'transaction2.parent should be transaction1');
-          },
-        );
+      await customSequelize.transaction(async (transaction1) => {
+        await customSequelize.transaction({ transaction: transaction1 }, async (transaction2) => {
+          expect(transaction1 === transaction2).to.equal(
+            false,
+            'transaction1 and transaction2 should not be the same',
+          );
+          expect(transaction2.parent === transaction1).to.equal(
+            true,
+            'transaction2.parent should be transaction1',
+          );
+        });
       });
     });
   });
@@ -213,20 +292,20 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('should allow setting the isolation level during a transaction', async () => {
         const { User, transactionSequelize } = vars;
 
-        await transactionSequelize.transaction(async transaction => {
+        await transactionSequelize.transaction(async (transaction) => {
           await transaction.setIsolationLevel(IsolationLevel.READ_UNCOMMITTED);
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
         });
 
         if (dialectName !== 'sqlite') {
-          await transactionSequelize.transaction(async transaction => {
+          await transactionSequelize.transaction(async (transaction) => {
             await transaction.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
             assert(johnDoe, 'John Doe should exist');
             expect(johnDoe.age).to.equal(22);
           });
 
-          await transactionSequelize.transaction(async transaction => {
+          await transactionSequelize.transaction(async (transaction) => {
             await transaction.setIsolationLevel(IsolationLevel.REPEATABLE_READ);
             const users = await User.findAll({ transaction });
             expect(users.length).to.equal(1);
@@ -235,7 +314,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           });
         }
 
-        await transactionSequelize.transaction(async transaction => {
+        await transactionSequelize.transaction(async (transaction) => {
           await transaction.setIsolationLevel(IsolationLevel.SERIALIZABLE);
           await User.create({ name: 'Jane Doe', age: 21 }, { transaction });
         });
@@ -247,13 +326,16 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('should read the most recent committed rows when using the READ COMMITTED isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
-        await transactionSequelize.transaction({ isolationLevel: IsolationLevel.READ_COMMITTED }, async transaction => {
-          const users0 = await User.findAll({ transaction });
-          expect(users0).to.have.lengthOf(1);
-          await User.create({ name: 'Jane Doe', age: 21 }); // Create a User outside of the transaction
-          const users = await User.findAll({ transaction });
-          expect(users).to.have.lengthOf(2); // We SHOULD see the created user inside the transaction
-        });
+        await transactionSequelize.transaction(
+          { isolationLevel: IsolationLevel.READ_COMMITTED },
+          async (transaction) => {
+            const users0 = await User.findAll({ transaction });
+            expect(users0).to.have.lengthOf(1);
+            await User.create({ name: 'Jane Doe', age: 21 }); // Create a User outside of the transaction
+            const users = await User.findAll({ transaction });
+            expect(users).to.have.lengthOf(2); // We SHOULD see the created user inside the transaction
+          },
+        );
       });
     }
 
@@ -261,15 +343,20 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     if (!['postgres', 'sqlite'].includes(dialectName)) {
       it('should allow dirty read with isolation level "READ UNCOMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
-        const t1 = await transactionSequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.READ_UNCOMMITTED });
+        const t1 = await transactionSequelize.startUnmanagedTransaction({
+          isolationLevel: IsolationLevel.READ_UNCOMMITTED,
+        });
 
         try {
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction: t1 });
-          await transactionSequelize.transaction({ isolationLevel: IsolationLevel.READ_UNCOMMITTED }, async transaction => {
-            const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
-            assert(johnDoe, 'John Doe should exist');
-            expect(johnDoe.age).to.equal(22);
-          });
+          await transactionSequelize.transaction(
+            { isolationLevel: IsolationLevel.READ_UNCOMMITTED },
+            async (transaction) => {
+              const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
+              assert(johnDoe, 'John Doe should exist');
+              expect(johnDoe.age).to.equal(22);
+            },
+          );
         } finally {
           await t1.rollback();
           const johnDoe = await User.findOne({ where: { name: 'John Doe' } });
@@ -283,15 +370,20 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     if (dialectName !== 'sqlite') {
       it('should prevent dirty read with isolation level "READ COMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
-        const t1 = await transactionSequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.READ_COMMITTED });
+        const t1 = await transactionSequelize.startUnmanagedTransaction({
+          isolationLevel: IsolationLevel.READ_COMMITTED,
+        });
 
         try {
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction: t1 });
-          await transactionSequelize.transaction({ isolationLevel: IsolationLevel.READ_COMMITTED }, async transaction => {
-            const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
-            assert(johnDoe, 'John Doe should exist');
-            expect(johnDoe.age).to.equal(21);
-          });
+          await transactionSequelize.transaction(
+            { isolationLevel: IsolationLevel.READ_COMMITTED },
+            async (transaction) => {
+              const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
+              assert(johnDoe, 'John Doe should exist');
+              expect(johnDoe.age).to.equal(21);
+            },
+          );
         } finally {
           await t1.rollback();
           const johnDoe = await User.findOne({ where: { name: 'John Doe' } });
@@ -305,7 +397,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     if (dialectName !== 'sqlite') {
       it('should allow non-repeatable read with isolation level "READ COMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
-        const t1 = await transactionSequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.READ_COMMITTED });
+        const t1 = await transactionSequelize.startUnmanagedTransaction({
+          isolationLevel: IsolationLevel.READ_COMMITTED,
+        });
 
         try {
           const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction: t1 });
@@ -313,9 +407,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           expect(johnDoe.name).to.equal('John Doe');
           expect(johnDoe.age).to.equal(21);
 
-          await transactionSequelize.transaction({ isolationLevel: IsolationLevel.READ_COMMITTED }, async transaction => {
-            await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
-          });
+          await transactionSequelize.transaction(
+            { isolationLevel: IsolationLevel.READ_COMMITTED },
+            async (transaction) => {
+              await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
+            },
+          );
 
           const johnDoe1 = await User.findOne({ where: { name: 'John Doe' }, transaction: t1 });
           assert(johnDoe1, 'John Doe should exist');
@@ -334,20 +431,25 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('should not read newly committed rows when using the REPEATABLE READ isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
-        await transactionSequelize.transaction({ isolationLevel: IsolationLevel.REPEATABLE_READ }, async transaction => {
-          const users0 = await User.findAll({ transaction });
-          expect(users0).to.have.lengthOf(1);
+        await transactionSequelize.transaction(
+          { isolationLevel: IsolationLevel.REPEATABLE_READ },
+          async (transaction) => {
+            const users0 = await User.findAll({ transaction });
+            expect(users0).to.have.lengthOf(1);
 
-          await User.create({ name: 'Jane Doe', age: 21 }); // Create a User outside of the transaction
-          const users = await User.findAll({ transaction });
-          expect(users).to.have.lengthOf(1); // We SHOULD NOT see the created user inside the transaction
-        });
+            await User.create({ name: 'Jane Doe', age: 21 }); // Create a User outside of the transaction
+            const users = await User.findAll({ transaction });
+            expect(users).to.have.lengthOf(1); // We SHOULD NOT see the created user inside the transaction
+          },
+        );
       });
-    // SQLite only supports read uncommitted and serializable.
+      // SQLite only supports read uncommitted and serializable.
     } else if (dialectName !== 'sqlite') {
       it('should allow phantom read with isolation level "REPEATABLE READ"', async () => {
         const { User, transactionSequelize } = vars;
-        const t1 = await transactionSequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.REPEATABLE_READ });
+        const t1 = await transactionSequelize.startUnmanagedTransaction({
+          isolationLevel: IsolationLevel.REPEATABLE_READ,
+        });
 
         try {
           const users = await User.findAll({ transaction: t1 });
@@ -355,9 +457,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           expect(users[0].name).to.equal('John Doe');
           expect(users[0].age).to.equal(21);
 
-          await transactionSequelize.transaction({ isolationLevel: IsolationLevel.REPEATABLE_READ }, async transaction => {
-            await User.create({ name: 'Jane Doe', age: 21 }, { transaction });
-          });
+          await transactionSequelize.transaction(
+            { isolationLevel: IsolationLevel.REPEATABLE_READ },
+            async (transaction) => {
+              await User.create({ name: 'Jane Doe', age: 21 }, { transaction });
+            },
+          );
 
           const users2 = await User.findAll({ transaction: t1 });
           expect(users2.length).to.equal(2);
@@ -411,7 +516,11 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('does not pollute the pool with broken connections if commit fails', async () => {
         const initialPoolSize = sequelize.connectionManager.pool.size;
 
-        stubs.push(sinon.stub(sequelize.queryInterface, '_commitTransaction').rejects(new Error('Oh no, an error!')));
+        stubs.push(
+          sinon
+            .stub(sequelize.queryInterface, '_commitTransaction')
+            .rejects(new Error('Oh no, an error!')),
+        );
 
         const t = await sequelize.startUnmanagedTransaction();
 
@@ -436,7 +545,11 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('does not pollute the pool with broken connections if the rollback fails', async () => {
         const initialPoolSize = sequelize.connectionManager.pool.size;
 
-        stubs.push(sinon.stub(sequelize.queryInterface, '_rollbackTransaction').rejects(new Error('Oh no, an error!')));
+        stubs.push(
+          sinon
+            .stub(sequelize.queryInterface, '_rollbackTransaction')
+            .rejects(new Error('Oh no, an error!')),
+        );
 
         const t = await sequelize.startUnmanagedTransaction();
 
@@ -456,9 +569,13 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         name: string | null;
       }
 
-      const User = sequelize2.define<IUser>('User', {
-        name: DataTypes.STRING,
-      }, { timestamps: false });
+      const User = sequelize2.define<IUser>(
+        'User',
+        {
+          name: DataTypes.STRING,
+        },
+        { timestamps: false },
+      );
 
       await sequelize2.sync({ force: true });
       const t = await sequelize2.startUnmanagedTransaction();
@@ -472,7 +589,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           query = 'select sqlite3_sleep(2000);';
           break;
         case 'mssql':
-          query = 'WAITFOR DELAY \'00:00:02\';';
+          query = "WAITFOR DELAY '00:00:02';";
           break;
         default:
           query = 'select sleep(2);';
@@ -516,11 +633,15 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     it('triggers the error event for the second transactions', async () => {
       const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
-      const User = sequelize2.define('User', {
-        name: { type: DataTypes.STRING, unique: true },
-      }, {
-        timestamps: false,
-      });
+      const User = sequelize2.define(
+        'User',
+        {
+          name: { type: DataTypes.STRING, unique: true },
+        },
+        {
+          timestamps: false,
+        },
+      );
 
       await User.sync({ force: true });
 

@@ -24,7 +24,7 @@ describe('Model#bulkCreate', () => {
       { timestamps: false },
     );
 
-    const    stub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
+    const stub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
 
     return { TestModel, stub };
   });

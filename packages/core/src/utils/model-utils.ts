@@ -29,8 +29,7 @@ export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> 
  * @param b
  */
 export function isSameInitialModel(a: ModelStatic<any>, b: ModelStatic<any>): boolean {
-  return isModelStatic(a) && isModelStatic(b)
-    && (a.getInitialModel() === b.getInitialModel());
+  return isModelStatic(a) && isModelStatic(b) && a.getInitialModel() === b.getInitialModel();
 }
 
 export function extractModelDefinition(tableOrModel: TableOrModel): ModelDefinition | null {
@@ -50,6 +49,5 @@ export function extractTableIdentifier(tableOrModel: TableOrModel): TableNameWit
     return { tableName: tableOrModel };
   }
 
-  return extractModelDefinition(tableOrModel)?.table ?? tableOrModel as TableNameWithSchema;
+  return extractModelDefinition(tableOrModel)?.table ?? (tableOrModel as TableNameWithSchema);
 }
-

@@ -1,6 +1,6 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
 import {
   beforeEach2,
   createSequelizeInstance,
@@ -82,7 +82,7 @@ describe(getTestDialectTeaser('Replication'), () => {
     });
 
     it('should run read-only transactions on the replica', async () => {
-      await deps.sequelize.transaction({ readOnly: true }, async transaction => {
+      await deps.sequelize.transaction({ readOnly: true }, async (transaction) => {
         return deps.User.findAll({ transaction });
       });
 
@@ -90,7 +90,7 @@ describe(getTestDialectTeaser('Replication'), () => {
     });
 
     it('should run non-read-only transactions on the primary', async () => {
-      await deps.sequelize.transaction(async transaction => {
+      await deps.sequelize.transaction(async (transaction) => {
         return deps.User.findAll({ transaction });
       });
 

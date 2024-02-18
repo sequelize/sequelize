@@ -18,10 +18,13 @@ const __export = (target, all) => {
 };
 
 const __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === 'object' || typeof from === 'function') {
+  if ((from && typeof from === 'object') || typeof from === 'function') {
     for (const key of __getOwnPropNames(from)) {
       if (!__hasOwnProp.call(to, key) && key !== except) {
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+        __defProp(to, key, {
+          get: () => from[key],
+          enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable,
+        });
       }
     }
   }
@@ -29,7 +32,7 @@ const __copyProps = (to, from, except, desc) => {
   return to;
 };
 
-const __toCommonJS = mod => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
+const __toCommonJS = (mod) => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
 
 // src/bundler.ts
 const bundler_exports = {};

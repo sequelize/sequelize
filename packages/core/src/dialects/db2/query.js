@@ -1,8 +1,8 @@
 'use strict';
 
 import assert from 'node:assert';
-import { AbstractQuery } from '../abstract/query';
 import { logger } from '../../utils/logger';
+import { AbstractQuery } from '../abstract/query';
 
 import forOwn from 'lodash/forOwn';
 
@@ -47,8 +47,7 @@ export class Db2Query extends AbstractQuery {
     let newSql = this.sql;
 
     // TODO: move this to Db2QueryGenerator
-    if ((this.isSelectQuery() || SQL.startsWith('SELECT '))
-            && !SQL.includes(' FROM ', 8)) {
+    if ((this.isSelectQuery() || SQL.startsWith('SELECT ')) && !SQL.includes(' FROM ', 8)) {
       if (this.sql.at(-1) === ';') {
         newSql = this.sql.slice(0, -1);
       }
@@ -208,7 +207,7 @@ export class Db2Query extends AbstractQuery {
       result = {};
       for (const _result of data) {
         if (_result.Default) {
-          _result.Default = _result.Default.replace('(\'', '').replace('\')', '').replaceAll('\'', '');
+          _result.Default = _result.Default.replace("('", '').replace("')", '').replaceAll("'", '');
         }
 
         result[_result.Name] = {
@@ -253,7 +252,9 @@ export class Db2Query extends AbstractQuery {
       err.message = 'No error message found.';
     }
 
-    match = err.message.match(/SQL0803N {2}One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "(\d)+" constrains table "(.*)\.(.*)" from having duplicate values for the index key./);
+    match = err.message.match(
+      /SQL0803N {2}One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "(\d)+" constrains table "(.*)\.(.*)" from having duplicate values for the index key./,
+    );
     if (match && match.length > 0) {
       let uniqueIndexName = '';
       let uniqueKey = '';
@@ -267,7 +268,9 @@ export class Db2Query extends AbstractQuery {
       }
 
       if (this.model && Boolean(uniqueIndexName)) {
-        uniqueKey = this.model.getIndexes().find(index => index.unique && index.name === uniqueIndexName);
+        uniqueKey = this.model
+          .getIndexes()
+          .find((index) => index.unique && index.name === uniqueIndexName);
       }
 
       if (!uniqueKey && this.options.fields) {
@@ -276,11 +279,13 @@ export class Db2Query extends AbstractQuery {
 
       if (uniqueKey) {
         // TODO: DB2 uses a custom "column" property, but it should use "fields" instead, so column can be removed
-        if (this.options.where
-          && this.options.where[uniqueKey.column] !== undefined) {
+        if (this.options.where && this.options.where[uniqueKey.column] !== undefined) {
           fields[uniqueKey.column] = this.options.where[uniqueKey.column];
-        } else if (this.options.instance && this.options.instance.dataValues
-          && this.options.instance.dataValues[uniqueKey.column]) {
+        } else if (
+          this.options.instance &&
+          this.options.instance.dataValues &&
+          this.options.instance.dataValues[uniqueKey.column]
+        ) {
           fields[uniqueKey.column] = this.options.instance.dataValues[uniqueKey.column];
         } else if (parameters) {
           fields[uniqueKey.column] = parameters['0'];
@@ -293,22 +298,27 @@ export class Db2Query extends AbstractQuery {
 
       const errors = [];
       forOwn(fields, (value, field) => {
-        errors.push(new sequelizeErrors.ValidationErrorItem(
-          this.getUniqueConstraintErrorMessage(field),
-          'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-          field,
-          value,
-          this.instance,
-          'not_unique',
-        ));
+        errors.push(
+          new sequelizeErrors.ValidationErrorItem(
+            this.getUniqueConstraintErrorMessage(field),
+            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+            field,
+            value,
+            this.instance,
+            'not_unique',
+          ),
+        );
       });
 
       return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
     }
 
-    match = err.message.match(/SQL0532N {2}A parent row cannot be deleted because the relationship "(.*)" restricts the deletion/)
-      || err.message.match(/SQL0530N/)
-      || err.message.match(/SQL0531N/);
+    match =
+      err.message.match(
+        /SQL0532N {2}A parent row cannot be deleted because the relationship "(.*)" restricts the deletion/,
+      ) ||
+      err.message.match(/SQL0530N/) ||
+      err.message.match(/SQL0531N/);
     if (match && match.length > 0) {
       const data = err.message.match(/(?:"([\w.]+)")/);
       const constraintData = data && data.length > 0 ? data[1] : undefined;
@@ -342,9 +352,15 @@ export class Db2Query extends AbstractQuery {
   isShowOrDescribeQuery() {
     let result = false;
 
-    result = result || this.sql.toLowerCase().startsWith('select c.column_name as \'name\', c.data_type as \'type\', c.is_nullable as \'isnull\'');
-    result = result || this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
-    result = result || this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
+    result ||=
+      this.sql
+        .toLowerCase()
+        .startsWith(
+          "select c.column_name as 'name', c.data_type as 'type', c.is_nullable as 'isnull'",
+        );
+    result ||=
+      this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
+    result ||= this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
 
     return result;
   }
@@ -369,12 +385,17 @@ export class Db2Query extends AbstractQuery {
 
       acc.set(curr.name, {
         primary: curr.keyType === 'P',
-        fields: curr.columnOrder === 'I' ? [] : [{
-          attribute: curr.columnName,
-          length: undefined,
-          order: curr.columnOrder === 'D' ? 'DESC' : 'ASC',
-          collate: undefined,
-        }],
+        fields:
+          curr.columnOrder === 'I'
+            ? []
+            : [
+                {
+                  attribute: curr.columnName,
+                  length: undefined,
+                  order: curr.columnOrder === 'D' ? 'DESC' : 'ASC',
+                  collate: undefined,
+                },
+              ],
         includes: curr.columnOrder === 'I' ? [curr.columnName] : [],
         name: curr.name,
         tableName: curr.tableName,
@@ -398,11 +419,14 @@ export class Db2Query extends AbstractQuery {
       return;
     }
 
-    const autoIncrementAttribute = modelDefinition.attributes.get(modelDefinition.autoIncrementAttributeName);
+    const autoIncrementAttribute = modelDefinition.attributes.get(
+      modelDefinition.autoIncrementAttributeName,
+    );
 
-    const id = (results?.[0][this.getInsertIdField()])
-      ?? (metaData?.[this.getInsertIdField()])
-      ?? (results?.[0][autoIncrementAttribute.columnName]);
+    const id =
+      results?.[0][this.getInsertIdField()] ??
+      metaData?.[this.getInsertIdField()] ??
+      results?.[0][autoIncrementAttribute.columnName];
 
     this.instance[autoIncrementAttribute.attributeName] = id;
   }

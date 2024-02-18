@@ -1,6 +1,6 @@
+import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
-import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
 import type { ConnectionOptions } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
@@ -65,7 +65,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connectio
       return await new Promise((resolve, reject) => {
         const connection = new this.lib.Database() as Db2Connection;
         connection.lib = this.lib;
-        connection.open(connectionConfig, error => {
+        connection.open(connectionConfig, (error) => {
           if (error) {
             if (error.message && error.message.includes('SQL30081N')) {
               return void reject(new ConnectionRefusedError(error));

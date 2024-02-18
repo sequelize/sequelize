@@ -1,6 +1,6 @@
-import { pathToFileURL } from 'node:url';
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
+import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
 import { isPlainObject } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
@@ -14,7 +14,10 @@ type ModelMatch = (path: string, exportName: string, exportValue: ModelStatic) =
  * @param globPaths
  * @param modelMatch
  */
-export async function importModels(globPaths: string | string[], modelMatch?: ModelMatch): Promise<ModelStatic[]> {
+export async function importModels(
+  globPaths: string | string[],
+  modelMatch?: ModelMatch,
+): Promise<ModelStatic[]> {
   if (Array.isArray(globPaths)) {
     const promises: Array<Promise<ModelStatic[]>> = [];
 
@@ -44,7 +47,7 @@ async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<
   }
 
   return Object.keys(module)
-    .filter(exportName => {
+    .filter((exportName) => {
       if (!isModelStatic(module[exportName])) {
         return false;
       }
@@ -55,5 +58,5 @@ async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<
 
       return true;
     })
-    .map(exportName => module[exportName]);
+    .map((exportName) => module[exportName]);
 }

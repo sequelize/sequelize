@@ -39,7 +39,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
   async _onProcessExit() {
     await Promise.all(
-      map(this.connections.values(), async connection => {
+      map(this.connections.values(), async (connection) => {
         return promisify(connection.close.bind(connection))();
       }),
     );
@@ -55,9 +55,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
     }
 
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
-    const storage = this.sequelize.options.storage
-      ?? this.sequelize.options.host
-      ?? ':memory:';
+    const storage = this.sequelize.options.storage ?? this.sequelize.options.host ?? ':memory:';
 
     const inMemory = storage === ':memory:';
 
@@ -72,7 +70,11 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
     const storageDir = path.dirname(storage);
 
-    if (!inMemory && (readWriteMode & this.lib.OPEN_CREATE) !== 0 && !await checkFileExists(storageDir)) {
+    if (
+      !inMemory &&
+      (readWriteMode & this.lib.OPEN_CREATE) !== 0 &&
+      !(await checkFileExists(storageDir))
+    ) {
       // automatic path provision for `options.storage`
       await fs.mkdir(storageDir, { recursive: true });
     }

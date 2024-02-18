@@ -82,20 +82,14 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = mapValues(
-      attributes,
-      attribute => this.sequelize.normalizeAttribute(attribute),
-    );
+    attributes = mapValues(attributes, (attribute) => this.sequelize.normalizeAttribute(attribute));
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
     const modelTable = model?.table;
 
-    if (
-      !tableName.schema
-      && (options.schema || modelTable?.schema)
-    ) {
+    if (!tableName.schema && (options.schema || modelTable?.schema)) {
       tableName = this.queryGenerator.extractTableDetails(tableName);
       tableName.schema = modelTable?.schema || options.schema;
     }
@@ -131,23 +125,32 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async addColumn(table, key, attribute, options = {}) {
     if (!table || !key || !attribute) {
-      throw new Error('addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+      throw new Error(
+        'addColumn takes at least 3 arguments (table, attribute name, attribute definition)',
+      );
     }
 
     attribute = this.sequelize.normalizeAttribute(attribute);
 
     if (
-      attribute.type instanceof AbstractDataType
+      attribute.type instanceof AbstractDataType &&
       // we don't give a context if it already has one, because it could come from a Model.
-      && !attribute.type.usageContext
+      !attribute.type.usageContext
     ) {
-      attribute.type.attachUsageContext({ tableName: table, columnName: key, sequelize: this.sequelize });
+      attribute.type.attachUsageContext({
+        tableName: table,
+        columnName: key,
+        sequelize: this.sequelize,
+      });
     }
 
     const { ifNotExists, ...rawQueryOptions } = options;
     const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
 
-    return await this.sequelize.queryRaw(this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions), rawQueryOptions);
+    return await this.sequelize.queryRaw(
+      this.queryGenerator.addColumnQuery(table, key, attribute, addColumnQueryOptions),
+      rawQueryOptions,
+    );
   }
 
   /**
@@ -201,14 +204,17 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} [options]          Query options
    */
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
-    options = options || {};
+    options ||= {};
 
-    const query = this.queryGenerator.attributesToSQL({
-      [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
-    }, {
-      context: 'changeColumn',
-      table: tableName,
-    });
+    const query = this.queryGenerator.attributesToSQL(
+      {
+        [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
+      },
+      {
+        context: 'changeColumn',
+        table: tableName,
+      },
+    );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
 
     return this.sequelize.queryRaw(sql, options);
@@ -243,8 +249,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @returns {Promise}
    */
   async renameColumn(tableName, attrNameBefore, attrNameAfter, options) {
-    options = options || {};
-    const data = (await this.assertTableHasColumn(tableName, attrNameBefore, options))[attrNameBefore];
+    options ||= {};
+    const data = (await this.assertTableHasColumn(tableName, attrNameBefore, options))[
+      attrNameBefore
+    ];
 
     const _options = {};
 
@@ -333,7 +341,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @returns {Promise}
    */
   async removeIndex(tableName, indexNameOrAttributes, options) {
-    options = options || {};
+    options ||= {};
     const sql = this.queryGenerator.removeIndexQuery(tableName, indexNameOrAttributes, options);
 
     return await this.sequelize.queryRaw(sql, options);
@@ -401,14 +409,19 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     if (options.upsertKeys.length === 0) {
       const primaryKeys = Array.from(
-        map(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.attributes.get(pkAttrName).columnName),
+        map(
+          modelDefinition.primaryKeysAttributeNames,
+          (pkAttrName) => modelDefinition.attributes.get(pkAttrName).columnName,
+        ),
       );
 
-      const uniqueColumnNames = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+      const uniqueColumnNames = Object.values(model.getIndexes())
+        .filter((c) => c.unique && c.fields.length > 0)
+        .map((c) => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
-        const indexKey = uniqueColumnNames.find(fields => fields.includes(field));
+        const indexKey = uniqueColumnNames.find((fields) => fields.includes(field));
         if (indexKey) {
           options.upsertKeys = indexKey;
           break;
@@ -417,8 +430,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
       // Always use PK, if no constraint available OR update data contains PK
       if (
-        options.upsertKeys.length === 0
-        || intersection(options.updateOnDuplicate, primaryKeys).length > 0
+        options.upsertKeys.length === 0 ||
+        intersection(options.updateOnDuplicate, primaryKeys).length > 0
       ) {
         options.upsertKeys = primaryKeys;
       }
@@ -531,9 +544,17 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       where = cloneDeep(where) ?? {};
     }
 
-    const { bind, query } = this.queryGenerator.updateQuery(tableName, values, where, options, columnDefinitions);
+    const { bind, query } = this.queryGenerator.updateQuery(
+      tableName,
+      values,
+      where,
+      options,
+      columnDefinitions,
+    );
     const table = isObject(tableName) ? tableName : { tableName };
-    const model = options.model ? options.model : find(this.sequelize.models, { tableName: table.tableName });
+    const model = options.model
+      ? options.model
+      : find(this.sequelize.models, { tableName: table.tableName });
 
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
@@ -554,19 +575,64 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  async increment(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    return this.#arithmeticQuery('+', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+  async increment(
+    model,
+    tableName,
+    where,
+    incrementAmountsByField,
+    extraAttributesToBeUpdated,
+    options,
+  ) {
+    return this.#arithmeticQuery(
+      '+',
+      model,
+      tableName,
+      where,
+      incrementAmountsByField,
+      extraAttributesToBeUpdated,
+      options,
+    );
   }
 
-  async decrement(model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    return this.#arithmeticQuery('-', model, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options);
+  async decrement(
+    model,
+    tableName,
+    where,
+    incrementAmountsByField,
+    extraAttributesToBeUpdated,
+    options,
+  ) {
+    return this.#arithmeticQuery(
+      '-',
+      model,
+      tableName,
+      where,
+      incrementAmountsByField,
+      extraAttributesToBeUpdated,
+      options,
+    );
   }
 
-  async #arithmeticQuery(operator, model, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options) {
+  async #arithmeticQuery(
+    operator,
+    model,
+    tableName,
+    where,
+    incrementAmountsByAttribute,
+    extraAttributesToBeUpdated,
+    options,
+  ) {
     options = cloneDeep(options) ?? {};
     options.model = model;
 
-    const sql = this.queryGenerator.arithmeticQuery(operator, tableName, where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
+    const sql = this.queryGenerator.arithmeticQuery(
+      operator,
+      tableName,
+      where,
+      incrementAmountsByAttribute,
+      extraAttributesToBeUpdated,
+      options,
+    );
 
     options.type = QueryTypes.UPDATE;
 
@@ -608,13 +674,19 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     // TODO: DECIMAL is not safely representable as a float!
     //  Use the DataType's parse method instead.
-    if ((dataType instanceof DataTypes.DECIMAL || dataType instanceof DataTypes.FLOAT) && result !== null) {
+    if (
+      (dataType instanceof DataTypes.DECIMAL || dataType instanceof DataTypes.FLOAT) &&
+      result !== null
+    ) {
       return Number.parseFloat(result);
     }
 
     // TODO: BIGINT is not safely representable as an int!
     //  Use the DataType's parse method instead.
-    if ((dataType instanceof DataTypes.INTEGER || dataType instanceof DataTypes.BIGINT) && result !== null) {
+    if (
+      (dataType instanceof DataTypes.INTEGER || dataType instanceof DataTypes.BIGINT) &&
+      result !== null
+    ) {
       return Number.parseInt(result, 10);
     }
 
@@ -635,8 +707,16 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     optionsArray,
     options,
   ) {
-    const sql = this.queryGenerator.createTrigger(tableName, triggerName, timingType, fireOnArray, functionName, functionParams, optionsArray);
-    options = options || {};
+    const sql = this.queryGenerator.createTrigger(
+      tableName,
+      triggerName,
+      timingType,
+      fireOnArray,
+      functionName,
+      functionParams,
+      optionsArray,
+    );
+    options ||= {};
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);
     }
@@ -644,7 +724,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
   async dropTrigger(tableName, triggerName, options) {
     const sql = this.queryGenerator.dropTrigger(tableName, triggerName);
-    options = options || {};
+    options ||= {};
 
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);
@@ -653,7 +733,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
   async renameTrigger(tableName, oldTriggerName, newTriggerName, options) {
     const sql = this.queryGenerator.renameTrigger(tableName, oldTriggerName, newTriggerName);
-    options = options || {};
+    options ||= {};
 
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);
@@ -698,8 +778,16 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @returns {Promise}
    */
   async createFunction(functionName, params, returnType, language, body, optionsArray, options) {
-    const sql = this.queryGenerator.createFunction(functionName, params, returnType, language, body, optionsArray, options);
-    options = options || {};
+    const sql = this.queryGenerator.createFunction(
+      functionName,
+      params,
+      returnType,
+      language,
+      body,
+      optionsArray,
+      options,
+    );
+    options ||= {};
 
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);
@@ -726,7 +814,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async dropFunction(functionName, params, options) {
     const sql = this.queryGenerator.dropFunction(functionName, params);
-    options = options || {};
+    options ||= {};
 
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);
@@ -755,7 +843,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async renameFunction(oldFunctionName, params, newFunctionName, options) {
     const sql = this.queryGenerator.renameFunction(oldFunctionName, params, newFunctionName);
-    options = options || {};
+    options ||= {};
 
     if (sql) {
       return await this.sequelize.queryRaw(sql, options);

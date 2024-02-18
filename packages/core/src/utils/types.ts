@@ -1,9 +1,11 @@
-export type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 export type DeepWriteable<T> = {
-  -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>
+  -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>;
 };
 
 export type AnyFunction = (...args: any[]) => any;
@@ -27,9 +29,7 @@ export type AnyFunction = (...args: any[]) => any;
  * ```
  */
 export type NullishPropertiesOf<T> = {
-  [P in keyof T]-?: undefined extends T[P] ? P
-    : null extends T[P] ? P
-      : never
+  [P in keyof T]-?: undefined extends T[P] ? P : null extends T[P] ? P : never;
 }[keyof T];
 
 /**
@@ -77,9 +77,11 @@ export type AllowLowercase<T extends string> = T | Lowercase<T>;
 
 export type AllowReadonlyArray<T> = T | readonly T[];
 
-export type ConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? P : never })[keyof T];
+export type ConstructorKeys<T> = {
+  [P in keyof T]: T[P] extends new () => any ? P : never;
+}[keyof T];
 
-type NonConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P }[keyof T];
 
 export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
 
@@ -90,6 +92,9 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
 export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
-export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<Omit<T, K> & Required<Pick<T, K>>, K>;
+export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<
+  Omit<T, K> & Required<Pick<T, K>>,
+  K
+>;
 
 export type ReadOnlyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>>;

@@ -9,7 +9,7 @@ import type { BindOrReplacements } from '../sequelize.js';
 type OnBind = (oldName: string) => string;
 
 type MapSqlOptions = {
-  onPositionalReplacement?(): void,
+  onPositionalReplacement?(): void;
 };
 
 /**
@@ -114,17 +114,15 @@ function mapBindParametersAndReplacements(
       //  SELECT E 'test';
       // which selects the type E and aliases it to 'test'.
 
-      stringIsBackslashEscapable
+      stringIsBackslashEscapable =
         // all ''-style strings in this dialect can be backslash escaped
-        = dialect.canBackslashEscape()
+        dialect.canBackslashEscape() ||
         // checking if this is a postgres-style E-prefixed string, which also supports backslash escaping
-        || (
-          dialect.supports.escapeStringConstants
+        (dialect.supports.escapeStringConstants &&
           // is this a E-prefixed string, such as `E'abc'`, `e'abc'` ?
-          && (sqlString[i - 1] === 'E' || sqlString[i - 1] === 'e')
+          (sqlString[i - 1] === 'E' || sqlString[i - 1] === 'e') &&
           // reject things such as `AE'abc'` (the prefix must be exactly E)
-          && canPrecedeNewToken(sqlString[i - 2])
-        );
+          canPrecedeNewToken(sqlString[i - 2]));
 
       continue;
     }
@@ -166,7 +164,9 @@ function mapBindParametersAndReplacements(
         }
 
         // detect the bind param if it's a valid identifier and it's followed either by '::' (=cast), ')', whitespace of it's the end of the query.
-        const match = remainingString.match(/^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\]|\)|,|$|\s|::|;)/i);
+        const match = remainingString.match(
+          /^\$(?<name>([a-z_][0-9a-z_]*|[1-9][0-9]*))(?:\]|\)|,|$|\s|::|;)/i,
+        );
         const bindParamName = match?.groups?.name;
         if (!bindParamName) {
           continue;
@@ -204,11 +204,20 @@ function mapBindParametersAndReplacements(
 
       // @ts-expect-error -- isPlainObject does not tell typescript that replacements is a plain object, not an array
       const replacementValue = replacements[replacementName];
-      if (!Object.hasOwn(replacements as object, replacementName) || replacementValue === undefined) {
-        throw new Error(`Named replacement ":${replacementName}" has no entry in the replacement map.`);
+      if (
+        !Object.hasOwn(replacements as object, replacementName) ||
+        replacementValue === undefined
+      ) {
+        throw new Error(
+          `Named replacement ":${replacementName}" has no entry in the replacement map.`,
+        );
       }
 
-      const escapedReplacement = escapeValueWithBackCompat(replacementValue, dialect, escapeOptions);
+      const escapedReplacement = escapeValueWithBackCompat(
+        replacementValue,
+        dialect,
+        escapeOptions,
+      );
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
@@ -246,10 +255,16 @@ function mapBindParametersAndReplacements(
       const replacementValue = replacements[lastConsumedPositionalReplacementIndex];
 
       if (replacementValue === undefined) {
-        throw new Error(`Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`);
+        throw new Error(
+          `Positional replacement (?) ${replacementIndex} has no entry in the replacement map (replacements[${replacementIndex}] is undefined).`,
+        );
       }
 
-      const escapedReplacement = escapeValueWithBackCompat(replacementValue, dialect, escapeOptions);
+      const escapedReplacement = escapeValueWithBackCompat(
+        replacementValue,
+        dialect,
+        escapeOptions,
+      );
 
       // add everything before the bind parameter name
       output += sqlString.slice(previousSliceEnd, i);
@@ -261,7 +276,9 @@ function mapBindParametersAndReplacements(
   }
 
   if (isString) {
-    throw new Error(`The following SQL query includes an unterminated string literal:\n${sqlString}`);
+    throw new Error(
+      `The following SQL query includes an unterminated string literal:\n${sqlString}`,
+    );
   }
 
   output += sqlString.slice(previousSliceEnd, sqlString.length);
@@ -269,14 +286,18 @@ function mapBindParametersAndReplacements(
   return output;
 }
 
-function escapeValueWithBackCompat(value: unknown, dialect: AbstractDialect, escapeOptions: EscapeOptions): string {
+function escapeValueWithBackCompat(
+  value: unknown,
+  dialect: AbstractDialect,
+  escapeOptions: EscapeOptions,
+): string {
   // Arrays used to be escaped as sql lists, not sql arrays
   // now they must be escaped as sql arrays, and the old behavior has been moved to the list() function.
   // The problem is that if we receive a list of list, there are cases where we don't want the extra parentheses around the list,
   // such as in the case of a bulk insert.
   // As a workaround, non-list arrays that contain dynamic values are joined with commas.
-  if (Array.isArray(value) && value.some(item => item instanceof BaseSqlExpression)) {
-    return value.map(item => dialect.queryGenerator.escape(item, escapeOptions)).join(', ');
+  if (Array.isArray(value) && value.some((item) => item instanceof BaseSqlExpression)) {
+    return value.map((item) => dialect.queryGenerator.escape(item, escapeOptions)).join(', ');
   }
 
   return dialect.queryGenerator.escape(value, escapeOptions);
@@ -292,19 +313,27 @@ function canPrecedeNewToken(char: string | undefined): boolean {
  * @param sqlString
  * @param dialect
  */
-export function mapBindParameters(sqlString: string, dialect: AbstractDialect): {
-  sql: string,
-  bindOrder: string[] | null,
-  parameterSet: Set<string>,
+export function mapBindParameters(
+  sqlString: string,
+  dialect: AbstractDialect,
+): {
+  sql: string;
+  bindOrder: string[] | null;
+  parameterSet: Set<string>;
 } {
   const parameterCollector = dialect.createBindCollector();
   const parameterSet = new Set<string>();
 
-  const newSql = mapBindParametersAndReplacements(sqlString, dialect, undefined, foundBindParamName => {
-    parameterSet.add(foundBindParamName);
+  const newSql = mapBindParametersAndReplacements(
+    sqlString,
+    dialect,
+    undefined,
+    (foundBindParamName) => {
+      parameterSet.add(foundBindParamName);
 
-    return parameterCollector.collect(foundBindParamName);
-  });
+      return parameterCollector.collect(foundBindParamName);
+    },
+  );
 
   return { sql: newSql, bindOrder: parameterCollector.getBindParameterOrder(), parameterSet };
 }
@@ -320,7 +349,9 @@ export function injectReplacements(
   }
 
   if (!Array.isArray(replacements) && !isPlainObject(replacements)) {
-    throw new TypeError(`"replacements" must be an array or a plain object, but received ${JSON.stringify(replacements)} instead.`);
+    throw new TypeError(
+      `"replacements" must be an array or a plain object, but received ${JSON.stringify(replacements)} instead.`,
+    );
   }
 
   return mapBindParametersAndReplacements(sqlString, dialect, replacements, undefined, opts);
@@ -410,7 +441,9 @@ export function assertNoReservedBind(bind: BindOrReplacements): void {
 
   for (const key of Object.keys(bind)) {
     if (key.startsWith('sequelize_')) {
-      throw new Error('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+      throw new Error(
+        'Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.',
+      );
     }
   }
 }
@@ -439,7 +472,7 @@ function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
 
 export function escapeMysqlMariaDbString(value: string): string {
   // eslint-disable-next-line no-control-regex -- \u001A is intended to be in this regex
-  value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, s => {
+  value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, (s) => {
     switch (s) {
       case '\0':
         return '\\0';
@@ -461,7 +494,10 @@ export function escapeMysqlMariaDbString(value: string): string {
   return `'${value}'`;
 }
 
-export function formatDb2StyleLimitOffset(options: AddLimitOffsetOptions, queryGenerator: AbstractQueryGenerator): string {
+export function formatDb2StyleLimitOffset(
+  options: AddLimitOffsetOptions,
+  queryGenerator: AbstractQueryGenerator,
+): string {
   let fragment = '';
   if (options.offset) {
     fragment += ` OFFSET ${queryGenerator.escape(options.offset, options)} ROWS`;
@@ -474,7 +510,10 @@ export function formatDb2StyleLimitOffset(options: AddLimitOffsetOptions, queryG
   return fragment;
 }
 
-export function formatMySqlStyleLimitOffset(options: AddLimitOffsetOptions, queryGenerator: AbstractQueryGenerator): string {
+export function formatMySqlStyleLimitOffset(
+  options: AddLimitOffsetOptions,
+  queryGenerator: AbstractQueryGenerator,
+): string {
   let fragment = '';
   if (options.limit != null) {
     fragment += ` LIMIT ${queryGenerator.escape(options.limit, options)}`;

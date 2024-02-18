@@ -1,7 +1,7 @@
+import type { Connection, Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import type { Connection, Sequelize } from '@sequelize/core';
 import { createSequelizeInstance } from '../support';
 
 describe('connection manager', () => {
@@ -28,7 +28,7 @@ describe('connection manager', () => {
       const username = Math.random().toString();
       const password = Math.random().toString();
 
-      sequelize.beforeConnect(config => {
+      sequelize.beforeConnect((config) => {
         config.username = username;
         config.password = password;
       });

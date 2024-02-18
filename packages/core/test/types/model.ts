@@ -1,5 +1,3 @@
-import { expectTypeOf } from 'expect-type';
-import type { SetOptional } from 'type-fest';
 import type {
   Association,
   BelongsToManyGetAssociationsMixin,
@@ -10,6 +8,8 @@ import type {
   ModelDefined,
 } from '@sequelize/core';
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
+import type { SetOptional } from 'type-fest';
 
 expectTypeOf<HasOneAssociation>().toMatchTypeOf<Association>();
 
@@ -19,7 +19,7 @@ class MyModel extends Model<InferAttributes<MyModel>, InferCreationAttributes<My
   declare virtual: boolean | null;
 
   static associations: {
-    other: HasOneAssociation,
+    other: HasOneAssociation;
   };
 
   static async customStuff() {
@@ -49,9 +49,7 @@ MyModel.findOne({
 });
 
 MyModel.findOne({
-  include: [
-    { model: OtherModel, paranoid: true },
-  ],
+  include: [{ model: OtherModel, paranoid: true }],
 });
 
 MyModel.hasOne(OtherModel, { as: 'OtherModelAlias' });
@@ -66,44 +64,44 @@ MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
 });
 
 MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.int'] }).then(({ count, rows }) => {
-  expectTypeOf(count).toEqualTypeOf<Array<{ [key: string]: unknown, count: number }>>();
+  expectTypeOf(count).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
   expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
 });
 
-MyModel.count({ include: OtherModel }).then(count => {
+MyModel.count({ include: OtherModel }).then((count) => {
   expectTypeOf(count).toEqualTypeOf<number>();
 });
 
-MyModel.count({ include: [MyModel], where: { $int$: [10, 120] } }).then(count => {
+MyModel.count({ include: [MyModel], where: { $int$: [10, 120] } }).then((count) => {
   expectTypeOf(count).toEqualTypeOf<number>();
 });
 
-MyModel.count({ group: 'type' }).then(result => {
-  expectTypeOf(result).toEqualTypeOf<Array<{ [key: string]: unknown, count: number }>>();
+MyModel.count({ group: 'type' }).then((result) => {
+  expectTypeOf(result).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });
 
-MyModel.increment('int', { by: 1 }).then(result => {
+MyModel.increment('int', { by: 1 }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.increment({ int: 2 }, {}).then(result => {
+MyModel.increment({ int: 2 }, {}).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.increment(['int'], { by: 3 }).then(result => {
+MyModel.increment(['int'], { by: 3 }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.decrement('int', { by: 1 }).then(result => {
+MyModel.decrement('int', { by: 1 }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.decrement({ int: 2 }, {}).then(result => {
+MyModel.decrement({ int: 2 }, {}).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.decrement(['int'], { by: 3 }).then(result => {
+MyModel.decrement(['int'], { by: 3 }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
@@ -111,49 +109,52 @@ MyModel.build({ int: 10 }, { include: OtherModel });
 
 MyModel.bulkCreate([{ int: 10 }], { include: OtherModel, searchPath: 'public' });
 
-MyModel.update({}, { where: { str: 'bar' }, paranoid: false }).then(result => {
+MyModel.update({}, { where: { str: 'bar' }, paranoid: false }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedCount: number]>();
 });
 
-MyModel.update({}, { where: { str: 'bar' }, returning: false }).then(result => {
+MyModel.update({}, { where: { str: 'bar' }, returning: false }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedCount: number]>();
 });
 
-MyModel.update({}, { where: { str: 'bar' }, returning: true }).then(result => {
+MyModel.update({}, { where: { str: 'bar' }, returning: true }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows: MyModel[]]>();
 });
 
-MyModel.update({}, { where: { str: 'bar' }, returning: ['str'] }).then(result => {
+MyModel.update({}, { where: { str: 'bar' }, returning: ['str'] }).then((result) => {
   expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows: MyModel[]]>();
 });
 
 const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
-MyModel.init({
-  int: DataTypes.INTEGER,
-  str: DataTypes.STRING,
-  virtual: {
-    type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['int']),
-    get() {
-      const int: number = this.getDataValue('int');
+MyModel.init(
+  {
+    int: DataTypes.INTEGER,
+    str: DataTypes.STRING,
+    virtual: {
+      type: new DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['int']),
+      get() {
+        const int: number = this.getDataValue('int');
 
-      return int + 2;
-    },
-    set(value: number) {
-      this.setDataValue('int', value - 2);
+        return int + 2;
+      },
+      set(value: number) {
+        this.setDataValue('int', value - 2);
+      },
     },
   },
-}, {
-  indexes: [
-    {
-      fields: ['foo'],
-      using: 'gin',
-      operator: 'jsonb_path_ops',
-    },
-  ],
-  sequelize,
-  tableName: 'my_model',
-});
+  {
+    indexes: [
+      {
+        fields: ['foo'],
+        using: 'gin',
+        operator: 'jsonb_path_ops',
+      },
+    ],
+    sequelize,
+    tableName: 'my_model',
+  },
+);
 
 /**
  * Tests for findCreateFind() type.
@@ -163,12 +164,15 @@ class UserModel extends Model<InferAttributes<UserModel>, InferCreationAttribute
   declare beta_user: CreationOptional<boolean>;
 }
 
-UserModel.init({
-  username: { type: DataTypes.STRING, allowNull: false },
-  beta_user: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
-}, {
-  sequelize,
-});
+UserModel.init(
+  {
+    username: { type: DataTypes.STRING, allowNull: false },
+    beta_user: { type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
+  },
+  {
+    sequelize,
+  },
+);
 
 UserModel.findCreateFind({
   where: {
@@ -281,12 +285,12 @@ interface MyModelAttributes {
 
 interface CreationAttributes extends SetOptional<MyModelAttributes, 'id'> {}
 
-const ModelWithAttributes: ModelDefined<
-  MyModelAttributes,
-  CreationAttributes
-> = sequelize.define('efs', {
-  name: DataTypes.STRING,
-});
+const ModelWithAttributes: ModelDefined<MyModelAttributes, CreationAttributes> = sequelize.define(
+  'efs',
+  {
+    name: DataTypes.STRING,
+  },
+);
 
 const modelWithAttributes = ModelWithAttributes.build();
 
@@ -302,7 +306,9 @@ expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<MyModel
 expectTypeOf(modelWithAttributes.previous).toBeFunction();
 expectTypeOf(modelWithAttributes.previous).toBeCallableWith('name');
 expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof MyModelAttributes>();
-expectTypeOf(modelWithAttributes.previous).parameter(0).not.toEqualTypeOf<'unreferencedAttribute'>();
+expectTypeOf(modelWithAttributes.previous)
+  .parameter(0)
+  .not.toEqualTypeOf<'unreferencedAttribute'>();
 expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();

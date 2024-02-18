@@ -5,7 +5,12 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const { beforeEach2, createSequelizeInstance, getSqliteDatabasePath, unlinkIfExists } = require('../../../support');
+const {
+  beforeEach2,
+  createSequelizeInstance,
+  getSqliteDatabasePath,
+  unlinkIfExists,
+} = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const dbFile = getSqliteDatabasePath('dao.sqlite');
@@ -52,7 +57,7 @@ describe('[SQLITE Specific] DAOFactory', () => {
       expect(user.bio).to.equal('noot noot');
 
       const users = await User.findAll();
-      const usernames = users.map(user => {
+      const usernames = users.map((user) => {
         return user.name;
       });
       expect(usernames).to.contain('John Wayne');

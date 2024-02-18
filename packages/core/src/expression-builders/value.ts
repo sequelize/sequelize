@@ -6,7 +6,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
  * in a template string tagged with {@link sql}.
  */
 export class Value extends BaseSqlExpression {
-  declare private readonly brand: 'value';
+  private declare readonly brand: 'value';
 
   constructor(readonly value: unknown) {
     super();

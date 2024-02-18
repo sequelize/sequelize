@@ -1,7 +1,11 @@
 'use strict';
 
 const { expect } = require('chai');
-const { sequelize, createMultiTransactionalTestSequelizeInstance, beforeEach2 } = require('../support');
+const {
+  sequelize,
+  createMultiTransactionalTestSequelizeInstance,
+  beforeEach2,
+} = require('../support');
 const { DataTypes, Op, col } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
@@ -74,11 +78,15 @@ describe('Model', () => {
     });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function () {
-      const User = this.customSequelize.define('user', {
-        name: DataTypes.STRING,
-      }, {
-        timestamps: true,
-      });
+      const User = this.customSequelize.define(
+        'user',
+        {
+          name: DataTypes.STRING,
+        },
+        {
+          timestamps: true,
+        },
+      );
 
       const createdAt = new Date(2012, 10, 10, 10, 10, 10);
       const updatedAt = new Date(2011, 11, 11, 11, 11, 11);
@@ -114,9 +122,7 @@ describe('Model', () => {
 
       await User.sync({ force: true });
 
-      await User.bulkCreate([
-        { name: 'James' },
-      ], { validate: true, individualHooks: true });
+      await User.bulkCreate([{ name: 'James' }], { validate: true, individualHooks: true });
     });
 
     it('should not map instance dataValues to fields with individualHooks: true', async function () {
@@ -137,10 +143,13 @@ describe('Model', () => {
 
       await User.sync({ force: true });
 
-      await User.bulkCreate([
-        { name: 'James', type: 'A' },
-        { name: 'Alan', type: 'Z' },
-      ], { individualHooks: true });
+      await User.bulkCreate(
+        [
+          { name: 'James', type: 'A' },
+          { name: 'Alan', type: 'Z' },
+        ],
+        { individualHooks: true },
+      );
     });
 
     it('should not insert NULL for unused fields', async function () {
@@ -151,42 +160,56 @@ describe('Model', () => {
 
       await Beer.sync({ force: true });
 
-      await Beer.bulkCreate([{
-        style: 'ipa',
-      }], {
-        logging(sql) {
-          switch (dialectName) {
-            case 'postgres':
-            case 'ibmi': {
-              expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
+      await Beer.bulkCreate(
+        [
+          {
+            style: 'ipa',
+          },
+        ],
+        {
+          logging(sql) {
+            switch (dialectName) {
+              case 'postgres':
+              case 'ibmi': {
+                expect(sql).to.include(
+                  'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
+                );
 
-              break;
+                break;
+              }
+
+              case 'db2': {
+                expect(sql).to.include(
+                  'INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES',
+                );
+
+                break;
+              }
+
+              case 'mssql': {
+                expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
+
+                break;
+              }
+
+              default: {
+                // mysql, sqlite
+                expect(sql).to.include(
+                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL',
+                );
+              }
             }
-
-            case 'db2': {
-              expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
-
-              break;
-            }
-
-            case 'mssql': {
-              expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
-
-              break;
-            }
-
-            default: { // mysql, sqlite
-              expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
-            }
-          }
+          },
         },
-      });
+      );
     });
 
     it('properly handles disparate field lists', async function () {
-      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
+      const data = [
+        { username: 'Peter', secretValue: '42', uniqueName: '1' },
         { username: 'Paul', uniqueName: '2' },
-        { username: 'Steve', uniqueName: '3' }];
+        { username: 'Steve', uniqueName: '3' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ where: { username: 'Paul' } });
@@ -196,8 +219,10 @@ describe('Model', () => {
     });
 
     it('inserts multiple values respecting the white list', async function () {
-      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data, { fields: ['username', 'uniqueName'] });
       const users = await this.User.findAll({ order: ['id'] });
@@ -209,8 +234,10 @@ describe('Model', () => {
     });
 
     it('should store all values if no whitelist is specified', async function () {
-      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
@@ -233,8 +260,10 @@ describe('Model', () => {
     });
 
     it('should set isNewRecord = false', async function () {
-      const data = [{ username: 'Peter', secretValue: '42', uniqueName: '1' },
-        { username: 'Paul', secretValue: '23', uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', secretValue: '42', uniqueName: '1' },
+        { username: 'Paul', secretValue: '23', uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
@@ -245,9 +274,11 @@ describe('Model', () => {
     });
 
     it('saves data with single quote', async function () {
-      const quote = 'Single\'Quote';
-      const data = [{ username: 'Peter', data: quote, uniqueName: '1' },
-        { username: 'Paul', data: quote, uniqueName: '2' }];
+      const quote = "Single'Quote";
+      const data = [
+        { username: 'Peter', data: quote, uniqueName: '1' },
+        { username: 'Paul', data: quote, uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
@@ -260,8 +291,10 @@ describe('Model', () => {
 
     it('saves data with double quote', async function () {
       const quote = 'Double"Quote';
-      const data = [{ username: 'Peter', data: quote, uniqueName: '1' },
-        { username: 'Paul', data: quote, uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', data: quote, uniqueName: '1' },
+        { username: 'Paul', data: quote, uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
@@ -274,8 +307,10 @@ describe('Model', () => {
 
     it('saves stringified JSON data', async function () {
       const json = JSON.stringify({ key: 'value' });
-      const data = [{ username: 'Peter', data: json, uniqueName: '1' },
-        { username: 'Paul', data: json, uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', data: json, uniqueName: '1' },
+        { username: 'Paul', data: json, uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
@@ -297,16 +332,24 @@ describe('Model', () => {
     });
 
     it('stores the current date in createdAt', async function () {
-      const data = [{ username: 'Peter', uniqueName: '1' },
-        { username: 'Paul', uniqueName: '2' }];
+      const data = [
+        { username: 'Peter', uniqueName: '1' },
+        { username: 'Paul', uniqueName: '2' },
+      ];
 
       await this.User.bulkCreate(data);
       const users = await this.User.findAll({ order: ['id'] });
       expect(users.length).to.equal(2);
       expect(users[0].username).to.equal('Peter');
-      expect(Number.parseInt(Number(users[0].createdAt) / 5000, 10)).to.be.closeTo(Number.parseInt(Date.now() / 5000, 10), 1.5);
+      expect(Number.parseInt(Number(users[0].createdAt) / 5000, 10)).to.be.closeTo(
+        Number.parseInt(Date.now() / 5000, 10),
+        1.5,
+      );
       expect(users[1].username).to.equal('Paul');
-      expect(Number.parseInt(Number(users[1].createdAt) / 5000, 10)).to.be.closeTo(Number.parseInt(Date.now() / 5000, 10), 1.5);
+      expect(Number.parseInt(Number(users[1].createdAt) / 5000, 10)).to.be.closeTo(
+        Number.parseInt(Date.now() / 5000, 10),
+        1.5,
+      );
     });
 
     it('emits an error when validate is set to true', async function () {
@@ -326,16 +369,16 @@ describe('Model', () => {
       await Tasks.sync({ force: true });
 
       try {
-        await Tasks.bulkCreate([
-          { name: 'foo', code: '123' },
-          { code: '1234' },
-          { name: 'bar', code: '1' },
-        ], { validate: true });
+        await Tasks.bulkCreate(
+          [{ name: 'foo', code: '123' }, { code: '1234' }, { name: 'bar', code: '1' }],
+          { validate: true },
+        );
       } catch (error) {
         const expectedValidationError = 'Validation len on code failed';
         const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
-        expect(error.toString()).to.include(expectedValidationError)
+        expect(error.toString())
+          .to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
         const { errors } = error;
         expect(errors).to.have.length(2);
@@ -351,7 +394,7 @@ describe('Model', () => {
       }
     });
 
-    it('doesn\'t emit an error when validate is set to true but our selectedValues are fine', async function () {
+    it("doesn't emit an error when validate is set to true but our selectedValues are fine", async function () {
       const Tasks = this.customSequelize.define('Task', {
         name: {
           type: DataTypes.STRING,
@@ -369,10 +412,10 @@ describe('Model', () => {
 
       await Tasks.sync({ force: true });
 
-      await Tasks.bulkCreate([
-        { name: 'foo', code: '123' },
-        { code: '1234' },
-      ], { fields: ['code'], validate: true });
+      await Tasks.bulkCreate([{ name: 'foo', code: '123' }, { code: '1234' }], {
+        fields: ['code'],
+        validate: true,
+      });
     });
 
     it('should allow blank arrays (return immediately)', async function () {
@@ -394,10 +437,7 @@ describe('Model', () => {
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
 
-      await Worker.bulkCreate([
-        { id: 5 },
-        { id: 10 },
-      ]);
+      await Worker.bulkCreate([{ id: 5 }, { id: 10 }]);
 
       const workers = await Worker.findAll({ order: [['id', 'ASC']] });
       expect(workers[0].id).to.equal(5);
@@ -406,13 +446,17 @@ describe('Model', () => {
 
     if (dialect.supports.schemas) {
       it('should support schemas', async function () {
-        const Dummy = this.customSequelize.define('Dummy', {
-          foo: DataTypes.STRING,
-          bar: DataTypes.STRING,
-        }, {
-          schema: 'space1',
-          tableName: 'Dummy',
-        });
+        const Dummy = this.customSequelize.define(
+          'Dummy',
+          {
+            foo: DataTypes.STRING,
+            bar: DataTypes.STRING,
+          },
+          {
+            schema: 'space1',
+            tableName: 'Dummy',
+          },
+        );
 
         await this.customSequelize.createSchema('space1');
         await Dummy.sync({ force: true });
@@ -424,8 +468,7 @@ describe('Model', () => {
       });
     }
 
-    if (dialect.supports.inserts.ignoreDuplicates
-        || dialect.supports.inserts.onConflictDoNothing) {
+    if (dialect.supports.inserts.ignoreDuplicates || dialect.supports.inserts.onConflictDoNothing) {
       it('should support the ignoreDuplicates option', async function () {
         const data = [
           { uniqueName: 'Peter', secretValue: '42' },
@@ -435,7 +478,10 @@ describe('Model', () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-        await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
+        await this.User.bulkCreate(data, {
+          fields: ['uniqueName', 'secretValue'],
+          ignoreDuplicates: true,
+        });
         const users = await this.User.findAll({ order: ['id'] });
         expect(users.length).to.equal(3);
         expect(users[0].uniqueName).to.equal('Peter');
@@ -456,9 +502,14 @@ describe('Model', () => {
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
         try {
-          await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true });
+          await this.User.bulkCreate(data, {
+            fields: ['uniqueName', 'secretValue'],
+            ignoreDuplicates: true,
+          });
         } catch (error) {
-          expect(error.message).to.equal(`${dialectName} does not support the ignoreDuplicates option.`);
+          expect(error.message).to.equal(
+            `${dialectName} does not support the ignoreDuplicates option.`,
+          );
         }
       });
     }
@@ -471,13 +522,19 @@ describe('Model', () => {
             { uniqueName: 'Paul', secretValue: '23' },
           ];
 
-          await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] });
+          await this.User.bulkCreate(data, {
+            fields: ['uniqueName', 'secretValue'],
+            updateOnDuplicate: ['secretValue'],
+          });
           const new_data = [
             { uniqueName: 'Peter', secretValue: '43' },
             { uniqueName: 'Paul', secretValue: '24' },
             { uniqueName: 'Michael', secretValue: '26' },
           ];
-          await this.User.bulkCreate(new_data, { fields: ['uniqueName', 'secretValue'], updateOnDuplicate: ['secretValue'] });
+          await this.User.bulkCreate(new_data, {
+            fields: ['uniqueName', 'secretValue'],
+            updateOnDuplicate: ['secretValue'],
+          });
           const users = await this.User.findAll({ order: ['id'] });
           expect(users.length).to.equal(3);
           expect(users[0].uniqueName).to.equal('Peter');
@@ -495,13 +552,19 @@ describe('Model', () => {
               { no: 2, name: 'Paul' },
             ];
 
-            await this.Student.bulkCreate(data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] });
+            await this.Student.bulkCreate(data, {
+              fields: ['no', 'name'],
+              updateOnDuplicate: ['name'],
+            });
             const new_data = [
               { no: 1, name: 'Peterson' },
               { no: 2, name: 'Paulson' },
               { no: 3, name: 'Michael' },
             ];
-            await this.Student.bulkCreate(new_data, { fields: ['no', 'name'], updateOnDuplicate: ['name'] });
+            await this.Student.bulkCreate(new_data, {
+              fields: ['no', 'name'],
+              updateOnDuplicate: ['name'],
+            });
             const students = await this.Student.findAll({ order: ['no'] });
             expect(students.length).to.equal(3);
             expect(students[0].name).to.equal('Peterson');
@@ -518,13 +581,19 @@ describe('Model', () => {
               { plateNumber: 'def', color: 'White' },
             ];
 
-            await this.Car.bulkCreate(data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] });
+            await this.Car.bulkCreate(data, {
+              fields: ['plateNumber', 'color'],
+              updateOnDuplicate: ['color'],
+            });
             const new_data = [
               { plateNumber: 'abc', color: 'Red' },
               { plateNumber: 'def', color: 'Green' },
               { plateNumber: 'ghi', color: 'Blue' },
             ];
-            await this.Car.bulkCreate(new_data, { fields: ['plateNumber', 'color'], updateOnDuplicate: ['color'] });
+            await this.Car.bulkCreate(new_data, {
+              fields: ['plateNumber', 'color'],
+              updateOnDuplicate: ['color'],
+            });
             const cars = await this.Car.findAll({ order: ['plateNumber'] });
             expect(cars.length).to.equal(3);
             expect(cars[0].plateNumber).to.equal('abc');
@@ -536,25 +605,27 @@ describe('Model', () => {
           });
 
           it('when the primary key column names and model field names are different and have unique constraints', async function () {
-            const Person = this.customSequelize.define('Person', {
-              emailAddress: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                primaryKey: true,
-                unique: true,
-                field: 'email_address',
+            const Person = this.customSequelize.define(
+              'Person',
+              {
+                emailAddress: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  primaryKey: true,
+                  unique: true,
+                  field: 'email_address',
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name',
+                },
               },
-              name: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                field: 'name',
-              },
-            }, {});
+              {},
+            );
 
             await Person.sync({ force: true });
-            const inserts = [
-              { emailAddress: 'a@example.com', name: 'Alice' },
-            ];
+            const inserts = [{ emailAddress: 'a@example.com', name: 'Alice' }];
             const people0 = await Person.bulkCreate(inserts);
             expect(people0.length).to.equal(1);
             expect(people0[0].emailAddress).to.equal('a@example.com');
@@ -565,7 +636,9 @@ describe('Model', () => {
               { emailAddress: 'b@example.com', name: 'Bob' },
             ];
 
-            const people = await Person.bulkCreate(updates, { updateOnDuplicate: ['emailAddress', 'name'] });
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['emailAddress', 'name'],
+            });
             expect(people.length).to.equal(2);
             expect(people[0].emailAddress).to.equal('a@example.com');
             expect(people[0].name).to.equal('CHANGED NAME');
@@ -574,30 +647,32 @@ describe('Model', () => {
           });
 
           it('when the composite primary key column names and model field names are different', async function () {
-            const Person = this.customSequelize.define('Person', {
-              systemId: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                primaryKey: true,
-                field: 'system_id',
+            const Person = this.customSequelize.define(
+              'Person',
+              {
+                systemId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  field: 'system_id',
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  primaryKey: true,
+                  field: 'system',
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name',
+                },
               },
-              system: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                primaryKey: true,
-                field: 'system',
-              },
-              name: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                field: 'name',
-              },
-            }, {});
+              {},
+            );
 
             await Person.sync({ force: true });
-            const inserts = [
-              { systemId: 1, system: 'system1', name: 'Alice' },
-            ];
+            const inserts = [{ systemId: 1, system: 'system1', name: 'Alice' }];
             const people0 = await Person.bulkCreate(inserts);
             expect(people0.length).to.equal(1);
             expect(people0[0].systemId).to.equal(1);
@@ -609,7 +684,9 @@ describe('Model', () => {
               { systemId: 1, system: 'system2', name: 'Bob' },
             ];
 
-            const people = await Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['systemId', 'system', 'name'],
+            });
             expect(people.length).to.equal(2);
             expect(people[0].systemId).to.equal(1);
             expect(people[0].system).to.equal('system1');
@@ -620,36 +697,38 @@ describe('Model', () => {
           });
 
           it('when the primary key column names and model field names are different and have composite unique constraints', async function () {
-            const Person = this.customSequelize.define('Person', {
-              id: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                primaryKey: true,
-                field: 'id',
+            const Person = this.customSequelize.define(
+              'Person',
+              {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  primaryKey: true,
+                  field: 'id',
+                },
+                systemId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  unique: 'system_id_system_unique',
+                  field: 'system_id',
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  unique: 'system_id_system_unique',
+                  field: 'system',
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name',
+                },
               },
-              systemId: {
-                type: DataTypes.INTEGER,
-                allowNull: false,
-                unique: 'system_id_system_unique',
-                field: 'system_id',
-              },
-              system: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                unique: 'system_id_system_unique',
-                field: 'system',
-              },
-              name: {
-                type: DataTypes.STRING,
-                allowNull: false,
-                field: 'name',
-              },
-            }, {});
+              {},
+            );
 
             await Person.sync({ force: true });
-            const inserts = [
-              { id: 1, systemId: 1, system: 'system1', name: 'Alice' },
-            ];
+            const inserts = [{ id: 1, systemId: 1, system: 'system1', name: 'Alice' }];
             const people0 = await Person.bulkCreate(inserts);
             expect(people0.length).to.equal(1);
             expect(people0[0].systemId).to.equal(1);
@@ -661,7 +740,9 @@ describe('Model', () => {
               { id: 2, systemId: 1, system: 'system2', name: 'Bob' },
             ];
 
-            const people = await Person.bulkCreate(updates, { updateOnDuplicate: ['systemId', 'system', 'name'] });
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['systemId', 'system', 'name'],
+            });
             expect(people.length).to.equal(2);
             expect(people[0].systemId).to.equal(1);
             expect(people[0].system).to.equal('system1');
@@ -740,9 +821,9 @@ describe('Model', () => {
             { uniqueName: 'Paul', secretValue: '23' },
           ];
 
-          await expect(
-            this.User.bulkCreate(data, { updateOnDuplicate: true }),
-          ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
+          await expect(this.User.bulkCreate(data, { updateOnDuplicate: true })).to.be.rejectedWith(
+            'updateOnDuplicate option only supports non-empty array.',
+          );
         });
 
         it('should reject for empty array updateOnDuplicate option', async function () {
@@ -751,9 +832,9 @@ describe('Model', () => {
             { uniqueName: 'Paul', secretValue: '23' },
           ];
 
-          await expect(
-            this.User.bulkCreate(data, { updateOnDuplicate: [] }),
-          ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
+          await expect(this.User.bulkCreate(data, { updateOnDuplicate: [] })).to.be.rejectedWith(
+            'updateOnDuplicate option only supports non-empty array.',
+          );
         });
 
         if (dialect.supports.inserts.conflictFields) {
@@ -781,13 +862,9 @@ describe('Model', () => {
 
             // We don't want to create this index with the table, since we don't want our sequelize instance
             // to know it exists.  This prevents it from being inferred.
-            await this.customSequelize.queryInterface.addIndex(
-              'permissions',
-              ['user_id'],
-              {
-                unique: true,
-              },
-            );
+            await this.customSequelize.queryInterface.addIndex('permissions', ['user_id'], {
+              unique: true,
+            });
 
             const initialPermissions = [
               {
@@ -892,16 +969,15 @@ describe('Model', () => {
             it('should insert items with conflictWhere', async () => {
               const { Memberships } = vars;
 
-              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                user_id: i + 1,
-                foreign_id: i + 20,
-                time_deleted: null,
-              }));
+              const memberships = Array.from({ length: 10 })
+                .fill()
+                .map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: null,
+                }));
 
-              const results = await Memberships.bulkCreate(
-                memberships,
-                options,
-              );
+              const results = await Memberships.bulkCreate(memberships, options);
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
@@ -913,11 +989,13 @@ describe('Model', () => {
             it('should not conflict with soft deleted memberships', async () => {
               const { Memberships } = vars;
 
-              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                user_id: i + 1,
-                foreign_id: i + 20,
-                time_deleted: new Date(),
-              }));
+              const memberships = Array.from({ length: 10 })
+                .fill()
+                .map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: new Date(),
+                }));
 
               let results = await Memberships.bulkCreate(memberships, options);
 
@@ -928,7 +1006,7 @@ describe('Model', () => {
               }
 
               results = await Memberships.bulkCreate(
-                memberships.map(membership => ({
+                memberships.map((membership) => ({
                   ...membership,
                   time_deleted: null,
                 })),
@@ -949,11 +1027,13 @@ describe('Model', () => {
             it('should upsert existing memberships', async () => {
               const { Memberships } = vars;
 
-              const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                user_id: i + 1,
-                foreign_id: i + 20,
-                time_deleted: i % 2 ? new Date() : null,
-              }));
+              const memberships = Array.from({ length: 10 })
+                .fill()
+                .map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: i % 2 ? new Date() : null,
+                }));
 
               let results = await Memberships.bulkCreate(memberships, options);
 
@@ -972,7 +1052,7 @@ describe('Model', () => {
               }
 
               results = await Memberships.bulkCreate(
-                memberships.map(membership => ({
+                memberships.map((membership) => ({
                   ...membership,
                   time_deleted: null,
                 })),
@@ -1031,16 +1111,15 @@ describe('Model', () => {
               it('should insert items with conflictWhere', async () => {
                 const { Memberships } = vars;
 
-                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                  user_id: i + 1,
-                  foreign_id: i + 20,
-                  time_deleted: null,
-                }));
+                const memberships = Array.from({ length: 10 })
+                  .fill()
+                  .map((_, i) => ({
+                    user_id: i + 1,
+                    foreign_id: i + 20,
+                    time_deleted: null,
+                  }));
 
-                const results = await Memberships.bulkCreate(
-                  memberships,
-                  options,
-                );
+                const results = await Memberships.bulkCreate(memberships, options);
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
@@ -1052,11 +1131,13 @@ describe('Model', () => {
               it('should not conflict with soft deleted memberships', async () => {
                 const { Memberships } = vars;
 
-                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                  user_id: i + 1,
-                  foreign_id: i + 20,
-                  time_deleted: new Date(),
-                }));
+                const memberships = Array.from({ length: 10 })
+                  .fill()
+                  .map((_, i) => ({
+                    user_id: i + 1,
+                    foreign_id: i + 20,
+                    time_deleted: new Date(),
+                  }));
 
                 let results = await Memberships.bulkCreate(memberships, options);
 
@@ -1067,7 +1148,7 @@ describe('Model', () => {
                 }
 
                 results = await Memberships.bulkCreate(
-                  memberships.map(membership => ({
+                  memberships.map((membership) => ({
                     ...membership,
                     time_deleted: null,
                   })),
@@ -1088,11 +1169,13 @@ describe('Model', () => {
               it('should upsert existing memberships', async () => {
                 const { Memberships } = vars;
 
-                const memberships = Array.from({ length: 10 }).fill().map((_, i) => ({
-                  user_id: i + 1,
-                  foreign_id: i + 20,
-                  time_deleted: i % 2 ? new Date() : null,
-                }));
+                const memberships = Array.from({ length: 10 })
+                  .fill()
+                  .map((_, i) => ({
+                    user_id: i + 1,
+                    foreign_id: i + 20,
+                    time_deleted: i % 2 ? new Date() : null,
+                  }));
 
                 let results = await Memberships.bulkCreate(memberships, options);
 
@@ -1111,7 +1194,7 @@ describe('Model', () => {
                 }
 
                 results = await Memberships.bulkCreate(
-                  memberships.map(membership => ({
+                  memberships.map((membership) => ({
                     ...membership,
                     time_deleted: null,
                   })),
@@ -1139,14 +1222,9 @@ describe('Model', () => {
         it('should make the auto incremented values available on the returned instances', async function () {
           const User = this.customSequelize.define('user', {});
 
-          await User
-            .sync({ force: true });
+          await User.sync({ force: true });
 
-          const users0 = await User.bulkCreate([
-            {},
-            {},
-            {},
-          ], {
+          const users0 = await User.bulkCreate([{}, {}, {}], {
             returning: true,
           });
 
@@ -1155,7 +1233,8 @@ describe('Model', () => {
           expect(users.length).to.eql(actualUsers.length);
           for (const [i, user] of users.entries()) {
             expect(user.get('id')).to.be.ok;
-            expect(user.get('id')).to.equal(actualUsers[i].get('id'))
+            expect(user.get('id'))
+              .to.equal(actualUsers[i].get('id'))
               .and.to.equal(i + 1);
           }
         });
@@ -1170,14 +1249,9 @@ describe('Model', () => {
             },
           });
 
-          await User
-            .sync({ force: true });
+          await User.sync({ force: true });
 
-          const users0 = await User.bulkCreate([
-            {},
-            {},
-            {},
-          ], {
+          const users0 = await User.bulkCreate([{}, {}, {}], {
             returning: true,
           });
 
@@ -1186,7 +1260,8 @@ describe('Model', () => {
           expect(users.length).to.eql(actualUsers.length);
           for (const [i, user] of users.entries()) {
             expect(user.get('maId')).to.be.ok;
-            expect(user.get('maId')).to.equal(actualUsers[i].get('maId'))
+            expect(user.get('maId'))
+              .to.equal(actualUsers[i].get('maId'))
               .and.to.equal(i + 1);
           }
         });
@@ -1194,16 +1269,15 @@ describe('Model', () => {
         it('should only return fields that are not defined in the model (with returning: true)', async function () {
           const User = this.customSequelize.define('user');
 
-          await User
-            .sync({ force: true });
+          await User.sync({ force: true });
 
-          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn(
+            'users',
+            'not_on_model',
+            DataTypes.STRING,
+          );
 
-          const users0 = await User.bulkCreate([
-            {},
-            {},
-            {},
-          ], {
+          const users0 = await User.bulkCreate([{}, {}, {}], {
             returning: true,
           });
 
@@ -1218,16 +1292,15 @@ describe('Model', () => {
         it('should return fields that are not defined in the model (with returning: ["*"])', async function () {
           const User = this.customSequelize.define('user');
 
-          await User
-            .sync({ force: true });
+          await User.sync({ force: true });
 
-          await this.customSequelize.queryInterface.addColumn('users', 'not_on_model', DataTypes.STRING);
+          await this.customSequelize.queryInterface.addColumn(
+            'users',
+            'not_on_model',
+            DataTypes.STRING,
+          );
 
-          const users0 = await User.bulkCreate([
-            {},
-            {},
-            {},
-          ], {
+          const users0 = await User.bulkCreate([{}, {}, {}], {
             returning: [col('*')],
           });
 
@@ -1249,7 +1322,10 @@ describe('Model', () => {
         });
 
         await Item.sync({ force: true });
-        await Item.bulkCreate([{ state: 'in_cart', name: 'A' }, { state: 'available', name: 'B' }]);
+        await Item.bulkCreate([
+          { state: 'in_cart', name: 'A' },
+          { state: 'available', name: 'B' },
+        ]);
         const item = await Item.findOne({ where: { state: 'available' } });
         expect(item.name).to.equal('B');
       });
@@ -1311,14 +1387,11 @@ describe('Model', () => {
       it('should return supplied values on primary keys', async function () {
         const User = this.customSequelize.define('user', {});
 
-        await User
-          .sync({ force: true });
+        await User.sync({ force: true });
 
-        const users0 = await User.bulkCreate([
-          { id: 1 },
-          { id: 2 },
-          { id: 3 },
-        ], { returning: true });
+        const users0 = await User.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }], {
+          returning: true,
+        });
 
         const actualUsers0 = await User.findAll({ order: [['id', 'ASC']] });
         const [users, actualUsers] = [users0, actualUsers0];
@@ -1332,19 +1405,11 @@ describe('Model', () => {
       it('should return supplied values on primary keys when some instances already exists', async function () {
         const User = this.customSequelize.define('user', {});
 
-        await User
-          .sync({ force: true });
+        await User.sync({ force: true });
 
-        await User.bulkCreate([
-          { id: 1 },
-          { id: 3 },
-        ]);
+        await User.bulkCreate([{ id: 1 }, { id: 3 }]);
 
-        const users = await User.bulkCreate([
-          { id: 2 },
-          { id: 4 },
-          { id: 5 },
-        ], { returning: true });
+        const users = await User.bulkCreate([{ id: 2 }, { id: 4 }, { id: 5 }], { returning: true });
 
         expect(users.length).to.eql(3);
 
@@ -1370,12 +1435,9 @@ describe('Model', () => {
 
       it('should validate', async function () {
         try {
-          await this.User
-            .sync({ force: true });
+          await this.User.sync({ force: true });
 
-          await this.User.bulkCreate([
-            { password: 'password' },
-          ], { validate: true });
+          await this.User.bulkCreate([{ password: 'password' }], { validate: true });
 
           expect.fail();
         } catch (error) {
@@ -1385,18 +1447,13 @@ describe('Model', () => {
       });
 
       it('should not validate', async function () {
-        await this.User
-          .sync({ force: true });
+        await this.User.sync({ force: true });
 
-        const users0 = await this.User.bulkCreate([
-          { password: 'password' },
-        ], { validate: false });
+        const users0 = await this.User.bulkCreate([{ password: 'password' }], { validate: false });
 
         expect(users0.length).to.equal(1);
 
-        const users = await this.User.bulkCreate([
-          { password: 'password' },
-        ]);
+        const users = await this.User.bulkCreate([{ password: 'password' }]);
 
         expect(users.length).to.equal(1);
       });

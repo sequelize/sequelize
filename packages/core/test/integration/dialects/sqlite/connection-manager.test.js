@@ -31,7 +31,7 @@ if (dialect === 'sqlite') {
       await sequelize.query('PRAGMA journal_mode = WAL');
       await User.create({ username: 'user1' });
 
-      await sequelize.transaction(transaction => {
+      await sequelize.transaction((transaction) => {
         return User.create({ username: 'user2' }, { transaction });
       });
 
@@ -57,9 +57,10 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', async () => {
-      const sequelize = await Support.createSingleTestSequelizeInstance({ storage: nestedFileName });
-      await sequelize.define('User', { username: DataTypes.STRING })
-        .sync({ force: true });
+      const sequelize = await Support.createSingleTestSequelizeInstance({
+        storage: nestedFileName,
+      });
+      await sequelize.define('User', { username: DataTypes.STRING }).sync({ force: true });
 
       expect(jetpack.exists(nestedFileName)).to.equal('file');
 

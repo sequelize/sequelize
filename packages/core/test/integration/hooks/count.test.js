@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeCount hook can change options', async function () {
-        this.User.beforeCount(options => {
+        this.User.beforeCount((options) => {
           options.where.username = 'adam';
         });
 
@@ -61,5 +61,4 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
-
 });

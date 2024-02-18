@@ -12,11 +12,15 @@ describe('PostgresQueryGenerator', () => {
   }
 
   const vars = beforeAll2(() => {
-    const FooUser = sequelize.define('user', {
-      mood: DataTypes.ENUM('happy', 'sad'),
-    }, {
-      schema: 'foo',
-    });
+    const FooUser = sequelize.define(
+      'user',
+      {
+        mood: DataTypes.ENUM('happy', 'sad'),
+      },
+      {
+        schema: 'foo',
+      },
+    );
 
     const PublicUser = sequelize.define('user', {
       mood: {
@@ -32,19 +36,23 @@ describe('PostgresQueryGenerator', () => {
     it('does not add schema when options: { schema: false }', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(sql.pgEnumName(PublicUser.table, 'mood', { schema: false }))
-        .to.equal('"enum_users_mood"');
-      expect(sql.pgEnumName(FooUser.table, 'theirMood', { schema: false }))
-        .to.equal('"enum_users_theirMood"');
+      expect(sql.pgEnumName(PublicUser.table, 'mood', { schema: false })).to.equal(
+        '"enum_users_mood"',
+      );
+      expect(sql.pgEnumName(FooUser.table, 'theirMood', { schema: false })).to.equal(
+        '"enum_users_theirMood"',
+      );
     });
 
     it('properly quotes both the schema and the enum name', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(sql.pgEnumName(PublicUser.table, 'mood', PublicUser.getAttributes().mood.type))
-        .to.equal('"public"."enum_users_mood"');
-      expect(sql.pgEnumName(FooUser.table, 'theirMood', FooUser.getAttributes().mood.type))
-        .to.equal('"foo"."enum_users_theirMood"');
+      expect(
+        sql.pgEnumName(PublicUser.table, 'mood', PublicUser.getAttributes().mood.type),
+      ).to.equal('"public"."enum_users_mood"');
+      expect(
+        sql.pgEnumName(FooUser.table, 'theirMood', FooUser.getAttributes().mood.type),
+      ).to.equal('"foo"."enum_users_theirMood"');
     });
   });
 
@@ -71,7 +79,8 @@ describe('PostgresQueryGenerator', () => {
       const { PublicUser } = vars;
 
       expectsql(sql.pgEnumAdd(PublicUser.table, 'mood', 'neutral', { after: 'happy' }), {
-        postgres: 'ALTER TYPE "public"."enum_users_mood" ADD VALUE IF NOT EXISTS \'neutral\' AFTER \'happy\'',
+        postgres:
+          'ALTER TYPE "public"."enum_users_mood" ADD VALUE IF NOT EXISTS \'neutral\' AFTER \'happy\'',
       });
     });
   });
@@ -115,4 +124,3 @@ describe('PostgresQueryGenerator', () => {
     });
   });
 });
-

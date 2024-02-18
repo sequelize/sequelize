@@ -7,8 +7,8 @@ describe('sequelize.withConnection', () => {
     it('returns the connection', async () => {
       const sequelize = createSingleTestSequelizeInstance();
 
-      await sequelize.withConnection(async connection1 => {
-        await sequelize.withConnection(async connection2 => {
+      await sequelize.withConnection(async (connection1) => {
+        await sequelize.withConnection(async (connection2) => {
           expect(connection1).to.eq(connection2);
         });
       });

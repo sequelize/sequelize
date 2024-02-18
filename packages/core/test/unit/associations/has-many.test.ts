@@ -1,9 +1,9 @@
+import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
+import { DataTypes, Model, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
-import { DataTypes, Model, Op } from '@sequelize/core';
 import { beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasMany'), () => {
@@ -13,7 +13,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.hasMany();
-    }).to.throw(`User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('forbids alias inference in self-associations', () => {
@@ -21,7 +23,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
     expect(() => {
       User.hasMany(User);
-    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different');
+    }).to.throwWithCause(
+      'Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different',
+    );
   });
 
   it('allows self-associations with explicit alias', () => {
@@ -112,7 +116,8 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const { user, task1, task2 } = vars;
 
       findAll
-        .onFirstCall().resolves([])
+        .onFirstCall()
+        .resolves([])
         .onSecondCall()
         .resolves([
           { userId: 42, taskId: 15 },
@@ -191,9 +196,12 @@ describe(getTestDialectTeaser('hasMany'), () => {
         declare hasTasks: boolean | null;
       }
 
-      Project.init({
-        hasTasks: DataTypes.BOOLEAN,
-      }, { sequelize });
+      Project.init(
+        {
+          hasTasks: DataTypes.BOOLEAN,
+        },
+        { sequelize },
+      );
 
       Project.hasMany(Task);
 
@@ -211,12 +219,15 @@ describe(getTestDialectTeaser('hasMany'), () => {
         declare user_id: ForeignKey<string | null>;
       }
 
-      User.init({
-        id: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      User.init(
+        {
+          id: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
       Task.init({}, { sequelize });
 
       return { Task, User };
@@ -230,10 +241,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     it('should fetch associations for a single instance', async () => {
       const { Task, User } = getModels();
 
-      const findAll = sinon.stub(Task, 'findAll').resolves([
-        Task.build({}),
-        Task.build({}),
-      ]);
+      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({}), Task.build({})]);
 
       const UserTasks = User.hasMany(Task, { foreignKey });
       const actual = UserTasks.get(User.build({ id: idA }));
@@ -365,7 +373,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');

@@ -6,7 +6,10 @@ import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
@@ -61,10 +64,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           if (dataType.includes('REFERENCES')) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
+            attributesClauseParts.push(
+              `${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`,
+            );
             foreignKeys[attr] = match[2];
           } else {
-            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+            attributesClauseParts.push(
+              `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
+            );
           }
         } else if (dataType.includes('REFERENCES')) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
@@ -77,7 +84,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
     }
 
-    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -85,11 +92,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           indexName = generateIndexName(tableName, columns);
         }
 
-        attributesClauseParts.push(`CONSTRAINT ${
-          this.quoteIdentifier(indexName)
-        } UNIQUE (${
-          columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-        })`);
+        attributesClauseParts.push(
+          `CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields
+            .map((field) => this.quoteIdentifier(field))
+            .join(', ')})`,
+        );
       });
     }
 
@@ -99,7 +106,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     for (const fkey in foreignKeys) {
       if (Object.hasOwn(foreignKeys, fkey)) {
-        attributesClauseParts.push(`FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`);
+        attributesClauseParts.push(
+          `FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`,
+        );
       }
     }
 
@@ -178,7 +187,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       if (definition.includes('REFERENCES')) {
-        constraintString.push(`FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`);
+        constraintString.push(
+          `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`,
+        );
       } else {
         attrString.push(`${quotedAttrName} ${definition}`);
       }
@@ -201,15 +212,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       'EXEC sp_rename',
       `'${this.quoteTable(tableName)}.${attrBefore}',`,
       `'${newName}',`,
-      '\'COLUMN\'',
+      "'COLUMN'",
       ';',
     ]);
   }
 
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
     const quotedTable = this.quoteTable(tableName);
-    options = options || {};
-    attributes = attributes || {};
+    options ||= {};
+    attributes ||= {};
 
     const tuples = [];
     const allAttributes = [];
@@ -230,7 +241,12 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // special case for empty objects with primary keys
       const fields = Object.keys(attrValueHash);
       const firstAttr = attributes[fields[0]];
-      if (fields.length === 1 && firstAttr && firstAttr.autoIncrement && attrValueHash[fields[0]] === null) {
+      if (
+        fields.length === 1 &&
+        firstAttr &&
+        firstAttr.autoIncrement &&
+        attrValueHash[fields[0]] === null
+      ) {
         allQueries.push(emptyQuery);
         continue;
       }
@@ -253,20 +269,25 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (allAttributes.length > 0) {
       for (const attrValueHash of attrValueHashes) {
-        tuples.push(`(${
-          allAttributes.map(key => {
-            // TODO: bindParam
-            // TODO: pass "model"
-            return this.escape(attrValueHash[key] ?? null, {
-              type: attributes[key]?.type,
-              replacements: options.replacements,
-            });
-          }).join(',')
-        })`);
+        tuples.push(
+          `(${allAttributes
+            .map((key) => {
+              // TODO: bindParam
+              // TODO: pass "model"
+              return this.escape(attrValueHash[key] ?? null, {
+                type: attributes[key]?.type,
+                replacements: options.replacements,
+              });
+            })
+            .join(',')})`,
+        );
       }
 
-      const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`);
+      const quotedAttributes = allAttributes.map((attr) => this.quoteIdentifier(attr)).join(',');
+      allQueries.push(
+        (tupleStr) =>
+          `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`,
+      );
     }
 
     const commands = [];
@@ -275,7 +296,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // SQL Server can insert a maximum of 1000 rows at a time,
       // This splits the insert in multiple statements to respect that limit
       const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
-      let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
+      let generatedQuery = allQueries
+        .map((v) => (typeof v === 'string' ? v : v(tupleStr)))
+        .join(';');
       if (needIdentityInsertWrapper) {
         generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
       }
@@ -335,11 +358,13 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
-    const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => {
-      // TODO: pass "model", "type" and "bindParam" options
-      return this.escape(insertValues[key], options);
-    }).join(', ');
+    const insertKeysQuoted = insertKeys.map((key) => this.quoteIdentifier(key)).join(', ');
+    const insertValuesEscaped = insertKeys
+      .map((key) => {
+        // TODO: pass "model", "type" and "bindParam" options
+        return this.escape(insertValues[key], options);
+      })
+      .join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -355,7 +380,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Filter NULL Clauses
-    const clauses = where[Op.or].filter(clause => {
+    const clauses = where[Op.or].filter((clause) => {
       let valid = true;
       /*
        * Exclude NULL Composite PK/UK. Partial Composite clauses should also be excluded as it doesn't guarantee a single row
@@ -374,8 +399,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
      * Generate ON condition using PK(s).
      * If not, generate using UK(s). Else throw error
      */
-    const getJoinSnippet = array => {
-      return array.map(key => {
+    const getJoinSnippet = (array) => {
+      return array.map((key) => {
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${sourceTableAlias}.${key}`;
@@ -402,14 +427,18 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Remove the IDENTITY_INSERT Column from update
-    const filteredUpdateClauses = updateKeys.filter(key => !identityColumns.includes(key))
-      .map(key => {
+    const filteredUpdateClauses = updateKeys
+      .filter((key) => !identityColumns.includes(key))
+      .map((key) => {
         const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${value}`;
       });
-    const updateSnippet = filteredUpdateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${filteredUpdateClauses.join(', ')}` : '';
+    const updateSnippet =
+      filteredUpdateClauses.length > 0
+        ? `WHEN MATCHED THEN UPDATE SET ${filteredUpdateClauses.join(', ')}`
+        : '';
 
     const insertSnippet = `(${insertKeysQuoted}) VALUES(${insertValuesEscaped})`;
 
@@ -430,9 +459,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // handle self-referential constraints
-    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.table)) {
-      this.sequelize.log('MSSQL does not support self-referential constraints, '
-          + 'we will remove it but we recommend restructuring your query');
+    if (
+      attribute.references &&
+      attribute.Model &&
+      this.isSameTable(attribute.Model.tableName, attribute.references.table)
+    ) {
+      this.sequelize.log(
+        'MSSQL does not support self-referential constraints, ' +
+          'we will remove it but we recommend restructuring your query',
+      );
       attribute.onDelete = '';
       attribute.onUpdate = '';
     }
@@ -442,9 +477,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
-        return this.escape(value, options);
-      }).join(', ')}))`;
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
+        .map((value) => {
+          return this.escape(value, options);
+        })
+        .join(', ')}))`;
 
       return template;
     }
@@ -453,7 +490,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    } else if (
+      !attribute.primaryKey &&
+      !defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ' NULL';
     }
 
@@ -462,12 +502,18 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Blobs/texts cannot have a defaultValue
-    if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    if (
+      attribute.type !== 'TEXT' &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
+    if (
+      attribute.unique === true &&
+      (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+    ) {
       template += ' UNIQUE';
     }
 

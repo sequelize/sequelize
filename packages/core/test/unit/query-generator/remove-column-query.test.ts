@@ -51,17 +51,28 @@ describe('QueryGenerator#removeColumnQuery', () => {
   });
 
   it('generates a query that drops a column with schema', () => {
-    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'), {
-      default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
-      sqlite: notSupportedError,
-    });
+    expectsql(
+      () =>
+        queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema' }, 'myColumn'),
+      {
+        default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
+        sqlite: notSupportedError,
+      },
+    );
   });
 
   it('generates a query that drops a column with default schema', () => {
-    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }, 'myColumn'), {
-      default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
-      sqlite: notSupportedError,
-    });
+    expectsql(
+      () =>
+        queryGenerator.removeColumnQuery(
+          { tableName: 'myTable', schema: dialect.getDefaultSchema() },
+          'myColumn',
+        ),
+      {
+        default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
+        sqlite: notSupportedError,
+      },
+    );
   });
 
   it('generates a query that drops a column from a table and globally set schema', () => {
@@ -80,8 +91,15 @@ describe('QueryGenerator#removeColumnQuery', () => {
       return;
     }
 
-    expectsql(() => queryGenerator.removeColumnQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }, 'myColumn'), {
-      sqlite: notSupportedError,
-    });
+    expectsql(
+      () =>
+        queryGenerator.removeColumnQuery(
+          { tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' },
+          'myColumn',
+        ),
+      {
+        sqlite: notSupportedError,
+      },
+    );
   });
 });

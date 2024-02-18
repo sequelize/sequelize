@@ -1,6 +1,6 @@
-import NodeUtil from 'node:util';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
+import NodeUtil from 'node:util';
 import type { Association } from './associations/index.js';
 import * as DataTypes from './data-types.js';
 import { isDataTypeClass } from './dialects/abstract/data-types-utils.js';
@@ -178,13 +178,21 @@ export class ModelDefinition<M extends Model = Model> {
     return staticModelHooks.getFor(this);
   }
 
-  constructor(attributesOptions: ModelAttributes<M>, modelOptions: InitOptions<M>, model: ModelStatic<M>) {
+  constructor(
+    attributesOptions: ModelAttributes<M>,
+    modelOptions: InitOptions<M>,
+    model: ModelStatic<M>,
+  ) {
     if (!modelOptions.sequelize) {
-      throw new Error('new ModelDefinition() expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+      throw new Error(
+        'new ModelDefinition() expects a Sequelize instance to be passed through the option bag, which is the second parameter.',
+      );
     }
 
     if (!modelOptions.modelName) {
-      throw new Error('new ModelDefinition() expects a modelName to be passed through the option bag, which is the second parameter.');
+      throw new Error(
+        'new ModelDefinition() expects a modelName to be passed through the option bag, which is the second parameter.',
+      );
     }
 
     this.#sequelize = modelOptions.sequelize;
@@ -241,16 +249,22 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
         : underscoredIf(this.options.name.plural, this.underscored);
     }
 
-    this.#table = Object.freeze(this.sequelize.queryGenerator.extractTableDetails(removeUndefined({
-      tableName: this.options.tableName,
-      schema: this.options.schema,
-      delimiter: this.options.schemaDelimiter,
-    })));
+    this.#table = Object.freeze(
+      this.sequelize.queryGenerator.extractTableDetails(
+        removeUndefined({
+          tableName: this.options.tableName,
+          schema: this.options.schema,
+          delimiter: this.options.schemaDelimiter,
+        }),
+      ),
+    );
 
     // error check options
     for (const [validatorName, validator] of getAllOwnEntries(this.options.validate)) {
       if (typeof validator !== 'function') {
-        throw new TypeError(`Members of the validate option must be functions. Model: ${this.modelName}, error with validate member ${String(validatorName)}`);
+        throw new TypeError(
+          `Members of the validate option must be functions. Model: ${this.modelName}, error with validate member ${String(validatorName)}`,
+        );
       }
     }
 
@@ -266,7 +280,10 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       try {
         rawAttribute = this.sequelize.normalizeAttribute(rawAttributeOrDataType);
       } catch (error) {
-        throw new BaseError(`An error occurred for attribute ${attributeName} on model ${this.modelName}.`, { cause: error });
+        throw new BaseError(
+          `An error occurred for attribute ${attributeName} on model ${this.modelName}.`,
+          { cause: error },
+        );
       }
 
       rawAttributes[attributeName] = rawAttribute;
@@ -280,7 +297,9 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     if (this.options.timestamps) {
       for (const key of ['createdAt', 'updatedAt', 'deletedAt'] as const) {
         if (!['undefined', 'string', 'boolean'].includes(typeof this.options[key])) {
-          throw new Error(`Value for "${key}" option must be a string or a boolean, got ${typeof this.options[key]}`);
+          throw new Error(
+            `Value for "${key}" option must be a string or a boolean, got ${typeof this.options[key]}`,
+          );
         }
 
         if (this.options[key] === '') {
@@ -289,18 +308,21 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       }
 
       if (this.options.createdAt !== false) {
-        this.timestampAttributeNames.createdAt = typeof this.options.createdAt === 'string' ? this.options.createdAt : 'createdAt';
+        this.timestampAttributeNames.createdAt =
+          typeof this.options.createdAt === 'string' ? this.options.createdAt : 'createdAt';
 
         this.#readOnlyAttributeNames.add(this.timestampAttributeNames.createdAt);
       }
 
       if (this.options.updatedAt !== false) {
-        this.timestampAttributeNames.updatedAt = typeof this.options.updatedAt === 'string' ? this.options.updatedAt : 'updatedAt';
+        this.timestampAttributeNames.updatedAt =
+          typeof this.options.updatedAt === 'string' ? this.options.updatedAt : 'updatedAt';
         this.#readOnlyAttributeNames.add(this.timestampAttributeNames.updatedAt);
       }
 
       if (this.options.paranoid && this.options.deletedAt !== false) {
-        this.timestampAttributeNames.deletedAt = typeof this.options.deletedAt === 'string' ? this.options.deletedAt : 'deletedAt';
+        this.timestampAttributeNames.deletedAt =
+          typeof this.options.deletedAt === 'string' ? this.options.deletedAt : 'deletedAt';
 
         this.#readOnlyAttributeNames.add(this.timestampAttributeNames.deletedAt);
       }
@@ -308,16 +330,22 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
 
     // setup name for version attribute
     if (this.options.version) {
-      this.#versionAttributeName = typeof this.options.version === 'string' ? this.options.version : 'version';
+      this.#versionAttributeName =
+        typeof this.options.version === 'string' ? this.options.version : 'version';
       this.#readOnlyAttributeNames.add(this.#versionAttributeName);
     }
 
     this.rawAttributes = Object.create(null);
 
     // Add id if no primary key was manually added to definition
-    if (!this.options.noPrimaryKey && !some(Object.values(rawAttributes), attr => Boolean(attr.primaryKey))) {
+    if (
+      !this.options.noPrimaryKey &&
+      !some(Object.values(rawAttributes), (attr) => Boolean(attr.primaryKey))
+    ) {
       if ('id' in rawAttributes && rawAttributes.id?.primaryKey === undefined) {
-        throw new Error(`An attribute called 'id' was defined in model '${this.options.tableName}' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`);
+        throw new Error(
+          `An attribute called 'id' was defined in model '${this.options.tableName}' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false`,
+        );
       }
 
       // add PK first  for a clean attribute order
@@ -351,7 +379,8 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     if (this.#versionAttributeName) {
-      const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[this.#versionAttributeName];
+      const existingAttribute: AttributeOptions<M> | undefined =
+        this.rawAttributes[this.#versionAttributeName];
 
       if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.INTEGER)) {
         throw new Error(`Sequelize is trying to add the version attribute ${NodeUtil.inspect(this.#versionAttributeName)} to Model ${NodeUtil.inspect(this.modelName)},
@@ -408,7 +437,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
     this.rawAttributes[attributeName] = {
       // @ts-expect-error -- this property is not mandatory in timestamp attributes
-      type: typeof defaultTimestampPrecision === 'number' ? DataTypes.DATE(defaultTimestampPrecision) : DataTypes.DATE,
+      type:
+        typeof defaultTimestampPrecision === 'number'
+          ? DataTypes.DATE(defaultTimestampPrecision)
+          : DataTypes.DATE,
       ...this.rawAttributes[attributeName],
       allowNull,
       _autoGenerated: true,
@@ -439,7 +471,9 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
     for (const [attributeName, rawAttribute] of Object.entries(this.rawAttributes)) {
       if (typeof attributeName !== 'string') {
-        throw new TypeError(`Attribute names must be strings, but "${this.modelName}" declared a non-string attribute: ${NodeUtil.inspect(attributeName)}`);
+        throw new TypeError(
+          `Attribute names must be strings, but "${this.modelName}" declared a non-string attribute: ${NodeUtil.inspect(attributeName)}`,
+        );
       }
 
       // Checks whether the name is ambiguous with isColString
@@ -450,31 +484,46 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       // or
       // "$json" #>> {key$} (accessing key 'key$' on attribute '$json')
       if (attributeName.startsWith('$') || attributeName.endsWith('$')) {
-        throw new Error(`Name of attribute "${attributeName}" in model "${this.modelName}" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`);
+        throw new Error(
+          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`,
+        );
       }
 
       if (attributeName.includes('.')) {
-        throw new Error(`Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`);
+        throw new Error(
+          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`,
+        );
       }
 
       if (attributeName.includes('::')) {
-        throw new Error(`Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.`);
+        throw new Error(
+          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.`,
+        );
       }
 
       if (attributeName.includes('->')) {
-        throw new Error(`Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.`);
+        throw new Error(
+          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.`,
+        );
       }
 
       if (!isPlainObject(rawAttribute)) {
-        throw new Error(`Attribute "${this.modelName}.${attributeName}" must be specified as a plain object.`);
+        throw new Error(
+          `Attribute "${this.modelName}.${attributeName}" must be specified as a plain object.`,
+        );
       }
 
       if (!rawAttribute.type) {
-        throw new Error(`Attribute "${this.modelName}.${attributeName}" does not specify its DataType.`);
+        throw new Error(
+          `Attribute "${this.modelName}.${attributeName}" does not specify its DataType.`,
+        );
       }
 
       try {
-        const columnName = rawAttribute.columnName ?? rawAttribute.field ?? underscoredIf(attributeName, this.underscored);
+        const columnName =
+          rawAttribute.columnName ??
+          rawAttribute.field ??
+          underscoredIf(attributeName, this.underscored);
 
         const builtAttribute = noPrototype<NormalizedAttributeOptions>({
           ...omit(rawAttribute, ['unique', 'index']),
@@ -498,20 +547,18 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         if (builtAttribute.type instanceof AbstractDataType) {
           // @ts-expect-error -- defaultValue is not readOnly yet!
-          builtAttribute.type
-            = builtAttribute.type.withUsageContext({
-              // TODO: Repository Pattern - replace with ModelDefinition
-              model: this.model,
-              attributeName,
-              sequelize: this.sequelize,
-            });
+          builtAttribute.type = builtAttribute.type.withUsageContext({
+            // TODO: Repository Pattern - replace with ModelDefinition
+            model: this.model,
+            attributeName,
+            sequelize: this.sequelize,
+          });
         }
 
         if (Object.hasOwn(builtAttribute, 'defaultValue')) {
           if (isDataTypeClass(builtAttribute.defaultValue)) {
             // @ts-expect-error -- defaultValue is not readOnly yet!
-            builtAttribute.defaultValue
-              = new builtAttribute.defaultValue();
+            builtAttribute.defaultValue = new builtAttribute.defaultValue();
           }
 
           this.#defaultValues.set(attributeName, () => toDefaultValue(builtAttribute.defaultValue));
@@ -528,14 +575,19 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         if (builtAttribute.type instanceof DataTypes.BOOLEAN) {
           this.#booleanAttributeNames.add(attributeName);
-        } else if (builtAttribute.type instanceof DataTypes.DATE || rawAttribute.type instanceof DataTypes.DATEONLY) {
+        } else if (
+          builtAttribute.type instanceof DataTypes.DATE ||
+          rawAttribute.type instanceof DataTypes.DATEONLY
+        ) {
           this.#dateAttributeNames.add(attributeName);
         } else if (builtAttribute.type instanceof DataTypes.JSON) {
           this.#jsonAttributeNames.add(attributeName);
         }
 
         if (Object.hasOwn(rawAttribute, 'unique') && rawAttribute.unique) {
-          const uniqueIndexes = Array.isArray(rawAttribute.unique) ? rawAttribute.unique : [rawAttribute.unique];
+          const uniqueIndexes = Array.isArray(rawAttribute.unique)
+            ? rawAttribute.unique
+            : [rawAttribute.unique];
 
           for (const uniqueIndex of uniqueIndexes) {
             if (uniqueIndex === true || typeof uniqueIndex === 'string') {
@@ -555,10 +607,13 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         }
 
         if (Object.hasOwn(rawAttribute, 'index') && rawAttribute.index) {
-          const indexes = Array.isArray(rawAttribute.index) ? rawAttribute.index : [rawAttribute.index];
+          const indexes = Array.isArray(rawAttribute.index)
+            ? rawAttribute.index
+            : [rawAttribute.index];
 
           for (const index of indexes) {
-            const jsonbIndexDefaults = rawAttribute.type instanceof DataTypes.JSONB ? { using: 'gin' } : undefined;
+            const jsonbIndexDefaults =
+              rawAttribute.type instanceof DataTypes.JSONB ? { using: 'gin' } : undefined;
 
             if (!index) {
               continue;
@@ -573,7 +628,9 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
             } else {
               // @ts-expect-error -- forbidden property
               if (index.fields) {
-                throw new Error('"fields" cannot be specified for indexes defined on attributes. Use the "indexes" option on the table definition instead. You can also customize how this attribute is part of the index by specifying the "attribute" option on the index.');
+                throw new Error(
+                  '"fields" cannot be specified for indexes defined on attributes. Use the "indexes" option on the table definition instead. You can also customize how this attribute is part of the index by specifying the "attribute" option on the index.',
+                );
               }
 
               const { attribute: indexAttributeOptions, ...indexOptions } = index;
@@ -584,10 +641,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
                 fields: [
                   indexAttributeOptions
                     ? {
-                      ...indexAttributeOptions,
-                      name: builtAttribute.columnName,
-                    }
-                  : builtAttribute.columnName,
+                        ...indexAttributeOptions,
+                        name: builtAttribute.columnName,
+                      }
+                    : builtAttribute.columnName,
                 ],
               });
             }
@@ -596,7 +653,9 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         if (builtAttribute.autoIncrement) {
           if (this.#autoIncrementAttributeName) {
-            throw new Error(`Only one autoIncrement attribute is allowed per model, but both ${NodeUtil.inspect(attributeName)} and ${NodeUtil.inspect(this.#autoIncrementAttributeName)} are marked as autoIncrement.`);
+            throw new Error(
+              `Only one autoIncrement attribute is allowed per model, but both ${NodeUtil.inspect(attributeName)} and ${NodeUtil.inspect(this.#autoIncrementAttributeName)} are marked as autoIncrement.`,
+            );
           }
 
           this.#autoIncrementAttributeName = attributeName;
@@ -621,7 +680,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           this.#attributesWithSetters.add(attributeName);
         }
       } catch (error) {
-        throw new BaseError(`An error occurred while normalizing attribute ${JSON.stringify(attributeName)} in model ${JSON.stringify(this.modelName)}.`, { cause: error });
+        throw new BaseError(
+          `An error occurred while normalizing attribute ${JSON.stringify(attributeName)} in model ${JSON.stringify(this.modelName)}.`,
+          { cause: error },
+        );
       }
     }
 
@@ -654,7 +716,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       }
     }
 
-    const existingIndex = this.#indexes.find(i => i.name === index.name);
+    const existingIndex = this.#indexes.find((i) => i.name === index.name);
     if (existingIndex == null) {
       this.#indexes.push(index);
 
@@ -688,7 +750,9 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       }
 
       if (existingIndex[key] !== index[key]) {
-        throw new Error(`Index "${index.name}" has conflicting options: "${key}" was defined with different values ${NodeUtil.inspect(existingIndex[key])} and ${NodeUtil.inspect(index[key])}.`);
+        throw new Error(
+          `Index "${index.name}" has conflicting options: "${key}" was defined with different values ${NodeUtil.inspect(existingIndex[key])} and ${NodeUtil.inspect(index[key])}.`,
+        );
       }
     }
   }
@@ -797,9 +861,14 @@ export function listenForModelDefinition(callback: (model: ModelStatic) => void)
 
 const modelDefinitions = new WeakMap</* model class */ Function, ModelDefinition<any>>();
 
-export function registerModelDefinition<M extends Model>(model: ModelStatic<M>, modelDefinition: ModelDefinition<M>): void {
+export function registerModelDefinition<M extends Model>(
+  model: ModelStatic<M>,
+  modelDefinition: ModelDefinition<M>,
+): void {
   if (modelDefinitions.has(model)) {
-    throw new Error(`Model ${model.name} has already been initialized. Models can only belong to one Sequelize instance. Registering the same model with multiple Sequelize instances is not yet supported. Please see https://github.com/sequelize/sequelize/issues/15389`);
+    throw new Error(
+      `Model ${model.name} has already been initialized. Models can only belong to one Sequelize instance. Registering the same model with multiple Sequelize instances is not yet supported. Please see https://github.com/sequelize/sequelize/issues/15389`,
+    );
   }
 
   modelDefinitions.set(model, modelDefinition);
@@ -826,21 +895,27 @@ export function getModelDefinition(model: ModelStatic): ModelDefinition {
   return definition;
 }
 
-export function normalizeReference(references: AttributeOptions['references']): NormalizedAttributeReferencesOptions | undefined {
+export function normalizeReference(
+  references: AttributeOptions['references'],
+): NormalizedAttributeReferencesOptions | undefined {
   if (!references) {
     return undefined;
   }
 
   if (typeof references === 'string') {
-    return Object.freeze(banReferenceModel({
-      table: references,
-    }));
+    return Object.freeze(
+      banReferenceModel({
+        table: references,
+      }),
+    );
   }
 
   if (isModelStatic(references)) {
-    return Object.freeze(banReferenceModel({
-      table: references.table,
-    }));
+    return Object.freeze(
+      banReferenceModel({
+        table: references.table,
+      }),
+    );
   }
 
   const { model, table, ...referencePassDown } = references;
@@ -857,11 +932,12 @@ export function normalizeReference(references: AttributeOptions['references']): 
   }
 
   if (model || table) {
-    return Object.freeze(banReferenceModel({
-
-      table: model ? model.table : table!,
-      ...referencePassDown,
-    }));
+    return Object.freeze(
+      banReferenceModel({
+        table: model ? model.table : table!,
+        ...referencePassDown,
+      }),
+    );
   }
 }
 
@@ -869,7 +945,9 @@ function banReferenceModel<T>(reference: T): T {
   Object.defineProperty(reference, 'model', {
     enumerable: false,
     get() {
-      throw new Error('references.model has been renamed to references.tableName in normalized references options.');
+      throw new Error(
+        'references.model has been renamed to references.tableName in normalized references options.',
+      );
     },
   });
 
@@ -889,7 +967,9 @@ export function mergeModelOptions(
   overrideOnConflict: boolean,
 ): ModelOptions {
   // merge-able: scopes, indexes
-  for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof ModelOptions, any]>) {
+  for (const [optionName, optionValue] of Object.entries(options) as Array<
+    [keyof ModelOptions, any]
+  >) {
     if (existingModelOptions[optionName] === undefined) {
       existingModelOptions[optionName] = optionValue;
       continue;
@@ -904,7 +984,9 @@ export function mergeModelOptions(
         }
 
         if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]!) {
-          throw new Error(`Trying to set the option ${optionName}[${JSON.stringify(subOptionName)}], but a value already exists.`);
+          throw new Error(
+            `Trying to set the option ${optionName}[${JSON.stringify(subOptionName)}], but a value already exists.`,
+          );
         }
 
         // @ts-expect-error -- runtime type checking is enforced by model

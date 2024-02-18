@@ -4,10 +4,13 @@ import { BaseSqlExpression } from '../../expression-builders/base-sql-expression
 import { conformIndex } from '../../model-internals';
 import { rejectInvalidOptions } from '../../utils/check';
 import { EMPTY_SET } from '../../utils/object.js';
-import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -53,7 +56,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
       // only need to sort primary keys once, don't do it in place
@@ -66,9 +69,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         const sortedColumnFields = [...columns.fields];
         sortedColumnFields.sort();
         // if primary keys === unique keys, then skip adding new constraint
-        const uniqueIsPrimary
-          = sortedColumnFields.length === primaryKeys.length
-          && sortedColumnFields.every((value, index) => {
+        const uniqueIsPrimary =
+          sortedColumnFields.length === primaryKeys.length &&
+          sortedColumnFields.every((value, index) => {
             return value === sortedPrimaryKeys[index];
           });
         if (uniqueIsPrimary) {
@@ -79,7 +82,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map((field) => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -203,7 +206,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       options.prefix = options.prefix.replaceAll('.', '_');
     }
 
-    const fieldsSql = options.fields.map(field => {
+    const fieldsSql = options.fields.map((field) => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);
       }
@@ -236,7 +239,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     });
 
     if (options.include) {
-      throw new Error(`The include attribute for indexes is not supported by ${this.dialect.name} dialect`);
+      throw new Error(
+        `The include attribute for indexes is not supported by ${this.dialect.name} dialect`,
+      );
     }
 
     if (!options.name) {
@@ -285,8 +290,24 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return out;
   }
 
-  arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options) {
-    return removeTrailingSemicolon(super.arithmeticQuery(operator, tableName, where, incrementAmountsByField, extraAttributesToBeUpdated, options));
+  arithmeticQuery(
+    operator,
+    tableName,
+    where,
+    incrementAmountsByField,
+    extraAttributesToBeUpdated,
+    options,
+  ) {
+    return removeTrailingSemicolon(
+      super.arithmeticQuery(
+        operator,
+        tableName,
+        where,
+        incrementAmountsByField,
+        extraAttributesToBeUpdated,
+        options,
+      ),
+    );
   }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
@@ -353,7 +374,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attribute.type.toString({ escape: this.escape.bind(this), dialect: this.dialect });
+    const attributeString = attribute.type.toString({
+      escape: this.escape.bind(this),
+      dialect: this.dialect,
+    });
     let template = attributeString;
 
     if (attribute.type instanceof DataTypes.ENUM) {
@@ -363,16 +387,18 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
 
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
-        return this.escape(value);
-      }).join(', ')}))`;
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
+        .map((value) => {
+          return this.escape(value);
+        })
+        .join(', ')}))`;
     } else {
       template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
     }
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (attribute.allowNull === true && (options && options.context === 'changeColumn')) {
+    } else if (attribute.allowNull === true && options && options.context === 'changeColumn') {
       template += ' DROP NOT NULL';
     }
 
@@ -381,9 +407,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     // BLOB cannot have a default value
-    if (!typeWithoutDefault.has(attributeString)
-      && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    if (
+      !typeWithoutDefault.has(attributeString) &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       if (attribute.defaultValue === true) {
         attribute.defaultValue = 1;
       } else if (attribute.defaultValue === false) {
@@ -415,7 +443,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     if (attribute.references) {
-
       if (options && options.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);

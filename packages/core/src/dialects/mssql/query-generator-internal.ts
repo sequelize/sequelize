@@ -18,9 +18,9 @@ const TECHNICAL_SCHEMA_NAMES = Object.freeze([
   'sys',
 ]);
 
-export class MsSqlQueryGeneratorInternal<Dialect extends MssqlDialect = MssqlDialect>
-  extends AbstractQueryGeneratorInternal<Dialect> {
-
+export class MsSqlQueryGeneratorInternal<
+  Dialect extends MssqlDialect = MssqlDialect,
+> extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalDatabaseNames() {
     return TECHNICAL_DATABASE_NAMES;
   }

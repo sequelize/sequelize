@@ -13,14 +13,17 @@ describe('Model#set', () => {
       const User = sequelize.define('User', {
         meta: DataTypes.JSONB,
       });
-      const user = User.build({
-        meta: {
-          location: 'Stockhollm',
+      const user = User.build(
+        {
+          meta: {
+            location: 'Stockhollm',
+          },
         },
-      }, {
-        isNewRecord: false,
-        raw: true,
-      });
+        {
+          isNewRecord: false,
+          raw: true,
+        },
+      );
 
       const meta = user.get('meta');
 
@@ -65,12 +68,15 @@ describe('Model#set', () => {
     const User = sequelize.define('User', {
       date: DataTypes.DATE,
     });
-    const user = User.build({
-      date: ' ',
-    }, {
-      isNewRecord: false,
-      raw: true,
-    });
+    const user = User.build(
+      {
+        date: ' ',
+      },
+      {
+        isNewRecord: false,
+        raw: true,
+      },
+    );
 
     user.set('date', new Date());
     expect(user.get('date')).to.be.an.instanceof(Date);
@@ -79,7 +85,9 @@ describe('Model#set', () => {
 
   describe('custom setter', () => {
     const vars = beforeAll2(() => {
-      const stubCreate = sinon.stub(sequelize.queryInterface, 'insert').callsFake(async instance => [instance, 1]);
+      const stubCreate = sinon
+        .stub(sequelize.queryInterface, 'insert')
+        .callsFake(async (instance) => [instance, 1]);
       const User = sequelize.define('User', {
         phoneNumber: {
           type: DataTypes.STRING,
@@ -112,7 +120,7 @@ describe('Model#set', () => {
       await user.save();
       expect(user.changed('phoneNumber')).to.be.false;
 
-      user.set('phoneNumber', '+1 (0) 234567');// Canonical equivalent of existing phone number
+      user.set('phoneNumber', '+1 (0) 234567'); // Canonical equivalent of existing phone number
       expect(user.changed('phoneNumber')).to.be.false;
     });
 
@@ -123,7 +131,7 @@ describe('Model#set', () => {
       await user.save();
       expect(user.changed('phoneNumber')).to.be.false;
 
-      user.set('phoneNumber', '+1 (0) 765432');// Canonical non-equivalent of existing phone number
+      user.set('phoneNumber', '+1 (0) 765432'); // Canonical non-equivalent of existing phone number
       expect(user.changed('phoneNumber')).to.be.true;
     });
 
@@ -134,7 +142,7 @@ describe('Model#set', () => {
       await user.save();
       expect(user.changed('phoneNumber')).to.be.false;
 
-      user.set('phoneNumber', { country: '1', area: '234', local: '567' });// Canonical equivalent of existing phone number
+      user.set('phoneNumber', { country: '1', area: '234', local: '567' }); // Canonical equivalent of existing phone number
       expect(user.changed('phoneNumber')).to.be.false;
     });
 
@@ -145,7 +153,7 @@ describe('Model#set', () => {
       await user.save();
       expect(user.changed('phoneNumber')).to.be.false;
 
-      user.set('phoneNumber', { country: '1', area: '765', local: '432' });// Canonical non-equivalent of existing phone number
+      user.set('phoneNumber', { country: '1', area: '765', local: '432' }); // Canonical non-equivalent of existing phone number
       expect(user.changed('phoneNumber')).to.be.true;
     });
   });

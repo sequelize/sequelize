@@ -13,7 +13,9 @@ const queryProto = Support.sequelize.dialect.Query.prototype;
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] ForeignKeyConstraintError - error message parsing', () => {
     it('FK Errors with ` quotation char are parsed correctly', () => {
-      const fakeErr = new Error('Cannot delete or update a parent row: a foreign key constraint fails (`table`.`brothers`, CONSTRAINT `brothers_ibfk_1` FOREIGN KEY (`personId`) REFERENCES `people` (`id`) ON UPDATE CASCADE).');
+      const fakeErr = new Error(
+        'Cannot delete or update a parent row: a foreign key constraint fails (`table`.`brothers`, CONSTRAINT `brothers_ibfk_1` FOREIGN KEY (`personId`) REFERENCES `people` (`id`) ON UPDATE CASCADE).',
+      );
 
       fakeErr.code = 1451;
 
@@ -29,7 +31,9 @@ if (dialect === 'mysql') {
     });
 
     it('FK Errors with " quotation char are parsed correctly', () => {
-      const fakeErr = new Error('Cannot delete or update a parent row: a foreign key constraint fails ("table"."brothers", CONSTRAINT "brothers_ibfk_1" FOREIGN KEY ("personId") REFERENCES "people" ("id") ON UPDATE CASCADE).');
+      const fakeErr = new Error(
+        'Cannot delete or update a parent row: a foreign key constraint fails ("table"."brothers", CONSTRAINT "brothers_ibfk_1" FOREIGN KEY ("personId") REFERENCES "people" ("id") ON UPDATE CASCADE).',
+      );
 
       fakeErr.code = 1451;
 
@@ -45,7 +49,7 @@ if (dialect === 'mysql') {
     });
 
     it('newlines contained in err message are parsed correctly', () => {
-      const fakeErr = new Error('Duplicate entry \'13888888888\r\' for key \'num\'');
+      const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
 
       fakeErr.code = 1062;
 
@@ -55,6 +59,5 @@ if (dialect === 'mysql') {
       expect(parsedErr.parent).to.equal(fakeErr);
       expect(parsedErr.fields.num).to.equal('13888888888\r');
     });
-
   });
 }

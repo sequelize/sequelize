@@ -4,8 +4,8 @@ import type { Falsy } from '../../generic/falsy.js';
 import type { GeoJson } from '../../geo-json.js';
 import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs';
-import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
+import * as BaseTypes from '../abstract/data-types.js';
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
@@ -148,9 +148,7 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
   getBindParamSql(value: GeoJson, options: BindParamOptions) {
     const srid = this.options.srid ? `, ${options.bindParam(this.options.srid)}` : '';
 
-    return `ST_GeomFromText(${options.bindParam(
-      wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )}${srid})`;
+    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())}${srid})`;
   }
 
   toSql() {
@@ -171,6 +169,6 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
     const dialect = this._getDialect();
 
-    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
+    return `ENUM(${this.options.values.map((value) => dialect.escapeString(value)).join(', ')})`;
   }
 }

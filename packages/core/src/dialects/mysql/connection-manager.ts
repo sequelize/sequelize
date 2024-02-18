@@ -1,5 +1,3 @@
-import assert from 'node:assert';
-import { promisify } from 'node:util';
 import dayjs from 'dayjs';
 import type {
   Connection,
@@ -7,6 +5,8 @@ import type {
   createConnection as mysqlCreateConnection,
 } from 'mysql2';
 import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast';
+import assert from 'node:assert';
+import { promisify } from 'node:util';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -26,8 +26,8 @@ const debug = logger.debugContext('connection:mysql');
 
 // TODO: once the code has been split into packages, we won't need to lazy load mysql2 anymore
 type Lib = {
-  createConnection: typeof mysqlCreateConnection,
-  Connection: Connection,
+  createConnection: typeof mysqlCreateConnection;
+  Connection: Connection;
 };
 
 export interface MySqlConnection extends Connection, AbstractConnection {}
@@ -114,7 +114,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
         tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+        await promisify((cb) => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       }
 
       return connection;
@@ -150,19 +150,21 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
       return;
     }
 
-    await promisify(callback => connection.end(callback))();
+    await promisify((callback) => connection.end(callback))();
   }
 
   validate(connection: MySqlConnection) {
-    return connection
+    return (
+      connection &&
       // @ts-expect-error -- undeclared var
-      && !connection._fatalError
+      !connection._fatalError &&
       // @ts-expect-error -- undeclared var
-      && !connection._protocolError
+      !connection._protocolError &&
       // @ts-expect-error -- undeclared var
-      && !connection._closing
+      !connection._closing &&
       // @ts-expect-error -- undeclared var
-      && !connection.stream.destroyed;
+      !connection.stream.destroyed
+    );
   }
 }
 

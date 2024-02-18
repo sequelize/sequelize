@@ -8,10 +8,7 @@ import { Op as operators } from '../operators.js';
  * @private
  */
 export function getComplexKeys(obj: object): Array<string | symbol> {
-  return [
-    ...getOperators(obj),
-    ...Object.keys(obj),
-  ];
+  return [...getOperators(obj), ...Object.keys(obj)];
 }
 
 /**
@@ -35,5 +32,5 @@ const operatorsSet = new Set(Object.values(operators));
  * @private
  */
 export function getOperators(obj: object): symbol[] {
-  return Object.getOwnPropertySymbols(obj).filter(s => operatorsSet.has(s));
+  return Object.getOwnPropertySymbols(obj).filter((s) => operatorsSet.has(s));
 }

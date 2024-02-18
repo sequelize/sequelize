@@ -1,8 +1,13 @@
-import { expect } from 'chai';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
 import { Attribute, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { expect } from 'chai';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 describe('destroy', () => {
   context('test-shared models', () => {
@@ -15,7 +20,10 @@ describe('destroy', () => {
       }
 
       @Table({ paranoid: true })
-      class ParanoidUser extends Model<InferAttributes<ParanoidUser>, InferCreationAttributes<ParanoidUser>> {
+      class ParanoidUser extends Model<
+        InferAttributes<ParanoidUser>,
+        InferCreationAttributes<ParanoidUser>
+      > {
         declare id: CreationOptional<number>;
 
         @Attribute(DataTypes.STRING)
@@ -34,7 +42,10 @@ describe('destroy', () => {
     it('throws an error if no where clause is given', async () => {
       const { User } = vars;
 
-      await expect(User.destroy()).to.be.rejectedWith(Error, 'As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.');
+      await expect(User.destroy()).to.be.rejectedWith(
+        Error,
+        'As a safeguard, the "destroy" static model method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.',
+      );
     });
 
     it('deletes all instances when given an empty where object', async () => {
@@ -49,11 +60,7 @@ describe('destroy', () => {
     it('deletes values that match filter', async () => {
       const { User } = vars;
 
-      const data = [
-        { username: 'Peter' },
-        { username: 'Paul' },
-        { username: 'Paul' },
-      ];
+      const data = [{ username: 'Peter' }, { username: 'Paul' }, { username: 'Paul' }];
 
       await User.bulkCreate(data);
       await User.destroy({ where: { username: 'Paul' } });
@@ -65,11 +72,7 @@ describe('destroy', () => {
     it('returns the number of affected rows', async () => {
       const { User } = vars;
 
-      const data = [
-        { username: 'Peter' },
-        { username: 'Paul' },
-        { username: 'Bob' },
-      ];
+      const data = [{ username: 'Peter' }, { username: 'Paul' }, { username: 'Bob' }];
 
       await User.bulkCreate(data);
       const affectedRows = await User.destroy({ where: {} });
@@ -79,10 +82,7 @@ describe('destroy', () => {
     it('sets deletedAt to the current timestamp if paranoid is true', async () => {
       const { ParanoidUser } = vars;
 
-      const data = [
-        { username: 'Peter' },
-        { username: 'Paul' },
-      ];
+      const data = [{ username: 'Peter' }, { username: 'Paul' }];
 
       await ParanoidUser.bulkCreate(data);
 
@@ -107,10 +107,7 @@ describe('destroy', () => {
     it('does not set deletedAt for previously destroyed instances if paranoid is true', async () => {
       const { ParanoidUser } = vars;
 
-      const [user1] = await ParanoidUser.bulkCreate([
-        { username: 'Toni' },
-        { username: 'Max' },
-      ]);
+      const [user1] = await ParanoidUser.bulkCreate([{ username: 'Toni' }, { username: 'Max' }]);
 
       const user = await ParanoidUser.findByPk(user1.id, { rejectOnEmpty: true });
       await user.destroy();
@@ -149,7 +146,8 @@ describe('destroy', () => {
   context('test-specific models', () => {
     if (sequelize.dialect.supports.transactions) {
       it('supports transactions', async () => {
-        const transactionSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize);
+        const transactionSequelize =
+          await createSingleTransactionalTestSequelizeInstance(sequelize);
         const User = transactionSequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -218,11 +216,7 @@ describe('destroy', () => {
         await sequelize.queryInterface.createSchema('prefix');
         await User.sync({ force: true });
 
-        const data = [
-          { username: 'Peter' },
-          { username: 'Peter' },
-          { username: 'Bob' },
-        ];
+        const data = [{ username: 'Peter' }, { username: 'Peter' }, { username: 'Bob' }];
 
         await User.bulkCreate(data);
         await User.destroy({ where: { username: 'Peter' } });
