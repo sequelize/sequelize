@@ -15,68 +15,66 @@ const numericOptions: SupportableNumericOptions = {
 };
 
 export class MariaDbDialect extends AbstractDialect {
-  static supports = AbstractDialect.extendSupport(
-    {
-      'VALUES ()': true,
-      'LIMIT ON UPDATE': true,
-      lock: true,
-      forShare: 'LOCK IN SHARE MODE',
-      settingIsolationLevelDuringTransaction: false,
-      schemas: true,
-      inserts: {
-        ignoreDuplicates: ' IGNORE',
-        updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
-      },
-      index: {
-        collate: false,
-        length: true,
-        parser: true,
-        type: true,
-        using: 1,
-      },
-      constraints: {
-        foreignKeyChecksDisableable: true,
-        removeOptions: { ifExists: true },
-      },
-      indexViaAlter: true,
-      indexHints: true,
-      dataTypes: {
-        COLLATE_BINARY: true,
-        GEOMETRY: true,
-        INTS: numericOptions,
-        FLOAT: { ...numericOptions, scaleAndPrecision: true },
-        REAL: { ...numericOptions, scaleAndPrecision: true },
-        DOUBLE: { ...numericOptions, scaleAndPrecision: true },
-        DECIMAL: numericOptions,
-        JSON: true,
-      },
-      REGEXP: true,
-      jsonOperations: true,
-      jsonExtraction: {
-        unquoted: true,
-        quoted: true,
-      },
-      uuidV1Generation: true,
-      globalTimeZoneConfig: true,
-      removeColumn: {
-        ifExists: true,
-      },
-      createSchema: {
-        charset: true,
-        collate: true,
-        // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
-        // comment: true,
-        ifNotExists: true,
-        replace: true,
-      },
-      dropSchema: {
-        ifExists: true,
-      },
-      startTransaction: {
-        readOnly: true,
-      },
+  static supports = AbstractDialect.extendSupport({
+    'VALUES ()': true,
+    'LIMIT ON UPDATE': true,
+    lock: true,
+    forShare: 'LOCK IN SHARE MODE',
+    settingIsolationLevelDuringTransaction: false,
+    schemas: true,
+    inserts: {
+      ignoreDuplicates: ' IGNORE',
+      updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
     },
-  );
+    index: {
+      collate: false,
+      length: true,
+      parser: true,
+      type: true,
+      using: 1,
+    },
+    constraints: {
+      foreignKeyChecksDisableable: true,
+      removeOptions: { ifExists: true },
+    },
+    indexViaAlter: true,
+    indexHints: true,
+    dataTypes: {
+      COLLATE_BINARY: true,
+      GEOMETRY: true,
+      INTS: numericOptions,
+      FLOAT: { ...numericOptions, scaleAndPrecision: true },
+      REAL: { ...numericOptions, scaleAndPrecision: true },
+      DOUBLE: { ...numericOptions, scaleAndPrecision: true },
+      DECIMAL: numericOptions,
+      JSON: true,
+    },
+    REGEXP: true,
+    jsonOperations: true,
+    jsonExtraction: {
+      unquoted: true,
+      quoted: true,
+    },
+    uuidV1Generation: true,
+    globalTimeZoneConfig: true,
+    removeColumn: {
+      ifExists: true,
+    },
+    createSchema: {
+      charset: true,
+      collate: true,
+      // TODO [>=2024-06-19]: uncomment when MariaDB 10.5 is oldest supported version
+      // comment: true,
+      ifNotExists: true,
+      replace: true,
+    },
+    dropSchema: {
+      ifExists: true,
+    },
+    startTransaction: {
+      readOnly: true,
+    },
+  });
 
   readonly TICK_CHAR_LEFT = '`';
   readonly TICK_CHAR_RIGHT = '`';

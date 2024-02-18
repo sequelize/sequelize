@@ -1,5 +1,3 @@
-import { assert, expect } from 'chai';
-import { spy } from 'sinon';
 import {
   AccessDeniedError,
   AggregateError,
@@ -23,6 +21,8 @@ import {
   ValidationErrorItemOrigin,
 } from '@sequelize/core';
 import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error';
+import { assert, expect } from 'chai';
+import { spy } from 'sinon';
 import { getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialect = getTestDialect();
@@ -41,7 +41,11 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       const errorMessage = 'error message';
       const validationError = new ValidationError(errorMessage, [
         new ValidationErrorItem('<field name> cannot be null', 'notNull violation', '<field name>'),
-        new ValidationErrorItem('<field name> cannot be an array or an object', 'Validation error', '<field name>'),
+        new ValidationErrorItem(
+          '<field name> cannot be an array or an object',
+          'Validation error',
+          '<field name>',
+        ),
       ]);
       const optimisticLockError = new OptimisticLockError();
 
@@ -89,12 +93,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     it('SequelizeValidationError should concatenate an error messages from given errors if no explicit message is defined', () => {
       const errorItems = [
         new ValidationErrorItem('<field name> cannot be null', 'notNull violation', '<field name>'),
-        new ValidationErrorItem('<field name> cannot be an array or an object', 'Validation error', '<field name>'),
+        new ValidationErrorItem(
+          '<field name> cannot be an array or an object',
+          'Validation error',
+          '<field name>',
+        ),
       ];
       const validationError = new ValidationError('', errorItems);
 
       expect(validationError).to.have.property('name', 'SequelizeValidationError');
-      expect(validationError.message).to.match(/notNull violation: <field name> cannot be null,\nValidation error: <field name> cannot be an array or an object/);
+      expect(validationError.message).to.match(
+        /notNull violation: <field name> cannot be null,\nValidation error: <field name> cannot be an array or an object/,
+      );
     });
 
     it('SequelizeValidationErrorItem does not require instance & validator constructor parameters', () => {
@@ -109,7 +119,16 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       Inst.init({}, { sequelize });
       const inst = new Inst();
       const vargs = [4];
-      const error = new ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', inst, 'klen', 'len', vargs);
+      const error = new ValidationErrorItem(
+        'error!',
+        'FUNCTION',
+        'foo',
+        'bar',
+        inst,
+        'klen',
+        'len',
+        vargs,
+      );
 
       expect(error).to.have.property('instance');
       expect(error.instance).to.equal(inst);
@@ -120,7 +139,16 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationErrorItem.getValidatorKey() should return a string', () => {
-      const error = new ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', undefined, 'klen', 'len', [4]);
+      const error = new ValidationErrorItem(
+        'error!',
+        'FUNCTION',
+        'foo',
+        'bar',
+        undefined,
+        'klen',
+        'len',
+        [4],
+      );
 
       expect(error).to.have.property('getValidatorKey');
       expect(error.getValidatorKey).to.be.a('function');
@@ -145,7 +173,16 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     });
 
     it('SequelizeValidationErrorItem.getValidatorKey() should throw if namespace separator is invalid (only if NS is used & available)', () => {
-      const error = new ValidationErrorItem('error!', 'FUNCTION', 'foo', 'bar', undefined, 'klen', 'len', [4]);
+      const error = new ValidationErrorItem(
+        'error!',
+        'FUNCTION',
+        'foo',
+        'bar',
+        undefined,
+        'klen',
+        'len',
+        [4],
+      );
 
       // @ts-expect-error -- testing invalid input
       expect(() => error.getValidatorKey(false, {})).to.not.throw();
@@ -197,7 +234,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       expect(ORIGINS).to.have.property('CORE', 'CORE');
       expect(ORIGINS).to.have.property('DB', 'DB');
       expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
-
     });
 
     it('SequelizeValidationErrorItem.Origins is valid', () => {
@@ -206,7 +242,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       expect(ORIGINS).to.have.property('CORE', 'CORE');
       expect(ORIGINS).to.have.property('DB', 'DB');
       expect(ORIGINS).to.have.property('FUNCTION', 'FUNCTION');
-
     });
 
     it('SequelizeDatabaseError should keep original message', () => {
@@ -311,18 +346,22 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         declare number: number;
       }
 
-      const Account = sequelize.define<User>('Account', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      const Account = sequelize.define<User>(
+        'Account',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          number: {
+            type: DataTypes.INTEGER,
+          },
         },
-        number: {
-          type: DataTypes.INTEGER,
+        {
+          version: true,
         },
-      }, {
-        version: true,
-      });
+      );
 
       await Account.sync({ force: true });
       const result = (async () => {
@@ -341,7 +380,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
       await Promise.all([
         expect(result).to.eventually.be.rejectedWith(OptimisticLockError),
-        expect(result).to.eventually.be.rejectedWith('Attempting to update a stale model instance: Account'),
+        expect(result).to.eventually.be.rejectedWith(
+          'Attempting to update a stale model instance: Account',
+        ),
       ]);
     });
   });
@@ -357,7 +398,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         exception: ValidationError,
       },
     ]) {
-
       it(`Can be intercepted as ${constraintTest.type} using .catch`, async () => {
         const userSpy = spy();
         const User = sequelize.define('user', {
@@ -387,7 +427,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
         expect(userSpy).to.have.been.calledOnce;
       });
-
     }
 
     // IBM i doesn't support newlines in identifiers
@@ -418,18 +457,26 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       });
 
       it('Works when unique keys are not defined in sequelize', async () => {
-        let User = sequelize.define('user', {
-          name: {
-            type: DataTypes.STRING,
-            unique: 'unique \n unique',
+        let User = sequelize.define(
+          'user',
+          {
+            name: {
+              type: DataTypes.STRING,
+              unique: 'unique \n unique',
+            },
           },
-        }, { timestamps: false });
+          { timestamps: false },
+        );
 
         await sequelize.sync({ force: true });
         // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
-        User = sequelize.define('user', {
-          name: DataTypes.STRING,
-        }, { timestamps: false });
+        User = sequelize.define(
+          'user',
+          {
+            name: DataTypes.STRING,
+          },
+          { timestamps: false },
+        );
 
         await User.create({ name: 'jan' });
         // It should work even though the unique key is not defined in the model
@@ -437,20 +484,28 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
         // And when the model is not passed at all
         if (['db2', 'ibmi'].includes(dialect)) {
-          await expect(sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')')).to.be.rejectedWith(UniqueConstraintError);
+          await expect(
+            sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
+          ).to.be.rejectedWith(UniqueConstraintError);
         } else {
-          await expect(sequelize.query('INSERT INTO users (name) VALUES (\'jan\')')).to.be.rejectedWith(UniqueConstraintError);
+          await expect(
+            sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
+          ).to.be.rejectedWith(UniqueConstraintError);
         }
       });
     }
 
     it('adds parent and sql properties', async () => {
-      const User = sequelize.define('user', {
-        name: {
-          type: DataTypes.STRING,
-          unique: 'unique',
+      const User = sequelize.define(
+        'user',
+        {
+          name: {
+            type: DataTypes.STRING,
+            unique: 'unique',
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
       await sequelize.sync({ force: true });
       await User.create({ name: 'jan' });
@@ -500,38 +555,47 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
         switch (dialect) {
           case 'db2':
-            expect(error.cause.message).to.contain('One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.');
+            expect(error.cause.message).to.contain(
+              'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
+            );
             break;
 
           case 'mssql':
-            expect(error.cause.message).to.match(/Violation of UNIQUE KEY constraint 'UQ__Users__\w+'\. Cannot insert duplicate key in object 'dbo.Users'\. The duplicate key value is \(foo\)\./);
+            expect(error.cause.message).to.match(
+              /Violation of UNIQUE KEY constraint 'UQ__Users__\w+'\. Cannot insert duplicate key in object 'dbo.Users'\. The duplicate key value is \(foo\)\./,
+            );
             expect(error.errors[0].path).to.match(/UQ__Users__\w+/);
             expect(error.errors[0].message).to.match(/UQ__Users__\w+ must be unique/);
             break;
 
           case 'mysql':
-            expect(error.cause.message).to.match(/Duplicate entry 'foo' for key '(?:Users.)?username'/);
+            expect(error.cause.message).to.match(
+              /Duplicate entry 'foo' for key '(?:Users.)?username'/,
+            );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
           case 'postgres':
-            expect(error.cause.message).to.equal('duplicate key value violates unique constraint "Users_username_key"');
+            expect(error.cause.message).to.equal(
+              'duplicate key value violates unique constraint "Users_username_key"',
+            );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
           case 'sqlite':
-            expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username');
+            expect(error.cause.message).to.equal(
+              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
           default:
-            expect(error.cause.message).to.contain('Duplicate entry \'foo\' for key \'username\'');
+            expect(error.cause.message).to.contain("Duplicate entry 'foo' for key 'username'");
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
-
         }
       }
     });
@@ -555,7 +619,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
-          expect(error.errors[0].message).to.match(/(?:users_username_unique|username) must be unique/);
+          expect(error.errors[0].message).to.match(
+            /(?:users_username_unique|username) must be unique/,
+          );
           expect(error.errors[0].type).to.equal('unique violation');
           expect(error.errors[0].path).to.match(/(?:users_username_unique|username)/);
           if (dialect === 'sqlite') {
@@ -567,27 +633,39 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
         switch (dialect) {
           case 'db2':
-            expect(error.cause.message).to.contain('One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.');
+            expect(error.cause.message).to.contain(
+              'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
+            );
             break;
 
           case 'mssql':
-            expect(error.cause.message).to.equal('Cannot insert duplicate key row in object \'dbo.Users\' with unique index \'users_username_unique\'. The duplicate key value is (foo).');
+            expect(error.cause.message).to.equal(
+              "Cannot insert duplicate key row in object 'dbo.Users' with unique index 'users_username_unique'. The duplicate key value is (foo).",
+            );
             break;
 
           case 'mysql':
-            expect(error.cause.message).to.match(/Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/);
+            expect(error.cause.message).to.match(
+              /Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/,
+            );
             break;
 
           case 'postgres':
-            expect(error.cause.message).to.equal('duplicate key value violates unique constraint "users_username_unique"');
+            expect(error.cause.message).to.equal(
+              'duplicate key value violates unique constraint "users_username_unique"',
+            );
             break;
 
           case 'sqlite':
-            expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username');
+            expect(error.cause.message).to.equal(
+              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            );
             break;
 
           default:
-            expect(error.cause.message).to.contain('Duplicate entry \'foo\' for key \'users_username_unique\'');
+            expect(error.cause.message).to.contain(
+              "Duplicate entry 'foo' for key 'users_username_unique'",
+            );
         }
       }
     });
@@ -630,31 +708,41 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'db2':
             expect(error.table).to.equal('Tasks');
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain('A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.');
+            expect(error.cause.message).to.contain(
+              'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
+            );
             break;
 
           case 'mssql':
             expect(error.table).to.equal('dbo.Tasks');
             expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.equal('The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.');
+            expect(error.cause.message).to.equal(
+              'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
+            );
             break;
 
           case 'postgres':
             expect(error.table).to.equal('Users');
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal('update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"');
+            expect(error.cause.message).to.equal(
+              'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
+            );
             break;
 
           case 'sqlite':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            expect(error.cause.message).to.equal(
+              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            );
             break;
 
           default:
             expect(error.table).to.equal('Users');
             expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain('Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))');
+            expect(error.cause.message).to.contain(
+              'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+            );
         }
       }
     });
@@ -695,31 +783,41 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'db2':
             expect(error.table).to.equal('Tasks');
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain('The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.');
+            expect(error.cause.message).to.contain(
+              'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
+            );
             break;
 
           case 'mssql':
             expect(error.table).to.equal('dbo.Users');
             expect(error.fields).to.deep.equal(['id']);
-            expect(error.cause.message).to.equal('The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.');
+            expect(error.cause.message).to.equal(
+              'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
+            );
             break;
 
           case 'postgres':
             expect(error.table).to.equal('Tasks');
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal('insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"');
+            expect(error.cause.message).to.equal(
+              'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
+            );
             break;
 
           case 'sqlite':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal('SQLITE_CONSTRAINT: FOREIGN KEY constraint failed');
+            expect(error.cause.message).to.equal(
+              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            );
             break;
 
           default:
             expect(error.table).to.equal('Users');
             expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain('Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))');
+            expect(error.cause.message).to.contain(
+              'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+            );
         }
       }
     });
@@ -747,8 +845,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           expect(error).to.be.instanceOf(AggregateError);
           assert(error instanceof AggregateError);
           expect(error.errors).to.have.length(3);
-          expect(error.errors[0].message).to.equal('There is already an object named \'unique_constraint\' in the database.');
-          expect(error.errors[1].message).to.equal('Could not create constraint or index. See previous errors.');
+          expect(error.errors[0].message).to.equal(
+            "There is already an object named 'unique_constraint' in the database.",
+          );
+          expect(error.errors[1].message).to.equal(
+            'Could not create constraint or index. See previous errors.',
+          );
           assert(error.errors[2] instanceof UnknownConstraintError);
           expect(error.errors[2].constraint).to.equal('unique_constraint');
           expect(error.errors[2].table).to.equal('Users');

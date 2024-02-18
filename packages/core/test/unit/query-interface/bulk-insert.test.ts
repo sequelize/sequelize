@@ -1,14 +1,18 @@
+import { DataTypes, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
-import { DataTypes, Transaction } from '@sequelize/core';
 import { beforeAll2, expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
 describe('QueryInterface#bulkInsert', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -28,9 +32,15 @@ describe('QueryInterface#bulkInsert', () => {
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/),
-      mssql: toMatchRegex(/^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/),
+      default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/,
+      ),
+      ibmi: toMatchRegex(
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/,
+      ),
+      mssql: toMatchRegex(
+        /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
+      ),
     });
   });
 
@@ -46,9 +56,15 @@ describe('QueryInterface#bulkInsert', () => {
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchRegex(/^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/),
-      ibmi: toMatchRegex(/^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/),
-      mssql: toMatchRegex(/^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/),
+      default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/,
+      ),
+      ibmi: toMatchRegex(
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/,
+      ),
+      mssql: toMatchRegex(
+        /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
+      ),
     });
   });
 
@@ -57,23 +73,33 @@ describe('QueryInterface#bulkInsert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.queryInterface.bulkInsert(User.table, [{
-      firstName: ':injection',
-    }], {
-      replacements: {
-        injection: 'raw sql',
+    await sequelize.queryInterface.bulkInsert(
+      User.table,
+      [
+        {
+          firstName: ':injection',
+        },
+      ],
+      {
+        replacements: {
+          injection: 'raw sql',
+        },
       },
-    });
+    );
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
       default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
-      'mysql mariadb sqlite': toMatchSql('INSERT INTO `Users` (`firstName`) VALUES (\':injection\');'),
+      'mysql mariadb sqlite': toMatchSql(
+        "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
+      ),
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
       // TODO: db2 should use the same system as ibmi
-      ibmi: toMatchSql(`SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`),
+      ibmi: toMatchSql(
+        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
+      ),
     });
   });
 });

@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, literal } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeAll2, getTestDialect, sequelize, setResetMode } from '../support';
 
 const dialect = getTestDialect();
@@ -11,9 +11,13 @@ describe('QueryInterface#select', () => {
 
   const qi = sequelize.queryInterface;
   const vars = beforeAll2(async () => {
-    const User = sequelize.define('user', {
-      name: { type: DataTypes.TEXT },
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'user',
+      {
+        name: { type: DataTypes.TEXT },
+      },
+      { timestamps: false },
+    );
 
     await User.sync({ force: true });
 
@@ -22,11 +26,7 @@ describe('QueryInterface#select', () => {
 
   describe('limit/offset', () => {
     beforeEach(async () => {
-      await vars.User.bulkCreate([
-        { name: 'Abraham' },
-        { name: 'John' },
-        { name: 'Jane' },
-      ]);
+      await vars.User.bulkCreate([{ name: 'Abraham' }, { name: 'John' }, { name: 'Jane' }]);
     });
 
     it('selects only the first two records', async () => {

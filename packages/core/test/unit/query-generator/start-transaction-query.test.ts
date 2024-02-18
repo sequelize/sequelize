@@ -3,7 +3,9 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const notSupportedError = new Error(`startTransactionQuery is not supported by the ${dialect.name} dialect.`);
+const notSupportedError = new Error(
+  `startTransactionQuery is not supported by the ${dialect.name} dialect.`,
+);
 
 describe('QueryGenerator#startTransactionQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -34,38 +36,61 @@ describe('QueryGenerator#startTransactionQuery', () => {
   });
 
   it('should generate a query for starting a deferred transaction', () => {
-    expectsql(() => queryGenerator.startTransactionQuery({ transactionType: TransactionType.DEFERRED }), {
-      default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['transactionType']),
-      sqlite: 'BEGIN DEFERRED TRANSACTION',
-      'db2 ibmi mssql': notSupportedError,
-    });
+    expectsql(
+      () => queryGenerator.startTransactionQuery({ transactionType: TransactionType.DEFERRED }),
+      {
+        default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'transactionType',
+        ]),
+        sqlite: 'BEGIN DEFERRED TRANSACTION',
+        'db2 ibmi mssql': notSupportedError,
+      },
+    );
   });
 
   it('should generate a query for starting an immediate transaction', () => {
-    expectsql(() => queryGenerator.startTransactionQuery({ transactionType: TransactionType.IMMEDIATE }), {
-      default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['transactionType']),
-      sqlite: 'BEGIN IMMEDIATE TRANSACTION',
-      'db2 ibmi mssql': notSupportedError,
-    });
+    expectsql(
+      () => queryGenerator.startTransactionQuery({ transactionType: TransactionType.IMMEDIATE }),
+      {
+        default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'transactionType',
+        ]),
+        sqlite: 'BEGIN IMMEDIATE TRANSACTION',
+        'db2 ibmi mssql': notSupportedError,
+      },
+    );
   });
 
   it('should generate a query for starting an exclusive transaction', () => {
-    expectsql(() => queryGenerator.startTransactionQuery({ transactionType: TransactionType.EXCLUSIVE }), {
-      default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['transactionType']),
-      sqlite: 'BEGIN EXCLUSIVE TRANSACTION',
-      'db2 ibmi mssql': notSupportedError,
-    });
+    expectsql(
+      () => queryGenerator.startTransactionQuery({ transactionType: TransactionType.EXCLUSIVE }),
+      {
+        default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'transactionType',
+        ]),
+        sqlite: 'BEGIN EXCLUSIVE TRANSACTION',
+        'db2 ibmi mssql': notSupportedError,
+      },
+    );
   });
 
   it('should generate a query for starting a transaction with all options', () => {
-    expectsql(() => queryGenerator.startTransactionQuery({
-      readOnly: true,
-      transactionName: 'myTransaction',
-      transactionType: TransactionType.EXCLUSIVE,
-    }), {
-      default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['transactionType']),
-      'snowflake sqlite': buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['readOnly']),
-      'db2 ibmi mssql': notSupportedError,
-    });
+    expectsql(
+      () =>
+        queryGenerator.startTransactionQuery({
+          readOnly: true,
+          transactionName: 'myTransaction',
+          transactionType: TransactionType.EXCLUSIVE,
+        }),
+      {
+        default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'transactionType',
+        ]),
+        'snowflake sqlite': buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'readOnly',
+        ]),
+        'db2 ibmi mssql': notSupportedError,
+      },
+    );
   });
 });

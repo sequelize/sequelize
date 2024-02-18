@@ -10,19 +10,19 @@ describe('Model#reload', () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
 
-    await expect(instance.reload()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+    await expect(instance.reload()).to.be.rejectedWith(
+      'but this model instance is missing the value of its primary key',
+    );
   });
 
   describe('options tests', () => {
     let stub;
 
     before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves(
-        {
-          _previousDataValues: { id: 1 },
-          dataValues: { id: 2 },
-        },
-      );
+      stub = sinon.stub(sequelize, 'queryRaw').resolves({
+        _previousDataValues: { id: 1 },
+        dataValues: { id: 2 },
+      });
     });
 
     after(() => {
@@ -30,16 +30,20 @@ describe('Model#reload', () => {
     });
 
     it('should allow reloads even if options are not given', async () => {
-      const User = sequelize.define('User', {
-        id: {
-          type: DataTypes.BIGINT,
-          primaryKey: true,
-          autoIncrement: true,
+      const User = sequelize.define(
+        'User',
+        {
+          id: {
+            type: DataTypes.BIGINT,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          deletedAt: {},
         },
-        deletedAt: {},
-      }, {
-        paranoid: true,
-      });
+        {
+          paranoid: true,
+        },
+      );
 
       const instance = User.build({ id: 1 }, { isNewRecord: false });
       await expect(instance.reload()).to.be.fulfilled;

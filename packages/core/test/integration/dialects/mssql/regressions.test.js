@@ -4,7 +4,7 @@ const chai = require('chai');
 const times = require('lodash/times');
 
 const expect = chai.expect;
-const sinon =  require('sinon');
+const sinon = require('sinon');
 const Support = require('../../support');
 
 const { DataTypes, Op } = require('@sequelize/core');
@@ -110,9 +110,7 @@ if (dialect.startsWith('mssql')) {
           {
             model: LoginLog,
             separate: true,
-            order: [
-              'id',
-            ],
+            order: ['id'],
           },
         ],
         where: {
@@ -178,15 +176,21 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(spy).to.have.been.called;
-      const log = spy.args.find(arg => arg[0].includes(`IF OBJECT_ID(N'[a].[Toys]', 'U') IS NULL CREATE TABLE`))[0];
+      const log = spy.args.find(arg =>
+        arg[0].includes(`IF OBJECT_ID(N'[a].[Toys]', 'U') IS NULL CREATE TABLE`),
+      )[0];
 
       expect(log.match(/ON DELETE CASCADE/g).length).to.equal(2);
     });
 
     it('sets the varchar(max) length correctly on describeTable', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.STRING('MAX'),
-      }, { freezeTableName: true });
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: DataTypes.STRING('MAX'),
+        },
+        { freezeTableName: true },
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.sequelize.queryInterface.describeTable('_Users');
@@ -195,9 +199,13 @@ if (dialect.startsWith('mssql')) {
     });
 
     it('sets the char(10) length correctly on describeTable', async function () {
-      const Users = this.sequelize.define('_Users', {
-        username: DataTypes.CHAR(10),
-      }, { freezeTableName: true });
+      const Users = this.sequelize.define(
+        '_Users',
+        {
+          username: DataTypes.CHAR(10),
+        },
+        { freezeTableName: true },
+      );
 
       await Users.sync({ force: true });
       const metadata = await this.sequelize.queryInterface.describeTable('_Users');
@@ -206,14 +214,18 @@ if (dialect.startsWith('mssql')) {
     });
 
     it('saves value bigger than 2147483647, #11245', async function () {
-      const BigIntTable =  this.sequelize.define('BigIntTable', {
-        business_id: {
-          type: DataTypes.BIGINT,
-          allowNull: false,
+      const BigIntTable = this.sequelize.define(
+        'BigIntTable',
+        {
+          business_id: {
+            type: DataTypes.BIGINT,
+            allowNull: false,
+          },
         },
-      }, {
-        freezeTableName: true,
-      });
+        {
+          freezeTableName: true,
+        },
+      );
 
       const bigIntValue = 2_147_483_648;
 
@@ -228,14 +240,18 @@ if (dialect.startsWith('mssql')) {
     });
 
     it('saves boolean is true, #12090', async function () {
-      const BooleanTable =  this.sequelize.define('BooleanTable', {
-        status: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
+      const BooleanTable = this.sequelize.define(
+        'BooleanTable',
+        {
+          status: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+          },
         },
-      }, {
-        freezeTableName: true,
-      });
+        {
+          freezeTableName: true,
+        },
+      );
 
       const value = true;
 
@@ -261,10 +277,7 @@ if (dialect.startsWith('mssql')) {
       await User.sync({ force: true });
 
       try {
-        await User.bulkCreate([
-          ...times(1000, () => ({ username: 'John' })),
-          { username: null },
-        ]);
+        await User.bulkCreate([...times(1000, () => ({ username: 'John' })), { username: null }]);
       } catch {
         // ignore
       }

@@ -3,7 +3,9 @@ import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const notSupportedError = new Error(`Isolation levels are not supported by ${dialect.name}.`);
-const queryNotSupportedError = new Error(`setIsolationLevelQuery is not supported by the ${dialect.name} dialect.`);
+const queryNotSupportedError = new Error(
+  `setIsolationLevelQuery is not supported by the ${dialect.name} dialect.`,
+);
 
 describe('QueryGenerator#setIsolationLevelQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -11,7 +13,9 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to READ COMMITTED', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.READ_COMMITTED), {
       default: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
-      sqlite: new Error(`The ${IsolationLevel.READ_COMMITTED} isolation level is not supported by ${dialect.name}.`),
+      sqlite: new Error(
+        `The ${IsolationLevel.READ_COMMITTED} isolation level is not supported by ${dialect.name}.`,
+      ),
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
@@ -29,7 +33,9 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to REPEATABLE READ', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.REPEATABLE_READ), {
       default: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
-      sqlite: new Error(`The ${IsolationLevel.REPEATABLE_READ} isolation level is not supported by ${dialect.name}.`),
+      sqlite: new Error(
+        `The ${IsolationLevel.REPEATABLE_READ} isolation level is not supported by ${dialect.name}.`,
+      ),
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });

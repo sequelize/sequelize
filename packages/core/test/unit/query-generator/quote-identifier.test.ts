@@ -12,8 +12,13 @@ describe('QueryGenerator#quoteIdentifier', () => {
   });
 
   it('escapes identifier quotes', () => {
-    expectsql(queryGenerator.quoteIdentifier(`${TICK_LEFT}myTable${TICK_RIGHT}.${TICK_LEFT}Test${TICK_RIGHT}`), {
-      default: `${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}myTable${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}Test${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT}`,
-    });
+    expectsql(
+      queryGenerator.quoteIdentifier(
+        `${TICK_LEFT}myTable${TICK_RIGHT}.${TICK_LEFT}Test${TICK_RIGHT}`,
+      ),
+      {
+        default: `${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}myTable${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}Test${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT}`,
+      },
+    );
   });
 });

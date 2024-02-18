@@ -1,11 +1,11 @@
-import assert from 'node:assert';
 import identity from 'lodash/identity';
+import assert from 'node:assert';
 import wkx from 'wkx';
 import { getDataTypeParser } from '../abstract/data-types-utils.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import * as Hstore from './hstore.js';
-import { buildRangeParser } from './range.js';
 import type { PostgresDialect } from './index.js';
+import { buildRangeParser } from './range.js';
 
 /**
  * First pass of DB value parsing: Parses based on the Postgres Type ID.

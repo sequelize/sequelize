@@ -1,4 +1,7 @@
-import type { WhereAttributeHashValue, WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
+import type {
+  WhereAttributeHashValue,
+  WhereOptions,
+} from '../dialects/abstract/where-sql-builder-types.js';
 import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
 import type { WhereOperators } from '../model.js';
 import type { Op } from '../operators.js';
@@ -9,7 +12,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
  * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
-  declare private readonly brand: 'where';
+  private declare readonly brand: 'where';
 
   readonly where: PojoWhere | WhereOptions;
 
@@ -95,7 +98,10 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  * @param leftOperand The left operand
  * @param whereAttributeHashValue The POJO containing the operators and the right operands
  */
-export function where(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>): Where;
+export function where(
+  leftOperand: Expression,
+  whereAttributeHashValue: WhereAttributeHashValue<any>,
+): Where;
 /**
  * This version of `where` is used to opt back into the POJO syntax. Useful in combination with {@link sql}.
  *
@@ -140,7 +146,11 @@ export function where(whereOptions: WhereOptions): Where;
  * @param operator The operator to use (one of the different values available in the {@link Op} object)
  * @param rightOperand The right operand
  */
-export function where(leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression): Where;
+export function where(
+  leftOperand: Expression,
+  operator: keyof WhereOperators,
+  rightOperand: Expression,
+): Where;
 export function where(
   ...args:
     | [whereOptions: WhereOptions]

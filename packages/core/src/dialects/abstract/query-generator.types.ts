@@ -75,7 +75,7 @@ export interface RemoveColumnQueryOptions {
 export interface BaseConstraintQueryOptions {
   name?: string;
   type: ConstraintType;
-  fields: Array<string | BaseSqlExpression | { attribute?: string, name: string }>;
+  fields: Array<string | BaseSqlExpression | { attribute?: string; name: string }>;
 }
 
 export interface AddCheckConstraintQueryOptions extends BaseConstraintQueryOptions {
@@ -99,22 +99,24 @@ export interface AddPrimaryKeyConstraintQueryOptions extends BaseConstraintQuery
 
 export interface AddForeignKeyConstraintQueryOptions extends BaseConstraintQueryOptions {
   type: 'FOREIGN KEY';
-  references: {
-    table: TableOrModel,
-    field?: string,
-    fields: string[],
-  } | {
-    table: TableOrModel,
-    field: string,
-    fields?: string[],
-  };
+  references:
+    | {
+        table: TableOrModel;
+        field?: string;
+        fields: string[];
+      }
+    | {
+        table: TableOrModel;
+        field: string;
+        fields?: string[];
+      };
   onDelete?: ReferentialAction;
   onUpdate?: ReferentialAction;
   deferrable?: Deferrable;
 }
 
 export type AddConstraintQueryOptions =
-  AddCheckConstraintQueryOptions
+  | AddCheckConstraintQueryOptions
   | AddUniqueConstraintQueryOptions
   | AddDefaultConstraintQueryOptions
   | AddPrimaryKeyConstraintQueryOptions
@@ -123,24 +125,30 @@ export type AddConstraintQueryOptions =
 export interface GetConstraintSnippetQueryOptions {
   name?: string;
   type: ConstraintType;
-  fields: Array<string | BaseSqlExpression | {
-    /**
-     * @deprecated use `name` instead
-     */
-    attribute?: string,
-    name: string,
-  }>;
+  fields: Array<
+    | string
+    | BaseSqlExpression
+    | {
+        /**
+         * @deprecated use `name` instead
+         */
+        attribute?: string;
+        name: string;
+      }
+  >;
   where?: WhereOptions<any>;
   defaultValue?: unknown;
-  references?: {
-    table: TableOrModel,
-    field?: string,
-    fields: string[],
-  } | {
-    table: TableOrModel,
-    field: string,
-    fields?: string[],
-  };
+  references?:
+    | {
+        table: TableOrModel;
+        field?: string;
+        fields: string[];
+      }
+    | {
+        table: TableOrModel;
+        field: string;
+        fields?: string[];
+      };
   onDelete?: ReferentialAction;
   onUpdate?: ReferentialAction;
   deferrable?: Deferrable;

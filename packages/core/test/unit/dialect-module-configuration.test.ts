@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { Sequelize } from '@sequelize/core';
+import { expect } from 'chai';
 import { getTestDialect, getTestDialectTeaser } from '../support';
 
 const dialect = getTestDialect();

@@ -1293,28 +1293,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ephys/eslint-config-typescript@npm:19.0.2":
-  version: 19.0.2
-  resolution: "@ephys/eslint-config-typescript@npm:19.0.2"
+"@ephys/eslint-config-typescript@npm:20.0.0":
+  version: 20.0.0
+  resolution: "@ephys/eslint-config-typescript@npm:20.0.0"
   dependencies:
-    "@ephys/eslint-config": "npm:^19.0.2"
+    "@ephys/eslint-config": "npm:^20.0.0"
     "@typescript-eslint/eslint-plugin": "npm:^5.58.0"
     "@typescript-eslint/parser": "npm:^5.58.0"
     eslint-import-resolver-typescript: "npm:^3.5.5"
-  checksum: 10c0/d759ec1f9b5ea61d1d2bcf7e602caa61a27b9d14f7115a4a77ce9a53e76e83d7dc0c52ff80b136f1a7ac632b532e16a1e674756e7ac56a474f5d27b9ef3db0ab
+  checksum: 10c0/4eff4ac8ea0e8b6b911b55bca6746612c4bc9930c7d1d30077822a1f8b0f607309af19dd6ef5debc5c4239749172e82eb2b6ba3d6f443656a1c1972fcd3a3a9b
   languageName: node
   linkType: hard
 
-"@ephys/eslint-config@npm:^19.0.2":
-  version: 19.0.2
-  resolution: "@ephys/eslint-config@npm:19.0.2"
+"@ephys/eslint-config@npm:^20.0.0":
+  version: 20.0.0
+  resolution: "@ephys/eslint-config@npm:20.0.0"
   dependencies:
     "@babel/core": "npm:^7.21.4"
     "@babel/eslint-parser": "npm:^7.21.3"
     eslint: "npm:^8.38.0"
     eslint-plugin-eslint-comments: "npm:^3.2.0"
     eslint-plugin-import: "npm:^2.27.5"
-    eslint-plugin-import-newlines: "npm:^1.3.1"
     eslint-plugin-jest: "npm:^27.2.1"
     eslint-plugin-json: "npm:^3.1.0"
     eslint-plugin-jsx-a11y: "npm:^6.7.1"
@@ -1322,8 +1321,9 @@ __metadata:
     eslint-plugin-react: "npm:^7.32.2"
     eslint-plugin-react-hooks: "npm:^4.6.0"
     eslint-plugin-small-import: "npm:^1.0.0"
+    eslint-plugin-sort-destructure-keys: "npm:^1.5.0"
     eslint-plugin-unicorn: "npm:^46.0.0"
-  checksum: 10c0/29ed6dbeeb9d9fe3822b11b1f72fb18cd68e652f49224256004f97433f3342981d069002405cbd55a8f0882a40e765cc41f8e1e389ace28ea0fc2bb3a677f944
+  checksum: 10c0/6283faf6080982b9e5c95adeff8d0ba637ec03a03844496d99cd1182d161ed7c80c813bb3fdd4b93a2ca5225bd71b7b438ab5ee136d92ecf5eac9008a6b8cfac
   languageName: node
   linkType: hard
 
@@ -2903,7 +2903,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
-    "@ephys/eslint-config-typescript": "npm:19.0.2"
+    "@ephys/eslint-config-typescript": "npm:20.0.0"
     "@rushstack/eslint-patch": "npm:1.7.2"
     "@types/node": "npm:20.11.19"
     chai: "npm:4.4.1"
@@ -2922,6 +2922,8 @@ __metadata:
     node-gyp: "npm:10.0.1"
     node-hook: "npm:1.0.0"
     nx: "npm:18.0.4"
+    prettier: "npm:3.2.5"
+    prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.8"
@@ -7057,17 +7059,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import-newlines@npm:^1.3.1":
-  version: 1.3.4
-  resolution: "eslint-plugin-import-newlines@npm:1.3.4"
-  peerDependencies:
-    eslint: ">=6.0.0"
-  bin:
-    import-linter: lib/index.js
-  checksum: 10c0/cab7fe1d96c339b0d9a50af19ddc7a862a60804564995c461e52e284d5e70e7ebd2fc5c88b2ec564ee57835c2da432e12587bf20d5a7346b715adfc1f34a272d
-  languageName: node
-  linkType: hard
-
 "eslint-plugin-import@npm:^2.27.5":
   version: 2.29.1
   resolution: "eslint-plugin-import@npm:2.29.1"
@@ -7234,6 +7225,17 @@ __metadata:
   peerDependencies:
     eslint: ^6.1.0
   checksum: 10c0/b97403313b8279f8049abb907d24a492c340f5c6d8adf0b668e70781aa560347c82537fee5165b7b241b182a7c13c08ae95ce3f1fc2eb74c93c49aca4598244c
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-sort-destructure-keys@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "eslint-plugin-sort-destructure-keys@npm:1.5.0"
+  dependencies:
+    natural-compare-lite: "npm:^1.4.0"
+  peerDependencies:
+    eslint: 3 - 8
+  checksum: 10c0/1ab8ff259cca162344f09a47b6bdeccf03a6780771e70bd750c9a41a3f0ebb8935a631bd0712492fd49ba3e8a40c8016aec0aa525bd5b896dfef7461c6cdd335
   languageName: node
   linkType: hard
 
@@ -13522,6 +13524,32 @@ __metadata:
   version: 1.1.2
   resolution: "prelude-ls@npm:1.1.2"
   checksum: 10c0/7284270064f74e0bb7f04eb9bff7be677e4146417e599ccc9c1200f0f640f8b11e592d94eb1b18f7aa9518031913bb42bea9c86af07ba69902864e61005d6f18
+  languageName: node
+  linkType: hard
+
+"prettier-plugin-organize-imports@npm:3.2.4":
+  version: 3.2.4
+  resolution: "prettier-plugin-organize-imports@npm:3.2.4"
+  peerDependencies:
+    "@volar/vue-language-plugin-pug": ^1.0.4
+    "@volar/vue-typescript": ^1.0.4
+    prettier: ">=2.0"
+    typescript: ">=2.9"
+  peerDependenciesMeta:
+    "@volar/vue-language-plugin-pug":
+      optional: true
+    "@volar/vue-typescript":
+      optional: true
+  checksum: 10c0/c20afa9b379106839a273d53c83fef70920e8ae86939d4890a06c63da19440de411568793e716bafcdd96e5ba8e34233f2944ea53ecd6ac18ba1ec0fa05bb58b
+  languageName: node
+  linkType: hard
+
+"prettier@npm:3.2.5":
+  version: 3.2.5
+  resolution: "prettier@npm:3.2.5"
+  bin:
+    prettier: bin/prettier.cjs
+  checksum: 10c0/ea327f37a7d46f2324a34ad35292af2ad4c4c3c3355da07313339d7e554320f66f65f91e856add8530157a733c6c4a897dc41b577056be5c24c40f739f5ee8c6
   languageName: node
   linkType: hard
 

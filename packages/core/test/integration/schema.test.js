@@ -18,11 +18,15 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
   });
 
   beforeEach(async function () {
-    this.User = this.sequelize.define('User', {
-      aNumber: { type: DataTypes.INTEGER },
-    }, {
-      schema: 'testschema',
-    });
+    this.User = this.sequelize.define(
+      'User',
+      {
+        aNumber: { type: DataTypes.INTEGER },
+      },
+      {
+        schema: 'testschema',
+      },
+    );
 
     await this.User.sync({ force: true });
   });

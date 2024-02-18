@@ -5,7 +5,7 @@
  * @param cb
  * @returns an iterator.
  */
-export function *map<In, Out>(
+export function* map<In, Out>(
   iterable: Iterable<In>,
   cb: (item: In, index: number) => Out,
 ): Generator<Out, void> {
@@ -16,10 +16,7 @@ export function *map<In, Out>(
   }
 }
 
-export function some<In>(
-  iterable: Iterable<In>,
-  cb: (item: In) => boolean,
-): boolean {
+export function some<In>(iterable: Iterable<In>, cb: (item: In) => boolean): boolean {
   for (const item of iterable) {
     if (cb(item)) {
       return true;
@@ -29,10 +26,7 @@ export function some<In>(
   return false;
 }
 
-export function every<In>(
-  iterable: Iterable<In>,
-  cb: (item: In) => boolean,
-): boolean {
+export function every<In>(iterable: Iterable<In>, cb: (item: In) => boolean): boolean {
   for (const item of iterable) {
     if (!cb(item)) {
       return false;
@@ -57,7 +51,7 @@ export function find<Val>(iterable: Iterable<Val>, cb: (item: Val) => boolean): 
  *
  * @param iterables
  */
-export function *combinedIterator<T>(
+export function* combinedIterator<T>(
   ...iterables: Array<Iterable<T>>
 ): Generator<T, void, undefined> {
   for (const iterable of iterables) {

@@ -8,7 +8,7 @@ import { where } from './where.js';
  * Do not use me directly. Use {@link fn}
  */
 export class Fn extends BaseSqlExpression {
-  declare private readonly brand: 'fn';
+  private declare readonly brand: 'fn';
 
   readonly fn: string;
   readonly args: readonly Expression[];

@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import type { Transactionable } from '@sequelize/core';
 import { setTransactionFromCls } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { expect } from 'chai';
 import { beforeAll2, createSequelizeInstance, getTestDialect } from '../../support';
 
 const dialectName = getTestDialect();
@@ -112,7 +112,9 @@ describe('setTransactionFromCls', () => {
       await sequelize.withConnection(async connection => {
         const options: Transactionable = { transaction, connection };
 
-        expect(() => setTransactionFromCls(options, sequelize)).to.throw(`You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`);
+        expect(() => setTransactionFromCls(options, sequelize)).to.throw(
+          `You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`,
+        );
       });
     });
   });

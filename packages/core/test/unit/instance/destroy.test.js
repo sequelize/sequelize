@@ -10,19 +10,19 @@ describe('Model#destroy', () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
 
-    await expect(instance.destroy()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+    await expect(instance.destroy()).to.be.rejectedWith(
+      'but this model instance is missing the value of its primary key',
+    );
   });
 
   describe('options tests', () => {
     let stub;
 
     before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves(
-        {
-          _previousDataValues: {},
-          dataValues: { id: 1 },
-        },
-      );
+      stub = sinon.stub(sequelize, 'queryRaw').resolves({
+        _previousDataValues: {},
+        dataValues: { id: 1 },
+      });
     });
 
     after(() => {

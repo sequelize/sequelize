@@ -123,9 +123,13 @@ describe('Model', () => {
         });
 
         const obj0 = await this.RestaurantTwo.findOne({
-          where: { foo: 'two' }, include: [{
-            model: this.LocationTwo, as: 'location',
-          }],
+          where: { foo: 'two' },
+          include: [
+            {
+              model: this.LocationTwo,
+              as: 'location',
+            },
+          ],
         });
 
         expect(obj0).to.not.be.null;
@@ -140,20 +144,29 @@ describe('Model', () => {
 
   describe('schemas', () => {
     beforeEach('build restaurant tables', async function () {
-      this.Restaurant = current.define('restaurant', {
-        foo: DataTypes.STRING,
-        bar: DataTypes.STRING,
-      },
-      { tableName: 'restaurants' });
-      this.Location = current.define('location', {
-        name: DataTypes.STRING,
-      },
-      { tableName: 'locations' });
-      this.Employee = current.define('employee', {
-        first_name: DataTypes.STRING,
-        last_name: DataTypes.STRING,
-      },
-      { tableName: 'employees' });
+      this.Restaurant = current.define(
+        'restaurant',
+        {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING,
+        },
+        { tableName: 'restaurants' },
+      );
+      this.Location = current.define(
+        'location',
+        {
+          name: DataTypes.STRING,
+        },
+        { tableName: 'locations' },
+      );
+      this.Employee = current.define(
+        'employee',
+        {
+          first_name: DataTypes.STRING,
+          last_name: DataTypes.STRING,
+        },
+        { tableName: 'employees' },
+      );
       this.Restaurant.belongsTo(this.Location, {
         foreignKey: 'location_id',
         foreignKeyConstraints: false,
@@ -172,10 +185,7 @@ describe('Model', () => {
       this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
       this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);
 
-      await Promise.all([
-        current.createSchema(SCHEMA_ONE),
-        current.createSchema(SCHEMA_TWO),
-      ]);
+      await Promise.all([current.createSchema(SCHEMA_ONE), current.createSchema(SCHEMA_TWO)]);
 
       await Promise.all([
         this.RestaurantOne.sync({ force: true }),
@@ -318,9 +328,13 @@ describe('Model', () => {
         });
 
         const obj = await this.RestaurantOne.findOne({
-          where: { foo: 'one' }, include: [{
-            model: this.Location, as: 'location',
-          }],
+          where: { foo: 'one' },
+          include: [
+            {
+              model: this.Location,
+              as: 'location',
+            },
+          ],
         });
 
         expect(obj).to.not.be.null;
@@ -357,10 +371,12 @@ describe('Model', () => {
 
         const obj0 = await this.RestaurantOne.findOne({
           where: { foo: 'one' },
-          include: [{
-            model: this.EmployeeOne,
-            as: 'employees',
-          }],
+          include: [
+            {
+              model: this.EmployeeOne,
+              as: 'employees',
+            },
+          ],
         });
 
         expect(obj0).to.not.be.null;
@@ -372,9 +388,13 @@ describe('Model', () => {
         expect(employees[0].last_name).to.equal('one');
 
         const obj = await this.EmployeeOne.findOne({
-          where: { last_name: 'one' }, include: [{
-            model: this.RestaurantOne, as: 'restaurant',
-          }],
+          where: { last_name: 'one' },
+          include: [
+            {
+              model: this.RestaurantOne,
+              as: 'restaurant',
+            },
+          ],
         });
 
         expect(obj).to.not.be.null;
@@ -406,10 +426,12 @@ describe('Model', () => {
 
         const obj0 = await this.RestaurantTwo.findOne({
           where: { foo: 'two' },
-          include: [{
-            model: this.EmployeeTwo,
-            as: 'employees',
-          }],
+          include: [
+            {
+              model: this.EmployeeTwo,
+              as: 'employees',
+            },
+          ],
         });
 
         expect(obj0).to.not.be.null;
@@ -421,9 +443,13 @@ describe('Model', () => {
         expect(employees[0].last_name).to.equal('two');
 
         const obj = await this.Employee.schema(SCHEMA_TWO).findOne({
-          where: { last_name: 'two' }, include: [{
-            model: this.RestaurantTwo, as: 'restaurant',
-          }],
+          where: { last_name: 'two' },
+          include: [
+            {
+              model: this.RestaurantTwo,
+              as: 'restaurant',
+            },
+          ],
         });
 
         expect(obj).to.not.be.null;

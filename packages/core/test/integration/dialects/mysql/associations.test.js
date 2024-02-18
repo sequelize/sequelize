@@ -45,8 +45,12 @@ if (dialect === 'mysql') {
     describe('HasMany', () => {
       beforeEach(async function () {
         // prevent periods from occurring in the table name since they are used to delimit (table.column)
-        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10_000_000)}`, { name: DataTypes.STRING });
-        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10_000_000)}`, { name: DataTypes.STRING });
+        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10_000_000)}`, {
+          name: DataTypes.STRING,
+        });
+        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10_000_000)}`, {
+          name: DataTypes.STRING,
+        });
         this.users = null;
         this.tasks = null;
 

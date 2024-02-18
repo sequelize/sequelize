@@ -10,19 +10,19 @@ describe('Model#increment', () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
 
-    await expect(instance.increment()).to.be.rejectedWith('but this model instance is missing the value of its primary key');
+    await expect(instance.increment()).to.be.rejectedWith(
+      'but this model instance is missing the value of its primary key',
+    );
   });
 
   describe('options tests', () => {
     let stub;
 
     before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves(
-        {
-          _previousDataValues: { id: 1 },
-          dataValues: { id: 3 },
-        },
-      );
+      stub = sinon.stub(sequelize, 'queryRaw').resolves({
+        _previousDataValues: { id: 1 },
+        dataValues: { id: 3 },
+      });
     });
 
     after(() => {

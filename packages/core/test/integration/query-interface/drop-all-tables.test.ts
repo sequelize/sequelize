@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -48,42 +48,48 @@ describe('QueryInterface#dropAllTables', () => {
       const schema = 'archive';
       beforeEach(async () => {
         await queryInterface.createSchema(schema);
-        await queryInterface.createTable({
-          tableName: 'levels',
-          schema,
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
+        await queryInterface.createTable(
+          {
+            tableName: 'levels',
+            schema,
           },
-          name: {
-            type: DataTypes.STRING,
-            allowNull: false,
-          },
-        });
-
-        await queryInterface.createTable({
-          tableName: 'actors',
-          schema,
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            autoIncrement: true,
-            primaryKey: true,
-          },
-          levelId: {
-            type: DataTypes.INTEGER,
-            allowNull: false,
-            references: {
-              table: {
-                tableName: 'levels',
-                schema,
-              },
-              key: 'id',
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: false,
             },
           },
-        });
+        );
+
+        await queryInterface.createTable(
+          {
+            tableName: 'actors',
+            schema,
+          },
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+            },
+            levelId: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+              references: {
+                table: {
+                  tableName: 'levels',
+                  schema,
+                },
+                key: 'id',
+              },
+            },
+          },
+        );
       });
 
       it('should drop a table', async () => {

@@ -3,16 +3,26 @@ import { BaseError } from '../../errors/index.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+function removeUnsupportedIntegerOptions(
+  dataType: BaseTypes.BaseIntegerDataType,
+  dialect: AbstractDialect,
+) {
   if (dataType.options.length != null) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with length. This option will be ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support '${dataType.getDataTypeId()}' with length. This option will be ignored.`,
+    );
     delete dataType.options.length;
   }
 }
 
-function removeUnsupportedDecimalNumberOptions(dataType: BaseTypes.BaseDecimalNumberDataType, dialect: AbstractDialect) {
+function removeUnsupportedDecimalNumberOptions(
+  dataType: BaseTypes.BaseDecimalNumberDataType,
+  dialect: AbstractDialect,
+) {
   if (dataType.options.scale != null || dataType.options.precision != null) {
-    dialect.warnDataTypeIssue(`${dialect.name} does not support '${dataType.getDataTypeId()}' with "scale" or "precision" specified. These options will be ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support '${dataType.getDataTypeId()}' with "scale" or "precision" specified. These options will be ignored.`,
+    );
     dataType.options.scale = undefined;
     dataType.options.precision = undefined;
   }
@@ -53,7 +63,9 @@ export class TEXT extends BaseTypes.TEXT {
     super._checkOptionSupport(dialect);
 
     if (this.options.length) {
-      dialect.warnDataTypeIssue(`${dialect.name} does not support TEXT with options. Plain 'TEXT' will be used instead.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support TEXT with options. Plain 'TEXT' will be used instead.`,
+      );
       this.options.length = undefined;
     }
   }
@@ -136,7 +148,9 @@ export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedDecimalNumberOptions(this, dialect);
-    dialect.warnDataTypeIssue(`${dialect.name} does not support single-precision floating point numbers. SQLite's REAL type will be used instead, which in SQLite is a double-precision floating point type.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support single-precision floating point numbers. SQLite's REAL type will be used instead, which in SQLite is a double-precision floating point type.`,
+    );
   }
 
   // TODO: add check constraint >= 0 if unsigned is true
@@ -207,7 +221,9 @@ export class BLOB extends BaseTypes.BLOB {
     super._checkOptionSupport(dialect);
 
     if (this.options.length) {
-      dialect.warnDataTypeIssue(`${dialect.name} does not support '${this.getDataTypeId()}' with length. This option will be ignored.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support '${this.getDataTypeId()}' with length. This option will be ignored.`,
+      );
       delete this.options.length;
     }
   }
@@ -225,13 +241,18 @@ export class JSON extends BaseTypes.JSON {
     }
 
     if (typeof value !== 'string') {
-      throw new Error(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+      throw new Error(
+        `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
+      );
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(
+        `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
+        { cause: error },
+      );
     }
   }
 

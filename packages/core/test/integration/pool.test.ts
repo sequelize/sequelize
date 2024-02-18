@@ -1,9 +1,9 @@
+import type { Connection } from '@sequelize/core';
+import { ConnectionAcquireTimeoutError, Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
-import type { Connection } from '@sequelize/core';
-import { ConnectionAcquireTimeoutError, Sequelize } from '@sequelize/core';
 import { createSingleTestSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
 
 const dialect = getTestDialect();
@@ -121,7 +121,10 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
       const firstConnection = await cm.getConnection();
       await simulateUnexpectedError(firstConnection);
-      expect(cm.pool.using).to.eq(0, 'first connection should have errored and not be in use anymore');
+      expect(cm.pool.using).to.eq(
+        0,
+        'first connection should have errored and not be in use anymore',
+      );
 
       const secondConnection = await cm.getConnection();
 
@@ -247,13 +250,12 @@ describe(getTestDialectTeaser('Pooling'), () => {
       });
 
       // @ts-expect-error -- internal method, no typings
-      sandbox.stub(testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      sandbox.stub(testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
       sandbox.stub(testInstance.connectionManager, '_onProcessExit');
 
-      await expect(
-        testInstance.authenticate(),
-      ).to.eventually.be.rejectedWith(ConnectionAcquireTimeoutError);
+      await expect(testInstance.authenticate()).to.eventually.be.rejectedWith(
+        ConnectionAcquireTimeoutError,
+      );
 
       await testInstance.close();
     });
@@ -271,12 +273,10 @@ describe(getTestDialectTeaser('Pooling'), () => {
       sandbox.stub(testInstance.connectionManager, '_onProcessExit');
 
       // @ts-expect-error -- internal method, no typings
-      sandbox.stub(testInstance.connectionManager, '_connect')
-        .returns(new Promise(() => {}));
+      sandbox.stub(testInstance.connectionManager, '_connect').returns(new Promise(() => {}));
 
       await expect(
         testInstance.transaction(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive
           await testInstance.transaction<void>(() => {});
         }),
       ).to.eventually.be.rejectedWith(ConnectionAcquireTimeoutError);

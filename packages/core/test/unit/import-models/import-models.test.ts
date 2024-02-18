@@ -1,7 +1,7 @@
-import { expect } from 'chai';
-import glob from 'fast-glob';
 import type { ModelStatic } from '@sequelize/core';
 import { importModels } from '@sequelize/core';
+import { expect } from 'chai';
+import glob from 'fast-glob';
 // @ts-expect-error -- commonjs file
 import { Bundler } from './models/bundler';
 // @ts-expect-error -- commonjs file
@@ -22,7 +22,11 @@ describe('importModels', () => {
   });
 
   it('can import models using multiple glob paths', async () => {
-    const models = await importModels([`${dirname}/models/bundler.js`, `${dirname}/models/node.abstract.js`, `${dirname}/models/user.js`]);
+    const models = await importModels([
+      `${dirname}/models/bundler.js`,
+      `${dirname}/models/node.abstract.js`,
+      `${dirname}/models/user.js`,
+    ]);
 
     expect(models).to.have.length(3);
     expect(models[0]).to.eq(Bundler);
@@ -31,13 +35,16 @@ describe('importModels', () => {
   });
 
   it('can exclude results using the second parameter', async () => {
-    const calls: Array<{ path: string, exportName: string, exportValue: ModelStatic }> = [];
+    const calls: Array<{ path: string; exportName: string; exportValue: ModelStatic }> = [];
 
-    const models = await importModels([`${dirname}/models/*.{ts,js}`], (path: string, exportName: string, exportValue: ModelStatic) => {
-      calls.push({ path, exportName, exportValue });
+    const models = await importModels(
+      [`${dirname}/models/*.{ts,js}`],
+      (path: string, exportName: string, exportValue: ModelStatic) => {
+        calls.push({ path, exportName, exportValue });
 
-      return false;
-    });
+        return false;
+      },
+    );
 
     expect(models.length).to.eq(0);
 

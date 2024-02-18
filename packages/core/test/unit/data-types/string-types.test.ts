@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -9,7 +9,8 @@ const dialectName = dialect.name;
 
 describe('DataTypes.STRING', () => {
   describe('toSql', () => {
-    const binaryCollationUnsupportedError = new Error(`${dialectName} does not support the STRING.BINARY data type.
+    const binaryCollationUnsupportedError =
+      new Error(`${dialectName} does not support the STRING.BINARY data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('STRING', DataTypes.STRING, {
@@ -112,7 +113,8 @@ describe('DataTypes.TEXT', () => {
 describe('DataTypes.CITEXT', () => {
   describe('toSql', () => {
     testDataTypeSql('CITEXT', DataTypes.CITEXT, {
-      default: new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
+      default:
+        new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'CITEXT',
       sqlite: 'TEXT COLLATE NOCASE',
@@ -138,7 +140,8 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
 describe('DataTypes.CHAR', () => {
   describe('toSql', () => {
-    const binaryNotSupportedError = new Error(`${dialectName} does not support the CHAR.BINARY data type.
+    const binaryNotSupportedError =
+      new Error(`${dialectName} does not support the CHAR.BINARY data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
     const charNotSupportedError = new Error(`${dialectName} does not support the CHAR data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);

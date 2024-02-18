@@ -74,19 +74,19 @@ export interface ConstraintDescription {
 }
 
 /** Options accepted by {@link AbstractQueryInterface#createDatabase} */
-export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions { }
+export interface CreateDatabaseOptions extends CreateDatabaseQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#listDatabases} */
-export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRawOptions { }
+export interface ListDatabasesOptions extends ListDatabasesQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#createSchema} */
-export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions { }
+export interface CreateSchemaOptions extends CreateSchemaQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#dropSchema} */
-export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions { }
+export interface DropSchemaOptions extends DropSchemaQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#listSchemas} */
-export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions { }
+export interface QiListSchemasOptions extends ListSchemasQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllSchemas} */
 export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOptions {
@@ -97,7 +97,7 @@ export interface QiDropAllSchemasOptions extends DropSchemaOptions, QueryRawOpti
 }
 
 /** Options accepted by {@link AbstractQueryInterface#listTables} */
-export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions { }
+export interface QiListTablesOptions extends ListTablesQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#describeTable} */
 export interface DescribeTableOptions extends QueryRawOptions {
@@ -112,7 +112,7 @@ export interface DescribeTableOptions extends QueryRawOptions {
 }
 
 /** Options accepted by {@link AbstractQueryInterface#dropTable} */
-export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions { }
+export interface QiDropTableOptions extends DropTableQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#dropAllTables} */
 export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTableOptions {
@@ -120,53 +120,62 @@ export interface QiDropAllTablesOptions extends ListTablesQueryOptions, QiDropTa
 }
 
 /** Options accepted by {@link AbstractQueryInterface#renameTable} */
-export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions { }
+export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#truncate} */
-export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions { }
+export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions {}
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 
 /** Options accepted by {@link AbstractQueryInterface#removeColumn} */
-export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions { }
+export interface RemoveColumnOptions extends RemoveColumnQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#addConstraint} */
 export type AddConstraintOptions = AddConstraintQueryOptions & QueryRawOptions;
 
 /** Options accepted by {@link AbstractQueryInterface#deferConstraints} */
-export interface DeferConstraintsOptions extends QueryRawOptions { }
+export interface DeferConstraintsOptions extends QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#removeConstraint} */
-export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, QueryRawOptions { }
+export interface RemoveConstraintOptions extends RemoveConstraintQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#showConstraints} */
-export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions { }
+export interface ShowConstraintsOptions extends ShowConstraintsQueryOptions, QueryRawOptions {}
 
 /** Options accepted by {@link AbstractQueryInterface#_commitTransaction} */
-export interface CommitTransactionOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> { }
+export interface CommitTransactionOptions
+  extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {}
 
 /** Options accepted by {@link AbstractQueryInterface#_createSavepoint} */
-export interface CreateSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+export interface CreateSavepointOptions
+  extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   savepointName: string;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#_rollbackSavepoint} */
-export interface RollbackSavepointOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+export interface RollbackSavepointOptions
+  extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   savepointName: string;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#_rollbackTransaction} */
-export interface RollbackTransactionOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> { }
+export interface RollbackTransactionOptions
+  extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {}
 
 /** Options accepted by {@link AbstractQueryInterface#_setIsolationLevel} */
-export interface SetIsolationLevelOptions extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+export interface SetIsolationLevelOptions
+  extends Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   isolationLevel: IsolationLevel;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#_startTransaction} */
-export interface StartTransactionOptions extends StartTransactionQueryOptions, Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
+export interface StartTransactionOptions
+  extends StartTransactionQueryOptions,
+    Omit<QueryRawOptions, 'connection' | 'transaction' | 'supportsSearchPath'> {
   isolationLevel?: IsolationLevel | null | undefined;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
-export interface QiBulkDeleteOptions extends BulkDeleteQueryOptions, Omit<QueryRawOptions, 'raw' | 'type'> { }
+export interface QiBulkDeleteOptions
+  extends BulkDeleteQueryOptions,
+    Omit<QueryRawOptions, 'raw' | 'type'> {}

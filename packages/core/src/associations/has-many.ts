@@ -23,11 +23,21 @@ import { isPlainObject } from '../utils/check.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import type { AllowIterable } from '../utils/types.js';
+import type {
+  Association,
+  AssociationOptions,
+  MultiAssociationAccessors,
+  MultiAssociationOptions,
+} from './base';
 import { MultiAssociation } from './base';
-import type { Association, AssociationOptions, MultiAssociationAccessors, MultiAssociationOptions } from './base';
 import { BelongsToAssociation } from './belongs-to.js';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions, normalizeInverseAssociation } from './helpers';
 import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
+import {
+  defineAssociation,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
+  normalizeInverseAssociation,
+} from './helpers';
 
 /**
  * One-to-many association.
@@ -51,7 +61,13 @@ export class HasManyAssociation<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
   TargetPrimaryKey extends AttributeNames<T> = any,
-> extends MultiAssociation<S, T, TargetKey, TargetPrimaryKey, NormalizedHasManyOptions<SourceKey, TargetKey>> {
+> extends MultiAssociation<
+  S,
+  T,
+  TargetKey,
+  TargetPrimaryKey,
+  NormalizedHasManyOptions<SourceKey, TargetKey>
+> {
   accessors: MultiAssociationAccessors;
 
   get foreignKey(): TargetKey {
@@ -96,31 +112,42 @@ export class HasManyAssociation<
     parent?: Association,
     inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
   ) {
-    if (
-      options.sourceKey
-      && !source.getAttributes()[options.sourceKey]
-    ) {
-      throw new Error(`Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`);
+    if (options.sourceKey && !source.getAttributes()[options.sourceKey]) {
+      throw new Error(
+        `Unknown attribute "${options.sourceKey}" passed as sourceKey, define this attribute on model "${source.name}" first`,
+      );
     }
 
     if ('keyType' in options) {
-      throw new TypeError('Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.');
+      throw new TypeError(
+        'Option "keyType" has been removed from the BelongsTo\'s options. Set "foreignKey.type" instead.',
+      );
     }
 
     if ('through' in options) {
-      throw new Error('The "through" option is not available in hasMany. N:M associations are defined using belongsToMany instead.');
+      throw new Error(
+        'The "through" option is not available in hasMany. N:M associations are defined using belongsToMany instead.',
+      );
     }
 
     super(secret, source, target, options, parent);
 
-    this.inverse = inverse ?? BelongsToAssociation.associate(secret, target, source, removeUndefined({
-      as: options.inverse?.as,
-      scope: options.inverse?.scope,
-      foreignKey: options.foreignKey,
-      targetKey: options.sourceKey,
-      foreignKeyConstraints: options.foreignKeyConstraints,
-      hooks: options.hooks,
-    }), this);
+    this.inverse =
+      inverse ??
+      BelongsToAssociation.associate(
+        secret,
+        target,
+        source,
+        removeUndefined({
+          as: options.inverse?.as,
+          scope: options.inverse?.scope,
+          foreignKey: options.foreignKey,
+          targetKey: options.sourceKey,
+          foreignKeyConstraints: options.foreignKeyConstraints,
+          hooks: options.hooks,
+        }),
+        this,
+      );
 
     // Get singular and plural names
     // try to uppercase the first letter, unless the model forbids it
@@ -156,34 +183,52 @@ export class HasManyAssociation<
     parent?: Association<any>,
     inverse?: BelongsToAssociation<T, S, TargetKey, SourceKey>,
   ): HasManyAssociation<S, T, SourceKey, TargetKey> {
-
     return defineAssociation<
       HasManyAssociation<S, T, SourceKey, TargetKey>,
       HasManyOptions<SourceKey, TargetKey>,
       NormalizedHasManyOptions<SourceKey, TargetKey>
-    >(HasManyAssociation, source, target, options, parent, normalizeHasManyOptions, normalizedOptions => {
-      // self-associations must always set their 'as' parameter
-      if (
-        isSameInitialModel(source, target)
-        && (
+    >(
+      HasManyAssociation,
+      source,
+      target,
+      options,
+      parent,
+      normalizeHasManyOptions,
+      normalizedOptions => {
+        // self-associations must always set their 'as' parameter
+        if (
+          isSameInitialModel(source, target) &&
           // use 'options' because this will always be set in 'normalizedOptions'
-          !options.as
-          || !normalizedOptions.inverse?.as
-          || options.as === normalizedOptions.inverse.as
-        )
-      ) {
-        throw new AssociationError('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.');
-      }
+          (!options.as ||
+            !normalizedOptions.inverse?.as ||
+            options.as === normalizedOptions.inverse.as)
+        ) {
+          throw new AssociationError(
+            'Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different.',
+          );
+        }
 
-      return new HasManyAssociation(secret, source, target, normalizedOptions, parent, inverse);
-    });
+        return new HasManyAssociation(secret, source, target, normalizedOptions, parent, inverse);
+      },
+    );
   }
 
   #mixin(mixinTargetPrototype: Model) {
     mixinMethods(
       this,
       mixinTargetPrototype,
-      ['get', 'count', 'hasSingle', 'hasAll', 'set', 'add', 'addMultiple', 'remove', 'removeMultiple', 'create'],
+      [
+        'get',
+        'count',
+        'hasSingle',
+        'hasAll',
+        'set',
+        'add',
+        'addMultiple',
+        'remove',
+        'removeMultiple',
+        'create',
+      ],
       {
         hasSingle: 'has',
         hasAll: 'has',
@@ -200,8 +245,14 @@ export class HasManyAssociation<
    * @param options find options
    */
   async get(instances: S, options?: HasManyGetAssociationsMixinOptions<T>): Promise<T[]>;
-  async get(instances: S[], options?: HasManyGetAssociationsMixinOptions<T>): Promise<Map<any, T[]>>;
-  async get(instances: S | S[], options: HasManyGetAssociationsMixinOptions<T> = {}): Promise<T[] | Map<any, T[]>> {
+  async get(
+    instances: S[],
+    options?: HasManyGetAssociationsMixinOptions<T>,
+  ): Promise<Map<any, T[]>>;
+  async get(
+    instances: S | S[],
+    options: HasManyGetAssociationsMixinOptions<T> = {},
+  ): Promise<T[] | Map<any, T[]>> {
     let isManyMode = true;
     if (!Array.isArray(instances)) {
       isManyMode = false;
@@ -239,21 +290,23 @@ export class HasManyAssociation<
       where[this.foreignKey] = instances[0].get(this.sourceKey, { raw: true });
     }
 
-    findOptions.where = findOptions.where
-      ? { [Op.and]: [where, findOptions.where] }
-      : where;
+    findOptions.where = findOptions.where ? { [Op.and]: [where, findOptions.where] } : where;
 
     let Model = this.target;
     if (options.scope != null) {
       if (!options.scope) {
         Model = Model.withoutScope();
-      } else if (options.scope !== true) { // 'true' means default scope. Which is the same as not doing anything.
+      } else if (options.scope !== true) {
+        // 'true' means default scope. Which is the same as not doing anything.
         Model = Model.withScope(options.scope);
       }
     }
 
     if (options.schema != null) {
-      Model = Model.withSchema({ schema: options.schema, schemaDelimiter: options.schemaDelimiter });
+      Model = Model.withSchema({
+        schema: options.schema,
+        schemaDelimiter: options.schemaDelimiter,
+      });
     }
 
     const results = await Model.findAll(findOptions);
@@ -261,7 +314,7 @@ export class HasManyAssociation<
       return results;
     }
 
-    const result: Map<any, T[]> = new Map();
+    const result = new Map<any, T[]>();
     for (const instance of instances) {
       result.set(instance.get(this.sourceKey, { raw: true }), []);
     }
@@ -286,13 +339,7 @@ export class HasManyAssociation<
       raw: true,
       plain: true,
       attributes: [
-        [
-          fn(
-            'COUNT',
-            col(`${this.target.name}.${this.target.primaryKeyField}`),
-          ),
-          'count',
-        ],
+        [fn('COUNT', col(`${this.target.name}.${this.target.primaryKeyField}`)), 'count'],
       ],
     };
 
@@ -345,10 +392,7 @@ export class HasManyAssociation<
       raw: true,
       // @ts-expect-error -- TODO: current WhereOptions typings do not allow having 'WhereOptions' inside another 'WhereOptions'
       where: {
-        [Op.and]: [
-          where,
-          options?.where,
-        ],
+        [Op.and]: [where, options?.where],
       },
     };
 
@@ -388,10 +432,12 @@ export class HasManyAssociation<
     });
 
     if (obsoleteAssociations.length > 0) {
-      promises.push(this.remove(sourceInstance, obsoleteAssociations, {
-        ...options,
-        destroy: options?.destroyPrevious,
-      }));
+      promises.push(
+        this.remove(sourceInstance, obsoleteAssociations, {
+          ...options,
+          destroy: options?.destroyPrevious,
+        }),
+      );
     }
 
     if (unassociatedObjects.length > 0) {
@@ -408,13 +454,12 @@ export class HasManyAssociation<
         }),
       };
 
-      promises.push(this.target.withoutScope().update(
-        update,
-        {
+      promises.push(
+        this.target.withoutScope().update(update, {
           ...options,
           where: updateWhere,
-        },
-      ));
+        }),
+      );
     }
 
     await Promise.all(promises);
@@ -497,7 +542,8 @@ export class HasManyAssociation<
       }),
     };
 
-    const foreignKeyIsNullable = this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+    const foreignKeyIsNullable =
+      this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
 
     if (options.destroy || !foreignKeyIsNullable) {
       await this.target.withoutScope().destroy({
@@ -551,10 +597,13 @@ export class HasManyAssociation<
       options.fields.push(this.foreignKey);
     }
 
-    return this.target.create({
-      ...values,
-      [this.foreignKey]: sourceInstance.get(this.sourceKey),
-    }, options);
+    return this.target.create(
+      {
+        ...values,
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      },
+      options,
+    );
   }
 }
 
@@ -563,9 +612,11 @@ Object.defineProperty(HasManyAssociation, 'name', {
   value: 'HasMany',
 });
 
-export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends string> =
-  NormalizeBaseAssociationOptions<Omit<HasManyOptions<SourceKey, TargetKey>, 'inverse'>> & {
-  inverse?: Exclude<HasManyOptions<SourceKey, TargetKey>['inverse'], string>,
+export type NormalizedHasManyOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+> = NormalizeBaseAssociationOptions<Omit<HasManyOptions<SourceKey, TargetKey>, 'inverse'>> & {
+  inverse?: Exclude<HasManyOptions<SourceKey, TargetKey>['inverse'], string>;
 };
 
 /**
@@ -573,7 +624,6 @@ export type NormalizedHasManyOptions<SourceKey extends string, TargetKey extends
  */
 export interface HasManyOptions<SourceKey extends string, TargetKey extends string>
   extends MultiAssociationOptions<TargetKey> {
-
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary
    * key of the source table
@@ -583,10 +633,13 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
   /**
    * The name of the inverse association, or an object for further association setup.
    */
-  inverse?: string | undefined | {
-    as?: AssociationOptions<any>['as'],
-    scope?: AssociationOptions<any>['scope'],
-  };
+  inverse?:
+    | string
+    | undefined
+    | {
+        as?: AssociationOptions<any>['as'];
+        scope?: AssociationOptions<any>['scope'];
+      };
 }
 
 function normalizeHasManyOptions<SourceKey extends string, TargetKey extends string>(
@@ -595,10 +648,15 @@ function normalizeHasManyOptions<SourceKey extends string, TargetKey extends str
   source: ModelStatic<Model>,
   target: ModelStatic<Model>,
 ): NormalizedHasManyOptions<SourceKey, TargetKey> {
-  return normalizeBaseAssociationOptions(type, {
-    ...options,
-    inverse: normalizeInverseAssociation(options.inverse),
-  }, source, target);
+  return normalizeBaseAssociationOptions(
+    type,
+    {
+      ...options,
+      inverse: normalizeInverseAssociation(options.inverse),
+    },
+    source,
+    target,
+  );
 }
 
 /**
@@ -608,7 +666,8 @@ function normalizeHasManyOptions<SourceKey extends string, TargetKey extends str
  *
  * @see HasManyGetAssociationsMixin
  */
-export interface HasManyGetAssociationsMixinOptions<T extends Model> extends FindOptions<Attributes<T>> {
+export interface HasManyGetAssociationsMixinOptions<T extends Model>
+  extends FindOptions<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -635,7 +694,9 @@ export interface HasManyGetAssociationsMixinOptions<T extends Model> extends Fin
  *
  * @see Model.hasMany
  */
-export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGetAssociationsMixinOptions<T>) => Promise<T[]>;
+export type HasManyGetAssociationsMixin<T extends Model> = (
+  options?: HasManyGetAssociationsMixinOptions<T>,
+) => Promise<T[]>;
 
 /**
  * The options for the setAssociations mixin of the hasMany association.
@@ -643,15 +704,18 @@ export type HasManyGetAssociationsMixin<T extends Model> = (options?: HasManyGet
  * @see HasManySetAssociationsMixin
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {
-
+  extends FindOptions<Attributes<T>>,
+    InstanceUpdateOptions<Attributes<T>> {
   /**
    * Delete the previous associated model. Default to false.
    *
    * Only applies if the foreign key is nullable. If the foreign key is not nullable,
    * the previous associated model is always deleted.
    */
-  destroyPrevious?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+  destroyPrevious?:
+    | boolean
+    | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
+    | undefined;
 }
 
 /**
@@ -697,7 +761,7 @@ export interface HasManyAddAssociationsMixinOptions<T extends Model>
  */
 export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
   newAssociations?: Iterable<T | TModelPrimaryKey>,
-  options?: HasManyAddAssociationsMixinOptions<T>
+  options?: HasManyAddAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -724,7 +788,7 @@ export interface HasManyAddAssociationMixinOptions<T extends Model>
  */
 export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
   newAssociation?: T | TModelPrimaryKey,
-  options?: HasManyAddAssociationMixinOptions<T>
+  options?: HasManyAddAssociationMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -752,9 +816,9 @@ export interface HasManyCreateAssociationMixinOptions<T extends Model>
 export type HasManyCreateAssociationMixin<
   Target extends Model,
   ExcludedAttributes extends keyof CreationAttributes<Target> = never,
-  > = (
+> = (
   values?: Omit<CreationAttributes<Target>, ExcludedAttributes>,
-  options?: HasManyCreateAssociationMixinOptions<Target>
+  options?: HasManyCreateAssociationMixinOptions<Target>,
 ) => Promise<Target>;
 
 /**
@@ -781,7 +845,7 @@ export interface HasManyRemoveAssociationMixinOptions<T extends Model>
  */
 export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
   oldAssociated?: T | TModelPrimaryKey,
-  options?: HasManyRemoveAssociationMixinOptions<T>
+  options?: HasManyRemoveAssociationMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -791,14 +855,16 @@ export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
  */
 export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
   extends Omit<InstanceUpdateOptions<Attributes<T>>, 'where'> {
-
   /**
    * Delete the associated model. Default to false.
    *
    * Only applies if the foreign key is nullable. If the foreign key is not nullable,
    * the associated model is always deleted.
    */
-  destroy?: boolean | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'> | undefined;
+  destroy?:
+    | boolean
+    | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
+    | undefined;
 }
 
 /**
@@ -817,7 +883,7 @@ export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
  */
 export type HasManyRemoveAssociationsMixin<T extends Model, TModelPrimaryKey> = (
   oldAssociateds?: Iterable<T | TModelPrimaryKey>,
-  options?: HasManyRemoveAssociationsMixinOptions<T>
+  options?: HasManyRemoveAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
 /**
@@ -874,7 +940,7 @@ export interface HasManyHasAssociationsMixinOptions<T extends Model>
 //       and "HasManyHasAssociationsMixin" should instead return a Map of id -> boolean or WeakMap of instance -> boolean
 export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> = (
   targets: Iterable<TModel | TModelPrimaryKey>,
-  options?: HasManyHasAssociationsMixinOptions<TModel>
+  options?: HasManyHasAssociationsMixinOptions<TModel>,
 ) => Promise<boolean>;
 
 /**
@@ -882,7 +948,9 @@ export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> 
  *
  * @see HasManyCountAssociationsMixin
  */
-export interface HasManyCountAssociationsMixinOptions<T extends Model> extends Transactionable, Filterable<Attributes<T>> {
+export interface HasManyCountAssociationsMixinOptions<T extends Model>
+  extends Transactionable,
+    Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -903,5 +971,6 @@ export interface HasManyCountAssociationsMixinOptions<T extends Model> extends T
  *
  * @see Model.hasMany
  */
-export type HasManyCountAssociationsMixin<T extends Model> =
-  (options?: HasManyCountAssociationsMixinOptions<T>) => Promise<number>;
+export type HasManyCountAssociationsMixin<T extends Model> = (
+  options?: HasManyCountAssociationsMixinOptions<T>,
+) => Promise<number>;

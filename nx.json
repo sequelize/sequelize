@@ -2,11 +2,7 @@
   "$schema": "node_modules/nx/schemas/nx-schema.json",
   "namedInputs": {
     "default": ["{projectRoot}/**/*"],
-    "prod": [
-      "{projectRoot}/src/**/*",
-      "{projectRoot}/package.json",
-      "{projectRoot}/tsconfig.json"
-    ]
+    "prod": ["{projectRoot}/src/**/*", "{projectRoot}/package.json", "{projectRoot}/tsconfig.json"]
   },
   "targetDefaults": {
     "build": {

@@ -1,17 +1,17 @@
-import assert from 'node:assert';
-import fs from 'node:fs';
-import path from 'node:path';
-import { inspect, isDeepStrictEqual } from 'node:util';
+import type { Dialect, Options } from '@sequelize/core';
+import { Sequelize } from '@sequelize/core';
+import { isNodeError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
-import { Sequelize } from '@sequelize/core';
-import type { Dialect, Options } from '@sequelize/core';
-import { isNodeError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -41,7 +41,7 @@ chai.Assertion.addMethod('notBeNullish', function nullish() {
   expect(this._obj).to.exist;
 });
 
-function withInlineCause(cb: (() => any)): () => void {
+function withInlineCause(cb: () => any): () => void {
   return () => {
     try {
       return cb();
@@ -146,7 +146,12 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     sequelizeOptions.storage = config.storage;
   }
 
-  return getSequelizeInstance(config.database!, config.username!, config.password!, sequelizeOptions);
+  return getSequelizeInstance(
+    config.database!,
+    config.username!,
+    config.password!,
+    sequelizeOptions,
+  );
 }
 
 export function getConnectionOptionsWithoutPool() {
@@ -157,15 +162,21 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
-  options = options || {};
+export function getSequelizeInstance(
+  db: string,
+  user: string,
+  pass: string,
+  options?: Options,
+): Sequelize {
+  options ||= {};
   options.dialect = options.dialect || getTestDialect();
 
   return new Sequelize(db, user, pass, options);
 }
 
 export function getSupportedDialects() {
-  return fs.readdirSync(path.join(distDir, 'dialects'))
+  return fs
+    .readdirSync(path.join(distDir, 'dialects'))
     .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
@@ -177,7 +188,11 @@ export function getTestDialect(): Dialect {
   }
 
   if (!getSupportedDialects().includes(envDialect)) {
-    throw new Error(`The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects().map(d => JSON.stringify(d)).join(', ')} instead.`);
+    throw new Error(
+      `The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects()
+        .map(d => JSON.stringify(d))
+        .join(', ')} instead.`,
+    );
   }
 
   return envDialect as Dialect;
@@ -211,11 +226,9 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
-export function expectPerDialect<Out>(
-  method: () => Out,
-  assertions: ExpectationRecord<Out>,
-) {
-  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> = Object.create(null);
+export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
+  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> =
+    Object.create(null);
 
   for (const [key, value] of Object.entries(assertions)) {
     const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
@@ -245,15 +258,23 @@ export function expectPerDialect<Out>(
 
   const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
   if (expectation === undefined) {
-    throw new Error(`No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`);
+    throw new Error(
+      `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
+    );
   }
 
   if (expectation instanceof Error) {
-    assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
+    assert(
+      result instanceof Error,
+      `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`,
+    );
 
     expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
+    assert(
+      !(result instanceof Error),
+      `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
+    );
 
     assertMatchesExpectation(result, expectation);
   }
@@ -315,30 +336,36 @@ class HasPropertiesExpectation<Obj extends Record<string, unknown>> extends Expe
   }
 }
 
-export function toHaveProperties<Obj extends Record<string, unknown>>(properties: HasPropertiesInput<Obj>) {
+export function toHaveProperties<Obj extends Record<string, unknown>>(
+  properties: HasPropertiesInput<Obj>,
+) {
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind?: unknown } | Error>,
+  query: MaybeLazy<{ query: string; bind?: unknown } | Error>,
   assertions: {
-    query: PartialRecord<ExpectationKey, string | Error>,
-    bind: PartialRecord<ExpectationKey, unknown>,
-   },
+    query: PartialRecord<ExpectationKey, string | Error>;
+    bind: PartialRecord<ExpectationKey, unknown>;
+  },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind?: unknown }>,
+  query: MaybeLazy<string | Error | { query: string; bind?: unknown }>,
   assertions:
-    | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
+    | {
+        query: PartialRecord<ExpectationKey, string | Error>;
+        bind: PartialRecord<ExpectationKey, unknown>;
+      }
     | PartialRecord<ExpectationKey, string | Error>,
 ): void {
-  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
+  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
+    'query' in assertions ? assertions.query : assertions;
   const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
 
   /**
@@ -375,13 +402,18 @@ export function expectsql(
 
   let expectation = expectations[usedExpectationName];
   if (expectation == null) {
-    throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+    throw new Error(
+      `Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`,
+    );
   }
 
   if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
     // replace [...] with the proper quote character for the dialect
     // except for ARRAY[...]
-    expectation = expectation.replaceAll(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+    expectation = expectation.replaceAll(
+      /(?<!ARRAY)\[([^\]]+)]/g,
+      `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`,
+    );
     if (dialect.name === 'ibmi') {
       expectation = expectation.trim().replace(/;$/, '');
     }
@@ -392,7 +424,9 @@ export function expectsql(
       query = query();
     } catch (error: unknown) {
       if (!(error instanceof Error)) {
-        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+        throw new TypeError(
+          'expectsql: function threw something that is not an instance of Error.',
+        );
       }
 
       query = error;
@@ -400,17 +434,24 @@ export function expectsql(
   }
 
   if (expectation instanceof Error) {
-    assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
+    assert(
+      query instanceof Error,
+      `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`,
+    );
 
     expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
+    assert(
+      !(query instanceof Error),
+      `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`,
+    );
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
   if ('bind' in assertions) {
-    const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
+    const bind =
+      assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
@@ -432,15 +473,18 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
  */
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
-  return sql.replaceAll(/\s+/g, ' ')
-    // remove space before comma
-    .replaceAll(' ,', ',')
-    // remove space before )
-    .replaceAll(' )', ')')
-    // replace space after (
-    .replaceAll('( ', '(')
-    // remove whitespace at start & end
-    .trim();
+  return (
+    sql
+      .replaceAll(/\s+/g, ' ')
+      // remove space before comma
+      .replaceAll(' ,', ',')
+      // remove space before )
+      .replaceAll(' )', ')')
+      // replace space after (
+      .replaceAll('( ', '(')
+      // remove whitespace at start & end
+      .trim()
+  );
 }
 
 export const sequelize = createSequelizeInstance();
@@ -463,14 +507,14 @@ if (typeof before !== 'undefined') {
 }
 
 type Tester<Params extends any[]> = {
-  (...params: Params): void,
-  skip(...params: Params): void,
-  only(...params: Params): void,
+  (...params: Params): void;
+  skip(...params: Params): void;
+  only(...params: Params): void;
 };
 type TestFunctions = ExclusiveTestFunction | TestFunction | PendingTestFunction;
 
 export function createTester<Params extends any[]>(
-  cb: ((testFunction: TestFunctions, ...args: Params) => void),
+  cb: (testFunction: TestFunctions, ...args: Params) => void,
 ): Tester<Params> {
   function tester(...params: Params) {
     cb(it, ...params);
