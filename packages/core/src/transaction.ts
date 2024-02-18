@@ -224,7 +224,11 @@ export class Transaction {
       return queryInterface._createSavepoint(this.parent, { ...this.options, savepointName: this.#name });
     }
 
-    await queryInterface._startTransaction(this, { ...this.options, transactionName: this.#name });
+    await queryInterface._startTransaction(this, {
+      ...this.options,
+      readOnly: this.sequelize.dialect.supports.startTransaction.readOnly ? this.options.readOnly : false,
+      transactionName: this.#name,
+    });
   }
 
   #cleanup(): void {

@@ -8,7 +8,6 @@ import {
   getConnectionOptionsWithoutPool,
   getTestDialect,
   getTestDialectTeaser,
-  sequelize as instance,
   setResetMode,
 } from './support';
 
@@ -82,15 +81,13 @@ describe(getTestDialectTeaser('Replication'), () => {
       expectReadCalls();
     });
 
-    if (instance.dialect.supports.startTransaction.readOnly) {
-      it('should run read-only transactions on the replica', async () => {
-        await deps.sequelize.transaction({ readOnly: true }, async transaction => {
-          return deps.User.findAll({ transaction });
-        });
-
-        expectReadCalls();
+    it('should run read-only transactions on the replica', async () => {
+      await deps.sequelize.transaction({ readOnly: true }, async transaction => {
+        return deps.User.findAll({ transaction });
       });
-    }
+
+      expectReadCalls();
+    });
 
     it('should run non-read-only transactions on the primary', async () => {
       await deps.sequelize.transaction(async transaction => {

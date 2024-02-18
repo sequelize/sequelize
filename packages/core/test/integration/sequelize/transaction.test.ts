@@ -153,7 +153,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               constraintChecking: sequelize.dialect.supports.constraints.deferrable
                 ? ConstraintChecking.DEFERRED
                 : undefined,
-              readOnly: sequelize.dialect.supports.startTransaction.readOnly,
+              readOnly: true,
             },
             async () => { /* noop */
             },
