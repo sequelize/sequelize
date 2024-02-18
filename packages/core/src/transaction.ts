@@ -402,6 +402,20 @@ export class Transaction {
    *
    * The query will now return any rows that aren't locked by another transaction
    *
+   * @example You can raise an error instead of waiting on a lock:
+   * ```ts
+   * // t1 is a transaction
+   * Model.findAll({
+   *   where: ...,
+   *   transaction: t1,
+   *   lock: true,
+   *   noWait: true
+   * });
+   * ```
+   *
+   * An error will be raised by the db instead of returning any results if anyone
+   * else has locked any of the selected rows.
+   *
    * @returns possible options for row locking
    * @property UPDATE
    * @property SHARE

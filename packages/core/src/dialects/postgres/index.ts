@@ -23,6 +23,7 @@ export class PostgresDialect extends AbstractDialect {
     lockKey: true,
     lockOuterJoinFailure: true,
     skipLocked: true,
+    noWait: true,
     forShare: 'FOR SHARE',
     constraints: {
       deferrable: true,

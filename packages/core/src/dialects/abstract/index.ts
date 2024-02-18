@@ -62,6 +62,7 @@ export type DialectSupports = {
   lockKey: boolean,
   lockOuterJoinFailure: boolean,
   skipLocked: boolean,
+  noWait: boolean,
   finalTable: boolean,
 
   /* does the dialect support returning values for inserted/updated fields */
@@ -290,6 +291,7 @@ export abstract class AbstractDialect {
     lockKey: false,
     lockOuterJoinFailure: false,
     skipLocked: false,
+    noWait: false,
     finalTable: false,
     returnValues: false,
     autoIncrement: {
