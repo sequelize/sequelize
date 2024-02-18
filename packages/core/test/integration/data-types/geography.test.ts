@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
@@ -9,6 +8,7 @@ import type {
   InferCreationAttributes,
 } from '@sequelize/core';
 import { DataTypes, GeoJsonType, Model } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
@@ -17,14 +17,17 @@ async function createUserModelWithGeography(type?: GeoJsonType, srid?: number) {
     declare geography: GeoJson | null;
   }
 
-  User.init({
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      geography: type ? DataTypes.GEOGRAPHY(type, srid) : DataTypes.GEOGRAPHY,
     },
-    geography: type ? DataTypes.GEOGRAPHY(type, srid) : DataTypes.GEOGRAPHY,
-  }, { sequelize, timestamps: false });
+    { sequelize, timestamps: false },
+  );
 
   await User.sync({ force: true });
 
@@ -59,7 +62,6 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     });
 
     it('should update a geography object', async () => {
-
       const point2: GeoJsonPoint = {
         type: 'Point',
         coordinates: [49.807_222, -86.984_722],
@@ -94,7 +96,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geography: {
           type: 'Point',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [39.807_222, -76.984_722],
         },
@@ -164,7 +166,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     it('should create a geography object', async () => {
       const point: GeoJsonLineString = {
         type: 'LineString',
-        coordinates: [[100, 0], [101, 1]],
+        coordinates: [
+          [100, 0],
+          [101, 1],
+        ],
         crs: {
           type: 'name',
           properties: {
@@ -181,7 +186,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     it('should update a geography object', async () => {
       const point1: GeoJsonLineString = {
         type: 'LineString',
-        coordinates: [[100, 0], [101, 1]],
+        coordinates: [
+          [100, 0],
+          [101, 1],
+        ],
         crs: {
           type: 'name',
           properties: {
@@ -191,7 +199,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       };
       const point2: GeoJsonLineString = {
         type: 'LineString',
-        coordinates: [[101, 0], [102, 1]],
+        coordinates: [
+          [101, 0],
+          [102, 1],
+        ],
         crs: {
           type: 'name',
           properties: {
@@ -217,7 +228,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const point: GeoJsonPolygon = {
         type: 'Polygon',
         coordinates: [
-          [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
+          [
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
+          ],
         ],
         crs: {
           type: 'name',
@@ -236,7 +253,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const polygon1: GeoJsonPolygon = {
         type: 'Polygon',
         coordinates: [
-          [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
+          [
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
+          ],
         ],
         crs: {
           type: 'name',
@@ -249,7 +272,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const polygon2: GeoJsonPolygon = {
         type: 'Polygon',
         coordinates: [
-          [[100, 0], [102, 0], [102, 1], [100, 1], [100, 0]],
+          [
+            [100, 0],
+            [102, 0],
+            [102, 1],
+            [100, 1],
+            [100, 0],
+          ],
         ],
         crs: {
           type: 'name',
@@ -276,7 +305,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         const point: GeoJsonPolygon = {
           type: 'Polygon',
           coordinates: [
-            [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
+            [
+              [100, 0],
+              [101, 0],
+              [101, 1],
+              [100, 1],
+              [100, 0],
+            ],
           ],
           crs: {
             type: 'name',
@@ -295,7 +330,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         const polygon1: GeoJsonPolygon = {
           type: 'Polygon',
           coordinates: [
-            [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
+            [
+              [100, 0],
+              [101, 0],
+              [101, 1],
+              [100, 1],
+              [100, 0],
+            ],
           ],
           crs: {
             type: 'name',
@@ -308,7 +349,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         const polygon2: GeoJsonPolygon = {
           type: 'Polygon',
           coordinates: [
-            [[100, 0], [102, 0], [102, 1], [100, 1], [100, 0]],
+            [
+              [100, 0],
+              [102, 0],
+              [102, 1],
+              [100, 1],
+              [100, 0],
+            ],
           ],
           crs: {
             type: 'name',

@@ -19,12 +19,14 @@ describe('Model.increment', () => {
   });
 
   it('should reject if options are missing', async () => {
-    await expect(vars.User.increment(['id', 'count']))
-      .to.be.rejectedWith('Missing where attribute in the options parameter');
+    await expect(vars.User.increment(['id', 'count'])).to.be.rejectedWith(
+      'Missing where attribute in the options parameter',
+    );
   });
 
   it('should reject if options.where are missing', async () => {
-    await expect(vars.User.increment(['id', 'count'], { by: 10 }))
-      .to.be.rejectedWith('Missing where attribute in the options parameter');
+    await expect(vars.User.increment(['id', 'count'], { by: 10 })).to.be.rejectedWith(
+      'Missing where attribute in the options parameter',
+    );
   });
 });

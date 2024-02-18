@@ -20,16 +20,25 @@ describe('QueryGenerator#createSchemaQuery', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { authorization: 'myUser' }), {
       default: 'CREATE SCHEMA [mySchema] AUTHORIZATION [myUser]',
       sqlite: notSupportedError,
-      'mariadb mysql snowflake': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization']),
+      'mariadb mysql snowflake': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+        'authorization',
+      ]),
     });
   });
 
   it('supports the authorization option with a literal', () => {
-    expectsql(() => queryGenerator.createSchemaQuery('mySchema', { authorization: sql`CURRENT USER` }), {
-      default: 'CREATE SCHEMA [mySchema] AUTHORIZATION CURRENT USER',
-      sqlite: notSupportedError,
-      'mariadb mysql snowflake': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization']),
-    });
+    expectsql(
+      () => queryGenerator.createSchemaQuery('mySchema', { authorization: sql`CURRENT USER` }),
+      {
+        default: 'CREATE SCHEMA [mySchema] AUTHORIZATION CURRENT USER',
+        sqlite: notSupportedError,
+        'mariadb mysql snowflake': buildInvalidOptionReceivedError(
+          'createSchemaQuery',
+          dialectName,
+          ['authorization'],
+        ),
+      },
+    );
   });
 
   it('supports the charset option', () => {
@@ -59,7 +68,9 @@ describe('QueryGenerator#createSchemaQuery', () => {
   it('supports the ifNotExists option', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { ifNotExists: true }), {
       default: 'CREATE SCHEMA IF NOT EXISTS [mySchema]',
-      'db2 ibmi mssql': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['ifNotExists']),
+      'db2 ibmi mssql': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+        'ifNotExists',
+      ]),
       sqlite: notSupportedError,
     });
   });
@@ -73,20 +84,46 @@ describe('QueryGenerator#createSchemaQuery', () => {
   });
 
   it('supports specifying all possible combinations', () => {
-    expectsql(() => queryGenerator.createSchemaQuery('mySchema', {
-      authorization: 'myUser',
-      charset: 'utf8mb4',
-      collate: 'en_US.UTF-8',
-      comment: 'myComment',
-      ifNotExists: true,
-      replace: true,
-    }), {
-      default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'ifNotExists', 'replace']),
-      mariadb: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment']),
-      mysql: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'comment', 'replace']),
-      postgres: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['charset', 'collate', 'comment', 'replace']),
-      snowflake: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['authorization', 'charset', 'collate']),
-      sqlite: notSupportedError,
-    });
+    expectsql(
+      () =>
+        queryGenerator.createSchemaQuery('mySchema', {
+          authorization: 'myUser',
+          charset: 'utf8mb4',
+          collate: 'en_US.UTF-8',
+          comment: 'myComment',
+          ifNotExists: true,
+          replace: true,
+        }),
+      {
+        default: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+          'charset',
+          'collate',
+          'comment',
+          'ifNotExists',
+          'replace',
+        ]),
+        mariadb: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+          'authorization',
+          'comment',
+        ]),
+        mysql: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+          'authorization',
+          'comment',
+          'replace',
+        ]),
+        postgres: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+          'charset',
+          'collate',
+          'comment',
+          'replace',
+        ]),
+        snowflake: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
+          'authorization',
+          'charset',
+          'collate',
+        ]),
+        sqlite: notSupportedError,
+      },
+    );
   });
 });

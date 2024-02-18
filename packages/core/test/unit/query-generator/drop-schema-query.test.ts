@@ -27,7 +27,9 @@ describe('QueryGenerator#dropSchemaQuery', () => {
   it('produces a DROP SCHEMA CASCADE query in supported dialects', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema', { cascade: true }), {
       default: 'DROP SCHEMA [mySchema] CASCADE',
-      'db2 mariadb mssql mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
+      'db2 mariadb mssql mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, [
+        'cascade',
+      ]),
       sqlite: notSupportedError,
     });
   });
@@ -35,7 +37,10 @@ describe('QueryGenerator#dropSchemaQuery', () => {
   it('produces a DROP SCHEMA IF EXISTS CASCADE query in supported dialects', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema', { cascade: true, ifExists: true }), {
       default: 'DROP SCHEMA IF EXISTS [mySchema] CASCADE',
-      'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade', 'ifExists']),
+      'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, [
+        'cascade',
+        'ifExists',
+      ]),
       'mariadb mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
       sqlite: notSupportedError,
     });

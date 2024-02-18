@@ -4,8 +4,8 @@ import type { ColumnDescription } from '../abstract/query-interface.types';
 export interface SqliteColumnDescription extends ColumnDescription {
   unique?: boolean;
   references?: {
-    table: string,
-    key: string,
+    table: string;
+    key: string;
   };
 }
 

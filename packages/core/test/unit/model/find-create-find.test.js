@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const { EmptyResultError, UniqueConstraintError } = require('@sequelize/core');
-const { sequelize, beforeAll2 } = require('../../support');
+const { beforeAll2, sequelize } = require('../../support');
 const sinon = require('sinon');
 
 describe('Model#findCreateFind', () => {
@@ -26,9 +26,11 @@ describe('Model#findCreateFind', () => {
     const where = { prop: Math.random().toString() };
     const findSpy = this.sinon.stub(TestModel, 'findOne').resolves(result);
 
-    await expect(TestModel.findCreateFind({
-      where,
-    })).to.eventually.eql([result, false]);
+    await expect(
+      TestModel.findCreateFind({
+        where,
+      }),
+    ).to.eventually.eql([result, false]);
 
     expect(findSpy).to.have.been.calledOnce;
     expect(findSpy.getCall(0).args[0].where).to.equal(where);
@@ -42,9 +44,11 @@ describe('Model#findCreateFind', () => {
 
     this.sinon.stub(TestModel, 'findOne').resolves(null);
 
-    await expect(TestModel.findCreateFind({
-      where,
-    })).to.eventually.eql([result, true]);
+    await expect(
+      TestModel.findCreateFind({
+        where,
+      }),
+    ).to.eventually.eql([result, true]);
 
     expect(createSpy).to.have.been.calledWith(where);
   });
@@ -61,9 +65,11 @@ describe('Model#findCreateFind', () => {
       findSpy.onFirstCall().resolves(null);
       findSpy.onSecondCall().resolves(result);
 
-      await expect(TestModel.findCreateFind({
-        where,
-      })).to.eventually.eql([result, false]);
+      await expect(
+        TestModel.findCreateFind({
+          where,
+        }),
+      ).to.eventually.eql([result, false]);
 
       expect(findSpy).to.have.been.calledTwice;
       expect(findSpy.getCall(1).args[0].where).to.equal(where);

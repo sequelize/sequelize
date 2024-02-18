@@ -7,13 +7,13 @@ const debug = logger.debugContext('pool');
 export type ConnectionType = 'read' | 'write';
 
 type ReplicationPoolConfig<Resource> = {
-  readConfig: ConnectionOptions[] | null,
-  writeConfig: ConnectionOptions,
-  pool: Omit<NormalizedPoolOptions, 'validate'>,
+  readConfig: ConnectionOptions[] | null;
+  writeConfig: ConnectionOptions;
+  pool: Omit<NormalizedPoolOptions, 'validate'>;
 
-  connect(options: ConnectionOptions): Promise<Resource>,
-  disconnect(connection: Resource): Promise<void>,
-  validate(connection: Resource): boolean,
+  connect(options: ConnectionOptions): Promise<Resource>;
+  disconnect(connection: Resource): Promise<void>;
+  validate(connection: Resource): boolean;
 };
 
 const owningPools = new WeakMap<object, 'read' | 'write'>();
@@ -109,19 +109,13 @@ export class ReplicationPool<Resource extends object> {
   }
 
   async destroyAllNow() {
-    await Promise.all([
-      this.read?.destroyAllNow(),
-      this.write.destroyAllNow(),
-    ]);
+    await Promise.all([this.read?.destroyAllNow(), this.write.destroyAllNow()]);
 
     debug('all connections destroyed');
   }
 
   async drain() {
-    await Promise.all([
-      this.write.drain(),
-      this.read?.drain(),
-    ]);
+    await Promise.all([this.write.drain(), this.read?.drain()]);
   }
 
   getPool(poolType: ConnectionType): Pool<Resource> {

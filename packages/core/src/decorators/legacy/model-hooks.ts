@@ -51,9 +51,7 @@ function createHookDecorator(hookType: keyof ModelHooks) {
 
       registerModelOptions(targetModel, {
         hooks: {
-          [hookType]: options?.name
-            ? { name: options?.name, callback }
-            : callback,
+          [hookType]: options?.name ? { name: options?.name, callback } : callback,
         },
       });
     },
@@ -87,7 +85,9 @@ export const BeforeDestroyMany = createHookDecorator('beforeDestroyMany');
 export const AfterDestroyMany = createHookDecorator('afterDestroyMany');
 
 export const BeforeFind = createHookDecorator('beforeFind');
-export const BeforeFindAfterExpandIncludeAll = createHookDecorator('beforeFindAfterExpandIncludeAll');
+export const BeforeFindAfterExpandIncludeAll = createHookDecorator(
+  'beforeFindAfterExpandIncludeAll',
+);
 export const BeforeFindAfterOptions = createHookDecorator('beforeFindAfterOptions');
 export const AfterFind = createHookDecorator('afterFind');
 

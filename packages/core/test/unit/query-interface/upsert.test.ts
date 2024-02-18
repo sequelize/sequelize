@@ -1,15 +1,19 @@
+import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes, literal } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 const dialectName = sequelize.dialect.name;
 
 describe('QueryInterface#upsert', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -40,9 +44,12 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
-      mariadb: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
-      mysql: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
+      default:
+        'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) ON CONFLICT ([id]) DO UPDATE SET [firstName]=EXCLUDED.[firstName];',
+      mariadb:
+        'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
+      mysql:
+        'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK)
           AS [Users_target]
@@ -82,18 +89,22 @@ describe('QueryInterface#upsert', () => {
     const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.queryInterface.upsert(
-      User.tableName,
-      { firstName: literal('$sequelize_test') },
-      { firstName: ':name' },
-      { id: ':id' },
-      {
-        model: User,
-        bind: {
-          sequelize_test: 'test',
+    await expect(
+      sequelize.queryInterface.upsert(
+        User.tableName,
+        { firstName: literal('$sequelize_test') },
+        { firstName: ':name' },
+        { id: ':id' },
+        {
+          model: User,
+          bind: {
+            sequelize_test: 'test',
+          },
         },
-      },
-    )).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+      ),
+    ).to.be.rejectedWith(
+      'Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.',
+    );
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
@@ -120,9 +131,12 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      default:
+        'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
+      mysql:
+        'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      mariadb:
+        'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -178,9 +192,12 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
-      mysql: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
-      mariadb: 'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      default:
+        'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1) ON CONFLICT ([id]) DO NOTHING;',
+      mysql:
+        'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
+      mariadb:
+        'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
@@ -236,15 +253,18 @@ describe('QueryInterface#upsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      default: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
-      postgres: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+      default:
+        'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON DUPLICATE KEY UPDATE `counter`=`counter` + 1;',
+      postgres:
+        'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
         USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
         ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
-      sqlite: 'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
+      sqlite:
+        'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
       snowflake: 'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1);',
       db2: `
         MERGE INTO "Users" AS "Users_target"

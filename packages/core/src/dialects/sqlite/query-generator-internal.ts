@@ -2,9 +2,9 @@ import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-inte
 import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
 import type { SqliteDialect } from './index.js';
 
-export class SqliteQueryGeneratorInternal<Dialect extends SqliteDialect = SqliteDialect>
-  extends AbstractQueryGeneratorInternal<Dialect> {
-
+export class SqliteQueryGeneratorInternal<
+  Dialect extends SqliteDialect = SqliteDialect,
+> extends AbstractQueryGeneratorInternal<Dialect> {
   addLimitAndOffset(options: AddLimitOffsetOptions) {
     let fragment = '';
     if (options.limit != null) {

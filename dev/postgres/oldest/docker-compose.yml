@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres-oldest:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "sequelize_test"]
+      test: ['CMD', 'pg_isready', '-U', 'sequelize_test']
       interval: 3s
       timeout: 1s
       retries: 10

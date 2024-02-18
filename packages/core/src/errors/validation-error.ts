@@ -90,9 +90,7 @@ export class ValidationErrorItem extends Error {
    */
   readonly validatorArgs: unknown[];
 
-  static throwDataTypeValidationError(
-    message: string,
-  ): never {
+  static throwDataTypeValidationError(message: string): never {
     throw new ValidationErrorItem(message, 'Validation error', ValidationErrorItemOrigin.DATATYPE);
   }
 
@@ -110,9 +108,7 @@ export class ValidationErrorItem extends Error {
    */
   constructor(
     message: string,
-    type:
-      | keyof typeof ValidationErrorItemType
-      | keyof typeof ValidationErrorItemOrigin,
+    type: keyof typeof ValidationErrorItemType | keyof typeof ValidationErrorItemOrigin,
     path?: string,
     value?: string,
     instance?: Model,
@@ -154,14 +150,10 @@ export class ValidationErrorItem extends Error {
   }
 
   private isValidationErrorItemOrigin(
-    origin:
-      | keyof typeof ValidationErrorItemOrigin
-      | keyof typeof ValidationErrorItemType,
+    origin: keyof typeof ValidationErrorItemOrigin | keyof typeof ValidationErrorItemType,
   ): origin is keyof typeof ValidationErrorItemOrigin {
     return (
-      ValidationErrorItemOrigin[
-        origin as keyof typeof ValidationErrorItemOrigin
-      ] !== undefined
+      ValidationErrorItemOrigin[origin as keyof typeof ValidationErrorItemOrigin] !== undefined
     );
   }
 
@@ -213,11 +205,7 @@ export class ValidationError extends BaseError {
   /** Array of ValidationErrorItem objects describing the validation errors */
   readonly errors: ValidationErrorItem[];
 
-  constructor(
-    message: string,
-    errors: ValidationErrorItem[] = [],
-    options: ErrorOptions = {},
-  ) {
+  constructor(message: string, errors: ValidationErrorItem[] = [], options: ErrorOptions = {}) {
     super(message, options);
 
     this.name = 'SequelizeValidationError';
@@ -230,9 +218,7 @@ export class ValidationError extends BaseError {
       // ... otherwise create a concatenated message out of existing errors.
     } else if (this.errors.length > 0 && this.errors[0].message) {
       this.message = this.errors
-        .map(
-          (err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`,
-        )
+        .map((err: ValidationErrorItem) => `${err.type || err.origin}: ${err.message}`)
         .join(',\n');
     }
   }

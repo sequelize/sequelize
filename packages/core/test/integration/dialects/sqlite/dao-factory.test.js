@@ -5,7 +5,12 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const { beforeEach2, createSequelizeInstance, getSqliteDatabasePath, unlinkIfExists } = require('../../../support');
+const {
+  beforeEach2,
+  createSequelizeInstance,
+  getSqliteDatabasePath,
+  unlinkIfExists,
+} = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const dbFile = getSqliteDatabasePath('dao.sqlite');

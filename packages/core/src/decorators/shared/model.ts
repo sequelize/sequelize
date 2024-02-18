@@ -34,10 +34,7 @@ const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
  * @param model
  * @param options
  */
-export function registerModelOptions(
-  model: ModelStatic,
-  options: RegisteredModelOptions,
-): void {
+export function registerModelOptions(model: ModelStatic, options: RegisteredModelOptions): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, { model: options, attributes: {} });
 
@@ -50,7 +47,10 @@ export function registerModelOptions(
   try {
     mergeModelOptions(existingModelOptions, options, false);
   } catch (error) {
-    throw new BaseError(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error });
+    throw new BaseError(
+      `Multiple decorators are trying to register conflicting options on model ${model.name}`,
+      { cause: error },
+    );
   }
 }
 
@@ -97,7 +97,9 @@ export function mergeAttributeOptions(
   options: Partial<AttributeOptions>,
   overrideOnConflict: boolean,
 ): Partial<AttributeOptions> {
-  for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof AttributeOptions, any]>) {
+  for (const [optionName, optionValue] of Object.entries(options) as Array<
+    [keyof AttributeOptions, any]
+  >) {
     if (existingOptions[optionName] === undefined) {
       // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
       // @ts-ignore -- this function is very fuzzy in terms of typing due to how generic it is.
@@ -108,8 +110,10 @@ export function mergeAttributeOptions(
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if ((subOptionName in existingOptions[optionName]!) && !overrideOnConflict) {
-          throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
+        if (subOptionName in existingOptions[optionName]! && !overrideOnConflict) {
+          throw new Error(
+            `Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`,
+          );
         }
 
         // @ts-expect-error -- runtime type checking is enforced by model
@@ -141,7 +145,9 @@ export function mergeAttributeOptions(
       continue;
     }
 
-    throw new Error(`Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`);
+    throw new Error(
+      `Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`,
+    );
   }
 
   return existingOptions;
@@ -165,14 +171,10 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): bo
   return true;
 }
 
-const NON_INHERITABLE_MODEL_OPTIONS = [
-  'modelName',
-  'name',
-  'tableName',
-] as const;
+const NON_INHERITABLE_MODEL_OPTIONS = ['modelName', 'name', 'tableName'] as const;
 
 function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
-  const modelOptions = (registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions));
+  const modelOptions = registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions);
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {

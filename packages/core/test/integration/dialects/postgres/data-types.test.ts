@@ -1,6 +1,11 @@
-import { expect } from 'chai';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  Model,
+} from '@sequelize/core';
 import { DataTypes, fn } from '@sequelize/core';
+import { expect } from 'chai';
 import { getTestDialect, sequelize } from '../../../support';
 
 if (getTestDialect() === 'postgres') {
@@ -17,37 +22,44 @@ if (getTestDialect() === 'postgres') {
         }
 
         const date = new Date();
-        const User = sequelize.define<TUser>('User', {
-          username: DataTypes.STRING,
-          beforeTime: {
-            type: DataTypes.DATE,
-            defaultValue: Number.NEGATIVE_INFINITY,
+        const User = sequelize.define<TUser>(
+          'User',
+          {
+            username: DataTypes.STRING,
+            beforeTime: {
+              type: DataTypes.DATE,
+              defaultValue: Number.NEGATIVE_INFINITY,
+            },
+            sometime: {
+              type: DataTypes.DATE,
+              defaultValue: fn('NOW'),
+            },
+            anotherTime: {
+              type: DataTypes.DATE,
+            },
+            afterTime: {
+              type: DataTypes.DATE,
+              defaultValue: Number.POSITIVE_INFINITY,
+            },
           },
-          sometime: {
-            type: DataTypes.DATE,
-            defaultValue: fn('NOW'),
+          {
+            timestamps: true,
           },
-          anotherTime: {
-            type: DataTypes.DATE,
-          },
-          afterTime: {
-            type: DataTypes.DATE,
-            defaultValue: Number.POSITIVE_INFINITY,
-          },
-        }, {
-          timestamps: true,
-        });
+        );
 
         await User.sync({
           force: true,
         });
 
-        const user4 = await User.create({
-          username: 'bob',
-          anotherTime: Number.POSITIVE_INFINITY,
-        }, {
-          validate: true,
-        });
+        const user4 = await User.create(
+          {
+            username: 'bob',
+            anotherTime: Number.POSITIVE_INFINITY,
+          },
+          {
+            validate: true,
+          },
+        );
 
         expect(user4.username).to.equal('bob');
         expect(user4.beforeTime).to.equal(Number.NEGATIVE_INFINITY);
@@ -55,11 +67,14 @@ if (getTestDialect() === 'postgres') {
         expect(user4.anotherTime).to.equal(Number.POSITIVE_INFINITY);
         expect(user4.afterTime).to.equal(Number.POSITIVE_INFINITY);
 
-        const user3 = await user4.update({
-          sometime: Number.POSITIVE_INFINITY,
-        }, {
-          returning: true,
-        });
+        const user3 = await user4.update(
+          {
+            sometime: Number.POSITIVE_INFINITY,
+          },
+          {
+            returning: true,
+          },
+        );
 
         expect(user3.sometime).to.equal(Number.POSITIVE_INFINITY);
 
@@ -69,11 +84,14 @@ if (getTestDialect() === 'postgres') {
 
         expect(user2.sometime).to.equal(Number.POSITIVE_INFINITY);
 
-        const user1 = await user2.update({
-          sometime: fn('NOW'),
-        }, {
-          returning: true,
-        });
+        const user1 = await user2.update(
+          {
+            sometime: fn('NOW'),
+          },
+          {
+            returning: true,
+          },
+        );
 
         expect(user1.sometime).to.be.withinTime(date, new Date());
 
@@ -110,38 +128,45 @@ if (getTestDialect() === 'postgres') {
           afterTime: string | number | null;
         }
 
-        const User = sequelize.define<TUser>('User', {
-          username: DataTypes.STRING,
-          beforeTime: {
-            type: DataTypes.DATEONLY,
-            defaultValue: Number.NEGATIVE_INFINITY,
+        const User = sequelize.define<TUser>(
+          'User',
+          {
+            username: DataTypes.STRING,
+            beforeTime: {
+              type: DataTypes.DATEONLY,
+              defaultValue: Number.NEGATIVE_INFINITY,
+            },
+            sometime: {
+              type: DataTypes.DATEONLY,
+              defaultValue: fn('NOW'),
+              allowNull: false,
+            },
+            anotherTime: {
+              type: DataTypes.DATEONLY,
+            },
+            afterTime: {
+              type: DataTypes.DATEONLY,
+              defaultValue: Number.POSITIVE_INFINITY,
+            },
           },
-          sometime: {
-            type: DataTypes.DATEONLY,
-            defaultValue: fn('NOW'),
-            allowNull: false,
+          {
+            timestamps: true,
           },
-          anotherTime: {
-            type: DataTypes.DATEONLY,
-          },
-          afterTime: {
-            type: DataTypes.DATEONLY,
-            defaultValue: Number.POSITIVE_INFINITY,
-          },
-        }, {
-          timestamps: true,
-        });
+        );
 
         await User.sync({
           force: true,
         });
 
-        const user4 = await User.create({
-          username: 'bob',
-          anotherTime: Number.POSITIVE_INFINITY,
-        }, {
-          validate: true,
-        });
+        const user4 = await User.create(
+          {
+            username: 'bob',
+            anotherTime: Number.POSITIVE_INFINITY,
+          },
+          {
+            validate: true,
+          },
+        );
 
         expect(user4.username).to.equal('bob');
         expect(user4.beforeTime).to.equal(Number.NEGATIVE_INFINITY);
@@ -149,11 +174,14 @@ if (getTestDialect() === 'postgres') {
         expect(user4.anotherTime).to.equal(Number.POSITIVE_INFINITY);
         expect(user4.afterTime).to.equal(Number.POSITIVE_INFINITY);
 
-        const user3 = await user4.update({
-          sometime: Number.POSITIVE_INFINITY,
-        }, {
-          returning: true,
-        });
+        const user3 = await user4.update(
+          {
+            sometime: Number.POSITIVE_INFINITY,
+          },
+          {
+            returning: true,
+          },
+        );
 
         expect(user3.sometime).to.equal(Number.POSITIVE_INFINITY);
 
@@ -163,11 +191,14 @@ if (getTestDialect() === 'postgres') {
 
         expect(user2.sometime).to.equal(Number.POSITIVE_INFINITY);
 
-        const user1 = await user2.update({
-          sometime: fn('NOW'),
-        }, {
-          returning: true,
-        });
+        const user1 = await user2.update(
+          {
+            sometime: fn('NOW'),
+          },
+          {
+            returning: true,
+          },
+        );
 
         expect(user1.sometime).to.not.equal(Number.POSITIVE_INFINITY);
         expect(new Date(user1.sometime)).to.be.withinDate(date, new Date());

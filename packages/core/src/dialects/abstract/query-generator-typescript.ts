@@ -1,5 +1,6 @@
-import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
+import { randomUUID } from 'node:crypto';
+import NodeUtil from 'node:util';
 import type { Class } from 'type-fest';
 import { ConstraintChecking } from '../../deferrable.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
@@ -22,15 +23,21 @@ import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
+import type { IsolationLevel } from '../../transaction.js';
 import { isPlainObject, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { join, map } from '../../utils/iterators.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
-import { extractModelDefinition, extractTableIdentifier, isModelStatic } from '../../utils/model-utils.js';
+import {
+  extractModelDefinition,
+  extractTableIdentifier,
+  isModelStatic,
+} from '../../utils/model-utils.js';
 import { EMPTY_OBJECT } from '../../utils/object.js';
-import { AbstractDataType } from './data-types.js';
 import type { BindParamOptions, DataType } from './data-types.js';
+import { AbstractDataType } from './data-types.js';
+import type { AbstractDialect } from './index.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
@@ -47,13 +54,13 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
-import type { AbstractDialect } from './index.js';
 
 export type TableOrModel = TableName | ModelStatic | ModelDefinition;
 
@@ -64,19 +71,63 @@ export interface RemoveIndexQueryOptions {
   cascade?: boolean;
 }
 
-export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['charset', 'collate', 'ctype', 'encoding', 'template']);
-export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateSchemaQueryOptions>(['authorization', 'charset', 'collate', 'comment', 'ifNotExists', 'replace']);
-export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQueryOptions>(['cascade', 'ifExists']);
-export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>(['cascade']);
-export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>(['skip']);
-export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>(['schema']);
-export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>(['indexHints', 'tableHints']);
-export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>(['ifExists', 'cascade']);
-export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveConstraintQueryOptions>(['ifExists', 'cascade']);
-export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
-export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
-export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
-export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['cascade', 'restartIdentity']);
+export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
+  'charset',
+  'collate',
+  'ctype',
+  'encoding',
+  'template',
+]);
+export const CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateSchemaQueryOptions>([
+  'authorization',
+  'charset',
+  'collate',
+  'comment',
+  'ifNotExists',
+  'replace',
+]);
+export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQueryOptions>([
+  'cascade',
+  'ifExists',
+]);
+export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>([
+  'cascade',
+]);
+export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([
+  'skip',
+]);
+export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQueryOptions>([
+  'schema',
+]);
+export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>([
+  'indexHints',
+  'tableHints',
+]);
+export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>([
+  'ifExists',
+  'cascade',
+]);
+export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<
+  keyof RemoveConstraintQueryOptions
+>(['ifExists', 'cascade']);
+export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>([
+  'concurrently',
+  'ifExists',
+  'cascade',
+]);
+export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>([
+  'changeSchema',
+]);
+export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<
+  keyof ShowConstraintsQueryOptions
+>(['columnName', 'constraintName', 'constraintType']);
+export const START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS = new Set<
+  keyof StartTransactionQueryOptions
+>(['readOnly', 'transactionType']);
+export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>([
+  'cascade',
+  'restartIdentity',
+]);
 
 /**
  * Options accepted by {@link AbstractQueryGeneratorTypeScript#escape}
@@ -153,7 +204,9 @@ export class AbstractQueryGeneratorTypeScript {
 
   createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
     if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`);
+      throw new Error(
+        `${this.dialect.name} declares supporting databases but createDatabaseQuery is not implemented.`,
+      );
     }
 
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
@@ -169,7 +222,9 @@ export class AbstractQueryGeneratorTypeScript {
 
   listDatabasesQuery(_options?: ListDatabasesQueryOptions): string {
     if (this.dialect.supports.multiDatabases) {
-      throw new Error(`${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`);
+      throw new Error(
+        `${this.dialect.name} declares supporting databases but listDatabasesQuery is not implemented.`,
+      );
     }
 
     throw new Error(`Databases are not supported in ${this.dialect.name}.`);
@@ -230,7 +285,9 @@ export class AbstractQueryGeneratorTypeScript {
 
   listSchemasQuery(_options?: ListSchemasQueryOptions): string {
     if (this.dialect.supports.schemas) {
-      throw new Error(`${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`);
+      throw new Error(
+        `${this.dialect.name} declares supporting schema but listSchemasQuery is not implemented.`,
+      );
     }
 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
@@ -271,17 +328,26 @@ export class AbstractQueryGeneratorTypeScript {
     const afterTable = this.extractTableDetails(afterTableName);
 
     if (beforeTable.schema !== afterTable.schema && !options?.changeSchema) {
-      throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+      throw new Error(
+        'To move a table between schemas, you must set `options.changeSchema` to true.',
+      );
     }
 
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTableName)}`;
   }
 
-  truncateTableQuery(_tableName: TableOrModel, _options?: TruncateTableQueryOptions): string | string[] {
+  truncateTableQuery(
+    _tableName: TableOrModel,
+    _options?: TruncateTableQueryOptions,
+  ): string | string[] {
     throw new Error(`truncateTableQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  removeColumnQuery(tableName: TableOrModel, columnName: string, options?: RemoveColumnQueryOptions): string {
+  removeColumnQuery(
+    tableName: TableOrModel,
+    columnName: string,
+    options?: RemoveColumnQueryOptions,
+  ): string {
     if (options) {
       rejectInvalidOptions(
         'removeColumnQuery',
@@ -315,9 +381,15 @@ export class AbstractQueryGeneratorTypeScript {
     ]);
   }
 
-  removeConstraintQuery(tableName: TableOrModel, constraintName: string, options?: RemoveConstraintQueryOptions) {
+  removeConstraintQuery(
+    tableName: TableOrModel,
+    constraintName: string,
+    options?: RemoveConstraintQueryOptions,
+  ) {
     if (!this.dialect.supports.constraints.remove) {
-      throw new Error(`Remove constraint queries are not supported by ${this.dialect.name} dialect`);
+      throw new Error(
+        `Remove constraint queries are not supported by ${this.dialect.name} dialect`,
+      );
     }
 
     if (options) {
@@ -341,8 +413,14 @@ export class AbstractQueryGeneratorTypeScript {
   }
 
   setConstraintCheckingQuery(type: ConstraintChecking): string;
-  setConstraintCheckingQuery(type: Class<ConstraintChecking>, constraints?: readonly string[]): string;
-  setConstraintCheckingQuery(type: ConstraintChecking | Class<ConstraintChecking>, constraints?: readonly string[]) {
+  setConstraintCheckingQuery(
+    type: Class<ConstraintChecking>,
+    constraints?: readonly string[],
+  ): string;
+  setConstraintCheckingQuery(
+    type: ConstraintChecking | Class<ConstraintChecking>,
+    constraints?: readonly string[],
+  ) {
     if (!this.dialect.supports.constraints.deferrable) {
       throw new Error(`Deferrable constraints are not supported by ${this.dialect.name} dialect`);
     }
@@ -350,14 +428,18 @@ export class AbstractQueryGeneratorTypeScript {
     let constraintFragment = 'ALL';
     if (type instanceof ConstraintChecking) {
       if (type.constraints?.length) {
-        constraintFragment = type.constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
+        constraintFragment = type.constraints
+          .map(constraint => this.quoteIdentifier(constraint))
+          .join(', ');
       }
 
       return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
     }
 
     if (constraints?.length) {
-      constraintFragment = constraints.map(constraint => this.quoteIdentifier(constraint)).join(', ');
+      constraintFragment = constraints
+        .map(constraint => this.quoteIdentifier(constraint))
+        .join(', ');
     }
 
     return `SET CONSTRAINTS ${constraintFragment} ${type.toString()}`;
@@ -373,7 +455,7 @@ export class AbstractQueryGeneratorTypeScript {
 
   removeIndexQuery(
     _tableName: TableOrModel,
-    _indexNameOrAttributes: string | string [],
+    _indexNameOrAttributes: string | string[],
     _options?: RemoveIndexQueryOptions,
   ): string {
     throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
@@ -402,23 +484,131 @@ export class AbstractQueryGeneratorTypeScript {
     throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
   }
 
+  /**
+   * Returns a query that commits a transaction.
+   */
+  commitTransactionQuery(): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(
+        `commitTransactionQuery is not supported by the ${this.dialect.name} dialect.`,
+      );
+    }
+
+    return 'COMMIT';
+  }
+
+  /**
+   * Returns a query that creates a savepoint.
+   *
+   * @param savepointName
+   */
+  createSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  /**
+   * Returns a query that rollbacks a savepoint.
+   *
+   * @param savepointName
+   */
+  rollbackSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  /**
+   * Returns a query that rollbacks a transaction.
+   */
+  rollbackTransactionQuery(): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(
+        `rollbackTransactionQuery is not supported by the ${this.dialect.name} dialect.`,
+      );
+    }
+
+    return 'ROLLBACK';
+  }
+
+  /**
+   * Returns a query that sets the transaction isolation level.
+   *
+   * @param isolationLevel
+   */
+  setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
+    if (!this.dialect.supports.isolationLevels) {
+      throw new Error(`Isolation levels are not supported by ${this.dialect.name}.`);
+    }
+
+    if (!this.dialect.supports.connectionTransactionMethods) {
+      return `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`;
+    }
+
+    throw new Error(`setIsolationLevelQuery is not supported by the ${this.dialect.name} dialect.`);
+  }
+
+  /**
+   * Returns a query that starts a transaction.
+   *
+   * @param options
+   */
+  startTransactionQuery(options?: StartTransactionQueryOptions): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(
+        `startTransactionQuery is not supported by the ${this.dialect.name} dialect.`,
+      );
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'startTransactionQuery',
+        this.dialect,
+        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.startTransaction,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      this.dialect.supports.startTransaction.useBegin ? 'BEGIN' : 'START',
+      'TRANSACTION',
+      options?.readOnly ? 'READ ONLY' : '',
+    ]);
+  }
+
+  /**
+   * Generates a unique identifier for the current transaction.
+   */
+  generateTransactionId(): string {
+    return randomUUID();
+  }
+
   // TODO: rename to "normalizeTable" & move to sequelize class
   extractTableDetails(
     tableOrModel: TableOrModel,
-    options?: { schema?: string, delimiter?: string },
+    options?: { schema?: string; delimiter?: string },
   ): TableNameWithSchema {
     const tableIdentifier = extractTableIdentifier(tableOrModel);
 
     if (!isPlainObject(tableIdentifier)) {
-      throw new Error(`Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`);
+      throw new Error(
+        `Invalid input received, got ${NodeUtil.inspect(tableOrModel)}, expected a Model Class, a TableNameWithSchema object, or a table name string`,
+      );
     }
-
-    // @ts-expect-error -- TODO: this is added by getTableName on model, and must be removed
-    delete tableIdentifier.toString;
 
     return {
       ...tableIdentifier,
-      schema: options?.schema || tableIdentifier.schema || this.options.schema || this.dialect.getDefaultSchema(),
+      schema:
+        options?.schema ||
+        tableIdentifier.schema ||
+        this.options.schema ||
+        this.dialect.getDefaultSchema(),
       delimiter: options?.delimiter || tableIdentifier.delimiter || '.',
     };
   }
@@ -444,13 +634,15 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (isModelStatic(param)) {
-      param = param.getTableName();
+      param = param.table;
     }
 
     const tableName = this.extractTableDetails(param);
 
     if (isObject(param) && ('as' in param || 'name' in param)) {
-      throw new Error('parameters "as" and "name" are not allowed in the first parameter of quoteTable, pass them as the second parameter.');
+      throw new Error(
+        'parameters "as" and "name" are not allowed in the first parameter of quoteTable, pass them as the second parameter.',
+      );
     }
 
     let sql = '';
@@ -466,9 +658,10 @@ export class AbstractQueryGeneratorTypeScript {
 
       sql += this.quoteIdentifier(tableName.tableName);
     } else {
-      const fakeSchemaPrefix = (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema())
-        ? tableName.schema + (tableName.delimiter || '.')
-        : '';
+      const fakeSchemaPrefix =
+        tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()
+          ? tableName.schema + (tableName.delimiter || '.')
+          : '';
 
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
@@ -482,7 +675,9 @@ export class AbstractQueryGeneratorTypeScript {
         if (IndexHints[hint.type]) {
           sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
         } else {
-          throw new Error(`The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`);
+          throw new Error(
+            `The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`,
+          );
         }
       }
     }
@@ -493,7 +688,9 @@ export class AbstractQueryGeneratorTypeScript {
         if (TableHints[hint]) {
           hints.push(TableHints[hint]);
         } else {
-          throw new Error(`The table hint "${hint}" is invalid or not supported by dialect "${this.dialect.name}".`);
+          throw new Error(
+            `The table hint "${hint}" is invalid or not supported by dialect "${this.dialect.name}".`,
+          );
         }
       }
 
@@ -536,7 +733,10 @@ export class AbstractQueryGeneratorTypeScript {
     return '';
   }
 
-  whereItemsQuery<M extends Model>(where: WhereOptions<Attributes<M>> | undefined, options?: FormatWhereOptions) {
+  whereItemsQuery<M extends Model>(
+    where: WhereOptions<Attributes<M>> | undefined,
+    options?: FormatWhereOptions,
+  ) {
     return this.#whereGenerator.formatWhereOptions(where, options);
   }
 
@@ -615,7 +815,11 @@ export class AbstractQueryGeneratorTypeScript {
    * @param _path The JSON path, where each item is one level of the path
    * @param _unquote Whether the result should be unquoted (depending on dialect: ->> and #>> operators, json_unquote function). Defaults to `false`.
    */
-  jsonPathExtractionQuery(_sqlExpression: string, _path: ReadonlyArray<number | string>, _unquote: boolean): string {
+  jsonPathExtractionQuery(
+    _sqlExpression: string,
+    _path: ReadonlyArray<number | string>,
+    _unquote: boolean,
+  ): string {
     if (!this.dialect.supports.jsonOperations) {
       throw new Error(`JSON Paths are not supported in ${this.dialect.name}.`);
     }
@@ -649,9 +853,9 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (
-      value === null
+      value === null &&
       // we handle null values ourselves by default, unless the data type explicitly accepts null
-      && (!(type instanceof AbstractDataType) || !type.acceptsNull())
+      (!(type instanceof AbstractDataType) || !type.acceptsNull())
     ) {
       if (options.bindParam) {
         return options.bindParam(null);
@@ -727,7 +931,9 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (options.limit && this.dialect.supports.delete.modelWithLimit) {
       if (!modelDefinition) {
-        throw new Error('Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.');
+        throw new Error(
+          'Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.',
+        );
       }
 
       const pks = join(

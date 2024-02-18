@@ -1,13 +1,17 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#delete', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -21,16 +25,13 @@ describe('QueryInterface#delete', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.bulkDelete(
-      User,
-      {
-        where: { firstName: ':id' },
-        replacements: {
-          limit: 1,
-          id: '123',
-        },
+    await sequelize.queryInterface.bulkDelete(User, {
+      where: { firstName: ':id' },
+      replacements: {
+        limit: 1,
+        id: '123',
       },
-    );
+    });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);

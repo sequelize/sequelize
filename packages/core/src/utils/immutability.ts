@@ -1,5 +1,5 @@
-import NodeUtil from 'node:util';
 import type { InspectOptions } from 'node:util';
+import NodeUtil from 'node:util';
 import { find } from './iterators.js';
 
 export class SetView<V> {

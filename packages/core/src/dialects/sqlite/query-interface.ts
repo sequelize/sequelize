@@ -17,18 +17,17 @@ import type {
   RemoveConstraintOptions,
   ShowConstraintsOptions,
 } from '../abstract/query-interface.types';
+import type { SqliteDialect } from './index.js';
 import { SqliteQueryInterfaceInternal } from './query-interface-internal';
 import type { SqliteColumnsDescription } from './query-interface.types';
 import { withSqliteForeignKeysOff } from './sqlite-utils';
-import type { SqliteDialect } from './index.js';
 
-export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect> extends AbstractQueryInterface<Dialect> {
+export class SqliteQueryInterface<
+  Dialect extends SqliteDialect = SqliteDialect,
+> extends AbstractQueryInterface<Dialect> {
   readonly #internalQueryInterface: SqliteQueryInterfaceInternal;
 
-  constructor(
-    dialect: Dialect,
-    internalQueryInterface?: SqliteQueryInterfaceInternal,
-  ) {
+  constructor(dialect: Dialect, internalQueryInterface?: SqliteQueryInterfaceInternal) {
     internalQueryInterface ??= new SqliteQueryInterfaceInternal(dialect);
 
     super(dialect, internalQueryInterface);
@@ -48,7 +47,10 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     });
   }
 
-  async describeTable(tableName: TableOrModel, options?: DescribeTableOptions): Promise<SqliteColumnsDescription> {
+  async describeTable(
+    tableName: TableOrModel,
+    options?: DescribeTableOptions,
+  ): Promise<SqliteColumnsDescription> {
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -70,14 +72,19 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
 
     const sql = this.queryGenerator.describeTableQuery(table);
     try {
-      const data = await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.DESCRIBE }) as SqliteColumnsDescription;
+      const data = (await this.sequelize.queryRaw(sql, {
+        ...options,
+        type: QueryTypes.DESCRIBE,
+      })) as SqliteColumnsDescription;
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
       if (isEmpty(data)) {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(
+          `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
+        );
       }
 
       // This is handled by copying indexes over,
@@ -98,7 +105,10 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
 
       // Sqlite requires the foreign keys added to the column definitions
       // when describing a table as this is required in the replaceTableQuery
-      const foreignKeys = await this.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+      const foreignKeys = await this.showConstraints(tableName, {
+        ...options,
+        constraintType: 'FOREIGN KEY',
+      });
       for (const foreignKey of foreignKeys) {
         for (const [index, columnName] of foreignKey.columnNames!.entries()) {
           // Add constraints to column definition
@@ -116,7 +126,9 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
       return data;
     } catch (error) {
       if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
-        throw new Error(`No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`);
+        throw new Error(
+          `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
+        );
       }
 
       throw error;
@@ -132,7 +144,10 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
       throw new Error('Constraint type must be specified through options.type');
     }
 
-    const constraintSnippet = this.queryGenerator._TEMPORARY_getConstraintSnippet(tableName, options);
+    const constraintSnippet = this.queryGenerator._TEMPORARY_getConstraintSnippet(
+      tableName,
+      options,
+    );
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,
@@ -146,7 +161,9 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
 
     let { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     // Replace double quotes with backticks and ending ')' with constraint snippet
-    createTableSql = createTableSql.replaceAll('"', '`').replace(/\);?$/, `, ${constraintSnippet})`);
+    createTableSql = createTableSql
+      .replaceAll('"', '`')
+      .replace(/\);?$/, `, ${constraintSnippet})`);
 
     const fields = await this.describeTable(tableName, options);
     const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql);
@@ -187,26 +204,39 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
 
     if (constraint.constraintType === 'FOREIGN KEY') {
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} FOREIGN KEY`;
-      const columns = constraint.columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      const columns = constraint
+        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
+        .join(', ');
       const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName!);
-      const referenceTableColumns = constraint.referencedColumnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      const referenceTableColumns = constraint
+        .referencedColumnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
+        .join(', ');
       constraintSnippet += ` (${columns})`;
       constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
       constraintSnippet += constraint.updateAction ? ` ON UPDATE ${constraint.updateAction}` : '';
       constraintSnippet += constraint.deleteAction ? ` ON DELETE ${constraint.deleteAction}` : '';
     } else if (['PRIMARY KEY', 'UNIQUE'].includes(constraint.constraintType)) {
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType}`;
-      const columns = constraint.columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName)).join(', ');
+      const columns = constraint
+        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
+        .join(', ');
       constraintSnippet += ` (${columns})`;
     }
 
     const fields = await this.describeTable(tableName, options);
     // Replace double quotes with backticks and remove constraint snippet
-    const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''));
+    const sql = this.queryGenerator._replaceTableQuery(
+      tableName,
+      fields,
+      createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''),
+    );
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
-  async showConstraints(tableName: TableOrModel, options?: ShowConstraintsOptions): Promise<ConstraintDescription[]> {
+  async showConstraints(
+    tableName: TableOrModel,
+    options?: ShowConstraintsOptions,
+  ): Promise<ConstraintDescription[]> {
     const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(tableName);
     const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
       ...options,
@@ -252,7 +282,8 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
         } else if (/\bREFERENCES\b/.test(type)) {
           const deleteAction = type.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
           const updateAction = type.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
-          const [, referencedTableName, referencedColumnNames] = type.match(/REFERENCES `(\S+)` \(`(\S+)`\)/) || [];
+          const [, referencedTableName, referencedColumnNames] =
+            type.match(/REFERENCES `(\S+)` \(`(\S+)`\)/) || [];
 
           data.push({
             constraintSchema: '',
@@ -292,7 +323,8 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
       }
 
       for (const constraint of constraints) {
-        const [, constraintName, constraintType, definition] = constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+(?: \w+)?) (.+)/) || [];
+        const [, constraintName, constraintType, definition] =
+          constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+(?: \w+)?) (.+)/) || [];
         if (/\bPRIMARY KEY\b/.test(constraint)) {
           const columnsMatch = [...definition.matchAll(/`(\S+)`/g)];
 
@@ -307,7 +339,10 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
         } else if (/\bREFERENCES\b/.test(constraint)) {
           const deleteAction = definition.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
           const updateAction = definition.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
-          const [, rawColumnNames, referencedTableName, rawReferencedColumnNames] = definition.match(/\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+          const [, rawColumnNames, referencedTableName, rawReferencedColumnNames] =
+            definition.match(
+              /\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/,
+            ) || [];
           const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
           const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
 
@@ -333,14 +368,15 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
             constraintType: constraintType as ConstraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            ...constraintType !== 'CHECK' && { columnNames: columnsMatch.map(col => col[1]) },
-            ...constraintType !== 'UNIQUE' && { definition },
+            ...(constraintType !== 'CHECK' && { columnNames: columnsMatch.map(col => col[1]) }),
+            ...(constraintType !== 'UNIQUE' && { definition }),
           });
         }
       }
 
       for (const key of keys) {
-        const [, constraintType, rawColumnNames] = key.match(/(\w+(?: \w+)?)\s?\(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+        const [, constraintType, rawColumnNames] =
+          key.match(/(\w+(?: \w+)?)\s?\(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
         const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
         const columnNames = columnsMatch.map(col => col[1]);
 
@@ -356,7 +392,8 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
         } else if (constraintType === 'FOREIGN KEY') {
           const deleteAction = key.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
           const updateAction = key.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
-          const [, referencedTableName, rawReferencedColumnNames] = key.match(/REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+          const [, referencedTableName, rawReferencedColumnNames] =
+            key.match(/REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
           const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
 
           data.push({
@@ -381,10 +418,14 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     let constraintData = data;
 
     if (options?.columnName) {
-      constraintData = constraintData.filter(constraint => constraint.columnNames?.includes(options.columnName!));
+      constraintData = constraintData.filter(constraint =>
+        constraint.columnNames?.includes(options.columnName!),
+      );
       constraintData = constraintData.map(constraint => {
         if (constraint.columnNames) {
-          constraint.columnNames = constraint.columnNames.filter(column => column === options.columnName);
+          constraint.columnNames = constraint.columnNames.filter(
+            column => column === options.columnName,
+          );
         }
 
         return constraint;
@@ -392,11 +433,15 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     }
 
     if (options?.constraintName) {
-      constraintData = constraintData.filter(constraint => constraint.constraintName === options.constraintName);
+      constraintData = constraintData.filter(
+        constraint => constraint.constraintName === options.constraintName,
+      );
     }
 
     if (options?.constraintType) {
-      constraintData = constraintData.filter(constraint => constraint.constraintType === options.constraintType);
+      constraintData = constraintData.filter(
+        constraint => constraint.constraintType === options.constraintType,
+      );
     }
 
     return constraintData;
@@ -472,7 +517,12 @@ export class SqliteQueryInterface<Dialect extends SqliteDialect = SqliteDialect>
     fields[attrNameAfter] = { ...fields[attrNameBefore] };
     delete fields[attrNameBefore];
 
-    const sql = this.queryGenerator._replaceColumnQuery(tableName, attrNameBefore, attrNameAfter, fields);
+    const sql = this.queryGenerator._replaceColumnQuery(
+      tableName,
+      attrNameBefore,
+      attrNameAfter,
+      fields,
+    );
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 }

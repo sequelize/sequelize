@@ -61,8 +61,6 @@ export class MySqlQuery extends AbstractQuery {
           // Ignore errors - since MySQL automatically rolled back, we're
           // not that worried about this redundant rollback failing.
         }
-
-        options.transaction.finished = 'rollback';
       }
 
       error.sql = sql;
@@ -107,14 +105,21 @@ export class MySqlQuery extends AbstractQuery {
 
         // handle bulkCreate AI primary key
         if (
-          data.constructor.name === 'ResultSetHeader'
-          && modelDefinition?.autoIncrementAttributeName
-          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          data.constructor.name === 'ResultSetHeader' &&
+          modelDefinition?.autoIncrementAttributeName &&
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
-          for (let i = BigInt(startId); i < BigInt(startId) + BigInt(data.affectedRows); i = i + 1n) {
-            result.push({ [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: typeof startId === 'string' ? i.toString() : Number(i) });
+          for (
+            let i = BigInt(startId);
+            i < BigInt(startId) + BigInt(data.affectedRows);
+            i = i + 1n
+          ) {
+            result.push({
+              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]:
+                typeof startId === 'string' ? i.toString() : Number(i),
+            });
           }
         } else {
           result = data[this.getInsertIdField()];
@@ -132,12 +137,14 @@ export class MySqlQuery extends AbstractQuery {
       for (const _result of data) {
         const enumRegex = /^enum/i;
         result[_result.Field] = {
-          type: enumRegex.test(_result.Type) ? _result.Type.replace(enumRegex, 'ENUM') : _result.Type.toUpperCase(),
+          type: enumRegex.test(_result.Type)
+            ? _result.Type.replace(enumRegex, 'ENUM')
+            : _result.Type.toUpperCase(),
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.hasOwn(_result, 'Extra')
-            && _result.Extra.toLowerCase() === 'auto_increment',
+          autoIncrement:
+            Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
       }
@@ -188,7 +195,9 @@ export class MySqlQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2].split('.').pop() : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
+        const uniqueKey =
+          this.model &&
+          this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {
@@ -202,14 +211,16 @@ export class MySqlQuery extends AbstractQuery {
 
         const errors = [];
         forOwn(fields, (value, field) => {
-          errors.push(new sequelizeErrors.ValidationErrorItem(
-            this.getUniqueConstraintErrorMessage(field),
-            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-            field,
-            value,
-            this.instance,
-            'not_unique',
-          ));
+          errors.push(
+            new sequelizeErrors.ValidationErrorItem(
+              this.getUniqueConstraintErrorMessage(field),
+              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+              field,
+              value,
+              this.instance,
+              'not_unique',
+            ),
+          );
         });
 
         return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
@@ -222,13 +233,16 @@ export class MySqlQuery extends AbstractQuery {
           /CONSTRAINT (["`])(.*)\1 FOREIGN KEY \(\1(.*)\1\) REFERENCES \1(.*)\1 \(\1(.*)\1\)/,
         );
         const quoteChar = match ? match[1] : '`';
-        const fields = match ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`)) : undefined;
+        const fields = match
+          ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`))
+          : undefined;
 
         return new sequelizeErrors.ForeignKeyConstraintError({
           reltype: String(errCode) === String(ER_ROW_IS_REFERENCED) ? 'parent' : 'child',
           table: match ? match[4] : undefined,
           fields,
-          value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
+          value:
+            (fields && fields.length && this.instance && this.instance[fields[0]]) || undefined,
           index: match ? match[2] : undefined,
           cause: err,
         });
@@ -264,13 +278,17 @@ export class MySqlQuery extends AbstractQuery {
       acc[item.Key_name].fields[item.Seq_in_index - 1] = {
         attribute: item.Column_name,
         length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC'
-          : item.Collation === 'D' ? 'DESC'
-            // Not sorted
-          : item.Collation === null ? null
-          : (() => {
-            throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
-          })(),
+        order:
+          item.Collation === 'A'
+            ? 'ASC'
+            : item.Collation === 'D'
+              ? 'DESC'
+              : // Not sorted
+                item.Collation === null
+                ? null
+                : (() => {
+                    throw new Error(`Unknown index collation ${NodeUtil.inspect(item.Collation)}`);
+                  })(),
       };
       delete item.column_name;
 
@@ -278,7 +296,7 @@ export class MySqlQuery extends AbstractQuery {
     }, {});
 
     return map(data, item => {
-      return ({
+      return {
         primary: item.Key_name === 'PRIMARY',
         fields: item.fields,
         name: item.Key_name,
@@ -286,7 +304,7 @@ export class MySqlQuery extends AbstractQuery {
         // MySQL 8 returns this as a number (Integer), MySQL 5 returns it as a string (BigInt)
         unique: item.Non_unique !== '1' && item.Non_unique !== 1,
         type: item.Index_type,
-      });
+      };
     });
   }
 }

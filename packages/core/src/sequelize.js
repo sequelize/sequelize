@@ -1,25 +1,42 @@
 'use strict';
 
+import defaults from 'lodash/defaults';
+import defaultsDeep from 'lodash/defaultsDeep';
+import isPlainObject from 'lodash/isPlainObject';
+import map from 'lodash/map';
 import retry from 'retry-as-promised';
+import { BelongsToAssociation } from './associations/belongs-to';
+import { BelongsToManyAssociation } from './associations/belongs-to-many';
+import { HasManyAssociation } from './associations/has-many';
+import { HasOneAssociation } from './associations/has-one';
+import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
-import { Identifier } from './expression-builders/identifier';
-import { JsonPath } from './expression-builders/json-path';
-import { JSON_NULL, SQL_NULL } from './expression-builders/json-sql-null.js';
-import { Value } from './expression-builders/value';
-import { List } from './expression-builders/list';
-import { sql } from './expression-builders/sql';
 import { Cast, cast } from './expression-builders/cast.js';
 import { Col, col } from './expression-builders/col.js';
 import { Fn, fn } from './expression-builders/fn.js';
+import { Identifier } from './expression-builders/identifier';
+import { JsonPath } from './expression-builders/json-path';
+import { JSON_NULL, SQL_NULL } from './expression-builders/json-sql-null.js';
 import { json } from './expression-builders/json.js';
+import { List } from './expression-builders/list';
 import { Literal, literal } from './expression-builders/literal.js';
+import { sql } from './expression-builders/sql';
+import { Value } from './expression-builders/value';
 import { Where, where } from './expression-builders/where.js';
+import { importModels } from './import-models.js';
+import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
-import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
-import { IsolationLevel, Lock, Transaction, TransactionNestMode, TransactionType } from './transaction.js';
+import {
+  COMPLETES_TRANSACTION,
+  IsolationLevel,
+  Lock,
+  Transaction,
+  TransactionNestMode,
+  TransactionType,
+} from './transaction.js';
 import { isString } from './utils/check.js';
 import {
   noGetDialect,
@@ -33,16 +50,6 @@ import { EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
-import { importModels } from './import-models.js';
-import defaults from 'lodash/defaults';
-import defaultsDeep from 'lodash/defaultsDeep';
-import isPlainObject from 'lodash/isPlainObject';
-import map from 'lodash/map';
-import { BelongsToAssociation } from './associations/belongs-to';
-import { HasOneAssociation } from './associations/has-one';
-import { BelongsToManyAssociation } from './associations/belongs-to-many';
-import { HasManyAssociation } from './associations/has-many';
-import { Model } from './model';
 
 const DataTypes = require('./data-types');
 const { ConstraintChecking, Deferrable } = require('./deferrable');
@@ -221,7 +228,10 @@ export class Sequelize extends SequelizeTypeScript {
     if (arguments.length === 1 && isPlainObject(database)) {
       // new Sequelize({ ... options })
       options = database;
-    } else if (arguments.length === 1 && typeof database === 'string' || arguments.length === 2 && isPlainObject(username)) {
+    } else if (
+      (arguments.length === 1 && typeof database === 'string') ||
+      (arguments.length === 2 && isPlainObject(username))
+    ) {
       // new Sequelize(URI, { ... options })
       options = username ? { ...username } : Object.create(null);
 
@@ -267,9 +277,7 @@ export class Sequelize extends SequelizeTypeScript {
       hooks: {},
       retry: {
         max: 5,
-        match: [
-          'SQLITE_BUSY: database is locked',
-        ],
+        match: ['SQLITE_BUSY: database is locked'],
       },
       transactionType: TransactionType.DEFERRED,
       isolationLevel: null,
@@ -356,7 +364,9 @@ export class Sequelize extends SequelizeTypeScript {
         Dialect = require('./dialects/snowflake').SnowflakeDialect;
         break;
       default:
-        throw new Error(`The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`);
+        throw new Error(
+          `The dialect ${this.getDialect()} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,
+        );
     }
 
     if (!this.options.port) {
@@ -386,7 +396,10 @@ export class Sequelize extends SequelizeTypeScript {
     }
 
     // Map main connection config
-    this.options.replication.write = defaults(this.options.replication.write ?? {}, connectionConfig);
+    this.options.replication.write = defaults(
+      this.options.replication.write ?? {},
+      connectionConfig,
+    );
     this.options.replication.write.port = Number(this.options.replication.write.port);
 
     if (!this.options.replication.read) {
@@ -422,15 +435,21 @@ export class Sequelize extends SequelizeTypeScript {
 
     this.dialect = new Dialect(this);
     if ('typeValidation' in options) {
-      throw new Error('The typeValidation has been renamed to noTypeValidation, and is false by default');
+      throw new Error(
+        'The typeValidation has been renamed to noTypeValidation, and is false by default',
+      );
     }
 
     if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
-      throw new Error(`Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`);
+      throw new Error(
+        `Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`,
+      );
     }
 
     if (this.options.operatorsAliases) {
-      throw new Error('String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases');
+      throw new Error(
+        'String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases',
+      );
     }
 
     if (options.models) {
@@ -599,7 +618,9 @@ export class Sequelize extends SequelizeTypeScript {
     }
 
     if (typeof sql === 'object') {
-      throw new TypeError('"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter');
+      throw new TypeError(
+        '"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter',
+      );
     }
 
     sql = sql.trim();
@@ -631,7 +652,9 @@ Use Sequelize#query if you wish to use replacements.`);
     if (options.bind != null) {
       const isBindArray = Array.isArray(options.bind);
       if (!isPlainObject(options.bind) && !isBindArray) {
-        throw new TypeError('options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)');
+        throw new TypeError(
+          'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
+        );
       }
 
       const mappedResult = mapBindParameters(sql, this.dialect);
@@ -639,10 +662,14 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const parameterName of mappedResult.parameterSet) {
         if (isBindArray) {
           if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
-            throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+            throw new Error(
+              `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
+            );
           }
         } else if (!(parameterName in options.bind)) {
-          throw new Error(`Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`);
+          throw new Error(
+            `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
+          );
         }
       }
 
@@ -693,10 +720,10 @@ Use Sequelize#query if you wish to use replacements.`);
     // if dialect doesn't support search_path or dialect option
     // to prepend searchPath is not true delete the searchPath option
     if (
-      !this.dialect.supports.searchPath
-      || !this.options.dialectOptions
-      || !this.options.dialectOptions.prependSearchPath
-      || options.supportsSearchPath === false
+      !this.dialect.supports.searchPath ||
+      !this.options.dialectOptions ||
+      !this.options.dialectOptions.prependSearchPath ||
+      options.supportsSearchPath === false
     ) {
       delete options.searchPath;
     } else if (!options.searchPath) {
@@ -706,8 +733,10 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     const checkTransaction = () => {
-      if (options.transaction && options.transaction.finished && !options.completesTransaction) {
-        const error = new Error(`${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`);
+      if (options.transaction && options.transaction.finished && !options[COMPLETES_TRANSACTION]) {
+        const error = new Error(
+          `${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`,
+        );
         error.sql = sql;
         throw error;
       }
@@ -719,12 +748,14 @@ Use Sequelize#query if you wish to use replacements.`);
     return await retry(async () => {
       checkTransaction();
 
-      const connection = options.transaction ? options.transaction.getConnection()
-        : options.connection ? options.connection
-        : await this.connectionManager.getConnection({
-          useMaster: options.useMaster,
-          type: options.type === 'SELECT' ? 'read' : 'write',
-        });
+      const connection = options.transaction
+        ? options.transaction.getConnection()
+        : options.connection
+          ? options.connection
+          : await this.connectionManager.getConnection({
+              useMaster: options.useMaster,
+              type: options.type === 'SELECT' ? 'read' : 'write',
+            });
 
       if (this.options.dialect === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
@@ -765,8 +796,13 @@ Use Sequelize#query if you wish to use replacements.`);
 
     setTransactionFromCls(options, this);
 
-    if ((!options.transaction || !(options.transaction instanceof Transaction)) && (!options.connection)) {
-      throw new Error('You must specify either options.transaction or options.connection, as sequelize.setSessionVariables is used to set the session options of a connection');
+    if (
+      (!options.transaction || !(options.transaction instanceof Transaction)) &&
+      !options.connection
+    ) {
+      throw new Error(
+        'You must specify either options.transaction or options.connection, as sequelize.setSessionVariables is used to set the session options of a connection',
+      );
     }
 
     // Override some options, since this isn't a SELECT
@@ -775,9 +811,10 @@ Use Sequelize#query if you wish to use replacements.`);
     options.type = 'SET';
 
     // Generate SQL Query
-    const query
-      = `SET ${
-        map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+    const query = `SET ${map(
+      variables,
+      (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`,
+    ).join(', ')}`;
 
     return await this.query(query, options);
   }
@@ -806,7 +843,9 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     if (options.match && !options.match.test(this.config.database)) {
-      throw new Error(`Database "${this.config.database}" does not match sync match parameter "${options.match}"`);
+      throw new Error(
+        `Database "${this.config.database}" does not match sync match parameter "${options.match}"`,
+      );
     }
 
     if (options.hooks) {
@@ -814,7 +853,10 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (options.force) {
-      await this.drop({ ...options, cascade: this.dialect.supports.dropTable.cascade || undefined });
+      await this.drop({
+        ...options,
+        cascade: this.dialect.supports.dropTable.cascade || undefined,
+      });
     }
 
     // no models defined, just authenticate
@@ -911,11 +953,16 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.models) {
-      const foreignKeys = await this.queryInterface.showConstraints(model, { ...options, constraintType: 'FOREIGN KEY' });
+      const foreignKeys = await this.queryInterface.showConstraints(model, {
+        ...options,
+        constraintType: 'FOREIGN KEY',
+      });
 
-      await Promise.all(foreignKeys.map(foreignKey => {
-        return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
-      }));
+      await Promise.all(
+        foreignKeys.map(foreignKey => {
+          return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
+        }),
+      );
     }
 
     for (const model of this.models) {
@@ -938,8 +985,10 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    await this.query(`SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`, options);
-
+    await this.query(
+      `SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+      options,
+    );
   }
 
   /**
@@ -1045,7 +1094,8 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (attribute.values) {
-      throw new TypeError(`
+      throw new TypeError(
+        `
 The "values" property has been removed from column definitions. The following is no longer supported:
 
 sequelize.define('MyModel', {
@@ -1064,7 +1114,8 @@ sequelize.define('MyModel', {
 });
 
 Remove the "values" property to resolve this issue.
-        `.trim());
+        `.trim(),
+      );
     }
 
     if (!attribute.type) {

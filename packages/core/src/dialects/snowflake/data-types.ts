@@ -1,6 +1,6 @@
 import maxBy from 'lodash/maxBy.js';
-import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate } from '../abstract/data-types.js';
+import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 export class DATE extends BaseTypes.DATE {

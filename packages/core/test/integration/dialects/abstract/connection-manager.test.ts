@@ -1,12 +1,10 @@
+import type { Connection } from '@sequelize/core';
+import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
+import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import chai from 'chai';
 import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
-import type { Connection } from '@sequelize/core';
-import type {
-  GetConnectionOptions,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
-import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
 import { Config } from '../../../config/config';
 import {
   createSequelizeInstance,
@@ -96,10 +94,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       useMaster: false,
     };
 
-    const _getConnection = connectionManager.getConnection.bind(
-      connectionManager,
-      queryOptions,
-    );
+    const _getConnection = connectionManager.getConnection.bind(connectionManager, queryOptions);
 
     await _getConnection();
     await _getConnection();
@@ -176,9 +171,7 @@ describe(getTestDialectTeaser('Connection Manager'), () => {
       sandbox.stub(connectionManager, '_disconnect').resolves();
       sandbox.stub(connectionManager, '_onProcessExit');
 
-      sandbox
-        .stub(sequelize, 'fetchDatabaseVersion')
-        .resolves(sequelize.dialect.defaultVersion);
+      sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves(sequelize.dialect.defaultVersion);
 
       const queryOptions: GetConnectionOptions = {
         type: 'read',

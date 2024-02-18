@@ -60,6 +60,11 @@ export class MssqlDialect extends AbstractDialect {
     createSchema: {
       authorization: true,
     },
+    connectionTransactionMethods: true,
+    settingIsolationLevelDuringTransaction: false,
+    startTransaction: {
+      useBegin: true,
+    },
     delete: {
       modelWithLimit: true,
     },
@@ -69,7 +74,8 @@ export class MssqlDialect extends AbstractDialect {
   readonly queryGenerator: MsSqlQueryGenerator;
   readonly queryInterface: MsSqlQueryInterface;
   readonly Query = MsSqlQuery;
-  readonly dataTypesDocumentationUrl = 'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx';
+  readonly dataTypesDocumentationUrl =
+    'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx';
 
   // SQL Server 2017 Express (version 14), minimum supported version, all the way
   // up to the most recent version. When increasing this version, remember to
@@ -104,7 +110,7 @@ export class MssqlDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replaceAll('\'', '\'\'');
+    value = value.replaceAll("'", "''");
 
     return `N'${value}'`;
   }

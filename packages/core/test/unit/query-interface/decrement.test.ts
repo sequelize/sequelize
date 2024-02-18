@@ -1,13 +1,17 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#decrement', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });

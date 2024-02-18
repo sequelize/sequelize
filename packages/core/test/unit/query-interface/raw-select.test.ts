@@ -1,13 +1,17 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#rawSelect', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -21,16 +25,21 @@ describe('QueryInterface#rawSelect', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.rawSelect(User.table, {
-      // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
-      attributes: ['id'],
-      where: {
-        username: 'some :data',
+    await sequelize.queryInterface.rawSelect(
+      User.table,
+      {
+        // @ts-expect-error -- we'll fix the typings when we migrate query-generator to TypeScript
+        attributes: ['id'],
+        where: {
+          username: 'some :data',
+        },
+        replacements: {
+          data: "OR ' = ",
+        },
       },
-      replacements: {
-        data: 'OR \' = ',
-      },
-    }, 'id', User);
+      'id',
+      User,
+    );
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);

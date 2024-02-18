@@ -19,24 +19,31 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should support schemas', async function () {
         await this.sequelize.createSchema('archive');
 
-        await this.queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive',
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
+        await this.queryInterface.createTable(
+          {
+            tableName: 'users',
+            schema: 'archive',
           },
-          currency: DataTypes.INTEGER,
-        });
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            currency: DataTypes.INTEGER,
+          },
+        );
 
-        await this.queryInterface.changeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'currency', {
-          type: DataTypes.FLOAT,
-        });
+        await this.queryInterface.changeColumn(
+          {
+            tableName: 'users',
+            schema: 'archive',
+          },
+          'currency',
+          {
+            type: DataTypes.FLOAT,
+          },
+        );
 
         const table = await this.queryInterface.describeTable({
           tableName: 'users',
@@ -52,17 +59,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
 
     it('should change columns', async function () {
-      await this.queryInterface.createTable({
-        tableName: 'users',
-      }, {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      await this.queryInterface.createTable(
+        {
+          tableName: 'users',
         },
-        currency: DataTypes.INTEGER,
-      });
-      if (dialect === 'db2') { // DB2 can change only one attr of a column
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          currency: DataTypes.INTEGER,
+        },
+      );
+      if (dialect === 'db2') {
+        // DB2 can change only one attr of a column
         await this.queryInterface.changeColumn('users', 'currency', {
           type: DataTypes.FLOAT,
         });
@@ -88,11 +99,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
     if (dialect !== 'mssql' && dialect !== 'db2') {
       it('should work with enums (case 1)', async function () {
-        await this.queryInterface.createTable({
-          tableName: 'users',
-        }, {
-          firstName: DataTypes.STRING,
-        });
+        await this.queryInterface.createTable(
+          {
+            tableName: 'users',
+          },
+          {
+            firstName: DataTypes.STRING,
+          },
+        );
 
         await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM(['value1', 'value2', 'value3']),
@@ -100,11 +114,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should work with enums (case 2)', async function () {
-        await this.queryInterface.createTable({
-          tableName: 'users',
-        }, {
-          firstName: DataTypes.STRING,
-        });
+        await this.queryInterface.createTable(
+          {
+            tableName: 'users',
+          },
+          {
+            firstName: DataTypes.STRING,
+          },
+        );
 
         await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM(['value1', 'value2', 'value3']),
@@ -115,19 +132,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         it('should work with enums with schemas', async function () {
           await this.sequelize.createSchema('archive');
 
-          await this.queryInterface.createTable({
-            tableName: 'users',
-            schema: 'archive',
-          }, {
-            firstName: DataTypes.STRING,
-          });
+          await this.queryInterface.createTable(
+            {
+              tableName: 'users',
+              schema: 'archive',
+            },
+            {
+              firstName: DataTypes.STRING,
+            },
+          );
 
-          await this.queryInterface.changeColumn({
-            tableName: 'users',
-            schema: 'archive',
-          }, 'firstName', {
-            type: DataTypes.ENUM(['value1', 'value2', 'value3']),
-          });
+          await this.queryInterface.changeColumn(
+            {
+              tableName: 'users',
+              schema: 'archive',
+            },
+            'firstName',
+            {
+              type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+            },
+          );
         });
       }
     }
@@ -156,7 +180,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('able to change column to foreign key', async function () {
-        const foreignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
+        const foreignKeys = await this.queryInterface.showConstraints('users', {
+          constraintType: 'FOREIGN KEY',
+        });
         expect(foreignKeys).to.be.an('array');
         expect(foreignKeys).to.be.empty;
 
@@ -170,7 +196,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onDelete: 'cascade',
         });
 
-        const newForeignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
+        const newForeignKeys = await this.queryInterface.showConstraints('users', {
+          constraintType: 'FOREIGN KEY',
+        });
         expect(newForeignKeys).to.be.an('array');
         expect(newForeignKeys).to.have.lengthOf(1);
         expect(newForeignKeys[0].columnNames).to.deep.equal(['level_id']);
@@ -198,7 +226,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           onDelete: 'cascade',
         });
 
-        const keys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
+        const keys = await this.queryInterface.showConstraints('users', {
+          constraintType: 'FOREIGN KEY',
+        });
         const firstForeignKeys = keys;
 
         await this.queryInterface.changeColumn('users', 'level_id', {
@@ -206,7 +236,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        const newForeignKeys = await this.queryInterface.showConstraints('users', { constraintType: 'FOREIGN KEY' });
+        const newForeignKeys = await this.queryInterface.showConstraints('users', {
+          constraintType: 'FOREIGN KEY',
+        });
         expect(firstForeignKeys.length).to.equal(newForeignKeys.length);
         expect(firstForeignKeys[0].columnNames).to.deep.equal(['level_id']);
         expect(firstForeignKeys[0].columnNames).to.deep.equal(newForeignKeys[0].columnNames);
@@ -280,11 +312,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(initialIndexes, 'addColumn should not modify indexes');
+        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+          initialIndexes,
+          'addColumn should not modify indexes',
+        );
 
         table = await this.queryInterface.describeTable('foos');
         expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
-        expect(table.phone.defaultValue).to.equal(null, '(1) phone column should have a default value of null');
+        expect(table.phone.defaultValue).to.equal(
+          null,
+          '(1) phone column should have a default value of null',
+        );
         expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
         expect(table.name.unique).to.equal(true, '(1) name column should remain unique');
 
@@ -293,7 +331,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(initialIndexes, 'changeColumn should not modify indexes');
+        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+          initialIndexes,
+          'changeColumn should not modify indexes',
+        );
 
         table = await this.queryInterface.describeTable('foos');
         expect(table.email.allowNull).to.equal(true, '(2) email column should allow null values');
@@ -302,24 +343,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('should add unique constraints to 2 columns and keep allowNull', async function () {
-        await this.queryInterface.createTable({
-          tableName: 'Foos',
-        }, {
-          id: {
-            allowNull: false,
-            autoIncrement: true,
-            primaryKey: true,
-            type: DataTypes.INTEGER,
+        await this.queryInterface.createTable(
+          {
+            tableName: 'Foos',
           },
-          name: {
-            allowNull: false,
-            type: DataTypes.STRING,
+          {
+            id: {
+              allowNull: false,
+              autoIncrement: true,
+              primaryKey: true,
+              type: DataTypes.INTEGER,
+            },
+            name: {
+              allowNull: false,
+              type: DataTypes.STRING,
+            },
+            email: {
+              allowNull: true,
+              type: DataTypes.STRING,
+            },
           },
-          email: {
-            allowNull: true,
-            type: DataTypes.STRING,
-          },
-        });
+        );
 
         await this.queryInterface.changeColumn('Foos', 'name', {
           type: DataTypes.STRING,
@@ -349,7 +393,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await Task.sync({ force: true });
 
         await this.queryInterface.addColumn('Tasks', 'bar', DataTypes.INTEGER);
-        let refs = await this.queryInterface.showConstraints(Task, { constraintType: 'FOREIGN KEY' });
+        let refs = await this.queryInterface.showConstraints(Task, {
+          constraintType: 'FOREIGN KEY',
+        });
         expect(refs.length).to.equal(1, 'should keep foreign key after adding column');
         expect(refs[0].columnNames).to.deep.equal(['userId']);
         expect(refs[0].referencedTableName).to.equal('Users');
@@ -422,7 +468,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const constraints = await this.queryInterface.showConstraints('users');
-        const foreignKey = constraints.find(constraint => constraint.constraintType === 'FOREIGN KEY');
+        const foreignKey = constraints.find(
+          constraint => constraint.constraintType === 'FOREIGN KEY',
+        );
         expect(foreignKey).to.not.be.undefined;
         expect(foreignKey).to.have.property('deleteAction', 'CASCADE');
         expect(foreignKey).to.have.property('updateAction', 'CASCADE');
@@ -463,17 +511,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         });
 
-        const levels = [{
-          id: 1,
-          name: 'L1',
-        }, {
-          id: 2,
-          name: 'L2',
-        },
-        {
-          id: 3,
-          name: 'L3',
-        }];
+        const levels = [
+          {
+            id: 1,
+            name: 'L1',
+          },
+          {
+            id: 2,
+            name: 'L2',
+          },
+          {
+            id: 3,
+            name: 'L3',
+          },
+        ];
 
         const users = [
           {
@@ -503,6 +554,5 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(userRows).to.have.length(users.length, 'user records should be unaffected');
       });
     }
-
   });
 });

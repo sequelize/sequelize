@@ -37,7 +37,9 @@ export class PostgresQuery extends AbstractQuery {
 
     const query = new Promise((resolve, reject) => {
       if (parameters && parameters.length > 0) {
-        connection.query(sql, parameters, (error, result) => (error ? reject(error) : resolve(result)));
+        connection.query(sql, parameters, (error, result) => {
+          error ? reject(error) : resolve(result);
+        });
       } else {
         connection.query(sql, (error, result) => (error ? reject(error) : resolve(result)));
       }
@@ -51,14 +53,15 @@ export class PostgresQuery extends AbstractQuery {
       queryResult = await query;
     } catch (error) {
       // set the client so that it will be reaped if the connection resets while executing
-      if (error.code === 'ECONNRESET'
+      if (
+        error.code === 'ECONNRESET' ||
         // https://github.com/sequelize/sequelize/pull/14090
         // pg-native throws custom exception or libpq formatted errors
-        || /Unable to set non-blocking to true/i.test(error)
-        || /SSL SYSCALL error: EOF detected/i.test(error)
-        || /Local: Authentication failure/i.test(error)
+        /Unable to set non-blocking to true/i.test(error) ||
+        /SSL SYSCALL error: EOF detected/i.test(error) ||
+        /Local: Authentication failure/i.test(error) ||
         // https://github.com/sequelize/sequelize/pull/15144
-        || error.message === 'Query read timeout'
+        error.message === 'Query read timeout'
       ) {
         connection._invalid = true;
       }
@@ -75,20 +78,20 @@ export class PostgresQuery extends AbstractQuery {
       : queryResult.rows;
     const rowCount = Array.isArray(queryResult)
       ? queryResult.reduce(
-        (count, r) => (Number.isFinite(r.rowCount) ? count + r.rowCount : count),
-        0,
-      )
+          (count, r) => (Number.isFinite(r.rowCount) ? count + r.rowCount : count),
+          0,
+        )
       : queryResult.rowCount || 0;
 
     if (options?.minifyAliases && this.options.aliasesMapping) {
-      rows = rows
-        .map(row => toPairs(row)
-          .reduce((acc, [key, value]) => {
-            const mapping = this.options.aliasesMapping.get(key);
-            acc[mapping || key] = value;
+      rows = rows.map(row =>
+        toPairs(row).reduce((acc, [key, value]) => {
+          const mapping = this.options.aliasesMapping.get(key);
+          acc[mapping || key] = value;
 
-            return acc;
-          }, {}));
+          return acc;
+        }, {}),
+      );
     }
 
     const isTableNameQuery = sql.startsWith('SELECT table_name FROM information_schema.tables');
@@ -124,7 +127,9 @@ export class PostgresQuery extends AbstractQuery {
       for (const row of rows) {
         let attributes;
         if (/include \(([^]*)\)/gi.test(row.definition)) {
-          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi.exec(row.definition)[1].split(',');
+          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi
+            .exec(row.definition)[1]
+            .split(',');
         } else {
           attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
         }
@@ -141,32 +146,42 @@ export class PostgresQuery extends AbstractQuery {
         let attribute;
 
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        row.fields = row.index_fields.map((indKey, index) => {
-          field = columns[indKey];
-          // for functional indices indKey = 0
-          if (!field) {
-            return null;
-          }
+        row.fields = row.index_fields
+          .map((indKey, index) => {
+            field = columns[indKey];
+            // for functional indices indKey = 0
+            if (!field) {
+              return null;
+            }
 
-          attribute = attributes[index];
+            attribute = attributes[index];
 
-          return {
-            attribute: field,
-            collate: /COLLATE "(.*?)"/.test(attribute) ? /COLLATE "(.*?)"/.exec(attribute)[1] : undefined,
-            order: attribute.includes('DESC') ? 'DESC' : attribute.includes('ASC') ? 'ASC' : undefined,
-            length: undefined,
-          };
-        }).filter(n => n !== null);
+            return {
+              attribute: field,
+              collate: /COLLATE "(.*?)"/.test(attribute)
+                ? /COLLATE "(.*?)"/.exec(attribute)[1]
+                : undefined,
+              order: attribute.includes('DESC')
+                ? 'DESC'
+                : attribute.includes('ASC')
+                  ? 'ASC'
+                  : undefined,
+              length: undefined,
+            };
+          })
+          .filter(n => n !== null);
 
-        row.includes = row.include_fields.map(indKey => {
-          field = columns[indKey];
-          // for functional indices indKey = 0
-          if (!field) {
-            return null;
-          }
+        row.includes = row.include_fields
+          .map(indKey => {
+            field = columns[indKey];
+            // for functional indices indKey = 0
+            if (!field) {
+              return null;
+            }
 
-          return field;
-        }).filter(n => n !== null);
+            return field;
+          })
+          .filter(n => n !== null);
         delete row.columns;
         delete row.definition;
         delete row.index_fields;
@@ -217,7 +232,9 @@ export class PostgresQuery extends AbstractQuery {
         };
 
         if (result[row.Field].type === 'BOOLEAN') {
-          result[row.Field].defaultValue = { false: false, true: true }[result[row.Field].defaultValue];
+          result[row.Field].defaultValue = { false: false, true: true }[
+            result[row.Field].defaultValue
+          ];
 
           if (result[row.Field].defaultValue === undefined) {
             result[row.Field].defaultValue = null;
@@ -225,7 +242,7 @@ export class PostgresQuery extends AbstractQuery {
         }
 
         if (typeof result[row.Field].defaultValue === 'string') {
-          result[row.Field].defaultValue = result[row.Field].defaultValue.replaceAll('\'', '');
+          result[row.Field].defaultValue = result[row.Field].defaultValue.replaceAll("'", '');
 
           if (result[row.Field].defaultValue.includes('::')) {
             const split = result[row.Field].defaultValue.split('::');
@@ -268,9 +285,14 @@ export class PostgresQuery extends AbstractQuery {
             const modelDefinition = this.model.modelDefinition;
 
             // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
-            const attribute = modelDefinition.attributes.get(attributeOrColumnName) ?? modelDefinition.columns.get(attributeOrColumnName);
+            const attribute =
+              modelDefinition.attributes.get(attributeOrColumnName) ??
+              modelDefinition.columns.get(attributeOrColumnName);
 
-            const updatedValue = this._parseDatabaseValue(rows[0][attributeOrColumnName], attribute?.type);
+            const updatedValue = this._parseDatabaseValue(
+              rows[0][attributeOrColumnName],
+              attribute?.type,
+            );
 
             this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
               raw: true,
@@ -281,14 +303,11 @@ export class PostgresQuery extends AbstractQuery {
       }
 
       if (this.isUpsertQuery()) {
-        return [
-          this.instance,
-          null,
-        ];
+        return [this.instance, null];
       }
 
       return [
-        this.instance || rows && (this.options.plain && rows[0] || rows) || undefined,
+        this.instance || (rows && ((this.options.plain && rows[0]) || rows)) || undefined,
         rowCount,
       ];
     }
@@ -339,14 +358,16 @@ export class PostgresQuery extends AbstractQuery {
           message = 'Validation error';
 
           forOwn(fields, (value, field) => {
-            errors.push(new sequelizeErrors.ValidationErrorItem(
-              this.getUniqueConstraintErrorMessage(field),
-              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-              field,
-              value,
-              this.instance,
-              'not_unique',
-            ));
+            errors.push(
+              new sequelizeErrors.ValidationErrorItem(
+                this.getUniqueConstraintErrorMessage(field),
+                'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+                field,
+                value,
+                this.instance,
+                'not_unique',
+              ),
+            );
           });
 
           if (this.model) {

@@ -47,7 +47,9 @@ export class ModelRepository<M extends Model = Model> {
     assertHasPrimaryKey(this.#modelDefinition);
     setTransactionFromCls(optionsClone, this.#sequelize);
 
-    const instances: M[] = Array.isArray(instanceOrInstances) ? [...instanceOrInstances] : [instanceOrInstances];
+    const instances: M[] = Array.isArray(instanceOrInstances)
+      ? [...instanceOrInstances]
+      : [instanceOrInstances];
     if (instances.length === 0) {
       return 0;
     }
@@ -109,7 +111,12 @@ export class ModelRepository<M extends Model = Model> {
     const result = await this.#queryInterface.bulkDelete(this.#modelDefinition, bulkDeleteOptions);
 
     if (mayRunHook('afterDestroyMany', optionsClone.noHooks)) {
-      await this.#modelDefinition.hooks.runAsync('afterDestroyMany', instances, optionsClone, result);
+      await this.#modelDefinition.hooks.runAsync(
+        'afterDestroyMany',
+        instances,
+        optionsClone,
+        result,
+      );
     }
 
     return result;

@@ -71,7 +71,9 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
         include.subQueryFilter = include.subQuery;
       } else {
         include.subQueryFilter = false;
-        include.subQuery = include.subQuery || include.hasParentRequired && include.hasRequired && !include.separate;
+        include.subQuery =
+          include.subQuery ||
+          (include.hasParentRequired && include.hasRequired && !include.separate);
       }
     }
 
@@ -88,8 +90,10 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
     }
 
     /* Legacy */
-    options.hasIncludeWhere = options.hasIncludeWhere || include.hasIncludeWhere || Boolean(include.where);
-    options.hasIncludeRequired = options.hasIncludeRequired || include.hasIncludeRequired || Boolean(include.required);
+    options.hasIncludeWhere =
+      options.hasIncludeWhere || include.hasIncludeWhere || Boolean(include.where);
+    options.hasIncludeRequired =
+      options.hasIncludeRequired || include.hasIncludeRequired || Boolean(include.required);
 
     if (include.association.isMultiAssociation || include.hasMultiAssociation) {
       options.hasMultiAssociation = true;
@@ -117,7 +121,9 @@ export function combineIncludes(a: any, b: any): any {
   }
 
   if (!Array.isArray(a) || !Array.isArray(b)) {
-    throw new TypeError('Includes should have already been normalized before calling this method, but it received something else than an array.');
+    throw new TypeError(
+      'Includes should have already been normalized before calling this method, but it received something else than an array.',
+    );
   }
 
   const combinedIncludes = [...a];
@@ -151,8 +157,14 @@ Got ${NodeUtil.inspect(include)} instead`);
 }
 
 export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
-  if (options.transaction && (options.connection && options.connection !== options.transaction.getConnection())) {
-    throw new Error(`You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`);
+  if (
+    options.transaction &&
+    options.connection &&
+    options.connection !== options.transaction.getConnection()
+  ) {
+    throw new Error(
+      `You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`,
+    );
   }
 
   if (options.transaction === undefined && options.connection == null) {
@@ -194,7 +206,9 @@ export function conformIndex(index: IndexOptions): IndexOptions {
 export function getPrimaryKeyValueOrThrow(instance: Model, attributeName: string): unknown {
   const attrVal = instance.get(attributeName, { raw: true });
   if (attrVal == null) {
-    throw new TypeError(`This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attributeName}". Make sure that attribute was not excluded when retrieving the model from the database.`);
+    throw new TypeError(
+      `This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attributeName}". Make sure that attribute was not excluded when retrieving the model from the database.`,
+    );
   }
 
   return attrVal;

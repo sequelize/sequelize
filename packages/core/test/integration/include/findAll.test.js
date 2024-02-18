@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { title: 'Monitor' },
           ]);
           const products = await Product.findAll();
-          const groupMembers  = [
+          const groupMembers = [
             { groupId: groups[0].id, rankId: ranks[0].id },
             { groupId: groups[1].id, rankId: ranks[2].id },
           ];
@@ -132,25 +132,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
           await Promise.all([
             GroupMember.bulkCreate(groupMembers),
-            user.setProducts([
-              products[i * 5 + 0],
-              products[i * 5 + 1],
-              products[i * 5 + 3],
-            ]),
-            products[i * 5 + 0].setTags([
-              tags[0],
-              tags[2],
-            ]),
-            products[i * 5 + 1].setTags([
-              tags[1],
-            ]),
+            user.setProducts([products[i * 5 + 0], products[i * 5 + 1], products[i * 5 + 3]]),
+            products[i * 5 + 0].setTags([tags[0], tags[2]]),
+            products[i * 5 + 1].setTags([tags[1]]),
             products[i * 5 + 0].setCategory(tags[1]),
-            products[i * 5 + 2].setTags([
-              tags[0],
-            ]),
-            products[i * 5 + 3].setTags([
-              tags[0],
-            ]),
+            products[i * 5 + 2].setTags([tags[0]]),
+            products[i * 5 + 3].setTags([tags[0]]),
             products[i * 5 + 0].setCompany(companies[4]),
             products[i * 5 + 1].setCompany(companies[3]),
             products[i * 5 + 2].setCompany(companies[2]),
@@ -250,33 +237,29 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       await Promise.all([
-        Set.bulkCreate([
-          { title: 'office' },
-        ]),
-        Product.bulkCreate([
-          { title: 'Chair' },
-          { title: 'Desk' },
-          { title: 'Dress' },
-        ]),
-        Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]),
+        Set.bulkCreate([{ title: 'office' }]),
+        Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }, { title: 'Dress' }]),
+        Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]),
       ]);
 
-      const [sets, products, tags] = await Promise.all([Set.findAll(), Product.findAll(), Tag.findAll()]);
+      const [sets, products, tags] = await Promise.all([
+        Set.findAll(),
+        Product.findAll(),
+        Tag.findAll(),
+      ]);
 
       await Promise.all([
         sets[0].addProducts([products[0], products[1]]),
-        products[0].addTag(tags[0], { priority: 1 })
+        products[0]
+          .addTag(tags[0], { priority: 1 })
           .then(() => {
             return products[0].addTag(tags[1], { priority: 2 });
           })
           .then(() => {
             return products[0].addTag(tags[2], { priority: 1 });
           }),
-        products[1].addTag(tags[1], { priority: 2 })
+        products[1]
+          .addTag(tags[1], { priority: 2 })
           .then(() => {
             return products[2].addTag(tags[1], { priority: 3 });
           })
@@ -286,15 +269,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Set.findAll({
-        include: [{
-          model: Product,
-          include: [{
-            model: Tag,
-            where: {
-              name: 'A',
-            },
-          }],
-        }],
+        include: [
+          {
+            model: Product,
+            include: [
+              {
+                model: Tag,
+                where: {
+                  name: 'A',
+                },
+              },
+            ],
+          },
+        ],
         limit: 1,
       });
     });
@@ -344,44 +331,28 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
       const [groups, ranks, tags] = await Promise.all([
-        Group.bulkCreate([
-          { name: 'Developers' },
-          { name: 'Designers' },
-        ]).then(() => Group.findAll()),
+        Group.bulkCreate([{ name: 'Developers' }, { name: 'Designers' }]).then(() =>
+          Group.findAll(),
+        ),
         Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0 },
         ]).then(() => Rank.findAll()),
-        Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => Tag.findAll()),
+        Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => Tag.findAll()),
       ]);
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           User.create(),
-          Product.bulkCreate([
-            { title: 'Chair' },
-            { title: 'Desk' },
-          ]).then(() => Product.findAll()),
+          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => Product.findAll()),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
             { userId: user.id, groupId: groups[0].id, rankId: ranks[0].id },
             { userId: user.id, groupId: groups[1].id, rankId: ranks[1].id },
           ]),
-          user.setProducts([
-            products[i * 2 + 0],
-            products[i * 2 + 1],
-          ]),
-          products[i * 2 + 0].setTags([
-            tags[0],
-            tags[2],
-          ]),
-          products[i * 2 + 1].setTags([
-            tags[1],
-          ]),
+          user.setProducts([products[i * 2 + 0], products[i * 2 + 1]]),
+          products[i * 2 + 0].setTags([tags[0], tags[2]]),
+          products[i * 2 + 1].setTags([tags[1]]),
           products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
             { productId: products[i * 2 + 0].id, value: 5 },
@@ -397,23 +368,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             {
               model: GroupMember,
               as: 'Memberships',
-              include: [
-                Group,
-                Rank,
-              ],
+              include: [Group, Rank],
             },
             {
               model: Product,
-              include: [
-                'tags',
-                { model: Tag, as: 'Category' },
-                Price,
-              ],
+              include: ['tags', { model: Tag, as: 'Category' }, Price],
             },
           ],
-          order: [
-            ['id', 'ASC'],
-          ],
+          order: [['id', 'ASC']],
         });
         for (const user of users) {
           user.Memberships.sort(sortById);
@@ -457,64 +419,64 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [as0, b] = await Promise.all([A.bulkCreate([
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-      ]).then(() => {
-        return A.findAll();
-      }), (function (singles) {
-        let promise = Promise.resolve();
-        let previousInstance;
-        let b;
+      const [as0, b] = await Promise.all([
+        A.bulkCreate([{}, {}, {}, {}, {}, {}, {}, {}]).then(() => {
+          return A.findAll();
+        }),
+        (function (singles) {
+          let promise = Promise.resolve();
+          let previousInstance;
+          let b;
 
-        for (const model of singles) {
-          promise = (async () => {
-            await promise;
-            const instance = await model.create({});
-            if (previousInstance) {
-              await previousInstance[`set${upperFirst(model.name)}`](instance);
-              previousInstance = instance;
+          for (const model of singles) {
+            promise = (async () => {
+              await promise;
+              const instance = await model.create({});
+              if (previousInstance) {
+                await previousInstance[`set${upperFirst(model.name)}`](instance);
+                previousInstance = instance;
 
-              return;
-            }
+                return;
+              }
 
-            previousInstance = b = instance;
-          })();
-        }
+              previousInstance = b = instance;
+            })();
+          }
 
-        promise = promise.then(() => {
-          return b;
-        });
+          promise = promise.then(() => {
+            return b;
+          });
 
-        return promise;
-      }([B, C, D, E, F, G, H]))]);
+          return promise;
+        })([B, C, D, E, F, G, H]),
+      ]);
 
-      await Promise.all(as0.map(a => {
-        return a.setB(b);
-      }));
+      await Promise.all(
+        as0.map(a => {
+          return a.setB(b);
+        }),
+      );
 
       const as = await A.findAll({
         include: [
           {
-            model: B, include: [
+            model: B,
+            include: [
               {
-                model: C, include: [
+                model: C,
+                include: [
                   {
-                    model: D, include: [
+                    model: D,
+                    include: [
                       {
-                        model: E, include: [
+                        model: E,
+                        include: [
                           {
-                            model: F, include: [
+                            model: F,
+                            include: [
                               {
-                                model: G, include: [
-                                  { model: H },
-                                ],
+                                model: G,
+                                include: [{ model: H }],
                               },
                             ],
                           },
@@ -560,72 +522,73 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [as0, b] = await Promise.all([A.bulkCreate([
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-        {},
-      ]).then(() => {
-        return A.findAll();
-      }), (function (singles) {
-        let promise = Promise.resolve();
-        let previousInstance;
-        let b;
+      const [as0, b] = await Promise.all([
+        A.bulkCreate([{}, {}, {}, {}, {}, {}, {}, {}]).then(() => {
+          return A.findAll();
+        }),
+        (function (singles) {
+          let promise = Promise.resolve();
+          let previousInstance;
+          let b;
 
-        for (const model of singles) {
-          const values = {};
+          for (const model of singles) {
+            const values = {};
 
-          if (model.name === 'g') {
-            values.name = 'yolo';
-          }
-
-          promise = (async () => {
-            await promise;
-            const instance = await model.create(values);
-            if (previousInstance) {
-              await previousInstance[`set${upperFirst(model.name)}`](instance);
-              previousInstance = instance;
-
-              return;
+            if (model.name === 'g') {
+              values.name = 'yolo';
             }
 
-            previousInstance = b = instance;
-          })();
-        }
+            promise = (async () => {
+              await promise;
+              const instance = await model.create(values);
+              if (previousInstance) {
+                await previousInstance[`set${upperFirst(model.name)}`](instance);
+                previousInstance = instance;
 
-        promise = promise.then(() => {
-          return b;
-        });
+                return;
+              }
 
-        return promise;
-      }([B, C, D, E, F, G, H]))]);
+              previousInstance = b = instance;
+            })();
+          }
 
-      await Promise.all(as0.map(a => {
-        return a.setB(b);
-      }));
+          promise = promise.then(() => {
+            return b;
+          });
+
+          return promise;
+        })([B, C, D, E, F, G, H]),
+      ]);
+
+      await Promise.all(
+        as0.map(a => {
+          return a.setB(b);
+        }),
+      );
 
       const as = await A.findAll({
         include: [
           {
-            model: B, include: [
+            model: B,
+            include: [
               {
-                model: C, include: [
+                model: C,
+                include: [
                   {
-                    model: D, include: [
+                    model: D,
+                    include: [
                       {
-                        model: E, include: [
+                        model: E,
+                        include: [
                           {
-                            model: F, include: [
+                            model: F,
+                            include: [
                               {
-                                model: G, where: {
+                                model: G,
+                                where: {
                                   name: 'yolo',
-                                }, include: [
-                                  { model: H },
-                                ],
+                                },
+                                include: [{ model: H }],
                               },
                             ],
                           },
@@ -670,11 +633,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ]).then(() => {
           return Item.findAll({ order: ['id'] });
         }),
-        orders: Order.bulkCreate([
-          { position: 2 },
-          { position: 3 },
-          { position: 1 },
-        ]).then(() => {
+        orders: Order.bulkCreate([{ position: 2 }, { position: 3 }, { position: 1 }]).then(() => {
           return Order.findAll({ order: ['id'] });
         }),
       });
@@ -708,10 +667,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           { model: Item, as: 'itemA', where: { test: 'abc' } },
           { model: Item, as: 'itemB' },
-          Order],
-        order: [
-          [Order, 'position'],
+          Order,
         ],
+        order: [[Order, 'position']],
       });
 
       expect(as.length).to.eql(2);
@@ -747,11 +705,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ]).then(() => {
           return Product.findAll();
         }),
-        tags: Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => {
+        tags: Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => {
           return Tag.findAll();
         }),
       });
@@ -766,9 +720,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const products = await Product.findAll({
-        include: [
-          { model: Tag },
-        ],
+        include: [{ model: Tag }],
         order: [
           ['id', 'ASC'],
           [Tag, 'id', 'ASC'],
@@ -805,9 +757,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await results.users[2].setGroup(results.groups[1]);
 
       const users = await User.findAll({
-        include: [
-          { model: Group, required: true },
-        ],
+        include: [{ model: Group, required: true }],
       });
 
       expect(users.length).to.equal(1);
@@ -825,10 +775,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -842,9 +789,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const users = await User.findAll({
-        include: [
-          { model: Group, where: { name: 'A' } },
-        ],
+        include: [{ model: Group, where: { name: 'A' } }],
       });
 
       expect(users.length).to.equal(1);
@@ -863,10 +808,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -880,9 +822,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const users = await User.findAll({
-        include: [
-          { model: Group, required: true },
-        ],
+        include: [{ model: Group, required: true }],
       });
 
       for (const user of users) {
@@ -911,16 +851,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const john = await User.findOne({
         where: { username: 'John' },
-        include: [{
-          model: Address,
-          required: true,
-          where: {
-            active: true,
+        include: [
+          {
+            model: Address,
+            required: true,
+            where: {
+              active: true,
+            },
+            include: [
+              {
+                model: Street,
+              },
+            ],
           },
-          include: [{
-            model: Street,
-          }],
-        }],
+        ],
       });
 
       expect(john.address).to.be.ok;
@@ -942,10 +886,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -959,17 +900,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await Promise.all([
         results.users[0].setGroup(results.groups[1]),
         results.users[1].setGroup(results.groups[0]),
-        Promise.all(results.groups.map(group => {
-          return group.setCategories(results.categories);
-        })),
+        Promise.all(
+          results.groups.map(group => {
+            return group.setCategories(results.categories);
+          }),
+        ),
       ]);
 
       const users = await User.findAll({
         include: [
           {
-            model: Group, required: true, include: [
-              { model: Category },
-            ],
+            model: Group,
+            required: true,
+            include: [{ model: Category }],
           },
         ],
         limit: 1,
@@ -997,10 +940,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -1014,17 +954,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await Promise.all([
         results.users[0].setTeam(results.groups[1]),
         results.users[1].setTeam(results.groups[0]),
-        Promise.all(results.groups.map(group => {
-          return group.setTags(results.categories);
-        })),
+        Promise.all(
+          results.groups.map(group => {
+            return group.setTags(results.categories);
+          }),
+        ),
       ]);
 
       const users = await User.findAll({
         include: [
           {
-            model: Group, required: true, as: 'Team', include: [
-              { model: Category, as: 'Tags' },
-            ],
+            model: Group,
+            required: true,
+            as: 'Team',
+            include: [{ model: Category, as: 'Tags' }],
           },
         ],
         limit: 1,
@@ -1052,10 +995,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -1069,17 +1009,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await Promise.all([
         results.users[0].setGroup(results.groups[1]),
         results.users[1].setGroup(results.groups[0]),
-        Promise.all(results.groups.map(group => {
-          return group.setCategories(results.categories);
-        })),
+        Promise.all(
+          results.groups.map(group => {
+            return group.setCategories(results.categories);
+          }),
+        ),
       ]);
 
       const users = await User.findAll({
         include: [
           {
-            model: Group, required: true, include: [
-              { model: Category, required: false },
-            ],
+            model: Group,
+            required: true,
+            include: [{ model: Category, required: false }],
           },
         ],
         limit: 1,
@@ -1103,10 +1045,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        projects: Project.bulkCreate([
-          { title: 'Alpha' },
-          { title: 'Beta' },
-        ]).then(() => {
+        projects: Project.bulkCreate([{ title: 'Alpha' }, { title: 'Beta' }]).then(() => {
           return Project.findAll();
         }),
         users: User.bulkCreate([{}, {}]).then(() => {
@@ -1120,9 +1059,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const users = await User.findAll({
-        include: [
-          { model: Project, as: 'LeaderOf', where: { title: 'Beta' } },
-        ],
+        include: [{ model: Project, as: 'LeaderOf', where: { title: 'Beta' } }],
       });
 
       expect(users.length).to.equal(1);
@@ -1154,11 +1091,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ]).then(() => {
           return Product.findAll();
         }),
-        tags: Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => {
+        tags: Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => {
           return Tag.findAll();
         }),
       });
@@ -1173,9 +1106,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const products = await Product.findAll({
-        include: [
-          { model: Tag, where: { name: 'C' } },
-        ],
+        include: [{ model: Tag, where: { name: 'C' } }],
       });
 
       expect(products.length).to.equal(1);
@@ -1229,27 +1160,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
       const [groups, ranks, tags] = await Promise.all([
-        Group.bulkCreate([
-          { name: 'Developers' },
-          { name: 'Designers' },
-        ]).then(() => Group.findAll()),
+        Group.bulkCreate([{ name: 'Developers' }, { name: 'Designers' }]).then(() =>
+          Group.findAll(),
+        ),
         Rank.bulkCreate([
           { name: 'Admin', canInvite: 1, canRemove: 1 },
           { name: 'Member', canInvite: 1, canRemove: 0 },
         ]).then(() => Rank.findAll()),
-        Tag.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-          { name: 'C' },
-        ]).then(() => Tag.findAll()),
+        Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => Tag.findAll()),
       ]);
       for (const i of [0, 1, 2, 3, 4]) {
         const user = await User.create({ name: 'FooBarzz' });
 
-        await Product.bulkCreate([
-          { title: 'Chair' },
-          { title: 'Desk' },
-        ]);
+        await Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]);
 
         const products = await Product.findAll();
         await Promise.all([
@@ -1257,17 +1180,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { userId: user.id, groupId: groups[0].id, rankId: ranks[0].id },
             { userId: user.id, groupId: groups[1].id, rankId: ranks[1].id },
           ]),
-          user.setProducts([
-            products[i * 2 + 0],
-            products[i * 2 + 1],
-          ]),
-          products[i * 2 + 0].setTags([
-            tags[0],
-            tags[2],
-          ]),
-          products[i * 2 + 1].setTags([
-            tags[1],
-          ]),
+          user.setProducts([products[i * 2 + 0], products[i * 2 + 1]]),
+          products[i * 2 + 0].setTags([tags[0], tags[2]]),
+          products[i * 2 + 1].setTags([tags[1]]),
           products[i * 2 + 0].setCategory(tags[1]),
           Price.bulkCreate([
             { productId: products[i * 2 + 0].id, value: 5 },
@@ -1285,10 +1200,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           {
             model: GroupMember,
             as: 'Memberships',
-            include: [
-              Group,
-              { model: Rank, where: { name: 'Admin' } },
-            ],
+            include: [Group, { model: Rank, where: { name: 'Admin' } }],
           },
           {
             model: Product,
@@ -1306,9 +1218,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ],
           },
         ],
-        order: [
-          ['id', 'ASC'],
-        ],
+        order: [['id', 'ASC']],
       });
       for (const user of users) {
         expect(user.Memberships.length).to.equal(1);
@@ -1329,10 +1239,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const results = await promiseProps({
-        groups: Group.bulkCreate([
-          { name: 'A' },
-          { name: 'B' },
-        ]).then(() => {
+        groups: Group.bulkCreate([{ name: 'A' }, { name: 'B' }]).then(() => {
           return Group.findAll();
         }),
         users: User.bulkCreate([{}, {}, {}, {}]).then(() => {
@@ -1348,9 +1255,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const users = await User.findAll({
-        include: [
-          { model: Group, where: { name: 'A' } },
-        ],
+        include: [{ model: Group, where: { name: 'A' } }],
         limit: 2,
       });
 
@@ -1372,9 +1277,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { model: this.models.Price },
         ],
         limit: 3,
-        order: [
-          [this.sequelize.col(`${this.models.Product.name}.id`), 'ASC'],
-        ],
+        order: [[this.sequelize.col(`${this.models.Product.name}.id`), 'ASC']],
       });
 
       expect(products.length).to.equal(3);
@@ -1395,10 +1298,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [parent0, child] = await Promise.all([
-        Parent.create(),
-        Child1.create(),
-      ]);
+      const [parent0, child] = await Promise.all([Parent.create(), Child1.create()]);
 
       await parent0.addChild1(child);
       const parent = parent0;
@@ -1565,9 +1465,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           },
         ],
         limit: 6,
-        order: [
-          ['id', 'ASC'],
-        ],
+        order: [['id', 'ASC']],
       });
 
       expect(products.length).to.equal(6);
@@ -1592,9 +1490,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { model: this.models.Price },
         ],
         limit: 10,
-        order: [
-          ['id', 'ASC'],
-        ],
+        order: [['id', 'ASC']],
       });
 
       expect(products.length).to.equal(10);
@@ -1610,12 +1506,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should support including date fields, with the correct timeszone', async function () {
-      const User = this.sequelize.define('user', {
-        dateField: DataTypes.DATE,
-      }, { timestamps: false });
-      const Group = this.sequelize.define('group', {
-        dateField: DataTypes.DATE,
-      }, { timestamps: false });
+      const User = this.sequelize.define(
+        'user',
+        {
+          dateField: DataTypes.DATE,
+        },
+        { timestamps: false },
+      );
+      const Group = this.sequelize.define(
+        'group',
+        {
+          dateField: DataTypes.DATE,
+        },
+        { timestamps: false },
+      );
 
       User.belongsToMany(Group, { through: 'group_user' });
       Group.belongsToMany(User, { through: 'group_user' });
@@ -1643,8 +1547,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       A.belongsToMany(B, { through: 'a_b' });
       B.belongsToMany(A, { through: 'a_b' });
 
-      await this.sequelize
-        .sync({ force: true });
+      await this.sequelize.sync({ force: true });
 
       await A.create({
         name: 'Foobar',
@@ -1652,9 +1555,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const as = await A.findAll({
         where: { name: 'Foobar' },
-        include: [
-          { model: B, where: { name: 'idontexist' }, required: false },
-        ],
+        include: [{ model: B, where: { name: 'idontexist' }, required: false }],
       });
 
       expect(as.length).to.equal(1);
@@ -1662,12 +1563,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should work with paranoid, a main record where, an include where, and a limit', async function () {
-      const Post = this.sequelize.define('post', {
-        date: DataTypes.DATE,
-        public: DataTypes.BOOLEAN,
-      }, {
-        paranoid: true,
-      });
+      const Post = this.sequelize.define(
+        'post',
+        {
+          date: DataTypes.DATE,
+          public: DataTypes.BOOLEAN,
+        },
+        {
+          paranoid: true,
+        },
+      );
       const Category = this.sequelize.define('category', {
         slug: DataTypes.STRING,
       });
@@ -1684,9 +1589,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         Post.create({ public: true }),
       ]);
 
-      await Promise.all(posts0.slice(1, 3).map(post => {
-        return post.createCategory({ slug: 'food' });
-      }));
+      await Promise.all(
+        posts0.slice(1, 3).map(post => {
+          return post.createCategory({ slug: 'food' });
+        }),
+      );
 
       const posts = await Post.findAll({
         limit: 2,
@@ -1772,16 +1679,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         offset: 0,
         limit: 20,
         attributes: ['id', 'name'],
-        include: [{
-          model: UserPerson,
-          required: true,
-          attributes: ['rank'],
-          include: [{
-            model: User,
+        include: [
+          {
+            model: UserPerson,
             required: true,
-            attributes: ['login'],
-          }],
-        }],
+            attributes: ['rank'],
+            include: [
+              {
+                model: User,
+                required: true,
+                attributes: ['login'],
+              },
+            ],
+          },
+        ],
       });
     });
 
@@ -1805,12 +1716,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should be able to order on the main table and a required belongsTo relation with custom tablenames and limit ', async function () {
-      const User = this.sequelize.define('User', {
-        lastName: DataTypes.STRING,
-      }, { tableName: 'dem_users' });
-      const Company = this.sequelize.define('Company', {
-        rank: DataTypes.INTEGER,
-      }, { tableName: 'dem_companies' });
+      const User = this.sequelize.define(
+        'User',
+        {
+          lastName: DataTypes.STRING,
+        },
+        { tableName: 'dem_users' },
+      );
+      const Company = this.sequelize.define(
+        'Company',
+        {
+          rank: DataTypes.INTEGER,
+        },
+        { tableName: 'dem_companies' },
+      );
 
       User.belongsTo(Company);
       Company.hasMany(User);
@@ -1832,9 +1751,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const users = await User.findAll({
-        include: [
-          { model: Company, required: true },
-        ],
+        include: [{ model: Company, required: true }],
         order: [
           [Company, 'rank', 'ASC'],
           ['lastName', 'DESC'],
@@ -1864,27 +1781,26 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await Post.create({
-        title: Math.random().toString(),
-        comments: [
-          { content: Math.random().toString() },
-          { content: Math.random().toString() },
-          { content: Math.random().toString() },
-        ],
-      }, {
-        include: [Post.Comments],
-      });
+      await Post.create(
+        {
+          title: Math.random().toString(),
+          comments: [
+            { content: Math.random().toString() },
+            { content: Math.random().toString() },
+            { content: Math.random().toString() },
+          ],
+        },
+        {
+          include: [Post.Comments],
+        },
+      );
 
       const posts = await Post.findAll({
         attributes: [
           [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount'],
         ],
-        include: [
-          { association: Post.Comments, attributes: [] },
-        ],
-        group: [
-          'Post.id',
-        ],
+        include: [{ association: Post.Comments, attributes: [] }],
+        group: ['Post.id'],
       });
 
       expect(posts.length).to.equal(1);
@@ -1908,16 +1824,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await User.create({
-        name: Math.random().toString(),
-        projects: [
-          { title: Math.random().toString() },
-          { title: Math.random().toString() },
-          { title: Math.random().toString() },
-        ],
-      }, {
-        include: [User.associations.projects],
-      });
+      await User.create(
+        {
+          name: Math.random().toString(),
+          projects: [
+            { title: Math.random().toString() },
+            { title: Math.random().toString() },
+            { title: Math.random().toString() },
+          ],
+        },
+        {
+          include: [User.associations.projects],
+        },
+      );
 
       const users = await User.findAll({
         attributes: [
@@ -1951,23 +1870,28 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      await Post.create({
-        title: Math.random().toString(),
-        comments: [
-          { content: Math.random().toString() },
-          { content: Math.random().toString() },
-          { content: Math.random().toString() },
-        ],
-      }, {
-        include: [Post.Comments],
-      });
+      await Post.create(
+        {
+          title: Math.random().toString(),
+          comments: [
+            { content: Math.random().toString() },
+            { content: Math.random().toString() },
+            { content: Math.random().toString() },
+          ],
+        },
+        {
+          include: [Post.Comments],
+        },
+      );
 
       const posts = await Post.findAll({
         attributes: [],
         include: [
           {
             association: Post.Comments,
-            attributes: [[this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']],
+            attributes: [
+              [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount'],
+            ],
           },
         ],
         raw: true,
@@ -2035,29 +1959,31 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await TaggableSentient.create({ nametag: 'bob' });
       const entity = await Entity.create({ creator: 'bob' });
 
-      await Promise.all([
-        Post.create({ post_id: entity.entity_id }),
-        entity.addTags('bob'),
-      ]);
+      await Promise.all([Post.create({ post_id: entity.entity_id }), entity.addTags('bob')]);
 
       const posts = await Post.findAll({
-        include: [{
-          model: Entity,
-          required: true,
-          include: [{
-            model: User,
+        include: [
+          {
+            model: Entity,
             required: true,
-          }, {
-            model: TaggableSentient,
-            as: 'tags',
-            required: true,
-            through: {
-              where: {
-                tag_name: ['bob'],
+            include: [
+              {
+                model: User,
+                required: true,
               },
-            },
-          }],
-        }],
+              {
+                model: TaggableSentient,
+                as: 'tags',
+                required: true,
+                through: {
+                  where: {
+                    tag_name: ['bob'],
+                  },
+                },
+              },
+            ],
+          },
+        ],
         limit: 5,
         offset: 0,
       });
@@ -2099,17 +2025,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       await Shipment.findOne({
-        include: [{
-          model: Order,
-          required: true,
-          include: [{
-            model: Customer,
-            include: [{
-              model: ShippingAddress,
-              where: { verified: true },
-            }],
-          }],
-        }],
+        include: [
+          {
+            model: Order,
+            required: true,
+            include: [
+              {
+                model: Customer,
+                include: [
+                  {
+                    model: ShippingAddress,
+                    where: { verified: true },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       });
     });
 
@@ -2118,10 +2050,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const products = await this.models.Product.findAll({
         attributes: ['title'],
-        include: [
-          { model: this.models.User },
-          { model: this.models.Price },
-        ],
+        include: [{ model: this.models.User }, { model: this.models.Price }],
         limit: 10,
       });
 
@@ -2139,14 +2068,22 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
     it('should allow through model to be paranoid', async function () {
       const User = this.sequelize.define('User', { name: DataTypes.STRING }, { timestamps: false });
-      const Customer = this.sequelize.define('Customer', { name: DataTypes.STRING }, { timestamps: false });
+      const Customer = this.sequelize.define(
+        'Customer',
+        { name: DataTypes.STRING },
+        { timestamps: false },
+      );
       const UserCustomer = this.sequelize.define(
         'UserCustomer',
         {},
         { paranoid: true, createdAt: false, updatedAt: false },
       );
 
-      User.belongsToMany(Customer, { through: UserCustomer, as: 'customers', inverse: { as: 'users' } });
+      User.belongsToMany(Customer, {
+        through: UserCustomer,
+        as: 'customers',
+        inverse: { as: 'users' },
+      });
 
       await this.sequelize.sync({ force: true });
 
@@ -2176,7 +2113,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(userCustomers).to.be.an('array');
       expect(userCustomers).to.be.lengthOf(2);
 
-      const [nonDeletedUserCustomers, deletedUserCustomers] = partition(userCustomers, userCustomer => !userCustomer.deletedAt);
+      const [nonDeletedUserCustomers, deletedUserCustomers] = partition(
+        userCustomers,
+        userCustomer => !userCustomer.deletedAt,
+      );
 
       expect(nonDeletedUserCustomers).to.be.lengthOf(1);
       expect(deletedUserCustomers).to.be.lengthOf(1);

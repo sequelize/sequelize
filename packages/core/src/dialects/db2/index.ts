@@ -44,10 +44,16 @@ export class Db2Dialect extends AbstractDialect {
     createSchema: {
       authorization: true,
     },
+    connectionTransactionMethods: true,
+    startTransaction: {
+      useBegin: true,
+    },
   });
 
   readonly defaultVersion = '1.0.0';
-  readonly dataTypesDocumentationUrl = 'https://www.ibm.com/support/knowledgecenter/SSEPGG_11.1.0/com.ibm.db2.luw.sql.ref.doc/doc/r0008478.html';
+  readonly dataTypesDocumentationUrl =
+    'https://www.ibm.com/support/knowledgecenter/SSEPGG_11.1.0/com.ibm.db2.luw.sql.ref.doc/doc/r0008478.html';
+
   readonly connectionManager: Db2ConnectionManager;
   readonly queryGenerator: Db2QueryGenerator;
   readonly queryInterface: Db2QueryInterface;

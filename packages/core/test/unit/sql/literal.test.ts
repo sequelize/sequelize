@@ -79,12 +79,15 @@ describe('json', () => {
   });
 
   it('accepts multiple condition object', () => {
-    expectsql(() => queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })), {
-      postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
-      sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
-      mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
-      mysql: `json_extract(\`property\`,'$.value') = CAST('1' AS JSON) AND json_extract(\`another\`,'$.value') = CAST('"string"' AS JSON)`,
-    });
+    expectsql(
+      () => queryGenerator.escape(json({ property: { value: 1 }, another: { value: 'string' } })),
+      {
+        postgres: `"property"->'value' = '1' AND "another"->'value' = '"string"'`,
+        sqlite: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
+        mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
+        mysql: `json_extract(\`property\`,'$.value') = CAST('1' AS JSON) AND json_extract(\`another\`,'$.value') = CAST('"string"' AS JSON)`,
+      },
+    );
   });
 
   it('can be used inside of where', () => {
@@ -99,15 +102,27 @@ describe('json', () => {
 
 describe('cast', () => {
   it('accepts condition object (auto casting)', () => {
-    expectsql(() => queryGenerator.escape(fn('SUM', cast({
-      [Op.or]: {
-        foo: 'foo',
-        bar: 'bar',
+    expectsql(
+      () =>
+        queryGenerator.escape(
+          fn(
+            'SUM',
+            cast(
+              {
+                [Op.or]: {
+                  foo: 'foo',
+                  bar: 'bar',
+                },
+              },
+              'int',
+            ),
+          ),
+        ),
+      {
+        default: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
+        mssql: `SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))`,
       },
-    }, 'int'))), {
-      default: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
-      mssql: `SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))`,
-    });
+    );
   });
 });
 
@@ -124,7 +139,14 @@ describe('fn', () => {
 
   it('accepts all sorts of values as arguments', () => {
     const out = queryGenerator.escape(
-      fn('concat', 'user', 1, true, new Date(Date.UTC(2011, 2, 27, 10, 1, 55)), fn('lower', 'user')),
+      fn(
+        'concat',
+        'user',
+        1,
+        true,
+        new Date(Date.UTC(2011, 2, 27, 10, 1, 55)),
+        fn('lower', 'user'),
+      ),
     );
 
     expectsql(out, {
@@ -141,9 +163,7 @@ describe('fn', () => {
       return;
     }
 
-    const out = queryGenerator.escape(
-      fn('concat', ['abc']),
-    );
+    const out = queryGenerator.escape(fn('concat', ['abc']));
 
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,

@@ -59,7 +59,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnect
 
     let connection;
     try {
-      connection = await this.lib.connect(connectionString) as IBMiConnection;
+      connection = (await this.lib.connect(connectionString)) as IBMiConnection;
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;

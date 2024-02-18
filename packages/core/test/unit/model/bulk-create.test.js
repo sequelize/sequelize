@@ -24,7 +24,7 @@ describe('Model#bulkCreate', () => {
       { timestamps: false },
     );
 
-    const    stub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
+    const stub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
 
     return { TestModel, stub };
   });
@@ -39,7 +39,7 @@ describe('Model#bulkCreate', () => {
 
   describe('validations', () => {
     it('should not fail for renamed fields', async () => {
-      const { TestModel, stub } = vars;
+      const { stub, TestModel } = vars;
 
       await TestModel.bulkCreate([{ accountId: 42, purchaseCount: 4 }], {
         validate: true,
@@ -52,7 +52,7 @@ describe('Model#bulkCreate', () => {
 
     if (sequelize.dialect.supports.inserts.updateOnDuplicate) {
       it('should map conflictAttributes to column names', async () => {
-        const { TestModel, stub } = vars;
+        const { stub, TestModel } = vars;
 
         // Note that the model also has an id key as its primary key.
         await TestModel.bulkCreate([{ accountId: 42, purchaseCount: 3 }], {

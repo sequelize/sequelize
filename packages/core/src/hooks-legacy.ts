@@ -16,7 +16,6 @@ export function legacyBuildRunHook<HookConfig extends {}>(
   // added for typing purposes
   _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyRunHookFunction<HookConfig, void> {
-
   return async function runHooks<HookName extends keyof HookConfig>(
     this: { hooks: HookHandler<HookConfig> },
     hookName: HookName,
@@ -34,7 +33,11 @@ export interface LegacyAddAnyHookFunction<HookConfig extends {}> {
   /**
    * Adds a hook listener
    */
-  <This, HookName extends keyof HookConfig>(this: This, hookName: HookName, hook: HookConfig[HookName]): This;
+  <This, HookName extends keyof HookConfig>(
+    this: This,
+    hookName: HookName,
+    hook: HookConfig[HookName],
+  ): This;
 
   /**
    * Adds a hook listener
@@ -42,10 +45,10 @@ export interface LegacyAddAnyHookFunction<HookConfig extends {}> {
    * @param listenerName Provide a name for the hook function. It can be used to remove the hook later.
    */
   <This, HookName extends keyof HookConfig>(
-      this: This,
-      hookName: HookName,
-      listenerName: string,
-      hook: HookConfig[HookName]
+    this: This,
+    hookName: HookName,
+    listenerName: string,
+    hook: HookConfig[HookName],
   ): This;
 }
 
@@ -53,8 +56,10 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
   // added for typing purposes
   _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyAddAnyHookFunction<HookConfig> {
-
-  return function addHook<This extends { hooks: HookHandler<HookConfig> }, HookName extends keyof HookConfig>(
+  return function addHook<
+    This extends { hooks: HookHandler<HookConfig> },
+    HookName extends keyof HookConfig,
+  >(
     this: This,
     hookName: HookName,
     listenerNameOrHook: HookConfig[HookName] | string,

@@ -53,8 +53,6 @@ export class SnowflakeQuery extends AbstractQuery {
         } catch {
           // ignore errors
         }
-
-        options.transaction.finished = 'rollback';
       }
 
       error.sql = sql;
@@ -99,9 +97,9 @@ export class SnowflakeQuery extends AbstractQuery {
 
         // handle bulkCreate AI primary key
         if (
-          data.constructor.name === 'ResultSetHeader'
-          && modelDefinition?.autoIncrementAttributeName
-          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          data.constructor.name === 'ResultSetHeader' &&
+          modelDefinition?.autoIncrementAttributeName &&
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
@@ -125,14 +123,20 @@ export class SnowflakeQuery extends AbstractQuery {
           attrsMap[attrName.toLowerCase()] = attrName;
         }
 
-        data = data.map(data => reduce(data, (prev, value, key) => {
-          if (value !== undefined && attrsMap[key]) {
-            prev[attrsMap[key]] = value;
-            delete prev[key];
-          }
+        data = data.map(data =>
+          reduce(
+            data,
+            (prev, value, key) => {
+              if (value !== undefined && attrsMap[key]) {
+                prev[attrsMap[key]] = value;
+                delete prev[key];
+              }
 
-          return prev;
-        }, data));
+              return prev;
+            },
+            data,
+          ),
+        );
       }
 
       this.options.fieldMap = mapKeys(this.options.fieldMap, (v, k) => {
@@ -151,8 +155,8 @@ export class SnowflakeQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
-          autoIncrement: Object.hasOwn(_result, 'Extra')
-            && _result.Extra.toLowerCase() === 'auto_increment',
+          autoIncrement:
+            Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
       }
@@ -202,7 +206,9 @@ export class SnowflakeQuery extends AbstractQuery {
         const values = match ? match[1].split('-') : undefined;
         const fieldKey = match ? match[2] : undefined;
         const fieldVal = match ? match[1] : undefined;
-        const uniqueKey = this.model && this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
+        const uniqueKey =
+          this.model &&
+          this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {
@@ -216,14 +222,16 @@ export class SnowflakeQuery extends AbstractQuery {
 
         const errors = [];
         forOwn(fields, (value, field) => {
-          errors.push(new sequelizeErrors.ValidationErrorItem(
-            this.getUniqueConstraintErrorMessage(field),
-            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-            field,
-            value,
-            this.instance,
-            'not_unique',
-          ));
+          errors.push(
+            new sequelizeErrors.ValidationErrorItem(
+              this.getUniqueConstraintErrorMessage(field),
+              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+              field,
+              value,
+              this.instance,
+              'not_unique',
+            ),
+          );
         });
 
         return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
@@ -236,13 +244,16 @@ export class SnowflakeQuery extends AbstractQuery {
           /CONSTRAINT (["`])(.*)\1 FOREIGN KEY \(\1(.*)\1\) REFERENCES \1(.*)\1 \(\1(.*)\1\)/,
         );
         const quoteChar = match ? match[1] : '`';
-        const fields = match ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`)) : undefined;
+        const fields = match
+          ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`))
+          : undefined;
 
         return new sequelizeErrors.ForeignKeyConstraintError({
           reltype: String(errCode) === String(ER_ROW_IS_REFERENCED) ? 'parent' : 'child',
           table: match ? match[4] : undefined,
           fields,
-          value: fields && fields.length && this.instance && this.instance[fields[0]] || undefined,
+          value:
+            (fields && fields.length && this.instance && this.instance[fields[0]]) || undefined,
           index: match ? match[2] : undefined,
           cause: err,
         });
