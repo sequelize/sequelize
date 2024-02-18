@@ -17,7 +17,9 @@ import type { Where } from './where.js';
  *
  * @private
  */
-export class BaseSqlExpression {}
+export class BaseSqlExpression {
+  protected declare readonly brand: string;
+}
 
 export type DynamicSqlExpression =
   | List
