@@ -1,23 +1,21 @@
 // @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
-import baseIsNative from 'lodash/_baseIsNative';
-import cloneDeepWith from 'lodash/cloneDeepWith';
-import forOwn from 'lodash/forOwn';
-import getValue from 'lodash/get';
-import isEqual from 'lodash/isEqual';
-import isFunction from 'lodash/isFunction';
-import isObject from 'lodash/isObject';
-import isPlainObject from 'lodash/isPlainObject';
-import isUndefined from 'lodash/isUndefined.js';
-import mergeWith from 'lodash/mergeWith';
-import omitBy from 'lodash/omitBy.js';
-import type { MapView } from './immutability.js';
-import { SetView } from './immutability.js';
-import { combinedIterator, map } from './iterators.js';
-import type { ReadOnlyRecord } from './types.js';
-import { getComplexKeys } from './where.js';
+import baseIsNative from "lodash/_baseIsNative";
+import cloneDeepWith from "lodash/cloneDeepWith";
+import forOwn from "lodash/forOwn";
+import getValue from "lodash/get";
+import isEqual from "lodash/isEqual";
+import isFunction from "lodash/isFunction";
+import isObject from "lodash/isObject";
+import isPlainObject from "lodash/isPlainObject";
+import isUndefined from "lodash/isUndefined.js";
+import mergeWith from "lodash/mergeWith";
+import omitBy from "lodash/omitBy.js";
+import type { MapView } from "./immutability.js";
+import { SetView } from "./immutability.js";
+import { combinedIterator, map } from "./iterators.js";
+import type { ReadOnlyRecord } from "./types.js";
+import { getComplexKeys } from "./where.js";
 
-export const EMPTY_OBJECT: ReadOnlyRecord<PropertyKey, never> = Object.freeze(Object.create(null));
-export const EMPTY_ARRAY: readonly never[] = Object.freeze([]);
 export const EMPTY_SET = new SetView<never>(new Set());
 
 /**
@@ -82,7 +80,7 @@ export function merge(...args: object[]): object {
 }
 
 export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
-  return cloneDeepWith(obj, elem => {
+  return cloneDeepWith(obj, (elem) => {
     // Do not try to customize cloning of arrays or POJOs
     if (Array.isArray(elem) || isPlainObject(elem)) {
       return;
@@ -90,12 +88,12 @@ export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
 
     // If we specified to clone only plain objects & arrays, we ignore everything else
     // In any case, don't clone stuff that's an object, but not a plain one - fx example sequelize models and instances
-    if (onlyPlain || typeof elem === 'object') {
+    if (onlyPlain || typeof elem === "object") {
       return elem;
     }
 
     // Preserve special data-types like `fn` across clones. _.get() is used for checking up the prototype chain
-    if (elem && typeof elem.clone === 'function') {
+    if (elem && typeof elem.clone === "function") {
       return elem.clone();
     }
   });
@@ -130,7 +128,9 @@ export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
  * @returns a flattened object
  * @private
  */
-export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Flatten<T> : T {
+export function flattenObjectDeep<T extends {}>(
+  value: T,
+): T extends object ? Flatten<T> : T {
   if (!isPlainObject(value)) {
     // TypeScript doesn't know T is an object due to isPlainObject's typings. Cast to any.
     return value as any;
@@ -141,7 +141,7 @@ export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Fl
   function flattenObject(obj: { [key: string]: any }, subPath?: string) {
     for (const key of Object.keys(obj)) {
       const pathToProperty = subPath ? `${subPath}.${key}` : key;
-      if (typeof obj[key] === 'object' && obj[key] !== null) {
+      if (typeof obj[key] === "object" && obj[key] !== null) {
         flattenObject(obj[key], pathToProperty);
       } else {
         flattenedObj[pathToProperty] = getValue(obj, key);
@@ -157,13 +157,27 @@ export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Fl
 // taken from
 // https://stackoverflow.com/questions/66614528/flatten-object-with-custom-keys-in-typescript
 // because this is typescript black magic
-type Flatten<T extends object> = object extends T ? object : {
-  [K in keyof T]-?: (x: NonNullable<T[K]> extends infer V ? V extends object ?
-    V extends readonly any[] ? Pick<T, K> : Flatten<V> extends infer FV ? ({
-      [P in keyof FV as `${Extract<K, string | number>}.${Extract<P, string | number>}`]:
-      FV[P] }) : never : Pick<T, K> : never
-  ) => void } extends Record<keyof T, (y: infer O) => void> ?
-  O extends unknown ? { [K in keyof O]: O[K] } : never : never;
+type Flatten<T extends object> = object extends T
+  ? object
+  : {
+        [K in keyof T]-?: (
+          x: NonNullish<T[K]> extends infer V
+            ? V extends object
+              ? V extends readonly any[]
+                ? Pick<T, K>
+                : Flatten<V> extends infer FV
+                  ? {
+                      [P in keyof FV as `${Extract<K, string | number>}.${Extract<P, string | number>}`]: FV[P];
+                    }
+                  : never
+              : Pick<T, K>
+            : never,
+        ) => void;
+      } extends Record<keyof T, (y: infer O) => void>
+    ? O extends unknown
+      ? { [K in keyof O]: O[K] }
+      : never
+    : never;
 
 /**
  * Assigns own and inherited enumerable string and symbol keyed properties of source
@@ -192,9 +206,8 @@ export function defaults(
       const objectPrototype: { [key: PropertyKey]: any } = Object.prototype;
 
       if (
-        value === undefined
-        || isEqual(value, objectPrototype[key])
-        && !Object.hasOwn(objectIn, key)
+        value === undefined ||
+        (isEqual(value, objectPrototype[key]) && !Object.hasOwn(objectIn, key))
       ) {
         objectIn[key] = source[key];
       }
@@ -210,7 +223,9 @@ export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }
 
-export function getObjectFromMap<K extends PropertyKey, V>(aMap: Map<K, V> | MapView<K, V>): Record<K, V> {
+export function getObjectFromMap<K extends PropertyKey, V>(
+  aMap: Map<K, V> | MapView<K, V>,
+): Record<K, V> {
   const record = Object.create(null);
 
   for (const key of aMap.keys()) {
@@ -225,7 +240,9 @@ export function getObjectFromMap<K extends PropertyKey, V>(aMap: Map<K, V> | Map
  *
  * @param object
  */
-export function getAllOwnKeys(object: object): IterableIterator<string | symbol> {
+export function getAllOwnKeys(
+  object: object,
+): IterableIterator<string | symbol> {
   return combinedIterator<string | symbol>(
     Object.getOwnPropertySymbols(object),
     Object.getOwnPropertyNames(object),
@@ -237,82 +254,20 @@ export function getAllOwnKeys(object: object): IterableIterator<string | symbol>
  *
  * @param obj
  */
-export function getAllOwnEntries<T>(obj: { [s: PropertyKey]: T }): IterableIterator<[key: string | symbol, value: T]>;
-export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]>;
-export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]> {
+export function getAllOwnEntries<T>(obj: {
+  [s: PropertyKey]: T;
+}): IterableIterator<[key: string | symbol, value: T]>;
+export function getAllOwnEntries(
+  obj: object,
+): IterableIterator<[key: string | symbol, value: unknown]>;
+export function getAllOwnEntries(
+  obj: object,
+): IterableIterator<[key: string | symbol, value: unknown]> {
   // @ts-expect-error -- obj[key] is implicitly any
-  return map(getAllOwnKeys(obj), key => [key, obj[key]]);
+  return map(getAllOwnKeys(obj), (key) => [key, obj[key]]);
 }
 
 export function noPrototype<T extends object>(obj: T): T {
-  Object.setPrototypeOf(obj, null);
-
-  return obj;
-}
-
-export function freezeDeep<T extends object>(obj: T): T {
-  Object.freeze(obj);
-
-  freezeDescendants(obj);
-
-  return obj;
-}
-
-/**
- * Only freezes the descendants of an object, not the object itself.
- *
- * @param obj
- */
-export function freezeDescendants<T extends object>(obj: T): T {
-  for (const descendant of Object.values(obj)) {
-    if (isPlainObject(descendant) || Array.isArray(descendant)) {
-      freezeDeep(descendant);
-    }
-  }
-
-  return obj;
-}
-
-export function shallowClonePojo<T extends object>(obj: T): T {
-  return Object.assign(pojo(), obj);
-}
-
-export function cloneDeepPlainValues<T>(value: T, transferUnclonables?: boolean): T {
-  if (Array.isArray(value)) {
-    return value.map(val => cloneDeepPlainValues(val, transferUnclonables)) as T;
-  }
-
-  if (isObject(value)) {
-    if (value instanceof Date) {
-      return new Date(value) as T;
-    }
-
-    const prototype = Object.getPrototypeOf(value);
-
-    if (prototype !== null && prototype !== Object.prototype) {
-      if (transferUnclonables) {
-        return value;
-      }
-
-      throw new Error('This function can only clone plain objects, arrays and primitives');
-    }
-
-    const out = pojo() as T;
-    for (const key of Object.keys(value) as Array<keyof T>) {
-      out[key] = cloneDeepPlainValues(value[key], transferUnclonables);
-    }
-
-    return out;
-  }
-
-  return value;
-}
-
-export function pojo<T extends object>(obj?: T): T {
-  if (!obj) {
-    return Object.create(null);
-  }
-
   Object.setPrototypeOf(obj, null);
 
   return obj;
