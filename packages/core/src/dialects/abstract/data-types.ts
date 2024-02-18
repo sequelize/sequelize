@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '@sequelize/utils';
 import dayjs from 'dayjs';
 import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
@@ -16,7 +17,6 @@ import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_ARRAY } from '../../utils/object.js';
 import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';

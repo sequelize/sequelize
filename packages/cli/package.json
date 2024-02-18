@@ -1,5 +1,4 @@
 {
-  "author": "Sequelize Team",
   "bin": {
     "sequelize": "./bin/run.js"
   },
@@ -53,7 +52,6 @@
     "build": "shx rm -rf dist && tsc -b",
     "lint": "eslint . --ext .ts",
     "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "yarn lint",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",

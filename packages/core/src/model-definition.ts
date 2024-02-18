@@ -1,3 +1,4 @@
+import { MapView, SetView, some } from '@sequelize/utils';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import NodeUtil from 'node:util';
@@ -25,8 +26,6 @@ import type {
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
-import { MapView, SetView } from './utils/immutability.js';
-import { some } from './utils/iterators.js';
 import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, noPrototype, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';

@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '@sequelize/utils';
 import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/base-error.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
@@ -17,7 +18,6 @@ import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attr
 import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { extractModelDefinition } from '../../utils/model-utils.js';
-import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
 import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';

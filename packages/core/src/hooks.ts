@@ -1,4 +1,4 @@
-import { Multimap } from './utils/multimap.js';
+import { MultiMap } from '@sequelize/utils';
 import type { AllowArray, Nullish } from './utils/types.js';
 
 export type AsyncHookReturn = Promise<void> | void;
@@ -18,7 +18,7 @@ type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
 export class HookHandler<HookConfig extends {}> {
   #validHookNames: Array<keyof HookConfig>;
   #eventTarget: object;
-  #listeners = new Multimap<
+  #listeners = new MultiMap<
     PropertyKey,
     { listenerName: Nullish<string>; callback: HookConfig[keyof HookConfig] }
   >();
@@ -44,13 +44,13 @@ export class HookHandler<HookConfig extends {}> {
     if (typeof listenerOrListenerName === 'string') {
       const listener = this.#getNamedListener(hookName, listenerOrListenerName);
       if (listener) {
-        this.#listeners.delete(hookName, listener);
+        this.#listeners.deleteValue(hookName, listener);
       }
     } else {
       const listeners = this.#listeners.getAll(hookName);
       for (const listener of listeners) {
         if (listener.callback === listenerOrListenerName) {
-          this.#listeners.delete(hookName, listener);
+          this.#listeners.deleteValue(hookName, listener);
         }
       }
     }

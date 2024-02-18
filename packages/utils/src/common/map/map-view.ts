@@ -1,56 +1,17 @@
 import type { InspectOptions } from 'node:util';
 import NodeUtil from 'node:util';
-import { find } from './iterators.js';
+import { pojo } from '../pojo.js';
+import type { ReadonlyMapLike } from '../types.js';
 
-export class SetView<V> {
-  #target: Set<V>;
-
-  constructor(target: Set<V>) {
-    this.#target = target;
-  }
+export class MapView<K, V> implements ReadonlyMapLike<K, V> {
+  #target: Map<K, V>;
 
   /**
-   * @param value
-   * @returns a boolean indicating whether an element with the specified value exists in the Set or not.
+   * @returns the number of elements in the Map.
    */
-  has(value: V): boolean {
-    return this.#target.has(value);
-  }
-
-  find(callback: (model: V) => boolean): V | undefined {
-    return find(this, callback);
-  }
-
-  /**
-   * @returns the number of (unique) elements in Set.
-   */
-  get size() {
+  get size(): number {
     return this.#target.size;
   }
-
-  [Symbol.iterator](): IterableIterator<V> {
-    return this.#target[Symbol.iterator]();
-  }
-
-  values(): IterableIterator<V> {
-    return this.#target.values();
-  }
-
-  toJSON() {
-    return [...this.#target];
-  }
-
-  [NodeUtil.inspect.custom](depth: number, options: InspectOptions): string {
-    const newOptions = Object.assign({}, options, {
-      depth: options.depth == null ? null : options.depth - 1,
-    });
-
-    return NodeUtil.inspect(this.#target, newOptions).replace(/^Set/, 'SetView');
-  }
-}
-
-export class MapView<K, V> {
-  #target: Map<K, V>;
 
   constructor(target: Map<K, V>) {
     this.#target = target;
@@ -82,13 +43,6 @@ export class MapView<K, V> {
     return this.#target.has(key);
   }
 
-  /**
-   * @returns the number of elements in the Map.
-   */
-  get size(): number {
-    return this.#target.size;
-  }
-
   [Symbol.iterator](): IterableIterator<[K, V]> {
     return this.#target[Symbol.iterator]();
   }
@@ -110,7 +64,7 @@ export class MapView<K, V> {
   }
 
   [NodeUtil.inspect.custom](depth: number, options: InspectOptions): string {
-    const newOptions = Object.assign({}, options, {
+    const newOptions = Object.assign(pojo(), options, {
       depth: options.depth == null ? null : options.depth - 1,
     });
 

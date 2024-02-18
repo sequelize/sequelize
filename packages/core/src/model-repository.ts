@@ -1,3 +1,4 @@
+import { EMPTY_OBJECT, cloneDeepPlainValues, freezeDescendants } from '@sequelize/utils';
 import { mayRunHook } from './hooks.js';
 import type { ModelDefinition } from './model-definition.js';
 import {
@@ -10,7 +11,6 @@ import type { DestroyManyOptions } from './model-repository.types.js';
 import type { Model } from './model.js';
 import { Op } from './operators.js';
 import { isDevEnv } from './utils/check.js';
-import { EMPTY_OBJECT, cloneDeepPlainValues, freezeDescendants } from './utils/object.js';
 
 /**
  * The goal of this class is to become the new home of all the static methods that are currently present on the Model class,

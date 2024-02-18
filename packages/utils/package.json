@@ -1,0 +1,28 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "Sequelize Utility Library",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "exports": {
+    ".": "./lib/common/index.js",
+    "./node.js": "./lib/node/index.js"
+  },
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "@sequelize/utils",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "test": "concurrently npm:test-*",
+    "build": "tsc --project tsconfig.build.json",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha",
+    "test-exports": "../../dev/test-exports.mjs --check-outdated .",
+    "sync-exports": "../../dev/sync-exports.mjs ."
+  },
+  "type": "commonjs",
+  "types": "lib/index.d.ts",
+  "version": "0.0.0-development"
+}

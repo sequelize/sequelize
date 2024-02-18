@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY, EMPTY_OBJECT } from '@sequelize/utils';
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
 import omit from 'lodash/omit';
@@ -28,7 +29,7 @@ import type {
 import { Op } from '../operators';
 import type { Sequelize } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
-import { EMPTY_ARRAY, EMPTY_OBJECT, removeUndefined } from '../utils/object.js';
+import { removeUndefined } from '../utils/object.js';
 import { camelize, singularize } from '../utils/string.js';
 import type { AllowIterable, RequiredBy } from '../utils/types.js';
 import type {

@@ -2822,6 +2822,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
+    "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.11"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
@@ -2905,6 +2906,7 @@ __metadata:
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.0.0"
     "@rushstack/eslint-patch": "npm:1.7.2"
+    "@types/lodash": "npm:4.14.202"
     "@types/node": "npm:20.11.19"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
@@ -2917,6 +2919,7 @@ __metadata:
     husky: "npm:9.0.11"
     lerna: "npm:8.1.2"
     lint-staged: "npm:15.2.2"
+    lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.39.0"
     mocha: "npm:10.3.0"
     node-gyp: "npm:10.0.1"
@@ -2924,6 +2927,7 @@ __metadata:
     nx: "npm:18.0.4"
     prettier: "npm:3.2.5"
     prettier-plugin-organize-imports: "npm:3.2.4"
+    shx: "npm:0.3.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.8"
@@ -2931,6 +2935,12 @@ __metadata:
     typedoc-plugin-mdn-links: "npm:3.1.16"
     typedoc-plugin-missing-exports: "npm:2.2.0"
     typescript: "npm:5.3.3"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/utils@workspace:*, @sequelize/utils@workspace:packages/utils":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/utils@workspace:packages/utils"
   languageName: unknown
   linkType: soft
 
@@ -10681,7 +10691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:^4.17.10, lodash@npm:^4.17.11, lodash@npm:^4.17.13, lodash@npm:^4.17.14, lodash@npm:^4.17.19, lodash@npm:^4.17.21":
+"lodash@npm:4.17.21, lodash@npm:^4.17.10, lodash@npm:^4.17.11, lodash@npm:^4.17.13, lodash@npm:^4.17.14, lodash@npm:^4.17.19, lodash@npm:^4.17.21":
   version: 4.17.21
   resolution: "lodash@npm:4.17.21"
   checksum: 10c0/d8cbea072bb08655bb4c989da418994b073a608dffa608b09ac04b43a791b12aeae7cd7ad919aa4c925f33b48490b5cfe6c1f71d827956071dae2e7bb3a6b74c
@@ -14616,6 +14626,18 @@ __metadata:
     vscode-oniguruma: "npm:^1.7.0"
     vscode-textmate: "npm:^8.0.0"
   checksum: 10c0/5c7fcbb870d0facccc7ae2f3410a28121f8e0b3f298e4e956de817ad6ab60a4c7e20a9184edfe50a93447addbb88b95b69e6ef88ac16ac6ca3e94c50771a6459
+  languageName: node
+  linkType: hard
+
+"shx@npm:0.3.4":
+  version: 0.3.4
+  resolution: "shx@npm:0.3.4"
+  dependencies:
+    minimist: "npm:^1.2.3"
+    shelljs: "npm:^0.8.5"
+  bin:
+    shx: lib/cli.js
+  checksum: 10c0/83251fb09314682f5a192f0249a4be68c755933313a41b5152b11c19fc0a68311954d3ca971a0cbae05815786a893c59b82f356484d8eeb009c84f4066b3fa31
   languageName: node
   linkType: hard
 
