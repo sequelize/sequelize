@@ -14,13 +14,13 @@ import type {
 import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { AllowLowercase } from '../../utils/types.js';
 import type { DataType } from './data-types.js';
+import type { AbstractDialect } from './index.js';
 import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator-typescript';
 import type { AddColumnQueryOptions } from './query-generator.js';
 import type { AddLimitOffsetOptions } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
-import type { AbstractDialect } from './index.js';
 
 interface Replaceable {
   /**
@@ -29,7 +29,7 @@ interface Replaceable {
   replacements?: { [key: string]: unknown };
 }
 
-interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable { }
+interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
@@ -47,9 +47,9 @@ export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
-export interface QiUpsertOptions<M extends Model> extends QueryRawOptionsWithModel<M>, Replaceable {
-
-}
+export interface QiUpsertOptions<M extends Model>
+  extends QueryRawOptionsWithModel<M>,
+    Replaceable {}
 
 export interface CreateFunctionOptions extends QueryRawOptions {
   force?: boolean;
@@ -173,9 +173,13 @@ export interface IndexOptions {
   include?: Literal | Array<string | Literal>;
 }
 
-export interface QueryInterfaceIndexOptions extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> { }
+export interface QueryInterfaceIndexOptions
+  extends IndexOptions,
+    Omit<QiOptionsWithReplacements, 'type'> {}
 
-export interface QueryInterfaceRemoveIndexOptions extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions { }
+export interface QueryInterfaceRemoveIndexOptions
+  extends QueryInterfaceIndexOptions,
+    RemoveIndexQueryOptions {}
 
 export interface FunctionParam {
   type: string;
@@ -200,10 +204,9 @@ export interface IndexDescription {
   type: string | undefined;
 }
 
-export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable { }
+export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
 
-export interface CreateTableAttributeOptions<M extends Model = Model>
-  extends AttributeOptions<M> {
+export interface CreateTableAttributeOptions<M extends Model = Model> extends AttributeOptions<M> {
   /**
    * Apply unique constraint on a column
    */
@@ -213,10 +216,7 @@ export interface CreateTableAttributeOptions<M extends Model = Model>
 /**
  * Interface for Attributes provided for all columns in a model
  */
-export type CreateTableAttributes<
-  M extends Model = Model,
-  TAttributes = any,
-> = {
+export type CreateTableAttributes<M extends Model = Model, TAttributes = any> = {
   /**
    * The description of a database column
    */
@@ -227,10 +227,11 @@ export type CreateTableAttributes<
  * This interface exposes low-level APIs to interact with the database.
  * Typically useful in contexts where models are not available, such as migrations.
  *
-* This interface is available through {@link Sequelize#queryInterface}.
-*/
-export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDialect>
-  extends AbstractQueryInterfaceTypeScript<Dialect> {
+ * This interface is available through {@link Sequelize#queryInterface}.
+ */
+export class AbstractQueryInterface<
+  Dialect extends AbstractDialect = AbstractDialect,
+> extends AbstractQueryInterfaceTypeScript<Dialect> {
   /**
    * Creates a table with specified attributes.
    *
@@ -241,7 +242,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   createTable<M extends Model>(
     tableName: TableName,
     attributes: CreateTableAttributes<M, CreationAttributes<M>>,
-    options?: QueryInterfaceCreateTableOptions
+    options?: QueryInterfaceCreateTableOptions,
   ): Promise<void>;
 
   /**
@@ -258,7 +259,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     table: TableName,
     key: string,
     attribute: AttributeOptions | DataType,
-    options?: AddColumnOptions
+    options?: AddColumnOptions,
   ): Promise<void>;
 
   /**
@@ -268,7 +269,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     attributeName: string,
     dataTypeOrOptions?: DataType | AttributeOptions,
-    options?: QiOptionsWithReplacements
+    options?: QiOptionsWithReplacements,
   ): Promise<void>;
 
   /**
@@ -278,7 +279,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     attrNameBefore: string,
     attrNameAfter: string,
-    options?: QiOptionsWithReplacements
+    options?: QiOptionsWithReplacements,
   ): Promise<void>;
 
   /**
@@ -288,12 +289,12 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableOrModel,
     attributes: string[],
     options?: QueryInterfaceIndexOptions,
-    rawTablename?: string
+    rawTablename?: string,
   ): Promise<void>;
   addIndex(
     tableName: TableOrModel,
     options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
-    rawTablename?: string
+    rawTablename?: string,
   ): Promise<void>;
 
   /**
@@ -302,12 +303,12 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   removeIndex(
     tableName: TableName,
     indexName: string,
-    options?: QueryInterfaceRemoveIndexOptions
+    options?: QueryInterfaceRemoveIndexOptions,
   ): Promise<void>;
   removeIndex(
     tableName: TableName,
     attributes: string[],
-    options?: QueryInterfaceRemoveIndexOptions
+    options?: QueryInterfaceRemoveIndexOptions,
   ): Promise<void>;
 
   /**
@@ -323,7 +324,12 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   /**
    * Inserts a new record
    */
-  insert(instance: Model | null, tableName: TableName, values: object, options?: QiInsertOptions): Promise<object>;
+  insert(
+    instance: Model | null,
+    tableName: TableName,
+    values: object,
+    options?: QiInsertOptions,
+  ): Promise<object>;
 
   /**
    * Inserts or Updates a record in the database
@@ -343,7 +349,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     records: object[],
     options?: QiOptionsWithReplacements,
-    attributes?: Record<string, AttributeOptions>
+    attributes?: Record<string, AttributeOptions>,
   ): Promise<object | number>;
 
   /**
@@ -354,7 +360,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     values: object,
     where: WhereOptions<Attributes<M>>,
-    options?: QiUpdateOptions
+    options?: QiUpdateOptions,
   ): Promise<object>;
 
   /**
@@ -371,7 +377,11 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   /**
    * Returns selected rows
    */
-  select(model: ModelStatic | null, tableName: TableName, options?: QiSelectOptions): Promise<object[]>;
+  select(
+    model: ModelStatic | null,
+    tableName: TableName,
+    options?: QiSelectOptions,
+  ): Promise<object[]>;
 
   /**
    * Increments a row value
@@ -404,7 +414,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     options: QiSelectOptions,
     attributeSelector: string,
-    model?: ModelStatic
+    model?: ModelStatic,
   ): Promise<string[]>;
 
   /**
@@ -416,18 +426,22 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     triggerName: string,
     timingType: string,
     fireOnArray: Array<{
-      [key: string]: unknown,
+      [key: string]: unknown;
     }>,
     functionName: string,
     functionParams: FunctionParam[],
     optionsArray: string[],
-    options?: QiOptionsWithReplacements
+    options?: QiOptionsWithReplacements,
   ): Promise<void>;
 
   /**
    * Postgres only. Drops the specified trigger.
    */
-  dropTrigger(tableName: TableName, triggerName: string, options?: QiOptionsWithReplacements): Promise<void>;
+  dropTrigger(
+    tableName: TableName,
+    triggerName: string,
+    options?: QiOptionsWithReplacements,
+  ): Promise<void>;
 
   /**
    * Postgres only. Renames a trigger
@@ -436,7 +450,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     tableName: TableName,
     oldTriggerName: string,
     newTriggerName: string,
-    options?: QiOptionsWithReplacements
+    options?: QiOptionsWithReplacements,
   ): Promise<void>;
 
   /**
@@ -449,13 +463,17 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     language: string,
     body: string,
     optionsArray?: string[],
-    options?: CreateFunctionOptions
+    options?: CreateFunctionOptions,
   ): Promise<void>;
 
   /**
    * Postgres only. Drops a function
    */
-  dropFunction(functionName: string, params: FunctionParam[], options?: QiOptionsWithReplacements): Promise<void>;
+  dropFunction(
+    functionName: string,
+    params: FunctionParam[],
+    options?: QiOptionsWithReplacements,
+  ): Promise<void>;
 
   /**
    * Postgres only. Rename a function
@@ -464,7 +482,7 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
     oldFunctionName: string,
     params: FunctionParam[],
     newFunctionName: string,
-    options?: QiOptionsWithReplacements
+    options?: QiOptionsWithReplacements,
   ): Promise<void>;
 
   /**
@@ -482,6 +500,6 @@ export class AbstractQueryInterface<Dialect extends AbstractDialect = AbstractDi
   assertTableHasColumn(
     tableName: TableOrModel,
     columnName: string,
-    options?: QueryRawOptions
+    options?: QueryRawOptions,
   ): Promise<ColumnsDescription>;
 }

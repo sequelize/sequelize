@@ -1,9 +1,15 @@
-import chai from 'chai';
-import sinon from 'sinon';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model, sql } from '@sequelize/core';
 import { Attribute, ColumnName, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, expectsql, sequelize, setResetMode } from '../support';
+import chai from 'chai';
+import sinon from 'sinon';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  expectsql,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 const expect = chai.expect;
 const dialect = sequelize.dialect;
@@ -58,17 +64,16 @@ describe('Model.update', () => {
 
     it('throws an error if no where clause is given', async () => {
       // @ts-expect-error -- testing that this fails
-      await expect(vars.User.update({}, {})).to.be.rejectedWith(Error, 'Missing where attribute in the options parameter');
+      await expect(vars.User.update({}, {})).to.be.rejectedWith(
+        Error,
+        'Missing where attribute in the options parameter',
+      );
     });
 
     it('only updates rows that match where', async () => {
       const { User } = vars;
 
-      await User.bulkCreate([
-        { username: 'Peter' },
-        { username: 'Peter' },
-        { username: 'Bob' },
-      ]);
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Peter' }, { username: 'Bob' }]);
       await User.update({ username: 'John' }, { where: { username: 'Peter' } });
       const users = await User.findAll({ order: ['username'] });
       expect(users).to.have.lengthOf(3);
@@ -85,7 +90,10 @@ describe('Model.update', () => {
       const data = [{ username: 'Peter', email: 'first-email' }];
 
       await User.bulkCreate(data);
-      await User.update({ username: 'Bill', email: 'second-email' }, { where: { email: 'first-email' }, fields: ['username'] });
+      await User.update(
+        { username: 'Bill', email: 'second-email' },
+        { where: { email: 'first-email' }, fields: ['username'] },
+      );
       const users = await User.findAll();
       expect(users).to.have.lengthOf(1);
       expect(users[0].username).to.equal('Bill');
@@ -96,12 +104,15 @@ describe('Model.update', () => {
       const { User } = vars;
 
       await User.create({ username: 'John' });
-      await User.update({
-        // @ts-expect-error -- TODO: fix typing to allow this
-        username: sql.cast('1', dialectName === 'mssql' ? 'nvarchar' : 'char'),
-      }, {
-        where: { username: 'John' },
-      });
+      await User.update(
+        {
+          // @ts-expect-error -- TODO: fix typing to allow this
+          username: sql.cast('1', dialectName === 'mssql' ? 'nvarchar' : 'char'),
+        },
+        {
+          where: { username: 'John' },
+        },
+      );
 
       expect((await User.findOne({ rejectOnEmpty: true })).username).to.equal('1');
     });
@@ -110,11 +121,14 @@ describe('Model.update', () => {
       const { User } = vars;
 
       await User.create({ username: 'John' });
-      await User.update({
-        username: sql.fn('upper', sql.col('username')),
-      }, {
-        where: { username: 'John' },
-      });
+      await User.update(
+        {
+          username: sql.fn('upper', sql.col('username')),
+        },
+        {
+          where: { username: 'John' },
+        },
+      );
 
       expect((await User.findOne({ rejectOnEmpty: true })).username).to.equal('JOHN');
     });
@@ -128,10 +142,13 @@ describe('Model.update', () => {
 
       try {
         const user = await User.create({ username: 'Peter' });
-        await User.update({ username: 'John' }, {
-          where: { id: user.id },
-          individualHooks: true,
-        });
+        await User.update(
+          { username: 'John' },
+          {
+            where: { id: user.id },
+            individualHooks: true,
+          },
+        );
         expect((await User.findByPk(user.id, { rejectOnEmpty: true })).email).to.equal('new email');
       } finally {
         unhook();
@@ -141,11 +158,7 @@ describe('Model.update', () => {
     it('sets updatedAt to the current timestamp', async () => {
       const { User } = vars;
 
-      await User.bulkCreate([
-        { username: 'Peter' },
-        { username: 'Paul' },
-        { username: 'Bob' },
-      ]);
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Paul' }, { username: 'Bob' }]);
 
       let users = await User.findAll({ order: ['id'] });
       const updatedAt = users[0].updatedAt;
@@ -169,20 +182,14 @@ describe('Model.update', () => {
     it('does not update timestamps when passing silent=true in a bulk update', async () => {
       const { User, clock } = vars;
 
-      await User.bulkCreate([
-        { username: 'Paul' },
-        { username: 'Peter' },
-      ]);
+      await User.bulkCreate([{ username: 'Paul' }, { username: 'Peter' }]);
 
       const users0 = await User.findAll();
       const updatedAtPaul = users0[0].updatedAt;
       const updatedAtPeter = users0[1].updatedAt;
       clock.tick(150);
 
-      await User.update(
-        { username: 'John' },
-        { where: {}, silent: true },
-      );
+      await User.update({ username: 'John' }, { where: {}, silent: true });
 
       const users = await User.findAll();
       expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
@@ -192,11 +199,7 @@ describe('Model.update', () => {
     it('returns the number of affected rows', async () => {
       const { User } = vars;
 
-      await User.bulkCreate([
-        { username: 'Peter' },
-        { username: 'Paul' },
-        { username: 'Bob' },
-      ]);
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Paul' }, { username: 'Bob' }]);
 
       const [affectedRows] = await User.update({ username: 'Bill' }, { where: {} });
       expect(affectedRows).to.equal(3);
@@ -205,10 +208,7 @@ describe('Model.update', () => {
     it('does not update soft deleted records when model is paranoid', async () => {
       const { ParanoidUser } = vars;
 
-      await ParanoidUser.bulkCreate([
-        { username: 'user1' },
-        { username: 'user2' },
-      ]);
+      await ParanoidUser.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
       await ParanoidUser.destroy({
         where: { username: 'user1' },
       });
@@ -226,17 +226,17 @@ describe('Model.update', () => {
     it('updates soft deleted records when paranoid is overridden', async () => {
       const { ParanoidUser } = vars;
 
-      await ParanoidUser.bulkCreate([
-        { username: 'user1' },
-        { username: 'user2' },
-      ]);
+      await ParanoidUser.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
 
       await ParanoidUser.destroy({ where: { username: 'user1' } });
 
-      await ParanoidUser.update({ username: 'foo' }, {
-        where: {},
-        paranoid: false,
-      });
+      await ParanoidUser.update(
+        { username: 'foo' },
+        {
+          where: {},
+          paranoid: false,
+        },
+      );
 
       const users = await ParanoidUser.findAll({
         paranoid: false,
@@ -257,11 +257,14 @@ describe('Model.update', () => {
             username: 'user1',
           },
         });
-        await ParanoidUser.update({ username: 'updUser1' }, {
-          paranoid: false,
-          where: { username: 'user1' },
-          individualHooks: true,
-        });
+        await ParanoidUser.update(
+          { username: 'updUser1' },
+          {
+            paranoid: false,
+            where: { username: 'user1' },
+            individualHooks: true,
+          },
+        );
         const user = await ParanoidUser.findOne({
           where: { username: 'updUser1' },
           rejectOnEmpty: true,
@@ -284,10 +287,13 @@ describe('Model.update', () => {
           { username: 'Peter' },
         ]);
 
-        const [affectedRows] = await User.update({ username: 'Bob' }, {
-          where: {},
-          limit: 1,
-        });
+        const [affectedRows] = await User.update(
+          { username: 'Bob' },
+          {
+            where: {},
+            limit: 1,
+          },
+        );
 
         expect(affectedRows).to.equal(1);
       });
@@ -300,13 +306,16 @@ describe('Model.update', () => {
 
       await User.create({});
 
-      const result = await User.update({
-        // @ts-expect-error -- TODO: throw if trying to update non-existing attribute
-        unknownField: 'haha',
-      }, {
-        where: {},
-        logging: spy,
-      });
+      const result = await User.update(
+        {
+          // @ts-expect-error -- TODO: throw if trying to update non-existing attribute
+          unknownField: 'haha',
+        },
+        {
+          where: {},
+          logging: spy,
+        },
+      );
 
       expect(result[0]).to.equal(0);
       expect(spy.called, 'Update query was issued when no data to update').to.be.false;
@@ -320,14 +329,17 @@ describe('Model.update', () => {
         email: 'email 1',
       });
 
-      await User.update({
-        username: 'username 2',
-        email: undefined,
-      }, {
-        where: {
-          id: account.get('id'),
+      await User.update(
+        {
+          username: 'username 2',
+          email: undefined,
         },
-      });
+        {
+          where: {
+            id: account.get('id'),
+          },
+        },
+      );
 
       await account.reload();
       expect(account.email).to.equal('email 1');
@@ -338,10 +350,13 @@ describe('Model.update', () => {
         const { User } = vars;
 
         await User.create({ username: 'username 1', id: 5 });
-        const [, accounts] = await User.update({ username: 'username 2' }, {
-          where: {},
-          returning: true,
-        });
+        const [, accounts] = await User.update(
+          { username: 'username 2' },
+          {
+            where: {},
+            returning: true,
+          },
+        );
 
         const firstAcc = accounts[0];
         expect(firstAcc.username).to.equal('username 2');
@@ -358,17 +373,21 @@ describe('Model.update', () => {
           declare username: string | null;
         }
 
-        const transactionSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize);
+        const transactionSequelize =
+          await createSingleTransactionalTestSequelizeInstance(sequelize);
         transactionSequelize.addModels([User]);
 
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
 
         const t = await transactionSequelize.startUnmanagedTransaction();
-        await User.update({ username: 'bar' }, {
-          where: { username: 'foo' },
-          transaction: t,
-        });
+        await User.update(
+          { username: 'bar' },
+          {
+            where: { username: 'foo' },
+            transaction: t,
+          },
+        );
 
         const users1 = await User.findAll();
         const users2 = await User.findAll({ transaction: t });
@@ -405,58 +424,72 @@ describe('Model.update', () => {
     });
 
     it('updates the attributes that we select only without updating createdAt', async () => {
-      const User = sequelize.define('User1', {
-        username: DataTypes.STRING,
-        secretValue: DataTypes.STRING,
-      }, {
-        paranoid: true,
-        tableName: 'users1',
-      });
+      const User = sequelize.define(
+        'User1',
+        {
+          username: DataTypes.STRING,
+          secretValue: DataTypes.STRING,
+        },
+        {
+          paranoid: true,
+          tableName: 'users1',
+        },
+      );
 
       let test = false;
       await User.sync({ force: true });
       const user = await User.create({ username: 'Peter', secretValue: '42' });
-      await user.update({ secretValue: '43' }, {
-        fields: ['secretValue'],
-        logging(sqlQuery: string) {
-          test = true;
+      await user.update(
+        { secretValue: '43' },
+        {
+          fields: ['secretValue'],
+          logging(sqlQuery: string) {
+            test = true;
 
-          expect(sqlQuery).to.match(/^Executing \(default\): /);
-          sqlQuery = sqlQuery.slice(21);
+            expect(sqlQuery).to.match(/^Executing \(default\): /);
+            sqlQuery = sqlQuery.slice(21);
 
-          expectsql(sqlQuery, {
-            default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
-            postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
-            mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
-            mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
-            mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
-            db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
-            ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
-          });
+            expectsql(sqlQuery, {
+              default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
+              postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
+              mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+              mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
+              mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
+              db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
+              ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+            });
+          },
+          returning: [sql.col('*')],
         },
-        returning: [sql.col('*')],
-      });
+      );
       expect(test).to.be.true;
     });
 
     it('allows sql logging of updated statements', async () => {
-      const User = sequelize.define('User', {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-      }, {
-        paranoid: true,
-      });
+      const User = sequelize.define(
+        'User',
+        {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+        },
+        {
+          paranoid: true,
+        },
+      );
       let test = false;
       await User.sync({ force: true });
       const u = await User.create({ name: 'meg', bio: 'none' });
       expect(u).to.exist;
-      await u.update({ name: 'brian' }, {
-        logging(sqlQuery) {
-          test = true;
-          expect(sqlQuery).to.exist;
-          expect(sqlQuery.toUpperCase()).to.include('UPDATE');
+      await u.update(
+        { name: 'brian' },
+        {
+          logging(sqlQuery) {
+            test = true;
+            expect(sqlQuery).to.exist;
+            expect(sqlQuery.toUpperCase()).to.include('UPDATE');
+          },
         },
-      });
+      );
       expect(test).to.be.true;
     });
 
@@ -476,14 +509,17 @@ describe('Model.update', () => {
       await User.create({ username: 'jan' });
 
       // TODO: Model.update should always throw an error if a virtual attributes are used (even if it has a setter, no access to it from static update)
-      await User.update({
-        username: 'kurt',
-        virtual: 'test',
-      }, {
-        where: {
-          username: 'jan',
+      await User.update(
+        {
+          username: 'kurt',
+          virtual: 'test',
         },
-      });
+        {
+          where: {
+            username: 'jan',
+          },
+        },
+      );
 
       const user = await User.findOne({ rejectOnEmpty: true });
       expect(user.username).to.equal('kurt');
@@ -502,7 +538,7 @@ describe('Model.update', () => {
         declare illnessPain: number;
 
         @Attribute(DataTypes.VIRTUAL)
-        set illness(value: CreationOptional<{ pain: number, name: string }>) {
+        set illness(value: CreationOptional<{ pain: number; name: string }>) {
           this.set('illnessName', value.name);
           this.set('illnessPain', value.pain);
         }
@@ -516,13 +552,16 @@ describe('Model.update', () => {
         illnessName: 'Headache',
         illnessPain: 5,
       });
-      await User.update({
-        illness: { pain: 10, name: 'Backache' },
-      }, {
-        where: {
-          username: 'Jan',
+      await User.update(
+        {
+          illness: { pain: 10, name: 'Backache' },
         },
-      });
+        {
+          where: {
+            username: 'Jan',
+          },
+        },
+      );
       expect((await User.findOne({ rejectOnEmpty: true })).illnessPain).to.equal(10);
     });
 
@@ -538,7 +577,7 @@ describe('Model.update', () => {
         declare illnessPain: number;
 
         @Attribute(DataTypes.VIRTUAL)
-        set illness(value: CreationOptional<{ pain: number, name: string }>) {
+        set illness(value: CreationOptional<{ pain: number; name: string }>) {
           this.set('illnessName', value.name);
           this.set('illnessPain', value.pain);
         }
@@ -552,14 +591,17 @@ describe('Model.update', () => {
         illnessName: 'Headache',
         illnessPain: 5,
       });
-      await User.update({
-        illness: { pain: 10, name: 'Backache' },
-      }, {
-        where: {
-          username: 'Jan',
+      await User.update(
+        {
+          illness: { pain: 10, name: 'Backache' },
         },
-        sideEffects: false,
-      });
+        {
+          where: {
+            username: 'Jan',
+          },
+          sideEffects: false,
+        },
+      );
       expect((await User.findOne({ rejectOnEmpty: true })).illnessPain).to.equal(5);
     });
   });

@@ -1,9 +1,9 @@
-import fs from 'node:fs';
-import uniq from 'lodash/uniq';
-import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import uniq from 'lodash/uniq';
+import fs from 'node:fs';
+import pTimeout from 'p-timeout';
 import {
   createSequelizeInstance,
   getSqliteDatabasePath,
@@ -24,9 +24,12 @@ const runningQueries = new Set<AbstractQuery>();
 before(async () => {
   // Sometimes the SYSTOOLSPACE tablespace is not available when running tests on DB2. This creates it.
   if (getTestDialect() === 'db2') {
-    const res = await sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
-      type: QueryTypes.SELECT,
-    });
+    const res = await sequelize.query<{ TBSPACE: string }>(
+      `SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`,
+      {
+        type: QueryTypes.SELECT,
+      },
+    );
 
     const tableExists = res[0]?.TBSPACE === 'SYSTOOLSPACE';
 
@@ -90,7 +93,8 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
 export async function createMultiTransactionalTestSequelizeInstance(
   sequelizeOrOptions: Sequelize | Options,
 ): Promise<Sequelize> {
-  const sequelizeOptions = sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
+  const sequelizeOptions =
+    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
@@ -204,12 +208,14 @@ afterEach('database reset', async () => {
     throw new Error('The main sequelize instance was closed. This is not allowed.');
   }
 
-  await Promise.all([...singleTestInstances].map(async instance => {
-    allSequelizeInstances.delete(instance);
-    if (!instance.connectionManager.isClosed) {
-      await instance.close();
-    }
-  }));
+  await Promise.all(
+    [...singleTestInstances].map(async instance => {
+      allSequelizeInstances.delete(instance);
+      if (!instance.connectionManager.isClosed) {
+        await instance.close();
+      }
+    }),
+  );
 
   singleTestInstances.clear();
 
@@ -251,11 +257,15 @@ export async function clearDatabase(customSequelize: Sequelize = sequelize) {
 
 afterEach('no running queries checker', () => {
   if (runningQueries.size > 0) {
-    throw new Error(`Expected 0 queries running after this test, but there are still ${
-      runningQueries.size
-    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
-      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
-    }`);
+    throw new Error(
+      `Expected 0 queries running after this test, but there are still ${
+        runningQueries.size
+      } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${[
+        ...runningQueries,
+      ]
+        .map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`)
+        .join('\n')}`,
+    );
   }
 });
 

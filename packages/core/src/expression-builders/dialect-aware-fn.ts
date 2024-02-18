@@ -22,11 +22,15 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
     this.args = args;
 
     if (this.args.length > this.maxArgCount) {
-      throw new Error(`Too many arguments provided to ${this.constructor.name} function. Expected ${this.maxArgCount} or less, but got ${this.args.length}.`);
+      throw new Error(
+        `Too many arguments provided to ${this.constructor.name} function. Expected ${this.maxArgCount} or less, but got ${this.args.length}.`,
+      );
     }
 
     if (this.args.length < this.minArgCount) {
-      throw new Error(`Too few arguments provided to ${this.constructor.name} function. Expected ${this.minArgCount} or more, but got ${this.args.length}.`);
+      throw new Error(
+        `Too few arguments provided to ${this.constructor.name} function. Expected ${this.minArgCount} or more, but got ${this.args.length}.`,
+      );
     }
   }
 

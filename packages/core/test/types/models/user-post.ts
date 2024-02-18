@@ -1,6 +1,6 @@
-import type { SetOptional } from 'type-fest';
 import type { Model } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
+import type { SetOptional } from 'type-fest';
 import { sequelize } from '../connection';
 
 export interface UserPostAttributes {
@@ -9,8 +9,7 @@ export interface UserPostAttributes {
   text: string;
 }
 
-export interface UserPostCreationAttributes
-  extends SetOptional<UserPostAttributes, 'id'> {}
+export interface UserPostCreationAttributes extends SetOptional<UserPostAttributes, 'id'> {}
 
 export interface UserPostInstance
   extends Model<UserPostAttributes, UserPostCreationAttributes>,

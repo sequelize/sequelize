@@ -139,7 +139,8 @@ export class PostgresDialect extends AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replaceAll('\'', '\'\'')
+    value = value
+      .replaceAll("'", "''")
       // null character is not allowed in Postgres
       .replaceAll('\0', '\\0');
 

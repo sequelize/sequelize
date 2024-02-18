@@ -1,8 +1,8 @@
-import assert from 'node:assert';
-import path from 'node:path';
-import { expect } from 'chai';
 import type { Dialect } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { expect } from 'chai';
+import assert from 'node:assert';
+import path from 'node:path';
 import { getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
@@ -147,11 +147,14 @@ describe('Sequelize constructor', () => {
     });
 
     it('merges querystring parameters with dialectOptions', () => {
-      const sequelize = new Sequelize(`${dialect}://example.com:9821/dbname?an_option=123&other_option=abc`, {
-        dialectOptions: {
-          thirdOption: 3,
+      const sequelize = new Sequelize(
+        `${dialect}://example.com:9821/dbname?an_option=123&other_option=abc`,
+        {
+          dialectOptions: {
+            thirdOption: 3,
+          },
         },
-      });
+      );
 
       expect(sequelize.config.replication.write).to.deep.eq({
         database: 'dbname',
@@ -170,7 +173,9 @@ describe('Sequelize constructor', () => {
     });
 
     it('handle JSON dialectOptions in querystring parameters', () => {
-      const sequelize = new Sequelize(`${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`);
+      const sequelize = new Sequelize(
+        `${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`,
+      );
 
       const dialectOptionsOptions = sequelize.config.replication.write.dialectOptions?.options;
       assert(dialectOptionsOptions !== null && typeof dialectOptionsOptions === 'object');
@@ -201,7 +206,9 @@ describe('Sequelize constructor', () => {
     });
 
     it('supports using a socket path as an encoded domain', () => {
-      const sequelize = new Sequelize(`${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`);
+      const sequelize = new Sequelize(
+        `${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`,
+      );
 
       const options = sequelize.options;
       expect(options.host).to.equal('/tmp/mysocket');
@@ -331,7 +338,9 @@ describe('Sequelize constructor', () => {
     });
 
     it('should prefer storage in options object', () => {
-      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
+      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {
+        storage: '/completely/different/path.db',
+      });
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
       // TODO: Potential issue with storage param not resolving properly on windows

@@ -101,4 +101,5 @@ export const isModelStatic = Pkg.isModelStatic;
 export const isSameInitialModel = Pkg.isSameInitialModel;
 export const importModels = Pkg.importModels;
 
+// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
 export { default } from './index.js';

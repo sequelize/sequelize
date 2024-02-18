@@ -1,8 +1,8 @@
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
+import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
 import { EMPTY_OBJECT } from './utils/object.js';
 import type { StrictRequiredBy } from './utils/types.js';
-import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -22,15 +22,14 @@ export const COMPLETES_TRANSACTION = Symbol('completesTransaction');
  * @see {Sequelize.transaction}
  */
 export class Transaction {
-
   sequelize: Sequelize;
 
-  readonly #afterCommitHooks: Set<TransactionCallback> = new Set();
-  readonly #afterRollbackHooks: Set<TransactionCallback> = new Set();
-  readonly #afterHooks: Set<TransactionCallback> = new Set();
+  readonly #afterCommitHooks = new Set<TransactionCallback>();
+  readonly #afterRollbackHooks = new Set<TransactionCallback>();
+  readonly #afterHooks = new Set<TransactionCallback>();
 
   readonly #name: string;
-  readonly #savepoints: Map<string, Transaction> = new Map();
+  readonly #savepoints = new Map<string, Transaction>();
   readonly options: Readonly<NormalizedTransactionOptions>;
   readonly parent: Transaction | null;
   readonly id: string;
@@ -47,9 +46,7 @@ export class Transaction {
     this.sequelize = sequelize;
 
     // get dialect specific transaction options
-    const generateTransactionId = this.sequelize.dialect
-      .queryGenerator
-      .generateTransactionId;
+    const generateTransactionId = this.sequelize.dialect.queryGenerator.generateTransactionId;
 
     const normalizedOptions = normalizeTransactionOptions(this.sequelize, options);
     this.parent = normalizedOptions.transaction ?? null;
@@ -89,7 +86,9 @@ export class Transaction {
    */
   async commit(): Promise<void> {
     if (this.#finished) {
-      throw new Error(`Transaction cannot be committed because it has been finished with state: ${this.#finished}`);
+      throw new Error(
+        `Transaction cannot be committed because it has been finished with state: ${this.#finished}`,
+      );
     }
 
     this.#finished = 'commit';
@@ -106,7 +105,9 @@ export class Transaction {
 
       this.#cleanup();
     } catch (error) {
-      console.warn(`Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      console.warn(
+        `Committing transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`,
+      );
       await this.#forceCleanup();
 
       throw error;
@@ -120,7 +121,9 @@ export class Transaction {
    */
   async rollback(): Promise<void> {
     if (this.#finished) {
-      throw new Error(`Transaction cannot be rolled back because it has been finished with state: ${this.finished}`);
+      throw new Error(
+        `Transaction cannot be rolled back because it has been finished with state: ${this.finished}`,
+      );
     }
 
     if (!this.#connection) {
@@ -130,15 +133,12 @@ export class Transaction {
     this.#finished = 'rollback';
     try {
       if (this.parent) {
-        await this
-          .sequelize
-          .queryInterface
-          ._rollbackSavepoint(this.parent, { ...this.options, savepointName: this.#name });
+        await this.sequelize.queryInterface._rollbackSavepoint(this.parent, {
+          ...this.options,
+          savepointName: this.#name,
+        });
       } else {
-        await this
-          .sequelize
-          .queryInterface
-          ._rollbackTransaction(this, this.options);
+        await this.sequelize.queryInterface._rollbackTransaction(this, this.options);
       }
 
       await this.#dispatchHooks(this.#afterRollbackHooks);
@@ -146,7 +146,9 @@ export class Transaction {
 
       this.#cleanup();
     } catch (error) {
-      console.warn(`Rolling back transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`);
+      console.warn(
+        `Rolling back transaction ${this.id} failed with error ${error instanceof Error ? JSON.stringify(error.message) : String(error)}. We are killing its connection as it is now in an undetermined state.`,
+      );
       await this.#forceCleanup();
 
       throw error;
@@ -195,10 +197,9 @@ export class Transaction {
 
   async #setDeferrable(): Promise<void> {
     if (this.options.constraintChecking) {
-      await this
-        .sequelize
-        .queryInterface
-        .deferConstraints(this.options.constraintChecking, { transaction: this });
+      await this.sequelize.queryInterface.deferConstraints(this.options.constraintChecking, {
+        transaction: this,
+      });
     }
   }
 
@@ -208,10 +209,10 @@ export class Transaction {
    * @param isolationLevel
    */
   async setIsolationLevel(isolationLevel: IsolationLevel): Promise<void> {
-    await this
-      .sequelize
-      .queryInterface
-      ._setIsolationLevel(this, { ...this.options, isolationLevel });
+    await this.sequelize.queryInterface._setIsolationLevel(this, {
+      ...this.options,
+      isolationLevel,
+    });
   }
 
   /**
@@ -221,12 +222,17 @@ export class Transaction {
     const queryInterface = this.sequelize.queryInterface;
 
     if (this.parent) {
-      return queryInterface._createSavepoint(this.parent, { ...this.options, savepointName: this.#name });
+      return queryInterface._createSavepoint(this.parent, {
+        ...this.options,
+        savepointName: this.#name,
+      });
     }
 
     await queryInterface._startTransaction(this, {
       ...this.options,
-      readOnly: this.sequelize.dialect.supports.startTransaction.readOnly ? this.options.readOnly : false,
+      readOnly: this.sequelize.dialect.supports.startTransaction.readOnly
+        ? this.options.readOnly
+        : false,
       transactionName: this.#name,
     });
   }
@@ -576,9 +582,12 @@ export interface TransactionOptions extends Logging {
   transaction?: Transaction | null | undefined;
 }
 
-export type NormalizedTransactionOptions = StrictRequiredBy<Omit<TransactionOptions, 'constraintChecking' | 'type'>, 'isolationLevel' | 'readOnly'> & {
-  constraintChecking?: ConstraintChecking | undefined,
-  transactionType?: TransactionType | undefined,
+export type NormalizedTransactionOptions = StrictRequiredBy<
+  Omit<TransactionOptions, 'constraintChecking' | 'type'>,
+  'isolationLevel' | 'readOnly'
+> & {
+  constraintChecking?: ConstraintChecking | undefined;
+  transactionType?: TransactionType | undefined;
 };
 
 /**
@@ -599,17 +608,27 @@ export function normalizeTransactionOptions(
 
   return {
     ...options,
-    transactionType: options.type
-      ?? (sequelize.dialect.supports.startTransaction.transactionType ? sequelize.options.transactionType : undefined),
-    isolationLevel: options.isolationLevel === undefined
-      ? (sequelize.options.isolationLevel ?? null)
-      : options.isolationLevel,
+    transactionType:
+      options.type ??
+      (sequelize.dialect.supports.startTransaction.transactionType
+        ? sequelize.options.transactionType
+        : undefined),
+    isolationLevel:
+      options.isolationLevel === undefined
+        ? sequelize.options.isolationLevel ?? null
+        : options.isolationLevel,
     readOnly: options.readOnly ?? false,
-    constraintChecking: typeof options.constraintChecking === 'function' ? new options.constraintChecking() : options.constraintChecking,
+    constraintChecking:
+      typeof options.constraintChecking === 'function'
+        ? new options.constraintChecking()
+        : options.constraintChecking,
   };
 }
 
-export function assertTransactionIsCompatibleWithOptions(transaction: Transaction, options: NormalizedTransactionOptions) {
+export function assertTransactionIsCompatibleWithOptions(
+  transaction: Transaction,
+  options: NormalizedTransactionOptions,
+) {
   if (options.isolationLevel !== transaction.options.isolationLevel) {
     throw new Error(
       `Requested isolation level (${options.isolationLevel ?? 'unspecified'}) is not compatible with the one of the existing transaction (${transaction.options.isolationLevel ?? 'unspecified'})`,
@@ -629,8 +648,8 @@ export function assertTransactionIsCompatibleWithOptions(transaction: Transactio
   }
 
   if (
-    options.constraintChecking !== transaction.options.constraintChecking
-    && !options.constraintChecking?.isEqual(transaction.options.constraintChecking)
+    options.constraintChecking !== transaction.options.constraintChecking &&
+    !options.constraintChecking?.isEqual(transaction.options.constraintChecking)
   ) {
     throw new Error(
       `Requested transaction constraintChecking (${options.constraintChecking ?? 'none'}) is not compatible with the one of the existing transaction (${transaction.options.constraintChecking ?? 'none'})`,
@@ -643,9 +662,9 @@ function assertSupportedTransactionOptions(
   options: TransactionOptions | NormalizedTransactionOptions,
 ) {
   if (
-    (('type' in options && options.type)
-    || ('transactionType' in options && options.transactionType))
-    && !sequelize.dialect.supports.startTransaction.transactionType
+    (('type' in options && options.type) ||
+      ('transactionType' in options && options.transactionType)) &&
+    !sequelize.dialect.supports.startTransaction.transactionType
   ) {
     throw new Error(`The ${sequelize.dialect.name} dialect does not support transaction types.`);
   }

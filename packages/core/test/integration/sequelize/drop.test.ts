@@ -25,7 +25,10 @@ describe('Sequelize#drop', () => {
     });
 
     // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
-    const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction } : null;
+    const mssqlConstraints =
+      dialect === 'mssql'
+        ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction }
+        : null;
 
     // These models both have a foreign key that references the other model.
     // Sequelize should be able to create them.

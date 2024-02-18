@@ -1,7 +1,9 @@
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const notSupportedError = new Error(`commitTransactionQuery is not supported by the ${dialect.name} dialect.`);
+const notSupportedError = new Error(
+  `commitTransactionQuery is not supported by the ${dialect.name} dialect.`,
+);
 
 describe('QueryGenerator#commitTransactionQuery', () => {
   const queryGenerator = sequelize.queryGenerator;

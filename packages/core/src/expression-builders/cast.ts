@@ -9,7 +9,7 @@ import { where } from './where.js';
  * Do not use me directly. Use {@link cast}
  */
 export class Cast extends BaseSqlExpression {
-  declare private readonly brand: 'cast';
+  private declare readonly brand: 'cast';
 
   constructor(
     readonly expression: Expression,

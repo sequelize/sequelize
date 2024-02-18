@@ -78,9 +78,7 @@ if (dialect === 'mariadb') {
           const user = await User.create({ aNumber: '-9223372036854775807' });
           expect(user.aNumber).to.equal('-9223372036854775807');
 
-          const _user = await User.findOne(
-            { where: { aNumber: '-9223372036854775807' } },
-          );
+          const _user = await User.findOne({ where: { aNumber: '-9223372036854775807' } });
 
           await expect(_user.aNumber.toString()).to.equal('-9223372036854775807');
         });
@@ -90,9 +88,11 @@ if (dialect === 'mariadb') {
     it('should save geometry correctly', async function () {
       const point = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
 
-      const newUser = await this.User.create(
-        { username: 'user', email: 'foo@bar.com', location: point },
-      );
+      const newUser = await this.User.create({
+        username: 'user',
+        email: 'foo@bar.com',
+        location: point,
+      });
 
       expect(newUser.location).to.deep.eql(point);
     });
@@ -102,12 +102,13 @@ if (dialect === 'mariadb') {
       const point1 = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
       const point2 = { type: 'Point', coordinates: [39.828_333, -77.232_222] };
 
-      const oldUser = await User.create(
-        { username: 'user', email: 'foo@bar.com', location: point1 },
-      );
+      const oldUser = await User.create({
+        username: 'user',
+        email: 'foo@bar.com',
+        location: point1,
+      });
 
-      await User.update({ location: point2 },
-        { where: { username: oldUser.username } });
+      await User.update({ location: point2 }, { where: { username: oldUser.username } });
 
       const updatedUser = await User.findOne({ where: { username: oldUser.username } });
       expect(updatedUser.location).to.deep.eql(point2);
@@ -117,9 +118,7 @@ if (dialect === 'mariadb') {
       const User = this.User;
       const point = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
 
-      const user0 = await User.create(
-        { username: 'user', email: 'foo@bar.com', location: point },
-      );
+      const user0 = await User.create({ username: 'user', email: 'foo@bar.com', location: point });
 
       const user = await User.findOne({ where: { username: user0.username } });
       expect(user.location).to.deep.eql(point);

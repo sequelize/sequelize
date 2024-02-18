@@ -16,8 +16,16 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
    * @override
    */
   async removeColumn(tableName, columnName, options) {
-    const foreignKeys = await this.showConstraints(tableName, { ...options, columnName, constraintType: 'FOREIGN KEY' });
-    await Promise.all(foreignKeys.map(constraint => this.removeConstraint(tableName, constraint.constraintName, options)));
+    const foreignKeys = await this.showConstraints(tableName, {
+      ...options,
+      columnName,
+      constraintType: 'FOREIGN KEY',
+    });
+    await Promise.all(
+      foreignKeys.map(constraint =>
+        this.removeConstraint(tableName, constraint.constraintName, options),
+      ),
+    );
 
     await super.removeColumn(tableName, columnName, options);
   }
@@ -36,9 +44,16 @@ export class MySqlQueryInterface extends AbstractQueryInterface {
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
-    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName => modelDefinition.getColumnName(pkAttrName));
+    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName =>
+      modelDefinition.getColumnName(pkAttrName),
+    );
 
-    const { query, bind } = this.queryGenerator.insertQuery(tableName, insertValues, getObjectFromMap(modelDefinition.attributes), options);
+    const { bind, query } = this.queryGenerator.insertQuery(
+      tableName,
+      insertValues,
+      getObjectFromMap(modelDefinition.attributes),
+      options,
+    );
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;

@@ -17,11 +17,13 @@ export class AggregateError extends BaseError {
 
   toString(): string {
     const message = `AggregateError of:\n${this.errors
-      .map((error: Error | AggregateError) => (error === this
+      .map((error: Error | AggregateError) => {
+        return error === this
           ? '[Circular AggregateError]'
           : error instanceof AggregateError
             ? String(error).replace(/\n$/, '').replaceAll(/^/gm, '  ')
-            : String(error).replaceAll(/^/gm, '    ').slice(2)))
+            : String(error).replaceAll(/^/gm, '    ').slice(2);
+      })
       .join('\n')}\n`;
 
     return message;

@@ -2,9 +2,11 @@
 
 const at = require('lodash/at');
 
-const { expectsql, sequelize, beforeAll2 } = require('../../support');
-const { DataTypes, Op, Model } = require('@sequelize/core');
-const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
+const { DataTypes, Model, Op } = require('@sequelize/core');
+const {
+  _validateIncludedElements,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
 const sql = sequelize.queryGenerator;
 
@@ -15,65 +17,91 @@ describe('QueryGenerator#generateJoin', () => {
 
     const include = at(options, path)[0];
 
-    const join = sql.generateJoin(include,
-      {
-        options,
-        subQuery: options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery,
-      });
+    const join = sql.generateJoin(include, {
+      options,
+      subQuery:
+        options.subQuery === undefined
+          ? options.limit && options.hasMultiAssociation
+          : options.subQuery,
+    });
 
     return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
   };
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        field: 'id_user',
+    const User = sequelize.define(
+      'User',
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'id_user',
+        },
+        companyId: {
+          type: DataTypes.INTEGER,
+          field: 'company_id',
+        },
       },
-      companyId: {
-        type: DataTypes.INTEGER,
-        field: 'company_id',
+      {
+        tableName: 'user',
       },
-    }, {
-      tableName: 'user',
-    });
+    );
 
-    const Task = sequelize.define('Task', {
-      title: DataTypes.STRING,
-      userId: {
-        type: DataTypes.INTEGER,
-        field: 'user_id',
+    const Task = sequelize.define(
+      'Task',
+      {
+        title: DataTypes.STRING,
+        userId: {
+          type: DataTypes.INTEGER,
+          field: 'user_id',
+        },
       },
-    }, {
-      tableName: 'task',
-    });
+      {
+        tableName: 'task',
+      },
+    );
 
-    const Company = sequelize.define('Company', {
-      name: DataTypes.STRING,
-      ownerId: {
-        type: DataTypes.INTEGER,
-        field: 'owner_id',
+    const Company = sequelize.define(
+      'Company',
+      {
+        name: DataTypes.STRING,
+        ownerId: {
+          type: DataTypes.INTEGER,
+          field: 'owner_id',
+        },
+        public: {
+          type: DataTypes.BOOLEAN,
+        },
       },
-      public: {
-        type: DataTypes.BOOLEAN,
+      {
+        tableName: 'company',
       },
-    }, {
-      tableName: 'company',
-    });
+    );
 
-    const Profession = sequelize.define('Profession', {
-      name: DataTypes.STRING,
-    }, {
-      tableName: 'profession',
-    });
+    const Profession = sequelize.define(
+      'Profession',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        tableName: 'profession',
+      },
+    );
 
     User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
     User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
     User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
-    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId', inverse: 'Profession' });
-    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId', inverse: 'Company' });
+    Profession.Professionals = Profession.hasMany(User, {
+      as: 'Professionals',
+      foreignKey: 'professionId',
+      inverse: 'Profession',
+    });
+    Company.Employees = Company.hasMany(User, {
+      as: 'Employees',
+      foreignKey: 'companyId',
+      inverse: 'Company',
+    });
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
     return { User, Task, Company, Profession };
@@ -90,9 +118,7 @@ describe('QueryGenerator#generateJoin', () => {
       'include[0]',
       {
         model: User,
-        include: [
-          User.Company,
-        ],
+        include: [User.Company],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]',
@@ -116,16 +142,19 @@ describe('QueryGenerator#generateJoin', () => {
         ],
       },
       {
-        default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
+        default:
+          'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
         ibmi: 'INNER JOIN "company" AS "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1',
-        sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
-        mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
+        sqlite:
+          'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
+        mssql:
+          'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
       },
     );
   });
 
   it('Generates a nested belongsTo join query', () => {
-    const { User, Profession } = vars;
+    const { Profession, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -135,14 +164,13 @@ describe('QueryGenerator#generateJoin', () => {
           {
             association: Profession.Professionals,
             limit: 3,
-            include: [
-              User.Company,
-            ],
+            include: [User.Company],
           },
         ],
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
+        default:
+          'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
       },
     );
   });
@@ -155,9 +183,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [
-          User.Company,
-        ],
+        include: [User.Company],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
@@ -175,13 +201,17 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company, required: false, where: { name: 'ABC' },
+            association: User.Company,
+            required: false,
+            where: { name: 'ABC' },
           },
         ],
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = \'ABC\'',
-        mssql: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N\'ABC\'',
+        default:
+          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
+        mssql:
+          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'",
       },
     );
   });
@@ -196,7 +226,8 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company, right: true,
+            association: User.Company,
+            right: true,
           },
         ],
       },
@@ -207,7 +238,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested includes with subQuery = true', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -217,21 +248,19 @@ describe('QueryGenerator#generateJoin', () => {
         include: [
           {
             association: User.Company,
-            include: [
-              Company.Owner,
-            ],
+            include: [Company.Owner],
           },
         ],
-
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
       },
     );
   });
 
   it('supports double nested includes', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0].include[0]',
@@ -241,21 +270,24 @@ describe('QueryGenerator#generateJoin', () => {
         include: [
           {
             association: User.Company,
-            include: [{
-              association: Company.Owner,
-              include: [
-                User.Profession,
-              ],
-            }],
+            include: [
+              {
+                association: Company.Owner,
+                include: [User.Profession],
+              },
+            ],
           },
         ],
       },
-      { default: 'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]' },
+      {
+        default:
+          'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]',
+      },
     );
   });
 
   it('supports nested includes with required = true', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -266,13 +298,14 @@ describe('QueryGenerator#generateJoin', () => {
           {
             association: User.Company,
             required: true,
-            include: [
-              Company.Owner,
-            ],
+            include: [Company.Owner],
           },
         ],
       },
-      { default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]' },
+      {
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+      },
     );
   });
 
@@ -284,9 +317,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [
-          { association: User.Company, required: true },
-        ],
+        include: [{ association: User.Company, required: true }],
       },
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
@@ -305,9 +336,7 @@ describe('QueryGenerator#generateJoin', () => {
       'include[0]',
       {
         model: User,
-        include: [
-          User.Tasks,
-        ],
+        include: [User.Tasks],
       },
       { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]' },
     );
@@ -321,16 +350,13 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [
-          User.Tasks,
-        ],
+        include: [User.Tasks],
       },
       {
         // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
         default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]',
       },
     );
-
   });
 
   it('supports hasMany with "on" condition', () => {
@@ -342,7 +368,8 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Tasks, on: {
+            association: User.Tasks,
+            on: {
               [Op.or]: [
                 { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
                 { '$Tasks.user_id$': 2 },
@@ -350,7 +377,11 @@ describe('QueryGenerator#generateJoin', () => {
             },
           },
         ],
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2' },
+      },
+      {
+        default:
+          'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2',
+      },
     );
   });
 
@@ -367,12 +398,15 @@ describe('QueryGenerator#generateJoin', () => {
             on: { user_id: { [Op.col]: 'User.alternative_id' } },
           },
         ],
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]' },
+      },
+      {
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]',
+      },
     );
   });
 
   it('supports nested hasMany', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -395,10 +429,10 @@ describe('QueryGenerator#generateJoin', () => {
             ],
           },
         ],
-
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
       },
     );
   });

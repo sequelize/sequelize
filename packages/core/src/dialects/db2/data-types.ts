@@ -1,13 +1,18 @@
 import dayjs from 'dayjs';
 import maxBy from 'lodash/maxBy.js';
-import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate } from '../abstract/data-types.js';
+import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+function removeUnsupportedIntegerOptions(
+  dataType: BaseTypes.BaseIntegerDataType,
+  dialect: AbstractDialect,
+) {
   if (dataType.options.length != null) {
     // this option only makes sense for zerofill
-    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`,
+    );
 
     delete dataType.options.length;
   }
@@ -16,15 +21,18 @@ function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType
 export class BLOB extends BaseTypes.BLOB {
   toSql() {
     if (this.options.length != null) {
-      if (this.options.length.toLowerCase() === 'tiny') { // tiny = 255 bytes
+      if (this.options.length.toLowerCase() === 'tiny') {
+        // tiny = 255 bytes
         return 'BLOB(255)';
       }
 
-      if (this.options.length.toLowerCase() === 'medium') { // medium = 16M
+      if (this.options.length.toLowerCase() === 'medium') {
+        // medium = 16M
         return 'BLOB(16M)';
       }
 
-      if (this.options.length.toLowerCase() === 'long') { // long = 2GB
+      if (this.options.length.toLowerCase() === 'long') {
+        // long = 2GB
         return 'BLOB(2G)';
       }
 
@@ -44,7 +52,9 @@ export class STRING extends BaseTypes.STRING {
         return `VARCHAR(${length}) FOR BIT DATA`;
       }
 
-      throw new Error(`${this._getDialect().name} does not support the BINARY option for data types with a length greater than 4000.`);
+      throw new Error(
+        `${this._getDialect().name} does not support the BINARY option for data types with a length greater than 4000.`,
+      );
     }
 
     if (length <= 4000) {
@@ -84,7 +94,9 @@ export class TEXT extends BaseTypes.TEXT {
           len = 2_147_483_647;
           break;
         default:
-          throw new Error(`LENGTH value ${this.options.length} is not supported. Expected a number of one of the following strings: tiny, medium, long.`);
+          throw new Error(
+            `LENGTH value ${this.options.length} is not supported. Expected a number of one of the following strings: tiny, medium, long.`,
+          );
       }
     }
 

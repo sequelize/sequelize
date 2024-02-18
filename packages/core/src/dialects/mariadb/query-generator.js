@@ -63,7 +63,8 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field))
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields
+          .map(field => this.quoteIdentifier(field))
           .join(', ')})`;
       });
     }
@@ -83,7 +84,9 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       table,
       `(${attributesClause})`,
       `ENGINE=${options.engine}`,
-      options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
+      options.comment &&
+        typeof options.comment === 'string' &&
+        `COMMENT ${this.escape(options.comment)}`,
       options.charset && `DEFAULT CHARSET=${options.charset}`,
       options.collate && `COLLATE ${options.collate}`,
       options.initialAutoIncrement && `AUTO_INCREMENT=${options.initialAutoIncrement}`,
@@ -163,7 +166,10 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, { escape: this.escape.bind(this), dialect: this.dialect });
+    const attributeString = attributeTypeToSql(attribute.type, {
+      escape: this.escape.bind(this),
+      dialect: this.dialect,
+    });
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -175,9 +181,11 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     }
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (!typeWithoutDefault.has(attributeString)
-      && attribute.type._binary !== true
-      && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+    if (
+      !typeWithoutDefault.has(attributeString) &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 
@@ -203,7 +211,9 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options && options.context === 'addColumn' && options.foreignKey) {
-        const fkName = this.quoteIdentifier(`${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`);
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+        );
 
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
       }

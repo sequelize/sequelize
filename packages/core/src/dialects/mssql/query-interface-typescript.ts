@@ -1,3 +1,4 @@
+import type { MssqlDialect } from '.';
 import { Transaction } from '../../transaction';
 import { rejectInvalidOptions } from '../../utils/check';
 import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
@@ -11,31 +12,34 @@ import type {
 } from '../abstract/query-interface.types';
 import type { MsSqlConnection } from './connection-manager';
 import { MsSqlQueryInterfaceInternal } from './query-interface-internal';
-import type { MssqlDialect } from '.';
 
-export class MsSqlQueryInterfaceTypescript<Dialect extends MssqlDialect = MssqlDialect>
-  extends AbstractQueryInterface<Dialect> {
+export class MsSqlQueryInterfaceTypescript<
+  Dialect extends MssqlDialect = MssqlDialect,
+> extends AbstractQueryInterface<Dialect> {
   readonly #internalQueryInterface: MsSqlQueryInterfaceInternal;
 
-  constructor(
-    dialect: Dialect,
-    internalQueryInterface?: MsSqlQueryInterfaceInternal,
-  ) {
+  constructor(dialect: Dialect, internalQueryInterface?: MsSqlQueryInterfaceInternal) {
     internalQueryInterface ??= new MsSqlQueryInterfaceInternal(dialect);
 
     super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
   }
 
-  async _commitTransaction(transaction: Transaction, _options: CommitTransactionOptions): Promise<void> {
+  async _commitTransaction(
+    transaction: Transaction,
+    _options: CommitTransactionOptions,
+  ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to commit a transaction without the transaction object.');
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(async () => new Promise<void>((resolve, reject) => {
-      connection.commitTransaction(error => (error ? reject(error) : resolve()));
-    }));
+    await connection.queue.enqueue(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          connection.commitTransaction(error => (error ? reject(error) : resolve()));
+        }),
+    );
   }
 
   async _createSavepoint(transaction: Transaction, options: CreateSavepointOptions): Promise<void> {
@@ -44,36 +48,60 @@ export class MsSqlQueryInterfaceTypescript<Dialect extends MssqlDialect = MssqlD
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(async () => new Promise<void>((resolve, reject) => {
-      // @ts-expect-error -- TODO: remove this when tedious types are fixed
-      connection.saveTransaction(error => (error ? reject(error) : resolve()), options.savepointName);
-    }));
+    await connection.queue.enqueue(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          connection.saveTransaction(
+            error => (error ? reject(error) : resolve()),
+            // @ts-expect-error -- TODO: remove this when tedious types are fixed
+            options.savepointName,
+          );
+        }),
+    );
   }
 
-  async _rollbackSavepoint(transaction: Transaction, options: RollbackSavepointOptions): Promise<void> {
+  async _rollbackSavepoint(
+    transaction: Transaction,
+    options: RollbackSavepointOptions,
+  ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to rollback a savepoint without the transaction object.');
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(async () => new Promise<void>((resolve, reject) => {
-      // @ts-expect-error -- TODO: remove this when tedious types are fixed
-      connection.rollbackTransaction(error => (error ? reject(error) : resolve()), options.savepointName);
-    }));
+    await connection.queue.enqueue(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          connection.rollbackTransaction(
+            error => (error ? reject(error) : resolve()),
+            // @ts-expect-error -- TODO: remove this when tedious types are fixed
+            options.savepointName,
+          );
+        }),
+    );
   }
 
-  async _rollbackTransaction(transaction: Transaction, _options: RollbackTransactionOptions): Promise<void> {
+  async _rollbackTransaction(
+    transaction: Transaction,
+    _options: RollbackTransactionOptions,
+  ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to rollback a transaction without the transaction object.');
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(async () => new Promise<void>((resolve, reject) => {
-      connection.rollbackTransaction(error => (error ? reject(error) : resolve()));
-    }));
+    await connection.queue.enqueue(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          connection.rollbackTransaction(error => (error ? reject(error) : resolve()));
+        }),
+    );
   }
 
-  async _startTransaction(transaction: Transaction, options: StartTransactionOptions): Promise<void> {
+  async _startTransaction(
+    transaction: Transaction,
+    options: StartTransactionOptions,
+  ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to start a transaction without the transaction object.');
     }
@@ -89,12 +117,15 @@ export class MsSqlQueryInterfaceTypescript<Dialect extends MssqlDialect = MssqlD
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(async () => new Promise<void>((resolve, reject) => {
-      connection.beginTransaction(
-        error => (error ? reject(error) : resolve()),
-        options.transactionName,
-        this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel),
-      );
-    }));
+    await connection.queue.enqueue(
+      async () =>
+        new Promise<void>((resolve, reject) => {
+          connection.beginTransaction(
+            error => (error ? reject(error) : resolve()),
+            options.transactionName,
+            this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel),
+          );
+        }),
+    );
   }
 }

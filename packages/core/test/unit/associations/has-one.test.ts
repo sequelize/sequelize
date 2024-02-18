@@ -1,9 +1,9 @@
-import assert from 'node:assert';
-import { expect } from 'chai';
-import each from 'lodash/each';
-import sinon from 'sinon';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import each from 'lodash/each';
+import assert from 'node:assert';
+import sinon from 'sinon';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
@@ -13,7 +13,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.hasOne();
-    }).to.throw(`User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('warn on invalid options', () => {
@@ -22,7 +24,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     expect(() => {
       User.hasOne(Task, { sourceKey: 'wowow' });
-    }).to.throwWithCause('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
+    }).to.throwWithCause(
+      'Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first',
+    );
   });
 
   it('forbids alias inference in self-associations', () => {
@@ -30,7 +34,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     expect(() => {
       User.hasOne(User);
-    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different');
+    }).to.throwWithCause(
+      'Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different',
+    );
   });
 
   it('allows self-associations with explicit alias', () => {
@@ -199,8 +205,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     });
     const Attribute = sequelize.define('attribute', {});
 
-    expect(User.hasOne.bind(User, Attribute)).to
-      .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change the "as" options in your association definition');
+    expect(User.hasOne.bind(User, Attribute)).to.throw(
+      "Naming collision between attribute 'attribute' and association 'attribute' on model user. To remedy this, change the \"as\" options in your association definition",
+    );
   });
 
   describe('Model.associations', () => {
@@ -209,12 +216,22 @@ describe(getTestDialectTeaser('hasOne'), () => {
       const Group = sequelize.define('Group', {});
 
       Group.hasOne(User);
-      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
-      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
+      Group.hasOne(User, {
+        foreignKey: 'primaryGroupId',
+        as: 'primaryUsers',
+        inverse: { as: 'primaryGroup' },
+      });
+      Group.hasOne(User, {
+        foreignKey: 'secondaryGroupId',
+        as: 'secondaryUsers',
+        inverse: { as: 'secondaryGroup' },
+      });
 
-      expect(
-        Object.keys(Group.associations),
-      ).to.deep.equal(['user', 'primaryUsers', 'secondaryUsers']);
+      expect(Object.keys(Group.associations)).to.deep.equal([
+        'user',
+        'primaryUsers',
+        'secondaryUsers',
+      ]);
     });
   });
 
@@ -266,7 +283,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('HasOne');

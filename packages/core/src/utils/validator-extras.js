@@ -71,7 +71,10 @@ export const extensions = {
 
 // instance based validators
 validator.isImmutable = function (value, validatorArgs, field, modelInstance) {
-  return modelInstance.isNewRecord || modelInstance.dataValues[field] === modelInstance._previousDataValues[field];
+  return (
+    modelInstance.isNewRecord ||
+    modelInstance.dataValues[field] === modelInstance._previousDataValues[field]
+  );
 };
 
 // extra validators

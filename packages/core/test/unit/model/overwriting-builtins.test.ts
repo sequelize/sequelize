@@ -1,6 +1,11 @@
-import { expect } from 'chai';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe('Model', () => {
@@ -28,17 +33,20 @@ describe('Model', () => {
       nonAttribute: NonAttribute<string> = 'def';
     }
 
-    User.init({
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+    User.init(
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        firstName: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
       },
-      firstName: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-    }, { sequelize });
+      { sequelize },
+    );
 
     const user = User.build({ firstName: 'Zoe' });
 

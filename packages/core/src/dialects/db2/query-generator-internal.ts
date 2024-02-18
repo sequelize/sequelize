@@ -5,9 +5,9 @@ import type { Db2Dialect } from './index.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze(['ERRORSCHEMA', 'NULLID', 'SQLJ']);
 
-export class Db2QueryGeneratorInternal<Dialect extends Db2Dialect = Db2Dialect>
-  extends AbstractQueryGeneratorInternal<Dialect> {
-
+export class Db2QueryGeneratorInternal<
+  Dialect extends Db2Dialect = Db2Dialect,
+> extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalSchemaNames(): readonly string[] {
     return TECHNICAL_SCHEMA_NAMES;
   }

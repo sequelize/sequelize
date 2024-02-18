@@ -70,8 +70,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
   async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z')
-      : tzOffset;
+    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
 
     const connectionConfig: MariaDbConnectionConfig = removeUndefined({
       host: config.host,
@@ -88,9 +87,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
     if (!this.sequelize.config.keepDefaultTimezone) {
       // set timezone for this connection
       if (connectionConfig.initSql) {
-        if (!Array.isArray(
-          connectionConfig.initSql,
-        )) {
+        if (!Array.isArray(connectionConfig.initSql)) {
           connectionConfig.initSql = [connectionConfig.initSql];
         }
 

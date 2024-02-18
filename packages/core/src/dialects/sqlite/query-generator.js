@@ -1,10 +1,13 @@
 'use strict';
 
+import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { rejectInvalidOptions } from '../../utils/check';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '../abstract/query-generator';
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -25,10 +28,11 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       );
     }
 
-    options = options || {};
+    options ||= {};
 
     const primaryKeys = [];
-    const needsMultiplePrimaryKeys = Object.values(attributes).filter(definition => definition.includes('PRIMARY KEY')).length > 1;
+    const needsMultiplePrimaryKeys =
+      Object.values(attributes).filter(definition => definition.includes('PRIMARY KEY')).length > 1;
     const attrArray = [];
 
     for (const attr in attributes) {
@@ -40,7 +44,9 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         if (dataType.includes('PRIMARY KEY')) {
           if (dataType.includes('INT')) {
             // Only INTEGER is allowed for primary key, see https://github.com/sequelize/sequelize/issues/969 (no lenght, unsigned etc)
-            dataTypeString = containsAutoIncrement ? 'INTEGER PRIMARY KEY AUTOINCREMENT' : 'INTEGER PRIMARY KEY';
+            dataTypeString = containsAutoIncrement
+              ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
+              : 'INTEGER PRIMARY KEY';
 
             if (dataType.includes(' REFERENCES')) {
               dataTypeString += dataType.slice(dataType.indexOf(' REFERENCES'));
@@ -117,7 +123,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
-    options = options || {};
+    options ||= {};
     defaults(options, this.options);
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
@@ -153,9 +159,11 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const whereOptions = { ...options, bindParam };
 
     if (options.limit) {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
+      query =
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
     } else {
-      query = `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
+      query =
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
     }
 
     const result = { query };
@@ -229,6 +237,8 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   replaceBooleanDefaults(sql) {
-    return sql.replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0').replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
+    return sql
+      .replaceAll(/DEFAULT '?false'?/g, 'DEFAULT 0')
+      .replaceAll(/DEFAULT '?true'?/g, 'DEFAULT 1');
   }
 }
