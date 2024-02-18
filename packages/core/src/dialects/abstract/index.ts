@@ -94,9 +94,14 @@ export type DialectSupports = {
    */
   multiDatabases: boolean,
   transactions: boolean,
+  savepoints: boolean,
+  isolationLevels: boolean,
+  connectionTransactionMethods: boolean,
   settingIsolationLevelDuringTransaction: boolean,
-  transactionOptions: {
-    type: boolean,
+  startTransaction: {
+    useBegin: boolean,
+    readOnly: boolean,
+    transactionType: boolean,
   },
   migrations: boolean,
   upserts: boolean,
@@ -296,9 +301,14 @@ export abstract class AbstractDialect {
     schemas: false,
     multiDatabases: false,
     transactions: true,
+    savepoints: true,
+    isolationLevels: true,
+    connectionTransactionMethods: false,
     settingIsolationLevelDuringTransaction: true,
-    transactionOptions: {
-      type: false,
+    startTransaction: {
+      useBegin: false,
+      readOnly: false,
+      transactionType: false,
     },
     migrations: true,
     upserts: true,

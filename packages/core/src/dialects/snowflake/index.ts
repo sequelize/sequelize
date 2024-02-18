@@ -13,6 +13,8 @@ export class SnowflakeDialect extends AbstractDialect {
     'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
+    savepoints: false,
+    isolationLevels: false,
     settingIsolationLevelDuringTransaction: false,
     inserts: {
       ignoreDuplicates: ' IGNORE',

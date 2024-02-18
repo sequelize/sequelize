@@ -60,6 +60,11 @@ export class MssqlDialect extends AbstractDialect {
     createSchema: {
       authorization: true,
     },
+    connectionTransactionMethods: true,
+    settingIsolationLevelDuringTransaction: false,
+    startTransaction: {
+      useBegin: true,
+    },
     delete: {
       modelWithLimit: true,
     },

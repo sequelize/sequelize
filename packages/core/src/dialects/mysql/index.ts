@@ -68,6 +68,9 @@ export class MysqlDialect extends AbstractDialect {
       dropSchema: {
         ifExists: true,
       },
+      startTransaction: {
+        readOnly: true,
+      },
     },
   );
 

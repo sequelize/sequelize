@@ -49,8 +49,6 @@ export class MariaDbQuery extends AbstractQuery {
           // Ignore errors - since MariaDB automatically rolled back, we're
           // not that worried about this redundant rollback failing.
         }
-
-        options.transaction.finished = 'rollback';
       }
 
       error.sql = sql;

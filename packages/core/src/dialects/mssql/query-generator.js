@@ -13,9 +13,8 @@ import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 
-const DataTypes = require('../../data-types');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const randomBytes = require('node:crypto').randomBytes;
+const DataTypes = require('../../data-types');
 const { Op } = require('../../operators');
 
 /* istanbul ignore next */
@@ -555,35 +554,5 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  setIsolationLevelQuery() {}
-
-  generateTransactionId() {
-    return randomBytes(10).toString('hex');
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'BEGIN TRANSACTION;';
-  }
-
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
-
-    return 'COMMIT TRANSACTION;';
-  }
-
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'ROLLBACK TRANSACTION;';
   }
 }

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import isObject from 'lodash/isObject';
 import type { Class } from 'type-fest';
@@ -22,6 +23,7 @@ import { Op } from '../../operators.js';
 import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
+import type { IsolationLevel } from '../../transaction.js';
 import { isPlainObject, rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
@@ -47,6 +49,7 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from './query-generator.types.js';
 import type { TableName, TableNameWithSchema } from './query-interface.js';
@@ -76,6 +79,7 @@ export const REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveC
 export const REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['concurrently', 'ifExists', 'cascade']);
 export const RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RenameTableQueryOptions>(['changeSchema']);
 export const SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>(['columnName', 'constraintName', 'constraintType']);
+export const START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof StartTransactionQueryOptions>(['readOnly', 'transactionType']);
 export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>(['cascade', 'restartIdentity']);
 
 /**
@@ -400,6 +404,105 @@ export class AbstractQueryGeneratorTypeScript {
    */
   dropForeignKeyQuery(_tableName: TableOrModel, _foreignKey: string): Error {
     throw new Error(`dropForeignKeyQuery has been deprecated. Use removeConstraintQuery instead.`);
+  }
+
+  /**
+   * Returns a query that commits a transaction.
+   */
+  commitTransactionQuery(): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(`commitTransactionQuery is not supported by the ${this.dialect.name} dialect.`);
+    }
+
+    return 'COMMIT';
+  }
+
+  /**
+   * Returns a query that creates a savepoint.
+   *
+   * @param savepointName
+   */
+  createSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  /**
+   * Returns a query that rollbacks a savepoint.
+   *
+   * @param savepointName
+   */
+  rollbackSavepointQuery(savepointName: string): string {
+    if (!this.dialect.supports.savepoints) {
+      throw new Error(`Savepoints are not supported by ${this.dialect.name}.`);
+    }
+
+    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  /**
+   * Returns a query that rollbacks a transaction.
+   */
+  rollbackTransactionQuery(): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(`rollbackTransactionQuery is not supported by the ${this.dialect.name} dialect.`);
+    }
+
+    return 'ROLLBACK';
+  }
+
+  /**
+   * Returns a query that sets the transaction isolation level.
+   *
+   * @param isolationLevel
+   */
+  setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
+    if (!this.dialect.supports.isolationLevels) {
+      throw new Error(`Isolation levels are not supported by ${this.dialect.name}.`);
+    }
+
+    if (!this.dialect.supports.connectionTransactionMethods) {
+      return `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`;
+    }
+
+    throw new Error(`setIsolationLevelQuery is not supported by the ${this.dialect.name} dialect.`);
+  }
+
+  /**
+   * Returns a query that starts a transaction.
+   *
+   * @param options
+   */
+  startTransactionQuery(options?: StartTransactionQueryOptions): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(`startTransactionQuery is not supported by the ${this.dialect.name} dialect.`);
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'startTransactionQuery',
+        this.dialect,
+        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.startTransaction,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      this.dialect.supports.startTransaction.useBegin ? 'BEGIN' : 'START',
+      'TRANSACTION',
+      options?.readOnly ? 'READ ONLY' : '',
+    ]);
+  }
+
+  /**
+   * Generates a unique identifier for the current transaction.
+   */
+  generateTransactionId(): string {
+    return randomUUID();
   }
 
   // TODO: rename to "normalizeTable" & move to sequelize class

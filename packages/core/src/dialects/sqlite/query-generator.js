@@ -10,7 +10,6 @@ import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import isObject from 'lodash/isObject';
 
-const { Transaction } = require('../../transaction');
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
@@ -227,29 +226,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     return result;
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVEPOINT ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return `BEGIN ${transaction.options.type} TRANSACTION;`;
-  }
-
-  setIsolationLevelQuery(value) {
-    switch (value) {
-      case Transaction.ISOLATION_LEVELS.REPEATABLE_READ:
-        return '-- SQLite is not able to choose the isolation level REPEATABLE READ.';
-      case Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED:
-        return 'PRAGMA read_uncommitted = ON;';
-      case Transaction.ISOLATION_LEVELS.READ_COMMITTED:
-        return 'PRAGMA read_uncommitted = OFF;';
-      case Transaction.ISOLATION_LEVELS.SERIALIZABLE:
-        return '-- SQLite\'s default isolation level is SERIALIZABLE. Nothing to do.';
-      default:
-        throw new Error(`Unknown isolation level: ${value}`);
-    }
   }
 
   replaceBooleanDefaults(sql) {

@@ -4,6 +4,7 @@ import type { Literal } from '../../expression-builders/literal';
 import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
+import type { TransactionType } from '../../transaction';
 import type { Nullish } from '../../utils/types';
 import type { TableOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
@@ -156,6 +157,13 @@ export interface ShowConstraintsQueryOptions {
   columnName?: string;
   constraintName?: string;
   constraintType?: ConstraintType;
+}
+
+// keep START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface StartTransactionQueryOptions {
+  readOnly?: boolean;
+  transactionName?: string;
+  transactionType?: TransactionType | undefined;
 }
 
 export interface AttributeToSqlOptions {

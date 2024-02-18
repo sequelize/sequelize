@@ -25,6 +25,7 @@ import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
+import type { COMPLETES_TRANSACTION } from './transaction';
 import type {
   AllowArray,
   AllowReadonlyArray,
@@ -78,6 +79,14 @@ export interface Transactionable {
    * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
    */
   connection?: Connection | null | undefined;
+
+  /**
+   * Indicates if the query completes the transaction
+   * Internal only
+   *
+   * @private
+   */
+  [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
 
 export interface SearchPathable {
