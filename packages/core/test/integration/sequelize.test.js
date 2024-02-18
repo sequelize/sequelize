@@ -184,6 +184,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   }
 
   describe('getDialect', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0031']);
     it('returns the defined dialect', function () {
       expect(this.sequelize.getDialect()).to.equal(dialect);
     });
@@ -196,6 +197,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('isDefined', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0029']);
     it("returns false if the dao wasn't defined before", function () {
       expect(this.sequelize.isDefined('Project')).to.be.false;
     });
@@ -209,6 +211,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
   });
 
   describe('model', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0028']);
     it('throws an error if the dao being accessed is undefined', function () {
       expect(() => {
         this.sequelize.model('Project');

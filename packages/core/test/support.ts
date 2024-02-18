@@ -591,3 +591,45 @@ if (typeof after !== 'undefined') {
     return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
   });
 }
+
+// TODO: ignoredDeprecations should be removed in favour of EMPTY_ARRAY
+const ignoredDeprecations: readonly string[] = [
+  'SEQUELIZE0005',
+  'SEQUELIZE0006',
+  'SEQUELIZE0007',
+  'SEQUELIZE0008',
+  'SEQUELIZE0009',
+  'SEQUELIZE0011',
+  'SEQUELIZE0012',
+  'SEQUELIZE0013',
+  'SEQUELIZE0014',
+  'SEQUELIZE0015',
+  'SEQUELIZE0016',
+  'SEQUELIZE0017',
+  'SEQUELIZE0018',
+  'SEQUELIZE0019',
+  'SEQUELIZE0020',
+  'SEQUELIZE0021',
+  'SEQUELIZE0022',
+  'SEQUELIZE0023',
+  'SEQUELIZE0024',
+  'SEQUELIZE0025',
+  'SEQUELIZE0026',
+  'SEQUELIZE0027',
+];
+let allowedDeprecations: readonly string[] = ignoredDeprecations;
+export function allowDeprecationsInSuite(codes: readonly string[]) {
+  before(() => {
+    allowedDeprecations = [...codes, ...ignoredDeprecations];
+  });
+
+  after(() => {
+    allowedDeprecations = ignoredDeprecations;
+  });
+}
+
+process.on('warning', (warning: NodeJS.ErrnoException) => {
+  if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
+    throw warning;
+  }
+});
