@@ -162,11 +162,6 @@ export class SqliteQuery extends AbstractQuery {
     const columnTypes = {};
 
     const executeSql = async () => {
-      // TODO: remove this check. A query could start with a comment:
-      if (sql.startsWith('-- ')) {
-        return;
-      }
-
       if (!parameters) {
         parameters = [];
       }

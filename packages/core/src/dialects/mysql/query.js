@@ -61,8 +61,6 @@ export class MySqlQuery extends AbstractQuery {
           // Ignore errors - since MySQL automatically rolled back, we're
           // not that worried about this redundant rollback failing.
         }
-
-        options.transaction.finished = 'rollback';
       }
 
       error.sql = sql;

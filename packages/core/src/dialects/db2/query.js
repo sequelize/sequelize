@@ -35,48 +35,6 @@ export class Db2Query extends AbstractQuery {
 
     const complete = this._logQuery(sql, debug, parameters);
 
-    if (this.sql.startsWith('BEGIN TRANSACTION')) {
-      try {
-        await connection.beginTransaction();
-      } catch (error) {
-        throw this.formatError(error);
-      }
-
-      return this.formatResults();
-    }
-
-    if (this.sql.startsWith('COMMIT TRANSACTION')) {
-      try {
-        await connection.commitTransaction();
-      } catch (error) {
-        throw this.formatError(error);
-      }
-
-      return this.formatResults();
-    }
-
-    if (this.sql.startsWith('ROLLBACK TRANSACTION')) {
-      try {
-        await connection.rollbackTransaction();
-      } catch (error) {
-        throw this.formatError(error);
-      }
-
-      return this.formatResults();
-    }
-
-    if (this.sql.startsWith('SAVE TRANSACTION')) {
-      try {
-        // TODO: This is not a savepoint! It's unsafe and this behavior should be removed.
-        await connection.commitTransaction();
-        await connection.beginTransaction();
-      } catch (error) {
-        throw this.formatError(error);
-      }
-
-      return this.formatResults();
-    }
-
     const params = [];
     if (parameters) {
       forOwn(parameters, (value, key) => {

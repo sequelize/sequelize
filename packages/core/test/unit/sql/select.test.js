@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       return expectsql(
         () => sql.selectQuery(
-          options.table || model && model.getTableName(),
+          options.table || model && model.table,
           options,
           options.model,
         ),
@@ -133,7 +133,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           attributes: [
             ['id_user', 'id'],
@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           attributes: [
             ['id_user', 'id'],
@@ -313,7 +313,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           attributes: [
             ['id_user', 'id'],
@@ -468,7 +468,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User, include } = vars;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           include,
           attributes: [
@@ -514,7 +514,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User, include } = vars;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           include,
           attributes: [
@@ -542,7 +542,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         // By default, SELECT with include of a multi association & limit will be ran as a subQuery
         //  This checks the result when the query is forced to be ran without a subquery
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           include,
           attributes: [
@@ -585,7 +585,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }).include;
 
         expectSelect({
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           include: nestedInclude,
           attributes: [
@@ -781,7 +781,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectsql(sql.selectQuery('User', {
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           attributes: ['name', 'age'],
           include: _validateIncludedElements({
@@ -815,7 +815,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectsql(() => sql.selectQuery('User', {
-          table: User.getTableName(),
+          table: User.table,
           model: User,
           attributes: ['name', 'age'],
           where: { '$postaliasname.title$': 'test' },
@@ -869,7 +869,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       Profession.Users = Profession.hasMany(User, { as: 'Users', foreignKey: 'professionId' });
 
       expectsql(sql.selectQuery('Company', {
-        table: Company.getTableName(),
+        table: Company.table,
         model: Company,
         attributes: ['name', 'public'],
         where: { '$Users.profession.name$': 'test', [Op.and]: { scopeId: [42] } },

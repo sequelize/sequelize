@@ -562,6 +562,11 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
    * Map returned fields to arbitrary names for SELECT query type if `options.fieldMaps` is present.
    */
   fieldMap?: FieldMap;
+
+  /**
+   * If false do not prepend the query with the search_path (Postgres only)
+   */
+  supportsSearchPath?: boolean;
 }
 
 export interface QueryRawOptionsWithType<T extends QueryTypes> extends QueryRawOptions {

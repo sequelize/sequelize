@@ -20,7 +20,6 @@ import startsWith from 'lodash/startsWith';
 import template from 'lodash/template';
 
 const DataTypes = require('../../data-types');
-const randomBytes = require('node:crypto').randomBytes;
 const { Op } = require('../../operators');
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
@@ -620,40 +619,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  setAutocommitQuery() {
-    return '';
-  }
-
-  setIsolationLevelQuery() {}
-
-  generateTransactionId() {
-    return randomBytes(10).toString('hex');
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'BEGIN TRANSACTION;';
-  }
-
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
-
-    return 'COMMIT TRANSACTION;';
-  }
-
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'ROLLBACK TRANSACTION;';
   }
 
   addUniqueFields(dataValues, rawAttributes, uniqno) {

@@ -395,8 +395,7 @@ export class ModelTypeScript {
    * @deprecated use {@link modelDefinition} or {@link table}.
    */
   static getTableName(): TableNameWithSchema {
-    // TODO no deprecation warning is issued here, as this is still used internally.
-    //  Start emitting a warning once we have removed all internal usages.
+    noModelTableName();
 
     const queryGenerator = this.sequelize.queryGenerator;
 

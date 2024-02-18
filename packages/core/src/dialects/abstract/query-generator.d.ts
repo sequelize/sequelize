@@ -81,7 +81,6 @@ export interface AddColumnQueryOptions {
  * through {@link Sequelize#queryGenerator}.
  */
 export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
-  generateTransactionId(): string;
   quoteIdentifiers(identifiers: string): string;
 
   selectQuery<M extends Model>(tableName: TableName, options?: SelectOptions<M>, model?: ModelStatic<M>): string;

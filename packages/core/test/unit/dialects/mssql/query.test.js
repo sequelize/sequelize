@@ -5,40 +5,22 @@ const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const sequelize = Support.sequelize;
-const sinon = require('sinon');
 const expect = require('chai').expect;
 const tedious = require('tedious');
 
-const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
-const connectionStub = { beginTransaction: () => {}, lib: tedious };
+const connectionStub = { lib: tedious };
 
-let sandbox;
 let query;
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] Query', () => {
     beforeEach(() => {
-      sandbox = sinon.createSandbox();
       const options = {
         transaction: { name: 'transactionName' },
         isolationLevel: 'REPEATABLE_READ',
         logging: false,
       };
-      sandbox.stub(connectionStub, 'beginTransaction').callsArg(0);
       query = new Query(connectionStub, sequelize, options);
-    });
-
-    afterEach(() => {
-      sandbox.restore();
-    });
-
-    describe('beginTransaction', () => {
-      it('should call beginTransaction with correct arguments', async () => {
-        await query._run(connectionStub, 'BEGIN TRANSACTION');
-        expect(connectionStub.beginTransaction.called).to.equal(true);
-        expect(connectionStub.beginTransaction.args[0][1]).to.equal('transactionName');
-        expect(connectionStub.beginTransaction.args[0][2]).to.equal(tediousIsolationLevel.REPEATABLE_READ);
-      });
     });
 
     describe('getSQLTypeFromJsType', () => {

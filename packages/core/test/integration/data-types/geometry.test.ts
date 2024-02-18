@@ -142,7 +142,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const User = vars.User;
       const point: GeoJsonPoint = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
 
-      await sequelize.query(`INSERT INTO ${dialect.queryGenerator.quoteTable(User.getTableName())}(geometry) VALUES(ST_GeomFromText($geometry))`, {
+      await sequelize.query(`INSERT INTO ${dialect.queryGenerator.quoteTable(User.table)}(geometry) VALUES(ST_GeomFromText($geometry))`, {
         bind: { geometry: point },
         type: QueryTypes.INSERT,
       });

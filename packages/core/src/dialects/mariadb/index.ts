@@ -72,6 +72,9 @@ export class MariaDbDialect extends AbstractDialect {
       dropSchema: {
         ifExists: true,
       },
+      startTransaction: {
+        readOnly: true,
+      },
     },
   );
 

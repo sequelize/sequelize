@@ -1,9 +1,32 @@
 import { QueryTypes } from '../../query-types';
+import { Transaction } from '../../transaction';
+import { rejectInvalidOptions } from '../../utils/check';
+import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import { AbstractQueryInterface } from '../abstract/query-interface';
-import type { QiDropAllSchemasOptions } from '../abstract/query-interface.types';
+import type {
+  CommitTransactionOptions,
+  QiDropAllSchemasOptions,
+  RollbackTransactionOptions,
+  SetIsolationLevelOptions,
+  StartTransactionOptions,
+} from '../abstract/query-interface.types';
+import type { Db2Connection } from './connection-manager';
+import { Db2QueryInterfaceInternal } from './query-interface-internal';
 import type { Db2Dialect } from './index.js';
 
 export class Db2QueryInterfaceTypeScript<Dialect extends Db2Dialect = Db2Dialect> extends AbstractQueryInterface<Dialect> {
+  readonly #internalQueryInterface: Db2QueryInterfaceInternal;
+
+  constructor(
+    dialect: Dialect,
+    internalQueryInterface?: Db2QueryInterfaceInternal,
+  ) {
+    internalQueryInterface ??= new Db2QueryInterfaceInternal(dialect);
+
+    super(dialect, internalQueryInterface);
+    this.#internalQueryInterface = internalQueryInterface;
+  }
+
   async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
     const skip = options?.skip || [];
     const allSchemas = await this.listSchemas(options);
@@ -50,6 +73,56 @@ export class Db2QueryInterfaceTypeScript<Dialect extends Db2Dialect = Db2Dialect
     for (const schema of schemaNames) {
       // eslint-disable-next-line no-await-in-loop
       await this.dropSchema(schema, options);
+    }
+  }
+
+  async _commitTransaction(transaction: Transaction, _options: CommitTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to commit a transaction without the transaction object.');
+    }
+
+    const connection = transaction.getConnection() as Db2Connection;
+    await connection.commitTransaction();
+  }
+
+  async _rollbackTransaction(transaction: Transaction, _options: RollbackTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to rollback a transaction without the transaction object.');
+    }
+
+    const connection = transaction.getConnection() as Db2Connection;
+    await connection.rollbackTransaction();
+  }
+
+  async _setIsolationLevel(transaction: Transaction, options: SetIsolationLevelOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to set the isolation level for a transaction without the transaction object.');
+    }
+
+    const level = this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel);
+    const connection = transaction.getConnection() as Db2Connection;
+    connection.setIsolationLevel(level);
+  }
+
+  async _startTransaction(transaction: Transaction, options: StartTransactionOptions): Promise<void> {
+    if (!transaction || !(transaction instanceof Transaction)) {
+      throw new Error('Unable to start a transaction without the transaction object.');
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'startTransactionQuery',
+        this.sequelize.dialect,
+        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+        this.sequelize.dialect.supports.startTransaction,
+        options,
+      );
+    }
+
+    const connection = transaction.getConnection() as Db2Connection;
+    await connection.beginTransaction();
+    if (options.isolationLevel) {
+      await transaction.setIsolationLevel(options.isolationLevel);
     }
   }
 }

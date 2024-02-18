@@ -511,7 +511,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _validateIncludedElement(include, tableNames, options) {
-    tableNames[include.model.getTableName()] = true;
+    tableNames[include.model.table] = true;
 
     if (include.attributes && !options.raw) {
       include.model._expandAttributes(include);
@@ -1226,7 +1226,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const tableNames = {};
 
-    tableNames[this.getTableName(options)] = true;
+    tableNames[this.table] = true;
     options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
@@ -1530,7 +1530,7 @@ ${associationOwner._getAssociationDebugList()}`);
     mapOptionFieldNames(options, this);
     options = this._paranoidClause(this, options);
 
-    const value = await this.queryInterface.rawSelect(this.getTableName(options), options, aggregateFunction, this);
+    const value = await this.queryInterface.rawSelect(this.table, options, aggregateFunction, this);
 
     return value;
   }
@@ -2060,7 +2060,7 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     const result = await this.queryInterface.upsert(
-      this.getTableName(options),
+      this.table,
       insertValues,
       updateValues,
       // TODO: this is only used by DB2 & MSSQL, as these dialects require a WHERE clause in their UPSERT implementation.
@@ -2304,7 +2304,7 @@ ${associationOwner._getAssociationDebugList()}`);
           options.returning = options.returning.map(attr => modelDefinition.getColumnNameLoose(attr));
         }
 
-        const results = await model.queryInterface.bulkInsert(model.getTableName(options), records, options, fieldMappedAttributes);
+        const results = await model.queryInterface.bulkInsert(model.table, records, options, fieldMappedAttributes);
         if (Array.isArray(results)) {
           for (const [i, result] of results.entries()) {
             const instance = instances[i];
@@ -2542,7 +2542,7 @@ ${associationOwner._getAssociationDebugList()}`);
       };
 
       attrValueHash[deletedAtColumnName] = new Date();
-      result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
+      result = await this.queryInterface.bulkUpdate(this.table, attrValueHash, Object.assign(where, options.where), options, getObjectFromMap(modelDefinition.attributes));
     } else {
       result = await this.queryInterface.bulkDelete(this, options);
     }
@@ -2621,7 +2621,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     attrValueHash[deletedAtAttribute.columnName || deletedAtAttributeName] = deletedAtDefaultValue;
     options.omitNull = false;
-    const result = await this.queryInterface.bulkUpdate(this.getTableName(options), attrValueHash, options.where, options, getObjectFromMap(modelDefinition.attributes));
+    const result = await this.queryInterface.bulkUpdate(this.table, attrValueHash, options.where, options, getObjectFromMap(modelDefinition.attributes));
     // Run afterDestroy hook on each record individually
     if (options.individualHooks) {
       await Promise.all(
@@ -2814,7 +2814,7 @@ ${associationOwner._getAssociationDebugList()}`);
       options = mapOptionFieldNames(options, this);
       options.hasTrigger = this.options ? this.options.hasTrigger : false;
 
-      const affectedRows = await this.queryInterface.bulkUpdate(this.getTableName(options), valuesUse, options.where, options, getObjectFromMap(this.modelDefinition.physicalAttributes));
+      const affectedRows = await this.queryInterface.bulkUpdate(this.table, valuesUse, options.where, options, getObjectFromMap(this.modelDefinition.physicalAttributes));
       if (options.returning) {
         result = [affectedRows.length, affectedRows];
         instances = affectedRows;
@@ -3043,7 +3043,7 @@ Instead of specifying a Model, either:
       extraAttributesToBeUpdated[columnName] = this._getDefaultTimestamp(updatedAtAttrName) || new Date();
     }
 
-    const tableName = this.getTableName(options);
+    const tableName = this.table;
     let affectedRows;
     if (isSubtraction) {
       affectedRows = await this.queryInterface.decrement(
@@ -3718,7 +3718,7 @@ Instead of specifying a Model, either:
       }
 
       query = 'update';
-      args = [this, this.constructor.getTableName(options), values, where, options];
+      args = [this, this.constructor.table, values, where, options];
     }
 
     if (!this.changed() && !this.isNewRecord) {
@@ -3727,7 +3727,7 @@ Instead of specifying a Model, either:
 
     if (this.isNewRecord) {
       query = 'insert';
-      args = [this, this.constructor.getTableName(options), values, options];
+      args = [this, this.constructor.table, values, options];
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);

@@ -2,17 +2,17 @@
 
 import { isWhereEmpty } from '../../utils/query-builder-utils';
 import { assertNoReservedBind } from '../../utils/sql';
+import { MsSqlQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 import intersection from 'lodash/intersection';
 
 const { QueryTypes } = require('../../query-types');
 const { Op } = require('../../operators');
-const { AbstractQueryInterface } = require('../abstract/query-interface');
 
 /**
  * The interface that Sequelize uses to talk with MSSQL database
  */
-export class MsSqlQueryInterface extends AbstractQueryInterface {
+export class MsSqlQueryInterface extends MsSqlQueryInterfaceTypescript {
   /**
   * A wrapper that fixes MSSQL's inability to cleanly remove columns from existing tables if they have a default constraint.
   *

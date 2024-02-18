@@ -18,7 +18,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
       });
 
       await sequelize.sync({ force: true });
-      const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+      const indexes = await sequelize.queryInterface.showIndex(User.table);
       const indexCheck = indexes.find(index => index.name === 'unique_names');
 
       expect(indexCheck?.name).to.equal('unique_names');
@@ -41,7 +41,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
         });
 
         await sequelize.sync({ force: true });
-        const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+        const indexes = await sequelize.queryInterface.showIndex(User.table);
         const indexCheck = indexes.find(index => index.name === 'unique_names');
 
         expect(indexCheck?.name).to.equal('unique_names');
@@ -71,7 +71,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
           }
         } else {
           await sequelize.sync({ force: true });
-          const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+          const indexes = await sequelize.queryInterface.showIndex(User.table);
           const indexCheck = indexes.find(index => index.name === 'user_username');
 
           expect(indexCheck?.name).to.equal('user_username');
@@ -93,7 +93,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
         });
 
         await sequelize.sync({ force: true });
-        const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+        const indexes = await sequelize.queryInterface.showIndex(User.table);
         const indexCheck = indexes.find(index => index.name === 'user_username');
 
         expect(indexCheck?.name).to.equal('user_username');
@@ -117,7 +117,7 @@ describe(getTestDialectTeaser('Indexes'), () => {
         try {
           await sequelize.sync({ force: true });
           if (dialect === 'postgres') {
-            const indexes = await sequelize.queryInterface.showIndex(User.getTableName());
+            const indexes = await sequelize.queryInterface.showIndex(User.table);
             const indexCheck = indexes.find(index => index.name === 'user_username');
             expect(indexCheck?.name).to.equal('user_username');
             expect(indexCheck?.unique).to.equal(true);

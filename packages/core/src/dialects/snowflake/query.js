@@ -53,8 +53,6 @@ export class SnowflakeQuery extends AbstractQuery {
         } catch {
           // ignore errors
         }
-
-        options.transaction.finished = 'rollback';
       }
 
       error.sql = sql;
