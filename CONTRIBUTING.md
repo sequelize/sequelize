@@ -106,6 +106,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
     - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
       - Also run `npm install --global editorconfig` (or `yarn global add editorconfig`) to make sure this extension will work properly
     - [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+    - [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 ### 1. Clone the repository
 
