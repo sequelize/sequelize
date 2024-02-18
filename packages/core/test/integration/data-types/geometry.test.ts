@@ -255,8 +255,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
             // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
             // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
             type: 'LineString',
-            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
             coordinates: [
+              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               [39.807_222, "'); DELETE YOLO INJECTIONS; --"],
               [0, 0],
             ],
@@ -551,8 +551,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
             // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
             type: 'MultiLineString',
             coordinates: [
-              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               [
+                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
                 [100, "'); DELETE YOLO INJECTIONS; --"],
                 [101, 1],
               ],
@@ -678,9 +678,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
               [
                 // first linear ring of first polygon
                 [
-                  // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
                   [102, 2],
                   [103, 2],
+                  // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
                   ["'); DELETE YOLO INJECTIONS; --", 3],
                   [102, 3],
                   [102, 2],

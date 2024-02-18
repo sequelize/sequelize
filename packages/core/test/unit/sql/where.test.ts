@@ -367,8 +367,8 @@ Caused by: "undefined" cannot be escaped`),
       },
     );
 
-    // @ts-expect-error -- user does not exist
     testSql(
+      // @ts-expect-error -- user does not exist
       { intAttr1: 1, user: undefined },
       { default: new Error('"undefined" cannot be escaped') },
     );
@@ -646,8 +646,8 @@ Caused by: "undefined" cannot be escaped`),
         );
 
         // when using arrays, Op.in is never included
-        // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
         testSql(
+          // @ts-expect-error -- Omitting the operator with an array attribute is always Op.eq, never Op.in
           { intArrayAttr: [[1, 2]] },
           { default: new Error('[ 1, 2 ] is not a valid integer') },
         );
@@ -873,8 +873,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- not supported, testing that it throws
       testSql(
+        // @ts-expect-error -- not supported, testing that it throws
         { intAttr1: { [Op.is]: 1 } },
         {
           default: new Error(
@@ -883,8 +883,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- not supported, testing that it throws
       testSql(
+        // @ts-expect-error -- not supported, testing that it throws
         { intAttr1: { [Op.is]: { [Op.col]: 'intAttr2' } } },
         {
           default: new Error(
@@ -893,8 +893,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- not supported, testing that it throws
       testSql(
+        // @ts-expect-error -- not supported, testing that it throws
         { intAttr1: { [Op.is]: col('intAttr2') } },
         {
           default: new Error(
@@ -910,8 +910,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- not supported, testing that it throws
       testSql(
+        // @ts-expect-error -- not supported, testing that it throws
         { intAttr1: { [Op.is]: fn('UPPER', col('intAttr2')) } },
         {
           default: new Error(
@@ -920,8 +920,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- not supported, testing that it throws
       testSql(
+        // @ts-expect-error -- not supported, testing that it throws
         { intAttr1: { [Op.is]: cast(col('intAttr2'), 'boolean') } },
         {
           default: new Error(
@@ -931,8 +931,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       if (dialectSupportsArray()) {
-        // @ts-expect-error -- not supported, testing that it throws
         testSql(
+          // @ts-expect-error -- not supported, testing that it throws
           { intAttr1: { [Op.is]: { [Op.any]: [2, 3] } } },
           {
             default: new Error(
@@ -941,8 +941,8 @@ Caused by: "undefined" cannot be escaped`),
           },
         );
 
-        // @ts-expect-error -- not supported, testing that it throws
         testSql(
+          // @ts-expect-error -- not supported, testing that it throws
           { intAttr1: { [Op.is]: { [Op.all]: [2, 3, 4] } } },
           {
             default: new Error(
@@ -1609,8 +1609,8 @@ Caused by: "undefined" cannot be escaped`),
           // testSupportsAnyAll(operator, sqlOperator, [[1, 2], [1, 2]]);
 
           {
-            // @ts-expect-error -- cannot compare an array with a range!
             const ignore: TestModelWhere = {
+              // @ts-expect-error -- cannot compare an array with a range!
               intArrayAttr: { [Op.overlap]: [1, { value: 2, inclusive: true }] },
             };
             testSql(
@@ -1633,8 +1633,8 @@ Caused by: "undefined" cannot be escaped`),
           }
 
           {
-            // @ts-expect-error -- not supported, testing that it throws
             const ignoreWrong: TestModelWhere = {
+              // @ts-expect-error -- not supported, testing that it throws
               intArrayAttr: { [Op.overlap]: [{ [Op.col]: 'col' }] },
             };
             testSql(
@@ -1824,8 +1824,8 @@ Caused by: "undefined" cannot be escaped`),
           },
         );
 
-        // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
         testSql(
+          // @ts-expect-error -- `ARRAY Op.contains ELEMENT` is not a valid query
           { intArrayAttr: { [Op.contains]: 1 } },
           {
             default: new Error('1 is not a valid array'),
@@ -1986,8 +1986,9 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
-      // @ts-expect-error -- startsWith is not compatible with Op.any
+
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.any
         { stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -1996,8 +1997,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.all
         { stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -2108,8 +2109,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
-      // @ts-expect-error -- startsWith is not compatible with Op.any
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.any
         { stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -2118,8 +2119,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.all
         { stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -2237,8 +2238,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
-      // @ts-expect-error -- startsWith is not compatible with Op.any
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.any
         { stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -2247,8 +2248,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- startsWith is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- startsWith is not compatible with Op.all
         { stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -2359,8 +2360,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPe is '\')
-      // @ts-expect-error -- notStartsWith is not compatible with Op.any
       testSql(
+        // @ts-expect-error -- notStartsWith is not compatible with Op.any
         { stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -2369,8 +2370,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- notStartsWith is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- notStartsWith is not compatible with Op.all
         { stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -2481,8 +2482,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
-      // @ts-expect-error -- notEndsWith is not compatible with Op.any
       testSql(
+        // @ts-expect-error -- notEndsWith is not compatible with Op.any
         { stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -2491,8 +2492,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- notEndsWith is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- notEndsWith is not compatible with Op.all
         { stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -2603,8 +2604,8 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       // these cannot be compatible because it's not possible to provide a ESCAPE clause (although the default ESCAPE is '\')
-      // @ts-expect-error -- notSubstring is not compatible with Op.any
       testSql(
+        // @ts-expect-error -- notSubstring is not compatible with Op.any
         { stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
@@ -2613,8 +2614,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- notSubstring is not compatible with Op.all
       testSql(
+        // @ts-expect-error -- notSubstring is not compatible with Op.all
         { stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
@@ -3391,16 +3392,16 @@ Caused by: "undefined" cannot be escaped`),
           },
         );
 
-        // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(
+          // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
           { id: { [Op.eq]: json('profile.id') } },
           {
             default: `"id" = "profile"->'id'`,
           },
         );
 
-        // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
         testSql(
+          // @ts-expect-error -- typings for `json` are broken, but `json()` is deprecated
           json('profile.id', cast('12346-78912', 'text')),
           {
             postgres: `"User"."profile"->'id' = CAST('12346-78912' AS TEXT)`,
@@ -3664,8 +3665,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- cannot be used after operator
       testSql(
+        // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } },
         {
           default: new Error(`{ [Symbol(and)]: [ 1, 2 ] } is not a valid integer`),
@@ -3711,8 +3712,8 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // @ts-expect-error -- cannot be used after operator
       testSql(
+        // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } },
         {
           default: new Error(`{ [Symbol(or)]: [ 1, 2 ] } is not a valid integer`),

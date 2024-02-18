@@ -90,24 +90,24 @@ Person.belongsToMany(Country, {
   otherKey: 'countryId',
 });
 
-// @ts-expect-error -- this must fail, 'through' is strongly defined and ForeignKey does not exist
 Person.belongsToMany(Country, {
   through: PersonCountry,
+  // @ts-expect-error -- this must fail, 'through' is strongly defined and ForeignKey does not exist
   foreignKey: 'doesNotExist',
   otherKey: 'countryId',
 });
 
-// @ts-expect-error -- this must fail, 'through' is strongly defined and OtherKey does not exist
 Person.belongsToMany(Country, {
   through: PersonCountry,
   foreignKey: 'personId',
+  // @ts-expect-error -- this must fail, 'through' is strongly defined and OtherKey does not exist
   otherKey: 'doesNotExist',
 });
 
-// @ts-expect-error -- this must fail, 'through' is strongly defined and OtherKey does not exist
 Person.belongsToMany(Country, {
   through: { model: PersonCountry },
   foreignKey: 'personId',
+  // @ts-expect-error -- this must fail, 'through' is strongly defined and OtherKey does not exist
   otherKey: 'doesNotExist',
 });
 

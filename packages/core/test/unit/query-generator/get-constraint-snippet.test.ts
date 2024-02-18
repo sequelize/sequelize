@@ -20,8 +20,8 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
   const internals = queryGenerator.__TEST__getInternals();
 
   it('throws an error if invalid type', () => {
-    // @ts-expect-error -- We're testing invalid options
     expectsql(
+      // @ts-expect-error -- We're testing invalid options
       () => internals.getConstraintSnippet('myTable', { type: 'miss-typed', fields: ['otherId'] }),
       {
         default: new Error(

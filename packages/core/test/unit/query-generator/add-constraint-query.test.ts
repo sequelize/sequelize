@@ -22,10 +22,14 @@ describe('QueryGenerator#addConstraintQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   it('throws an error if invalid type', () => {
-    // @ts-expect-error -- We're testing invalid options
     expectsql(
-      () =>
-        queryGenerator.addConstraintQuery('myTable', { type: 'miss-typed', fields: ['otherId'] }),
+      () => {
+        return queryGenerator.addConstraintQuery('myTable', {
+          // @ts-expect-error -- We're testing invalid options
+          type: 'miss-typed',
+          fields: ['otherId'],
+        });
+      },
       {
         default: new Error(
           `Constraint type miss-typed is not supported by ${dialect.name} dialect`,
@@ -563,13 +567,14 @@ describe('QueryGenerator#addConstraintQuery', () => {
     });
 
     it('throws an error if no references is defined', () => {
-      // @ts-expect-error -- We're testing invalid options
       expectsql(
-        () =>
-          queryGenerator.addConstraintQuery('myTable', {
+        () => {
+          // @ts-expect-error -- We're testing invalid options
+          return queryGenerator.addConstraintQuery('myTable', {
             type: 'FOREIGN KEY',
             fields: ['otherId'],
-          }),
+          });
+        },
         {
           default: new Error(
             'Invalid foreign key constraint options. `references` object with `table` and `field` must be specified',
