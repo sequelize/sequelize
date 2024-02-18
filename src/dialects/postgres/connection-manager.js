@@ -117,13 +117,18 @@ class ConnectionManager extends AbstractConnectionManager {
           'statement_timeout',
           // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
           'query_timeout',
+          // Number of milliseconds to wait for connection, default is no timeout.
+          'connectionTimeoutMillis',
           // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
           'idle_in_transaction_session_timeout',
           // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
           'lock_timeout',
           // Postgres allows additional session variables to be configured in the connection string in the `options` param.
           // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
-          'options'
+          'options',
+          // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
+          // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
+          'stream',
         ]));
     }
 
