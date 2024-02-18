@@ -37,9 +37,9 @@ export class PostgresQuery extends AbstractQuery {
 
     const query = new Promise((resolve, reject) => {
       if (parameters && parameters.length > 0) {
-        connection.query(sql, parameters, (error, result) =>
-          (error ? reject(error) : resolve(result)),
-        );
+        connection.query(sql, parameters, (error, result) => {
+          error ? reject(error) : resolve(result);
+        });
       } else {
         connection.query(sql, (error, result) => (error ? reject(error) : resolve(result)));
       }
@@ -84,7 +84,7 @@ export class PostgresQuery extends AbstractQuery {
       : queryResult.rowCount || 0;
 
     if (options?.minifyAliases && this.options.aliasesMapping) {
-      rows = rows.map((row) =>
+      rows = rows.map(row =>
         toPairs(row).reduce((acc, [key, value]) => {
           const mapping = this.options.aliasesMapping.get(key);
           acc[mapping || key] = value;
@@ -98,14 +98,14 @@ export class PostgresQuery extends AbstractQuery {
     const isRelNameQuery = sql.startsWith('SELECT relname FROM pg_class WHERE oid IN');
 
     if (isRelNameQuery) {
-      return rows.map((row) => ({
+      return rows.map(row => ({
         name: row.relname,
         tableName: row.relname.split('_')[0],
       }));
     }
 
     if (isTableNameQuery) {
-      return rows.map((row) => Object.values(row));
+      return rows.map(row => Object.values(row));
     }
 
     if (rows[0] && rows[0].sequelize_caught_exception !== undefined) {
@@ -169,10 +169,10 @@ export class PostgresQuery extends AbstractQuery {
               length: undefined,
             };
           })
-          .filter((n) => n !== null);
+          .filter(n => n !== null);
 
         row.includes = row.include_fields
-          .map((indKey) => {
+          .map(indKey => {
             field = columns[indKey];
             // for functional indices indKey = 0
             if (!field) {
@@ -181,7 +181,7 @@ export class PostgresQuery extends AbstractQuery {
 
             return field;
           })
-          .filter((n) => n !== null);
+          .filter(n => n !== null);
         delete row.columns;
         delete row.definition;
         delete row.index_fields;
@@ -203,7 +203,7 @@ export class PostgresQuery extends AbstractQuery {
           attrsMap[attrName.toLowerCase()] = attrName;
         }
 
-        result = rows.map((row) => {
+        result = rows.map(row => {
           return mapKeys(row, (value, key) => {
             const targetAttr = attrsMap[key];
             if (typeof targetAttr === 'string' && targetAttr !== key) {

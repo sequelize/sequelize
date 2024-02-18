@@ -83,7 +83,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           }
 
           await Promise.all(
-            indexes.map(async (index) => {
+            indexes.map(async index => {
               // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
               if (index.name.startsWith('sqlite_autoindex_')) {
                 return;
@@ -92,7 +92,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               return this.#sequelize.queryInterface.addIndex(tableName, {
                 ...index,
                 type: undefined,
-                fields: index.fields.map((field) => field.attribute),
+                fields: index.fields.map(field => field.attribute),
               });
             }),
           );

@@ -4,12 +4,12 @@ const { expect } = require('chai');
 const Support = require('../support');
 
 const {
-  Sequelize,
-  DataTypes,
   DatabaseError,
-  UniqueConstraintError,
+  DataTypes,
   ForeignKeyConstraintError,
+  Sequelize,
   sql,
+  UniqueConstraintError,
 } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
@@ -18,7 +18,7 @@ const queryGenerator = sequelize.queryGenerator;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
 
-const qq = (str) => {
+const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
     return `"${str}"`;
   }
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               emailAddress: 'john@gmail.com',
             },
             {
-              logging: (s) => {
+              logging: s => {
                 createSql = s;
               },
             },
@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           user.username = 'li';
 
           await user.save({
-            logging: (s) => {
+            logging: s => {
               updateSql = s;
             },
           });
@@ -301,7 +301,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             `select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
             {
               bind: ['foo', 'bar'],
-              logging: (s) => {
+              logging: s => {
                 logSql = s;
               },
             },
@@ -319,7 +319,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
       const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.username;
         }),
       ).to.include('john');
@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       await this.sequelize.query(this.insertQuery);
       const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.username;
         }),
       ).to.include('john');
@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         { raw: true, nest: true },
       );
       expect(
-        users.map((u) => {
+        users.map(u => {
           return u.user;
         }),
       ).to.deep.equal([{ username: 'john' }]);
@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
         const users = await this.sequelize.query('CALL foo()');
         expect(
-          users.map((u) => {
+          users.map(u => {
             return u.username;
           }),
         ).to.include('john');
@@ -395,7 +395,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         );
 
         const users = await sequelize.query('CALL foo()');
-        expect(users.map((u) => u.username)).to.include('john');
+        expect(users.map(u => u.username)).to.include('john');
       });
     }
 
@@ -764,7 +764,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
-          .then((obj) => obj[0]),
+          .then(obj => obj[0]),
       ).to.eventually.deep.equal(expected);
     });
 
@@ -776,7 +776,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
-          .then((obj) => obj[0]),
+          .then(obj => obj[0]),
       ).to.eventually.deep.equal(expected);
     });
 
@@ -790,7 +790,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
-          .then((obj) => obj[0]),
+          .then(obj => obj[0]),
       ).to.eventually.deep.equal(expected);
     });
 
@@ -802,7 +802,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
             { raw: true, replacements: { one: 1, two: null } },
           )
-          .then((obj) => obj[0]),
+          .then(obj => obj[0]),
       ).to.eventually.deep.equal(expected);
     });
 
@@ -974,7 +974,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               raw: true,
               replacements: { one: 1, two: 2 },
             })
-            .then((obj) => obj[0]),
+            .then(obj => obj[0]),
         ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
@@ -984,7 +984,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .query(
               'WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t',
             )
-            .then((obj) => obj[0]),
+            .then(obj => obj[0]),
         ).to.eventually.deep.equal([{ sum: '5050' }]);
       });
     }

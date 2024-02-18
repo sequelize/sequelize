@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const pMap = require('p-map');
 
 const current = Support.sequelize;
@@ -102,7 +102,7 @@ describe('Model.findOne', () => {
 
           await pMap(
             tasks,
-            (entry) => {
+            entry => {
               return entry();
             },
             {
@@ -360,7 +360,7 @@ describe('Model.findOne', () => {
         await this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]);
 
         await Promise.all(
-          permutations.map(async (perm) => {
+          permutations.map(async perm => {
             const user = await this.User.findByPk(perm, {
               logging(s) {
                 expect(s).to.include(0);
@@ -953,7 +953,7 @@ The following associations are defined on "Worker": "ToDos"`);
               expect(tag).to.exist;
               expect(tag.products.length).to.equal(2);
             })(),
-            tags[1].getProducts().then((products) => {
+            tags[1].getProducts().then(products => {
               expect(products.length).to.equal(3);
             }),
             (async () => {
@@ -967,7 +967,7 @@ The following associations are defined on "Worker": "ToDos"`);
               expect(product).to.exist;
               expect(product.tags.length).to.equal(2);
             })(),
-            products[1].getTags().then((tags) => {
+            products[1].getTags().then(tags => {
               expect(tags.length).to.equal(1);
             }),
           ]);

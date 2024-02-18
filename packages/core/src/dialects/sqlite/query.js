@@ -207,7 +207,7 @@ export class SqliteQuery extends AbstractQuery {
 
       // If we already have the metadata for the table, there's no need to ask for it again
       tableNames = tableNames.filter(
-        (tableName) => !(tableName in columnTypes) && tableName !== 'sqlite_master',
+        tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master',
       );
 
       if (tableNames.length === 0) {
@@ -215,7 +215,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       await Promise.all(
-        tableNames.map(async (tableName) => {
+        tableNames.map(async tableName => {
           tableName = tableName.replaceAll('`', '');
           columnTypes[tableName] = {};
 
@@ -289,7 +289,7 @@ export class SqliteQuery extends AbstractQuery {
           // Sqlite post 2.2 behavior - Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: table.x, table.y
           match = err.message.match(/UNIQUE constraint failed: (.*)/);
           if (match !== null && match.length >= 2) {
-            fields = match[1].split(', ').map((columnWithTable) => columnWithTable.split('.')[1]);
+            fields = match[1].split(', ').map(columnWithTable => columnWithTable.split('.')[1]);
           }
         }
 
@@ -332,7 +332,7 @@ export class SqliteQuery extends AbstractQuery {
   async handleShowIndexesQuery(data) {
     // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
     return Promise.all(
-      data.reverse().map(async (item) => {
+      data.reverse().map(async item => {
         item.fields = [];
         item.primary = false;
         item.unique = Boolean(item.unique);

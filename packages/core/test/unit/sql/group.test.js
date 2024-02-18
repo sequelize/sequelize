@@ -1,7 +1,7 @@
 'use strict';
 
 const { DataTypes } = require('@sequelize/core');
-const { sequelize, expectsql, beforeAll2 } = require('../../support');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
 
 const sql = sequelize.dialect.queryGenerator;
 

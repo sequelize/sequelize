@@ -22,7 +22,7 @@ export class MariaDbQueryInterface extends AbstractQueryInterface {
       constraintType: 'FOREIGN KEY',
     });
     await Promise.all(
-      foreignKeys.map((constraint) =>
+      foreignKeys.map(constraint =>
         this.removeConstraint(tableName, constraint.constraintName, options),
       ),
     );
@@ -44,11 +44,11 @@ export class MariaDbQueryInterface extends AbstractQueryInterface {
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
-    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, (pkAttrName) =>
+    options.upsertKeys = Array.from(modelDefinition.primaryKeysAttributeNames, pkAttrName =>
       modelDefinition.getColumnName(pkAttrName),
     );
 
-    const { query, bind } = this.queryGenerator.insertQuery(
+    const { bind, query } = this.queryGenerator.insertQuery(
       tableName,
       insertValues,
       getObjectFromMap(modelDefinition.attributes),

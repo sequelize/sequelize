@@ -43,7 +43,7 @@ const excludeEmails = new Set([
 // by GitHub now.
 const authorRe = /(^Author:|^Co-authored-by:)\s+(?<author>[^<]+)\s+(?<email><[^>]+>)/i;
 
-rl.on('line', (line) => {
+rl.on('line', line => {
   const match = line.match(authorRe);
   if (!match) {
     return;

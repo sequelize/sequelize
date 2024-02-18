@@ -182,9 +182,9 @@ export class Model extends ModelTypeScript {
     };
 
     if (options.attributes) {
-      options.attributes = options.attributes.map(attribute =>
-        (Array.isArray(attribute) ? attribute[1] : attribute),
-      );
+      options.attributes = options.attributes.map(attribute => {
+        return Array.isArray(attribute) ? attribute[1] : attribute;
+      });
     }
 
     if (!options.includeValidated) {
@@ -240,8 +240,8 @@ export class Model extends ModelTypeScript {
 
       const {
         createdAt: createdAtAttrName,
-        updatedAt: updatedAtAttrName,
         deletedAt: deletedAtAttrName,
+        updatedAt: updatedAtAttrName,
       } = modelDefinition.timestampAttributeNames;
 
       if (createdAtAttrName && defaults[createdAtAttrName]) {

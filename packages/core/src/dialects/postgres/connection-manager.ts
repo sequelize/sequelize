@@ -157,7 +157,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
-      connection.connect((err) => {
+      connection.connect(err => {
         responded = true;
 
         if (!this.sequelize.config.native) {

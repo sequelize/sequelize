@@ -79,7 +79,7 @@ export function generateIndexName(tableName: TableName, index: IndexOptions): st
 ${NodeUtil.inspect(index)}`);
   }
 
-  const fields = index.fields.map((field) => {
+  const fields = index.fields.map(field => {
     if (typeof field === 'string') {
       return field;
     }

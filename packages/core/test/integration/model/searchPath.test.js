@@ -513,13 +513,13 @@ describe('SearchPath in Model Methods', () => {
 
       await Promise.all([
         await rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_ONE }),
-        Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE }).then((rnt) =>
+        Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE }).then(rnt =>
           rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_ONE }),
         ),
-        Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO }).then((rnt) =>
+        Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
           rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_TWO }),
         ),
-        Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO }).then((rnt) =>
+        Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
           rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO }),
         ),
       ]);

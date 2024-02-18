@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const { EmptyResultError, UniqueConstraintError } = require('@sequelize/core');
-const { sequelize, beforeAll2 } = require('../../support');
+const { beforeAll2, sequelize } = require('../../support');
 const sinon = require('sinon');
 
 describe('Model#findCreateFind', () => {

@@ -168,14 +168,14 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const tableAttributes = this.attributesToSQL(attributes);
     const attributeNamesImport = Object.keys(tableAttributes)
-      .map((attr) =>
-        (attrNameAfter === attr
+      .map(attr => {
+        return attrNameAfter === attr
           ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}`
-          : this.quoteIdentifier(attr)),
-      )
+          : this.quoteIdentifier(attr);
+      })
       .join(', ');
     const attributeNamesExport = Object.keys(tableAttributes)
-      .map((attr) => this.quoteIdentifier(attr))
+      .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
     return [
@@ -205,7 +205,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const tableAttributes = this.attributesToSQL(attributes);
     const attributeNames = Object.keys(tableAttributes)
-      .map((attr) => this.quoteIdentifier(attr))
+      .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
     const backupTableSql = createTableSql

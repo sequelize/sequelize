@@ -469,7 +469,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         const constraints = await this.queryInterface.showConstraints('users');
         const foreignKey = constraints.find(
-          (constraint) => constraint.constraintType === 'FOREIGN KEY',
+          constraint => constraint.constraintType === 'FOREIGN KEY',
         );
         expect(foreignKey).to.not.be.undefined;
         expect(foreignKey).to.have.property('deleteAction', 'CASCADE');

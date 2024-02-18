@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const dayjs = require('dayjs');
 const sinon = require('sinon');
 
@@ -796,7 +796,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         Task.hasMany(User);
 
         await this.sequelize.sync({ force: true });
-        const users0 = range(1000).map((i) => ({ username: `user${i}`, num: i, status: 'live' }));
+        const users0 = range(1000).map(i => ({ username: `user${i}`, num: i, status: 'live' }));
         await User.bulkCreate(users0);
         await Task.create({ title: 'task' });
         const users = await User.findAll();

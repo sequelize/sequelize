@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { Sequelize, DataTypes, ConstraintChecking, Deferrable } = require('@sequelize/core');
+const { ConstraintChecking, DataTypes, Deferrable, Sequelize } = require('@sequelize/core');
 
 if (Support.sequelize.dialect.supports.constraints.deferrable) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
@@ -29,7 +29,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
                 taskTableName,
               });
 
-              return this.sequelize.transaction(transactionOptions, async (t) => {
+              return this.sequelize.transaction(transactionOptions, async t => {
                 const task0 = await Task.create(
                   { title: 'a task', user_id: -1 },
                   { transaction: t },
@@ -96,7 +96,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
 
       describeDeferrableTest(
         'set in define',
-        async ({ sequelize, userTableName, deferrable, taskTableName }) => {
+        async ({ deferrable, sequelize, taskTableName, userTableName }) => {
           const User = sequelize.define(
             'User',
             { name: DataTypes.STRING },
@@ -131,7 +131,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
 
       describeDeferrableTest(
         'set in addConstraint',
-        async ({ sequelize, userTableName, deferrable, taskTableName }) => {
+        async ({ deferrable, sequelize, taskTableName, userTableName }) => {
           const User = sequelize.define(
             'User',
             { name: DataTypes.STRING },

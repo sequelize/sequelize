@@ -7,7 +7,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const delay = require('delay');
 const assert = require('node:assert');
@@ -222,7 +222,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
 
         await Promise.all(
-          range(50).map((i) => {
+          range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
 
         await Promise.all(
-          range(50).map((i) => {
+          range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         );
 
         await Promise.all(
-          range(50).map((i) => {
+          range(50).map(i => {
             return User.findOrCreate({
               where: {
                 email: `unique.email.${i}@sequelizejs.com`,
@@ -436,7 +436,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('should release transaction when meeting errors', async function () {
-        const test = async (times) => {
+        const test = async times => {
           if (times > 10) {
             return true;
           }
@@ -507,7 +507,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        User.beforeCreate((instance) => {
+        User.beforeCreate(instance => {
           instance.username += ' h.';
         });
 
@@ -518,7 +518,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await User.sync({ force: true });
 
         await Promise.all(
-          names.map(async (username) => {
+          names.map(async username => {
             try {
               return await User.findOrCreate({ where: { username } });
             } catch (error) {
@@ -1049,7 +1049,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await userWithDefaults.create({});
         const user0 = await userWithDefaults.findByPk(user.id);
         const now = new Date();
-        const pad = (number) => number.toString().padStart(2, '0');
+        const pad = number => number.toString().padStart(2, '0');
 
         expect(user0.year).to.equal(
           `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`,

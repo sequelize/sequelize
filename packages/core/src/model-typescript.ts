@@ -363,11 +363,11 @@ export class ModelTypeScript {
         continue;
       }
 
-      if (!index.fields.every((field) => typeof field === 'string')) {
+      if (!index.fields.every(field => typeof field === 'string')) {
         continue;
       }
 
-      if (!Object.keys(index).every((optionName) => supportedOptions.includes(optionName))) {
+      if (!Object.keys(index).every(optionName => supportedOptions.includes(optionName))) {
         continue;
       }
 

@@ -32,7 +32,7 @@ export function parseConnectionString(connectionString: string): Options {
 
     if (!SUPPORTED_DIALECTS.includes(protocol as Dialect)) {
       throw new Error(
-        `The protocol was set to ${JSON.stringify(protocol)}, which is not a supported dialect. Set it to one of ${SUPPORTED_DIALECTS.map((d) => JSON.stringify(d)).join(', ')} instead.`,
+        `The protocol was set to ${JSON.stringify(protocol)}, which is not a supported dialect. Set it to one of ${SUPPORTED_DIALECTS.map(d => JSON.stringify(d)).join(', ')} instead.`,
       );
     }
 

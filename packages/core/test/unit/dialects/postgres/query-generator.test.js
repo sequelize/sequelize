@@ -1111,7 +1111,7 @@ if (dialect.startsWith('postgres')) {
         },
       ];
 
-      each(tests, (test) => {
+      each(tests, test => {
         it(test.title, function () {
           const convertedText = this.queryGenerator.fromArray(test.arguments);
           expect(convertedText).to.deep.equal(test.expectation);

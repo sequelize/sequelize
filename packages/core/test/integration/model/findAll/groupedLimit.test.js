@@ -101,16 +101,16 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id')),
               },
             });
 
             expect(users).to.have.length(5);
-            for (const u of users.filter((u) => u.get('id') !== 3)) {
+            for (const u of users.filter(u => u.get('id') !== 3)) {
               expect(u.get('project_user')).to.have.length(1);
             }
 
-            for (const u of users.filter((u) => u.get('id') === 3)) {
+            for (const u of users.filter(u => u.get('id') === 3)) {
               expect(u.get('project_user')).to.have.length(2);
             }
           });
@@ -120,7 +120,7 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id')),
               },
               order: ['id'],
               include: [this.User.Tasks],
@@ -131,14 +131,14 @@ if (current.dialect.supports['UNION ALL']) {
              project2 - 3, 4, 5
              */
             expect(users).to.have.length(5);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 2, 3, 4, 5]);
 
             expect(users[2].get('tasks')).to.have.length(2);
-            for (const u of users.filter((u) => u.get('id') !== 3)) {
+            for (const u of users.filter(u => u.get('id') !== 3)) {
               expect(u.get('project_user')).to.have.length(1);
             }
 
-            for (const u of users.filter((u) => u.get('id') === 3)) {
+            for (const u of users.filter(u => u.get('id') === 3)) {
               expect(u.get('project_user')).to.have.length(2);
             }
           });
@@ -149,7 +149,7 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Projects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id')),
               },
               order: [
                 Sequelize.fn('ABS', Sequelize.col('age')),
@@ -164,7 +164,7 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users).to.have.length(5);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
           });
 
           it('works with paranoid junction models', async function () {
@@ -173,7 +173,7 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id')),
               },
               order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
               include: [this.User.Tasks],
@@ -184,7 +184,7 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 3, 5, 7
              */
             expect(users0).to.have.length(5);
-            expect(users0.map((u) => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
+            expect(users0.map(u => u.get('id'))).to.deep.equal([1, 3, 5, 7, 4]);
 
             await Promise.all([
               this.projects[0].setParanoidMembers(users0.slice(0, 2)),
@@ -196,7 +196,7 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.ParanoidProjects,
-                values: this.projects.map((item) => item.get('id')),
+                values: this.projects.map(item => item.get('id')),
               },
               order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
               include: [this.User.Tasks],
@@ -207,7 +207,7 @@ if (current.dialect.supports['UNION ALL']) {
               project2 - 4
              */
             expect(users).to.have.length(3);
-            expect(users.map((u) => u.get('id'))).to.deep.equal([1, 3, 4]);
+            expect(users.map(u => u.get('id'))).to.deep.equal([1, 3, 4]);
           });
         });
 
@@ -247,7 +247,7 @@ if (current.dialect.supports['UNION ALL']) {
               groupedLimit: {
                 limit: 3,
                 on: this.User.Tasks,
-                values: this.users.map((item) => item.get('id')),
+                values: this.users.map(item => item.get('id')),
               },
             });
 

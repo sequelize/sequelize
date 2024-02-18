@@ -41,12 +41,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     Support.setResetMode('none');
 
     const vars = Support.beforeAll2(() => {
-      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', (options) => {
+      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', options => {
         options.database = 'db2';
         options.host = 'server9';
       });
 
-      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', (sequelize) => {
+      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', sequelize => {
         sequelize.options.protocol = 'udp';
       });
 

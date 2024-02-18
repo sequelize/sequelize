@@ -100,11 +100,11 @@ for (const exportPath of exportPaths) {
       expect(missingEsmKeys.length).to.eq(
         0,
         `ESM entry point is missing exports: ${missingEsmKeys
-          .map((v) => JSON.stringify(v))
+          .map(v => JSON.stringify(v))
           .join(', ')}.
 Either add these exports the corresponding .mjs file (and .d.ts if applicable), or mark them as ignored in "esm-named-exports.test.js:
 
-${missingEsmKeys.map((key) => `export const ${key} = Pkg.${key};\n`).join('')}"
+${missingEsmKeys.map(key => `export const ${key} = Pkg.${key};\n`).join('')}"
       `,
       );
 

@@ -183,7 +183,7 @@ export class MariaDbQuery extends AbstractQuery {
       const modelField = this.model.fieldRawAttributesMap[_field];
       if (modelField.type instanceof DataTypes.JSON) {
         // Value is returned as String, not JSON
-        rows = rows.map((row) => {
+        rows = rows.map(row => {
           // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
           // In this case the column type field will be MYSQL_TYPE_STRING, but the extended type will indicate 'json'
           if (
@@ -220,7 +220,7 @@ export class MariaDbQuery extends AbstractQuery {
         const fieldVal = match ? match[1] : undefined;
         const uniqueKey =
           this.model &&
-          this.model.getIndexes().find((index) => index.unique && index.name === fieldKey);
+          this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {

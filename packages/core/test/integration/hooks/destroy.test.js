@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           {
             paranoid: true,
             hooks: {
-              beforeDestroy: (instance) => {
+              beforeDestroy: instance => {
                 instance.updatedBy = 1;
               },
             },
@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should not throw error when a beforeDestroy hook changes a virtual column', async function () {
-        this.ParanoidUser.beforeDestroy((instance) => {
+        this.ParanoidUser.beforeDestroy(instance => {
           instance.virtualField = 2;
         });
 

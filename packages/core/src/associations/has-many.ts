@@ -194,7 +194,7 @@ export class HasManyAssociation<
       options,
       parent,
       normalizeHasManyOptions,
-      (normalizedOptions) => {
+      normalizedOptions => {
         // self-associations must always set their 'as' parameter
         if (
           isSameInitialModel(source, target) &&
@@ -270,7 +270,7 @@ export class HasManyAssociation<
 
     let values;
     if (instances.length > 1) {
-      values = instances.map((instance) => instance.get(this.sourceKey, { raw: true }));
+      values = instances.map(instance => instance.get(this.sourceKey, { raw: true }));
 
       if (findOptions.limit && instances.length > 1) {
         findOptions.groupedLimit = {
@@ -367,7 +367,7 @@ export class HasManyAssociation<
     const normalizedTargets = this.toInstanceOrPkArray(targets);
 
     const where = {
-      [Op.or]: normalizedTargets.map((instance) => {
+      [Op.or]: normalizedTargets.map(instance => {
         if (instance instanceof this.target) {
           // TODO: remove eslint-disable once we drop support for < 5.2
           // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
@@ -417,15 +417,15 @@ export class HasManyAssociation<
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
-    const obsoleteAssociations = oldAssociations.filter((old) => {
-      return !normalizedTargets.some((obj) => {
+    const obsoleteAssociations = oldAssociations.filter(old => {
+      return !normalizedTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
-    const unassociatedObjects = normalizedTargets.filter((obj) => {
-      return !oldAssociations.some((old) => {
+    const unassociatedObjects = normalizedTargets.filter(obj => {
+      return !oldAssociations.some(old => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
@@ -448,7 +448,7 @@ export class HasManyAssociation<
 
       const updateWhere = {
         // @ts-expect-error -- TODO: what if the target has no primary key?
-        [this.target.primaryKeyAttribute]: unassociatedObjects.map((unassociatedObject) => {
+        [this.target.primaryKeyAttribute]: unassociatedObjects.map(unassociatedObject => {
           // @ts-expect-error -- TODO: what if the target has no primary key?
           return unassociatedObject.get(this.target.primaryKeyAttribute);
         }),
@@ -491,7 +491,7 @@ export class HasManyAssociation<
 
     const where = {
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: targetInstances.map((unassociatedObject) => {
+      [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
         // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
@@ -524,7 +524,7 @@ export class HasManyAssociation<
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: normalizedTargets.map((targetInstance) => {
+      [this.target.primaryKeyAttribute]: normalizedTargets.map(targetInstance => {
         if (targetInstance instanceof this.target) {
           // @ts-expect-error -- TODO: what if the target has no primary key?
           return targetInstance.get(this.target.primaryKeyAttribute);

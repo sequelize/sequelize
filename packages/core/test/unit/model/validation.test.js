@@ -2,8 +2,8 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { Sequelize, Op, DataTypes } = require('@sequelize/core');
-const { sequelize, rand } = require('../../support');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { rand, sequelize } = require('../../support');
 
 const dialect = sequelize.dialect;
 

@@ -40,7 +40,7 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     for (const value of model.getIndexes()) {
       if (value.unique) {
         // fields in the index may both the strings or objects with an attribute property - lets sanitize that
-        indexFields = value.fields.map((field) => {
+        indexFields = value.fields.map(field => {
           if (isPlainObject(field)) {
             return field.attribute;
           }
@@ -93,7 +93,7 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = mapValues(attributes, (attribute) => this.sequelize.normalizeAttribute(attribute));
+    attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
     const modelTable = model?.table;
 

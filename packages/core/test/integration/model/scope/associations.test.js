@@ -381,12 +381,8 @@ describe('Model scope with associations', () => {
         await this.sequelize.sync({ force: true });
 
         await Promise.all([
-          Parent.create({ name: 'parent1' }).then((parent) =>
-            parent.createChild({ name: 'child1' }),
-          ),
-          Parent.create({ name: 'parent2' }).then((parent) =>
-            parent.createChild({ name: 'child2' }),
-          ),
+          Parent.create({ name: 'parent1' }).then(parent => parent.createChild({ name: 'child1' })),
+          Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' })),
         ]);
 
         const parent = await Parent.scope('testScope1').findOne({

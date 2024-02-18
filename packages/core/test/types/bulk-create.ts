@@ -8,7 +8,7 @@ class TestModel extends Model {
   declare testEnum: 'd' | 'e' | 'f' | null;
 }
 
-sequelize.transaction(async (trx) => {
+sequelize.transaction(async trx => {
   const newItems: Array<CreationAttributes<TestModel>> = [
     {
       testEnum: 'e',

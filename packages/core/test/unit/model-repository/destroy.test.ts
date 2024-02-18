@@ -205,7 +205,7 @@ describe('ModelRepository#destroy', () => {
     const instance2 = SimpleId.build({ id: 2 });
     const instance3 = SimpleId.build({ id: 3 });
 
-    SimpleId.hooks.addListener('beforeDestroyMany', (instances) => {
+    SimpleId.hooks.addListener('beforeDestroyMany', instances => {
       instances.push(instance3);
     });
 
@@ -227,7 +227,7 @@ describe('ModelRepository#destroy', () => {
 
     const instance1 = SimpleId.build({ id: 1 });
 
-    SimpleId.hooks.addListener('beforeDestroyMany', (instances) => {
+    SimpleId.hooks.addListener('beforeDestroyMany', instances => {
       // remove all instances
       instances.splice(0, instances.length);
     });

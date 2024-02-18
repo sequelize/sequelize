@@ -107,7 +107,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
         transactionEnded = true;
       });
 
-      await new Promise<void>((resolve) => {
+      await new Promise<void>(resolve => {
         // Wait for the transaction to be setup
         const interval = setInterval(() => {
           if (transactionSetup) {
@@ -172,7 +172,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   });
 
   it('promises returned by sequelize.query are correctly patched', async () => {
-    await vars.clsSequelize.transaction(async (t) => {
+    await vars.clsSequelize.transaction(async t => {
       await vars.clsSequelize.query('select 1', { type: QueryTypes.SELECT });
 
       return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
@@ -197,7 +197,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       getModel,
     }: Params<T>) {
       it(`passes the transaction to hooks {${hookNames.join(',')}} when calling ${method}`, async () => {
-        await vars.clsSequelize.transaction(async (transaction) => {
+        await vars.clsSequelize.transaction(async transaction => {
           const hooks = Object.create(null);
 
           for (const hookName of hookNames) {

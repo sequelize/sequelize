@@ -347,7 +347,7 @@ describe('hasMany Mixins + transaction', () => {
 
       const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
-      await transactionSequelize.transaction(async (transaction) => {
+      await transactionSequelize.transaction(async transaction => {
         await article.setLabels([label], { transaction });
         const labels0 = await Label.findAll({
           where: { articleId: article.id },

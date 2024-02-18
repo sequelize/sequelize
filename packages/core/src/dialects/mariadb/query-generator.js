@@ -55,7 +55,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -64,7 +64,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         }
 
         attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields
-          .map((field) => this.quoteIdentifier(field))
+          .map(field => this.quoteIdentifier(field))
           .join(', ')})`;
       });
     }

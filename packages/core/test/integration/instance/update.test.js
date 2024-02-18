@@ -271,7 +271,7 @@ describe('Model#update', () => {
         email: DataTypes.STRING,
       });
 
-      User.beforeUpdate((instance) => {
+      User.beforeUpdate(instance => {
         instance.set('email', 'B');
       });
 
@@ -301,7 +301,7 @@ describe('Model#update', () => {
         email: DataTypes.STRING,
       });
 
-      User.beforeUpdate((instance) => {
+      User.beforeUpdate(instance => {
         instance.set('email', 'C');
       });
 
@@ -381,7 +381,7 @@ describe('Model#update', () => {
         },
       });
 
-      User.beforeUpdate((instance) => {
+      User.beforeUpdate(instance => {
         instance.set('email', 'B');
       });
 
@@ -415,7 +415,7 @@ describe('Model#update', () => {
         },
       });
 
-      User.beforeUpdate((instance) => {
+      User.beforeUpdate(instance => {
         instance.set('email', 'B');
       });
 

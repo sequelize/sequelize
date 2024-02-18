@@ -38,7 +38,7 @@ type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
  */
 export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>(
   'Attribute',
-  (attrOptionOrDataType) => {
+  attrOptionOrDataType => {
     if (isDataType(attrOptionOrDataType)) {
       return {
         type: attrOptionOrDataType,

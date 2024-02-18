@@ -26,7 +26,7 @@ describe('[MSSQL Specific] Async Queue', () => {
 
   it('should queue concurrent requests to a connection', async () => {
     await expect(
-      sequelize.transaction(async (transaction) => {
+      sequelize.transaction(async transaction => {
         return Promise.all([
           vars.User.findOne({ transaction }),
           vars.User.findOne({ transaction }),
@@ -37,7 +37,7 @@ describe('[MSSQL Specific] Async Queue', () => {
 
   it('requests that reject should not affect future requests', async () => {
     await expect(
-      sequelize.transaction(async (transaction) => {
+      sequelize.transaction(async transaction => {
         await expect(vars.User.create({ username: new Date() })).to.be.rejected;
         await expect(vars.User.findOne({ transaction })).not.to.be.rejected;
       }),
@@ -48,7 +48,7 @@ describe('[MSSQL Specific] Async Queue', () => {
     let promise;
 
     await expect(
-      sequelize.transaction(async (transaction) => {
+      sequelize.transaction(async transaction => {
         promise = Promise.all([
           expect(sequelize.dialect.connectionManager.disconnect(transaction.getConnection())).to.be
             .fulfilled,
@@ -82,7 +82,7 @@ describe('[MSSQL Specific] Async Queue', () => {
     let promise;
 
     await expect(
-      sequelize.transaction(async (transaction) => {
+      sequelize.transaction(async transaction => {
         const connection = transaction.getConnection() as MsSqlConnection;
         const wrappedExecSql = connection.execSql;
         connection.execSql = async function execSql(...args) {

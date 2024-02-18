@@ -208,7 +208,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
         expect(
           comments
-            .map((comment) => {
+            .map(comment => {
               return comment.get('commentable');
             })
             .sort(),
@@ -639,7 +639,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               postTags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),
@@ -647,7 +647,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               imageTags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),
@@ -655,7 +655,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               questionTags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),
@@ -682,7 +682,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               post.tags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),
@@ -690,7 +690,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               image.tags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),
@@ -698,7 +698,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             expect(
               question.tags
-                .map((tag) => {
+                .map(tag => {
                   return tag.name;
                 })
                 .sort(),

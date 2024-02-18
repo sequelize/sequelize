@@ -172,7 +172,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
     const skip = options?.skip || [];
     const allSchemas = await this.listSchemas(options);
-    const schemaNames = allSchemas.filter((schemaName) => !skip.includes(schemaName));
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
 
     const dropOptions = { ...options };
     // enable "cascade" by default for dialects that support it
@@ -213,7 +213,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       type: QueryTypes.SELECT,
     });
 
-    return schemaNames.map((schemaName) => schemaName.schema);
+    return schemaNames.map(schemaName => schemaName.schema);
   }
 
   /**
@@ -248,7 +248,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
     const allTables = await this.listTables(options);
-    const tableNames = allTables.filter((tableName) => !skip.includes(tableName.tableName));
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     const dropOptions = { ...options };
     // enable "cascade" by default if supported by this dialect
@@ -265,7 +265,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       });
       // eslint-disable-next-line no-await-in-loop
       await Promise.all(
-        foreignKeys.map(async (fk) => this.removeConstraint(tableName, fk.constraintName, options)),
+        foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)),
       );
     }
 
@@ -731,7 +731,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       return this.#withoutForeignKeyChecks(options, callback);
     }
 
-    return this.sequelize.withConnection(async (connection) => {
+    return this.sequelize.withConnection(async connection => {
       return this.#withoutForeignKeyChecks({ ...options, connection }, callback);
     });
   }

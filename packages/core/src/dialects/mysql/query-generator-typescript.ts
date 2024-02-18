@@ -51,7 +51,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT SCHEMA_NAME AS `schema`',
       'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(', ')})`,
+      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
 
@@ -68,7 +68,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
         : `AND TABLE_SCHEMA NOT IN (${this.#internals
             .getTechnicalSchemaNames()
-            .map((schema) => this.escape(schema))
+            .map(schema => this.escape(schema))
             .join(', ')})`,
       'ORDER BY TABLE_SCHEMA, TABLE_NAME',
     ]);

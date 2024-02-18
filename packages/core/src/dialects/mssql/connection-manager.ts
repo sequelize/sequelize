@@ -198,7 +198,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
 
     connection.queue.close();
 
-    await new Promise<void>((resolve) => {
+    await new Promise<void>(resolve => {
       connection.on('end', resolve);
       connection.close();
       debug('connection closed');

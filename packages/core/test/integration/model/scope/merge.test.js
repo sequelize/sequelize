@@ -197,7 +197,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
         // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
         const results = await Promise.all(
-          this.scopePermutations.map((scopes) => this.Foo.scope(...scopes).findOne()),
+          this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()),
         );
         const first = results.shift().toJSON();
         for (const result of results) {

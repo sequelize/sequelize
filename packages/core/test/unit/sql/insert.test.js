@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       // mapping primary keys to their "field" override values
       const primaryKeys = User.primaryKeyAttributes.map(
-        (attr) => User.getAttributes()[attr].field || attr,
+        attr => User.getAttributes()[attr].field || attr,
       );
 
       expectsql(
@@ -418,7 +418,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         // mapping primary keys to their "field" override values
         const primaryKeys = User.primaryKeyAttributes.map(
-          (attr) => User.getAttributes()[attr].field || attr,
+          attr => User.getAttributes()[attr].field || attr,
         );
 
         let result;

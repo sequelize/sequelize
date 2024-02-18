@@ -318,7 +318,7 @@ export abstract class SequelizeTypeScript {
 
   constructor() {
     // Synchronize ModelDefinition map with the registered models set
-    listenForModelDefinition((model) => {
+    listenForModelDefinition(model => {
       const modelName = model.modelDefinition.modelName;
 
       // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
@@ -336,7 +336,7 @@ export abstract class SequelizeTypeScript {
   }
 
   addModels(models: ModelStatic[]) {
-    const registeredModels = models.filter((model) =>
+    const registeredModels = models.filter(model =>
       initDecoratedModel(
         model,
         // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
@@ -598,10 +598,10 @@ export abstract class SequelizeTypeScript {
 
       // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
       // even if there are no actual rows in the referencing table. To work around this, we disable foreign key.
-      return this.queryInterface.withoutForeignKeyChecks(options, async (connection) => {
+      return this.queryInterface.withoutForeignKeyChecks(options, async connection => {
         const truncateOptions = { ...options, connection };
 
-        await Promise.all(models.map(async (model) => model.truncate(truncateOptions)));
+        await Promise.all(models.map(async model => model.truncate(truncateOptions)));
       });
     }
 
@@ -615,7 +615,7 @@ export abstract class SequelizeTypeScript {
       return;
     }
 
-    await Promise.all(models.map(async (model) => model.truncate(options)));
+    await Promise.all(models.map(async model => model.truncate(options)));
   }
 
   async withConnection<T>(options: WithConnectionOptions, callback: SessionCallback<T>): Promise<T>;

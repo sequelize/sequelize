@@ -41,7 +41,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER`,
       `AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%'`,
       options?.skip && Array.isArray(options.skip) && options.skip.length > 0
-        ? `AND SCHEMA_NAME NOT IN (${options?.skip.map((schema) => this.escape(schema)).join(', ')})`
+        ? `AND SCHEMA_NAME NOT IN (${options?.skip.map(schema => this.escape(schema)).join(', ')})`
         : '',
     ]);
   }

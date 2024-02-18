@@ -1,7 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
-const { stub, spy } = require('sinon');
+const { spy, stub } = require('sinon');
 const Support = require('../support');
 const { Sequelize } = require('@sequelize/core');
 

@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { sequelize, beforeEach2 } = require('../support');
+const { beforeEach2, sequelize } = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const dialectName = sequelize.dialect.name;

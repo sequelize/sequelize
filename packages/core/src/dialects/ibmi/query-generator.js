@@ -56,7 +56,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
       // only need to sort primary keys once, don't do it in place
@@ -82,7 +82,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map((field) => this.quoteIdentifier(field)).join(', ')})`;
+        attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -206,7 +206,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       options.prefix = options.prefix.replaceAll('.', '_');
     }
 
-    const fieldsSql = options.fields.map((field) => {
+    const fieldsSql = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.quoteIdentifier(field);
       }
@@ -388,7 +388,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       }
 
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
-        .map((value) => {
+        .map(value => {
           return this.escape(value);
         })
         .join(', ')}))`;

@@ -2,9 +2,9 @@
 
 const cloneDeep = require('lodash/cloneDeep');
 
-const { expect, assert } = require('chai');
+const { assert, expect } = require('chai');
 const Support = require('./support');
-const { DataTypes, Transaction, Sequelize, literal } = require('@sequelize/core');
+const { DataTypes, literal, Sequelize, Transaction } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const { Config: config } = require('../config/config');
@@ -12,7 +12,7 @@ const sinon = require('sinon');
 
 const current = Support.sequelize;
 
-const qq = (str) => {
+const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
     return `"${str}"`;
   }
@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     }
 
     if (dialect === 'postgres') {
-      const getConnectionUri = (o) =>
+      const getConnectionUri = o =>
         `${o.protocol}://${o.username}:${o.password}@${o.host}${o.port ? `:${o.port}` : ''}/${o.database}${o.options ? `?options=${o.options}` : ''}`;
       it('should work with connection strings (postgres protocol)', () => {
         const connectionUri = getConnectionUri({ ...config[dialect], protocol: 'postgres' });
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       );
       await Photo.sync({ force: true });
       const result = await this.sequelize.queryInterface.listTables();
-      const tableNames = result.map((v) => v.tableName);
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.include('photos');
     });
@@ -377,7 +377,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                   'FATAL:  role "bar" does not exist',
                   'password authentication failed for user "bar"',
                   'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
-                ].some((fragment) => error.message.includes(fragment)),
+                ].some(fragment => error.message.includes(fragment)),
               );
 
               break;
@@ -610,7 +610,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               { timestamps: false },
             );
 
-            const count = async (transaction) => {
+            const count = async transaction => {
               const sql = vars.sequelizeWithTransaction.queryGenerator.selectQuery(
                 'TransactionTests',
                 { attributes: [[literal('count(*)'), 'cnt']] },
@@ -647,7 +647,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             );
             const aliasesMapping = new Map([['_0', 'cnt']]);
 
-            const count = async (transaction) => {
+            const count = async transaction => {
               const sql = vars.sequelizeWithTransaction.queryGenerator.selectQuery(
                 'TransactionTests',
                 { attributes: [[literal('count(*)'), 'cnt']] },

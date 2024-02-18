@@ -17,7 +17,7 @@ describe('QueryInterface#renameTable', () => {
     it('should rename table', async () => {
       await queryInterface.renameTable('my_test_table', 'my_test_table_new');
       const result = await queryInterface.listTables();
-      const tableNames = result.map((v) => v.tableName);
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('my_test_table_new');
       expect(tableNames).to.not.contain('my_test_table');
@@ -43,7 +43,7 @@ describe('QueryInterface#renameTable', () => {
           { tableName: 'my_test_table_new', schema },
         );
         const result = await queryInterface.listTables({ schema: 'my_schema' });
-        const tableNames = result.map((v) => v.tableName);
+        const tableNames = result.map(v => v.tableName);
 
         expect(tableNames).to.contain('my_test_table_new');
         expect(tableNames).to.not.contain('my_test_table');
@@ -76,13 +76,13 @@ describe('QueryInterface#renameTable', () => {
         if (dialect.supports.renameTable.changeSchema) {
           await promise;
           const previousSchemaResult = await queryInterface.listTables({ schema });
-          const previousSchemaTableNames = previousSchemaResult.map((v) => v.tableName);
+          const previousSchemaTableNames = previousSchemaResult.map(v => v.tableName);
           expect(previousSchemaTableNames).to.not.contain('my_test_table');
 
           const defaultSchemaResult = await queryInterface.listTables({
             schema: dialect.getDefaultSchema(),
           });
-          const defaultSchemaTableNames = defaultSchemaResult.map((v) => v.tableName);
+          const defaultSchemaTableNames = defaultSchemaResult.map(v => v.tableName);
           expect(defaultSchemaTableNames).to.contain('my_test_table');
         } else {
           await expect(promise).to.be.rejectedWith(
@@ -103,13 +103,13 @@ describe('QueryInterface#renameTable', () => {
           if (dialect.supports.renameTable.changeSchemaAndTable) {
             await promise;
             const previousSchemaResult = await queryInterface.listTables({ schema });
-            const previousSchemaTableNames = previousSchemaResult.map((v) => v.tableName);
+            const previousSchemaTableNames = previousSchemaResult.map(v => v.tableName);
             expect(previousSchemaTableNames).to.not.contain('my_test_table');
 
             const defaultSchemaResult = await queryInterface.listTables({
               schema: dialect.getDefaultSchema(),
             });
-            const defaultSchemaTableNames = defaultSchemaResult.map((v) => v.tableName);
+            const defaultSchemaTableNames = defaultSchemaResult.map(v => v.tableName);
             expect(defaultSchemaTableNames).to.contain('my_test_table_new');
           } else {
             await expect(promise).to.be.rejectedWith(

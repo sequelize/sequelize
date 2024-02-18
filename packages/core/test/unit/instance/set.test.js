@@ -87,7 +87,7 @@ describe('Model#set', () => {
     const vars = beforeAll2(() => {
       const stubCreate = sinon
         .stub(sequelize.queryInterface, 'insert')
-        .callsFake(async (instance) => [instance, 1]);
+        .callsFake(async instance => [instance, 1]);
       const User = sequelize.define('User', {
         phoneNumber: {
           type: DataTypes.STRING,

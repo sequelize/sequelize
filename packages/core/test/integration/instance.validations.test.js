@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 const Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
@@ -700,7 +700,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           password: 'short',
           salt: '42',
         }).validate(),
-      ).to.be.rejected.then((errors) => {
+      ).to.be.rejected.then(errors => {
         expect(errors.get('password')[0].message).to.equal('Please choose a longer password');
       }),
       expect(
@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('allows me to add custom validation functions to validator.js', async function () {
-    this.sequelize.Validator.extend('isExactly7Characters', (val) => {
+    this.sequelize.Validator.extend('isExactly7Characters', val => {
       return val.length === 7;
     });
 

@@ -81,7 +81,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -89,7 +89,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map((field) => this.quoteIdentifier(field)).join(', ')})`;
+        attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 

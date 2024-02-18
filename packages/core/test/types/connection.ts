@@ -19,8 +19,7 @@ async function test() {
   ).toEqualTypeOf<[number, number]>();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive :/
-sequelize.transaction<void>(async (transaction) => {
+sequelize.transaction<void>(async transaction => {
   expectTypeOf(
     await sequelize.query('SELECT * FROM `user`', {
       retry: {

@@ -18,7 +18,7 @@ if (dialect === 'mysql') {
       try {
         return await promise;
       } catch (error) {
-        return Object.keys(wanted).forEach((k) => expect(error[k]).to.eql(wanted[k]));
+        return Object.keys(wanted).forEach(k => expect(error[k]).to.eql(wanted[k]));
       }
     };
 

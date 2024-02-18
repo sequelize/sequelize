@@ -76,7 +76,7 @@ chai.config.includeStack = true;
 chai.should();
 
 // Make sure errors get thrown when testing
-process.on('uncaughtException', (e) => {
+process.on('uncaughtException', e => {
   console.error('An unhandled exception occurred:');
   throw e;
 });
@@ -84,7 +84,7 @@ process.on('uncaughtException', (e) => {
 let onNextUnhandledRejection: ((error: unknown) => any) | null = null;
 let unhandledRejections: unknown[] | null = null;
 
-process.on('unhandledRejection', (e) => {
+process.on('unhandledRejection', e => {
   if (unhandledRejections) {
     unhandledRejections.push(e);
   }
@@ -177,7 +177,7 @@ export function getSequelizeInstance(
 export function getSupportedDialects() {
   return fs
     .readdirSync(path.join(distDir, 'dialects'))
-    .filter((file) => !file.includes('.js') && !file.includes('abstract'));
+    .filter(file => !file.includes('.js') && !file.includes('abstract'));
 }
 
 export function getTestDialect(): Dialect {
@@ -190,7 +190,7 @@ export function getTestDialect(): Dialect {
   if (!getSupportedDialects().includes(envDialect)) {
     throw new Error(
       `The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects()
-        .map((d) => JSON.stringify(d))
+        .map(d => JSON.stringify(d))
         .join(', ')} instead.`,
     );
   }
@@ -462,7 +462,7 @@ export function rand() {
 }
 
 export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]): boolean {
-  return expectedOptions.some((expected) => isDeepStrictEqual(actual, expected));
+  return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
 }
 
 /**

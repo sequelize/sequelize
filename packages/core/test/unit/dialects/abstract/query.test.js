@@ -7,7 +7,7 @@ const {
 
 const Support = require('../../../support');
 const chai = require('chai');
-const { stub, match } = require('sinon');
+const { match, stub } = require('sinon');
 
 const current = Support.sequelize;
 const expect = chai.expect;

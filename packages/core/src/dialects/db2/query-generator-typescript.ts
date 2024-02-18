@@ -64,7 +64,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA',
-      `WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(', ')})`,
+      `WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
 
@@ -99,7 +99,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `AND TABSCHEMA = ${this.escape(options.schema)}`
         : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this.#internals
             .getTechnicalSchemaNames()
-            .map((schema) => this.escape(schema))
+            .map(schema => this.escape(schema))
             .join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);

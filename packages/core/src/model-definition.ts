@@ -340,7 +340,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     // Add id if no primary key was manually added to definition
     if (
       !this.options.noPrimaryKey &&
-      !some(Object.values(rawAttributes), (attr) => Boolean(attr.primaryKey))
+      !some(Object.values(rawAttributes), attr => Boolean(attr.primaryKey))
     ) {
       if ('id' in rawAttributes && rawAttributes.id?.primaryKey === undefined) {
         throw new Error(
@@ -716,7 +716,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       }
     }
 
-    const existingIndex = this.#indexes.find((i) => i.name === index.name);
+    const existingIndex = this.#indexes.find(i => i.name === index.name);
     if (existingIndex == null) {
       this.#indexes.push(index);
 

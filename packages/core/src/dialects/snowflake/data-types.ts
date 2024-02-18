@@ -24,7 +24,7 @@ export class UUID extends BaseTypes.UUID {
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
-    const minLength = maxBy(this.options.values, (value) => value.length)?.length ?? 0;
+    const minLength = maxBy(this.options.values, value => value.length)?.length ?? 0;
 
     // db2 does not have an ENUM type, we use VARCHAR instead.
     return `VARCHAR(${Math.max(minLength, 255)})`;

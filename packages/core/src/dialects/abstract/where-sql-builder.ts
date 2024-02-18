@@ -191,7 +191,7 @@ export class WhereSqlBuilder {
     // Arrays in this method are treated as an implicit "AND" operator
     if (Array.isArray(input)) {
       return joinWithLogicalOperator(
-        input.map((part) => {
+        input.map(part => {
           if (part === undefined) {
             return '';
           }
@@ -216,7 +216,7 @@ export class WhereSqlBuilder {
 
     const keys = getComplexKeys(input);
 
-    const sqlArray = keys.map((operatorOrAttribute) => {
+    const sqlArray = keys.map(operatorOrAttribute => {
       if (operatorOrAttribute === Op.not) {
         const generatedResult = this.#handleRecursiveNotOrAndWithImplicitAndArray(
           // @ts-expect-error -- This is a recursive type, which TS does not handle well
@@ -777,9 +777,7 @@ export class WhereSqlBuilder {
         ? (value[Op.values] as unknown[])
         : [value[Op.values]];
 
-      const valueSql = operand
-        .map((v) => `(${this.#queryGenerator.escape(v, options)})`)
-        .join(', ');
+      const valueSql = operand.map(v => `(${this.#queryGenerator.escape(v, options)})`).join(', ');
 
       return `VALUES ${valueSql}`;
     }
@@ -826,7 +824,7 @@ export class WhereSqlBuilder {
 
     const keys = [...stringKeys, ...getOperators(whereValue)];
 
-    const parts: string[] = keys.map((key) => {
+    const parts: string[] = keys.map(key => {
       // @ts-expect-error -- this recursive type is too difficult for TS to handle
       const value = whereValue[key];
 
@@ -879,7 +877,7 @@ export class WhereSqlBuilder {
 
       if (key === Op.and || key === Op.or) {
         if (Array.isArray(value)) {
-          const sqlParts = value.map((v) =>
+          const sqlParts = value.map(v =>
             this.#handleRecursiveNotOrAndNestedPathRecursive(
               leftOperand,
               v,
@@ -990,7 +988,7 @@ export function joinWithLogicalOperator(
 ): string {
   const operatorSql = operator === Op.and ? ' AND ' : ' OR ';
 
-  sqlArray = sqlArray.filter((val) => Boolean(val));
+  sqlArray = sqlArray.filter(val => Boolean(val));
 
   if (sqlArray.length === 0) {
     return '';
@@ -1001,7 +999,7 @@ export function joinWithLogicalOperator(
   }
 
   return sqlArray
-    .map((sql) => {
+    .map(sql => {
       if (/ AND | OR /i.test(sql)) {
         return `(${sql})`;
       }

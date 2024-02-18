@@ -197,7 +197,7 @@ export class MySqlQuery extends AbstractQuery {
         const fieldVal = match ? match[1] : undefined;
         const uniqueKey =
           this.model &&
-          this.model.getIndexes().find((index) => index.unique && index.name === fieldKey);
+          this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
 
         if (uniqueKey) {
           if (uniqueKey.msg) {
@@ -295,7 +295,7 @@ export class MySqlQuery extends AbstractQuery {
       return acc;
     }, {});
 
-    return map(data, (item) => {
+    return map(data, item => {
       return {
         primary: item.Key_name === 'PRIMARY',
         fields: item.fields,

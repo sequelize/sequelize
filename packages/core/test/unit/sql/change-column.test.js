@@ -1,7 +1,7 @@
 'use strict';
 
 const sinon = require('sinon');
-const { sequelize, expectsql, beforeAll2 } = require('../../support');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe('QueryInterface#changeColumn', () => {

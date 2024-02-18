@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     it('allow changing attributes via beforeFind #5675', async function () {
-      this.User.beforeFind((options) => {
+      this.User.beforeFind(options => {
         options.attributes = {
           include: [['id', 'my_id']],
         };
@@ -70,7 +70,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFind hook can change options', async function () {
-        this.User.beforeFind((options) => {
+        this.User.beforeFind(options => {
           options.where.username = 'joe';
         });
 
@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterExpandIncludeAll hook can change options', async function () {
-        this.User.beforeFindAfterExpandIncludeAll((options) => {
+        this.User.beforeFindAfterExpandIncludeAll(options => {
           options.where.username = 'joe';
         });
 
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('beforeFindAfterOptions hook can change options', async function () {
-        this.User.beforeFindAfterOptions((options) => {
+        this.User.beforeFindAfterOptions(options => {
           options.where.username = 'joe';
         });
 
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('afterFind hook can change results', async function () {
-        this.User.afterFind((user) => {
+        this.User.afterFind(user => {
           user.mood = 'sad';
         });
 

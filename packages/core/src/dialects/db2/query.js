@@ -82,7 +82,7 @@ export class Db2Query extends AbstractQuery {
       throw this.formatError(error, connection, parameters);
     }
 
-    const { result, outparams } = res;
+    const { outparams, result } = res;
 
     complete();
 
@@ -270,7 +270,7 @@ export class Db2Query extends AbstractQuery {
       if (this.model && Boolean(uniqueIndexName)) {
         uniqueKey = this.model
           .getIndexes()
-          .find((index) => index.unique && index.name === uniqueIndexName);
+          .find(index => index.unique && index.name === uniqueIndexName);
       }
 
       if (!uniqueKey && this.options.fields) {
@@ -352,14 +352,12 @@ export class Db2Query extends AbstractQuery {
   isShowOrDescribeQuery() {
     let result = false;
 
-    result ||=
-      this.sql
-        .toLowerCase()
-        .startsWith(
-          "select c.column_name as 'name', c.data_type as 'type', c.is_nullable as 'isnull'",
-        );
-    result ||=
-      this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
+    result ||= this.sql
+      .toLowerCase()
+      .startsWith(
+        "select c.column_name as 'name', c.data_type as 'type', c.is_nullable as 'isnull'",
+      );
+    result ||= this.sql.toLowerCase().startsWith('select tablename = t.name, name = ind.name,');
     result ||= this.sql.toLowerCase().startsWith('exec sys.sp_helpindex @objname');
 
     return result;

@@ -84,7 +84,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
     }
 
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options?.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -94,7 +94,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
         attributesClauseParts.push(
           `CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields
-            .map((field) => this.quoteIdentifier(field))
+            .map(field => this.quoteIdentifier(field))
             .join(', ')})`,
         );
       });
@@ -271,7 +271,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       for (const attrValueHash of attrValueHashes) {
         tuples.push(
           `(${allAttributes
-            .map((key) => {
+            .map(key => {
               // TODO: bindParam
               // TODO: pass "model"
               return this.escape(attrValueHash[key] ?? null, {
@@ -283,9 +283,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         );
       }
 
-      const quotedAttributes = allAttributes.map((attr) => this.quoteIdentifier(attr)).join(',');
+      const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
       allQueries.push(
-        (tupleStr) =>
+        tupleStr =>
           `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`,
       );
     }
@@ -296,9 +296,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // SQL Server can insert a maximum of 1000 rows at a time,
       // This splits the insert in multiple statements to respect that limit
       const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
-      let generatedQuery = allQueries
-        .map((v) => (typeof v === 'string' ? v : v(tupleStr)))
-        .join(';');
+      let generatedQuery = allQueries.map(v => (typeof v === 'string' ? v : v(tupleStr))).join(';');
       if (needIdentityInsertWrapper) {
         generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
       }
@@ -358,9 +356,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
-    const insertKeysQuoted = insertKeys.map((key) => this.quoteIdentifier(key)).join(', ');
+    const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
     const insertValuesEscaped = insertKeys
-      .map((key) => {
+      .map(key => {
         // TODO: pass "model", "type" and "bindParam" options
         return this.escape(insertValues[key], options);
       })
@@ -380,7 +378,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Filter NULL Clauses
-    const clauses = where[Op.or].filter((clause) => {
+    const clauses = where[Op.or].filter(clause => {
       let valid = true;
       /*
        * Exclude NULL Composite PK/UK. Partial Composite clauses should also be excluded as it doesn't guarantee a single row
@@ -399,8 +397,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
      * Generate ON condition using PK(s).
      * If not, generate using UK(s). Else throw error
      */
-    const getJoinSnippet = (array) => {
-      return array.map((key) => {
+    const getJoinSnippet = array => {
+      return array.map(key => {
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${sourceTableAlias}.${key}`;
@@ -428,8 +426,8 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     // Remove the IDENTITY_INSERT Column from update
     const filteredUpdateClauses = updateKeys
-      .filter((key) => !identityColumns.includes(key))
-      .map((key) => {
+      .filter(key => !identityColumns.includes(key))
+      .map(key => {
         const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
 
@@ -478,7 +476,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
-        .map((value) => {
+        .map(value => {
           return this.escape(value, options);
         })
         .join(', ')}))`;

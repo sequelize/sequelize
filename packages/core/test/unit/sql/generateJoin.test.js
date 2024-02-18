@@ -2,8 +2,8 @@
 
 const at = require('lodash/at');
 
-const { expectsql, sequelize, beforeAll2 } = require('../../support');
-const { DataTypes, Op, Model } = require('@sequelize/core');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
+const { DataTypes, Model, Op } = require('@sequelize/core');
 const {
   _validateIncludedElements,
 } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
@@ -154,7 +154,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('Generates a nested belongsTo join query', () => {
-    const { User, Profession } = vars;
+    const { Profession, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -238,7 +238,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested includes with subQuery = true', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -260,7 +260,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports double nested includes', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0].include[0]',
@@ -287,7 +287,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested includes with required = true', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -406,7 +406,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested hasMany', () => {
-    const { User, Company } = vars;
+    const { Company, User } = vars;
 
     expectJoin(
       'include[0].include[0]',

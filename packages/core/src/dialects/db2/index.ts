@@ -68,11 +68,11 @@ export class Db2Dialect extends AbstractDialect {
     this.queryGenerator = new Db2QueryGenerator(this);
     this.queryInterface = new Db2QueryInterface(this);
 
-    this.registerDataTypeParser(['CHAR () FOR BIT DATA', 'VARCHAR () FOR BIT DATA'], (value) => {
+    this.registerDataTypeParser(['CHAR () FOR BIT DATA', 'VARCHAR () FOR BIT DATA'], value => {
       return value.toString();
     });
 
-    this.registerDataTypeParser(['TIMESTAMP'], (value) => {
+    this.registerDataTypeParser(['TIMESTAMP'], value => {
       // values are returned as UTC, but the UTC Offset is left unspecified.
       return `${value}+00`;
     });

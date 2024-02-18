@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('arguments', () => {
     it('hooks can modify passed arguments', async function () {
-      this.Model.addHook('beforeCreate', (options) => {
+      this.Model.addHook('beforeCreate', options => {
         options.answer = 41;
       });
 

@@ -11,7 +11,7 @@ TestModel.init(
   { sequelize },
 );
 
-sequelize.transaction(async (trx) => {
+sequelize.transaction(async trx => {
   const res1: [TestModel, boolean | null] = await TestModel.upsert<TestModel>(
     {},
     {

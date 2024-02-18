@@ -52,7 +52,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'SELECT datname AS "name" FROM pg_database',
-      `WHERE datistemplate = false AND datname NOT IN (${databasesToSkip.map((database) => this.escape(database)).join(', ')})`,
+      `WHERE datistemplate = false AND datname NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
     ]);
   }
 
@@ -85,7 +85,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       `SELECT schema_name AS "schema" FROM information_schema.schemata`,
-      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(', ')})`,
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
 
@@ -125,7 +125,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `AND table_schema = ${this.escape(options.schema)}`
         : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this.#internals
             .getTechnicalSchemaNames()
-            .map((schema) => this.escape(schema))
+            .map(schema => this.escape(schema))
             .join(', ')})`,
       'ORDER BY table_schema, table_name',
     ]);
@@ -261,7 +261,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
           // when accessing an object key with ->, the key must be a string
           this.escape(path[0])
         : // when accessing with #>, the path is always an array of strings
-          this.escape(path.map((value) => String(value)));
+          this.escape(path.map(value => String(value)));
 
     return sqlExpression + operator + pathSql;
   }

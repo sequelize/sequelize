@@ -176,7 +176,7 @@ if (dialect.startsWith('mssql')) {
       });
 
       expect(spy).to.have.been.called;
-      const log = spy.args.find((arg) =>
+      const log = spy.args.find(arg =>
         arg[0].includes(`IF OBJECT_ID(N'[a].[Toys]', 'U') IS NULL CREATE TABLE`),
       )[0];
 

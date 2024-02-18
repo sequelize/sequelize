@@ -25,7 +25,7 @@ describe('QueryInterface#bulkInsert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    const users = range(1000).map((i) => ({ firstName: `user${i}` }));
+    const users = range(1000).map(i => ({ firstName: `user${i}` }));
     await sequelize.queryInterface.bulkInsert(User.table, users);
 
     expect(stub.callCount).to.eq(1);
@@ -49,7 +49,7 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     const transaction = new Transaction(sequelize, {});
 
-    const users = range(2000).map((i) => ({ firstName: `user${i}` }));
+    const users = range(2000).map(i => ({ firstName: `user${i}` }));
     await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
 
     expect(stub.callCount).to.eq(1);

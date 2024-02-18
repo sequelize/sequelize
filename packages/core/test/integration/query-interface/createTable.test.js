@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         );
 
         const indexes = (await this.queryInterface.showIndex('MyTable'))
-          .filter((index) => !index.primary)
+          .filter(index => !index.primary)
           .sort((a, b) => a.name.localeCompare(b.name));
 
         for (const index of indexes) {

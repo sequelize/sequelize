@@ -165,7 +165,7 @@ export class HasOneAssociation<
       options,
       parent,
       normalizeHasOneOptions,
-      (normalizedOptions) => {
+      normalizedOptions => {
         // self-associations must always set their 'as' parameter
         if (
           isSameInitialModel(source, target) &&
@@ -232,7 +232,7 @@ If having two associations does not make sense (for instance a "spouse" associat
 
     if (instances.length > 1) {
       where[this.foreignKey] = {
-        [Op.in]: instances.map((instance) => instance.get(this.sourceKey)),
+        [Op.in]: instances.map(instance => instance.get(this.sourceKey)),
       };
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);

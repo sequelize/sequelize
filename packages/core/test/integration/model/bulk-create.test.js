@@ -2,11 +2,11 @@
 
 const { expect } = require('chai');
 const {
-  sequelize,
-  createMultiTransactionalTestSequelizeInstance,
   beforeEach2,
+  createMultiTransactionalTestSequelizeInstance,
+  sequelize,
 } = require('../support');
-const { DataTypes, Op, col } = require('@sequelize/core');
+const { col, DataTypes, Op } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -1006,7 +1006,7 @@ describe('Model', () => {
               }
 
               results = await Memberships.bulkCreate(
-                memberships.map((membership) => ({
+                memberships.map(membership => ({
                   ...membership,
                   time_deleted: null,
                 })),
@@ -1052,7 +1052,7 @@ describe('Model', () => {
               }
 
               results = await Memberships.bulkCreate(
-                memberships.map((membership) => ({
+                memberships.map(membership => ({
                   ...membership,
                   time_deleted: null,
                 })),
@@ -1148,7 +1148,7 @@ describe('Model', () => {
                 }
 
                 results = await Memberships.bulkCreate(
-                  memberships.map((membership) => ({
+                  memberships.map(membership => ({
                     ...membership,
                     time_deleted: null,
                   })),
@@ -1194,7 +1194,7 @@ describe('Model', () => {
                 }
 
                 results = await Memberships.bulkCreate(
-                  memberships.map((membership) => ({
+                  memberships.map(membership => ({
                     ...membership,
                     time_deleted: null,
                   })),

@@ -103,7 +103,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintType: 'UNIQUE',
       });
       const constraints = constraintType.filter(
-        (constraint) => constraint.constraintName === 'custom_constraint_name',
+        constraint => constraint.constraintName === 'custom_constraint_name',
       );
       expect(constraints).to.have.length(1);
       expect(constraints[0]).to.deep.equal({
@@ -304,7 +304,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintType: 'FOREIGN KEY',
         });
         const constraints = constraintType.filter(
-          (constraint) => constraint.constraintName === 'custom_constraint_name',
+          constraint => constraint.constraintName === 'custom_constraint_name',
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
@@ -354,7 +354,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         }
 
         const constraints = constraintType.filter(
-          (constraint) => constraint.constraintName === 'custom_constraint_name',
+          constraint => constraint.constraintName === 'custom_constraint_name',
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
@@ -402,7 +402,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintType: 'DEFAULT',
         });
         const constraints = constraintType.filter(
-          (constraint) => constraint.constraintName === 'custom_constraint_name',
+          constraint => constraint.constraintName === 'custom_constraint_name',
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({

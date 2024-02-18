@@ -82,7 +82,7 @@ export function merge(...args: object[]): object {
 }
 
 export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
-  return cloneDeepWith(obj, (elem) => {
+  return cloneDeepWith(obj, elem => {
     // Do not try to customize cloning of arrays or POJOs
     if (Array.isArray(elem) || isPlainObject(elem)) {
       return;
@@ -262,7 +262,7 @@ export function getAllOwnEntries(
   obj: object,
 ): IterableIterator<[key: string | symbol, value: unknown]> {
   // @ts-expect-error -- obj[key] is implicitly any
-  return map(getAllOwnKeys(obj), (key) => [key, obj[key]]);
+  return map(getAllOwnKeys(obj), key => [key, obj[key]]);
 }
 
 export function noPrototype<T extends object>(obj: T): T {
@@ -300,7 +300,7 @@ export function shallowClonePojo<T extends object>(obj: T): T {
 
 export function cloneDeepPlainValues<T>(value: T, transferUnclonables?: boolean): T {
   if (Array.isArray(value)) {
-    return value.map((val) => cloneDeepPlainValues(val, transferUnclonables)) as T;
+    return value.map(val => cloneDeepPlainValues(val, transferUnclonables)) as T;
   }
 
   if (isObject(value)) {

@@ -1101,16 +1101,16 @@ describe('[POSTGRES Specific] DAO', () => {
         ]);
 
         await Promise.all([
-          this.Student.findByPk(1).then((Harry) => {
+          this.Student.findByPk(1).then(Harry => {
             return Harry.setClasses([1, 2, 3]);
           }),
-          this.Student.findByPk(2).then((Ron) => {
+          this.Student.findByPk(2).then(Ron => {
             return Ron.setClasses([1, 2]);
           }),
-          this.Student.findByPk(3).then((Ginny) => {
+          this.Student.findByPk(3).then(Ginny => {
             return Ginny.setClasses([2, 3]);
           }),
-          this.Student.findByPk(4).then((Hermione) => {
+          this.Student.findByPk(4).then(Hermione => {
             return Hermione.setClasses([1, 2, 3]);
           }),
         ]);

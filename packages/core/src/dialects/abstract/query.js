@@ -155,10 +155,10 @@ export class AbstractQuery {
     result &&= this.sql.toLowerCase().startsWith('insert into');
 
     // is insert query if no results are passed or if the result has the inserted id
-    result &&= (!results || Object.hasOwn(results, this.getInsertIdField()));
+    result &&= !results || Object.hasOwn(results, this.getInsertIdField());
 
     // is insert query if no metadata are passed or if the metadata has the inserted id
-    result &&= (!metaData || Object.hasOwn(metaData, this.getInsertIdField()));
+    result &&= !metaData || Object.hasOwn(metaData, this.getInsertIdField());
 
     return result;
   }
@@ -208,7 +208,7 @@ export class AbstractQuery {
     // Map raw fields to names if a mapping is provided
     if (this.options.fieldMap) {
       const fieldMap = this.options.fieldMap;
-      results = results.map((result) =>
+      results = results.map(result =>
         reduce(
           fieldMap,
           (result, name, field) => {
@@ -226,7 +226,7 @@ export class AbstractQuery {
 
     // Raw queries
     if (this.options.raw) {
-      result = results.map((result) => {
+      result = results.map(result => {
         let o = {};
 
         for (const key in result) {
@@ -490,7 +490,7 @@ export class AbstractQuery {
     let $parent;
     // Map each key to an include option
     let previousPiece;
-    const buildIncludeMap = (piece) => {
+    const buildIncludeMap = piece => {
       if (Object.hasOwn($current.includeMap, piece)) {
         includeMap[key] = $current = $current.includeMap[piece];
         if (previousPiece) {
@@ -515,7 +515,7 @@ export class AbstractQuery {
 
     // Removes the prefix from a key ('id' for 'User.Results.id')
     const removeKeyPrefixMemo = {};
-    const removeKeyPrefix = (key) => {
+    const removeKeyPrefix = key => {
       if (!Object.hasOwn(removeKeyPrefixMemo, key)) {
         const index = key.lastIndexOf('.');
         removeKeyPrefixMemo[key] = key.slice(index === -1 ? 0 : index + 1);
@@ -526,7 +526,7 @@ export class AbstractQuery {
 
     // Calculates the array prefix of a key (['User', 'Results'] for 'User.Results.id')
     const keyPrefixMemo = {};
-    const keyPrefix = (key) => {
+    const keyPrefix = key => {
       // We use a double memo and keyPrefixString so that different keys with the same prefix will receive the same array instead of differnet arrays with equal values
       if (!Object.hasOwn(keyPrefixMemo, key)) {
         const prefixString = keyPrefixString(key, keyPrefixStringMemo);
@@ -542,7 +542,7 @@ export class AbstractQuery {
 
     // Calcuate the last item in the array prefix ('Results' for 'User.Results.id')
     const lastKeyPrefixMemo = {};
-    const lastKeyPrefix = (key) => {
+    const lastKeyPrefix = key => {
       if (!Object.hasOwn(lastKeyPrefixMemo, key)) {
         const prefix = keyPrefix(key);
         const length = prefix.length;
@@ -554,19 +554,19 @@ export class AbstractQuery {
     };
 
     // sort the array by the level of their depth calculated by dot.
-    const sortByDepth = (keys) => keys.sort((a, b) => a.split('.').length - b.split('.').length);
+    const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
 
-    const getUniqueKeyAttributes = (model) => {
+    const getUniqueKeyAttributes = model => {
       let uniqueKeyAttributes = chain(model.uniqueKeys);
       uniqueKeyAttributes = uniqueKeyAttributes
         .result(`${uniqueKeyAttributes.findKey()}.fields`)
-        .map((field) => findKey(model.attributes, (chr) => chr.field === field))
+        .map(field => findKey(model.attributes, chr => chr.field === field))
         .value();
 
       return uniqueKeyAttributes;
     };
 
-    const stringify = (obj) => (obj instanceof Buffer ? obj.toString('hex') : obj);
+    const stringify = obj => (obj instanceof Buffer ? obj.toString('hex') : obj);
     let primaryKeyAttributes;
     let uniqueKeyAttributes;
     let prefix;

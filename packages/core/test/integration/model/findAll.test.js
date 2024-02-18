@@ -1127,7 +1127,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'Asia'],
               ['DESC', 'Europe'],
-            ].map(async (params) => {
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 order: [['name', params[0]]],
               });
@@ -1144,7 +1144,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'Europe', 'England'],
               ['DESC', 'Asia', 'Korea'],
-            ].map(async (params) => {
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [this.Country],
                 order: [[this.Country, 'name', params[0]]],
@@ -1162,7 +1162,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', async function () {
           await Promise.all(
-            [['ASC', 'Asia', 'Europe', 'England']].map(async (params) => {
+            [['ASC', 'Asia', 'Europe', 'England']].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
@@ -1200,7 +1200,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'Europe', 'England', 'Fred'],
               ['DESC', 'Asia', 'Korea', 'Kim'],
-            ].map(async (params) => {
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [{ model: this.Country, include: ['people'] }],
                 order: [[this.Country, 'people', 'lastName', params[0]]],
@@ -1224,7 +1224,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'Europe', 'France', 'Fred'],
               ['DESC', 'Europe', 'England', 'Kim'],
-            ].map(async (params) => {
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
@@ -1255,7 +1255,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'Europe', 'France', 'Fred'],
               ['DESC', 'Europe', 'England', 'Kim'],
-            ].map(async (params) => {
+            ].map(async params => {
               const continents = await this.Continent.findAll({
                 include: [
                   {
@@ -1327,7 +1327,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'England', 'Energy'],
               ['DESC', 'Korea', 'Tech'],
-            ].map(async (params) => {
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
                 order: [[this.Industry, 'name', params[0]]],
@@ -1348,7 +1348,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'England', 'Energy'],
               ['DESC', 'Korea', 'Tech'],
-            ].map(async (params) => {
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
                 order: [[this.Industry, 'name', params[0]]],
@@ -1370,7 +1370,7 @@ The following associations are defined on "Worker": "ToDos"`);
             [
               ['ASC', 'England', 'Energy'],
               ['DESC', 'France', 'Media'],
-            ].map(async (params) => {
+            ].map(async params => {
               const countries = await this.Country.findAll({
                 include: [this.Industry],
                 order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]],

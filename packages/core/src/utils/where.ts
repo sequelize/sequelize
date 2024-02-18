@@ -32,5 +32,5 @@ const operatorsSet = new Set(Object.values(operators));
  * @private
  */
 export function getOperators(obj: object): symbol[] {
-  return Object.getOwnPropertySymbols(obj).filter((s) => operatorsSet.has(s));
+  return Object.getOwnPropertySymbols(obj).filter(s => operatorsSet.has(s));
 }

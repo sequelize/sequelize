@@ -459,7 +459,7 @@ Add your own primary key to the through model, on different attributes than the 
       options,
       parent,
       normalizeBelongsToManyOptions,
-      (newOptions) => {
+      newOptions => {
         // self-associations must always set their 'as' parameter
         if (
           isSameInitialModel(source, target) &&
@@ -607,7 +607,7 @@ Add your own primary key to the through model, on different attributes than the 
   ): Promise<boolean> {
     const targets = this.toInstanceOrPkArray(targetInstancesOrPks);
 
-    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map((instance) => {
+    const targetPrimaryKeys: Array<TargetModel[TargetKey]> = targets.map(instance => {
       if (instance instanceof this.target) {
         // TODO: remove eslint-disable once we drop support for < 5.2
         // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
@@ -630,8 +630,8 @@ Add your own primary key to the through model, on different attributes than the 
       },
     });
 
-    return targetPrimaryKeys.every((pk) => {
-      return associatedObjects.some((instance) => {
+    return targetPrimaryKeys.every(pk => {
+      return associatedObjects.some(instance => {
         // instance[x] instead of instance.get() because the query output is 'raw'
         // isEqual is used here because the PK can be a non-primitive value, such as a Buffer
         return isEqual(instance[this.targetKey], pk);
@@ -686,7 +686,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     // find all obsolete targets
     for (const currentRow of currentThroughRows) {
-      const newTarget = newInstances.find((obj) => {
+      const newTarget = newInstances.find(obj => {
         // @ts-expect-error -- the findAll call is raw, no model here
         return currentRow[otherKey] === obj.get(targetKey);
       });
@@ -731,7 +731,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.otherKey]: newInstances.map((newInstance) => newInstance.get(this.targetKey)),
+      [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
     };
 
@@ -779,7 +779,7 @@ Add your own primary key to the through model, on different attributes than the 
     // the 'through' table of these targets has changed
     const changedTargets: TargetModel[] = [];
     for (const newInstance of newTargets) {
-      const existingThroughRow = currentThroughRows.find((throughRow) => {
+      const existingThroughRow = currentThroughRows.find(throughRow => {
         // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
         return throughRow[otherKey] === newInstance.get(targetKey);
       });
@@ -795,7 +795,7 @@ Add your own primary key to the through model, on different attributes than the 
       const attributes = { ...defaultAttributes, ...throughAttributes };
 
       if (
-        Object.keys(attributes).some((attribute) => {
+        Object.keys(attributes).some(attribute => {
           // @ts-expect-error -- existingThroughRow is raw
           return attributes[attribute] !== existingThroughRow[attribute];
         })
@@ -805,7 +805,7 @@ Add your own primary key to the through model, on different attributes than the 
     }
 
     if (unassociatedTargets.length > 0) {
-      const bulk = unassociatedTargets.map((unassociatedTarget) => {
+      const bulk = unassociatedTargets.map(unassociatedTarget => {
         // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
         const throughAttributes = unassociatedTarget[this.through.model.name];
         const attributes = { ...defaultAttributes, ...throughAttributes };
@@ -865,7 +865,7 @@ Add your own primary key to the through model, on different attributes than the 
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.otherKey]: targetInstance.map((newInstance) => newInstance.get(this.targetKey)),
+      [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
     };
 

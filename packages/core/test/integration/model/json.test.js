@@ -44,7 +44,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           transaction,
           lock: transaction.LOCK.UPDATE,
-          logging: (sql) => {
+          logging: sql => {
             if (sql.includes('SELECT') && !sql.includes('CREATE')) {
               expect(sql.includes('FOR UPDATE')).to.be.true;
             }

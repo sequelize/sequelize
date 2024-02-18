@@ -169,6 +169,6 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   toSql() {
     const dialect = this._getDialect();
 
-    return `ENUM(${this.options.values.map((value) => dialect.escapeString(value)).join(', ')})`;
+    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
   }
 }

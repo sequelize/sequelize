@@ -57,7 +57,7 @@ describe('[SQLITE Specific] DAOFactory', () => {
       expect(user.bio).to.equal('noot noot');
 
       const users = await User.findAll();
-      const usernames = users.map((user) => {
+      const usernames = users.map(user => {
         return user.name;
       });
       expect(usernames).to.contain('John Wayne');

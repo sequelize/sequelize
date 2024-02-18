@@ -271,8 +271,8 @@ describe(getTestDialectTeaser('SQL'), () => {
         testSql(
           { [attributeName]: { [operator]: { [arrayOperator]: testWithValues } } },
           {
-            default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map((v) => util.inspect(v)).join(',')}])`,
-            postgres: `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map((v) => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
+            default: `[${attributeName}] ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}])`,
+            postgres: `"${attributeName}" ${sqlOperator} ${arraySqlOperator} (ARRAY[${testWithValues.map(v => util.inspect(v)).join(',')}]${attributeName === 'stringAttr' ? '::VARCHAR(255)[]' : ''})`,
           },
         );
 

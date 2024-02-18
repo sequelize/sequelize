@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, Sequelize, Op, AggregateError } = require('@sequelize/core');
+const { AggregateError, DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
       const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
-        (index) => !index.primary,
+        index => !index.primary,
       );
 
       expect(indexes).to.have.length(1);
@@ -1091,7 +1091,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           force: true,
           logging: afterLodash(
             2,
-            once((sql) => {
+            once(sql => {
               test = true;
               switch (dialectName) {
                 case 'postgres':
@@ -1133,7 +1133,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await UserPublicSync.create(
           { age: 3 },
           {
-            logging: (UserPublic) => {
+            logging: UserPublic => {
               logged++;
               expect(this.UserSpecialSync.table).to.deep.equal({
                 tableName: 'UserSpecials',

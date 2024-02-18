@@ -61,7 +61,6 @@ import { User } from './models/user';
     ),
   ]);
 
-  // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- False positive :/
   expectTypeOf(voidUsers).toEqualTypeOf<[void, void, void, void, void]>();
 
   const emptyUsers = await Promise.all([User.create(), User.create(), User.create()]);

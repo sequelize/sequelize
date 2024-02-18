@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, Op, IsolationLevel } = require('@sequelize/core');
+const { DataTypes, IsolationLevel, Op, Sequelize } = require('@sequelize/core');
 const assert = require('node:assert');
 const sinon = require('sinon');
 
@@ -2290,8 +2290,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const user = user0;
       const tasks = await user.getTasks();
       expect(tasks).to.have.length(2);
-      expect(tasks.find((item) => item.title === 'get started')).to.be.ok;
-      expect(tasks.find((item) => item.title === 'get done')).to.be.ok;
+      expect(tasks.find(item => item.title === 'get started')).to.be.ok;
+      expect(tasks.find(item => item.title === 'get done')).to.be.ok;
     });
 
     if (current.dialect.supports.transactions) {
@@ -2459,12 +2459,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const tasks = await user.getTasks();
       expect(tasks).to.have.length(2);
       expect(
-        tasks.some((item) => {
+        tasks.some(item => {
           return item.title === 'get started';
         }),
       ).to.be.ok;
       expect(
-        tasks.some((item) => {
+        tasks.some(item => {
           return item.title === 'get done';
         }),
       ).to.be.ok;
@@ -3857,7 +3857,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('should create new relations in parallel', async function () {
       await this.sequelize.sync({ force: true });
 
-      const { Order, Good } = this;
+      const { Good, Order } = this;
 
       const order = await Order.create();
       const good = await Good.create({ name: 'Drink' });
@@ -3886,7 +3886,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('should create new relations sequentialy', async function () {
       await this.sequelize.sync({ force: true });
 
-      const { Order, Good } = this;
+      const { Good, Order } = this;
 
       const order = await Order.create();
       const good = await Good.create({ name: 'Drink' });

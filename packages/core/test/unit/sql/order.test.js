@@ -225,7 +225,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
   });
 
   it('supports "order"', () => {
-    const { Task, Subtask, Project } = vars;
+    const { Project, Subtask, Task } = vars;
 
     expectSelect(
       {
@@ -377,7 +377,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
     });
 
     it('Error on invalid structure', () => {
-      const { Task, Subtask } = vars;
+      const { Subtask, Task } = vars;
 
       return expect(
         Subtask.findAll({

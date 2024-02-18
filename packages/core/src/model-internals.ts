@@ -129,7 +129,7 @@ export function combineIncludes(a: any, b: any): any {
   const combinedIncludes = [...a];
 
   for (const newInclude of b) {
-    const existingIndex = combinedIncludes.findIndex((include) => {
+    const existingIndex = combinedIncludes.findIndex(include => {
       if (!include.association || !newInclude.association) {
         throw new TypeError('Include should have been normalized');
       }

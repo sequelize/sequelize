@@ -136,7 +136,7 @@ describe('Model.update', () => {
     it('should properly set data when individualHooks are true', async () => {
       const { User } = vars;
 
-      const unhook = User.hooks.addListener('beforeUpdate', (instance) => {
+      const unhook = User.hooks.addListener('beforeUpdate', instance => {
         instance.set('email', 'new email');
       });
 

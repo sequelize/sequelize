@@ -10,7 +10,7 @@ describe('QueryInterface#{create,drop,list}Database', () => {
   if (sequelize.dialect.supports.multiDatabases) {
     it('should create, drop, and list databases respectively', async () => {
       const preCreationDatabases: DatabaseDescription[] = await queryInterface.listDatabases();
-      expect(preCreationDatabases.some((db) => db.name === newDbName)).to.eq(
+      expect(preCreationDatabases.some(db => db.name === newDbName)).to.eq(
         false,
         'Database already exists prior to running the test',
       );
@@ -18,7 +18,7 @@ describe('QueryInterface#{create,drop,list}Database', () => {
       await queryInterface.createDatabase(newDbName);
       const databases = await queryInterface.listDatabases();
 
-      expect(databases.some((db) => db.name === newDbName)).to.eq(
+      expect(databases.some(db => db.name === newDbName)).to.eq(
         true,
         'Database "myDB" was not created',
       );
@@ -27,7 +27,7 @@ describe('QueryInterface#{create,drop,list}Database', () => {
       await queryInterface.dropDatabase(newDbName);
       const postDeletionDatabases: DatabaseDescription[] = await queryInterface.listDatabases();
 
-      expect(postDeletionDatabases.some((db) => db.name === newDbName)).to.eq(
+      expect(postDeletionDatabases.some(db => db.name === newDbName)).to.eq(
         false,
         'Database "myDB" still exists, but should have been deleted',
       );

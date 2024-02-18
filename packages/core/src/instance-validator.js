@@ -266,8 +266,8 @@ export class InstanceValidator {
     });
 
     return Promise.all(
-      validators.map((validator) =>
-        validator.catch((error) => {
+      validators.map(validator =>
+        validator.catch(error => {
           const isBuiltIn = Boolean(error.validatorName);
           this._pushError(
             isBuiltIn,
@@ -407,7 +407,7 @@ export class InstanceValidator {
   _validateSchema(attribute, attributeName, value) {
     if (attribute.allowNull === false && value == null) {
       const association = Object.values(this.modelInstance.constructor.associations).find(
-        (association) =>
+        association =>
           association instanceof BelongsToAssociation &&
           association.foreignKey === attribute.fieldName,
       );

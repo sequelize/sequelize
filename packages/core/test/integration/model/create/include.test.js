@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               afterCreate(product) {
                 product.areIncludesCreatedOnAfterCreate =
                   product.tags &&
-                  product.tags.every((tag) => {
+                  product.tags.every(tag => {
                     return Boolean(tag.id);
                   });
               },
@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               afterCreate(user) {
                 user.areIncludesCreatedOnAfterCreate =
                   user.tasks &&
-                  user.tasks.every((task) => {
+                  user.tasks.every(task => {
                     return Boolean(task.id);
                   });
               },

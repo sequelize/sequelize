@@ -309,7 +309,7 @@ export class RANGE<
       throw new TypeError('Range values must be an array');
     }
 
-    return RangeParser.stringify(values, (rangePart) => {
+    return RangeParser.stringify(values, rangePart => {
       let out = this.options.subtype.toBindableValue(rangePart);
 
       if (isNumber(out) || isBigInt(out)) {
@@ -358,7 +358,7 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
   escape(values: Array<AcceptableTypeOf<T>>) {
     const type = this.options.type;
 
-    const mappedValues = isString(type) ? values : values.map((value) => type.escape(value));
+    const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
 
     // Types that don't need to specify their cast
     const unambiguousType = type instanceof BaseTypes.TEXT || type instanceof BaseTypes.INTEGER;

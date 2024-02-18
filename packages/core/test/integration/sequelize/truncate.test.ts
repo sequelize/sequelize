@@ -46,7 +46,7 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { cascade: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction(async (transaction) => {
+      await sequelize.transaction(async transaction => {
         const a = await A.create(
           {
             bId: null,
@@ -77,7 +77,7 @@ describe('Sequelize#truncate', () => {
     it('supports truncating cyclic associations with { withoutForeignKeyChecks: true }', async () => {
       const { A, B } = vars;
 
-      await sequelize.transaction(async (transaction) => {
+      await sequelize.transaction(async transaction => {
         const a = await A.create(
           {
             bId: null,

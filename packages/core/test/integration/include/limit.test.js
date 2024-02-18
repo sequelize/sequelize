@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      * shortcut for building simple {name: 'foo'} seed data
      */
     function build(...args) {
-      return args.map((arg) => ({ name: arg }));
+      return args.map(arg => ({ name: arg }));
     }
 
     /*

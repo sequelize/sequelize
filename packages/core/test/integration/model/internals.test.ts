@@ -21,7 +21,7 @@ describe('setTransactionFromCls', () => {
   it('sets the transaction & connection if they exists in CLS', async () => {
     const { sequelize } = vars;
 
-    await sequelize.transaction((transaction) => {
+    await sequelize.transaction(transaction => {
       const options: Transactionable = {};
       setTransactionFromCls(options, sequelize);
 
@@ -75,7 +75,7 @@ describe('setTransactionFromCls', () => {
     const { sequelize } = vars;
 
     await sequelize.transaction(async () => {
-      await sequelize.withConnection(async (connection) => {
+      await sequelize.withConnection(async connection => {
         const options: Transactionable = { connection };
 
         setTransactionFromCls(options, sequelize);
@@ -90,7 +90,7 @@ describe('setTransactionFromCls', () => {
   it('does not set the transaction from CLS if a compatible connection is provided', async () => {
     const { sequelize } = vars;
 
-    await sequelize.transaction(async (transaction) => {
+    await sequelize.transaction(async transaction => {
       const options: Transactionable = { connection: transaction.getConnection() };
 
       setTransactionFromCls(options, sequelize);
@@ -108,8 +108,8 @@ describe('setTransactionFromCls', () => {
 
     const { sequelize } = vars;
 
-    await sequelize.transaction(async (transaction) => {
-      await sequelize.withConnection(async (connection) => {
+    await sequelize.transaction(async transaction => {
+      await sequelize.withConnection(async connection => {
         const options: Transactionable = { transaction, connection };
 
         expect(() => setTransactionFromCls(options, sequelize)).to.throw(

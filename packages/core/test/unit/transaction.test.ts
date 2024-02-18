@@ -48,7 +48,7 @@ describe('Transaction', () => {
     };
 
     await sequelize.transaction(async () => {
-      expect(vars.stub.args.map((arg) => arg[0])).to.deep.equal(
+      expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(
         expectations[dialectName] || expectations.all,
       );
     });
@@ -63,7 +63,7 @@ describe('Transaction', () => {
 
     try {
       await sequelize.transaction({ isolationLevel: IsolationLevel.READ_UNCOMMITTED }, async () => {
-        expect(vars.stub.args.map((arg) => arg[0])).to.deep.equal(
+        expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(
           expectations[dialectName] || expectations.all,
         );
       });

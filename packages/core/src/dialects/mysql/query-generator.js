@@ -60,7 +60,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attributesClause = attrStr.join(', ');
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     if (options.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -69,7 +69,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
         }
 
         attributesClause += `, UNIQUE ${this.quoteIdentifier(indexName)} (${columns.fields
-          .map((field) => this.quoteIdentifier(field))
+          .map(field => this.quoteIdentifier(field))
           .join(', ')})`;
       });
     }

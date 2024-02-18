@@ -32,7 +32,7 @@ const __copyProps = (to, from, except, desc) => {
   return to;
 };
 
-const __toCommonJS = (mod) => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
+const __toCommonJS = mod => __copyProps(__defProp({}, '__esModule', { value: true }), mod);
 
 // src/bundler.ts
 const bundler_exports = {};

@@ -76,7 +76,7 @@ await Promise.all([
     format: 'cjs',
 
     outdir: libDir,
-    entryPoints: filesToCompile.map((file) => path.resolve(file)),
+    entryPoints: filesToCompile.map(file => path.resolve(file)),
   }),
 
   exec('tsc --emitDeclarationOnly', {
@@ -100,7 +100,7 @@ async function rmDir(dirName) {
 
 async function copyFiles(files, fromFolder, toFolder) {
   await Promise.all(
-    files.map(async (file) => {
+    files.map(async file => {
       const to = path.join(toFolder, path.relative(fromFolder, file));
       const dir = path.dirname(to);
       await fs.mkdir(dir, { recursive: true });

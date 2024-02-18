@@ -48,7 +48,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
   }
 
   getConstraintSnippet(tableName: TableOrModel, options: GetConstraintSnippetQueryOptions) {
-    const quotedFields = options.fields.map((field) => {
+    const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {
         return this.queryGenerator.quoteIdentifier(field);
       }
@@ -72,7 +72,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
 
     const constraintNameParts = options.name
       ? null
-      : options.fields.map((field) => {
+      : options.fields.map(field => {
           if (typeof field === 'string') {
             return field;
           }
@@ -175,7 +175,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
         const quotedReferences =
           references.field !== undefined
             ? this.queryGenerator.quoteIdentifier(references.field)
-            : references.fields!.map((f) => this.queryGenerator.quoteIdentifier(f)).join(', ');
+            : references.fields!.map(f => this.queryGenerator.quoteIdentifier(f)).join(', ');
         const referencesSnippet = `${this.queryGenerator.quoteTable(referencedTable)} (${quotedReferences})`;
         constraintSnippet = `CONSTRAINT ${constraintName} `;
         constraintSnippet += `FOREIGN KEY (${fieldsSqlQuotedString}) REFERENCES ${referencesSnippet}`;
@@ -250,7 +250,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
 
   formatLiteral(piece: Literal, options?: EscapeOptions): string {
     const sql = piece.val
-      .map((part) => {
+      .map(part => {
         if (part instanceof BaseSqlExpression) {
           return this.queryGenerator.formatSqlExpression(part, options);
         }
@@ -292,7 +292,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
     const argEscapeOptions =
       piece.args.length > 0 && options?.type ? { ...options, type: undefined } : options;
     const args = piece.args
-      .map((arg) => {
+      .map(arg => {
         return this.queryGenerator.escape(arg, argEscapeOptions);
       })
       .join(', ');

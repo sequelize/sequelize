@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('supports groupedLimit', () => {
-        const { User, include } = vars;
+        const { include, User } = vars;
 
         expectSelect(
           {
@@ -497,7 +497,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('supports order, limit, offset', () => {
-        const { User, include } = vars;
+        const { include, User } = vars;
 
         expectSelect(
           {
@@ -533,7 +533,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('supports order, limit, offset without subQuery', () => {
-        const { User, include } = vars;
+        const { include, User } = vars;
 
         // By default, SELECT with include of a multi association & limit will be ran as a subQuery
         //  This checks the result when the query is forced to be ran without a subquery
@@ -577,7 +577,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('supports nested includes', () => {
-        const { User, Post } = vars;
+        const { Post, User } = vars;
         const nestedInclude = _validateIncludedElements({
           include: [
             {

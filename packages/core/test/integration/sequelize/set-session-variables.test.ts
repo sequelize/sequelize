@@ -57,7 +57,7 @@ describe('sequelize.setSessionVariables', () => {
   });
 
   it('supports connections', async () => {
-    await sequelize.withConnection(async (connection) => {
+    await sequelize.withConnection(async connection => {
       await sequelize.setSessionVariables({ foo: 'bar' }, { connection });
       const [data] = await sequelize.query<{ foo: string }>('SELECT @foo as `foo`', {
         type: QueryTypes.SELECT,
@@ -69,7 +69,7 @@ describe('sequelize.setSessionVariables', () => {
   });
 
   it('supports setting multiple values', async () => {
-    await sequelize.withConnection(async (connection) => {
+    await sequelize.withConnection(async connection => {
       await sequelize.setSessionVariables({ foo: 'bar', foos: 'bars' }, { connection });
       const [data] = await sequelize.query<{ foo: string; foos: string }>(
         'SELECT @foo as `foo`, @foos as `foos`',

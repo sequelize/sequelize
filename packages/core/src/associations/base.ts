@@ -237,7 +237,7 @@ export abstract class MultiAssociation<
     // TODO: remove eslint-disable once we drop support for < 5.2
     // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
     // @ts-ignore
-    return normalizedInput.map((element) => {
+    return normalizedInput.map(element => {
       if (element instanceof this.target) {
         return element;
       }

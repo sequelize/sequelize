@@ -8,7 +8,7 @@ const Support = require('./support');
 
 const dialect = Support.getTestDialect();
 const { Sequelize } = require('@sequelize/core');
-const { unlinkIfExists, getSqliteDatabasePath } = require('../support');
+const { getSqliteDatabasePath, unlinkIfExists } = require('../support');
 
 let sqlite3;
 if (dialect === 'sqlite') {

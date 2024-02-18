@@ -45,11 +45,11 @@ describe('Model.count', () => {
       expect(count).to.have.lengthOf(2);
 
       // The order of count varies across dialects; Hence find element by identified first.
-      expect(count.find((i) => i.username === 'user1')).to.deep.equal({
+      expect(count.find(i => i.username === 'user1')).to.deep.equal({
         username: 'user1',
         count: 2,
       });
-      expect(count.find((i) => i.username === 'user2')).to.deep.equal({
+      expect(count.find(i => i.username === 'user2')).to.deep.equal({
         username: 'user2',
         count: 1,
       });

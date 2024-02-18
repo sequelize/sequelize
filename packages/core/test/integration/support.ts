@@ -59,7 +59,7 @@ before(async () => {
 
 /** used to run reset on all used sequelize instances for a given suite */
 const allSequelizeInstances = new Set<Sequelize>();
-Sequelize.hooks.addListener('afterInit', (sequelizeInstance) => {
+Sequelize.hooks.addListener('afterInit', sequelizeInstance => {
   allSequelizeInstances.add(sequelizeInstance);
 });
 
@@ -209,7 +209,7 @@ afterEach('database reset', async () => {
   }
 
   await Promise.all(
-    [...singleTestInstances].map(async (instance) => {
+    [...singleTestInstances].map(async instance => {
       allSequelizeInstances.delete(instance);
       if (!instance.connectionManager.isClosed) {
         await instance.close();
@@ -283,7 +283,7 @@ export async function dropTestDatabases(customSequelize: Sequelize = sequelize) 
       await qi.dropDatabase(db.name);
     }
   } else {
-    await Promise.all(databases.map(async (db) => qi.dropDatabase(db.name)));
+    await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
   }
 }
 

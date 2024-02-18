@@ -102,7 +102,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
       this.sequelize.options.databaseVersion = semver.coerce(connection.serverVersion())!.version;
 
       debug('connection acquired');
-      connection.on('error', (error) => {
+      connection.on('error', error => {
         switch (error.code) {
           case 'ESOCKET':
           case 'ECONNRESET':

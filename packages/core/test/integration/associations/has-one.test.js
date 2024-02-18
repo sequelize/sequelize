@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const Tasks = {};
 
       await Promise.all(
-        dataTypes.map(async (dataType) => {
+        dataTypes.map(async dataType => {
           const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
           Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 

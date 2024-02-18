@@ -408,7 +408,7 @@ export class Sequelize extends SequelizeTypeScript {
       this.options.replication.read = [this.options.replication.read];
     }
 
-    this.options.replication.read = this.options.replication.read.map((readEntry) => {
+    this.options.replication.read = this.options.replication.read.map(readEntry => {
       if (isString(readEntry)) {
         readEntry = parseConnectionString(readEntry);
       }
@@ -680,7 +680,7 @@ Use Sequelize#query if you wish to use replacements.`);
       if (mappedResult.bindOrder == null) {
         bindParameters = options.bind;
       } else {
-        bindParameters = mappedResult.bindOrder.map((key) => {
+        bindParameters = mappedResult.bindOrder.map(key => {
           if (isBindArray) {
             return options.bind[key - 1];
           }
@@ -959,7 +959,7 @@ Use Sequelize#query if you wish to use replacements.`);
       });
 
       await Promise.all(
-        foreignKeys.map((foreignKey) => {
+        foreignKeys.map(foreignKey => {
           return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
         }),
       );

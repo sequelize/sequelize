@@ -296,8 +296,8 @@ function escapeValueWithBackCompat(
   // The problem is that if we receive a list of list, there are cases where we don't want the extra parentheses around the list,
   // such as in the case of a bulk insert.
   // As a workaround, non-list arrays that contain dynamic values are joined with commas.
-  if (Array.isArray(value) && value.some((item) => item instanceof BaseSqlExpression)) {
-    return value.map((item) => dialect.queryGenerator.escape(item, escapeOptions)).join(', ');
+  if (Array.isArray(value) && value.some(item => item instanceof BaseSqlExpression)) {
+    return value.map(item => dialect.queryGenerator.escape(item, escapeOptions)).join(', ');
   }
 
   return dialect.queryGenerator.escape(value, escapeOptions);
@@ -328,7 +328,7 @@ export function mapBindParameters(
     sqlString,
     dialect,
     undefined,
-    (foundBindParamName) => {
+    foundBindParamName => {
       parameterSet.add(foundBindParamName);
 
       return parameterCollector.collect(foundBindParamName);
@@ -472,7 +472,7 @@ function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
 
 export function escapeMysqlMariaDbString(value: string): string {
   // eslint-disable-next-line no-control-regex -- \u001A is intended to be in this regex
-  value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, (s) => {
+  value = value.replaceAll(/[\b\0\t\n\r\u001A'\\]/g, s => {
     switch (s) {
       case '\0':
         return '\\0';

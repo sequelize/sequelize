@@ -343,7 +343,7 @@ describe('Model', () => {
           expect(console.warn.called).to.eq(true, 'console.warn was not called');
 
           // @ts-expect-error -- only used in testing
-          const warnings = console.warn.args.map((args) => args[0]);
+          const warnings = console.warn.args.map(args => args[0]);
           expect(
             warnings.some((msg: string) =>
               msg.includes(
@@ -439,7 +439,7 @@ describe('Model', () => {
         attributes.type = DataTypes.STRING;
       });
 
-      sequelize.hooks.addListener('afterDefine', (factory) => {
+      sequelize.hooks.addListener('afterDefine', factory => {
         factory.options.name.singular = 'barr';
       });
 

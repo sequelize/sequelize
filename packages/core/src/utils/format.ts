@@ -28,7 +28,7 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
 
     const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
-      (attributeName) => !modelDefinition.virtualAttributeNames.has(attributeName),
+      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
   }
 
@@ -58,7 +58,7 @@ export function mapOptionFieldNames<M extends Model>(
   const out: MappedFinderOptions<Attributes<M>> = options;
 
   if (Array.isArray(options.attributes)) {
-    out.attributes = options.attributes.map((attributeName) => {
+    out.attributes = options.attributes.map(attributeName => {
       // Object lookups will force any variable to strings, we don't want that for special objects etc
       if (typeof attributeName !== 'string') {
         return attributeName;
@@ -153,7 +153,7 @@ export function getColumnName(attribute: NormalizedAttributeOptions): string {
 
 export function getAttributeName(model: ModelStatic, columnName: string): string | null {
   return (
-    Object.values(model.getAttributes()).find((attribute) => attribute.field === columnName)
+    Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)
       ?.fieldName ?? null
   );
 }

@@ -277,7 +277,6 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
       await expect(
         testInstance.transaction(async () => {
-          // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive
           await testInstance.transaction<void>(() => {});
         }),
       ).to.eventually.be.rejectedWith(ConnectionAcquireTimeoutError);

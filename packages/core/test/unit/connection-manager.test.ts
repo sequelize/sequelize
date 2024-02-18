@@ -28,7 +28,7 @@ describe('connection manager', () => {
       const username = Math.random().toString();
       const password = Math.random().toString();
 
-      sequelize.beforeConnect((config) => {
+      sequelize.beforeConnect(config => {
         config.username = username;
         config.password = password;
       });

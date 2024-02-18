@@ -223,12 +223,12 @@ async function test() {
   });
 
   const indexes = await queryInterface.showIndex('Person');
-  indexes.map((index) => ({
+  indexes.map(index => ({
     name: index.name,
     table: index.tableName,
     unique: index.unique,
     primary: index.primary,
-    fields: index.fields.map((field) => field.attribute),
+    fields: index.fields.map(field => field.attribute),
     type: index.type,
   }));
 
@@ -236,7 +236,7 @@ async function test() {
 
   await queryInterface.removeIndex('Person', ['firstname', 'lastname']);
 
-  await queryInterface.sequelize.transaction(async (trx) =>
+  await queryInterface.sequelize.transaction(async trx =>
     queryInterface.addConstraint('Person', {
       name: 'firstnamexlastname',
       fields: ['firstname', 'lastname'],

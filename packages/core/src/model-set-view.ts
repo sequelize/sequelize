@@ -15,7 +15,7 @@ export class ModelSetView extends SetView<ModelStatic> {
   }
 
   get<M extends Model = Model>(modelName: string): ModelStatic<M> | undefined {
-    return this.find((model) => model.modelDefinition.modelName === modelName) as
+    return this.find(model => model.modelDefinition.modelName === modelName) as
       | ModelStatic<M>
       | undefined;
   }
@@ -65,7 +65,7 @@ export class ModelSetView extends SetView<ModelStatic> {
         deps.push(dep);
       }
 
-      deps = deps.filter((dep) => tableName !== dep);
+      deps = deps.filter(dep => tableName !== dep);
 
       sorter.add(tableName, deps);
     }

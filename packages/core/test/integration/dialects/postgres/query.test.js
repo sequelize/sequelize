@@ -183,7 +183,7 @@ if (dialect.startsWith('postgres')) {
           subQuery: false,
           order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
         })
-      ).map((f) => f.name);
+      ).map(f => f.name);
       expect(baseTest[0]).to.equal('record1');
 
       const orderByAscSubquery = (
@@ -195,7 +195,7 @@ if (dialect.startsWith('postgres')) {
           order: [['customAttribute']],
           limit: 1,
         })
-      ).map((f) => f.name);
+      ).map(f => f.name);
       expect(orderByAscSubquery[0]).to.equal('record1');
 
       const orderByDescSubquery = (
@@ -207,7 +207,7 @@ if (dialect.startsWith('postgres')) {
           order: [['customAttribute', 'DESC']],
           limit: 1,
         })
-      ).map((f) => f.name);
+      ).map(f => f.name);
       expect(orderByDescSubquery[0]).to.equal('record2');
     });
 
@@ -274,7 +274,7 @@ if (dialect.startsWith('postgres')) {
 
       it('reuses connection after statement timeout', async () => {
         // client timeout > statement timeout means that the query should fail with a statement timeout
-        const { sequelize, originalPid } = await setUp(10_000);
+        const { originalPid, sequelize } = await setUp(10_000);
         await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(
           DatabaseError,
           'canceling statement due to statement timeout',
@@ -284,7 +284,7 @@ if (dialect.startsWith('postgres')) {
 
       it('invalidates connection after client-side query timeout', async () => {
         // client timeout < statement timeout means that the query should fail with a read timeout
-        const { sequelize, originalPid } = await setUp(250);
+        const { originalPid, sequelize } = await setUp(250);
         await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(
           DatabaseError,
           'Query read timeout',

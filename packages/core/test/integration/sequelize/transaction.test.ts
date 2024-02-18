@@ -42,8 +42,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
   describe('nested managed transactions', () => {
     it('reuses the parent transaction by default', async () => {
-      await sequelize.transaction(async (transaction1) => {
-        await sequelize.transaction({ transaction: transaction1 }, async (transaction2) => {
+      await sequelize.transaction(async transaction1 => {
+        await sequelize.transaction({ transaction: transaction1 }, async transaction2 => {
           expect(transaction1 === transaction2).to.equal(
             true,
             'transaction1 and transaction2 should be the same',
@@ -53,7 +53,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     });
 
     it('requires compatible options if nestMode is set to "reuse"', async () => {
-      await sequelize.transaction(async (transaction1) => {
+      await sequelize.transaction(async transaction1 => {
         if (sequelize.dialect.supports.startTransaction.transactionType) {
           await expect(
             sequelize.transaction(
@@ -111,10 +111,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     });
 
     it('creates a savepoint if nestMode is set to "savepoint"', async () => {
-      await sequelize.transaction(async (transaction1) => {
+      await sequelize.transaction(async transaction1 => {
         await sequelize.transaction(
           { transaction: transaction1, nestMode: TransactionNestMode.savepoint },
-          async (transaction2) => {
+          async transaction2 => {
             expect(transaction1 === transaction2).to.equal(
               false,
               'transaction1 and transaction2 should not be the same',
@@ -129,7 +129,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     });
 
     it('requires compatible options if nestMode is set to "savepoint"', async () => {
-      await sequelize.transaction(async (transaction1) => {
+      await sequelize.transaction(async transaction1 => {
         const commonOptions = {
           transaction: transaction1,
           nestMode: TransactionNestMode.savepoint,
@@ -194,10 +194,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     // sqlite cannot have more than one transaction at the same time, so separate is not available.
     if (dialectName !== 'sqlite') {
       it('creates a new transaction if nestMode is set to "separate"', async () => {
-        await sequelize.transaction(async (transaction1) => {
+        await sequelize.transaction(async transaction1 => {
           await sequelize.transaction(
             { transaction: transaction1, nestMode: TransactionNestMode.separate },
-            async (transaction2) => {
+            async transaction2 => {
               expect(transaction1 === transaction2).to.equal(
                 false,
                 'transaction1 and transaction2 should not be the same',
@@ -216,7 +216,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       });
 
       it('does not care about option compatibility when nestMode is set to "separate"', async () => {
-        await sequelize.transaction(async (transaction1) => {
+        await sequelize.transaction(async transaction1 => {
           await sequelize.transaction(
             {
               transaction: transaction1,
@@ -243,8 +243,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         defaultTransactionNestMode: TransactionNestMode.savepoint,
       });
 
-      await customSequelize.transaction(async (transaction1) => {
-        await customSequelize.transaction({ transaction: transaction1 }, async (transaction2) => {
+      await customSequelize.transaction(async transaction1 => {
+        await customSequelize.transaction({ transaction: transaction1 }, async transaction2 => {
           expect(transaction1 === transaction2).to.equal(
             false,
             'transaction1 and transaction2 should not be the same',
@@ -292,20 +292,20 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
       it('should allow setting the isolation level during a transaction', async () => {
         const { User, transactionSequelize } = vars;
 
-        await transactionSequelize.transaction(async (transaction) => {
+        await transactionSequelize.transaction(async transaction => {
           await transaction.setIsolationLevel(IsolationLevel.READ_UNCOMMITTED);
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
         });
 
         if (dialectName !== 'sqlite') {
-          await transactionSequelize.transaction(async (transaction) => {
+          await transactionSequelize.transaction(async transaction => {
             await transaction.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
             assert(johnDoe, 'John Doe should exist');
             expect(johnDoe.age).to.equal(22);
           });
 
-          await transactionSequelize.transaction(async (transaction) => {
+          await transactionSequelize.transaction(async transaction => {
             await transaction.setIsolationLevel(IsolationLevel.REPEATABLE_READ);
             const users = await User.findAll({ transaction });
             expect(users.length).to.equal(1);
@@ -314,7 +314,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           });
         }
 
-        await transactionSequelize.transaction(async (transaction) => {
+        await transactionSequelize.transaction(async transaction => {
           await transaction.setIsolationLevel(IsolationLevel.SERIALIZABLE);
           await User.create({ name: 'Jane Doe', age: 21 }, { transaction });
         });
@@ -328,7 +328,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
         await transactionSequelize.transaction(
           { isolationLevel: IsolationLevel.READ_COMMITTED },
-          async (transaction) => {
+          async transaction => {
             const users0 = await User.findAll({ transaction });
             expect(users0).to.have.lengthOf(1);
             await User.create({ name: 'Jane Doe', age: 21 }); // Create a User outside of the transaction
@@ -351,7 +351,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction: t1 });
           await transactionSequelize.transaction(
             { isolationLevel: IsolationLevel.READ_UNCOMMITTED },
-            async (transaction) => {
+            async transaction => {
               const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
               assert(johnDoe, 'John Doe should exist');
               expect(johnDoe.age).to.equal(22);
@@ -378,7 +378,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction: t1 });
           await transactionSequelize.transaction(
             { isolationLevel: IsolationLevel.READ_COMMITTED },
-            async (transaction) => {
+            async transaction => {
               const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
               assert(johnDoe, 'John Doe should exist');
               expect(johnDoe.age).to.equal(21);
@@ -409,7 +409,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
           await transactionSequelize.transaction(
             { isolationLevel: IsolationLevel.READ_COMMITTED },
-            async (transaction) => {
+            async transaction => {
               await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
             },
           );
@@ -433,7 +433,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
         await transactionSequelize.transaction(
           { isolationLevel: IsolationLevel.REPEATABLE_READ },
-          async (transaction) => {
+          async transaction => {
             const users0 = await User.findAll({ transaction });
             expect(users0).to.have.lengthOf(1);
 
@@ -459,7 +459,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
           await transactionSequelize.transaction(
             { isolationLevel: IsolationLevel.REPEATABLE_READ },
-            async (transaction) => {
+            async transaction => {
               await User.create({ name: 'Jane Doe', age: 21 }, { transaction });
             },
           );

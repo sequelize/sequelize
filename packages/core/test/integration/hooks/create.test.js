@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeValidate', async function () {
         let hookCalled = 0;
 
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('afterValidate', async function () {
         let hookCalled = 0;
 
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.mood = 'neutral';
           hookCalled++;
         });
@@ -144,7 +144,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeCreate', async function () {
         let hookCalled = 0;
 
-        this.User.beforeCreate((user) => {
+        this.User.beforeCreate(user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -158,7 +158,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', async function () {
         let hookCalled = 0;
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });
@@ -172,12 +172,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeCreate', async function () {
         let hookCalled = 0;
 
-        this.User.beforeCreate((user) => {
+        this.User.beforeCreate(user => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave((user) => {
+        this.User.beforeSave(user => {
           user.mood = 'happy';
           hookCalled++;
         });

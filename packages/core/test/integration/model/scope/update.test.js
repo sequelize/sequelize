@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to unscope destroy', async function () {
         await this.ScopeMe.unscoped().update({ username: 'ruben' }, { where: {} });
         const rubens = await this.ScopeMe.unscoped().findAll();
-        expect(rubens.every((r) => r.get('username') === 'ruben')).to.be.true;
+        expect(rubens.every(r => r.get('username') === 'ruben')).to.be.true;
       });
 
       it('should be able to apply other scopes', async function () {

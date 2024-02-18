@@ -79,7 +79,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     await mary.setParents([john]);
     await chris.addParent(john);
     const children = await john.getChilds();
-    expect(children.map((v) => v.id)).to.have.members([mary.id, chris.id]);
+    expect(children.map(v => v.id)).to.have.members([mary.id, chris.id]);
   });
 
   it('can handle n:m associations with pre-defined through table', async function () {
@@ -158,6 +158,6 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     });
 
     expect(count).to.equal(3);
-    expect(children.map((v) => v.id)).to.have.members([this.mary.id]);
+    expect(children.map(v => v.id)).to.have.members([this.mary.id]);
   });
 });

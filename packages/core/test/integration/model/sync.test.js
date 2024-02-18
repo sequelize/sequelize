@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const { DataTypes, Deferrable, Model } = require('@sequelize/core');
-const { sequelize, getTestDialect, getTestDialectTeaser } = require('../support');
+const { getTestDialect, getTestDialectTeaser, sequelize } = require('../support');
 
 const dialect = getTestDialect();
 
@@ -704,10 +704,10 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
 async function getNonPrimaryIndexes(model) {
   return (await sequelize.queryInterface.showIndex(model.table))
-    .filter((r) => !r.primary)
+    .filter(r => !r.primary)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function getIndexFields(index) {
-  return index.fields.map((field) => field.attribute).sort();
+  return index.fields.map(field => field.attribute).sort();
 }

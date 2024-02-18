@@ -1,6 +1,6 @@
 'use strict';
 
-const { expectsql, sequelize, beforeAll2 } = require('../../../support');
+const { beforeAll2, expectsql, sequelize } = require('../../../support');
 const { DataTypes } = require('@sequelize/core');
 const { expect } = require('chai');
 

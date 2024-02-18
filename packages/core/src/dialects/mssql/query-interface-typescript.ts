@@ -37,7 +37,7 @@ export class MsSqlQueryInterfaceTypescript<
     await connection.queue.enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
-          connection.commitTransaction((error) => (error ? reject(error) : resolve()));
+          connection.commitTransaction(error => (error ? reject(error) : resolve()));
         }),
     );
   }
@@ -53,7 +53,7 @@ export class MsSqlQueryInterfaceTypescript<
         new Promise<void>((resolve, reject) => {
           // @ts-expect-error -- TODO: remove this when tedious types are fixed
           connection.saveTransaction(
-            (error) => (error ? reject(error) : resolve()),
+            error => (error ? reject(error) : resolve()),
             options.savepointName,
           );
         }),
@@ -74,7 +74,7 @@ export class MsSqlQueryInterfaceTypescript<
         new Promise<void>((resolve, reject) => {
           // @ts-expect-error -- TODO: remove this when tedious types are fixed
           connection.rollbackTransaction(
-            (error) => (error ? reject(error) : resolve()),
+            error => (error ? reject(error) : resolve()),
             options.savepointName,
           );
         }),
@@ -93,7 +93,7 @@ export class MsSqlQueryInterfaceTypescript<
     await connection.queue.enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
-          connection.rollbackTransaction((error) => (error ? reject(error) : resolve()));
+          connection.rollbackTransaction(error => (error ? reject(error) : resolve()));
         }),
     );
   }
@@ -121,7 +121,7 @@ export class MsSqlQueryInterfaceTypescript<
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.beginTransaction(
-            (error) => (error ? reject(error) : resolve()),
+            error => (error ? reject(error) : resolve()),
             options.transactionName,
             this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel),
           );

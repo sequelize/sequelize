@@ -81,10 +81,10 @@ export function joinSQLFragments(array: SQLFragment[]): string {
   }
 
   // Trim fragments
-  const trimmedArray = flattenedArray.map((x) => x.trim());
+  const trimmedArray = flattenedArray.map(x => x.trim());
 
   // Skip full-whitespace fragments (empty after the above trim)
-  const nonEmptyStringArray = trimmedArray.filter((x) => x !== '');
+  const nonEmptyStringArray = trimmedArray.filter(x => x !== '');
 
   return singleSpaceJoinHelper(nonEmptyStringArray);
 }

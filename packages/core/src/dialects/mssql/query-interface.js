@@ -20,11 +20,11 @@ export class MsSqlQueryInterface extends MsSqlQueryInterfaceTypescript {
    */
   async removeColumn(tableName, columnName, options) {
     const allConstraints = await this.showConstraints(tableName, { ...options, columnName });
-    const constraints = allConstraints.filter((constraint) =>
+    const constraints = allConstraints.filter(constraint =>
       ['DEFAULT', 'FOREIGN KEY', 'PRIMARY KEY'].includes(constraint.constraintType),
     );
     await Promise.all(
-      constraints.map((constraint) =>
+      constraints.map(constraint =>
         this.removeConstraint(tableName, constraint.constraintName, options),
       ),
     );
@@ -66,8 +66,8 @@ export class MsSqlQueryInterface extends MsSqlQueryInterfaceTypescript {
 
     // Lets combine unique keys and indexes into one
     const uniqueColumnNames = Object.values(model.getIndexes())
-      .filter((c) => c.unique && c.fields.length > 0)
-      .map((c) => c.fields);
+      .filter(c => c.unique && c.fields.length > 0)
+      .map(c => c.fields);
 
     const attributes = Object.keys(insertValues);
     for (const index of uniqueColumnNames) {

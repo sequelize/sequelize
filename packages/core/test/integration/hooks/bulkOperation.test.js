@@ -115,11 +115,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterBulkCreate = true;
         });
 
-        this.User.beforeCreate(async (user) => {
+        this.User.beforeCreate(async user => {
           user.beforeHookTest = true;
         });
 
-        this.User.afterCreate(async (user) => {
+        this.User.afterCreate(async user => {
           user.username = `User${user.id}`;
         });
 
@@ -152,7 +152,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterCreate(async (user) => {
+        this.User.afterCreate(async user => {
           user.username = `User${user.id}`;
         });
 
@@ -248,12 +248,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.User.afterBulkUpdate(afterBulk);
 
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           user.beforeHookTest = true;
         });
 
-        this.User.afterUpdate((user) => {
+        this.User.afterUpdate(user => {
           user.username = `User${user.id}`;
         });
 
@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('should run the after/before functions for each item created successfully changing some data before updating', async function () {
-        this.User.beforeUpdate((user) => {
+        this.User.beforeUpdate(user => {
           expect(user.changed()).to.not.be.empty;
           if (user.get('id') === 1) {
             user.set('aNumber', user.get('aNumber') + 3);
@@ -303,7 +303,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('You shall not pass!');
         });
 
-        this.User.afterUpdate((user) => {
+        this.User.afterUpdate(user => {
           user.username = `User${user.id}`;
         });
 

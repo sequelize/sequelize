@@ -82,7 +82,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
-    attributes = mapValues(attributes, (attribute) => this.sequelize.normalizeAttribute(attribute));
+    attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
@@ -356,7 +356,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const modelDefinition = instance?.modelDefinition;
 
     options.hasTrigger = modelDefinition?.options.hasTrigger;
-    const { query, bind } = this.queryGenerator.insertQuery(
+    const { bind, query } = this.queryGenerator.insertQuery(
       tableName,
       values,
       modelDefinition && getObjectFromMap(modelDefinition.attributes),
@@ -411,17 +411,17 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       const primaryKeys = Array.from(
         map(
           modelDefinition.primaryKeysAttributeNames,
-          (pkAttrName) => modelDefinition.attributes.get(pkAttrName).columnName,
+          pkAttrName => modelDefinition.attributes.get(pkAttrName).columnName,
         ),
       );
 
       const uniqueColumnNames = Object.values(model.getIndexes())
-        .filter((c) => c.unique && c.fields.length > 0)
-        .map((c) => c.fields);
+        .filter(c => c.unique && c.fields.length > 0)
+        .map(c => c.fields);
       // For fields in updateValues, try to find a constraint or unique index
       // that includes given field. Only first matching upsert key is used.
       for (const field of options.updateOnDuplicate) {
-        const indexKey = uniqueColumnNames.find((fields) => fields.includes(field));
+        const indexKey = uniqueColumnNames.find(fields => fields.includes(field));
         if (indexKey) {
           options.upsertKeys = indexKey;
           break;
@@ -497,7 +497,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
 
-    const { query, bind } = this.queryGenerator.updateQuery(
+    const { bind, query } = this.queryGenerator.updateQuery(
       tableName,
       values,
       where,

@@ -47,7 +47,7 @@ async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<
   }
 
   return Object.keys(module)
-    .filter((exportName) => {
+    .filter(exportName => {
       if (!isModelStatic(module[exportName])) {
         return false;
       }
@@ -58,5 +58,5 @@ async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<
 
       return true;
     })
-    .map((exportName) => module[exportName]);
+    .map(exportName => module[exportName]);
 }

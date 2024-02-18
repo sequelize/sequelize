@@ -88,7 +88,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         }
 
         attributesClause += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${index.fields
-          .map((field) => this.quoteIdentifier(field))
+          .map(field => this.quoteIdentifier(field))
           .join(', ')})`;
       });
     }
@@ -137,8 +137,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   changeColumnQuery(tableName, attributes) {
-    const query = (subQuery) =>
-      `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
+    const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     for (const attributeName in attributes) {
       let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
@@ -231,7 +230,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const values = enumType.options.values;
 
       if (Array.isArray(values) && values.length > 0) {
-        type = `ENUM(${values.map((value) => this.escape(value)).join(', ')})`;
+        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
 
         if (attribute.type instanceof DataTypes.ARRAY) {
           type += '[]';
@@ -543,7 +542,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let values;
 
     if (dataType instanceof ENUM && dataType.options.values) {
-      values = `ENUM(${dataType.options.values.map((value) => this.escape(value)).join(', ')})`;
+      values = `ENUM(${dataType.options.values.map(value => this.escape(value)).join(', ')})`;
     } else {
       values = dataType.toString().match(/^ENUM\(.+\)/)[0];
     }
@@ -589,7 +588,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       return [];
     }
 
-    matches = matches.map((m) =>
+    matches = matches.map(m =>
       m
         .replace(/",$/, '')
         .replace(/,$/, '')

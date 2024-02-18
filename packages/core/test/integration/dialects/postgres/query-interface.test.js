@@ -341,7 +341,7 @@ if (dialect.startsWith('postgres')) {
         );
 
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = uniq(indexes.map((index) => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
 
         expect(indexColumns).to.include('group_username_case');
       });
@@ -356,12 +356,12 @@ if (dialect.startsWith('postgres')) {
         );
 
         const indexes0 = await this.queryInterface.showIndex('Group');
-        const indexColumns0 = uniq(indexes0.map((index) => index.name));
+        const indexColumns0 = uniq(indexes0.map(index => index.name));
 
         expect(indexColumns0).to.include('group_username_lower');
         await this.queryInterface.removeIndex('Group', 'group_username_lower');
         const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = uniq(indexes.map((index) => index.name));
+        const indexColumns = uniq(indexes.map(index => index.name));
         expect(indexColumns).to.be.empty;
       });
     });

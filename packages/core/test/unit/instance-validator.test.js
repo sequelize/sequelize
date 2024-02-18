@@ -8,7 +8,7 @@ const {
   InstanceValidator,
 } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
 const sinon = require('sinon');
-const { ValidationError: SequelizeValidationError, DataTypes } = require('@sequelize/core');
+const { DataTypes, ValidationError: SequelizeValidationError } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   beforeEach(function () {

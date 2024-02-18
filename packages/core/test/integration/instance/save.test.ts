@@ -267,7 +267,7 @@ describe('Model#save', () => {
       it('should update attributes added in hooks when default fields are used', async () => {
         const { Book } = vars;
 
-        const unhook = Book.hooks.addListener('beforeUpdate', (instance) => {
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
           instance.set('title', 'B');
         });
 
@@ -294,7 +294,7 @@ describe('Model#save', () => {
       it('should update attributes changed in hooks when default fields are used', async () => {
         const { Book } = vars;
 
-        const unhook = Book.hooks.addListener('beforeUpdate', (instance) => {
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
           instance.set('email', 'C');
         });
 
@@ -323,7 +323,7 @@ describe('Model#save', () => {
         const { Book } = vars;
 
         // validateTest
-        const unhook = Book.hooks.addListener('beforeUpdate', (instance) => {
+        const unhook = Book.hooks.addListener('beforeUpdate', instance => {
           instance.set('validateTest', 'B');
         });
 

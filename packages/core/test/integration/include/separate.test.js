@@ -387,8 +387,8 @@ if (current.dialect.supports.groupedLimit) {
         expect(u1projects.length).to.equal(2);
 
         // WTB ES2015 syntax ...
-        expect(u1projects.find((p) => p.id === 1).get('tasks').length).to.equal(3);
-        expect(u1projects.find((p) => p.id === 2).get('tasks').length).to.equal(1);
+        expect(u1projects.find(p => p.id === 1).get('tasks').length).to.equal(3);
+        expect(u1projects.find(p => p.id === 2).get('tasks').length).to.equal(1);
 
         expect(users[1].get('projects')).to.be.ok;
         expect(users[1].get('projects')[0].get('tasks')).to.be.ok;

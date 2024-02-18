@@ -1926,7 +1926,7 @@ export class RANGE<
       );
     }
 
-    return value.map((part) => {
+    return value.map(part => {
       return {
         ...part,
         value: this.options.subtype.parseDatabaseValue(part.value),
@@ -2445,7 +2445,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
 
     const subType: AbstractDataType<any> = this.options.type;
 
-    return value.map((item) => subType.sanitize(item));
+    return value.map(item => subType.sanitize(item));
   }
 
   parseDatabaseValue(value: unknown[]): unknown {
@@ -2461,7 +2461,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
 
     const subType: AbstractDataType<any> = this.options.type;
 
-    return value.map((item) => subType.parseDatabaseValue(item));
+    return value.map(item => subType.parseDatabaseValue(item));
   }
 
   toBindableValue(value: Array<AcceptableTypeOf<T>>): unknown {
@@ -2471,7 +2471,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
 
     const subType: AbstractDataType<any> = this.options.type;
 
-    return value.map((val) => subType.toBindableValue(val));
+    return value.map(val => subType.toBindableValue(val));
   }
 
   protected _checkOptionSupport(dialect: AbstractDialect) {

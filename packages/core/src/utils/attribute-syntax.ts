@@ -153,7 +153,7 @@ ${' '.repeat(parsed.ref.start.index)}^`);
 
   const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
   if (jsonPathNodes) {
-    const path = jsonPathNodes.map((pathNode) => {
+    const path = jsonPathNodes.map(pathNode => {
       return parseJsonPathSegment(pathNode);
     });
 

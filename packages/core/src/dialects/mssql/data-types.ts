@@ -232,7 +232,7 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
   // TODO: add constraint
 
   toSql() {
-    const minLength = maxBy(this.options.values, (value) => value.length)?.length ?? 0;
+    const minLength = maxBy(this.options.values, value => value.length)?.length ?? 0;
 
     // mssql does not have an ENUM type, we use NVARCHAR instead.
     // It is not possible to create an index on NVARCHAR(MAX), so we use 255 which should be plenty for everyone

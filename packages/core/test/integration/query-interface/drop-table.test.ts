@@ -45,7 +45,7 @@ describe('QueryInterface#dropTable', () => {
 
         await queryInterface.dropTable('levels', { cascade: true });
         const allTables = await queryInterface.listTables();
-        const tableNames = allTables.map((table) => table.tableName);
+        const tableNames = allTables.map(table => table.tableName);
         // Cascade only removes the foreign key constraint, not the related table
         expect(tableNames).to.deep.equal(['actors']);
       });

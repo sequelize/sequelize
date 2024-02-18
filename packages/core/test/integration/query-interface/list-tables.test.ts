@@ -11,7 +11,7 @@ describe('QueryInterface#listTables', () => {
       await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
       await queryInterface.createTable('my_test_table2', { name: DataTypes.STRING });
       const allTables = await queryInterface.listTables();
-      const tableNames = allTables.map((v) => v.tableName);
+      const tableNames = allTables.map(v => v.tableName);
 
       expect(tableNames).to.deep.equal(['my_test_table1', 'my_test_table2']);
     });
@@ -40,7 +40,7 @@ describe('QueryInterface#listTables', () => {
       const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''};`;
       await sequelize.queryRaw(sql);
       const allTables = await queryInterface.listTables();
-      const tableNames = allTables.map((v) => v.tableName);
+      const tableNames = allTables.map(v => v.tableName);
       await cleanup();
 
       expect(tableNames).to.deep.equal(['my_test_table']);
@@ -56,7 +56,7 @@ describe('QueryInterface#listTables', () => {
         await testSequelize.close();
 
         const allTables = await queryInterface.listTables();
-        const tableNames = allTables.map((v) => v.tableName);
+        const tableNames = allTables.map(v => v.tableName);
         await queryInterface.dropDatabase('dummy_db');
 
         expect(tableNames).to.deep.equal(['my_test_table1']);

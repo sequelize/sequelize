@@ -4,7 +4,7 @@ import { User } from './models/user';
 export const sequelize = new Sequelize('uri');
 
 async function trans() {
-  const a: number = await sequelize.transaction(async (transaction) => {
+  const a: number = await sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
     User.create(
       {
@@ -20,7 +20,7 @@ async function trans() {
 }
 
 async function trans2() {
-  return sequelize.transaction(async (transaction) => {
+  return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
     User.findAll({
       transaction,
@@ -32,7 +32,7 @@ async function trans2() {
 }
 
 async function trans3() {
-  return sequelize.transaction(async (transaction) => {
+  return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
     User.findAll({
       transaction,
@@ -44,7 +44,7 @@ async function trans3() {
 }
 
 async function trans4() {
-  return sequelize.transaction(async (transaction) => {
+  return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
     User.findAll({
       transaction,
@@ -78,5 +78,5 @@ async function nestedTransact() {
 }
 
 async function excludeFromTransaction() {
-  await sequelize.transaction(async (t) => sequelize.query('SELECT 1', { transaction: null }));
+  await sequelize.transaction(async t => sequelize.query('SELECT 1', { transaction: null }));
 }

@@ -74,7 +74,7 @@ export class IBMiQuery extends AbstractQuery {
             const attributes = this.model.modelDefinition.attributes;
             const attr = find(
               attributes.values(),
-              (attribute) => attribute.attributeName === key || attribute.columnName === key,
+              attribute => attribute.attributeName === key || attribute.columnName === key,
             );
 
             this.instance.dataValues[attr?.attributeName || key] = record;
@@ -158,8 +158,8 @@ export class IBMiQuery extends AbstractQuery {
       const autoIncrementAttribute = this.model.autoIncrementAttribute.field;
       let id = null;
 
-      id ||= (results && results[autoIncrementAttribute]);
-      id ||= (metaData && metaData[autoIncrementAttribute]);
+      id ||= results && results[autoIncrementAttribute];
+      id ||= metaData && metaData[autoIncrementAttribute];
 
       this.instance[this.model.autoIncrementAttribute] = id;
     }
@@ -168,7 +168,7 @@ export class IBMiQuery extends AbstractQuery {
   handleShowIndexesQuery(data) {
     const indexes = Object.create(null);
 
-    data.forEach((item) => {
+    data.forEach(item => {
       if (Object.hasOwn(indexes, item.NAME)) {
         indexes[item.NAME].fields.push({
           attribute: item.COLUMN_NAME,

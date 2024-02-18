@@ -53,7 +53,7 @@ describe('QueryInterface', () => {
       });
       await this.queryInterface.dropAllTables({ skip: ['skipme'] });
       const result = await this.queryInterface.listTables();
-      const tableNames = result.map((v) => v.tableName);
+      const tableNames = result.map(v => v.tableName);
 
       expect(tableNames).to.contain('skipme');
     });
@@ -111,11 +111,11 @@ describe('QueryInterface', () => {
     it('adds, reads and removes an index to the table', async function () {
       await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
       let indexes = await this.queryInterface.showIndex('Group');
-      let indexColumns = uniq(indexes.map((index) => index.name));
+      let indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.include('group_username_is_admin');
       await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
       indexes = await this.queryInterface.showIndex('Group');
-      indexColumns = uniq(indexes.map((index) => index.name));
+      indexColumns = uniq(indexes.map(index => index.name));
       expect(indexColumns).to.be.empty;
     });
 

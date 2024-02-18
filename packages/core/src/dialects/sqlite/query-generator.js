@@ -32,8 +32,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     const primaryKeys = [];
     const needsMultiplePrimaryKeys =
-      Object.values(attributes).filter((definition) => definition.includes('PRIMARY KEY')).length >
-      1;
+      Object.values(attributes).filter(definition => definition.includes('PRIMARY KEY')).length > 1;
     const attrArray = [];
 
     for (const attr in attributes) {
@@ -70,7 +69,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     const table = this.quoteTable(tableName);
     let attrStr = attrArray.join(', ');
-    const pkString = primaryKeys.map((pk) => this.quoteIdentifier(pk)).join(', ');
+    const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
 
     // sqlite has a bug where using CONSTRAINT constraint_name UNIQUE during CREATE TABLE
     //  does not respect the provided constraint name

@@ -37,7 +37,7 @@ export class SqliteQueryInterface<
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
     const allTables = await this.listTables(options);
-    const tableNames = allTables.filter((tableName) => !skip.includes(tableName.tableName));
+    const tableNames = allTables.filter(tableName => !skip.includes(tableName.tableName));
 
     await withSqliteForeignKeysOff(this.sequelize, options, async () => {
       for (const table of tableNames) {
@@ -188,7 +188,7 @@ export class SqliteQueryInterface<
 
     const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
     const constraints = await this.showConstraints(tableName, options);
-    const constraint = constraints.find((c) => c.constraintName === constraintName);
+    const constraint = constraints.find(c => c.constraintName === constraintName);
 
     if (!constraint) {
       const table = this.queryGenerator.extractTableDetails(tableName);
@@ -205,11 +205,11 @@ export class SqliteQueryInterface<
     if (constraint.constraintType === 'FOREIGN KEY') {
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} FOREIGN KEY`;
       const columns = constraint
-        .columnNames!.map((columnName) => this.queryGenerator.quoteIdentifier(columnName))
+        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
         .join(', ');
       const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName!);
       const referenceTableColumns = constraint
-        .referencedColumnNames!.map((columnName) => this.queryGenerator.quoteIdentifier(columnName))
+        .referencedColumnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
         .join(', ');
       constraintSnippet += ` (${columns})`;
       constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
@@ -218,7 +218,7 @@ export class SqliteQueryInterface<
     } else if (['PRIMARY KEY', 'UNIQUE'].includes(constraint.constraintType)) {
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType}`;
       const columns = constraint
-        .columnNames!.map((columnName) => this.queryGenerator.quoteIdentifier(columnName))
+        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
         .join(', ');
       constraintSnippet += ` (${columns})`;
     }
@@ -257,7 +257,7 @@ export class SqliteQueryInterface<
       const keys = [];
       const attributes = [];
       const constraints = [];
-      const sqlAttributes = attributeSQL.split(/,(?![^(]*\))/).map((attr) => attr.trim());
+      const sqlAttributes = attributeSQL.split(/,(?![^(]*\))/).map(attr => attr.trim());
       for (const attribute of sqlAttributes) {
         if (attribute.startsWith('CONSTRAINT')) {
           constraints.push(attribute);
@@ -334,7 +334,7 @@ export class SqliteQueryInterface<
             constraintType: 'PRIMARY KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnsMatch.map((col) => col[1]),
+            columnNames: columnsMatch.map(col => col[1]),
           });
         } else if (/\bREFERENCES\b/.test(constraint)) {
           const deleteAction = definition.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
@@ -352,10 +352,10 @@ export class SqliteQueryInterface<
             constraintType: 'FOREIGN KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnsMatch.map((col) => col[1]),
+            columnNames: columnsMatch.map(col => col[1]),
             referencedTableSchema: '',
             referencedTableName: referencedTableName ?? '',
-            referencedColumnNames: referencedColumnNames.map((col) => col[1]),
+            referencedColumnNames: referencedColumnNames.map(col => col[1]),
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
           });
@@ -368,7 +368,7 @@ export class SqliteQueryInterface<
             constraintType: constraintType as ConstraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            ...(constraintType !== 'CHECK' && { columnNames: columnsMatch.map((col) => col[1]) }),
+            ...(constraintType !== 'CHECK' && { columnNames: columnsMatch.map(col => col[1]) }),
             ...(constraintType !== 'UNIQUE' && { definition }),
           });
         }
@@ -378,7 +378,7 @@ export class SqliteQueryInterface<
         const [, constraintType, rawColumnNames] =
           key.match(/(\w+(?: \w+)?)\s?\(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
         const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
-        const columnNames = columnsMatch.map((col) => col[1]);
+        const columnNames = columnsMatch.map(col => col[1]);
 
         if (constraintType === 'PRIMARY KEY') {
           data.push({
@@ -405,7 +405,7 @@ export class SqliteQueryInterface<
             columnNames,
             referencedTableSchema: '',
             referencedTableName,
-            referencedColumnNames: referencedColumnNames.map((col) => col[1]),
+            referencedColumnNames: referencedColumnNames.map(col => col[1]),
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
           });
@@ -418,13 +418,13 @@ export class SqliteQueryInterface<
     let constraintData = data;
 
     if (options?.columnName) {
-      constraintData = constraintData.filter((constraint) =>
+      constraintData = constraintData.filter(constraint =>
         constraint.columnNames?.includes(options.columnName!),
       );
-      constraintData = constraintData.map((constraint) => {
+      constraintData = constraintData.map(constraint => {
         if (constraint.columnNames) {
           constraint.columnNames = constraint.columnNames.filter(
-            (column) => column === options.columnName,
+            column => column === options.columnName,
           );
         }
 
@@ -434,13 +434,13 @@ export class SqliteQueryInterface<
 
     if (options?.constraintName) {
       constraintData = constraintData.filter(
-        (constraint) => constraint.constraintName === options.constraintName,
+        constraint => constraint.constraintName === options.constraintName,
       );
     }
 
     if (options?.constraintType) {
       constraintData = constraintData.filter(
-        (constraint) => constraint.constraintType === options.constraintType,
+        constraint => constraint.constraintType === options.constraintType,
       );
     }
 

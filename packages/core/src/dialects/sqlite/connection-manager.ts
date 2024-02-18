@@ -39,7 +39,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<SqliteCon
 
   async _onProcessExit() {
     await Promise.all(
-      map(this.connections.values(), async (connection) => {
+      map(this.connections.values(), async connection => {
         return promisify(connection.close.bind(connection))();
       }),
     );

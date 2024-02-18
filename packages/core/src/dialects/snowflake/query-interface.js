@@ -23,7 +23,7 @@ export class SnowflakeQueryInterface extends AbstractQueryInterface {
 
     const model = options.model;
     const modelDefinition = model.modelDefinition;
-    const { query, bind } = this.queryGenerator.insertQuery(
+    const { bind, query } = this.queryGenerator.insertQuery(
       tableName,
       insertValues,
       getObjectFromMap(modelDefinition.attributes),

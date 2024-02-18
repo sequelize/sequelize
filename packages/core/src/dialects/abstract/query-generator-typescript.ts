@@ -429,7 +429,7 @@ export class AbstractQueryGeneratorTypeScript {
     if (type instanceof ConstraintChecking) {
       if (type.constraints?.length) {
         constraintFragment = type.constraints
-          .map((constraint) => this.quoteIdentifier(constraint))
+          .map(constraint => this.quoteIdentifier(constraint))
           .join(', ');
       }
 
@@ -438,7 +438,7 @@ export class AbstractQueryGeneratorTypeScript {
 
     if (constraints?.length) {
       constraintFragment = constraints
-        .map((constraint) => this.quoteIdentifier(constraint))
+        .map(constraint => this.quoteIdentifier(constraint))
         .join(', ');
     }
 
@@ -673,7 +673,7 @@ export class AbstractQueryGeneratorTypeScript {
     if (options?.indexHints) {
       for (const hint of options.indexHints) {
         if (IndexHints[hint.type]) {
-          sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map((indexName) => this.quoteIdentifier(indexName)).join(',')})`;
+          sql += ` ${IndexHints[hint.type]} INDEX (${hint.values.map(indexName => this.quoteIdentifier(indexName)).join(',')})`;
         } else {
           throw new Error(
             `The index hint type "${hint.type}" is invalid or not supported by dialect "${this.dialect.name}".`,
@@ -891,7 +891,7 @@ export class AbstractQueryGeneratorTypeScript {
    * queryGenerator.escapeList([1, 2, 3]); // '(1, 2, 3)'
    */
   escapeList(values: unknown[], options?: EscapeOptions): string {
-    return `(${values.map((value) => this.escape(value, options)).join(', ')})`;
+    return `(${values.map(value => this.escape(value, options)).join(', ')})`;
   }
 
   getUuidV1FunctionCall(): string {
@@ -937,7 +937,7 @@ export class AbstractQueryGeneratorTypeScript {
       }
 
       const pks = join(
-        map(modelDefinition.primaryKeysAttributeNames, (attrName) => {
+        map(modelDefinition.primaryKeysAttributeNames, attrName => {
           return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
         }),
         ', ',

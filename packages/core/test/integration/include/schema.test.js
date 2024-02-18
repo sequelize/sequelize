@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       }
 
       let as = await A.findAll();
-      await Promise.all(as.map((a) => a.setB(b)));
+      await Promise.all(as.map(a => a.setB(b)));
       as = await A.findAll({
         include: [
           {

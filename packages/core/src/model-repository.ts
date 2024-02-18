@@ -86,7 +86,7 @@ export class ModelRepository<M extends Model = Model> {
     } else if (primaryKeys.size === 1 && !this.#modelDefinition.versionAttributeName) {
       const primaryKey: string = primaryKeys.values().next().value;
 
-      const values = instances.map((instance) => getPrimaryKeyValueOrThrow(instance, primaryKey));
+      const values = instances.map(instance => getPrimaryKeyValueOrThrow(instance, primaryKey));
 
       where = { [primaryKey]: values };
     } else {
@@ -94,7 +94,7 @@ export class ModelRepository<M extends Model = Model> {
         // Ideally, we'd use tuple comparison here, but that's not supported by Sequelize yet.
         // It would look like this:
         // WHERE (id1, id2) IN ((1, 2), (3, 4))
-        [Op.or]: instances.map((instance) => getModelPkWhere(instance, true)!),
+        [Op.or]: instances.map(instance => getModelPkWhere(instance, true)!),
       };
     }
 

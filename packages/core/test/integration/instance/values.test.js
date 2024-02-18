@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Fn, Col } = require('@sequelize/core');
+const { Col, DataTypes, Fn } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
@@ -376,7 +376,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         });
         let changed;
 
-        User.afterUpdate((instance) => {
+        User.afterUpdate(instance => {
           changed = instance.changed();
         });
 

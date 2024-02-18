@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       let t;
 
       await expect(
-        this.sequelize.transaction((transaction) => {
+        this.sequelize.transaction(transaction => {
           t = transaction;
           throw new Error('Yolo');
         }),
@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       let t;
 
       await expect(
-        this.sequelize.transaction(async (transaction) => {
+        this.sequelize.transaction(async transaction => {
           t = transaction;
           throw new Error('Swag');
         }),
@@ -102,7 +102,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       const afterRollback = sinon.spy();
       let transaction;
 
-      await this.sequelize.transaction((t) => {
+      await this.sequelize.transaction(t => {
         transaction = t;
         transaction.afterCommit(afterCommit);
         transaction.afterRollback(afterRollback);
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       let transaction;
 
       try {
-        await this.sequelize.transaction((t) => {
+        await this.sequelize.transaction(t => {
           transaction = t;
           transaction.afterCommit(afterCommit);
           transaction.afterRollback(afterRollback);
@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
       await expect(
         (async function () {
-          await this.sequelize.transaction((transaction) => {
+          await this.sequelize.transaction(transaction => {
             transaction.afterCommit(hook);
           });
         })(),
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         let secondTransactionGotNearCommit = false;
 
         const firstTransaction = async () => {
-          await this.sequelize.transaction({ isolationLevel }, async (t) => {
+          await this.sequelize.transaction({ isolationLevel }, async t => {
             t.afterCommit(hook1);
             await Dots.update(
               { color: 'red' },
@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
         const secondTransaction = async () => {
           await delay(500);
-          await this.sequelize.transaction({ isolationLevel }, async (t) => {
+          await this.sequelize.transaction({ isolationLevel }, async t => {
             t.afterCommit(hook2);
             await Dots.update(
               { color: 'green' },
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   it('does not allow queries immediately after rollback call', async function () {
     await expect(
-      this.sequelize.startUnmanagedTransaction().then(async (t) => {
+      this.sequelize.startUnmanagedTransaction().then(async t => {
         await Promise.all([
           expect(t.rollback()).to.eventually.be.fulfilled,
           expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
@@ -556,7 +556,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   if (['mysql', 'mariadb'].includes(dialect)) {
     describe('deadlock handling', () => {
       // Create the `Task` table and ensure it's initialized with 2 rows
-      const getAndInitializeTaskModel = async (sequelize) => {
+      const getAndInitializeTaskModel = async sequelize => {
         const Task = sequelize.define('task', {
           id: {
             type: DataTypes.INTEGER,
@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       // with id of `to`
       const update = async (sequelize, Task, from, to) => {
         await sequelize
-          .transaction(async (transaction) => {
+          .transaction(async transaction => {
             try {
               try {
                 await Task.findAll({
@@ -649,7 +649,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         await this.sequelize.sync({ force: true });
         await this.sequelize.transaction(
           { isolationLevel: IsolationLevel.READ_COMMITTED },
-          async (transaction) => {
+          async transaction => {
             const users0 = await User.findAll({ transaction });
             expect(users0).to.have.lengthOf(0);
             await User.create({ username: 'jan' }); // Create a User outside of the transaction
@@ -995,7 +995,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
         await john.setTasks([task1]);
 
-        await this.sequelize.transaction((t1) => {
+        await this.sequelize.transaction(t1 => {
           if (current.dialect.supports.lockOuterJoinFailure) {
             return expect(
               User.findOne({
@@ -1047,7 +1047,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
           await john.setTasks([task1]);
 
-          await this.sequelize.transaction(async (t1) => {
+          await this.sequelize.transaction(async t1 => {
             const t1John = await User.findOne({
               where: {
                 username: 'John',
@@ -1061,7 +1061,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
             });
 
             // should not be blocked by the lock of the other transaction
-            await this.sequelize.transaction((t2) => {
+            await this.sequelize.transaction(t2 => {
               return Task.update(
                 {
                   active: true,

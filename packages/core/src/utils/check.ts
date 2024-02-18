@@ -94,7 +94,7 @@ export function isColString(value: string): boolean {
 }
 
 export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where> {
-  return arr.some((arg) => isPlainObject(arg) || arg instanceof Where);
+  return arr.some(arg => isPlainObject(arg) || arg instanceof Where);
 }
 
 /**
@@ -117,11 +117,11 @@ export function rejectInvalidOptions<T extends string>(
   const receivedOptionNames = Object.keys(
     // This removes any undefined or false values from the object
     // It is therefore _essential_ that boolean options are false by default!
-    pickBy(receivedOptions, (value) => value !== undefined && value !== false),
+    pickBy(receivedOptions, value => value !== undefined && value !== false),
   );
   const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
 
-  const unsupportedOptions = receivedOptionNames.filter((optionName) => {
+  const unsupportedOptions = receivedOptionNames.filter(optionName => {
     return allSupportableOptions.has(optionName as T) && !parsedSupportedOptions.has(optionName);
   });
 

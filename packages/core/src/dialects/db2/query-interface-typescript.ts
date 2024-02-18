@@ -29,7 +29,7 @@ export class Db2QueryInterfaceTypeScript<
   async dropAllSchemas(options?: QiDropAllSchemasOptions): Promise<void> {
     const skip = options?.skip || [];
     const allSchemas = await this.listSchemas(options);
-    const schemaNames = allSchemas.filter((schemaName) => !skip.includes(schemaName));
+    const schemaNames = allSchemas.filter(schemaName => !skip.includes(schemaName));
 
     // if the dialect does not support "cascade", then drop all tables and routines first in a loop to avoid deadlocks and timeouts
     if (options?.cascade === undefined) {

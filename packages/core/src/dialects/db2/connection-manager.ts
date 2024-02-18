@@ -65,7 +65,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connectio
       return await new Promise((resolve, reject) => {
         const connection = new this.lib.Database() as Db2Connection;
         connection.lib = this.lib;
-        connection.open(connectionConfig, (error) => {
+        connection.open(connectionConfig, error => {
           if (error) {
             if (error.message && error.message.includes('SQL30081N')) {
               return void reject(new ConnectionRefusedError(error));

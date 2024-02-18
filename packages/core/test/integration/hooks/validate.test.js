@@ -24,12 +24,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   describe('#validate', () => {
     describe('#create', () => {
       it('should return the user', async function () {
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.username = 'Bob';
           user.mood = 'happy';
         });
 
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.username = 'Toni';
         });
 
@@ -41,13 +41,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('#3534, hooks modifications', () => {
       it('fields modified in hooks are saved', async function () {
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           // if username is defined and has more than 5 char
           user.username = user.username ? (user.username.length < 5 ? null : user.username) : null;
           user.username = user.username || 'Samorost 3';
         });
 
-        this.User.beforeValidate((user) => {
+        this.User.beforeValidate(user => {
           user.mood = user.mood || 'neutral';
         });
 
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('on error', () => {
       it('should emit an error from after hook', async function () {
-        this.User.afterValidate((user) => {
+        this.User.afterValidate(user => {
           user.mood = 'ecstatic';
           throw new Error('Whoops! Changed user.mood!');
         });

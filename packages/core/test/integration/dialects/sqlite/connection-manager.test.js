@@ -31,7 +31,7 @@ if (dialect === 'sqlite') {
       await sequelize.query('PRAGMA journal_mode = WAL');
       await User.create({ username: 'user1' });
 
-      await sequelize.transaction((transaction) => {
+      await sequelize.transaction(transaction => {
         return User.create({ username: 'user2' }, { transaction });
       });
 

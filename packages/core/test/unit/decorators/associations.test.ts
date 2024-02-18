@@ -26,7 +26,7 @@ describe('@BelongsTo', () => {
       declare user2: User;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @BelongsTo((seq) => seq.models.getOrThrow('User'), 'userId')
+      @BelongsTo(seq => seq.models.getOrThrow('User'), 'userId')
       declare user3: User;
 
       declare userId: number;
@@ -176,7 +176,7 @@ describe('@HasOne', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasOne((seq) => seq.model('Profile'), 'userId')
+      @HasOne(seq => seq.model('Profile'), 'userId')
       declare profile3: Profile;
     }
 
@@ -265,7 +265,7 @@ describe('@HasMany', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasMany((seq) => seq.model('Profile'), { foreignKey: 'userId' })
+      @HasMany(seq => seq.model('Profile'), { foreignKey: 'userId' })
       declare profile3: Profile;
     }
 
@@ -376,8 +376,8 @@ describe('@BelongsToMany', () => {
     class UserRole extends Model<InferAttributes<UserRole>> {}
 
     class User extends Model<InferAttributes<User>> {
-      @BelongsToMany((seq) => seq.model('Role'), {
-        through: (seq) => seq.model('UserRole'),
+      @BelongsToMany(seq => seq.model('Role'), {
+        through: seq => seq.model('UserRole'),
         inverse: { as: 'users' },
       })
       declare roles: Role[];

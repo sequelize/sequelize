@@ -59,7 +59,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<Snowfl
       const connection = this.lib.createConnection(connectionConfig) as SnowflakeConnection;
 
       await new Promise<void>((resolve, reject) => {
-        connection.connect((err) => {
+        connection.connect(err => {
           if (err) {
             return void reject(err);
           }
@@ -130,7 +130,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<Snowfl
     }
 
     await new Promise((resolve, reject) => {
-      connection.destroy((err) => {
+      connection.destroy(err => {
         if (err) {
           console.error(`Unable to disconnect: ${err.message}`);
           reject(err);

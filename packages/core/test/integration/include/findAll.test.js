@@ -452,7 +452,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Promise.all(
-        as0.map((a) => {
+        as0.map(a => {
           return a.setB(b);
         }),
       );
@@ -561,7 +561,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Promise.all(
-        as0.map((a) => {
+        as0.map(a => {
           return a.setB(b);
         }),
       );
@@ -901,7 +901,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         results.users[0].setGroup(results.groups[1]),
         results.users[1].setGroup(results.groups[0]),
         Promise.all(
-          results.groups.map((group) => {
+          results.groups.map(group => {
             return group.setCategories(results.categories);
           }),
         ),
@@ -955,7 +955,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         results.users[0].setTeam(results.groups[1]),
         results.users[1].setTeam(results.groups[0]),
         Promise.all(
-          results.groups.map((group) => {
+          results.groups.map(group => {
             return group.setTags(results.categories);
           }),
         ),
@@ -1010,7 +1010,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         results.users[0].setGroup(results.groups[1]),
         results.users[1].setGroup(results.groups[0]),
         Promise.all(
-          results.groups.map((group) => {
+          results.groups.map(group => {
             return group.setCategories(results.categories);
           }),
         ),
@@ -1590,7 +1590,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Promise.all(
-        posts0.slice(1, 3).map((post) => {
+        posts0.slice(1, 3).map(post => {
           return post.createCategory({ slug: 'food' });
         }),
       );
@@ -2061,9 +2061,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         // checking that internally added fields used to handle 'BelongsTo' associations are not leaked to result
         expect(product.userId).to.equal(undefined);
         // checking that included models are on their places
-        expect(product.user).to.satisfy(
-          (User) => User === null || User instanceof this.models.User,
-        );
+        expect(product.user).to.satisfy(User => User === null || User instanceof this.models.User);
         expect(product.prices).to.be.an('array');
       }
     });
@@ -2117,7 +2115,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       const [nonDeletedUserCustomers, deletedUserCustomers] = partition(
         userCustomers,
-        (userCustomer) => !userCustomer.deletedAt,
+        userCustomer => !userCustomer.deletedAt,
       );
 
       expect(nonDeletedUserCustomers).to.be.lengthOf(1);
