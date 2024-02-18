@@ -86,6 +86,9 @@
   },
   "packageManager": "yarn@4.1.0",
   "lint-staged": {
-    "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
+    "*": [
+      "eslint --fix --report-unused-disable-directives",
+      "prettier --write"
+    ]
   }
 }

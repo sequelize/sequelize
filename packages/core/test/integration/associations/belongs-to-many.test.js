@@ -3585,8 +3585,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           task2.destroy(),
         ]);
 
-        const usertasks = await this.sequelize
-          .models.getOrThrow('tasksusers')
+        const usertasks = await this.sequelize.models
+          .getOrThrow('tasksusers')
           .findAll({ where: { taskId: task2.id } });
         // This should not exist because deletes cascade
         expect(usertasks).to.have.length(0);
