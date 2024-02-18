@@ -4587,7 +4587,7 @@ Instead of specifying a Model, either:
    *
    * // Join model with additional attributes
    * const UserProjects = sequelize.define('UserProjects', {
-   *   started: Sequelize.BOOLEAN
+   *   started: DataTypes.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })
    * ```
