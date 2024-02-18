@@ -258,6 +258,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
             coordinates: [
               // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
               [39.807_222, "'); DELETE YOLO INJECTIONS; --"],
+              // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+              // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+              // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
               [0, 0],
             ],
           },
@@ -554,13 +557,19 @@ describe(getTestDialectTeaser('DataTypes'), () => {
               [
                 // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
                 [100, "'); DELETE YOLO INJECTIONS; --"],
+                // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+                // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+                // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
                 [101, 1],
               ],
-              // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-              // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-              // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
               [
+                // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+                // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+                // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
                 [102, 2],
+                // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+                // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+                // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
                 [103, 3],
               ],
             ],
