@@ -427,8 +427,8 @@ export class BelongsToAssociation<
     values: CreationAttributes<T> = {},
     options: BelongsToCreateAssociationMixinOptions<T> = {},
   ): Promise<T> {
-    values ||= {};
-    options ||= {};
+    values = values || {};
+    options = options || {};
 
     const newAssociatedObject = await this.target.create(values, options);
     await this.set(sourceInstance, newAssociatedObject, options);

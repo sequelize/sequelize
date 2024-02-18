@@ -51,9 +51,9 @@ export class MsSqlQueryInterfaceTypescript<
     await connection.queue.enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
-          // @ts-expect-error -- TODO: remove this when tedious types are fixed
           connection.saveTransaction(
             error => (error ? reject(error) : resolve()),
+            // @ts-expect-error -- TODO: remove this when tedious types are fixed
             options.savepointName,
           );
         }),
@@ -72,9 +72,9 @@ export class MsSqlQueryInterfaceTypescript<
     await connection.queue.enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
-          // @ts-expect-error -- TODO: remove this when tedious types are fixed
           connection.rollbackTransaction(
             error => (error ? reject(error) : resolve()),
+            // @ts-expect-error -- TODO: remove this when tedious types are fixed
             options.savepointName,
           );
         }),
