@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+// @ts-expect-error -- TODO: request type to be public
 import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast.js';
 import wkx from 'wkx';
 import { isValidTimeZone } from '../../utils/dayjs.js';
@@ -16,7 +17,7 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
    * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
    */
   dialect.registerDataTypeParser(['DATETIME'], (value: Field) => {
-    const valueStr = value.string();
+    const valueStr: string = value.string();
     if (valueStr === null) {
       return null;
     }

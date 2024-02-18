@@ -1,5 +1,5 @@
+import type { AllowArray, Nullish } from '@sequelize/utils';
 import { MultiMap } from '@sequelize/utils';
-import type { AllowArray, Nullish } from './utils/types.js';
 
 export type AsyncHookReturn = Promise<void> | void;
 
@@ -20,7 +20,7 @@ export class HookHandler<HookConfig extends {}> {
   #eventTarget: object;
   #listeners = new MultiMap<
     PropertyKey,
-    { listenerName: Nullish<string>; callback: HookConfig[keyof HookConfig] }
+    { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] }
   >();
 
   #onRunHook: OnRunHook<HookConfig> | undefined;
@@ -63,7 +63,7 @@ export class HookHandler<HookConfig extends {}> {
   #getNamedListener<HookName extends keyof HookConfig>(
     hookName: HookName,
     listenerName: string,
-  ): { listenerName: Nullish<string>; callback: HookConfig[keyof HookConfig] } | null {
+  ): { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] } | null {
     const listeners = this.#listeners.getAll(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {

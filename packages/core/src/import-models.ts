@@ -1,8 +1,8 @@
+import { isPlainObject } from '@sequelize/utils';
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
 import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
-import { isPlainObject } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
 
 type ModelMatch = (path: string, exportName: string, exportValue: ModelStatic) => boolean;

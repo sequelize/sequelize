@@ -1,3 +1,4 @@
+import type { AllowIterable, RequiredBy } from '@sequelize/utils';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '@sequelize/utils';
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
@@ -31,7 +32,6 @@ import type { Sequelize } from '../sequelize';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { camelize, singularize } from '../utils/string.js';
-import type { AllowIterable, RequiredBy } from '../utils/types.js';
 import type {
   Association,
   AssociationOptions,

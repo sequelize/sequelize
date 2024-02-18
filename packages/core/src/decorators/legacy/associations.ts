@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY } from '@sequelize/utils';
+import { EMPTY_ARRAY, isString } from '@sequelize/utils';
 import { inspect } from 'node:util';
 import type { MaybeForwardedModelStatic } from '../../associations/helpers.js';
 import { AssociationSecret, getForwardedModel } from '../../associations/helpers.js';
@@ -17,7 +17,6 @@ import {
 } from '../../associations/index.js';
 import type { AttributeNames, Model, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
-import { isString } from '../../utils/check.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { throwMustBeInstanceProperty, throwMustBeModel } from './decorator-utils.js';
 

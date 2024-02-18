@@ -1,9 +1,9 @@
+import { isNodeError } from '@sequelize/utils/node.js';
 import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
 import type { ConnectionOptions, Dialect, Sequelize } from '../../sequelize.js';
-import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
 import { logger } from '../../utils/logger';
 import type { AbstractDialect } from './index.js';

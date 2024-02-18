@@ -1,4 +1,4 @@
-import { EMPTY_OBJECT, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -25,7 +25,7 @@ import type { BindOrReplacements, Expression } from '../../sequelize.js';
 import { bestGuessDataTypeOfVal } from '../../sql-string.js';
 import { TableHints } from '../../table-hints.js';
 import type { IsolationLevel } from '../../transaction.js';
-import { isPlainObject, rejectInvalidOptions } from '../../utils/check.js';
+import { rejectInvalidOptions } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { quoteIdentifier } from '../../utils/dialect.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments.js';

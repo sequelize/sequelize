@@ -259,9 +259,3 @@ export function getAllOwnEntries(
   // @ts-expect-error -- obj[key] is implicitly any
   return map(getAllOwnKeys(obj), key => [key, obj[key]]);
 }
-
-export function noPrototype<T extends object>(obj: T): T {
-  Object.setPrototypeOf(obj, null);
-
-  return obj;
-}

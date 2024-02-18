@@ -5,13 +5,18 @@
     "node": ">=18.0.0"
   },
   "exports": {
-    ".": "./lib/common/index.js",
-    "./node.js": "./lib/node/index.js"
+    ".": {
+      "default": "./lib/common/index.js",
+      "types": "./lib/common/index.d.ts"
+    },
+    "./node.js": {
+      "node": "./lib/node/index.js",
+      "types": "./lib/node/index.d.ts"
+    }
   },
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "main": "lib/index.js",
   "name": "@sequelize/utils",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
@@ -19,10 +24,9 @@
     "build": "tsc --project tsconfig.build.json",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha",
-    "test-exports": "../../dev/test-exports.mjs --check-outdated .",
-    "sync-exports": "../../dev/sync-exports.mjs ."
+    "test-exports": "../../dev/test-exports.mjs --check-outdated ./src",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "types": "lib/index.d.ts",
   "version": "0.0.0-development"
 }

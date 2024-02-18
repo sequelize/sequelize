@@ -1,4 +1,10 @@
-import { EMPTY_ARRAY } from '@sequelize/utils';
+import {
+  EMPTY_ARRAY,
+  isPlainObject,
+  isString,
+  parseBigInt,
+  parseSafeInteger,
+} from '@sequelize/utils';
 import dayjs from 'dayjs';
 import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
@@ -13,11 +19,9 @@ import { assertIsGeoJson } from '../../geo-json.js';
 import type { ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
-import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
 import type { HstoreRecord } from '../postgres/hstore.js';
 import { buildRangeParser } from '../postgres/range.js';
@@ -801,7 +805,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
 
   sanitize(value: unknown): unknown {
     if (typeof value === 'string' || typeof value === 'bigint') {
-      const out = parseNumber(value);
+      const out = parseSafeInteger(value);
 
       // let validate sort this validation instead
       if (Number.isNaN(out)) {

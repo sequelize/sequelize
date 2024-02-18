@@ -4,11 +4,6 @@
 export type AnyFunction = (...args: unknown[]) => unknown;
 
 /**
- * Represents any constructable value
- */
-export type AnyConstructor = new (...args: unknown[]) => unknown;
-
-/**
  * Represents any plain object (or Record, as TypeScript calls it).
  *
  * Prefer {@link UnknownRecord} unless you're encountering issues with it.
@@ -24,14 +19,14 @@ export type AnyRecord = Record<PropertyKey, any>;
 export type UnknownRecord = Record<PropertyKey, unknown>;
 
 export type Nullish = null | undefined;
- 
+
 export type NonNullish = {};
 
 /**
  * Makes the type accept null & undefined
  */
 export type MakeNullish<T> = T | Nullish;
- 
+
 export type MakeNonNullish<T> = NonNullable<T>;
 
 export type NonUndefined<T> = T extends undefined ? never : T;
@@ -46,29 +41,16 @@ export type AllowArray<T> = T | T[];
 
 export type AllowIterable<T> = T | Iterable<T>;
 
-export type AllowLowercase<T extends string> = T | Lowercase<T>;
-
 export type AllowReadonlyArray<T> = T | readonly T[];
 
 export type AllowPromise<T> = T | Promise<T>;
-
-export type ConstructorKeys<T> = {
-  [P in keyof T]: T[P] extends new () => any ? P : never;
-}[keyof T];
-
-type NonConstructorKeys<T> = {
-  [P in keyof T]: T[P] extends new () => any ? never : P;
-}[keyof T];
-
-export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
 
 /**
  * Type helper for making certain fields of an object optional.
  */
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-export type RequiredBy<T, K extends keyof T> = Omit<T, K> &
-  Required<Pick<T, K>>;
+export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
 
 export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<
   Omit<T, K> & Required<Pick<T, K>>,
@@ -81,9 +63,7 @@ export type PartialRecord<K extends PropertyKey, V> = {
   [P in K]?: V;
 };
 
-export type PartialReadonlyRecord<K extends PropertyKey, V> = Readonly<
-  PartialRecord<K, V>
->;
+export type PartialReadonlyRecord<K extends PropertyKey, V> = Readonly<PartialRecord<K, V>>;
 
 export type Entry<Key, Value> = [key: Key, value: Value];
 

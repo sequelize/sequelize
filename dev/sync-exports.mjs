@@ -84,7 +84,7 @@ async function outputExports(exports, indexPath) {
     .sort()
     .join('');
 
-  const fileContents = `/** Generated File, do not modify directly. Run "./dev/sync-exports.js" in the folder of the package instead */\n\n${imports}`;
+  const fileContents = `/** Generated File, do not modify directly. Run "yarn sync-exports" in the folder of the package instead */\n\n${imports}`;
 
   const file = await readFileIfExists(indexPath, 'utf-8');
   if (file === null || file !== fileContents) {
