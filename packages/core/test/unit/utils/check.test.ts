@@ -1,8 +1,4 @@
-import { DataTypes, Op, sql } from '@sequelize/core';
-import {
-  canTreatArrayAsAnd,
-  isColString,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { DataTypes } from '@sequelize/core';
 import {
   defaultValueSchemable,
   isWhereEmpty,
@@ -13,39 +9,6 @@ import { sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('utils / check', () => {
-  describe('isColString', () => {
-    it('should return true if the value starts with $ and ends with $', () => {
-      expect(isColString('$col$')).to.equal(true);
-    });
-    it('should return true if the value contains a separator (e.g. ".")', () => {
-      expect(isColString('$table.col$')).to.equal(true);
-    });
-    it('should return false if the value does not start with $', () => {
-      expect(isColString('col$')).to.equal(false);
-    });
-    it('should return false if the value does not end with $', () => {
-      expect(isColString('$col')).to.equal(false);
-    });
-    it('should return false if no $ is present at all', () => {
-      expect(isColString('col')).to.equal(false);
-    });
-    it('should return false if no $ is present at all but value contains separator', () => {
-      expect(isColString('table.col')).to.equal(false);
-    });
-  });
-
-  describe('canTreatArrayAsAnd', () => {
-    it('should return true if the array contains an object', () => {
-      expect(canTreatArrayAsAnd([{}])).to.equal(true);
-    });
-    it('should return true if the array contains a Where', () => {
-      expect(canTreatArrayAsAnd([sql.where(sql.col('name'), Op.eq, 'foo')])).to.equal(true);
-    });
-    it('should return false if the array contains anything else', () => {
-      expect(canTreatArrayAsAnd([1])).to.equal(false);
-    });
-  });
-
   describe('defaultValueSchemable', () => {
     it('should return false if the value is a NOW', () => {
       expect(defaultValueSchemable(DataTypes.NOW, dialect)).to.equal(false);

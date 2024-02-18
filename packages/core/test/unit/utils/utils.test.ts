@@ -1,5 +1,4 @@
-import { DataTypes, Where, col, sql } from '@sequelize/core';
-import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { DataTypes, sql } from '@sequelize/core';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import {
@@ -167,22 +166,6 @@ describe('Utils', () => {
       expect(merged.include[0].model).to.equal(User);
       // @ts-expect-error -- see above
       expect(merged2.user).to.equal(User);
-    });
-  });
-
-  describe('canTreatArrayAsAnd', () => {
-    it('Array can be treated as and', () => {
-      expect(canTreatArrayAsAnd([{ uuid: 1 }])).to.equal(true);
-      expect(canTreatArrayAsAnd([{ uuid: 1 }, { uuid: 2 }, 1])).to.equal(true);
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1)])).to.equal(true);
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1), new Where(col('uuid'), 2)])).to.equal(
-        true,
-      );
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1), { uuid: 2 }, 1])).to.equal(true);
-    });
-    it('Array cannot be treated as and', () => {
-      expect(canTreatArrayAsAnd([1, 'uuid'])).to.equal(false);
-      expect(canTreatArrayAsAnd([1])).to.equal(false);
     });
   });
 

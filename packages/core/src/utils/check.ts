@@ -1,7 +1,6 @@
 import pickBy from 'lodash/pickBy';
 import type { AbstractDialect } from '../dialects/abstract/index.js';
 import { BaseError } from '../errors/index.js';
-import { Where } from '../expression-builders/where.js';
 
 export function isNullish(val: unknown): val is null | undefined {
   return val == null;
@@ -75,26 +74,6 @@ export function isPlainObject(value: unknown): value is object {
 
 export function isDevEnv(): boolean {
   return process.env.NODE_ENV !== 'production';
-}
-
-/**
- * Returns whether `value` is using the nested syntax for attributes.
- *
- * @param value The attribute reference to check.
- *
- * @example
- * ```javascript
- * isColString('$id$'); // true
- * isColString('$project.name$'); // true
- * isColString('name'); // false
- * ```
- */
-export function isColString(value: string): boolean {
-  return typeof value === 'string' && value.startsWith('$') && value.endsWith('$');
-}
-
-export function canTreatArrayAsAnd(arr: unknown[]): arr is Array<object | Where> {
-  return arr.some(arg => isPlainObject(arg) || arg instanceof Where);
 }
 
 /**
