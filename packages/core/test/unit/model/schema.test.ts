@@ -1,7 +1,12 @@
 import { literal } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
-import { allowDeprecationsInSuite, beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
+import {
+  allowDeprecationsInSuite,
+  beforeAll2,
+  getTestDialectTeaser,
+  sequelize,
+} from '../../support';
 
 describe.skip(`${getTestDialectTeaser('Model')}Schemas`, () => {
   allowDeprecationsInSuite(['SEQUELIZE0009']);
@@ -107,7 +112,9 @@ describe.skip(`${getTestDialectTeaser('Model')}Schemas`, () => {
     it('should be able to override the default schema delimiter', () => {
       const { Company } = vars;
 
-      expect(Company.withSchema({ schema: Company.table.schema!, schemaDelimiter: '^' }).table.delimiter).to.equal('^');
+      expect(
+        Company.withSchema({ schema: Company.table.schema!, schemaDelimiter: '^' }).table.delimiter,
+      ).to.equal('^');
     });
 
     it('should be able to override the default schema delimiter using deprecated schema', () => {
@@ -119,7 +126,9 @@ describe.skip(`${getTestDialectTeaser('Model')}Schemas`, () => {
     it('should be able to override the default schema delimiter using deprecated schema with schema object', () => {
       const { Company } = vars;
 
-      expect(Company.schema(Company.table.schema, { schemaDelimiter: '^' }).table.delimiter).to.equal('^');
+      expect(
+        Company.schema(Company.table.schema, { schemaDelimiter: '^' }).table.delimiter,
+      ).to.equal('^');
     });
 
     it('should support multiple, coexistent schema delimiter models', () => {

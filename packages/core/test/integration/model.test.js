@@ -1255,7 +1255,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: DataTypes.INTEGER,
         });
         const User = await UserSpecialUnderscore.sync({ force: true });
-        const DblUser = await UserSpecialDblUnderscore.withSchema({ schema: 'hello', schemaDelimiter: '__' }).sync({ force: true });
+        const DblUser = await UserSpecialDblUnderscore.withSchema({
+          schema: 'hello',
+          schemaDelimiter: '__',
+        }).sync({ force: true });
         await DblUser.create(
           { age: 3 },
           {
