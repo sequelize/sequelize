@@ -2257,7 +2257,7 @@ __metadata:
     sinon-chai: "npm:3.7.0"
     snowflake-sdk: "npm:1.9.3"
     sqlite3: "npm:5.1.7"
-    tedious: "npm:16.7.0"
+    tedious: "npm:17.0.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^3.0.0"
     uuid: "npm:^9.0.0"
@@ -11435,7 +11435,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.3.0":
+"punycode@npm:^2.1.0":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
@@ -13025,9 +13025,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.7.0":
-  version: 16.7.0
-  resolution: "tedious@npm:16.7.0"
+"tedious@npm:17.0.0":
+  version: 17.0.0
+  resolution: "tedious@npm:17.0.0"
   dependencies:
     "@azure/identity": "npm:^3.4.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
@@ -13039,9 +13039,8 @@ __metadata:
     jsbi: "npm:^4.3.0"
     native-duplexpair: "npm:^1.0.0"
     node-abort-controller: "npm:^3.1.1"
-    punycode: "npm:^2.3.0"
     sprintf-js: "npm:^1.1.2"
-  checksum: 10c0/fc925c993e35f2e55abffc862a5ef47adc2ac998b7ca3ad3fb7235dbfb998ab0977c9bb48b09071bbcab12e02059518c9ed9edc9a308cb9d22a88a1335c833d0
+  checksum: 10c0/60d12919e0fe9d4fd1f32cc167eba1bfe7c2956ea151c1ac98c3c6a72b9c82d036b95476528de14f14f17487a6ed2db0ac62fddd79196670e6b36333af0ddcde
   languageName: node
   linkType: hard
 
