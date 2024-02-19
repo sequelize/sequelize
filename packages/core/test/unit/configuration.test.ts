@@ -197,7 +197,7 @@ describe('Sequelize constructor', () => {
       });
     });
 
-    it.skip('priorises the ?host querystring parameter over the rest of the URI', () => {
+    it('priorises the ?host querystring parameter over the rest of the URI', () => {
       allowDeprecationsInSuite(['SEQUELIZE0027']);
 
       const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
