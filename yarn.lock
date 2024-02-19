@@ -4064,7 +4064,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"available-typed-arrays@npm:^1.0.5, available-typed-arrays@npm:^1.0.6":
+"available-typed-arrays@npm:^1.0.6":
   version: 1.0.6
   resolution: "available-typed-arrays@npm:1.0.6"
   checksum: 10c0/e427360e68ccb19fa0ea48421f393ef3f3d2c9c561f6a8a0704ff472d58024be3e4101f00565445ba453de723a76f4a650defbacaea663c3fb3be8b8f842e955
@@ -4492,9 +4492,9 @@ __metadata:
   linkType: hard
 
 "caniuse-lite@npm:^1.0.30001587":
-  version: 1.0.30001587
-  resolution: "caniuse-lite@npm:1.0.30001587"
-  checksum: 10c0/c7a34cb758a24fa1d948e164de3c5873e7e607b46db0e530ba160a281cb619c9d6a1b85bb334894bc8e629a59db99f3de4521593b08142d317a529e80a856385
+  version: 1.0.30001588
+  resolution: "caniuse-lite@npm:1.0.30001588"
+  checksum: 10c0/f8333cb52e7ebc169d462763cecc33807530f1e04d22ba1084e05a583907aa801fb3c013d60b38d54cb792440f48efcd2a1a68f22d5fce896b5bd0277392347c
   languageName: node
   linkType: hard
 
@@ -13414,15 +13414,16 @@ __metadata:
   linkType: hard
 
 "typed-array-byte-offset@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "typed-array-byte-offset@npm:1.0.0"
+  version: 1.0.1
+  resolution: "typed-array-byte-offset@npm:1.0.1"
   dependencies:
-    available-typed-arrays: "npm:^1.0.5"
-    call-bind: "npm:^1.0.2"
+    available-typed-arrays: "npm:^1.0.6"
+    call-bind: "npm:^1.0.7"
     for-each: "npm:^0.3.3"
+    gopd: "npm:^1.0.1"
     has-proto: "npm:^1.0.1"
-    is-typed-array: "npm:^1.1.10"
-  checksum: 10c0/4036ce007ae9752931bed3dd61e0d6de2a3e5f6a5a85a05f3adb35388d2c0728f9b1a1e638d75579f168e49c289bfb5417f00e96d4ab081f38b647fc854ff7a5
+    is-typed-array: "npm:^1.1.13"
+  checksum: 10c0/d65bd43ca55804d34a7752372abc27ca3b75455e14ebdac4e7648e3aa836455145636421efc9d7ffa020bca895b2f76588efdf3a7a2c21e25dc1cb3fdce60a6a
   languageName: node
   linkType: hard
 
