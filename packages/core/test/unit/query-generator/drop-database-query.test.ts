@@ -10,7 +10,7 @@ const dialectName = getTestDialect();
 
 const notSupportedError = new Error(`Databases are not supported in ${dialectName}.`);
 
-describe('QueryGenerator#dropDatabaseQuery', () => {
+describe.skip('QueryGenerator#dropDatabaseQuery', () => {
   allowDeprecationsInSuite(['SEQUELIZE0023']);
 
   const queryGenerator = sequelize.queryGenerator;

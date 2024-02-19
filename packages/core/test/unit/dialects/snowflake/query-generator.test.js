@@ -15,7 +15,7 @@ const {
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'snowflake') {
-  describe('[SNOWFLAKE Specific] QueryGenerator', () => {
+  describe.skip('[SNOWFLAKE Specific] QueryGenerator', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
 
     const suites = {

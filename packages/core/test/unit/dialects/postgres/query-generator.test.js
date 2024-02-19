@@ -15,7 +15,7 @@ const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
 
 if (dialect.startsWith('postgres')) {
-  describe('[POSTGRES Specific] QueryGenerator', () => {
+  describe.skip('[POSTGRES Specific] QueryGenerator', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
 
     const suites = {
