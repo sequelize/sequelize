@@ -793,7 +793,7 @@ describe('DataTypes', () => {
   });
 
   for (const attrType of ['REAL', 'DOUBLE', 'FLOAT'] as const) {
-    describe.skip(`${attrType}`, () => {
+    describe(`${attrType}`, () => {
       allowDeprecationsInSuite(['SEQUELIZE0014']);
 
       const vars = beforeAll2(async () => {

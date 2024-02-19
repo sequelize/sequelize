@@ -5,7 +5,7 @@ import { testDataTypeSql } from './_utils';
 
 const { dialect, queryGenerator } = sequelize;
 
-describe.skip('DataTypes.ARRAY', () => {
+describe('DataTypes.ARRAY', () => {
   allowDeprecationsInSuite(['SEQUELIZE0014']);
 
   const unsupportedError = new Error(

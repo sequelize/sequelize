@@ -7,7 +7,7 @@ import { testDataTypeSql } from './_utils';
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
-describe.skip('DataTypes.REAL', () => {
+describe('DataTypes.REAL', () => {
   allowDeprecationsInSuite(['SEQUELIZE0014']);
 
   const zeroFillUnsupportedError =
