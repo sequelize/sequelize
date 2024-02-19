@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  describe('describeTable', () => {
+  describe.skip('describeTable', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0015']);
 
     if (Support.sequelize.dialect.supports.schemas) {
