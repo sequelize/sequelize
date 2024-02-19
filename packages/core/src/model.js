@@ -1040,7 +1040,7 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
-    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
+    const schemaOptions = typeof schema === 'string' || schema === null ? { schema } : schema;
 
     schemaOptions.schema ||=
       this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
