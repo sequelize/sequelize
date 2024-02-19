@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   // TODO: move to own suite
   describe('findCreateFind', () => {
     if (dialectName !== 'sqlite') {
-      it('[Flaky] should work with multiple concurrent calls', async function () {
+      it('should work with multiple concurrent calls', async function () {
         const [[instance1, created1], [instance2, created2], [instance3, created3]] =
           await Promise.all([
             this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
@@ -626,8 +626,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
 
         // All instances are the same
-        // Flaky test: sometimes the id is 2, not 1. Here whe just need to assert
-        // all the id1 === id2 === id3
         expect(instance1.id).to.equal(instance2.id);
         expect(instance2.id).to.equal(instance3.id);
 

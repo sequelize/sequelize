@@ -192,10 +192,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.createFooWithDescendants(await this.sequelize.sync({ force: true }));
       });
 
-      it('[Flaky] should merge complex scopes correctly regardless of their order', async function () {
-        // flaky test - sometimes it gets to:
-        // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
-        // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
+      it('should merge complex scopes correctly regardless of their order', async function () {
         const results = await Promise.all(
           this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()),
         );
@@ -220,7 +217,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      it('[Flaky] should merge complex scopes with findOne options correctly regardless of their order', async function () {
+      it('should merge complex scopes with findOne options correctly regardless of their order', async function () {
         const results = await Promise.all(
           this.scopePermutations.map(([a, b, c, d]) =>
             this.Foo.scope(a, b, c).findOne(this.scopes[d]),
@@ -228,9 +225,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         );
         const first = results.shift().toJSON();
         for (const result of results) {
-          // flaky test - sometimes it gets to:
-          // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
-          // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
           expect(result.toJSON()).to.deep.equal(first);
         }
       });

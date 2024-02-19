@@ -1,9 +1,11 @@
 import { literal } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
-import { beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
+import { allowDeprecationsInSuite, beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
 describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
+  allowDeprecationsInSuite(['SEQUELIZE0009']);
+
   if (!sequelize.dialect.supports.schemas) {
     return;
   }
@@ -64,20 +66,26 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
     it('should be able to override the default schema', () => {
       const { Company } = vars;
 
+      expect(Company.withSchema('newSchema').table.schema).to.equal('newSchema');
+    });
+
+    it('should be able to override the default schema using deprecated schema', () => {
+      const { Company } = vars;
+
       expect(Company.schema('newSchema').table.schema).to.equal('newSchema');
     });
 
     it('should be able nullify schema', () => {
       const { Company } = vars;
 
-      expect(Company.schema(null).table.schema).to.equal(sequelize.dialect.getDefaultSchema());
+      expect(Company.withSchema(null).table.schema).to.equal(sequelize.dialect.getDefaultSchema());
     });
 
     it('should support multiple, coexistent schema models', () => {
       const { Company } = vars;
 
-      const schema1 = Company.schema('schema1');
-      const schema2 = Company.schema('schema1');
+      const schema1 = Company.withSchema('schema1');
+      const schema2 = Company.withSchema('schema1');
 
       expect(schema1.table.schema).to.equal('schema1');
       expect(schema2.table.schema).to.equal('schema1');
@@ -99,14 +107,26 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
     it('should be able to override the default schema delimiter', () => {
       const { Company } = vars;
 
+      expect(Company.withSchema({ schema: Company.table.schema!, schemaDelimiter: '^' }).table.delimiter).to.equal('^');
+    });
+
+    it('should be able to override the default schema delimiter using deprecated schema', () => {
+      const { Company } = vars;
+
       expect(Company.schema(Company.table.schema, '^').table.delimiter).to.equal('^');
+    });
+
+    it('should be able to override the default schema delimiter using deprecated schema with schema object', () => {
+      const { Company } = vars;
+
+      expect(Company.schema(Company.table.schema, { schemaDelimiter: '^' }).table.delimiter).to.equal('^');
     });
 
     it('should support multiple, coexistent schema delimiter models', () => {
       const { Company } = vars;
 
-      const schema1 = Company.schema(Company.table.schema, '$');
-      const schema2 = Company.schema(Company.table.schema, '#');
+      const schema1 = Company.withSchema({ schema: Company.table.schema!, schemaDelimiter: '$' });
+      const schema2 = Company.withSchema({ schema: Company.table.schema!, schemaDelimiter: '#' });
 
       expect(schema1.table.delimiter).to.equal('$');
       expect(schema2.table.delimiter).to.equal('#');
