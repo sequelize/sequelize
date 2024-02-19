@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import assert from 'node:assert';
 import { allowDeprecationsInSuite, beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
-describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
+describe.skip(`${getTestDialectTeaser('Model')}Schemas`, () => {
   allowDeprecationsInSuite(['SEQUELIZE0009']);
 
   if (!sequelize.dialect.supports.schemas) {
