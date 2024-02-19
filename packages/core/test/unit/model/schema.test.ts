@@ -8,7 +8,7 @@ import {
   sequelize,
 } from '../../support';
 
-describe.skip(`${getTestDialectTeaser('Model')}Schemas`, () => {
+describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
   allowDeprecationsInSuite(['SEQUELIZE0009']);
 
   if (!sequelize.dialect.supports.schemas) {
