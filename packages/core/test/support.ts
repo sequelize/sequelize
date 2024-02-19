@@ -615,7 +615,6 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0025',
   'SEQUELIZE0026',
   'SEQUELIZE0027',
-  'DEP0118',
 ];
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
