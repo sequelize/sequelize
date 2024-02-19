@@ -3,7 +3,7 @@ import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import path from 'node:path';
-import { getSequelizeInstance, getTestDialect } from '../support';
+import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 describe('Sequelize constructor', () => {
@@ -198,6 +198,8 @@ describe('Sequelize constructor', () => {
     });
 
     it('priorises the ?host querystring parameter over the rest of the URI', () => {
+      allowDeprecationsInSuite(['SEQUELIZE0027']);
+
       const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
 
       const options = sequelize.options;

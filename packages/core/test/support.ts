@@ -595,13 +595,10 @@ if (typeof after !== 'undefined') {
 // TODO: ignoredDeprecations should be removed in favour of EMPTY_ARRAY
 const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0005',
-  'SEQUELIZE0006',
   'SEQUELIZE0007',
   'SEQUELIZE0008',
-  'SEQUELIZE0011',
   'SEQUELIZE0012',
   'SEQUELIZE0013',
-  'SEQUELIZE0015',
   'SEQUELIZE0016',
   'SEQUELIZE0018',
   'SEQUELIZE0019',
@@ -609,7 +606,6 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0021',
   'SEQUELIZE0022',
   'SEQUELIZE0026',
-  'SEQUELIZE0027',
 ];
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
