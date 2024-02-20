@@ -7,6 +7,8 @@ import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '
 
 const dialect = getTestDialect();
 describe('Sequelize constructor', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0027']);
+
   it('throws when no dialect is supplied', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test');
@@ -198,8 +200,6 @@ describe('Sequelize constructor', () => {
     });
 
     it('priorises the ?host querystring parameter over the rest of the URI', () => {
-      allowDeprecationsInSuite(['SEQUELIZE0027']);
-
       const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
 
       const options = sequelize.options;
