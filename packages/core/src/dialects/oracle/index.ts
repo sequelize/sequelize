@@ -48,6 +48,10 @@ export class OracleDialect extends AbstractDialect {
       DOUBLE: numericOptions,
       DECIMAL: { unconstrained: true },
     },
+    jsonOperations: true,
+    jsonExtraction: {
+      quoted: true,
+    },
     dropTable: {
       cascade: true,
     },

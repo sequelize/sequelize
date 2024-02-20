@@ -112,7 +112,8 @@ describe('Paranoid Model', () => {
         await this.Model.sync({ force: true });
       });
 
-      it('should soft delete with JSON condition', async function () {
+      // Oracle stores JSON as BLOB. where condition with equality isn't supported for this.
+      (dialectName === 'oracle' ? it.skip : it)('should soft delete with JSON condition', async function () {
         await this.Model.bulkCreate([{
           name: 'One',
           data: {

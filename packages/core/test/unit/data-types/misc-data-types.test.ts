@@ -189,6 +189,7 @@ describe('DataTypes.JSON', () => {
         default: `'"string"'`,
         mysql: `CAST('"string"' AS JSON)`,
         mssql: `N'"string"'`,
+        oracle: `'string'`,
       });
     });
 

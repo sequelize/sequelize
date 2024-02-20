@@ -334,7 +334,21 @@ export class JSON extends BaseTypes.JSON {
     return { type: oracledb.DB_TYPE_BLOB };
   }
 
-  // TODO: _bindParam and stringify alternate
+  toBindableValue(value: any): string{
+    if (value === null) {
+      const sequelize = this._getDialect().sequelize;
+
+      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
+      if (isExplicit) {
+        throw new Error(`Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`);
+      }
+    }
+    return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+  }
+
+  getBindParamSql(value: any, options: BindParamOptions) : any {
+    return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+  }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {

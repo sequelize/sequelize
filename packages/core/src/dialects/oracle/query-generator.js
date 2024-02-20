@@ -4,7 +4,7 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { EMPTY_SET } from '../../utils/object.js';
-import { addTicks, quoteIdentifier } from '../../utils/dialect';
+import { quoteIdentifier } from '../../utils/dialect';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
@@ -1086,17 +1086,27 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return hasJsonFunction;
   }
 
+  isIdentifierQuoted(identifier) {
+    return /^\s*(?:([`"'])(?:(?!\1).|\1{2})*\1\.?)+\s*$/i.test(identifier);
+  }
+
+  addTicks(identifier, tickChar) {
+    identifier = identifier.replace(new RegExp(tickChar, 'g'), '');
+    return tickChar + identifier + tickChar;
+  }
+
   jsonPathExtractionQuery(column, path, unquote) {
     let paths = _.toPath(path);
     const quotedColumn = this.isIdentifierQuoted(column) ? column : this.quoteIdentifier(column);
 
     paths = paths.map(subPath => {
-      return /\D/.test(subPath) ? addTicks(subPath, '"') : subPath;
+      return /\D/.test(subPath) ? this.addTicks(subPath, '"') : subPath;
     });
 
     const pathStr = this.escape(['$'].concat(paths).join('.').replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
+    const extractQuery = `json_value(${quotedColumn},${pathStr})`;
 
-    return `json_value(${quotedColumn},${pathStr})`;
+    return extractQuery;
   }
 
   booleanValue(value) {

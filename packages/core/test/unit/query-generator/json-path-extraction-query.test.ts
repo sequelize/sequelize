@@ -17,6 +17,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$.id')`,
         postgres: `"profile"->'id'`,
+        oracle: `json_value("profile",'$."id"')`,
       });
     });
 
@@ -26,6 +27,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mariadb: `json_compact(json_extract(\`profile\`,'$[0]'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$[0]')`,
         postgres: `"profile"->0`,
+        oracle: `json_value("profile",'$[0]')`,
       });
     });
 
@@ -35,6 +37,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
         'mysql sqlite': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
         postgres: `"profile"#>ARRAY['id','username','0','0','name']::VARCHAR(255)[]`,
+        oracle: `json_value("profile",'$."id"."username"[0][0]."name"')`,
       });
     });
 
@@ -45,6 +48,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
         sqlite: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
         postgres: `"profile"#>ARRAY['"','''','$']::VARCHAR(255)[]`,
+        oracle: `json_value("profile",'$.""."\'\'"."$"')`,
       });
     });
   }

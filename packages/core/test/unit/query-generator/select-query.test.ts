@@ -283,6 +283,7 @@ describe('QueryGenerator#selectQuery', () => {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
         'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        oracle: `SELECT json_value("data",'$."email"') AS "email" FROM "Users" "User";`,
       });
     });
   }
