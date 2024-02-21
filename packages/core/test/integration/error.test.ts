@@ -34,7 +34,7 @@ const dialect = getTestDialect();
 const queryInterface = sequelize.queryInterface;
 
 describe(getTestDialectTeaser('Sequelize Errors'), () => {
-  describe.skip('API Surface', () => {
+  describe('API Surface', () => {
     allowDeprecationsInSuite(['SEQUELIZE0007']);
 
     it('Should have the Error constructors exposed', () => {
@@ -394,7 +394,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     });
   });
 
-  describe.skip('ConstraintError', () => {
+  describe('ConstraintError', () => {
     allowDeprecationsInSuite(['SEQUELIZE0007']);
 
     for (const constraintTest of [

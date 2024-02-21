@@ -1222,7 +1222,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
     });
   });
 
-  describe.skip('Association options', () => {
+  describe('Association options', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0005']);
 
     it('should setup underscored field with foreign keys when using underscored', function () {

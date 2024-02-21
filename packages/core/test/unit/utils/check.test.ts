@@ -9,7 +9,7 @@ import { allowDeprecationsInSuite, sequelize } from '../../support';
 const dialect = sequelize.dialect;
 
 describe('utils / check', () => {
-  describe.skip('defaultValueSchemable', () => {
+  describe('defaultValueSchemable', () => {
     allowDeprecationsInSuite(['SEQUELIZE0026']);
 
     it('should return false if the value is a NOW', () => {

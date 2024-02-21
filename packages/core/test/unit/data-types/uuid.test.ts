@@ -52,7 +52,7 @@ describe('DataTypes.UUID', () => {
   });
 });
 
-describe.skip('DataTypes.UUIDV1', () => {
+describe('DataTypes.UUIDV1', () => {
   allowDeprecationsInSuite(['SEQUELIZE0026']);
 
   testDataTypeSql('UUIDV1', DataTypes.UUIDV1, {
@@ -80,7 +80,7 @@ describe.skip('DataTypes.UUIDV1', () => {
   });
 });
 
-describe.skip('DataTypes.UUIDV4', () => {
+describe('DataTypes.UUIDV4', () => {
   allowDeprecationsInSuite(['SEQUELIZE0026']);
 
   testDataTypeSql('UUIDV4', DataTypes.UUIDV4, {

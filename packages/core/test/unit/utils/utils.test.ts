@@ -169,7 +169,7 @@ describe('Utils', () => {
     });
   });
 
-  describe.skip('toDefaultValue', () => {
+  describe('toDefaultValue', () => {
     allowDeprecationsInSuite(['SEQUELIZE0026']);
 
     it('return uuid v1', () => {
