@@ -7,7 +7,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('../../support');
 
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -32,7 +32,7 @@ if (dialect.startsWith('mssql')) {
         UserID: {
           field: 'userid',
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
           primaryKey: true,
         },
         UserName: {

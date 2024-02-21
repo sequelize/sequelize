@@ -7,7 +7,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
 const delay = require('delay');
 const assert = require('node:assert');
@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: DataTypes.UUID,
           primaryKey: true,
           allowNull: false,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         name: {
           type: DataTypes.STRING,
@@ -662,16 +662,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id1: {
           primaryKey: true,
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         id2: {
           primaryKey: true,
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         email: {
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
       });
 
@@ -1001,7 +1001,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         monkeyId: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
           allowNull: false,
         },
       });

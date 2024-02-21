@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { AggregateError, DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { AggregateError, DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -1727,7 +1727,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         status: {
           type: DataTypes.STRING,
