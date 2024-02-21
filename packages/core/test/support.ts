@@ -595,7 +595,6 @@ if (typeof after !== 'undefined') {
 // TODO: ignoredDeprecations should be removed in favour of EMPTY_ARRAY
 const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0005',
-  'SEQUELIZE0012',
   'SEQUELIZE0013',
   'SEQUELIZE0018',
   'SEQUELIZE0019',
