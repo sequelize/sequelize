@@ -596,10 +596,8 @@ if (typeof after !== 'undefined') {
 const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0005',
   'SEQUELIZE0007',
-  'SEQUELIZE0008',
   'SEQUELIZE0012',
   'SEQUELIZE0013',
-  'SEQUELIZE0016',
   'SEQUELIZE0018',
   'SEQUELIZE0019',
   'SEQUELIZE0020',

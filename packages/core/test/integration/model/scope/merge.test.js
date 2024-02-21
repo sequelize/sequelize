@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should merge simple scopes correctly', async function () {
-        const result = await this.Foo.scope('includeBar', 'includeBaz').findOne();
+        const result = await this.Foo.withScope('includeBar', 'includeBaz').findOne();
         const json = result.toJSON();
         expect(json.bar).to.be.ok;
         expect(json.baz).to.be.ok;
@@ -194,7 +194,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should merge complex scopes correctly regardless of their order', async function () {
         const results = await Promise.all(
-          this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()),
+          this.scopePermutations.map(scopes => this.Foo.withScope(...scopes).findOne()),
         );
         const first = results.shift().toJSON();
         for (const result of results) {
@@ -205,7 +205,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should merge complex scopes with findAll options correctly regardless of their order', async function () {
         const results = await Promise.all(
           this.scopePermutations.map(async ([a, b, c, d]) => {
-            const x = await this.Foo.scope(a, b, c).findAll(this.scopes[d]);
+            const x = await this.Foo.withScope(a, b, c).findAll(this.scopes[d]);
 
             return x[0];
           }),
@@ -220,7 +220,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should merge complex scopes with findOne options correctly regardless of their order', async function () {
         const results = await Promise.all(
           this.scopePermutations.map(([a, b, c, d]) =>
-            this.Foo.scope(a, b, c).findOne(this.scopes[d]),
+            this.Foo.withScope(a, b, c).findOne(this.scopes[d]),
           ),
         );
         const first = results.shift().toJSON();

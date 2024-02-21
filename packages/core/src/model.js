@@ -1128,7 +1128,7 @@ ${associationOwner._getAssociationDebugList()}`);
    *
    * @example To invoke scope functions you can do
    * ```ts
-   * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
+   * Model.withScope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
    * ```
    *
