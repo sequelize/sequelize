@@ -23,7 +23,12 @@ import {
 import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error';
 import { assert, expect } from 'chai';
 import { spy } from 'sinon';
-import { allowDeprecationsInSuite, getTestDialect, getTestDialectTeaser, sequelize } from './support';
+import {
+  allowDeprecationsInSuite,
+  getTestDialect,
+  getTestDialectTeaser,
+  sequelize,
+} from './support';
 
 const dialect = getTestDialect();
 const queryInterface = sequelize.queryInterface;

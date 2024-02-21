@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -64,7 +64,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           type: DataTypes.UUID,
           primaryKey: true,
           allowNull: false,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
       });
       const instance = Model.build({
