@@ -611,6 +611,7 @@ export function allowDeprecationsInSuite(codes: readonly string[]) {
   });
 }
 
+// TODO: the DeprecationWarning is only thrown once. We should figure out a way to reset that or move all tests that use deprecated tests to one suite per deprecation.
 process.on('warning', (warning: NodeJS.ErrnoException) => {
   if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
     throw warning;
