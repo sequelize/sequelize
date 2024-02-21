@@ -23,13 +23,15 @@ import {
 import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error';
 import { assert, expect } from 'chai';
 import { spy } from 'sinon';
-import { getTestDialect, getTestDialectTeaser, sequelize } from './support';
+import { allowDeprecationsInSuite, getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialect = getTestDialect();
 const queryInterface = sequelize.queryInterface;
 
 describe(getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0007']);
+
     it('Should have the Error constructors exposed', () => {
       expect(Sequelize).to.have.property('BaseError');
       expect(Sequelize).to.have.property('ValidationError');
@@ -117,7 +119,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       class Inst extends Model {}
 
       Inst.init({}, { sequelize });
-      const inst = new Inst();
+      const inst = Inst.build();
       const vargs = [4];
       const error = new ValidationErrorItem(
         'error!',
@@ -388,6 +390,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
   });
 
   describe('ConstraintError', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0007']);
+
     for (const constraintTest of [
       {
         type: 'UniqueConstraintError',
