@@ -1,0 +1,7 @@
+{
+  "plugins": ["prettier-plugin-organize-imports"],
+  "bracketSameLine": true,
+  "printWidth": 100,
+  "singleQuote": true,
+  "arrowParens": "avoid"
+}

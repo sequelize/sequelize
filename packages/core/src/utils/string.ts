@@ -1,6 +1,6 @@
-import NodeUtil from 'node:util';
 import * as _inflection from 'inflection';
 import lowerFirst from 'lodash/lowerFirst';
+import NodeUtil from 'node:util';
 import type { IndexOptions, TableName } from '../dialects/abstract/query-interface.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
@@ -33,12 +33,7 @@ export function underscore(str: string): string {
   return inflection.underscore(str);
 }
 
-export function spliceStr(
-  str: string,
-  index: number,
-  count: number,
-  add: string,
-): string {
+export function spliceStr(str: string, index: number, count: number, add: string): string {
   return str.slice(0, index) + add + str.slice(index + count);
 }
 
@@ -51,8 +46,8 @@ export function pluralize(str: string): string {
 }
 
 type NameIndexIndex = {
-  fields: Array<{ name: string, attribute: string }>,
-  name: string,
+  fields: Array<{ name: string; attribute: string }>;
+  name: string;
 };
 
 /**
@@ -64,10 +59,7 @@ type NameIndexIndex = {
  *
  * @private
  */
-export function nameIndex(
-  index: NameIndexIndex,
-  tableName: TableName,
-) {
+export function nameIndex(index: NameIndexIndex, tableName: TableName) {
   if (Object.hasOwn(index, 'name')) {
     return index;
   }
@@ -93,7 +85,9 @@ ${NodeUtil.inspect(index)}`);
     }
 
     if (field instanceof BaseSqlExpression) {
-      throw new Error(`Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`);
+      throw new Error(
+        `Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`,
+      );
     }
 
     if ('attribute' in field) {

@@ -24,7 +24,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('Warns the user if they use a model attribute without a where clause', function () {
       const User = current.define('User', { firstName: 'string' });
       User._warnOnInvalidOptions({ firstName: 12, order: [] }, ['firstName']);
-      const expectedError = 'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
+      const expectedError =
+        'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
       expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
     });
 
@@ -43,9 +44,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('method findAll', () => {
     const vars = beforeAll2(() => {
-      const MyModel = current.define('MyModel', {
-        name: DataTypes.STRING,
-      }, { timestamps: false });
+      const MyModel = current.define(
+        'MyModel',
+        {
+          name: DataTypes.STRING,
+        },
+        { timestamps: false },
+      );
 
       return { MyModel };
     });
@@ -92,11 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'id',
-          'name',
-          'foobar',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name', 'foobar']);
       });
 
       it('allows me to exclude attributes', async function () {
@@ -108,9 +109,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'id',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id']);
       });
 
       it('include takes precendence over exclude', async function () {
@@ -123,10 +122,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'id',
-          'name',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name']);
       });
 
       it('works for models without PK #4607', async function () {
@@ -143,11 +139,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [Foo],
         });
 
-        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-          'name',
-        ]);
+        expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['name']);
       });
-
     });
   });
 });

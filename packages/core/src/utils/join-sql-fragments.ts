@@ -58,18 +58,16 @@ export function joinSQLFragments(array: SQLFragment[]): string {
     return '';
   }
 
-  const truthyArray: TruthySQLFragment[] = array.filter(
-    (x): x is string | SQLFragment[] => Boolean(x),
+  const truthyArray: TruthySQLFragment[] = array.filter((x): x is string | SQLFragment[] =>
+    Boolean(x),
   );
-  const flattenedArray: string[] = truthyArray.map(
-    (fragment: TruthySQLFragment) => {
-      if (Array.isArray(fragment)) {
-        return joinSQLFragments(fragment);
-      }
+  const flattenedArray: string[] = truthyArray.map((fragment: TruthySQLFragment) => {
+    if (Array.isArray(fragment)) {
+      return joinSQLFragments(fragment);
+    }
 
-      return fragment;
-    },
-  );
+    return fragment;
+  });
 
   // Ensure strings
   for (const fragment of flattenedArray) {

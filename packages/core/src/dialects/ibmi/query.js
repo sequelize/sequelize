@@ -72,7 +72,10 @@ export class IBMiQuery extends AbstractQuery {
             const record = data[0][key];
 
             const attributes = this.model.modelDefinition.attributes;
-            const attr = find(attributes.values(), attribute => attribute.attributeName === key || attribute.columnName === key);
+            const attr = find(
+              attributes.values(),
+              attribute => attribute.attributeName === key || attribute.columnName === key,
+            );
 
             this.instance.dataValues[attr?.attributeName || key] = record;
           }
@@ -80,14 +83,11 @@ export class IBMiQuery extends AbstractQuery {
       }
 
       if (this.isUpsertQuery()) {
-        return [
-          this.instance,
-          null,
-        ];
+        return [this.instance, null];
       }
 
       return [
-        this.instance || data && (this.options.plain && data[0] || data) || undefined,
+        this.instance || (data && ((this.options.plain && data[0]) || data)) || undefined,
         data.count,
       ];
     }
@@ -106,7 +106,9 @@ export class IBMiQuery extends AbstractQuery {
       for (const _result of data) {
         const enumRegex = /^enum/i;
         result[_result.COLUMN_NAME] = {
-          type: enumRegex.test(_result.Type) ? _result.Type.replace(enumRegex, 'ENUM') : _result.DATA_TYPE.toUpperCase(),
+          type: enumRegex.test(_result.Type)
+            ? _result.Type.replace(enumRegex, 'ENUM')
+            : _result.DATA_TYPE.toUpperCase(),
           allowNull: _result.IS_NULLABLE === 'Y',
           defaultValue: _result.COLUMN_DEFAULT,
           primaryKey: _result.CONSTRAINT_TYPE === 'PRIMARY KEY',
@@ -156,25 +158,35 @@ export class IBMiQuery extends AbstractQuery {
       const autoIncrementAttribute = this.model.autoIncrementAttribute.field;
       let id = null;
 
-      id = id || results && results[autoIncrementAttribute];
-      id = id || metaData && metaData[autoIncrementAttribute];
+      id ||= results && results[autoIncrementAttribute];
+      id ||= metaData && metaData[autoIncrementAttribute];
 
       this.instance[this.model.autoIncrementAttribute] = id;
     }
   }
 
   handleShowIndexesQuery(data) {
-
     const indexes = Object.create(null);
 
     data.forEach(item => {
-
       if (Object.hasOwn(indexes, item.NAME)) {
-        indexes[item.NAME].fields.push({ attribute: item.COLUMN_NAME, length: undefined, order: undefined, collate: undefined });
+        indexes[item.NAME].fields.push({
+          attribute: item.COLUMN_NAME,
+          length: undefined,
+          order: undefined,
+          collate: undefined,
+        });
       } else {
         indexes[item.NAME] = {
           primary: item.CONSTRAINT_TYPE === 'PRIMARY KEY',
-          fields: [{ attribute: item.COLUMN_NAME, length: undefined, order: undefined, collate: undefined }],
+          fields: [
+            {
+              attribute: item.COLUMN_NAME,
+              length: undefined,
+              order: undefined,
+              collate: undefined,
+            },
+          ],
           name: item.NAME,
           tableName: item.TABLE_NAME,
           unique: item.CONSTRAINT_TYPE === 'PRIMARY KEY' || item.CONSTRAINT_TYPE === 'UNIQUE',
@@ -187,7 +199,6 @@ export class IBMiQuery extends AbstractQuery {
   }
 
   formatError(err) {
-
     // Db2 for i uses the `odbc` connector. The `odbc` connector returns a list
     // of odbc errors, each of which has a code and a state. To determine the
     // type of SequelizeError, check the code and create the associated error.

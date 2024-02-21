@@ -1,7 +1,24 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import type {
+  CreateSchemaOptions,
+  DataType,
+  DataTypeClassOrInstance,
+  DestroyOptions,
+  ModelAttributes,
+  ModelOptions,
+  ModelStatic,
+  QiListSchemasOptions,
+  QueryOptions,
+  SyncOptions,
+  TruncateOptions,
+} from '.';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type { AbstractConnectionManager, Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
+import type {
+  AbstractConnectionManager,
+  Connection,
+  GetConnectionOptions,
+} from './dialects/abstract/connection-manager.js';
 import { normalizeDataType, validateDataType } from './dialects/abstract/data-types-utils.js';
 import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
@@ -22,7 +39,13 @@ import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
-import type { ConnectionOptions, NormalizedOptions, Options, QueryRawOptions, Sequelize } from './sequelize.js';
+import type {
+  ConnectionOptions,
+  NormalizedOptions,
+  Options,
+  QueryRawOptions,
+  Sequelize,
+} from './sequelize.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
   Transaction,
@@ -33,19 +56,6 @@ import {
 import { isNullish, isString } from './utils/check.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
 import type { PartialBy } from './utils/types.js';
-import type {
-  CreateSchemaOptions,
-  DataType,
-  DataTypeClassOrInstance,
-  DestroyOptions,
-  ModelAttributes,
-  ModelOptions,
-  ModelStatic,
-  QiListSchemasOptions,
-  QueryOptions,
-  SyncOptions,
-  TruncateOptions,
-} from '.';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -137,23 +147,42 @@ export interface WithConnectionOptions extends PartialBy<GetConnectionOptions, '
 }
 
 const staticSequelizeHooks = new HookHandlerBuilder<StaticSequelizeHooks>([
-  'beforeInit', 'afterInit',
+  'beforeInit',
+  'afterInit',
 ]);
 
 const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
-  'beforeQuery', 'afterQuery',
-  'beforeBulkSync', 'afterBulkSync',
-  'beforeConnect', 'afterConnect',
-  'beforeDisconnect', 'afterDisconnect',
-  'beforeDefine', 'afterDefine',
-  'beforePoolAcquire', 'afterPoolAcquire',
+  'beforeQuery',
+  'afterQuery',
+  'beforeBulkSync',
+  'afterBulkSync',
+  'beforeConnect',
+  'afterConnect',
+  'beforeDisconnect',
+  'afterDisconnect',
+  'beforeDefine',
+  'afterDefine',
+  'beforePoolAcquire',
+  'afterPoolAcquire',
   ...validModelHooks,
 ]);
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
-export const SUPPORTED_DIALECTS = Object.freeze(['mysql', 'postgres', 'sqlite', 'mariadb', 'mssql', 'mariadb', 'mssql', 'db2', 'snowflake', 'ibmi', 'oracle'] as const);
+export const SUPPORTED_DIALECTS = Object.freeze([
+  'mysql',
+  'postgres',
+  'sqlite',
+  'mariadb',
+  'mssql',
+  'mariadb',
+  'mssql',
+  'db2',
+  'snowflake',
+  'ibmi',
+  'oracle',
+] as const);
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -243,7 +272,11 @@ export abstract class SequelizeTypeScript {
   beforeCount = legacyBuildAddHook(instanceSequelizeHooks, 'beforeCount');
 
   beforeFind = legacyBuildAddHook(instanceSequelizeHooks, 'beforeFind');
-  beforeFindAfterExpandIncludeAll = legacyBuildAddHook(instanceSequelizeHooks, 'beforeFindAfterExpandIncludeAll');
+  beforeFindAfterExpandIncludeAll = legacyBuildAddHook(
+    instanceSequelizeHooks,
+    'beforeFindAfterExpandIncludeAll',
+  );
+
   beforeFindAfterOptions = legacyBuildAddHook(instanceSequelizeHooks, 'beforeFindAfterOptions');
   afterFind = legacyBuildAddHook(instanceSequelizeHooks, 'afterFind');
 
@@ -290,7 +323,7 @@ export abstract class SequelizeTypeScript {
       const modelName = model.modelDefinition.modelName;
 
       // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
-      if (model.sequelize === this as Sequelize) {
+      if (model.sequelize === (this as Sequelize)) {
         const existingModel = this.models.get(modelName);
         if (existingModel) {
           this.#models.delete(existingModel);
@@ -304,11 +337,13 @@ export abstract class SequelizeTypeScript {
   }
 
   addModels(models: ModelStatic[]) {
-    const registeredModels = models.filter(model => initDecoratedModel(
-      model,
-      // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
-      this,
-    ));
+    const registeredModels = models.filter(model =>
+      initDecoratedModel(
+        model,
+        // @ts-expect-error -- remove once this class has been merged back with the Sequelize class
+        this,
+      ),
+    );
 
     for (const model of registeredModels) {
       initDecoratedAssociations(
@@ -407,10 +442,13 @@ export abstract class SequelizeTypeScript {
     }
 
     if (!callback) {
-      throw new Error('sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead');
+      throw new Error(
+        'sequelize.transaction requires a callback. If you wish to start an unmanaged transaction, please use sequelize.startUnmanagedTransaction instead',
+      );
     }
 
-    const nestMode: TransactionNestMode = options.nestMode ?? this.options.defaultTransactionNestMode;
+    const nestMode: TransactionNestMode =
+      options.nestMode ?? this.options.defaultTransactionNestMode;
 
     // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
     const normalizedOptions = normalizeTransactionOptions(this, options);
@@ -428,13 +466,14 @@ export abstract class SequelizeTypeScript {
       }
     }
 
-    const transaction = nestMode === TransactionNestMode.reuse && normalizedOptions.transaction
-      ? normalizedOptions.transaction
-      : new Transaction(
-        // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
-        this,
-        normalizedOptions,
-      );
+    const transaction =
+      nestMode === TransactionNestMode.reuse && normalizedOptions.transaction
+        ? normalizedOptions.transaction
+        : new Transaction(
+            // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
+            this,
+            normalizedOptions,
+          );
 
     const isReusedTransaction = transaction === normalizedOptions.transaction;
 
@@ -522,7 +561,9 @@ export abstract class SequelizeTypeScript {
     }
 
     if (options && 'truncate' in options) {
-      throw new Error('sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.');
+      throw new Error(
+        'sequelize.destroyAll does not support the truncate option. Use sequelize.truncate instead.',
+      );
     }
 
     for (const model of models) {
@@ -544,12 +585,16 @@ export abstract class SequelizeTypeScript {
     const hasCyclicDependencies = sortedModels == null;
 
     if (hasCyclicDependencies && !options?.cascade && !options?.withoutForeignKeyChecks) {
-      throw new Error('Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" or "withoutForeignKeyChecks" options to be able to delete rows from models that have cyclic references.');
+      throw new Error(
+        'Sequelize#truncate: Some of your models have cyclic references (foreign keys). You need to use the "cascade" or "withoutForeignKeyChecks" options to be able to delete rows from models that have cyclic references.',
+      );
     }
 
     if (options?.withoutForeignKeyChecks) {
       if (!this.dialect.supports.constraints.foreignKeyChecksDisableable) {
-        throw new Error(`Sequelize#truncate: ${this.dialect.name} does not support disabling foreign key checks. The "withoutForeignKeyChecks" option cannot be used.`);
+        throw new Error(
+          `Sequelize#truncate: ${this.dialect.name} does not support disabling foreign key checks. The "withoutForeignKeyChecks" option cannot be used.`,
+        );
       }
 
       // Dialects that don't support cascade will throw if a foreign key references a table that is truncated,
@@ -654,7 +699,9 @@ export abstract class SequelizeTypeScript {
    */
   getDatabaseVersion(): string {
     if (this.options.databaseVersion == null) {
-      throw new Error('The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.');
+      throw new Error(
+        'The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.',
+      );
     }
 
     return this.options.databaseVersion;

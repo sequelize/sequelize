@@ -1,14 +1,18 @@
+import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes, literal } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#insert', () => {
   const dialect = sequelize.dialect;
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -23,14 +27,19 @@ describe('QueryInterface#insert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User.table, {
-      firstName: 'Zoe',
-    }, {
-      returning: [':data'],
-      replacements: {
-        data: 'abc',
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: 'Zoe',
       },
-    });
+      {
+        returning: [':data'],
+        replacements: {
+          data: 'abc',
+        },
+      },
+    );
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -50,13 +59,22 @@ describe('QueryInterface#insert', () => {
     const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.queryInterface.insert(null, User.table, {
-      firstName: literal('$sequelize_test'),
-    }, {
-      bind: {
-        sequelize_test: 'test',
-      },
-    })).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+    await expect(
+      sequelize.queryInterface.insert(
+        null,
+        User.table,
+        {
+          firstName: literal('$sequelize_test'),
+        },
+        {
+          bind: {
+            sequelize_test: 'test',
+          },
+        },
+      ),
+    ).to.be.rejectedWith(
+      'Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.',
+    );
   });
 
   // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
@@ -64,14 +82,19 @@ describe('QueryInterface#insert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User.table, {
-      firstName: literal('$firstName'),
-      lastName: 'Doe',
-    }, {
-      bind: {
-        firstName: 'John',
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: literal('$firstName'),
+        lastName: 'Doe',
       },
-    });
+      {
+        bind: {
+          firstName: 'John',
+        },
+      },
+    );
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
@@ -91,12 +114,17 @@ describe('QueryInterface#insert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
-    await sequelize.queryInterface.insert(null, User.table, {
-      firstName: literal('$1'),
-      lastName: 'Doe',
-    }, {
-      bind: ['John'],
-    });
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: literal('$1'),
+        lastName: 'Doe',
+      },
+      {
+        bind: ['John'],
+      },
+    );
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);

@@ -10,29 +10,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
     describe('destroy', () => {
       beforeEach(async function () {
-        this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: DataTypes.STRING,
-          email: DataTypes.STRING,
-          access_level: DataTypes.INTEGER,
-          other_value: DataTypes.INTEGER,
-        }, {
-          defaultScope: {
-            where: {
-              access_level: {
-                [Op.gte]: 5,
-              },
-            },
+        this.ScopeMe = this.sequelize.define(
+          'ScopeMe',
+          {
+            username: DataTypes.STRING,
+            email: DataTypes.STRING,
+            access_level: DataTypes.INTEGER,
+            other_value: DataTypes.INTEGER,
           },
-          scopes: {
-            lowAccess: {
+          {
+            defaultScope: {
               where: {
                 access_level: {
-                  [Op.lte]: 5,
+                  [Op.gte]: 5,
+                },
+              },
+            },
+            scopes: {
+              lowAccess: {
+                where: {
+                  access_level: {
+                    [Op.lte]: 5,
+                  },
                 },
               },
             },
           },
-        });
+        );
 
         await this.sequelize.sync({ force: true });
         const records = [

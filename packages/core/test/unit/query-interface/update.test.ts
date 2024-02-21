@@ -1,13 +1,17 @@
+import { DataTypes, Op, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes, Op, literal } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#update', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -41,8 +45,10 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2',
-      postgres: 'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2 RETURNING ":data"',
-      mssql: 'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [firstName] = $sequelize_2',
+      postgres:
+        'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2 RETURNING ":data"',
+      mssql:
+        'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [firstName] = $sequelize_2',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
       oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "firstName" = :2`,
     });
@@ -58,17 +64,21 @@ describe('QueryInterface#update', () => {
 
     const instance = User.build();
 
-    await expect(sequelize.queryInterface.update(
-      instance,
-      User.table,
-      { firstName: 'newName' },
-      { id: literal('$sequelize_test') },
-      {
-        bind: {
-          sequelize_test: 'test',
+    await expect(
+      sequelize.queryInterface.update(
+        instance,
+        User.table,
+        { firstName: 'newName' },
+        { id: literal('$sequelize_test') },
+        {
+          bind: {
+            sequelize_test: 'test',
+          },
         },
-      },
-    )).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+      ),
+    ).to.be.rejectedWith(
+      'Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.',
+    );
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {

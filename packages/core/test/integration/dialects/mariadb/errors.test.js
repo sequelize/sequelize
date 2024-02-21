@@ -10,7 +10,6 @@ const { DataTypes } = require('@sequelize/core');
 
 if (dialect === 'mariadb') {
   describe('[MariaDB Specific] Errors', () => {
-
     const validateError = async (promise, errClass, errValues) => {
       const wanted = { ...errValues };
 
@@ -27,10 +26,16 @@ if (dialect === 'mariadb') {
       beforeEach(function () {
         this.Task = this.sequelize.define('task', { title: DataTypes.STRING });
         this.User = this.sequelize.define('user', { username: DataTypes.STRING });
-        this.UserTasks = this.sequelize.define('tasksusers',
-          { userId: DataTypes.INTEGER, taskId: DataTypes.INTEGER });
+        this.UserTasks = this.sequelize.define('tasksusers', {
+          userId: DataTypes.INTEGER,
+          taskId: DataTypes.INTEGER,
+        });
 
-        this.User.belongsToMany(this.Task, { foreignKey: { onDelete: 'RESTRICT' }, through: 'tasksusers', otherKey: { onDelete: 'RESTRICT' } });
+        this.User.belongsToMany(this.Task, {
+          foreignKey: { onDelete: 'RESTRICT' },
+          through: 'tasksusers',
+          otherKey: { onDelete: 'RESTRICT' },
+        });
 
         this.Task.belongsTo(this.User, { foreignKey: 'primaryUserId', as: 'primaryUsers' });
       });

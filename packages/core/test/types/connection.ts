@@ -1,6 +1,6 @@
-import { expectTypeOf } from 'expect-type';
 import type { SyncOptions } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 import { User } from './models/user';
 
 export const sequelize = new Sequelize('uri');
@@ -19,7 +19,6 @@ async function test() {
   ).toEqualTypeOf<[number, number]>();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive :/
 sequelize.transaction<void>(async transaction => {
   expectTypeOf(
     await sequelize.query('SELECT * FROM `user`', {
@@ -29,17 +28,17 @@ sequelize.transaction<void>(async transaction => {
       },
       model: User,
       transaction,
-      logging: true,
+      logging: console.debug,
     }),
   ).toEqualTypeOf<User[]>();
 });
 
-sequelize.query(
-  'SELECT * FROM `user` WHERE status = $1',
-  { bind: ['active'], type: QueryTypes.SELECT },
-);
+sequelize.query('SELECT * FROM `user` WHERE status = $1', {
+  bind: ['active'],
+  type: QueryTypes.SELECT,
+});
 
-sequelize.query(
-  'SELECT * FROM `user` WHERE status = $status',
-  { bind: { status: 'active' }, type: QueryTypes.SELECT },
-);
+sequelize.query('SELECT * FROM `user` WHERE status = $status', {
+  bind: { status: 'active' },
+  type: QueryTypes.SELECT,
+});

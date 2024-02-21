@@ -15,7 +15,9 @@ export class ModelSetView extends SetView<ModelStatic> {
   }
 
   get<M extends Model = Model>(modelName: string): ModelStatic<M> | undefined {
-    return this.find(model => model.modelDefinition.modelName === modelName) as ModelStatic<M> | undefined;
+    return this.find(model => model.modelDefinition.modelName === modelName) as
+      | ModelStatic<M>
+      | undefined;
   }
 
   getOrThrow<M extends Model = Model>(modelName: string): ModelStatic<M> {
@@ -72,10 +74,7 @@ export class ModelSetView extends SetView<ModelStatic> {
     try {
       sorted = sorter.sort();
     } catch (error: unknown) {
-      if (
-        error instanceof Error
-        && !error.message.startsWith('Cyclic dependency found.')
-      ) {
+      if (error instanceof Error && !error.message.startsWith('Cyclic dependency found.')) {
         throw error;
       }
 
@@ -100,10 +99,7 @@ export class ModelSetView extends SetView<ModelStatic> {
    *
    * @deprecated
    */
-  forEachModel(
-    iterator: (model: ModelStatic) => void,
-    options?: { reverse?: boolean },
-  ) {
+  forEachModel(iterator: (model: ModelStatic) => void, options?: { reverse?: boolean }) {
     const sortedModels = this.getModelsTopoSortedByForeignKey();
     if (sortedModels == null) {
       throw new Error('Cyclic dependency found.');

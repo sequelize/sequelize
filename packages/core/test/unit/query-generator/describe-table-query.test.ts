@@ -243,9 +243,11 @@ describe('QueryGenerator#describeTableQuery', () => {
   });
 
   it('produces a query to describe a table with schema in tableName object', () => {
-    expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
-      default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
-      postgres: `SELECT
+    expectsql(
+      () => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema' }),
+      {
+        default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
+        postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
         c.column_default as "Default",
@@ -265,7 +267,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         WHERE c.table_name = 'myTable' AND c.table_schema = 'mySchema'`,
-      mssql: `SELECT
+        mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
         c.CHARACTER_MAXIMUM_LENGTH AS 'Length',
@@ -292,12 +294,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
-      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+        db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
         REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema'`,
-      ibmi: `SELECT
+        ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
         QSYS2.SYSCST.CONSTRAINT_TYPE
@@ -310,17 +312,24 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema'
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-      oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
+        oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = 'mySchema') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
-    });
+      },
+    );
   });
 
   it('produces a query to describe a table with default schema in tableName object', () => {
-    expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
-      default: 'SHOW FULL COLUMNS FROM [myTable];',
-      postgres: `SELECT
+    expectsql(
+      () =>
+        queryGenerator.describeTableQuery({
+          tableName: 'myTable',
+          schema: dialect.getDefaultSchema(),
+        }),
+      {
+        default: 'SHOW FULL COLUMNS FROM [myTable];',
+        postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
         c.column_default as "Default",
@@ -340,7 +349,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND pk.table_name=c.table_name
         AND pk.column_name=c.column_name
         WHERE c.table_name = 'myTable' AND c.table_schema = 'public'`,
-      mssql: `SELECT
+        mssql: `SELECT
         c.COLUMN_NAME AS 'Name',
         c.DATA_TYPE AS 'Type',
         c.CHARACTER_MAXIMUM_LENGTH AS 'Length',
@@ -368,12 +377,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
-      db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
+        sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
+        db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
         REMARKS AS "Comment" FROM SYSCAT.COLUMNS WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1'`,
-      ibmi: `SELECT
+        ibmi: `SELECT
         QSYS2.SYSCOLUMNS.*,
         QSYS2.SYSCST.CONSTRAINT_NAME,
         QSYS2.SYSCST.CONSTRAINT_TYPE
@@ -386,11 +395,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-      oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
+        oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
-    });
+      },
+    );
   });
 
   it('produces a query to describe a table from a table and globally set schema', () => {
@@ -479,8 +489,16 @@ describe('QueryGenerator#describeTableQuery', () => {
       return;
     }
 
-    expectsql(() => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
-    });
+    expectsql(
+      () =>
+        queryGenerator.describeTableQuery({
+          tableName: 'myTable',
+          schema: 'mySchema',
+          delimiter: 'custom',
+        }),
+      {
+        sqlite: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
+      },
+    );
   });
 });

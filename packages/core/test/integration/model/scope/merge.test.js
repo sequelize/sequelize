@@ -43,7 +43,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(json.bar.name).to.equal('The Bar');
         expect(json.baz.name).to.equal('The Baz');
       });
-
     });
     describe('complex merge', () => {
       beforeEach(async function () {
@@ -56,74 +55,105 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Bar.hasMany(this.Baz, { foreignKey: 'barId' });
         this.Baz.hasMany(this.Qux, { foreignKey: 'bazId' });
 
-        this.createFooWithDescendants = () => this.Foo.create({
-          name: 'foo1',
-          bars: [{
-            name: 'bar1',
-            bazs: [{
-              name: 'baz1',
-              quxes: [{ name: 'qux1' }, { name: 'qux2' }],
-            }, {
-              name: 'baz2',
-              quxes: [{ name: 'qux3' }, { name: 'qux4' }],
-            }],
-          }, {
-            name: 'bar2',
-            bazs: [{
-              name: 'baz3',
-              quxes: [{ name: 'qux5' }, { name: 'qux6' }],
-            }, {
-              name: 'baz4',
-              quxes: [{ name: 'qux7' }, { name: 'qux8' }],
-            }],
-          }],
-        }, {
-          include: [{
-            model: this.Bar,
-            include: [{
-              model: this.Baz,
-              include: [{
-                model: this.Qux,
-              }],
-            }],
-          }],
-        });
+        this.createFooWithDescendants = () =>
+          this.Foo.create(
+            {
+              name: 'foo1',
+              bars: [
+                {
+                  name: 'bar1',
+                  bazs: [
+                    {
+                      name: 'baz1',
+                      quxes: [{ name: 'qux1' }, { name: 'qux2' }],
+                    },
+                    {
+                      name: 'baz2',
+                      quxes: [{ name: 'qux3' }, { name: 'qux4' }],
+                    },
+                  ],
+                },
+                {
+                  name: 'bar2',
+                  bazs: [
+                    {
+                      name: 'baz3',
+                      quxes: [{ name: 'qux5' }, { name: 'qux6' }],
+                    },
+                    {
+                      name: 'baz4',
+                      quxes: [{ name: 'qux7' }, { name: 'qux8' }],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              include: [
+                {
+                  model: this.Bar,
+                  include: [
+                    {
+                      model: this.Baz,
+                      include: [
+                        {
+                          model: this.Qux,
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          );
 
         this.scopes = {
           includeEverything: {
             include: {
               model: this.Bar,
-              include: [{
-                model: this.Baz,
-                include: this.Qux,
-              }],
+              include: [
+                {
+                  model: this.Baz,
+                  include: this.Qux,
+                },
+              ],
             },
           },
           limitedBars: {
-            include: [{
-              model: this.Bar,
-              limit: 2,
-            }],
+            include: [
+              {
+                model: this.Bar,
+                limit: 2,
+              },
+            ],
           },
           limitedBazs: {
-            include: [{
-              model: this.Bar,
-              include: [{
-                model: this.Baz,
-                limit: 2,
-              }],
-            }],
+            include: [
+              {
+                model: this.Bar,
+                include: [
+                  {
+                    model: this.Baz,
+                    limit: 2,
+                  },
+                ],
+              },
+            ],
           },
           excludeBazName: {
-            include: [{
-              model: this.Bar,
-              include: [{
-                model: this.Baz,
-                attributes: {
-                  exclude: ['name'],
-                },
-              }],
-            }],
+            include: [
+              {
+                model: this.Bar,
+                include: [
+                  {
+                    model: this.Baz,
+                    attributes: {
+                      exclude: ['name'],
+                    },
+                  },
+                ],
+              },
+            ],
           },
         };
 
@@ -166,7 +196,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         // flaky test - sometimes it gets to:
         // - bazs: [ { id: 4, quxes: [ qux7, qux8 ] }, { id: 3, quxes: [ qux5, qux6] ] } ]
         // + bazs: [ { id: 3, quxes: [ qux5, qux6 ] }, { id: 4, quxes: [ qux7, qux8] ] } ]
-        const results = await Promise.all(this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()));
+        const results = await Promise.all(
+          this.scopePermutations.map(scopes => this.Foo.scope(...scopes).findOne()),
+        );
         const first = results.shift().toJSON();
         for (const result of results) {
           expect(result.toJSON()).to.deep.equal(first);
@@ -174,11 +206,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should merge complex scopes with findAll options correctly regardless of their order', async function () {
-        const results = await Promise.all(this.scopePermutations.map(async ([a, b, c, d]) => {
-          const x = await this.Foo.scope(a, b, c).findAll(this.scopes[d]);
+        const results = await Promise.all(
+          this.scopePermutations.map(async ([a, b, c, d]) => {
+            const x = await this.Foo.scope(a, b, c).findAll(this.scopes[d]);
 
-          return x[0];
-        }));
+            return x[0];
+          }),
+        );
 
         const first = results.shift().toJSON();
         for (const result of results) {
@@ -187,7 +221,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('[Flaky] should merge complex scopes with findOne options correctly regardless of their order', async function () {
-        const results = await Promise.all(this.scopePermutations.map(([a, b, c, d]) => this.Foo.scope(a, b, c).findOne(this.scopes[d])));
+        const results = await Promise.all(
+          this.scopePermutations.map(([a, b, c, d]) =>
+            this.Foo.scope(a, b, c).findOne(this.scopes[d]),
+          ),
+        );
         const first = results.shift().toJSON();
         for (const result of results) {
           // flaky test - sometimes it gets to:
@@ -196,7 +234,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(result.toJSON()).to.deep.equal(first);
         }
       });
-
     });
   });
 });

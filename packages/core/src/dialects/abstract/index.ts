@@ -44,28 +44,28 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
 }
 
 export type DialectSupports = {
-  'DEFAULT': boolean,
-  'DEFAULT VALUES': boolean,
-  'VALUES ()': boolean,
+  DEFAULT: boolean;
+  'DEFAULT VALUES': boolean;
+  'VALUES ()': boolean;
   // TODO: rename to `update.limit`
-  'LIMIT ON UPDATE': boolean,
-  'ON DUPLICATE KEY': boolean,
-  'ORDER NULLS': boolean,
-  'UNION': boolean,
-  'UNION ALL': boolean,
-  'RIGHT JOIN': boolean,
-  EXCEPTION: boolean,
+  'LIMIT ON UPDATE': boolean;
+  'ON DUPLICATE KEY': boolean;
+  'ORDER NULLS': boolean;
+  UNION: boolean;
+  'UNION ALL': boolean;
+  'RIGHT JOIN': boolean;
+  EXCEPTION: boolean;
 
-  forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | undefined,
-  lock: boolean,
-  lockOf: boolean,
-  lockKey: boolean,
-  lockOuterJoinFailure: boolean,
-  skipLocked: boolean,
-  finalTable: boolean,
+  forShare?: 'LOCK IN SHARE MODE' | 'FOR SHARE' | undefined;
+  lock: boolean;
+  lockOf: boolean;
+  lockKey: boolean;
+  lockOuterJoinFailure: boolean;
+  skipLocked: boolean;
+  finalTable: boolean;
 
   /* does the dialect support returning values for inserted/updated fields */
-  returnValues: false | 'output' | 'returning',
+  returnValues: false | 'output' | 'returning';
 
   /* does the dialect support returning values for inserted/updated fields in outBinds */
   returnIntoValues: boolean,
@@ -76,194 +76,199 @@ export type DialectSupports = {
   /* features specific to autoIncrement values */
   autoIncrement: {
     /* does the dialect require modification of insert queries when inserting auto increment fields */
-    identityInsert: boolean,
+    identityInsert: boolean;
 
     /* does the dialect support inserting default/null values for autoincrement fields */
-    defaultValue: boolean,
+    defaultValue: boolean;
 
     /* does the dialect support updating autoincrement fields */
-    update: boolean,
-  },
+    update: boolean;
+  };
   /* Do we need to say DEFAULT for bulk insert */
-  bulkDefault: boolean,
+  bulkDefault: boolean;
   /**
    * Whether this dialect has native support for schemas.
    * For the purposes of Sequelize, a Schema is considered to be a grouping of tables.
    * For instance, in MySQL, "CREATE DATABASE" creates what we consider to be a schema.
    */
-  schemas: boolean,
+  schemas: boolean;
   /**
    * Whether this dialect has native support for having multiple databases per instance (in the postgres or mssql sense).
    * For the purposes of Sequelize, a database is considered to be a grouping of schemas.
    * For instance, in MySQL, "CREATE DATABASE" creates what we consider to be a schema,
    * so we do not consider that MySQL supports this option.
    */
-  multiDatabases: boolean,
-  transactions: boolean,
-  settingIsolationLevelDuringTransaction: boolean,
-  transactionOptions: {
-    type: boolean,
-  },
-  migrations: boolean,
-  upserts: boolean,
+  multiDatabases: boolean;
+  transactions: boolean;
+  savepoints: boolean;
+  isolationLevels: boolean;
+  connectionTransactionMethods: boolean;
+  settingIsolationLevelDuringTransaction: boolean;
+  startTransaction: {
+    useBegin: boolean;
+    readOnly: boolean;
+    transactionType: boolean;
+  };
+  migrations: boolean;
+  upserts: boolean;
   inserts: {
-    ignoreDuplicates: string, /* dialect specific words for INSERT IGNORE or DO NOTHING */
-    updateOnDuplicate: boolean | string, /* whether dialect supports ON DUPLICATE KEY UPDATE */
-    onConflictDoNothing: string, /* dialect specific words for ON CONFLICT DO NOTHING */
-    onConflictWhere: boolean, /* whether dialect supports ON CONFLICT WHERE */
-    conflictFields: boolean, /* whether the dialect supports specifying conflict fields or not */
-  },
+    ignoreDuplicates: string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
+    updateOnDuplicate: boolean | string /* whether dialect supports ON DUPLICATE KEY UPDATE */;
+    onConflictDoNothing: string /* dialect specific words for ON CONFLICT DO NOTHING */;
+    onConflictWhere: boolean /* whether dialect supports ON CONFLICT WHERE */;
+    conflictFields: boolean /* whether the dialect supports specifying conflict fields or not */;
+  };
   constraints: {
-    restrict: boolean,
+    restrict: boolean;
     /**
      * This dialect supports marking a column's constraints as deferrable.
      * e.g. 'DEFERRABLE' and 'INITIALLY DEFERRED'
      */
-    deferrable: boolean,
-    unique: boolean,
-    default: boolean,
-    check: boolean,
-    foreignKey: boolean,
+    deferrable: boolean;
+    unique: boolean;
+    default: boolean;
+    check: boolean;
+    foreignKey: boolean;
     /** Whether this dialect supports disabling foreign key checks for the current session */
-    foreignKeyChecksDisableable: boolean,
-    primaryKey: boolean,
-    onUpdate: boolean,
-    add: boolean,
-    remove: boolean,
+    foreignKeyChecksDisableable: boolean;
+    primaryKey: boolean;
+    onUpdate: boolean;
+    add: boolean;
+    remove: boolean;
     removeOptions: {
-      cascade: boolean,
-      ifExists: boolean,
-    },
-  },
+      cascade: boolean;
+      ifExists: boolean;
+    };
+  };
   index: {
-    collate: boolean,
-    length: boolean,
-    parser: boolean,
-    concurrently: boolean,
-    type: boolean,
-    using: boolean | number,
-    functionBased: boolean,
-    operator: boolean,
-    where: boolean,
-    include: boolean,
-  },
-  groupedLimit: boolean,
-  indexViaAlter: boolean,
+    collate: boolean;
+    length: boolean;
+    parser: boolean;
+    concurrently: boolean;
+    type: boolean;
+    using: boolean | number;
+    functionBased: boolean;
+    operator: boolean;
+    where: boolean;
+    include: boolean;
+  };
+  groupedLimit: boolean;
+  indexViaAlter: boolean;
   alterColumn: {
     /**
      * Can "ALTER TABLE x ALTER COLUMN y" add UNIQUE to the column in this dialect?
      */
-    unique: boolean,
-  },
+    unique: boolean;
+  };
   dataTypes: {
-    CHAR: boolean,
+    CHAR: boolean;
     /**
      * Whether this dialect provides a binary collation on text, varchar & char columns.
      */
-    COLLATE_BINARY: boolean,
+    COLLATE_BINARY: boolean;
     /** This dialect supports case-insensitive text */
-    CITEXT: boolean,
+    CITEXT: boolean;
     /** Options supportable by all int types (from tinyint to bigint) */
-    INTS: SupportableNumericOptions,
+    INTS: SupportableNumericOptions;
     /** @deprecated */
-    REAL: SupportableFloatOptions,
+    REAL: SupportableFloatOptions;
     /** This dialect supports 4 byte long floating point numbers */
-    FLOAT: SupportableFloatOptions,
+    FLOAT: SupportableFloatOptions;
     /** This dialect supports 8 byte long floating point numbers */
-    DOUBLE: SupportableFloatOptions,
+    DOUBLE: SupportableFloatOptions;
     /** This dialect supports arbitrary precision numbers */
-    DECIMAL: false | SupportableExactDecimalOptions,
+    DECIMAL: false | SupportableExactDecimalOptions;
     /**
      * The dialect is considered to support JSON if it provides either:
      * - A JSON data type.
      * - An SQL function that can be used as a CHECK constraint on a text column, to ensure its contents are valid JSON.
      */
-    JSON: boolean,
-    JSONB: boolean,
-    ARRAY: boolean,
-    RANGE: boolean,
-    GEOMETRY: boolean,
-    GEOGRAPHY: boolean,
-    HSTORE: boolean,
-    TSVECTOR: boolean,
-    CIDR: boolean,
-    INET: boolean,
-    MACADDR: boolean,
-    MACADDR8: boolean,
+    JSON: boolean;
+    JSONB: boolean;
+    ARRAY: boolean;
+    RANGE: boolean;
+    GEOMETRY: boolean;
+    GEOGRAPHY: boolean;
+    HSTORE: boolean;
+    TSVECTOR: boolean;
+    CIDR: boolean;
+    INET: boolean;
+    MACADDR: boolean;
+    MACADDR8: boolean;
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
-      infinity: boolean,
-    },
+      infinity: boolean;
+    };
     DATEONLY: {
       /** Whether "infinity" is a valid value in this dialect's DATEONLY data type */
-      infinity: boolean,
-    },
+      infinity: boolean;
+    };
     TIME: {
       /** Whether the dialect supports TIME(precision) */
-      precision: boolean,
-    },
-  },
-  REGEXP: boolean,
+      precision: boolean;
+    };
+  };
+  REGEXP: boolean;
   /**
    * Case-insensitive regexp operator support ('~*' in postgres).
    */
-  IREGEXP: boolean,
+  IREGEXP: boolean;
   /** Whether this dialect supports SQL JSON functions */
-  jsonOperations: boolean,
+  jsonOperations: boolean;
   /** Whether this dialect supports returning quoted & unquoted JSON strings  */
   jsonExtraction: {
-    unquoted: boolean,
-    quoted: boolean,
-  },
-  tmpTableTrigger: boolean,
-  indexHints: boolean,
-  tableHints: boolean,
-  searchPath: boolean,
+    unquoted: boolean;
+    quoted: boolean;
+  };
+  tmpTableTrigger: boolean;
+  indexHints: boolean;
+  tableHints: boolean;
+  searchPath: boolean;
   /**
    * This dialect supports E-prefixed strings, e.g. "E'foo'", which
    * enables the ability to use backslash escapes inside the string.
    */
-  escapeStringConstants: boolean,
+  escapeStringConstants: boolean;
 
   /** Whether this dialect supports changing the global timezone option */
-  globalTimeZoneConfig: boolean,
+  globalTimeZoneConfig: boolean;
   /** Whether this dialect provides a native way to generate UUID v1 values */
-  uuidV1Generation: boolean,
+  uuidV1Generation: boolean;
   /** Whether this dialect provides a native way to generate UUID v4 values */
-  uuidV4Generation: boolean,
+  uuidV4Generation: boolean;
   dropTable: {
-    cascade: boolean,
-  },
+    cascade: boolean;
+  };
   maxExecutionTimeHint: {
-    select: boolean,
-  },
+    select: boolean;
+  };
   truncate: {
-    cascade: boolean,
-    restartIdentity: boolean,
-  },
+    cascade: boolean;
+    restartIdentity: boolean;
+  };
   removeColumn: {
-    cascade: boolean,
-    ifExists: boolean,
-  },
+    cascade: boolean;
+    ifExists: boolean;
+  };
   renameTable: {
-    changeSchema: boolean,
-    changeSchemaAndTable: boolean,
-  },
+    changeSchema: boolean;
+    changeSchemaAndTable: boolean;
+  };
   createSchema: {
-    authorization: boolean,
-    charset: boolean,
-    collate: boolean,
-    comment: boolean,
-    ifNotExists: boolean,
-    replace: boolean,
-  },
+    authorization: boolean;
+    charset: boolean;
+    collate: boolean;
+    comment: boolean;
+    ifNotExists: boolean;
+    replace: boolean;
+  };
   dropSchema: {
-    cascade: boolean,
-    ifExists: boolean,
-  },
+    cascade: boolean;
+    ifExists: boolean;
+  };
   delete: {
-    modelWithLimit: boolean,
-  },
+    modelWithLimit: boolean;
+  };
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -304,9 +309,14 @@ export abstract class AbstractDialect {
     schemas: false,
     multiDatabases: false,
     transactions: true,
+    savepoints: true,
+    isolationLevels: true,
+    connectionTransactionMethods: false,
     settingIsolationLevelDuringTransaction: true,
-    transactionOptions: {
-      type: false,
+    startTransaction: {
+      useBegin: false,
+      readOnly: false,
+      transactionType: false,
     },
     migrations: true,
     upserts: true,
@@ -356,10 +366,35 @@ export abstract class AbstractDialect {
       COLLATE_BINARY: false,
       CITEXT: false,
       INTS: { zerofill: false, unsigned: false },
-      FLOAT: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
-      REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
-      DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
-      DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
+      FLOAT: {
+        NaN: false,
+        infinity: false,
+        zerofill: false,
+        unsigned: false,
+        scaleAndPrecision: false,
+      },
+      REAL: {
+        NaN: false,
+        infinity: false,
+        zerofill: false,
+        unsigned: false,
+        scaleAndPrecision: false,
+      },
+      DOUBLE: {
+        NaN: false,
+        infinity: false,
+        zerofill: false,
+        unsigned: false,
+        scaleAndPrecision: false,
+      },
+      DECIMAL: {
+        constrained: true,
+        unconstrained: false,
+        NaN: false,
+        infinity: false,
+        zerofill: false,
+        unsigned: false,
+      },
       CIDR: false,
       MACADDR: false,
       MACADDR8: false,
@@ -462,7 +497,11 @@ export abstract class AbstractDialect {
     return Dialect.supports;
   }
 
-  constructor(sequelize: Sequelize, dialectDataTypes: Record<string, Class<AbstractDataType<any>>>, dialectName: Dialect) {
+  constructor(
+    sequelize: Sequelize,
+    dialectDataTypes: Record<string, Class<AbstractDataType<any>>>,
+    dialectName: Dialect,
+  ) {
     this.sequelize = sequelize;
     this.DataTypes = dialectDataTypes;
     this.name = dialectName;
@@ -477,7 +516,9 @@ export abstract class AbstractDialect {
       }
 
       if (baseDataTypes.has(dataTypeId)) {
-        throw new Error(`Internal Error: Sequelize declares more than one base implementation for DataType ID ${dataTypeId}.`);
+        throw new Error(
+          `Internal Error: Sequelize declares more than one base implementation for DataType ID ${dataTypeId}.`,
+        );
       }
 
       baseDataTypes.set(dataTypeId, dataType);
@@ -485,10 +526,14 @@ export abstract class AbstractDialect {
 
     const dataTypeOverrides = new Map<string, Class<AbstractDataType<any>>>();
     for (const dataType of Object.values(this.DataTypes)) {
-      const replacedDataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
+      const replacedDataTypeId: string = (
+        dataType as unknown as typeof AbstractDataType
+      ).getDataTypeId();
 
       if (dataTypeOverrides.has(replacedDataTypeId)) {
-        throw new Error(`Dialect ${this.name} declares more than one implementation for DataType ID ${replacedDataTypeId}.`);
+        throw new Error(
+          `Dialect ${this.name} declares more than one implementation for DataType ID ${replacedDataTypeId}.`,
+        );
       }
 
       dataTypeOverrides.set(replacedDataTypeId, dataType);
@@ -504,7 +549,9 @@ export abstract class AbstractDialect {
    *
    * @param dataType The shared data type.
    */
-  getDataTypeForDialect(dataType: Class<AbstractDataType<any>>): Class<AbstractDataType<any>> | null {
+  getDataTypeForDialect(
+    dataType: Class<AbstractDataType<any>>,
+  ): Class<AbstractDataType<any>> | null {
     const typeId = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
     const baseType = this.#baseDataTypes.get(typeId);
 
@@ -552,7 +599,7 @@ export abstract class AbstractDialect {
   escapeString(value: string): string {
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
-    value = value.replaceAll('\'', '\'\'');
+    value = value.replaceAll("'", "''");
 
     return `'${value}'`;
   }
@@ -598,7 +645,9 @@ export abstract class AbstractDialect {
   registerDataTypeParser(databaseDataTypes: unknown[], parser: TypeParser) {
     for (const databaseDataType of databaseDataTypes) {
       if (this.#dataTypeParsers.has(databaseDataType)) {
-        throw new Error(`Sequelize DataType for DB DataType ${databaseDataType} already registered for dialect ${this.name}`);
+        throw new Error(
+          `Sequelize DataType for DB DataType ${databaseDataType} already registered for dialect ${this.name}`,
+        );
       }
 
       this.#dataTypeParsers.set(databaseDataType, parser);
@@ -623,11 +672,11 @@ export type BindCollector = {
    * @param {string} bindParameterName The name of the bind parameter
    * @returns {string}
    */
-  collect(bindParameterName: string): string,
+  collect(bindParameterName: string): string;
 
   /**
    * Returns either an array of orders if the bind parameters are mapped to numeric parameters (e.g. '?', $1, @1),
    * or null if no mapping was necessary because the dialect supports named parameters.
    */
-  getBindParameterOrder(): string[] | null,
+  getBindParameterOrder(): string[] | null;
 };

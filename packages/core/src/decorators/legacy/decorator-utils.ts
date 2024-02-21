@@ -65,49 +65,83 @@ export function createOptionallyParameterizedPropertyDecorator<T>(
       ) {
         const value = args[0] ?? defaultValue;
         if (value === DECORATOR_NO_DEFAULT) {
-          throw new Error(`Decorator @${name} requires an argument (used on ${getPropertyName(target, propertyName)})`);
+          throw new Error(
+            `Decorator @${name} requires an argument (used on ${getPropertyName(target, propertyName)})`,
+          );
         }
 
-        callback(value, target, propertyName, propertyDescriptor ?? Object.getOwnPropertyDescriptor(target, propertyName));
+        callback(
+          value,
+          target,
+          propertyName,
+          propertyDescriptor ?? Object.getOwnPropertyDescriptor(target, propertyName),
+        );
       };
     }
 
     if (defaultValue === DECORATOR_NO_DEFAULT) {
-      throw new Error(`Decorator @${name} requires an argument (used on ${getPropertyName(args[0], args[1])})`);
+      throw new Error(
+        `Decorator @${name} requires an argument (used on ${getPropertyName(args[0], args[1])})`,
+      );
     }
 
-    callback(defaultValue, args[0], args[1], args[2] ?? Object.getOwnPropertyDescriptor(args[0], args[1]));
+    callback(
+      defaultValue,
+      args[0],
+      args[1],
+      args[2] ?? Object.getOwnPropertyDescriptor(args[0], args[1]),
+    );
 
     // this method only returns something if args.length === 1, but typescript doesn't understand it
     return undefined as unknown as PropertyOrGetterDescriptor;
   };
 }
 
-export function throwMustBeStaticProperty(decoratorName: string, target: Object, propertyName: string | symbol): never {
+export function throwMustBeStaticProperty(
+  decoratorName: string,
+  target: Object,
+  propertyName: string | symbol,
+): never {
   throw new TypeError(
     `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, which is an instance property. This decorator can only be used on static properties, setters and getters.`,
   );
 }
 
-export function throwMustBeModel(decoratorName: string, target: Object, propertyName: string | symbol): never {
+export function throwMustBeModel(
+  decoratorName: string,
+  target: Object,
+  propertyName: string | symbol,
+): never {
   throw new TypeError(
     `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, but class "${getClassName(target)}" does not extend Model. This decorator can only be used on models.`,
   );
 }
 
-export function throwMustBeInstanceProperty(decoratorName: string, target: Object, propertyName: string | symbol): never {
+export function throwMustBeInstanceProperty(
+  decoratorName: string,
+  target: Object,
+  propertyName: string | symbol,
+): never {
   throw new TypeError(
     `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, which is static. This decorator can only be used on instance properties, setters and getters.`,
   );
 }
 
-export function throwMustBeMethod(decoratorName: string, target: Object, propertyName: string | symbol): never {
+export function throwMustBeMethod(
+  decoratorName: string,
+  target: Object,
+  propertyName: string | symbol,
+): never {
   throw new TypeError(
     `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, which is not a method. This decorator can only be used on methods.`,
   );
 }
 
-export function throwMustBeAttribute(decoratorName: string, target: Object, propertyName: string | symbol): never {
+export function throwMustBeAttribute(
+  decoratorName: string,
+  target: Object,
+  propertyName: string | symbol,
+): never {
   throw new TypeError(
     `Decorator @${decoratorName} has been used on ${getPropertyName(target, propertyName)}, which is a symbol field. Symbol Model Attributes are not currently supported. We welcome a PR that implements this feature.`,
   );

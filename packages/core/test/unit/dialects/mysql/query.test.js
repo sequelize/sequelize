@@ -1,6 +1,8 @@
 'use strict';
 
-const { MySqlQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query.js');
+const {
+  MySqlQuery: Query,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mysql/query.js');
 
 const Support = require('../../../support');
 const chai = require('chai');

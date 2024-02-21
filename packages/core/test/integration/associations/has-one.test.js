@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { Sequelize, DataTypes } = require('@sequelize/core');
+const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -21,18 +21,24 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         await this.sequelize.sync({ force: true });
 
         const players = await Promise.all([
-          Player.create({
-            id: 1,
-            user: {},
-          }, {
-            include: [Player.User],
-          }),
-          Player.create({
-            id: 2,
-            user: {},
-          }, {
-            include: [Player.User],
-          }),
+          Player.create(
+            {
+              id: 1,
+              user: {},
+            },
+            {
+              include: [Player.User],
+            },
+          ),
+          Player.create(
+            {
+              id: 2,
+              user: {},
+            },
+            {
+              include: [Player.User],
+            },
+          ),
           Player.create({
             id: 3,
           }),
@@ -49,7 +55,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('getAssociation', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -73,9 +81,12 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       });
     }
 
-    it('should be able to handle a where object that\'s a first class citizen.', async function () {
+    it("should be able to handle a where object that's a first class citizen.", async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskXYZ', {
+        title: DataTypes.STRING,
+        status: DataTypes.STRING,
+      });
 
       User.hasOne(Task);
 
@@ -136,7 +147,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
         const Group = sequelize.define('Group', { name: DataTypes.STRING });
 
@@ -155,7 +168,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         await t.rollback();
       });
     }
-
   });
 
   describe('foreign key', () => {
@@ -167,15 +179,27 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       await User.sync({ force: true });
       await Task.sync({ force: true });
-      await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(
+        Sequelize.ForeignKeyConstraintError,
+      );
       const task = await Task.create({ title: 'task' });
 
-      await expect(Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } })).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      await expect(
+        Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
+      ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
     });
 
     it('should setup underscored field with foreign keys when using underscored', function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: true });
-      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: true });
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { underscored: true },
+      );
+      const Account = this.sequelize.define(
+        'Account',
+        { name: DataTypes.STRING },
+        { underscored: true },
+      );
 
       Account.hasOne(User);
 
@@ -184,8 +208,16 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     it('should use model name when using camelcase', function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING }, { underscored: false });
-      const Account = this.sequelize.define('Account', { name: DataTypes.STRING }, { underscored: false });
+      const User = this.sequelize.define(
+        'User',
+        { username: DataTypes.STRING },
+        { underscored: false },
+      );
+      const Account = this.sequelize.define(
+        'Account',
+        { name: DataTypes.STRING },
+        { underscored: false },
+      );
 
       Account.hasOne(User);
 
@@ -194,8 +226,14 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     it('should support specifying the field of a foreign key', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING });
+      const User = this.sequelize.define('UserXYZ', {
+        username: DataTypes.STRING,
+        gender: DataTypes.STRING,
+      });
+      const Task = this.sequelize.define('TaskXYZ', {
+        title: DataTypes.STRING,
+        status: DataTypes.STRING,
+      });
 
       Task.hasOne(User, {
         foreignKey: {
@@ -228,14 +266,19 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     it('should support custom primary key field name in sub queries', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING });
+      const User = this.sequelize.define('UserXYZ', {
+        username: DataTypes.STRING,
+        gender: DataTypes.STRING,
+      });
       const Task = this.sequelize.define('TaskXYZ', {
         id: {
           field: 'Id',
           type: DataTypes.INTEGER,
           autoIncrement: true,
           primaryKey: true,
-        }, title: DataTypes.STRING, status: DataTypes.STRING,
+        },
+        title: DataTypes.STRING,
+        status: DataTypes.STRING,
       });
 
       Task.hasOne(User);
@@ -243,7 +286,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await Task.sync({ force: true });
       await User.sync({ force: true });
 
-      const task0 = await Task.create({ title: 'task', status: 'inactive', User: { username: 'foo', gender: 'male' } }, { include: User });
+      const task0 = await Task.create(
+        { title: 'task', status: 'inactive', User: { username: 'foo', gender: 'male' } },
+        { include: User },
+      );
       await expect(task0.reload({ subQuery: true })).to.not.eventually.be.rejected;
     });
   });
@@ -329,7 +375,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         // the `UPDATE` query generated by `save()` uses `id` in the
         // `WHERE` clause
 
-        const tableName = User.getTableName();
+        const tableName = User.table;
         await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
@@ -338,7 +384,6 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     }
 
     if (current.dialect.supports.constraints.restrict) {
-
       it('can restrict deletes', async function () {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -350,7 +395,9 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const user = await User.create({ username: 'foo' });
         const task = await Task.create({ title: 'task' });
         await user.setTask(task);
-        await expect(user.destroy()).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+        await expect(user.destroy()).to.eventually.be.rejectedWith(
+          Sequelize.ForeignKeyConstraintError,
+        );
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
       });
@@ -371,7 +418,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         // the `UPDATE` query generated by `save()` uses `id` in the
         // `WHERE` clause
 
-        const tableName = User.getTableName();
+        const tableName = User.table;
 
         await expect(
           user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
@@ -382,9 +429,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         expect(tasks).to.have.length(1);
       });
-
     }
-
   });
 
   describe('association column', () => {
@@ -488,15 +533,20 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING];
       const Tasks = {};
 
-      await Promise.all(dataTypes.map(async dataType => {
-        const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
-        Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
+      await Promise.all(
+        dataTypes.map(async dataType => {
+          const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;
+          Tasks[dataType] = this.sequelize.define(tableName, { title: DataTypes.STRING });
 
-        User.hasOne(Tasks[dataType], { foreignKey: { name: 'userId', type: dataType }, foreignKeyConstraints: false });
+          User.hasOne(Tasks[dataType], {
+            foreignKey: { name: 'userId', type: dataType },
+            foreignKeyConstraints: false,
+          });
 
-        await Tasks[dataType].sync({ force: true });
-        expect(Tasks[dataType].getAttributes().userId.type).to.be.an.instanceof(dataType);
-      }));
+          await Tasks[dataType].sync({ force: true });
+          expect(Tasks[dataType].getAttributes().userId.type).to.be.an.instanceof(dataType);
+        }),
+      );
     });
   });
 

@@ -19,9 +19,7 @@ import type { SnowflakeDialect } from './index.js';
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection {
-
-}
+export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection {}
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -75,10 +73,15 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<Snowfl
       if (!this.sequelize.config.keepDefaultTimezone) {
         // TODO: remove default timezone.
         // default value is '+00:00', put a quick workaround for it.
-        const tzOffset = this.sequelize.options.timezone === '+00:00' ? 'Etc/UTC' : this.sequelize.options.timezone;
+        const tzOffset =
+          this.sequelize.options.timezone === '+00:00'
+            ? 'Etc/UTC'
+            : this.sequelize.options.timezone;
         const isNamedTzOffset = tzOffset.includes('/');
         if (!isNamedTzOffset) {
-          throw new Error('Snowflake only supports named timezones for the sequelize "timezone" option.');
+          throw new Error(
+            'Snowflake only supports named timezones for the sequelize "timezone" option.',
+          );
         }
 
         await new Promise<void>((resolve, reject) => {

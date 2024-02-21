@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import omit from 'lodash/omit';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import {
@@ -16,6 +14,8 @@ import {
   Unique,
   createIndexDecorator,
 } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import omit from 'lodash/omit';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -34,7 +34,9 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+    expect(() => Test.init({}, { sequelize })).to.throw(
+      /pass your model to the Sequelize constructor/,
+    );
   });
 
   it('registers an attribute when sequelize.addModels is called', () => {

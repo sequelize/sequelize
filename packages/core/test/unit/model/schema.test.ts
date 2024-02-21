@@ -1,6 +1,6 @@
-import assert from 'node:assert';
-import { expect } from 'chai';
 import { literal } from '@sequelize/core';
+import { expect } from 'chai';
+import assert from 'node:assert';
 import { beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
 describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
@@ -10,10 +10,14 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
 
   const vars = beforeAll2(() => {
     const Project = sequelize.define('project');
-    const Company = sequelize.define('company', {}, {
-      schema: 'default',
-      schemaDelimiter: '&',
-    });
+    const Company = sequelize.define(
+      'company',
+      {},
+      {
+        schema: 'default',
+        schemaDelimiter: '&',
+      },
+    );
     Project.addScope('scope1', { where: literal('') });
 
     return { Project, Company };
@@ -35,14 +39,19 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
     it('returns the same model if the schema is equal', () => {
       const { Project } = vars;
 
-      // eslint-disable-next-line no-self-compare
-      assert(Project.withSchema('newSchema') === Project.withSchema('newSchema'), 'withSchema should have returned the same model if the schema is equal');
+      assert(
+        // eslint-disable-next-line no-self-compare -- value could be different.
+        Project.withSchema('newSchema') === Project.withSchema('newSchema'),
+        'withSchema should have returned the same model if the schema is equal',
+      );
     });
 
     it('returns a new model if the schema is equal, but scope is different', () => {
       const { Project } = vars;
 
-      expect(Project.withScope('scope1').withSchema('newSchema')).not.to.equal(Project.withSchema('newSchema'));
+      expect(Project.withScope('scope1').withSchema('newSchema')).not.to.equal(
+        Project.withSchema('newSchema'),
+      );
     });
 
     it('returns the current model if the schema is identical', () => {

@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import type {
   CreationOptional,
   HasManyAddAssociationsMixin,
@@ -10,7 +9,13 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { AllowNull, Attribute, HasMany, NotNull } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { expect } from 'chai';
+import {
+  beforeAll2,
+  createMultiTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 const dialect = sequelize.dialect;
 
@@ -44,7 +49,10 @@ describe('hasMany Mixins', () => {
       declare articleId: number | null;
     }
 
-    class NonNullLabel extends Model<InferAttributes<NonNullLabel>, InferCreationAttributes<NonNullLabel>> {
+    class NonNullLabel extends Model<
+      InferAttributes<NonNullLabel>,
+      InferCreationAttributes<NonNullLabel>
+    > {
       declare id: CreationOptional<number>;
 
       @NotNull
@@ -62,10 +70,7 @@ describe('hasMany Mixins', () => {
     it('associates target models to the source model', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -79,10 +84,7 @@ describe('hasMany Mixins', () => {
     it('supports any iterable', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -150,10 +152,7 @@ describe('hasMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       await article.setLabels([label.id]);
       await label.reload();
@@ -165,10 +164,7 @@ describe('hasMany Mixins', () => {
     it('associates target models to the source model', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -182,10 +178,7 @@ describe('hasMany Mixins', () => {
     it('supports any iterable', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -199,10 +192,7 @@ describe('hasMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -355,14 +345,14 @@ describe('hasMany Mixins + transaction', () => {
     it('supports transactions', async () => {
       const { Label, Article, transactionSequelize } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       await transactionSequelize.transaction(async transaction => {
         await article.setLabels([label], { transaction });
-        const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
+        const labels0 = await Label.findAll({
+          where: { articleId: article.id },
+          transaction: null,
+        });
         expect(labels0.length).to.equal(0);
 
         const labels = await Label.findAll({ where: { articleId: article.id }, transaction });
@@ -401,8 +391,12 @@ describe('hasMany Mixins + transaction', () => {
         await Label.create({ articleId: article.id });
 
         await article.setLabels(null, { transaction: t });
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+        expect(
+          (await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId,
+        ).to.equal(article.id);
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(
+          null,
+        );
       } finally {
         await t.rollback();
       }
@@ -422,8 +416,12 @@ describe('hasMany Mixins + transaction', () => {
         const label = await Label.create({ articleId: article.id });
 
         await article.removeLabels([label], { transaction: t });
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+        expect(
+          (await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId,
+        ).to.equal(article.id);
+        expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(
+          null,
+        );
       } finally {
         await t.rollback();
       }

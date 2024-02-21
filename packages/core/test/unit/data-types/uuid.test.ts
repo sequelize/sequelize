@@ -1,7 +1,7 @@
-import util from 'node:util';
-import { expect } from 'chai';
-import { v1 as generateV1, v4 as generateV4 } from 'uuid';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
+import util from 'node:util';
+import { v1 as generateV1, v4 as generateV4 } from 'uuid';
 import { testDataTypeSql } from './_utils';
 
 describe('DataTypes.UUID', () => {

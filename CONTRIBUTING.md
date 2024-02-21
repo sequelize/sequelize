@@ -106,6 +106,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
     - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
       - Also run `npm install --global editorconfig` (or `yarn global add editorconfig`) to make sure this extension will work properly
     - [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+    - [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 ### 1. Clone the repository
 
@@ -136,6 +137,7 @@ yarn lerna run test-unit --scope=@sequelize/core
 ```
 
 Lerna caching is enabled and the following commands:
+
 - `yarn build`
 - `yarn test-typings`
 - `yarn test-unit`
@@ -242,6 +244,7 @@ but you will need to follow the [Conventional Commits Conventions](https://www.c
 We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
 
 We use a simple conventional commits convention:
+
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
 - We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
   - `postgres`
@@ -265,7 +268,11 @@ Happy hacking and thank you for contributing.
 
 # Coding guidelines
 
-Have a look at our [.eslintrc.js](https://github.com/sequelize/sequelize/blob/main/.eslintrc.js) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Sequelize uses eslint and prettier to enforce a consistent coding style.
+We recommend configuring them in your IDE to automatically format your code on save.
+
+You can format your code at any point by running `yarn format`.
+Any issue not automatically fixed by this command will be printed to the console.
 
 # Contributing to the documentation
 

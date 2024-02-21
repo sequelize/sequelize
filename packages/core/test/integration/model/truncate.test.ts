@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { setResetMode } from '../support';
 

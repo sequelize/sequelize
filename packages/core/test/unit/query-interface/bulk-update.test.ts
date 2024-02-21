@@ -1,13 +1,17 @@
+import { DataTypes, Op, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes, Op, literal } from '@sequelize/core';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#bulkUpdate', () => {
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -57,18 +61,22 @@ describe('QueryInterface#bulkUpdate', () => {
     const { User } = vars;
     sinon.stub(sequelize, 'queryRaw');
 
-    await expect(sequelize.queryInterface.bulkUpdate(
-      User.table,
-      {
-        firstName: literal('$sequelize_test'),
-      },
-      {},
-      {
-        bind: {
-          sequelize_test: 'raw sql',
+    await expect(
+      sequelize.queryInterface.bulkUpdate(
+        User.table,
+        {
+          firstName: literal('$sequelize_test'),
         },
-      },
-    )).to.be.rejectedWith('Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.');
+        {},
+        {
+          bind: {
+            sequelize_test: 'raw sql',
+          },
+        },
+      ),
+    ).to.be.rejectedWith(
+      'Bind parameters cannot start with "sequelize_", these bind parameters are reserved by Sequelize.',
+    );
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {

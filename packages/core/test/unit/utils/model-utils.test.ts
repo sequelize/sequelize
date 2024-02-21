@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { Model, isModelStatic, isSameInitialModel } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe('isModelStatic', () => {
@@ -26,17 +26,19 @@ describe('isModelStatic', () => {
 
 describe('isSameInitialModel', () => {
   it('returns true if both models have the same initial model', () => {
-    const MyModel = sequelize.define('MyModel', {}, {
-      scopes: {
-        scope1: {
-          where: { id: 1 },
+    const MyModel = sequelize.define(
+      'MyModel',
+      {},
+      {
+        scopes: {
+          scope1: {
+            where: { id: 1 },
+          },
         },
       },
-    });
+    );
 
-    expect(
-      isSameInitialModel(MyModel.withSchema('abc'), MyModel.withScope('scope1')),
-    ).to.be.true;
+    expect(isSameInitialModel(MyModel.withSchema('abc'), MyModel.withScope('scope1'))).to.be.true;
   });
 
   it('returns false if the models are different', () => {
@@ -44,8 +46,6 @@ describe('isSameInitialModel', () => {
 
     const MyModel2 = sequelize.define('MyModel2', {});
 
-    expect(
-      isSameInitialModel(MyModel1, MyModel2),
-    ).to.be.false;
+    expect(isSameInitialModel(MyModel1, MyModel2)).to.be.false;
   });
 });

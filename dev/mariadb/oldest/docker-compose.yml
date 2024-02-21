@@ -12,7 +12,7 @@ services:
     volumes:
       - mariadb-oldest:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mariadb-admin", "-usequelize_test", "-psequelize_test", "status"]
+      test: ['CMD', 'mariadb-admin', '-usequelize_test', '-psequelize_test', 'status']
       interval: 3s
       timeout: 1s
       retries: 10

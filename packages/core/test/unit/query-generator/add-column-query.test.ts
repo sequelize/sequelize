@@ -8,9 +8,13 @@ describe('QueryGenerator#addColumnQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define('User', {
-      firstName: DataTypes.STRING,
-    }, { timestamps: false });
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
 
     return { User };
   });
@@ -18,25 +22,38 @@ describe('QueryGenerator#addColumnQuery', () => {
   it('generates a ADD COLUMN query in supported dialects', () => {
     const { User } = vars;
 
-    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', {
-      type: DataTypes.INTEGER,
-    }), {
-      default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
-      mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
-      postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
-      oracle: `ALTER TABLE "Users" ADD "age" INTEGER NULL;`,
-    });
+    expectsql(
+      () =>
+        queryGenerator.addColumnQuery(User.table, 'age', {
+          type: DataTypes.INTEGER,
+        }),
+      {
+        default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
+        mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
+        postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
+        oracle: `ALTER TABLE "Users" ADD "age" INTEGER NULL;`,
+      },
+    );
   });
 
   it('generates a ADD COLUMN IF NOT EXISTS query in supported dialects', () => {
     const { User } = vars;
 
-    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', {
-      type: DataTypes.INTEGER,
-    }, { ifNotExists: true }), {
-      default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
-      mariadb: 'ALTER TABLE `Users` ADD IF NOT EXISTS `age` INTEGER;',
-      postgres: `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
-    });
+    expectsql(
+      () =>
+        queryGenerator.addColumnQuery(
+          User.table,
+          'age',
+          {
+            type: DataTypes.INTEGER,
+          },
+          { ifNotExists: true },
+        ),
+      {
+        default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
+        mariadb: 'ALTER TABLE `Users` ADD IF NOT EXISTS `age` INTEGER;',
+        postgres: `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
+      },
+    );
   });
 });

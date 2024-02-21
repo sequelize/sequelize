@@ -13,18 +13,20 @@ import type {
 import type { Deferrable } from './deferrable';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type { IndexField, IndexOptions, TableName, TableNameWithSchema } from './dialects/abstract/query-interface';
+import type { IndexField, IndexOptions, TableName } from './dialects/abstract/query-interface';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
+import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
 import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
+import type { COMPLETES_TRANSACTION } from './transaction';
 import type {
   AllowArray,
   AllowReadonlyArray,
@@ -34,7 +36,6 @@ import type {
   OmitConstructors,
   StrictRequiredBy,
 } from './utils/types.js';
-import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
 
 export interface Logging {
   /**
@@ -78,6 +79,14 @@ export interface Transactionable {
    * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
    */
   connection?: Connection | null | undefined;
+
+  /**
+   * Indicates if the query completes the transaction
+   * Internal only
+   *
+   * @private
+   */
+  [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
 
 export interface SearchPathable {
@@ -180,31 +189,42 @@ type AllowAnyAll<T> =
   | T
   // Op.all: [x, z] results in ALL (ARRAY[x, z])
   // Some things cannot go in ARRAY. Op.values must be used to support them.
-  | { [Op.all]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } }
-  | { [Op.any]: Array<Exclude<T, InvalidInSqlArray>> | Literal | { [Op.values]: Array<T | DynamicValues<T>> } };
+  | {
+      [Op.all]:
+        | Array<Exclude<T, InvalidInSqlArray>>
+        | Literal
+        | { [Op.values]: Array<T | DynamicValues<T>> };
+    }
+  | {
+      [Op.any]:
+        | Array<Exclude<T, InvalidInSqlArray>>
+        | Literal
+        | { [Op.values]: Array<T | DynamicValues<T>> };
+    };
 
 // number is always allowed because -Infinity & +Infinity are valid
 /**
  * This type represents a valid input when describing a {@link DataTypes.RANGE}.
  */
-export type Rangable<T> = readonly [
-  lower: T | InputRangePart<T> | number | null,
-  higher: T | InputRangePart<T> | number | null,
-] | EmptyRange;
+export type Rangable<T> =
+  | readonly [
+      lower: T | InputRangePart<T> | number | null,
+      higher: T | InputRangePart<T> | number | null,
+    ]
+  | EmptyRange;
 
 /**
  * This type represents the output of the {@link DataTypes.RANGE} data type.
  */
 // number is always allowed because -Infinity & +Infinity are valid
-export type Range<T> = readonly [
-  lower: RangePart<T> | number | null,
-  higher: RangePart<T> | number | null,
-] | EmptyRange;
+export type Range<T> =
+  | readonly [lower: RangePart<T> | number | null, higher: RangePart<T> | number | null]
+  | EmptyRange;
 
 type EmptyRange = [];
 
-export type RangePart<T> = { value: T | number | null, inclusive: boolean };
-export type InputRangePart<T> = { value: T | number | null, inclusive?: boolean };
+export type RangePart<T> = { value: T | number | null; inclusive: boolean };
+export type InputRangePart<T> = { value: T | number | null; inclusive?: boolean };
 
 /**
  * Internal type - prone to changes. Do not export.
@@ -248,10 +268,13 @@ type DynamicValues<AcceptableValues> =
  * Static values, as opposed to {@link DynamicValues}. i.e. booleans, strings, etc...
  */
 type StaticValues<Type> =
-  Type extends Range<infer RangeType> ? [lower: RangeType | RangePart<RangeType>, higher: RangeType | RangePart<RangeType>]
-  : Type extends any[] ? { readonly [Key in keyof Type]: StaticValues<Type[Key]> }
-  : Type extends null ? Type | WhereSerializableValue | null
-  : Type | WhereSerializableValue;
+  Type extends Range<infer RangeType>
+    ? [lower: RangeType | RangePart<RangeType>, higher: RangeType | RangePart<RangeType>]
+    : Type extends any[]
+      ? { readonly [Key in keyof Type]: StaticValues<Type[Key]> }
+      : Type extends null
+        ? Type | WhereSerializableValue | null
+        : Type | WhereSerializableValue;
 
 /**
  * Operators that can be used in {@link WhereOptions}
@@ -311,9 +334,9 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.between]?:
     | [
-      lowerInclusive: OperatorValues<NonNullable<AttributeType>>,
-      higherInclusive: OperatorValues<NonNullable<AttributeType>>,
-    ]
+        lowerInclusive: OperatorValues<NonNullable<AttributeType>>,
+        higherInclusive: OperatorValues<NonNullable<AttributeType>>,
+      ]
     | Literal;
 
   /** @example `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
@@ -361,13 +384,13 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-range.html range && range
   // https://www.postgresql.org/docs/14/functions-array.html array && array
   [Op.overlap]?: AllowAnyAll<
-    | (
-      // RANGE && RANGE
-      AttributeType extends Range<infer RangeType> ? Rangable<RangeType>
-      // ARRAY && ARRAY
-      : AttributeType extends any[] ? StaticValues<NonNullable<AttributeType>>
-      : never
-    )
+    | // RANGE && RANGE
+    (AttributeType extends Range<infer RangeType>
+        ? Rangable<RangeType>
+        : // ARRAY && ARRAY
+          AttributeType extends any[]
+          ? StaticValues<NonNullable<AttributeType>>
+          : never)
     | DynamicValues<AttributeType>
   >;
 
@@ -379,26 +402,27 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-json.html jsonb @> jsonb
   // https://www.postgresql.org/docs/14/functions-range.html range @> range ; range @> element
   // https://www.postgresql.org/docs/14/functions-array.html array @> array
-  [Op.contains]?:
-    // RANGE @> ELEMENT
-    | AttributeType extends Range<infer RangeType> ? OperatorValues<OperatorValues<NonNullable<RangeType>>>
-      // jsonb @> ELEMENT
-      : AttributeType extends object ? OperatorValues<Partial<AttributeType>>
-      : never
-    // ARRAY @> ARRAY ; RANGE @> RANGE
-    | WhereOperators<AttributeType>[typeof Op.overlap];
+  [Op.contains]?: // RANGE @> ELEMENT
+  AttributeType extends Range<infer RangeType>
+    ? OperatorValues<OperatorValues<NonNullable<RangeType>>>
+    : // jsonb @> ELEMENT
+      AttributeType extends object
+      ? OperatorValues<Partial<AttributeType>>
+      :
+          | never
+          // ARRAY @> ARRAY ; RANGE @> RANGE
+          | WhereOperators<AttributeType>[typeof Op.overlap];
 
   /**
    * PG array & range 'contained by' operator
    *
    * @example `[Op.contained]: [1, 2]` becomes `<@ [1, 2]`
    */
-  [Op.contained]?:
-    AttributeType extends any[]
-      // ARRAY <@ ARRAY ; RANGE <@ RANGE
-      ? WhereOperators<AttributeType>[typeof Op.overlap]
-      // ELEMENT <@ RANGE
-      : AllowAnyAll<OperatorValues<Rangable<AttributeType>>>;
+  [Op.contained]?: AttributeType extends any[]
+    ? // ARRAY <@ ARRAY ; RANGE <@ RANGE
+      WhereOperators<AttributeType>[typeof Op.overlap]
+    : // ELEMENT <@ RANGE
+      AllowAnyAll<OperatorValues<Rangable<AttributeType>>>;
 
   /**
    * Strings starts with value.
@@ -478,9 +502,9 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/14/functions-range.html
    */
-  [Op.strictLeft]?:
-    | AttributeType extends Range<infer RangeType> ? Rangable<RangeType> : never
-    | DynamicValues<AttributeType>;
+  [Op.strictLeft]?: AttributeType extends Range<infer RangeType>
+    ? Rangable<RangeType>
+    : never | DynamicValues<AttributeType>;
 
   /**
    * PG only
@@ -560,8 +584,7 @@ export interface WhereOperators<AttributeType = any> {
    *
    * https://www.postgresql.org/docs/current/functions-json.html
    */
-  [Op.anyKeyExists]?: string[]
-    | DynamicValues<string[]>;
+  [Op.anyKeyExists]?: string[] | DynamicValues<string[]>;
 
   /**
    * PG only
@@ -618,7 +641,12 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable<any>
  *
  * You can also eagerly load all associations using `{ include: { all: true } }` *(not recommended outside of debugging)*
  */
-export type Includeable = ModelStatic | Association | IncludeOptions | { all: true, nested?: true } | string;
+export type Includeable =
+  | ModelStatic
+  | Association
+  | IncludeOptions
+  | { all: true; nested?: true }
+  | string;
 
 /**
  * Complex include options
@@ -729,7 +757,11 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
   subQuery?: boolean;
 }
 
-type OrderItemAssociation = Association | ModelStatic<Model> | { model: ModelStatic<Model>, as: string } | string;
+type OrderItemAssociation =
+  | Association
+  | ModelStatic<Model>
+  | { model: ModelStatic<Model>; as: string }
+  | string;
 type OrderItemColumn = string | Col | Fn | Literal;
 export type OrderItem =
   | string
@@ -743,8 +775,21 @@ export type OrderItem =
   | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
   | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string];
+  | [
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemColumn,
+    ]
+  | [
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemAssociation,
+      OrderItemColumn,
+      string,
+    ];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -759,13 +804,13 @@ export type ProjectionAlias = readonly [
 export type FindAttributeOptions<TAttributes = any> =
   | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
   | {
-    exclude: Array<Extract<keyof TAttributes, string>>,
-    include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>,
-  }
+      exclude: Array<Extract<keyof TAttributes, string>>;
+      include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+    }
   | {
-    exclude?: Array<Extract<keyof TAttributes, string>>,
-    include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>,
-  };
+      exclude?: Array<Extract<keyof TAttributes, string>>;
+      include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+    };
 
 export interface IndexHint {
   type: IndexHints;
@@ -792,14 +837,13 @@ export interface MaxExecutionTimeHintable {
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends
-  QueryOptions,
-  Filterable<TAttributes>,
-  Projectable<TAttributes>,
-  Paranoid,
-  IndexHintable,
-  SearchPathable,
-  MaxExecutionTimeHintable {
+  extends QueryOptions,
+    Filterable<TAttributes>,
+    Projectable<TAttributes>,
+    Paranoid,
+    IndexHintable,
+    SearchPathable,
+    MaxExecutionTimeHintable {
   /**
    * A list of associations to eagerly load using a left join (a single association is also supported).
    *
@@ -873,10 +917,7 @@ export interface FindOptions<TAttributes = any>
    * Postgres also supports transaction.LOCK.KEY_SHARE, transaction.LOCK.NO_KEY_UPDATE and specific model
    * locks with joins. See {@link Lock}.
    */
-  lock?:
-    | Lock
-    | { level: Lock, of: ModelStatic<Model> }
-    | boolean;
+  lock?: Lock | { level: Lock; of: ModelStatic<Model> } | boolean;
 
   /**
    * Skip locked rows. Only supported in Postgres.
@@ -925,21 +966,22 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
-export interface FindByPkOptions<M extends Model> extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+export interface FindByPkOptions<M extends Model>
+  extends Omit<FindOptions<Attributes<M>>, 'where'> {}
 
-export interface NonNullFindByPkOptions<M extends Model> extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
+export interface NonNullFindByPkOptions<M extends Model>
+  extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
 /**
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends
-  Logging,
-  Transactionable,
-  Filterable<TAttributes>,
-  Projectable<TAttributes>,
-  Paranoid,
-  Poolable,
-  MaxExecutionTimeHintable {
+  extends Logging,
+    Transactionable,
+    Filterable<TAttributes>,
+    Projectable<TAttributes>,
+    Paranoid,
+    Poolable,
+    MaxExecutionTimeHintable {
   /**
    * Include options. See `find` for details
    */
@@ -969,7 +1011,9 @@ export interface CountOptions<TAttributes = any>
  */
 export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>;
 
-export interface FindAndCountOptions<TAttributes = any> extends CountOptions<TAttributes>, FindOptions<TAttributes> { }
+export interface FindAndCountOptions<TAttributes = any>
+  extends CountOptions<TAttributes>,
+    FindOptions<TAttributes> {}
 
 export interface GroupedCountResultItem {
   [key: string]: unknown; // projected attributes
@@ -1011,7 +1055,12 @@ export interface Silent {
  * Options for Model.create method
  */
 export interface CreateOptions<TAttributes = any>
-  extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
+  extends BuildOptions,
+    Logging,
+    Silent,
+    Transactionable,
+    Hookable,
+    SearchPathable {
   /**
    * If set, only columns matching those in fields will be saved
    */
@@ -1036,7 +1085,6 @@ export interface CreateOptions<TAttributes = any>
 }
 
 export interface Hookable {
-
   /**
    * If `false` the applicable hooks will not be called.
    * The default value depends on the context.
@@ -1050,7 +1098,8 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>, CreateOptions<TAttributes> {
+  extends FindOptions<TAttributes>,
+    CreateOptions<TAttributes> {
   /**
    * Default values to use if building a new instance
    */
@@ -1061,7 +1110,8 @@ export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TA
  * Options for Model.findOrBuild method
  */
 export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>, BuildOptions {
+  extends FindOptions<TAttributes>,
+    BuildOptions {
   /**
    * Default values to use if building a new instance
    */
@@ -1071,7 +1121,11 @@ export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAt
 /**
  * Options for Model.upsert method
  */
-export interface UpsertOptions<TAttributes = any> extends Logging, Transactionable, SearchPathable, Hookable {
+export interface UpsertOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    SearchPathable,
+    Hookable {
   /**
    * The fields to insert / update. Defaults to all fields.
    *
@@ -1107,7 +1161,11 @@ export interface UpsertOptions<TAttributes = any> extends Logging, Transactionab
 /**
  * Options for Model.bulkCreate method
  */
-export interface BulkCreateOptions<TAttributes = any> extends Logging, Transactionable, Hookable, SearchPathable {
+export interface BulkCreateOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    Hookable,
+    SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -1162,7 +1220,7 @@ export interface BulkCreateOptions<TAttributes = any> extends Logging, Transacti
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
-   conflictAttributes?: Array<keyof TAttributes>;
+  conflictAttributes?: Array<keyof TAttributes>;
 }
 
 /**
@@ -1188,7 +1246,11 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
 /**
  * Options accepted by {@link Model.destroy}.
  */
-export interface DestroyOptions<TAttributes = any> extends Logging, Transactionable, Hookable, Filterable<TAttributes> {
+export interface DestroyOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    Hookable,
+    Filterable<TAttributes> {
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
    * after destroy hooks on each row
@@ -1213,8 +1275,11 @@ export interface DestroyOptions<TAttributes = any> extends Logging, Transactiona
 /**
  * Options for Model.restore
  */
-export interface RestoreOptions<TAttributes = any> extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
-
+export interface RestoreOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    Filterable<TAttributes>,
+    Hookable {
   /**
    * If set to true, restore will find all records within the where parameter and will execute before / after
    * bulkRestore hooks on each row
@@ -1230,7 +1295,11 @@ export interface RestoreOptions<TAttributes = any> extends Logging, Transactiona
 /**
  * Options used for Model.update
  */
-export interface UpdateOptions<TAttributes = any> extends Logging, Transactionable, Paranoid, Hookable {
+export interface UpdateOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    Paranoid,
+    Hookable {
   /**
    * Options to describe the scope of the search.
    */
@@ -1298,7 +1367,9 @@ export type UpdateValues<M extends Model> = {
  * Options used for Model.aggregate
  */
 export interface AggregateOptions<T extends DataType | unknown, TAttributes = any>
-  extends QueryOptions, Filterable<TAttributes>, Paranoid {
+  extends QueryOptions,
+    Filterable<TAttributes>,
+    Paranoid {
   /**
    * The type of the result. If attribute being aggregated is a defined in the Model,
    * the default will be the type of that attribute, otherwise defaults to a plain JavaScript `number`.
@@ -1317,8 +1388,11 @@ export interface AggregateOptions<T extends DataType | unknown, TAttributes = an
  * Options used for Instance.increment method
  */
 export interface IncrementDecrementOptions<TAttributes = any>
-  extends Logging, Transactionable, Silent, SearchPathable, Filterable<TAttributes> {
-
+  extends Logging,
+    Transactionable,
+    Silent,
+    SearchPathable,
+    Filterable<TAttributes> {
   /**
    * Return the affected rows (only for postgres)
    */
@@ -1328,7 +1402,8 @@ export interface IncrementDecrementOptions<TAttributes = any>
 /**
  * Options used for Instance.increment method
  */
-export interface IncrementDecrementOptionsWithBy<TAttributes = any> extends IncrementDecrementOptions<TAttributes> {
+export interface IncrementDecrementOptionsWithBy<TAttributes = any>
+  extends IncrementDecrementOptions<TAttributes> {
   /**
    * The number to increment by
    *
@@ -1340,7 +1415,7 @@ export interface IncrementDecrementOptionsWithBy<TAttributes = any> extends Incr
 /**
  * Options used for Instance.restore method
  */
-export interface InstanceRestoreOptions extends Logging, Transactionable { }
+export interface InstanceRestoreOptions extends Logging, Transactionable {}
 
 /**
  * Options used for Instance.destroy method
@@ -1355,8 +1430,10 @@ export interface InstanceDestroyOptions extends Logging, Transactionable, Hookab
 /**
  * Options used for Instance.update method
  */
-export interface InstanceUpdateOptions<TAttributes = any> extends
-  SaveOptions<TAttributes>, SetOptions, Filterable<TAttributes> { }
+export interface InstanceUpdateOptions<TAttributes = any>
+  extends SaveOptions<TAttributes>,
+    SetOptions,
+    Filterable<TAttributes> {}
 
 /**
  * Options used for Instance.set method
@@ -1376,7 +1453,12 @@ export interface SetOptions {
 /**
  * Options used for Instance.save method
  */
-export interface SaveOptions<TAttributes = any> extends Logging, Transactionable, Silent, Hookable, SearchPathable {
+export interface SaveOptions<TAttributes = any>
+  extends Logging,
+    Transactionable,
+    Silent,
+    Hookable,
+    SearchPathable {
   /**
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
@@ -1423,7 +1505,7 @@ export interface ColumnValidateOptions {
     | string
     | ReadonlyArray<string | RegExp>
     | RegExp
-    | { msg: string, args: string | ReadonlyArray<string | RegExp> | RegExp };
+    | { msg: string; args: string | ReadonlyArray<string | RegExp> | RegExp };
 
   /**
    * - `{ not: ['[a-z]','i'] }` will not allow letters
@@ -1432,7 +1514,7 @@ export interface ColumnValidateOptions {
     | string
     | ReadonlyArray<string | RegExp>
     | RegExp
-    | { msg: string, args: string | ReadonlyArray<string | RegExp> | RegExp };
+    | { msg: string; args: string | ReadonlyArray<string | RegExp> | RegExp };
 
   /**
    * checks for email format (foo@bar.com)
@@ -1529,62 +1611,62 @@ export interface ColumnValidateOptions {
   /**
    * check the value is not one of these
    */
-  notIn?: ReadonlyArray<readonly any[]> | { msg: string, args: ReadonlyArray<readonly any[]> };
+  notIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * check the value is one of these
    */
-  isIn?: ReadonlyArray<readonly any[]> | { msg: string, args: ReadonlyArray<readonly any[]> };
+  isIn?: ReadonlyArray<readonly any[]> | { msg: string; args: ReadonlyArray<readonly any[]> };
 
   /**
    * don't allow specific substrings
    */
-  notContains?: readonly string[] | string | { msg: string, args: readonly string[] | string };
+  notContains?: readonly string[] | string | { msg: string; args: readonly string[] | string };
 
   /**
    * only allow values with length between 2 and 10
    */
-  len?: readonly [number, number] | { msg: string, args: readonly [number, number] };
+  len?: readonly [number, number] | { msg: string; args: readonly [number, number] };
 
   /**
    * only allow uuids
    */
-  isUUID?: number | { msg: string, args: number };
+  isUUID?: number | { msg: string; args: number };
 
   /**
    * only allow date strings
    */
-  isDate?: boolean | { msg: string, args: boolean };
+  isDate?: boolean | { msg: string; args: boolean };
 
   /**
    * only allow date strings after a specific date
    */
-  isAfter?: string | { msg: string, args: string };
+  isAfter?: string | { msg: string; args: string };
 
   /**
    * only allow date strings before a specific date
    */
-  isBefore?: string | { msg: string, args: string };
+  isBefore?: string | { msg: string; args: string };
 
   /**
    * only allow values
    */
-  max?: number | { msg: string, args: readonly [number] };
+  max?: number | { msg: string; args: readonly [number] };
 
   /**
    * only allow values >= 23
    */
-  min?: number | { msg: string, args: readonly [number] };
+  min?: number | { msg: string; args: readonly [number] };
 
   /**
    * only allow arrays
    */
-  isArray?: boolean | { msg: string, args: boolean };
+  isArray?: boolean | { msg: string; args: boolean };
 
   /**
    * check for valid credit card numbers
    */
-  isCreditCard?: boolean | { msg: string, args: boolean };
+  isCreditCard?: boolean | { msg: string; args: boolean };
 
   // TODO: Enforce 'rest' indexes to have type `(value: unknown) => boolean`
   // Blocked by: https://github.com/microsoft/TypeScript/issues/7765
@@ -1616,7 +1698,9 @@ export interface ModelScopeOptions<TAttributes = any> {
   /**
    * Name of the scope and it's query
    */
-  [scopeName: string]: FindOptions<TAttributes> | ((...args: readonly any[]) => FindOptions<TAttributes>);
+  [scopeName: string]:
+    | FindOptions<TAttributes>
+    | ((...args: readonly any[]) => FindOptions<TAttributes>);
 }
 
 /**
@@ -1635,7 +1719,7 @@ export interface AttributeReferencesOptions {
    */
   table?: TableName;
 
-    /**
+  /**
    * The column on the target model that this foreign key references
    */
   key?: string;
@@ -1648,7 +1732,8 @@ export interface AttributeReferencesOptions {
   deferrable?: Deferrable;
 }
 
-export interface NormalizedAttributeReferencesOptions extends Omit<AttributeReferencesOptions, 'model'> {
+export interface NormalizedAttributeReferencesOptions
+  extends Omit<AttributeReferencesOptions, 'model'> {
   /**
    * The name of the table to reference (the sql name).
    */
@@ -1701,7 +1786,7 @@ export interface AttributeOptions<M extends Model = Model> {
    * composite unique index. If multiple columns have the same string, they will be part of the same unique
    * index
    */
-  unique?: AllowArray<boolean | string | { name: string, msg?: string }> | undefined;
+  unique?: AllowArray<boolean | string | { name: string; msg?: string }> | undefined;
 
   /**
    * If true, an index will be created for this column.
@@ -1788,13 +1873,16 @@ export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
   attribute?: Omit<IndexField, 'name'>;
 }
 
-export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<Omit<
-  StrictRequiredBy<AttributeOptions<M>, 'columnName'>,
-  | 'type'
-  // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
-  | 'index' | 'unique'
->> {
-
+export interface NormalizedAttributeOptions<M extends Model = Model>
+  extends Readonly<
+    Omit<
+      StrictRequiredBy<AttributeOptions<M>, 'columnName'>,
+      | 'type'
+      // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
+      | 'index'
+      | 'unique'
+    >
+  > {
   /**
    * @deprecated use {@link NormalizedAttributeOptions.attributeName} instead.
    */
@@ -2009,24 +2097,28 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * @see https://sequelize.org/docs/v7/other-topics/hooks/
    */
-  hooks?: {
-    [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<
-      | ModelHooks<M, Attributes<M>>[Key]
-      | { name: string | symbol, callback: ModelHooks<M, Attributes<M>>[Key] }
-    >
-  } | undefined;
+  hooks?:
+    | {
+        [Key in keyof ModelHooks<M, Attributes<M>>]?: AllowArray<
+          | ModelHooks<M, Attributes<M>>[Key]
+          | { name: string | symbol; callback: ModelHooks<M, Attributes<M>>[Key] }
+        >;
+      }
+    | undefined;
 
   /**
    * An object of model wide validations. Validations have access to all model values via `this`. If the
    * validator function takes an argument, it is assumed to be async, and is called with a callback that
    * accepts an optional error.
    */
-  validate?: {
-    /**
-     * Custom validation functions run on all instances of the model.
-     */
-    [name: string]: (value: unknown) => boolean,
-  } | undefined;
+  validate?:
+    | {
+        /**
+         * Custom validation functions run on all instances of the model.
+         */
+        [name: string]: (value: unknown) => boolean;
+      }
+    | undefined;
 
   /**
    * Enable optimistic locking.
@@ -2051,9 +2143,13 @@ export interface InitOptions<M extends Model = Model> extends ModelOptions<M> {
 }
 
 export type BuiltModelName = Required<ModelNameOptions>;
-export type BuiltModelOptions<M extends Model = Model> =
-  & Omit<StrictRequiredBy<InitOptions<M>, 'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'>, 'name'>
-  & { name: BuiltModelName };
+export type BuiltModelOptions<M extends Model = Model> = Omit<
+  StrictRequiredBy<
+    InitOptions<M>,
+    'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'
+  >,
+  'name'
+> & { name: BuiltModelName };
 
 /**
  * AddScope Options for Model.addScope
@@ -2091,8 +2187,10 @@ export interface ModelGetOptions {
 /**
  * A Model represents a table in the database. Instances of this class represent a database row.
  */
-export abstract class Model<TModelAttributes extends {} = any, TCreationAttributes extends {} = TModelAttributes>
-  extends ModelTypeScript {
+export abstract class Model<
+  TModelAttributes extends {} = any,
+  TCreationAttributes extends {} = TModelAttributes,
+> extends ModelTypeScript {
   /**
    * A dummy variable that doesn't exist on the real object. This exists so
    * Typescript can infer the type of the attributes in static functions. Don't
@@ -2130,8 +2228,10 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   /**
    * Returns the attributes of the model
    */
-  static getAttributes<M extends Model>(this: ModelStatic<M>): {
-    readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions
+  static getAttributes<M extends Model>(
+    this: ModelStatic<M>,
+  ): {
+    readonly [Key in keyof Attributes<M>]: NormalizedAttributeOptions;
   };
 
   /**
@@ -2156,7 +2256,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static getAssociations<S extends Model, T extends Model>(
     this: ModelStatic<S>,
-    target: ModelStatic<T>
+    target: ModelStatic<T>,
   ): Array<Association<S, T>>;
 
   /**
@@ -2167,7 +2267,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static getAssociationWithModel<S extends Model, T extends Model>(
     this: ModelStatic<S>,
     target: ModelStatic<T>,
-    alias: string
+    alias: string,
   ): Association<S, T>;
 
   /**
@@ -2187,9 +2287,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * @param newAttributes
    */
-  static mergeAttributesDefault(
-    newAttributes: { [key: string]: AttributeOptions }
-  ): NormalizedAttributeOptions;
+  static mergeAttributesDefault(newAttributes: {
+    [key: string]: AttributeOptions;
+  }): NormalizedAttributeOptions;
 
   /**
    * Creates this table in the database, if it does not already exist.
@@ -2231,15 +2331,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static schema<M extends Model>(
     this: ModelStatic<M>,
     schema: Nullish<string>,
-    options?: { schemaDelimiter?: string } | string
+    options?: { schemaDelimiter?: string } | string,
   ): ModelStatic<M>;
-
-  /**
-   * Get the table name of the model, including the schema.
-   * The method will return The name as a string if the model has no schema,
-   * or an object with `tableName`, `schema` and `delimiter` properties.
-   */
-  static getTableName(): TableNameWithSchema;
 
   /**
    * Creates a copy of this model, with one or more scopes applied.
@@ -2308,10 +2401,8 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static addScope<M extends Model>(
     this: ModelStatic<M>,
     name: string,
-    scope:
-      | FindOptions<Attributes<M>>
-      | ((...args: readonly any[]) => FindOptions<Attributes<M>>),
-    options?: AddScopeOptions
+    scope: FindOptions<Attributes<M>> | ((...args: readonly any[]) => FindOptions<Attributes<M>>),
+    options?: AddScopeOptions,
   ): void;
 
   /**
@@ -2354,22 +2445,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true, rejectOnEmpty?: false }
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
   ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true }
+    options: NonNullFindByPkOptions<M> & { raw: true },
   ): Promise<R>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: unknown,
-    options: NonNullFindByPkOptions<M>
+    options: NonNullFindByPkOptions<M>,
   ): Promise<M>;
   static findByPk<M extends Model>(
     this: ModelStatic<M>,
     identifier: unknown,
-    options?: FindByPkOptions<M>
+    options?: FindByPkOptions<M>,
   ): Promise<M | null>;
 
   /**
@@ -2380,19 +2471,19 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findOne<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    options: FindOptions<Attributes<M>> & { raw: true, rejectOnEmpty?: false }
+    options: FindOptions<Attributes<M>> & { raw: true; rejectOnEmpty?: false },
   ): Promise<R | null>;
   static findOne<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<Attributes<M>> & { raw: true }
+    options: NonNullFindOptions<Attributes<M>> & { raw: true },
   ): Promise<R>;
   static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options: NonNullFindOptions<Attributes<M>>
+    options: NonNullFindOptions<Attributes<M>>,
   ): Promise<M>;
   static findOne<M extends Model>(
     this: ModelStatic<M>,
-    options?: FindOptions<Attributes<M>>
+    options?: FindOptions<Attributes<M>>,
   ): Promise<M | null>;
 
   /**
@@ -2408,7 +2499,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     attribute: keyof Attributes<M> | '*',
     aggregateFunction: string,
-    options?: AggregateOptions<T, Attributes<M>>
+    options?: AggregateOptions<T, Attributes<M>>,
   ): Promise<T>;
 
   /**
@@ -2418,7 +2509,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static count<M extends Model>(
     this: ModelStatic<M>,
-    options: CountWithOptions<Attributes<M>>
+    options: CountWithOptions<Attributes<M>>,
   ): Promise<GroupedCountResultItem[]>;
 
   /**
@@ -2430,7 +2521,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static count<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<CountOptions<Attributes<M>>, 'group'>
+    options?: Omit<CountOptions<Attributes<M>>, 'group'>,
   ): Promise<number>;
 
   /**
@@ -2475,12 +2566,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>
-  ): Promise<{ rows: M[], count: number }>;
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+  ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>
-  ): Promise<{ rows: M[], count: GroupedCountResultItem[] }>;
+    options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>,
+  ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
 
   /**
    * Finds the maximum value of field
@@ -2488,7 +2579,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static max<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
-    options?: AggregateOptions<T, Attributes<M>>
+    options?: AggregateOptions<T, Attributes<M>>,
   ): Promise<T>;
 
   /**
@@ -2497,7 +2588,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static min<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
-    options?: AggregateOptions<T, Attributes<M>>
+    options?: AggregateOptions<T, Attributes<M>>,
   ): Promise<T>;
 
   /**
@@ -2506,7 +2597,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static sum<T extends DataType | unknown, M extends Model>(
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
-    options?: AggregateOptions<T, Attributes<M>>
+    options?: AggregateOptions<T, Attributes<M>>,
   ): Promise<number>;
 
   /**
@@ -2519,7 +2610,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static build<M extends Model>(
     this: ModelStatic<M>,
     record?: CreationAttributes<M>,
-    options?: BuildOptions
+    options?: BuildOptions,
   ): M;
 
   /**
@@ -2531,7 +2622,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static bulkBuild<M extends Model>(
     this: ModelStatic<M>,
     records: ReadonlyArray<CreationAttributes<M>>,
-    options?: BuildOptions
+    options?: BuildOptions,
   ): M[];
 
   /**
@@ -2546,8 +2637,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   >(
     this: ModelStatic<M>,
     record?: CreationAttributes<M>,
-    options?: O
-    // eslint-disable-next-line @typescript-eslint/no-invalid-void-type -- false positive
+    options?: O,
   ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
   /**
@@ -2558,10 +2648,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findOrBuild<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrBuildOptions<
-      Attributes<M>,
-      CreationAttributes<M>
-    >
+    options: FindOrBuildOptions<Attributes<M>, CreationAttributes<M>>,
   ): Promise<[entity: M, built: boolean]>;
 
   /**
@@ -2580,7 +2667,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findOrCreate<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
   ): Promise<[entity: M, created: boolean]>;
 
   /**
@@ -2592,7 +2679,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static findCreateFind<M extends Model>(
     this: ModelStatic<M>,
-    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>
+    options: FindOrCreateOptions<Attributes<M>, CreationAttributes<M>>,
   ): Promise<[entity: M, created: boolean]>;
 
   /**
@@ -2620,7 +2707,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static upsert<M extends Model>(
     this: ModelStatic<M>,
     values: CreationAttributes<M>,
-    options?: UpsertOptions<Attributes<M>>
+    options?: UpsertOptions<Attributes<M>>,
   ): Promise<[entity: M, created: boolean | null]>;
 
   /**
@@ -2641,7 +2728,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static bulkCreate<M extends Model>(
     this: ModelStatic<M>,
     records: ReadonlyArray<CreationAttributes<M>>,
-    options?: BulkCreateOptions<Attributes<M>>
+    options?: BulkCreateOptions<Attributes<M>>,
   ): Promise<M[]>;
 
   /**
@@ -2649,10 +2736,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * __Danger__: This will completely empty your table!
    */
-  static truncate<M extends Model>(
-    this: ModelStatic<M>,
-    options?: TruncateOptions
-  ): Promise<void>;
+  static truncate<M extends Model>(this: ModelStatic<M>, options?: TruncateOptions): Promise<void>;
 
   /**
    * Deletes multiple instances, or set their deletedAt timestamp to the current time if `paranoid` is enabled.
@@ -2661,7 +2745,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static destroy<M extends Model>(
     this: ModelStatic<M>,
-    options?: DestroyOptions<Attributes<M>>
+    options?: DestroyOptions<Attributes<M>>,
   ): Promise<number>;
 
   /**
@@ -2672,7 +2756,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   static restore<M extends Model>(
     this: ModelStatic<M>,
-    options?: RestoreOptions<Attributes<M>>
+    options?: RestoreOptions<Attributes<M>>,
   ): Promise<void>;
 
   /**
@@ -2685,13 +2769,14 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static update<M extends Model>(
     this: ModelStatic<M>,
     values: UpdateValues<M>,
-    options: Omit<UpdateOptions<Attributes<M>>, 'returning'>
-      & { returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false> }
+    options: Omit<UpdateOptions<Attributes<M>>, 'returning'> & {
+      returning: Exclude<UpdateOptions<Attributes<M>>['returning'], undefined | false>;
+    },
   ): Promise<[affectedCount: number, affectedRows: M[]]>;
   static update<M extends Model>(
     this: ModelStatic<M>,
     values: UpdateValues<M>,
-    options: UpdateOptions<Attributes<M>>
+    options: UpdateOptions<Attributes<M>>,
   ): Promise<[affectedCount: number]>;
 
   /**
@@ -2731,12 +2816,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>,
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static increment<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
-    options: IncrementDecrementOptions<Attributes<M>>
+    options: IncrementDecrementOptions<Attributes<M>>,
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
@@ -2755,12 +2840,12 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: AllowReadonlyArray<keyof Attributes<M>>,
-    options: IncrementDecrementOptionsWithBy<Attributes<M>>
+    options: IncrementDecrementOptionsWithBy<Attributes<M>>,
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
   static decrement<M extends Model>(
     this: ModelStatic<M>,
     fields: { [key in keyof Attributes<M>]?: number },
-    options: IncrementDecrementOptions<Attributes<M>>
+    options: IncrementDecrementOptions<Attributes<M>>,
   ): Promise<[affectedRows: M[], affectedCount?: number]>;
 
   /**
@@ -2783,7 +2868,11 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     T extends Model,
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
-  >(this: ModelStatic<S>, target: ModelStatic<T>, options?: HasOneOptions<SKey, TKey>): HasOneAssociation<S, T, SKey, TKey>;
+  >(
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options?: HasOneOptions<SKey, TKey>,
+  ): HasOneAssociation<S, T, SKey, TKey>;
 
   /**
    * Creates an association between this (the source) and the provided target.
@@ -2850,7 +2939,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    *
    * // Join model with additional attributes
    * const UserProjects = sequelize.define('UserProjects', {
-   *   started: Sequelize.BOOLEAN
+   *   started: DataTypes.BOOLEAN
    * })
    * User.belongsToMany(Project, { through: UserProjects })
    * ```
@@ -2866,7 +2955,9 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     SKey extends AttributeNames<S>,
     TKey extends AttributeNames<T>,
   >(
-    this: ModelStatic<S>, target: ModelStatic<T>, options: BelongsToManyOptions<SKey, TKey, ThroughModel>
+    this: ModelStatic<S>,
+    target: ModelStatic<T>,
+    options: BelongsToManyOptions<SKey, TKey, ThroughModel>,
   ): BelongsToManyAssociation<S, T, ThroughModel, SKey, TKey>;
 
   /**
@@ -2947,13 +3038,21 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    * entire object as changed.
    */
   // TODO: 'key' accepts nested paths for JSON values (json.property)
-  set<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
+  set<K extends keyof TModelAttributes>(
+    key: K,
+    value: TModelAttributes[K],
+    options?: SetOptions,
+  ): this;
   set(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
   /**
    * Alias for {@link Model.set}.
    */
-  setAttributes<K extends keyof TModelAttributes>(key: K, value: TModelAttributes[K], options?: SetOptions): this;
+  setAttributes<K extends keyof TModelAttributes>(
+    key: K,
+    value: TModelAttributes[K],
+    options?: SetOptions,
+  ): this;
   setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): this;
 
   /**
@@ -3018,13 +3117,13 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   update<K extends keyof TModelAttributes>(
     attributeName: K,
     value: TModelAttributes[K] | Col | Fn | Literal,
-    options?: InstanceUpdateOptions<TModelAttributes>
+    options?: InstanceUpdateOptions<TModelAttributes>,
   ): Promise<this>;
   update(
     attributes: {
       [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
     },
-    options?: InstanceUpdateOptions<TModelAttributes>
+    options?: InstanceUpdateOptions<TModelAttributes>,
   ): Promise<this>;
 
   /**
@@ -3063,7 +3162,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   increment<K extends keyof TModelAttributes>(
     fields: K | readonly K[] | Partial<TModelAttributes>,
-    options?: IncrementDecrementOptionsWithBy<TModelAttributes>
+    options?: IncrementDecrementOptionsWithBy<TModelAttributes>,
   ): Promise<this>;
 
   /**
@@ -3088,7 +3187,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
    */
   decrement<K extends keyof TModelAttributes>(
     fields: K | readonly K[] | Partial<TModelAttributes>,
-    options?: IncrementDecrementOptionsWithBy<TModelAttributes>
+    options?: IncrementDecrementOptionsWithBy<TModelAttributes>,
   ): Promise<this>;
 
   /**
@@ -3120,7 +3219,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
 export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new(): M };
+export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new (): M };
 
 /**
  * Type will be true is T is branded with Brand, false otherwise
@@ -3131,12 +3230,15 @@ export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model
 // - So if we want to check if T is branded, we remove the brand, and check if they list of keys is still the same.
 // we exclude Null & Undefined so "field: Brand<value> | null" is still detected as branded
 // this is important because "Brand<value | null>" are transformed into "Brand<value> | null" to not break null & undefined
-type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omit<NonNullable<T>, Brand>
+type IsBranded<T, Brand extends symbol> = keyof NonNullable<T> extends keyof Omit<
+  NonNullable<T>,
+  Brand
+>
   ? false
   : true;
 
 type BrandedKeysOf<T, Brand extends symbol> = {
-  [P in keyof T]-?: IsBranded<T[P], Brand> extends true ? P : never
+  [P in keyof T]-?: IsBranded<T[P], Brand> extends true ? P : never;
 }[keyof T];
 
 /**
@@ -3157,8 +3259,7 @@ export type NonAttribute<T> =
   // we don't brand null & undefined as they can't have properties.
   // This means `NonAttribute<null>` will not work, but who makes an attribute that only accepts null?
   // Note that `NonAttribute<string | null>` does work!
-  T extends null | undefined ? T
-  : (T & { [NonAttributeBrand]?: true });
+  T extends null | undefined ? T : T & { [NonAttributeBrand]?: true };
 
 /**
  * Dummy Symbol used as branding by {@link ForeignKey}.
@@ -3178,15 +3279,14 @@ export type ForeignKey<T> =
   // we don't brand null & undefined as they can't have properties.
   // This means `ForeignKey<null>` will not work, but who makes an attribute that only accepts null?
   // Note that `ForeignKey<string | null>` does work!
-  T extends null | undefined ? T
-  : (T & { [ForeignKeyBrand]?: true });
+  T extends null | undefined ? T : T & { [ForeignKeyBrand]?: true };
 
 /**
  * Option bag for {@link InferAttributes}.
  *
  * - omit: properties to not treat as Attributes.
  */
-type InferAttributesOptions<Excluded > = { omit?: Excluded };
+type InferAttributesOptions<Excluded> = { omit?: Excluded };
 
 /**
  * Utility type to extract Attributes of a given Model class.
@@ -3242,8 +3342,8 @@ type InferAttributesOptions<Excluded > = { omit?: Excluded };
 export type InferAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never },
-  > = {
-  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key]
+> = {
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: M[Key];
 };
 
 /**
@@ -3280,8 +3380,7 @@ export type CreationOptional<T> =
   // we don't brand null & undefined as they can't have properties.
   // This means `CreationOptional<null>` will not work, but who makes an attribute that only accepts null?
   // Note that `CreationOptional<string | null>` does work!
-  T extends null | undefined ? T
-  : (T & { [CreationAttributeBrand]?: true });
+  T extends null | undefined ? T : T & { [CreationAttributeBrand]?: true };
 
 /**
  * Utility type to extract Creation Attributes of a given Model class.
@@ -3304,10 +3403,12 @@ export type InferCreationAttributes<
   M extends Model,
   Options extends InferAttributesOptions<keyof M | never | ''> = { omit: never },
 > = {
-  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]:
-    IsBranded<M[Key], typeof CreationAttributeBrand> extends true
-      ? (M[Key] | undefined)
-      : M[Key]
+  [Key in keyof M as InternalInferAttributeKeysFromFields<M, Key, Options>]: IsBranded<
+    M[Key],
+    typeof CreationAttributeBrand
+  > extends true
+    ? M[Key] | undefined
+    : M[Key];
 };
 
 /**
@@ -3320,16 +3421,26 @@ export type InferCreationAttributes<
  * - inherited from {@link Model}
  * - Excluded manually using the omit option of {@link InferAttributesOptions}
  */
-type InternalInferAttributeKeysFromFields<M extends Model, Key extends keyof M, Options extends InferAttributesOptions<keyof M | never | ''>> =
+type InternalInferAttributeKeysFromFields<
+  M extends Model,
+  Key extends keyof M,
+  Options extends InferAttributesOptions<keyof M | never | ''>,
+> =
   // fields inherited from Model are all excluded
-  Key extends keyof Model ? never
-  // functions are always excluded
-  : M[Key] extends AnyFunction ? never
-  // fields branded with NonAttribute are excluded
-  : IsBranded<M[Key], typeof NonAttributeBrand> extends true ? never
-  // check 'omit' option is provided & exclude those listed in it
-  : Options['omit'] extends string ? (Key extends Options['omit'] ? never : Key)
-  : Key;
+  Key extends keyof Model
+    ? never
+    : // functions are always excluded
+      M[Key] extends AnyFunction
+      ? never
+      : // fields branded with NonAttribute are excluded
+        IsBranded<M[Key], typeof NonAttributeBrand> extends true
+        ? never
+        : // check 'omit' option is provided & exclude those listed in it
+          Options['omit'] extends string
+          ? Key extends Options['omit']
+            ? never
+            : Key
+          : Key;
 
 // in v7, we should be able to drop InferCreationAttributes and InferAttributes,
 //  resolving this confusion.

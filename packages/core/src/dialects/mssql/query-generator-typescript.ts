@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
@@ -5,12 +6,16 @@ import { buildJsonPath } from '../../utils/json.js';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type {
+  EscapeOptions,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
@@ -22,10 +27,12 @@ import type {
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
-import { MsSqlQueryGeneratorInternal } from './query-generator-internal.js';
 import type { MssqlDialect } from './index.js';
+import { MsSqlQueryGeneratorInternal } from './query-generator-internal.js';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate']);
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
+  'collate',
+]);
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
@@ -34,7 +41,10 @@ const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptio
 export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: MsSqlQueryGeneratorInternal;
 
-  constructor(dialect: MssqlDialect, internals: MsSqlQueryGeneratorInternal = new MsSqlQueryGeneratorInternal(dialect)) {
+  constructor(
+    dialect: MssqlDialect,
+    internals: MsSqlQueryGeneratorInternal = new MsSqlQueryGeneratorInternal(dialect),
+  ) {
     super(dialect, internals);
 
     this.#internals = internals;
@@ -126,7 +136,10 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
       options?.schema
         ? `AND s.name = ${this.escape(options.schema)}`
-        : `AND s.name NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND s.name NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
   }
@@ -141,11 +154,15 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (beforeTable.schema !== afterTable.schema) {
       if (!options?.changeSchema) {
-        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+        throw new Error(
+          'To move a table between schemas, you must set `options.changeSchema` to true.',
+        );
       }
 
       if (beforeTable.tableName !== afterTable.tableName) {
-        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+        throw new Error(
+          `Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`,
+        );
       }
 
       return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema!)} TRANSFER ${this.quoteTable(beforeTableName)}`;
@@ -221,8 +238,12 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `) c ON t.object_id = c.constraintTableId`,
       `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
       options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
-      options?.constraintName ? `AND c.constraintName = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.constraintType = ${this.escape(this.#getConstraintType(options.constraintType))}` : '',
+      options?.constraintName
+        ? `AND c.constraintName = ${this.escape(options.constraintName)}`
+        : '',
+      options?.constraintType
+        ? `AND c.constraintType = ${this.escape(this.#getConstraintType(options.constraintType))}`
+        : '',
       `ORDER BY c.constraintName, c.column_id`,
     ]);
   }
@@ -280,9 +301,27 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+  createSavepointQuery(savepointName: string): string {
+    return `SAVE TRANSACTION ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  rollbackSavepointQuery(savepointName: string): string {
+    return `ROLLBACK TRANSACTION ${this.quoteIdentifier(savepointName)}`;
+  }
+
+  generateTransactionId(): string {
+    return randomBytes(10).toString('hex');
+  }
+
+  jsonPathExtractionQuery(
+    sqlExpression: string,
+    path: ReadonlyArray<number | string>,
+    unquote: boolean,
+  ): string {
     if (!unquote) {
-      throw new Error(`JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`);
+      throw new Error(
+        `JSON Paths are not supported in ${this.dialect.name} without unquoting the JSON value.`,
+      );
     }
 
     return `JSON_VALUE(${sqlExpression}, ${this.escape(buildJsonPath(path))})`;

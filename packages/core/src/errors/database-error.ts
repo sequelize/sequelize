@@ -19,9 +19,7 @@ export interface DatabaseErrorSubclassOptions {
 /**
  * A base class for all database related errors.
  */
-export class DatabaseError
-  extends BaseError
-  implements DatabaseErrorParent, CommonErrorProperties {
+export class DatabaseError extends BaseError implements DatabaseErrorParent, CommonErrorProperties {
   sql: string;
   parameters: object;
 

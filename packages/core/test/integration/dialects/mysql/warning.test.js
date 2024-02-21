@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
 
         await sequelize.sync({ force: true });
         await sequelize.authenticate();
-        await sequelize.query('SET SESSION sql_mode=\'\';');
+        await sequelize.query("SET SESSION sql_mode='';");
 
         await Model.create({
           name: 'very-long-long-name',

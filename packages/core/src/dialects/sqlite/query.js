@@ -60,9 +60,9 @@ export class SqliteQuery extends AbstractQuery {
 
         // handle bulkCreate AI primary key
         if (
-          metaData.constructor.name === 'Statement'
-          && modelDefinition?.autoIncrementAttributeName
-          && modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          metaData.constructor.name === 'Statement' &&
+          modelDefinition?.autoIncrementAttributeName &&
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = metaData[this.getInsertIdField()] - metaData.changes + 1;
           result = [];
@@ -119,11 +119,13 @@ export class SqliteQuery extends AbstractQuery {
         };
 
         if (result[_result.name].type === 'TINYINT(1)') {
-          result[_result.name].defaultValue = { 0: false, 1: true }[result[_result.name].defaultValue];
+          result[_result.name].defaultValue = { 0: false, 1: true }[
+            result[_result.name].defaultValue
+          ];
         }
 
         if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll('\'', '');
+          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll("'", '');
         }
       }
 
@@ -162,11 +164,6 @@ export class SqliteQuery extends AbstractQuery {
     const columnTypes = {};
 
     const executeSql = async () => {
-      // TODO: remove this check. A query could start with a comment:
-      if (sql.startsWith('-- ')) {
-        return;
-      }
-
       if (!parameters) {
         parameters = [];
       }
@@ -185,7 +182,6 @@ export class SqliteQuery extends AbstractQuery {
 
       let response;
       try {
-
         if (method === 'run') {
           response = await this.#runSeries(conn, sql, parameters);
         } else {
@@ -210,21 +206,25 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       // If we already have the metadata for the table, there's no need to ask for it again
-      tableNames = tableNames.filter(tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master');
+      tableNames = tableNames.filter(
+        tableName => !(tableName in columnTypes) && tableName !== 'sqlite_master',
+      );
 
       if (tableNames.length === 0) {
         return executeSql();
       }
 
-      await Promise.all(tableNames.map(async tableName => {
-        tableName = tableName.replaceAll('`', '');
-        columnTypes[tableName] = {};
+      await Promise.all(
+        tableNames.map(async tableName => {
+          tableName = tableName.replaceAll('`', '');
+          columnTypes[tableName] = {};
 
-        const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
-        for (const result of results) {
-          columnTypes[tableName][result.name] = result.type;
-        }
-      }));
+          const { results } = await this.#allSeries(conn, `PRAGMA table_info(\`${tableName}\`)`);
+          for (const result of results) {
+            columnTypes[tableName][result.name] = result.type;
+          }
+        }),
+      );
     }
 
     return executeSql();
@@ -267,7 +267,6 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   formatError(err) {
-
     switch (err.code) {
       case 'SQLITE_CONSTRAINT_UNIQUE':
       case 'SQLITE_CONSTRAINT_PRIMARYKEY':
@@ -287,7 +286,6 @@ export class SqliteQuery extends AbstractQuery {
         if (match !== null && match.length >= 2) {
           fields = match[1].split(', ');
         } else {
-
           // Sqlite post 2.2 behavior - Error: SQLITE_CONSTRAINT: UNIQUE constraint failed: table.x, table.y
           match = err.message.match(/UNIQUE constraint failed: (.*)/);
           if (match !== null && match.length >= 2) {
@@ -299,14 +297,16 @@ export class SqliteQuery extends AbstractQuery {
         let message = 'Validation error';
 
         for (const field of fields) {
-          errors.push(new sequelizeErrors.ValidationErrorItem(
-            this.getUniqueConstraintErrorMessage(field),
-            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
-            field,
-            this.instance && this.instance[field],
-            this.instance,
-            'not_unique',
-          ));
+          errors.push(
+            new sequelizeErrors.ValidationErrorItem(
+              this.getUniqueConstraintErrorMessage(field),
+              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+              field,
+              this.instance && this.instance[field],
+              this.instance,
+              'not_unique',
+            ),
+          );
         }
 
         if (this.model) {
@@ -331,26 +331,35 @@ export class SqliteQuery extends AbstractQuery {
 
   async handleShowIndexesQuery(data) {
     // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
-    return Promise.all(data.reverse().map(async item => {
-      item.fields = [];
-      item.primary = false;
-      item.unique = Boolean(item.unique);
-      item.constraintName = item.name;
-      const columns = await this.run(`PRAGMA INDEX_INFO(\`${item.name}\`)`);
-      for (const column of columns) {
-        item.fields[column.seqno] = {
-          attribute: column.name,
-          length: undefined,
-          order: undefined,
-        };
-      }
+    return Promise.all(
+      data.reverse().map(async item => {
+        item.fields = [];
+        item.primary = false;
+        item.unique = Boolean(item.unique);
+        item.constraintName = item.name;
+        const columns = await this.run(`PRAGMA INDEX_INFO(\`${item.name}\`)`);
+        for (const column of columns) {
+          item.fields[column.seqno] = {
+            attribute: column.name,
+            length: undefined,
+            order: undefined,
+          };
+        }
 
-      return item;
-    }));
+        return item;
+      }),
+    );
   }
 
   getDatabaseMethod() {
-    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery() || this.isBulkUpdateQuery() || this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) || this.isDeleteQuery()) {
+    if (
+      this.isInsertQuery() ||
+      this.isUpdateQuery() ||
+      this.isUpsertQuery() ||
+      this.isBulkUpdateQuery() ||
+      this.sql.toLowerCase().includes('CREATE TEMPORARY TABLE'.toLowerCase()) ||
+      this.isDeleteQuery()
+    ) {
       return 'run';
     }
 

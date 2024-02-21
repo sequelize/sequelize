@@ -24,8 +24,9 @@ export class SqliteDialect extends AbstractDialect {
       where: true,
       functionBased: true,
     },
-    transactionOptions: {
-      type: true,
+    startTransaction: {
+      useBegin: true,
+      transactionType: true,
     },
     constraints: {
       foreignKeyChecksDisableable: true,
