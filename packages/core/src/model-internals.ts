@@ -183,7 +183,7 @@ export function conformIndex(index: IndexOptions): IndexOptions {
   return index;
 }
 
-export function searchInclude(model: ModelStatic, values: Object) {
+export function getDefaultCreateInclude(model: ModelStatic, values: Object) {
   const associations = [];
   const associationNames = Object.keys(model.associations);
   if (values) {

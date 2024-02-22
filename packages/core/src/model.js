@@ -26,7 +26,13 @@ import {
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import { Op } from './operators';
-import { _validateIncludedElements, combineIncludes, setTransactionFromCls, throwInvalidInclude } from './model-internals';
+import {
+  _validateIncludedElements,
+  combineIncludes,
+  getDefaultCreateInclude,
+  setTransactionFromCls,
+  throwInvalidInclude,
+} from './model-internals';
 import { QueryTypes } from './query-types';
 import { getComplexKeys } from './utils/where.js';
 
@@ -1749,10 +1755,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
-    const association = this._searchInclude(values);
-    if (association.length > 0 && !options.include) {
-      options.include = association;
-    }
+    options.include ??= getDefaultCreateInclude(this, values);
 
     return await this.build(values, {
       isNewRecord: true,
@@ -1761,18 +1764,6 @@ ${associationOwner._getAssociationDebugList()}`);
       raw: options.raw,
       silent: options.silent,
     }).save(options);
-  }
-
-  static _searchInclude(values) {
-    const association = [];
-    const associationKeys = Object.keys(this.associations);
-    for (const value in values) {
-      if (associationKeys.includes(value)) {
-        association.push({ association: value });
-      }
-    }
-
-    return association;
   }
 
   /**
