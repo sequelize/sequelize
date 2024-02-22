@@ -19,11 +19,15 @@ import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
 import { isModelStatic, extractModelDefinition } from '../../utils/model-utils';
 import { OracleQueryGeneratorInternal } from './query-generator-internal';
 import type { OracleDialect } from './index.js';
+import { IsolationLevel } from '../../transaction';
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: OracleQueryGeneratorInternal;
 
-  constructor(dialect: OracleDialect, internals: OracleQueryGeneratorInternal = new OracleQueryGeneratorInternal(dialect)) {
+  constructor(
+    dialect: OracleDialect,
+    internals: OracleQueryGeneratorInternal = new OracleQueryGeneratorInternal(dialect)
+  ) {
     super(dialect, internals);
 
     this.#internals = internals;
@@ -275,4 +279,35 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
     return queryTmpl;
   }
+
+  setIsolationLevelQuery(isolationLevel : IsolationLevel): string {
+
+    switch (isolationLevel) {
+      case IsolationLevel.READ_UNCOMMITTED:
+      case IsolationLevel.READ_COMMITTED:
+        return 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED';
+      case IsolationLevel.REPEATABLE_READ:
+      case IsolationLevel.SERIALIZABLE:
+        // Serializable mode is equal to Snapshot Isolation (SI) 
+        // defined in ANSI std.
+        return 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE';
+      default:
+        throw new Error(`The ${isolationLevel} isolation level is not supported by ${this.dialect.name}.`);
+    }
+  }
+  
+  commitTransactionQuery() {
+    return 'COMMIT TRANSACTION';
+  }
+
+  rollbackTransactionQuery(): string {
+    if (this.dialect.supports.connectionTransactionMethods) {
+      throw new Error(
+        `rollbackTransactionQuery is not supported by the ${this.dialect.name} dialect.`,
+      );
+    }
+
+    return 'ROLLBACK TRANSACTION';
+  }
+
 }

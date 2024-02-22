@@ -61,6 +61,9 @@ export class OracleDialect extends AbstractDialect {
     delete: {
       modelWithLimit: true,
     },
+    startTransaction: {
+      useBegin: true,
+    },
     upserts: true,
     bulkDefault: true,
     topLevelOrderByRequired: true,

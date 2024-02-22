@@ -465,7 +465,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     ) {
       // TODO: use bind parameter
       suffix = ` LIMIT ${this.escape(options.limit, options)} `;
-    } else if (this.dialect.name === 'oracle') {
+    } else if (
+      this.dialect.supports['LIMIT ON UPDATE'] &&
+      options.limit &&
+      this.dialect.name === 'oracle'
+      ) {
         // This cannot be set in where because rownum will be quoted
         if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
           // If we have a where clause, we add AND

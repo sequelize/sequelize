@@ -1048,6 +1048,7 @@ Caused by: "undefined" cannot be escaped`),
           mssql: 'NOT ([booleanAttr] = 1)',
           ibmi: 'NOT ("booleanAttr" = 1)',
           sqlite: 'NOT (`booleanAttr` = 1)',
+          oracle: 'NOT ("booleanAttr" = 1)',
         },
       );
 

@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
       )
       .and.have.deep.property('sql')
-      .that.equal('SELECT 1+1');
+      .that.equal(`SELECT 1+1 ${fromQuery()}`);
   });
 
   it('does not allow queries immediately after commit call', async function () {

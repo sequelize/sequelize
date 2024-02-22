@@ -340,7 +340,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow dirty reads with isolation level "READ UNCOMMITTED".
-    if (!['postgres', 'sqlite'].includes(dialectName)) {
+    if (!['postgres', 'sqlite', 'oracle'].includes(dialectName)) {
       it('should allow dirty read with isolation level "READ UNCOMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -427,7 +427,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow phantom reads with isolation level "REPEATABLE READ" as they use snapshot rather than locking.
-    if (['mariadb', 'mysql', 'postgres'].includes(dialectName)) {
+    if (['mariadb', 'mysql', 'postgres', 'oracle'].includes(dialectName)) {
       it('should not read newly committed rows when using the REPEATABLE READ isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
@@ -479,7 +479,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-    if (!['postgres'].includes(dialectName)) {
+    if (!['postgres', 'oracle'].includes(dialectName)) {
       it('should block updates after reading a row using SERIALIZABLE', async () => {
         const { User, transactionSequelize } = vars;
         const transactionSpy = sinon.spy();

@@ -981,10 +981,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
               'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
               `WHERE ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id] ORDER BY [postaliasname].[id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) AS [User];`,
-              oracle: `SELECT "User".* FROM ` +
+            oracle:
+              `SELECT "User".* FROM ` +
               `(SELECT "User"."name", "User"."age", "User"."id", "postaliasname"."id" AS "postaliasname.id", "postaliasname"."title" AS "postaliasname.title" FROM "User" "User" ` +
-             `INNER JOIN "Post" "postaliasname" ON "User"."id" = "postaliasname"."user_id" `
-             `WHERE (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) "User";`,
+              `INNER JOIN "Post" "postaliasname" ON "User"."id" = "postaliasname"."user_id" ` +
+              `WHERE (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) "User";`,
           },
         );
       });

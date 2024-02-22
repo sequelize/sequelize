@@ -375,6 +375,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         expect(constraints[0]).to.deep.equal({
           ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
+          ...['oracle'].includes(dialect) && { columnNames: ['age'] },
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
           ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },

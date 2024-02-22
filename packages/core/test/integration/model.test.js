@@ -1240,7 +1240,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               switch (dialectName) {
                 case 'postgres':
                 case 'db2':
-                case 'ibmi': {
+                case 'ibmi':
+                case 'oracle': {
                   expect(user).to.include('UPDATE "special"."UserSpecials"');
 
                   break;

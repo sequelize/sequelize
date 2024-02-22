@@ -946,48 +946,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
   }
 
-  setIsolationLevelQuery(value, options) {
-    if (options.parent) {
-      return;
-    }
-
-    switch (value) {
-      case Transaction.IsolationLevel.READ_UNCOMMITTED:
-      case Transaction.IsolationLevel.READ_COMMITTED:
-        return 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;';
-      case Transaction.IsolationLevel.REPEATABLE_READ:
-        // Serializable mode is equal to Snapshot Isolation (SI) 
-        // defined in ANSI std.
-        return 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;';
-      default:
-        throw new Error(`isolation level "${value}" is not supported`);
-    }
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
-    }
-
-    return 'BEGIN TRANSACTION';
-  }
-
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
-
-    return 'COMMIT TRANSACTION';
-  }
-
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transaction.name)}`;
-    }
-
-    return 'ROLLBACK TRANSACTION';
-  }
-
   // handleSequelizeMethod(smth, tableName, factory, options, prepend) {
   //   let str;
   //   if (smth instanceof Utils.Json) {

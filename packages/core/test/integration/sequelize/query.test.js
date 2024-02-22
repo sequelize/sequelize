@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         },
       });
 
-      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq(
+      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ${qq(
         'createdAt',
       )}, ${qq(
         'updatedAt',
