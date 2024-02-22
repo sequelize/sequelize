@@ -1,7 +1,7 @@
 import NodeUtil from 'node:util';
 import type { IndexOptions } from './dialects/abstract/query-interface.js';
 import { EagerLoadingError } from './errors';
-import type { Transactionable } from './model';
+import type { ModelStatic, Transactionable } from './model';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
 // TODO: strictly type this file during the TS migration of model.js
@@ -181,4 +181,18 @@ export function conformIndex(index: IndexOptions): IndexOptions {
   }
 
   return index;
+}
+
+export function searchInclude(model: ModelStatic, values: Object) {
+  const associations = [];
+  const associationNames = Object.keys(model.associations);
+  if (values) {
+    for (const value of Object.keys(values)) {
+      if (associationNames.includes(value)) {
+        associations.push(value);
+      }
+    }
+  }
+
+  return associations;
 }
