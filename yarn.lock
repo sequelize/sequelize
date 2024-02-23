@@ -2289,13 +2289,13 @@ __metadata:
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.0.0"
     "@rushstack/eslint-patch": "npm:1.7.2"
-    "@types/node": "npm:20.11.19"
+    "@types/node": "npm:20.11.20"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
     eslint: "npm:8.56.0"
-    eslint-plugin-jsdoc: "npm:48.1.0"
+    eslint-plugin-jsdoc: "npm:48.2.0"
     eslint-plugin-mocha: "npm:10.3.0"
     fast-glob: "npm:3.3.2"
     husky: "npm:9.0.11"
@@ -3237,12 +3237,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.19":
-  version: 20.11.19
-  resolution: "@types/node@npm:20.11.19"
+"@types/node@npm:*, @types/node@npm:20.11.20":
+  version: 20.11.20
+  resolution: "@types/node@npm:20.11.20"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/f451ef0a1d78f29c57bad7b77e49ebec945f2a6d0d7a89851d7e185ee9fe7ad94d651c0dfbcb7858c9fa791310c8b40a881e2260f56bd3c1b7e7ae92723373ae
+  checksum: 10c0/8e8de211e6d54425c603388a9b5cc9c434101985d0a1c88aabbf65d10df2b1fccd71855c20e61ae8a75c7aea56cb0f64e722cf7914cff1247d0b62ce21996ac4
   languageName: node
   linkType: hard
 
@@ -5959,9 +5959,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:48.1.0":
-  version: 48.1.0
-  resolution: "eslint-plugin-jsdoc@npm:48.1.0"
+"eslint-plugin-jsdoc@npm:48.2.0":
+  version: 48.2.0
+  resolution: "eslint-plugin-jsdoc@npm:48.2.0"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.42.0"
     are-docs-informative: "npm:^0.0.2"
@@ -5974,7 +5974,7 @@ __metadata:
     spdx-expression-parse: "npm:^4.0.0"
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/e0fb3fb4479b6ee539b8c1b626de625ff5d24408f695fcbf648e214854fea9ea3e29b77f56b177bf38655e30a6c9a6eaaff93ef990f69c454c74e180747e39e5
+  checksum: 10c0/778f979ca40594269d531767ab29fb2a6c448425f8f732708ac5d3b9c61bbeb8504f1490a1057c7740f3e8f8a75d57ff50c766bc40fb1474f195e6f1aed30814
   languageName: node
   linkType: hard
 
