@@ -273,12 +273,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (attribute.references) {
       let schema;
 
-      if (options.schema) {
+      if (options?.schema) {
         schema = options.schema;
       } else if (
         (!attribute.references.table || typeof attribute.references.table === 'string') &&
-        options.table &&
-        options.table.schema
+        options?.table?.schema
       ) {
         schema = options.table.schema;
       }
@@ -287,7 +286,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
       let referencesKey;
 
-      if (!options.withoutForeignKeyConstraints) {
+      if (!options?.withoutForeignKeyConstraints) {
         if (attribute.references.key) {
           referencesKey = this.quoteIdentifiers(attribute.references.key);
         } else {
