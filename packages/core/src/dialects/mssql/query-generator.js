@@ -484,7 +484,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       return template;
     }
 
-    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+    template = attributeTypeToSql(attribute.type);
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';

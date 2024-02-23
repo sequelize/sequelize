@@ -1897,7 +1897,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
         const tmpColumns = returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+          return `${field} ${attributeTypeToSql(returnTypes[i])}`;
         });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;

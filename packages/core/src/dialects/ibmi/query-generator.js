@@ -393,7 +393,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      template = attributeTypeToSql(attribute.type);
     }
 
     if (attribute.allowNull === false) {

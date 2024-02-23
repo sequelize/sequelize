@@ -548,7 +548,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      template = attributeTypeToSql(attribute.type);
     }
 
     if (options && options.context === 'changeColumn' && attribute.type) {

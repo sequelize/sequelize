@@ -166,10 +166,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
