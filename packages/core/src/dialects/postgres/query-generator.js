@@ -224,19 +224,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let type;
     if (
       attribute.type instanceof DataTypes.ENUM ||
-      (attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM)
+      (attribute.type instanceof DataTypes.ARRAY &&
+        attribute.type.options.type instanceof DataTypes.ENUM)
     ) {
-      const enumType = attribute.type.type || attribute.type;
+      const enumType = attribute.type.options.type || attribute.type;
       const values = enumType.options.values;
 
-      if (Array.isArray(values) && values.length > 0) {
-        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
+      type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
 
-        if (attribute.type instanceof DataTypes.ARRAY) {
-          type += '[]';
-        }
-      } else {
-        throw new Error("Values for ENUM haven't been defined.");
+      if (attribute.type instanceof DataTypes.ARRAY) {
+        type += '[]';
       }
     }
 
