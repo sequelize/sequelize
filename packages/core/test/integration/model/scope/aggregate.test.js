@@ -87,24 +87,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to unscope', async function () {
-        await expect(this.ScopeMe.unscoped().aggregate('*', 'count')).to.eventually.equal(4);
+        await expect(this.ScopeMe.withoutScope().aggregate('*', 'count')).to.eventually.equal(4);
       });
 
       it('should be able to apply other scopes', async function () {
-        await expect(this.ScopeMe.scope('lowAccess').aggregate('*', 'count')).to.eventually.equal(
-          3,
-        );
+        await expect(
+          this.ScopeMe.withScope('lowAccess').aggregate('*', 'count'),
+        ).to.eventually.equal(3);
       });
 
       it('should be able to merge scopes with where', async function () {
         await expect(
-          this.ScopeMe.scope('lowAccess').aggregate('*', 'count', { where: { username: 'dan' } }),
+          this.ScopeMe.withScope('lowAccess').aggregate('*', 'count', {
+            where: { username: 'dan' },
+          }),
         ).to.eventually.equal(1);
       });
 
       it('should be able to use where on include', async function () {
         await expect(
-          this.ScopeMe.scope('withInclude').aggregate('ScopeMe.id', 'count', {
+          this.ScopeMe.withScope('withInclude').aggregate('ScopeMe.id', 'count', {
             plain: true,
             dataType: new DataTypes.INTEGER(),
             includeIgnoreAttributes: false,
@@ -131,7 +133,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.Hero.bulkCreate(records);
 
           await expect(
-            this.Hero.unscoped().aggregate('*', 'count', { schema: 'heroschema' }),
+            this.Hero.withoutScope().aggregate('*', 'count', { schema: 'heroschema' }),
           ).to.eventually.equal(2);
         });
       }

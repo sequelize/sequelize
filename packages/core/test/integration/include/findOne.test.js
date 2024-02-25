@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const User = this.sequelize.define('User', {
         id: {
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
           field: 'main_id',
           primaryKey: true,
         },

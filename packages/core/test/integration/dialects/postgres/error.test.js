@@ -32,7 +32,7 @@ if (dialect.startsWith('postgres')) {
         constraint: 'constraint_name',
         fields: { field1: 1, field2: [123, 321] },
         table: 'table_name',
-        parent: new Error('Test error'),
+        cause: new Error('Test error'),
       };
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 

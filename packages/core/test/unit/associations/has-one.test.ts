@@ -260,8 +260,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
-
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
@@ -290,8 +289,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
         expect(firstArg.association.constructor.name).to.equal('HasOne');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const afterAssociate = sinon.spy();

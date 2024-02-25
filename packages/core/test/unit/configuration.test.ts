@@ -3,10 +3,12 @@ import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import path from 'node:path';
-import { getSequelizeInstance, getTestDialect } from '../support';
+import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 describe('Sequelize constructor', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0027']);
+
   it('throws when no dialect is supplied', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test');

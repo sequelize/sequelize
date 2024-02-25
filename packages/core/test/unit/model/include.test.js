@@ -181,7 +181,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         this.User.hasMany(this.Project);
 
-        this.User.hasMany(this.Project.scope('this'), { as: 'thisProject' });
+        this.User.hasMany(this.Project.withScope('this'), { as: 'thisProject' });
       });
 
       it('adds the default scope to where', function () {
@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('adds the where from a scoped model', function () {
         const options = _validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('that'), as: 'projects' }],
+          include: [{ model: this.Project.withScope('that'), as: 'projects' }],
         });
 
         expect(options.include[0]).to.have.property('where').which.deep.equals({ that: false });
@@ -206,7 +206,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('adds the attributes from a scoped model', function () {
         const options = _validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('attr'), as: 'projects' }],
+          include: [{ model: this.Project.withScope('attr'), as: 'projects' }],
         });
 
         expect(options.include[0]).to.have.property('attributes').which.deep.equals(['baz']);
@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = _validateIncludedElements({
           model: this.User,
           include: [
-            { where: { active: false }, model: this.Project.scope('that'), as: 'projects' },
+            { where: { active: false }, model: this.Project.withScope('that'), as: 'projects' },
           ],
         });
 
@@ -237,7 +237,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('handles a scope with an aliased column (.field)', function () {
         const options = _validateIncludedElements({
           model: this.User,
-          include: [{ model: this.Project.scope('foobar'), as: 'projects' }],
+          include: [{ model: this.Project.withScope('foobar'), as: 'projects' }],
         });
 
         expect(options.include[0]).to.have.property('where').which.deep.equals({ bar: 42 });
