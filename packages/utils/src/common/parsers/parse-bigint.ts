@@ -11,9 +11,7 @@ const BASE10_INTEGER_REGEX =
 function parseBigIntInternal(value: string | number): bigint | null {
   if (isNumber(value)) {
     if (!Number.isSafeInteger(value)) {
-      throw new TypeError(
-        `Number ${value} cannot be represented as a bigint, as it is not a safe integer.`,
-      );
+      return null;
     }
 
     return BigInt(value);

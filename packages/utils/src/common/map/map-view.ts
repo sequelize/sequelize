@@ -1,6 +1,3 @@
-import type { InspectOptions } from 'node:util';
-import NodeUtil from 'node:util';
-import { pojo } from '../pojo.js';
 import type { ReadonlyMapLike } from '../types.js';
 
 export class MapView<K, V> implements ReadonlyMapLike<K, V> {
@@ -59,15 +56,11 @@ export class MapView<K, V> implements ReadonlyMapLike<K, V> {
     return this.#target.values();
   }
 
-  toJSON() {
-    return [...this.#target.entries()];
+  toMutableMap(): Map<K, V> {
+    return new Map(this.#target);
   }
 
-  [NodeUtil.inspect.custom](depth: number, options: InspectOptions): string {
-    const newOptions = Object.assign(pojo(), options, {
-      depth: options.depth == null ? null : options.depth - 1,
-    });
-
-    return NodeUtil.inspect(this.#target, newOptions).replace(/^Map/, 'MapView');
+  toJSON() {
+    return [...this.#target.entries()];
   }
 }
