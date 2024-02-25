@@ -57,13 +57,13 @@
   "devDependencies": {
     "@ephys/eslint-config-typescript": "20.0.0",
     "@rushstack/eslint-patch": "1.7.2",
-    "@types/node": "20.11.19",
+    "@types/node": "20.11.20",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
     "esbuild": "0.17.19",
-    "eslint": "8.56.0",
-    "eslint-plugin-jsdoc": "48.1.0",
+    "eslint": "8.57.0",
+    "eslint-plugin-jsdoc": "48.2.0",
     "eslint-plugin-mocha": "10.3.0",
     "fast-glob": "3.3.2",
     "husky": "9.0.11",
@@ -73,19 +73,22 @@
     "mocha": "10.3.0",
     "node-gyp": "10.0.1",
     "node-hook": "1.0.0",
-    "nx": "18.0.4",
+    "nx": "18.0.5",
     "prettier": "3.2.5",
     "prettier-plugin-organize-imports": "3.2.4",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
     "typedoc": "0.25.8",
     "typedoc-plugin-carbon-ads": "1.6.0",
-    "typedoc-plugin-mdn-links": "3.1.16",
+    "typedoc-plugin-mdn-links": "3.1.17",
     "typedoc-plugin-missing-exports": "2.2.0",
     "typescript": "5.3.3"
   },
   "packageManager": "yarn@4.1.0",
   "lint-staged": {
-    "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives"
+    "*": [
+      "eslint --fix --report-unused-disable-directives",
+      "prettier --write"
+    ]
   }
 }

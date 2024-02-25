@@ -48,7 +48,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     User.belongsToMany(Group, { as: 'MyGroups', through: 'GroupUser' });
     Group.belongsToMany(User, { as: 'MyUsers', through: 'GroupUser' });
 
-    expect(sequelize.model('GroupUser')).to.exist;
+    expect(sequelize.models.getOrThrow('GroupUser')).to.exist;
   });
 
   it('should not inherit scopes from parent to join table', () => {
@@ -74,7 +74,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     B.belongsToMany(A, { through: 'AB' });
 
-    const AB = sequelize.model('AB');
+    const AB = sequelize.models.getOrThrow('AB');
 
     expect(AB.options.defaultScope).to.deep.equal({});
     expect(AB.options.scopes).to.deep.equal({});
@@ -96,7 +96,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     B.belongsToMany(A, { through: 'AB' });
 
-    const AB = sequelize.model('AB');
+    const AB = sequelize.models.getOrThrow('AB');
 
     expect(AB.options.validate).to.deep.equal({});
   });
