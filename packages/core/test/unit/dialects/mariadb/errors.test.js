@@ -22,7 +22,7 @@ if (dialect === 'mariadb') {
       const parsedErr = queryProto.formatError(fakeErr);
 
       expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
-      expect(parsedErr.parent).to.equal(fakeErr);
+      expect(parsedErr.cause).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');
       expect(parsedErr.fields).to.be.an('array').to.deep.equal(['personId']);
@@ -40,7 +40,7 @@ if (dialect === 'mariadb') {
       const parsedErr = queryProto.formatError(fakeErr);
 
       expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
-      expect(parsedErr.parent).to.equal(fakeErr);
+      expect(parsedErr.cause).to.equal(fakeErr);
       expect(parsedErr.reltype).to.equal('parent');
       expect(parsedErr.table).to.equal('people');
       expect(parsedErr.fields).to.be.an('array').to.deep.equal(['personId']);
@@ -58,7 +58,7 @@ if (dialect === 'mariadb') {
       const parsedErr = queryProto.formatError(fakeErr);
 
       expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
-      expect(parsedErr.parent).to.equal(fakeErr);
+      expect(parsedErr.cause).to.equal(fakeErr);
       expect(parsedErr.fields.models_uniqueName2_unique).to.equal('unique name one\r');
     });
   });

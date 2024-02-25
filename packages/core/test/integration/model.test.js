@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { AggregateError, DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { AggregateError, DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -990,7 +990,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await Support.dropTestSchemas(this.sequelize);
         await this.sequelize.createSchema('schema_test');
         await this.sequelize.createSchema('special');
-        this.UserSpecialSync = await this.UserSpecial.schema('special').sync({ force: true });
+        this.UserSpecialSync = await this.UserSpecial.withSchema('special').sync({ force: true });
       });
 
       it('should be able to drop with schemas', async function () {
@@ -1021,7 +1021,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let test = 0;
 
         await UserPublic.sync({ force: true });
-        await UserPublic.schema('special').sync({ force: true });
+        await UserPublic.withSchema('special').sync({ force: true });
 
         let table = await this.sequelize.queryInterface.describeTable('Publics', {
           logging(sql) {
@@ -1167,7 +1167,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         );
 
-        const UserSpecial = await this.UserSpecialSync.schema('special').create(
+        const UserSpecial = await this.UserSpecialSync.withSchema('special').create(
           { age: 3 },
           {
             logging(UserSpecial) {
@@ -1255,7 +1255,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           age: DataTypes.INTEGER,
         });
         const User = await UserSpecialUnderscore.sync({ force: true });
-        const DblUser = await UserSpecialDblUnderscore.schema('hello', '__').sync({ force: true });
+        const DblUser = await UserSpecialDblUnderscore.withSchema({
+          schema: 'hello',
+          schemaDelimiter: '__',
+        }).sync({ force: true });
         await DblUser.create(
           { age: 3 },
           {
@@ -1724,7 +1727,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         status: {
           type: DataTypes.STRING,

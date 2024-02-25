@@ -35,7 +35,7 @@ describe('Model scope with associations', () => {
               include: [
                 {
                   model: sequelize.models.getOrThrow('company'),
-                  include: [sequelize.models.getOrThrow('project').scope('active')],
+                  include: [sequelize.models.getOrThrow('project').withScope('active')],
                 },
               ],
             };
@@ -190,7 +190,7 @@ describe('Model scope with associations', () => {
 
     it('should be able to include a scoped model', async function () {
       const obj = await this.Company.findAll({
-        include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }],
+        include: [{ model: this.ScopeMe.withScope('isTony'), as: 'users' }],
       });
 
       const company = await obj[0];
@@ -203,7 +203,7 @@ describe('Model scope with associations', () => {
     beforeEach(async function () {
       const [p, companies] = await Promise.all([
         this.Project.create(),
-        this.Company.unscoped().findAll(),
+        this.Company.withoutScope().findAll(),
       ]);
 
       await p.setCompanies(companies);
@@ -228,7 +228,7 @@ describe('Model scope with associations', () => {
       });
 
       it('belongsTo', async function () {
-        const user = await this.ScopeMe.unscoped().findOne({ where: { username: 'bob' } });
+        const user = await this.ScopeMe.withoutScope().findOne({ where: { username: 'bob' } });
         const company = await user.getCompany({ scope: false });
         expect(company).to.be.ok;
       });
@@ -260,7 +260,7 @@ describe('Model scope with associations', () => {
       });
 
       it('belongsTo', async function () {
-        const user = await this.ScopeMe.unscoped().findOne({ where: { username: 'bob' } });
+        const user = await this.ScopeMe.withoutScope().findOne({ where: { username: 'bob' } });
         const company = await user.getCompany();
         expect(company).not.to.be.ok;
       });
@@ -294,7 +294,7 @@ describe('Model scope with associations', () => {
       });
 
       it('belongsTo', async function () {
-        const user = await this.ScopeMe.unscoped().findOne({ where: { username: 'bob' } });
+        const user = await this.ScopeMe.withoutScope().findOne({ where: { username: 'bob' } });
         const company = await user.getCompany({ scope: 'notActive' });
         expect(company).to.be.ok;
       });
@@ -322,11 +322,13 @@ describe('Model scope with associations', () => {
     });
 
     it('should scope columns properly', async function () {
-      await expect(this.ScopeMe.scope('includeActiveProjects').findAll()).not.to.be.rejected;
+      await expect(this.ScopeMe.withScope('includeActiveProjects').findAll()).not.to.be.rejected;
     });
 
     it('should apply scope conditions', async function () {
-      const user = await this.ScopeMe.scope('includeActiveProjects').findOne({ where: { id: 1 } });
+      const user = await this.ScopeMe.withScope('includeActiveProjects').findOne({
+        where: { id: 1 },
+      });
       expect(user.company.projects).to.have.length(1);
     });
 
@@ -358,7 +360,7 @@ describe('Model scope with associations', () => {
         const [child, parent] = await Promise.all([Child.create(), Parent.create()]);
         await parent.setChild(child);
 
-        await Parent.scope('children', 'alsoChildren').findOne();
+        await Parent.withScope('children', 'alsoChildren').findOne();
       });
     });
 
@@ -385,7 +387,7 @@ describe('Model scope with associations', () => {
           Parent.create({ name: 'parent2' }).then(parent => parent.createChild({ name: 'child2' })),
         ]);
 
-        const parent = await Parent.scope('testScope1').findOne({
+        const parent = await Parent.withScope('testScope1').findOne({
           include: [
             {
               model: Child,
@@ -424,7 +426,7 @@ describe('Model scope with associations', () => {
 
       await this.sequelize.sync({ force: true });
       await Child.create({ secret: 'super secret' });
-      const user = await Child.scope('public').findOne();
+      const user = await Child.withScope('public').findOne();
       expect(user.dataValues).to.have.property('parentId');
       expect(user.dataValues).not.to.have.property('secret');
     });

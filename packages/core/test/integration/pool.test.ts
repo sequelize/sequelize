@@ -59,7 +59,6 @@ function assertNewConnection(newConnection: Connection, oldConnection: Connectio
 
     case 'mssql':
     case 'ibmi':
-      // Flaky test
       // @ts-expect-error -- dummyId not declared yet
       expect(newConnection.dummyId).to.not.be.ok;
       // @ts-expect-error -- dummyId not declared yet

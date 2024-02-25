@@ -28,7 +28,7 @@ export function bestGuessDataTypeOfVal(
         return new DataTypes.INTEGER().toDialectDataType(dialect);
       }
 
-      return new DataTypes.REAL().toDialectDataType(dialect);
+      return new DataTypes.FLOAT().toDialectDataType(dialect);
     }
 
     case 'boolean':

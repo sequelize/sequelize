@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -26,8 +26,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
@@ -139,12 +139,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         const Person = this.sequelize.define('Person', {
           id1: {
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV1,
+            defaultValue: sql.uuidV1,
             primaryKey: true,
           },
           id2: {
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV1,
+            defaultValue: sql.uuidV4,
             primaryKey: true,
           },
         });
