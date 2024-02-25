@@ -502,7 +502,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     // Blobs/texts cannot have a defaultValue
     if (
       attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;

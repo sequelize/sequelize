@@ -97,7 +97,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
           foreignKeys[attr] = match[2];
         } else {
-          if (options && options.uniqueKeys) {
+          if (options?.uniqueKeys) {
             for (const ukey in options.uniqueKeys) {
               if (
                 options.uniqueKeys[ukey].fields.includes(attr) &&
@@ -124,7 +124,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       })
       .join(', ');
 
-    if (options && options.uniqueKeys) {
+    if (options?.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
         if (!isString(indexName)) {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
@@ -551,7 +551,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       template = attributeTypeToSql(attribute.type);
     }
 
-    if (options && options.context === 'changeColumn' && attribute.type) {
+    if (options?.context === 'changeColumn' && attribute.type) {
       template = `DATA TYPE ${template}`;
     } else if (attribute.allowNull === false || attribute.primaryKey === true) {
       template += ' NOT NULL';
@@ -570,7 +570,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     // Blobs/texts cannot have a defaultValue
     if (
       attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { replacements: options?.replacements, type: attribute.type })}`;
@@ -588,7 +588,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+      if (options?.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = `${options.tableName}_${attrName}_fidx`;
         template += `, CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;

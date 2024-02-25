@@ -368,11 +368,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     const paramList = this._expandFunctionParamList(params);
-    const variableList =
-      options && options.variables ? this._expandFunctionVariableList(options.variables) : '';
+    const variableList = options?.variables
+      ? this._expandFunctionVariableList(options.variables)
+      : '';
     const expandedOptionsArray = this.expandOptions(optionsArray);
 
-    const statement = options && options.force ? 'CREATE OR REPLACE FUNCTION' : 'CREATE FUNCTION';
+    const statement = options?.force ? 'CREATE OR REPLACE FUNCTION' : 'CREATE FUNCTION';
 
     return `${statement} ${functionName}(${paramList}) RETURNS ${returnType} AS $func$ ${variableList} BEGIN ${body} END; $func$ language '${language}'${expandedOptionsArray};`;
   }

@@ -241,7 +241,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
       !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
@@ -268,7 +268,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     }
 
     if (attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+      if (options?.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
         const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
 
