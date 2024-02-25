@@ -30,6 +30,10 @@
   },
   "type": "commonjs",
   "version": "0.0.0-development",
+  "dependencies": {
+    "@types/lodash": "4.14.202",
+    "lodash": "4.17.21"
+  },
   "devDependencies": {
     "@types/chai": "4.3.12",
     "@types/mocha": "10.0.6",

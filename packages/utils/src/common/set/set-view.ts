@@ -2,7 +2,7 @@ import { find } from '../iterator-utils/find.js';
 import type { ReadonlySetLike } from '../types.js';
 
 export class SetView<V> implements ReadonlySetLike<V> {
-  #target: Set<V>;
+  readonly #target: Set<V>;
 
   /**
    * @returns the number of (unique) elements in Set.

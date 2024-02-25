@@ -47,7 +47,7 @@ export class HookHandler<HookConfig extends {}> {
         this.#listeners.deleteValue(hookName, listener);
       }
     } else {
-      const listeners = this.#listeners.getAll(hookName);
+      const listeners = this.#listeners.get(hookName);
       for (const listener of listeners) {
         if (listener.callback === listenerOrListenerName) {
           this.#listeners.deleteValue(hookName, listener);
@@ -64,7 +64,7 @@ export class HookHandler<HookConfig extends {}> {
     hookName: HookName,
     listenerName: string,
   ): { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] } | null {
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {
         return listener;
@@ -94,7 +94,7 @@ export class HookHandler<HookConfig extends {}> {
   ): void {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
       const out = listener.callback(...args);
@@ -119,7 +119,7 @@ export class HookHandler<HookConfig extends {}> {
   ): Promise<void> {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       /* eslint-disable no-await-in-loop */
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.

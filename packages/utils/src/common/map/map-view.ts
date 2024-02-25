@@ -1,7 +1,7 @@
 import type { ReadonlyMapLike } from '../types.js';
 
 export class MapView<K, V> implements ReadonlyMapLike<K, V> {
-  #target: Map<K, V>;
+  readonly #target: Map<K, V>;
 
   /**
    * @returns the number of elements in the Map.
