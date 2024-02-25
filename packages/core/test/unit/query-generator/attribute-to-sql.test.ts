@@ -313,7 +313,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         postgres: "INTEGER COMMENT '); DELETE YOLO INJECTIONS; -- ",
         mssql: "INTEGER NULL COMMENT N'''); DELETE YOLO INJECTIONS; -- '",
         'sqlite ibmi': 'INTEGER',
-        db2: `INTEGER COMMENT '''); DELETE YOLO INJECTIONS; -- '`,
+        'snowflake db2': `INTEGER COMMENT '''); DELETE YOLO INJECTIONS; -- '`,
       },
     );
   });
