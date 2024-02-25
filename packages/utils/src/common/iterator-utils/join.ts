@@ -1,4 +1,4 @@
-export function join<T>(iterable: Iterable<T>, glue: string): string {
+export function join(iterable: Iterable<string>, glue: string): string {
   const iterator = iterable[Symbol.iterator]();
   const first = iterator.next();
   if (first.done) {
