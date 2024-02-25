@@ -2,9 +2,10 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
+import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { attributeTypeToSql } from '../abstract/data-types-utils';
+import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -113,12 +114,19 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       );
     }
 
-    const attributes = {};
-    attributes[key] = dataType;
-    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
-    const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
+    dataType = {
+      ...dataType,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
 
-    const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
+    const sql = joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(table),
+      'ADD',
+      this.quoteIdentifier(key),
+      this.attributeToSQL(dataType, { context: 'addColumn' }),
+      ';',
+    ]);
 
     return this.replaceBooleanDefaults(sql);
   }
