@@ -2725,7 +2725,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       User.belongsToMany(Place, { through: 'user_places' });
       Place.belongsToMany(User, { through: 'user_places' });
 
-      const attributes = this.sequelize.model('user_places').getAttributes();
+      const attributes = this.sequelize.models.getOrThrow('user_places').getAttributes();
 
       expect(attributes.placeId.field).to.equal('placeId');
       expect(attributes.userId.field).to.equal('userId');
@@ -3514,8 +3514,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await Promise.all([user1.destroy(), task2.destroy()]);
 
       const [tu1, tu2] = await Promise.all([
-        this.sequelize.model('tasksusers').findAll({ where: { userId: user1.id } }),
-        this.sequelize.model('tasksusers').findAll({ where: { taskId: task2.id } }),
+        this.sequelize.models.getOrThrow('tasksusers').findAll({ where: { userId: user1.id } }),
+        this.sequelize.models.getOrThrow('tasksusers').findAll({ where: { taskId: task2.id } }),
         this.User.findOne({
           where: { username: 'Franz Joseph' },
           include: [
@@ -3585,8 +3585,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           task2.destroy(),
         ]);
 
-        const usertasks = await this.sequelize
-          .model('tasksusers')
+        const usertasks = await this.sequelize.models
+          .getOrThrow('tasksusers')
           .findAll({ where: { taskId: task2.id } });
         // This should not exist because deletes cascade
         expect(usertasks).to.have.length(0);
@@ -3600,7 +3600,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         inverse: { foreignKeyConstraints: false },
       });
 
-      const Through = this.sequelize.model('tasksusers');
+      const Through = this.sequelize.models.getOrThrow('tasksusers');
       expect(Through.getAttributes().taskId.references).to.eq(
         undefined,
         'Attribute taskId should not be a foreign key',
@@ -3624,8 +3624,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await Promise.all([user1.destroy(), task2.destroy()]);
 
       const [ut1, ut2] = await Promise.all([
-        this.sequelize.model('tasksusers').findAll({ where: { userId: user1.id } }),
-        this.sequelize.model('tasksusers').findAll({ where: { taskId: task2.id } }),
+        this.sequelize.models.getOrThrow('tasksusers').findAll({ where: { userId: user1.id } }),
+        this.sequelize.models.getOrThrow('tasksusers').findAll({ where: { taskId: task2.id } }),
       ]);
 
       expect(ut1).to.have.length(1);

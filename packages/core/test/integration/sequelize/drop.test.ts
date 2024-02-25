@@ -2,7 +2,7 @@ import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
 import { sequelize } from '../support';
 
-const dialect = sequelize.getDialect();
+const dialect = sequelize.dialect.name;
 
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
