@@ -2331,6 +2331,7 @@ __metadata:
     "@types/chai": "npm:4.3.12"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
+    concurrently: "npm:8.2.2"
     mocha: "npm:10.3.0"
   languageName: unknown
   linkType: soft

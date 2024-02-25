@@ -1,12 +1,14 @@
+import {
+  combinedIterator,
+  count,
+  every,
+  find,
+  isIterable,
+  join,
+  map,
+  some,
+} from '@sequelize/utils';
 import { expect } from 'chai';
-import { isIterable } from '../../predicates/is-iterable.js';
-import { combinedIterator } from '../combined-iterator.js';
-import { count } from '../count.js';
-import { every } from '../every.js';
-import { find } from '../find.js';
-import { join } from '../join.js';
-import { map } from '../map.js';
-import { some } from '../some.js';
 
 describe('combinedIterator', () => {
   it('chains iterables', () => {
