@@ -4,6 +4,7 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { removeNullishValuesFromHash } from '../../utils/format';
 import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
+import { attributeTypeToSql } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -11,7 +12,7 @@ import {
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import isObject from 'lodash/isObject';
+import isPlainObject from 'lodash/isPlainObject';
 
 const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
 
@@ -174,63 +175,66 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     return result;
   }
 
+  attributeToSQL(attribute, options) {
+    if (!isPlainObject(attribute)) {
+      attribute = {
+        type: attribute,
+      };
+    }
+
+    const attributeString = attributeTypeToSql(attribute.type);
+    let template = attributeString;
+
+    if (attribute.allowNull === false) {
+      template += ' NOT NULL';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      // TODO thoroughly check that DataTypes.NOW will properly
+      // get populated on all databases as DEFAULT value
+      // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+    }
+
+    if (attribute.unique === true) {
+      template += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      if (attribute.autoIncrement) {
+        template += ' AUTOINCREMENT';
+      }
+
+      template += ' PRIMARY KEY';
+    }
+
+    if (attribute.references) {
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+
+      if (attribute.references.key) {
+        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
+      } else {
+        template += ` (${this.quoteIdentifier('id')})`;
+      }
+
+      if (attribute.onDelete) {
+        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    return template;
+  }
+
   attributesToSQL(attributes, options) {
     const result = {};
-    for (const name in attributes) {
-      const attribute = attributes[name];
-      const columnName = attribute.field || attribute.columnName || name;
 
-      if (isObject(attribute)) {
-        let sql = attribute.type.toString();
-
-        if (attribute.allowNull === false) {
-          sql += ' NOT NULL';
-        }
-
-        if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-          // TODO thoroughly check that DataTypes.NOW will properly
-          // get populated on all databases as DEFAULT value
-          // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
-        }
-
-        if (attribute.unique === true) {
-          sql += ' UNIQUE';
-        }
-
-        if (attribute.primaryKey) {
-          sql += ' PRIMARY KEY';
-
-          if (attribute.autoIncrement) {
-            sql += ' AUTOINCREMENT';
-          }
-        }
-
-        if (attribute.references) {
-          const referencesTable = this.quoteTable(attribute.references.table);
-
-          let referencesKey;
-          if (attribute.references.key) {
-            referencesKey = this.quoteIdentifier(attribute.references.key);
-          } else {
-            referencesKey = this.quoteIdentifier('id');
-          }
-
-          sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
-
-          if (attribute.onDelete) {
-            sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-          }
-
-          if (attribute.onUpdate) {
-            sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-          }
-        }
-
-        result[columnName] = sql;
-      } else {
-        result[columnName] = attribute;
-      }
+    for (const key in attributes) {
+      const attribute = attributes[key];
+      result[attribute.field || key] = this.attributeToSQL(attribute, options);
     }
 
     return result;
