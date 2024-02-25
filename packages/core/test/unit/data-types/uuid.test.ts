@@ -2,6 +2,7 @@ import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import util from 'node:util';
 import { v1 as generateV1, v4 as generateV4 } from 'uuid';
+import { allowDeprecationsInSuite } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 describe('DataTypes.UUID', () => {
@@ -52,6 +53,8 @@ describe('DataTypes.UUID', () => {
 });
 
 describe('DataTypes.UUIDV1', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0026']);
+
   testDataTypeSql('UUIDV1', DataTypes.UUIDV1, {
     default: new Error('toSQL should not be called on DataTypes.UUIDV1'),
   });
@@ -78,6 +81,8 @@ describe('DataTypes.UUIDV1', () => {
 });
 
 describe('DataTypes.UUIDV4', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0026']);
+
   testDataTypeSql('UUIDV4', DataTypes.UUIDV4, {
     default: new Error('toSQL should not be called on DataTypes.UUIDV4'),
   });

@@ -7,7 +7,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
 const delay = require('delay');
 const assert = require('node:assert');
@@ -189,7 +189,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           type: DataTypes.UUID,
           primaryKey: true,
           allowNull: false,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         name: {
           type: DataTypes.STRING,
@@ -617,7 +617,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   // TODO: move to own suite
   describe('findCreateFind', () => {
     if (dialectName !== 'sqlite') {
-      it('[Flaky] should work with multiple concurrent calls', async function () {
+      it('should work with multiple concurrent calls', async function () {
         const [[instance1, created1], [instance2, created2], [instance3, created3]] =
           await Promise.all([
             this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
@@ -626,8 +626,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
 
         // All instances are the same
-        // Flaky test: sometimes the id is 2, not 1. Here whe just need to assert
-        // all the id1 === id2 === id3
         expect(instance1.id).to.equal(instance2.id);
         expect(instance2.id).to.equal(instance3.id);
 
@@ -664,16 +662,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         id1: {
           primaryKey: true,
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         id2: {
           primaryKey: true,
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         email: {
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
       });
 
@@ -1003,7 +1001,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         monkeyId: {
           type: DataTypes.UUID,
           primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
           allowNull: false,
         },
       });
