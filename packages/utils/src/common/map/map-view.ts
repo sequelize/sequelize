@@ -59,8 +59,4 @@ export class MapView<K, V> implements ReadonlyMapLike<K, V> {
   toMutableMap(): Map<K, V> {
     return new Map(this.#target);
   }
-
-  toJSON() {
-    return [...this.#target.entries()];
-  }
 }

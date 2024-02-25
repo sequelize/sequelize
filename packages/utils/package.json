@@ -6,6 +6,7 @@
   },
   "exports": {
     ".": {
+      "node": "./lib/common/index.node.js",
       "default": "./lib/common/index.js",
       "types": "./lib/common/index.d.ts"
     },
