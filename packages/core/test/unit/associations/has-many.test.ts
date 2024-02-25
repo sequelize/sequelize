@@ -346,7 +346,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {
@@ -380,8 +380,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
         expect(firstArg.association.constructor.name).to.equal('HasMany');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const { Task, Project } = getModels();

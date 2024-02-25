@@ -136,6 +136,7 @@ User.findOne({ include: [{ model: UserGroup }] });
 User.findOne({ include: [{ model: UserPost }] });
 
 User.scope(['custom2', { method: ['custom', 32] }]);
+User.withScope(['custom2', { method: ['custom', 32] }]);
 
 const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });
 instance.isSoftDeleted();
