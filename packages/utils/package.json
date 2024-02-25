@@ -28,5 +28,11 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development"
+  "version": "0.0.0-development",
+  "devDependencies": {
+    "@types/chai": "4.3.12",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "mocha": "10.3.0"
+  }
 }

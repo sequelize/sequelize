@@ -10,7 +10,7 @@
     "strict": true,
     "baseUrl": "./",
     "rootDir": "./src",
-    "types": ["node"],
+    "types": ["node", "mocha"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
