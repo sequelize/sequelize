@@ -292,7 +292,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       {
         default: `INTEGER COMMENT 'Foo'`,
         'postgres db2': 'INTEGER COMMENT Foo',
-        mssql: 'INTEGER NULL COMMENT Foo',
+        mssql: "INTEGER NULL COMMENT N'Foo'",
         'sqlite ibmi': 'INTEGER',
       },
     );
@@ -310,7 +310,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         default: `INTEGER COMMENT '\\'); DELETE YOLO INJECTIONS; -- '`,
         // Normally a context is given and this is only used for createTable where comments are quoted there so this is fine for now
         postgres: "INTEGER COMMENT '); DELETE YOLO INJECTIONS; -- ",
-        mssql: "INTEGER NULL COMMENT '\\'); DELETE YOLO INJECTIONS; -- '",
+        mssql: "INTEGER NULL COMMENT N'''); DELETE YOLO INJECTIONS; -- '",
         'sqlite ibmi': 'INTEGER',
       },
     );
@@ -327,7 +327,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       {
         default: `INTEGER COMMENT 'Foo'`,
         postgres: `INTEGER; COMMENT ON COLUMN "bar"."id" IS 'Foo'`,
-        mssql: 'INTEGER NULL COMMENT Foo',
+        mssql: "INTEGER NULL COMMENT N'Foo'",
         'sqlite ibmi': 'INTEGER',
         db2: 'INTEGER COMMENT Foo',
       },
