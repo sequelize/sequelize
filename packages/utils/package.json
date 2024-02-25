@@ -24,7 +24,7 @@
     "build": "tsc --project tsconfig.build.json",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha",
-    "test-exports": "../../dev/test-exports.mjs --check-outdated ./src",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
