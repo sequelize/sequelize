@@ -3,9 +3,14 @@ import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
+import { getDb2IbmiSelectFromFinalTable } from '../../utils/sql.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
+import type {
+  QueryWithBindParams,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import {
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
@@ -19,6 +24,7 @@ import type {
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 import type { Db2Dialect } from './index.js';
@@ -254,5 +260,25 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   generateTransactionId(): string {
     return randomBytes(10).toString('hex');
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    attrValueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    const updateQuery = super.updateQuery(tableOrModel, attrValueHash, {
+      ...options,
+      returning: false,
+    });
+
+    updateQuery.query = getDb2IbmiSelectFromFinalTable(
+      this.#internals,
+      tableOrModel,
+      updateQuery.query,
+      options,
+    );
+
+    return updateQuery;
   }
 }

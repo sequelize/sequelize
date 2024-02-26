@@ -2,10 +2,11 @@ import type { Writable } from 'type-fest';
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { Literal } from '../../expression-builders/literal';
-import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
+import type { Filterable, IndexHintable, ReferentialAction, SearchPathable } from '../../model';
 import type { TableHints } from '../../table-hints';
 import type { TransactionType } from '../../transaction';
 import type { Nullish } from '../../utils/types';
+import type { DataTypeClassOrInstance } from './data-types';
 import type { FormatWhereOptions, TableOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -191,4 +192,19 @@ export interface AddLimitOffsetOptions extends Writable<FormatWhereOptions, 'rep
   offset?: Nullish<number | BaseSqlExpression>;
 }
 
+export interface GetReturnFieldsOptions extends Writable<FormatWhereOptions, 'replacements'> {
+  hasTrigger?: boolean | undefined;
+  returning?: boolean | Array<string | BaseSqlExpression> | undefined;
+}
+
 export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}
+
+// keep UPDATE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface UpdateQueryOptions
+  extends AddLimitOffsetOptions,
+    Filterable,
+    GetReturnFieldsOptions,
+    SearchPathable {
+  columnTypes?: Record<string, DataTypeClassOrInstance>;
+  ignoreDuplicates?: boolean;
+}

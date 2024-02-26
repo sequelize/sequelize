@@ -103,6 +103,10 @@ export class PostgresDialect extends AbstractDialect {
     delete: {
       limit: false,
     },
+    update: {
+      limit: false,
+      returning: true,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;

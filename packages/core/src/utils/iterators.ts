@@ -75,3 +75,20 @@ export function join<T>(iterable: Iterable<T>, glue: string): string {
 
   return result;
 }
+
+/**
+ * Like {@link Array#filter}, but works with any iterable.
+ *
+ * @param iterable
+ * @param cb
+ */
+export function* filter<In>(
+  iterable: Iterable<In>,
+  cb: (item: In) => boolean,
+): Generator<In, void> {
+  for (const item of iterable) {
+    if (cb(item)) {
+      yield item;
+    }
+  }
+}

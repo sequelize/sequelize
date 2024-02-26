@@ -1341,13 +1341,10 @@ export interface UpdateOptions<TAttributes = any>
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * How many rows to update
-   *
-   * Only for mysql and mariadb,
-   * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
   limit?: Nullish<number | BaseSqlExpression>;
 
@@ -1355,6 +1352,13 @@ export interface UpdateOptions<TAttributes = any>
    * If true, the updatedAt timestamp will not be updated.
    */
   silent?: boolean;
+
+  /**
+   * Ignore duplicate values for primary keys?
+   *
+   * @default false
+   */
+  ignoreDuplicates?: boolean;
 }
 
 /**

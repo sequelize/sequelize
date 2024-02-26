@@ -47,8 +47,6 @@ export type DialectSupports = {
   DEFAULT: boolean;
   'DEFAULT VALUES': boolean;
   'VALUES ()': boolean;
-  // TODO: rename to `update.limit`
-  'LIMIT ON UPDATE': boolean;
   'ON DUPLICATE KEY': boolean;
   'ORDER NULLS': boolean;
   UNION: boolean;
@@ -263,6 +261,11 @@ export type DialectSupports = {
   delete: {
     limit: boolean;
   };
+  update: {
+    ignoreDuplicates: boolean;
+    limit: boolean;
+    returning: boolean;
+  };
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -278,7 +281,6 @@ export abstract class AbstractDialect {
     DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,
-    'LIMIT ON UPDATE': false,
     'ON DUPLICATE KEY': true,
     'ORDER NULLS': false,
     UNION: true,
@@ -456,6 +458,11 @@ export abstract class AbstractDialect {
     },
     delete: {
       limit: true,
+    },
+    update: {
+      ignoreDuplicates: false,
+      limit: true,
+      returning: false,
     },
   };
 

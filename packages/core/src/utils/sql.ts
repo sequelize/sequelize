@@ -1,10 +1,19 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
-import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import type { AbstractQueryGeneratorInternal } from '../dialects/abstract/query-generator-internal.js';
+import type {
+  EscapeOptions,
+  TableOrModel,
+} from '../dialects/abstract/query-generator-typescript.js';
 import type { AbstractQueryGenerator } from '../dialects/abstract/query-generator.js';
-import type { AddLimitOffsetOptions } from '../dialects/abstract/query-generator.types.js';
+import type {
+  AddLimitOffsetOptions,
+  GetReturnFieldsOptions,
+} from '../dialects/abstract/query-generator.types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { BindOrReplacements } from '../sequelize.js';
+import { joinSQLFragments } from './join-sql-fragments.js';
+import { extractModelDefinition } from './model-utils.js';
 
 type OnBind = (oldName: string) => string;
 
@@ -527,4 +536,43 @@ export function formatMySqlStyleLimitOffset(
   }
 
   return fragment;
+}
+
+/**
+ * Creates a function that can be used to collect bind parameters.
+ *
+ * @param bind A mutable object to which bind parameters will be added.
+ */
+export function createBindParamGenerator(
+  bind: Record<string, unknown>,
+): (value: unknown) => string {
+  let i = 0;
+
+  return (value: unknown): string => {
+    const bindName = `sequelize_${++i}`;
+
+    bind[bindName] = value;
+
+    return `$${bindName}`;
+  };
+}
+
+export function getDb2IbmiSelectFromFinalTable(
+  queryGeneratorInternal: AbstractQueryGeneratorInternal,
+  tableOrModel: TableOrModel,
+  query: string,
+  options?: GetReturnFieldsOptions,
+): string {
+  if (options) {
+    const fields = queryGeneratorInternal.formatReturnFields(
+      options,
+      extractModelDefinition(tableOrModel),
+    );
+
+    if (fields.length > 0) {
+      return joinSQLFragments(['SELECT', fields.join(', '), 'FROM FINAL TABLE', `(${query})`]);
+    }
+  }
+
+  return `SELECT COUNT(*) FROM FINAL TABLE (${query})`;
 }

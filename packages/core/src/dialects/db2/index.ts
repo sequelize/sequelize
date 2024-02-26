@@ -48,6 +48,9 @@ export class Db2Dialect extends AbstractDialect {
     startTransaction: {
       useBegin: true,
     },
+    update: {
+      returning: true,
+    },
   });
 
   readonly defaultVersion = '1.0.0';
