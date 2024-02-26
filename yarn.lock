@@ -2310,7 +2310,7 @@ __metadata:
     prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
-    typedoc: "npm:0.25.8"
+    typedoc: "npm:0.25.9"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.17"
     typedoc-plugin-missing-exports: "npm:2.2.0"
@@ -13496,9 +13496,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.25.8":
-  version: 0.25.8
-  resolution: "typedoc@npm:0.25.8"
+"typedoc@npm:0.25.9":
+  version: 0.25.9
+  resolution: "typedoc@npm:0.25.9"
   dependencies:
     lunr: "npm:^2.3.9"
     marked: "npm:^4.3.0"
@@ -13508,7 +13508,7 @@ __metadata:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x
   bin:
     typedoc: bin/typedoc
-  checksum: 10c0/f1adb64bd124a04da57227bdd7ec367a38e17b59e33b1acfaf04da560efc6318b0f7a0dfee85b90671b5e81e1e6dca6ca0d7157c10774c7a1a1f0931e8b30099
+  checksum: 10c0/6964bbe2bbaf3aa9f538bc5b4199086fa3affd87796895cb0464caa9d6594ad883348273385cf3babc37ff95622d264eebf305bdfb35cebb94c3570c57080cff
   languageName: node
   linkType: hard
 
