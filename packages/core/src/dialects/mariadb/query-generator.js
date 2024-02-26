@@ -236,7 +236,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);;
 
     for (const key in attributes) {
       const attribute = attributes[key];
