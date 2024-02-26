@@ -199,7 +199,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
 
       for (const definition of defs) {
-        if (/REFERENCES/.test(definition)) {
+        if (/\bREFERENCES\b/.test(definition)) {
           constraintString.push(
             template(
               '<%= fkName %> FOREIGN KEY (<%= attrName %>) <%= definition %>',
@@ -207,7 +207,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             )({
               fkName: this.quoteIdentifier(`${attributeName}_foreign_idx`),
               attrName: this.quoteIdentifier(attributeName),
-              definition: definition.replace(/.+?(?=REFERENCES)/, ''),
+              definition: definition.replace(/.+?(?=\bREFERENCES\b)/, ''),
             }),
           );
         } else if (startsWith(definition, 'DROP ')) {
@@ -218,6 +218,23 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
             )({
               attrName: this.quoteIdentifier(attributeName),
               definition,
+            }),
+          );
+        } else if (/\bDEFAULT\b/.test(definition)) {
+          attrString.push(
+            template(
+              '<%= attrName %> SET <%= definition %>',
+              this._templateSettings,
+            )({
+              attrName: this.quoteIdentifier(attributeName),
+              definition: definition.replace(/\bDEFAULT\b.*/, ''),
+            }),
+            template(
+              '<%= attrName %> SET <%= definition %>',
+              this._templateSettings,
+            )({
+              attrName: this.quoteIdentifier(attributeName),
+              definition: definition.replace(/.+?(?=\bDEFAULT\b)/, ''),
             }),
           );
         } else {

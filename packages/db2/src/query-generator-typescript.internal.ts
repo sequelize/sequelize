@@ -255,4 +255,28 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   generateTransactionId(): string {
     return randomBytes(10).toString('hex');
   }
+
+  getDefaultValueQuery(tableOrModel: TableOrModel, columnName: string) {
+    const table = this.extractTableDetails(tableOrModel);
+
+    return joinSQLFragments([
+      'SELECT TABNAME AS "tableName",',
+      'COLNAME AS "columnName",',
+      'DEFAULT AS "defaultValue"',
+      'FROM SYSCAT.COLUMNS WHERE DEFAULT IS NOT NULL',
+      `AND TABSCHEMA = ${this.escape(table.schema)}`,
+      `AND TABNAME = ${this.escape(table.tableName)}`,
+      `AND COLNAME = ${this.escape(columnName)}`,
+    ]);
+  }
+
+  dropDefaultValueQuery(tableOrModel: TableOrModel, columnName: string) {
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableOrModel),
+      'ALTER COLUMN',
+      this.quoteIdentifier(columnName),
+      'DROP DEFAULT;',
+    ]);
+  }
 }
