@@ -5,6 +5,7 @@ import NodeUtil from 'node:util';
 import forOwn from 'lodash/forOwn';
 import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
+import { parseDefaultValue } from './default-value-parser-internal';
 
 const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
@@ -136,14 +137,16 @@ export class MySqlQuery extends AbstractQuery {
 
       for (const _result of data) {
         const enumRegex = /^enum/i;
+        const type =  enumRegex.test(_result.Type)
+          ? _result.Type.replace(enumRegex, 'ENUM')
+          : _result.Type.toUpperCase();
+
         result[_result.Field] = {
-          type: enumRegex.test(_result.Type)
-            ? _result.Type.replace(enumRegex, 'ENUM')
-            : _result.Type.toUpperCase(),
+          type,
           allowNull: _result.Null === 'YES',
           defaultValue: {
             raw: _result.Default,
-            parsed: _result.Default,
+            parsed: parseDefaultValue(_result.Default, type, _result.Extra),
           },
           primaryKey: _result.Key === 'PRI',
           autoIncrement:

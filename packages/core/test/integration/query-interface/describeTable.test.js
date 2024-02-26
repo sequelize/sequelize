@@ -5,6 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, literal } = require('@sequelize/core');
+const padEnd = require('lodash/padEnd');
 
 const dialect = Support.getTestDialect();
 
@@ -246,6 +247,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         'with\\\'backslash and quote',
         'with\\"backslash and quote',
         'with::double',
+        "'surrounded by single quotes'",
         null,
         'null',
         'NULL',
@@ -253,7 +255,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         '99',
         '-99',
       ].forEach(defaultValue => {
-        [DataTypes.STRING, DataTypes.TEXT, DataTypes.STRING(50)].forEach(dataType => {
+        [
+          DataTypes.STRING,
+          DataTypes.TEXT,
+          DataTypes.STRING(50)
+        ]
+        // TEXT fields in MySQL cannot have a default value
+        .filter(dataType => dataType !== DataTypes.TEXT || dialect !== 'mysql')
+        .forEach(dataType => {
           it(`should return the right default value ${defaultValue} for fields of type ${dataType}`, async function () {
             await this.sequelize.queryInterface.createTable('with_string_default', {
               username: {
@@ -276,6 +285,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 break;
               }
 
+              case 'mysql': 
+                expectedRawDefaultValue = defaultValue === null ? null : `${defaultValue}`;
+                break;
+
               default:
                 expectedRawDefaultValue = `'${defaultValue}'`;
             }
@@ -296,8 +309,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         DataTypes.TINYINT,
         DataTypes.SMALLINT,
         DataTypes.FLOAT, 
-        DataTypes.DOUBLE, 
-        DataTypes.DECIMAL, 
+        DataTypes.DOUBLE,
       ].forEach(dataType => {
         describe(`for fields of type ${dataType}`, () => {
           [0, 99, -99, null].forEach(defaultValue => {
@@ -321,6 +333,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                   }
 
                   break;
+                case 'mysql':
+                  if (defaultValue === null) {
+                    expectedRawDefaultValue = null;
+                  }else{
+                    expectedRawDefaultValue = `${defaultValue}`;
+                  }
+
+                  break;
                 default:
                   expectedRawDefaultValue = `${defaultValue}`;
               }
@@ -338,10 +358,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       [
         DataTypes.FLOAT, 
         DataTypes.DOUBLE, 
-        DataTypes.DECIMAL, 
       ].forEach(dataType => {
         describe(`for fields of type ${dataType}`, () => {
-          [99.75, -99.75, null].forEach(defaultValue => {
+          [99.75, -99.75, 99, null].forEach(defaultValue => {
             it(`should return ${defaultValue} as the default value`, async function () {
               await this.sequelize.queryInterface.createTable('with_number_default', {
                 age: {
@@ -362,6 +381,67 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                   }
 
                   break;
+                case 'mysql':
+                  if (defaultValue === null) {
+                    expectedRawDefaultValue = null;
+                  }else{
+                    expectedRawDefaultValue =  dataType instanceof DataTypes.DECIMAL 
+                      ? `${padEnd(defaultValue, 2, '0')}` 
+                      : `${defaultValue}`;
+                  }
+
+                  break;
+
+                default:
+                  expectedRawDefaultValue = `${defaultValue}`;
+              }
+
+              const metadata = await this.queryInterface.describeTable('with_number_default');
+              expect(metadata.age.defaultValue).to.eql({
+                raw: expectedRawDefaultValue,
+                parsed: defaultValue === null ? null : defaultValue
+              });
+            });
+          });
+        });
+      });
+
+      [
+        DataTypes.DECIMAL(10, 2),
+      ].forEach(dataType => {
+        describe(`for fields of type ${dataType}`, () => {
+          ['99.75', '-99.75', '99.00', null].forEach(defaultValue => {
+            it(`should return ${defaultValue} as the default value`, async function () {
+              await this.sequelize.queryInterface.createTable('with_number_default', {
+                age: {
+                  type: dataType,
+                  defaultValue,
+                },
+              });
+
+              let expectedRawDefaultValue;
+              switch (dialect) {
+                case 'postgres':
+                  if (defaultValue === null) {
+                    expectedRawDefaultValue = null;
+                  }else if (defaultValue < 0) {
+                    expectedRawDefaultValue = `'${defaultValue}'::numeric`;
+                  } else {
+                    expectedRawDefaultValue = `${defaultValue}`;
+                  }
+
+                  break;
+                case 'mysql':
+                  if (defaultValue === null) {
+                    expectedRawDefaultValue = null;
+                  }else{
+                    expectedRawDefaultValue =  dataType instanceof DataTypes.DECIMAL 
+                      ? `${padEnd(defaultValue, 2, '0')}` 
+                      : `${defaultValue}`;
+                  }
+
+                  break;
+
                 default:
                   expectedRawDefaultValue = `${defaultValue}`;
               }
@@ -407,7 +487,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const metadata = await this.queryInterface.describeTable('user_autoincrement');
         expect(metadata.id.defaultValue).to.eql({
           raw: dialect === 'postgres' ? `nextval('user_autoincrement_id_seq'::regclass)` : null,
-          parsed: undefined
+          parsed: dialect === 'postgres' ? undefined : null
         });
       });
 
