@@ -1,12 +1,24 @@
 'use strict';
 
 const { expect } = require('chai');
-const { DataTypes, Deferrable, Model } = require('@sequelize/core');
-const { getTestDialect, getTestDialectTeaser, sequelize } = require('../support');
+const {
+  DataTypes,
+  Deferrable,
+  Model,
+  TemporalPeriodType,
+  TemporalTableType,
+} = require('@sequelize/core');
+const {
+  allowDeprecationsInSuite,
+  getTestDialect,
+  getTestDialectTeaser,
+  sequelize,
+} = require('../support');
 
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
+  allowDeprecationsInSuite(['SEQUELIZE0015']);
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,
@@ -702,6 +714,202 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
     });
   }
+
+  describe('Temporal Tables', () => {
+    if (sequelize.dialect.supports.temporalTables.applicationPeriod) {
+      it('should add an application-period temporal table', async () => {
+        const User = sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.APPLICATION_PERIOD,
+          },
+        );
+
+        await sequelize.sync();
+
+        const [descr, period, tableInfo] = await Promise.all([
+          User.describe(),
+          sequelize.queryInterface.showTemporalPeriods(User),
+          sequelize.queryInterface.showTemporalTables(User),
+        ]);
+
+        expect(descr).to.have.ownProperty('name');
+        expect(descr).to.have.ownProperty('AppEndTime');
+        expect(descr).to.have.ownProperty('AppStartTime');
+        expect(period).to.deep.equal([
+          {
+            rowEnd: 'AppEndTime',
+            rowStart: 'AppStartTime',
+            type: TemporalPeriodType.APPLICATION,
+          },
+        ]);
+        expect(tableInfo).to.deep.equal([
+          {
+            tableName: User.table.tableName,
+            schema: User.table.schema,
+            temporalTableType: TemporalTableType.APPLICATION_PERIOD,
+            ...(sequelize.dialect.supports.temporalTables.historyTable
+              ? { historyTableName: `${User.table.tableName}_history` }
+              : {}),
+            ...(sequelize.dialect.supports.temporalTables.historyRetentionPeriod
+              ? { historyRetentionPeriod: { length: -1, unit: 'INFINITE' } }
+              : {}),
+          },
+        ]);
+      });
+    } else {
+      it('should throw an error if application-period temporal tables are not supported', async () => {
+        sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.APPLICATION_PERIOD,
+          },
+        );
+
+        await expect(sequelize.sync()).to.be.rejectedWith(
+          `Application-period tables are not supported in ${dialect}.`,
+        );
+      });
+    }
+
+    if (sequelize.dialect.supports.temporalTables.biTemporal) {
+      it('should add an bi-temporal table', async () => {
+        const User = sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.BITEMPORAL,
+          },
+        );
+
+        await sequelize.sync();
+
+        const [descr, period, tableInfo] = await Promise.all([
+          User.describe(),
+          sequelize.queryInterface.showTemporalPeriods(User),
+          sequelize.queryInterface.showTemporalTables(User),
+        ]);
+
+        expect(descr).to.have.ownProperty('name');
+        expect(descr).to.have.ownProperty('AppEndTime');
+        expect(descr).to.have.ownProperty('AppStartTime');
+        expect(descr).to.have.ownProperty('SysEndTime');
+        expect(descr).to.have.ownProperty('SysStartTime');
+        expect(period).to.deep.equal([
+          {
+            rowEnd: 'AppEndTime',
+            rowStart: 'AppStartTime',
+            type: TemporalPeriodType.APPLICATION,
+          },
+          {
+            rowEnd: 'SysEndTime',
+            rowStart: 'SysStartTime',
+            type: TemporalPeriodType.SYSTEM,
+          },
+        ]);
+        expect(tableInfo).to.deep.equal([
+          {
+            tableName: User.table.tableName,
+            schema: User.table.schema,
+            temporalTableType: TemporalTableType.BITEMPORAL,
+            ...(sequelize.dialect.supports.temporalTables.historyTable
+              ? { historyTableName: `${User.table.tableName}_history` }
+              : {}),
+            ...(sequelize.dialect.supports.temporalTables.historyRetentionPeriod
+              ? { historyRetentionPeriod: { length: -1, unit: 'INFINITE' } }
+              : {}),
+          },
+        ]);
+      });
+    } else {
+      it('should throw an error if bi-temporal tables are not supported', async () => {
+        sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.BITEMPORAL,
+          },
+        );
+
+        await expect(sequelize.sync()).to.be.rejectedWith(
+          `Bi-temporal tables are not supported in ${dialect}.`,
+        );
+      });
+    }
+
+    if (sequelize.dialect.supports.temporalTables.systemPeriod) {
+      it('should add a system-period temporal table', async () => {
+        const User = sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+          },
+        );
+
+        await sequelize.sync();
+
+        const [descr, period, tableInfo] = await Promise.all([
+          User.describe(),
+          sequelize.queryInterface.showTemporalPeriods(User),
+          sequelize.queryInterface.showTemporalTables(User),
+        ]);
+
+        expect(descr).to.have.ownProperty('name');
+        expect(descr).to.have.ownProperty('SysEndTime');
+        expect(descr).to.have.ownProperty('SysStartTime');
+        expect(period).to.deep.equal([
+          {
+            name: 'SYSTEM_TIME',
+            rowEnd: 'SysEndTime',
+            rowStart: 'SysStartTime',
+            type: TemporalPeriodType.SYSTEM,
+          },
+        ]);
+        expect(tableInfo).to.deep.equal([
+          {
+            tableName: User.table.tableName,
+            schema: User.table.schema,
+            temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            ...(sequelize.dialect.supports.temporalTables.historyTable
+              ? { historyTableName: `${User.table.tableName}_history` }
+              : {}),
+            ...(sequelize.dialect.supports.temporalTables.historyRetentionPeriod
+              ? { historyRetentionPeriod: { length: -1, unit: 'INFINITE' } }
+              : {}),
+          },
+        ]);
+      });
+    } else {
+      it('should throw an error if system-period temporal tables are not supported', async () => {
+        sequelize.define(
+          'testSync',
+          {
+            name: DataTypes.STRING,
+          },
+          {
+            temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+          },
+        );
+
+        await expect(sequelize.sync()).to.be.rejectedWith(
+          `System-period tables are not supported in ${dialect}.`,
+        );
+      });
+    }
+  });
 });
 
 async function getNonPrimaryIndexes(model) {
