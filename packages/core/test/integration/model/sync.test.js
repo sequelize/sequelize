@@ -469,6 +469,121 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(out2[0].unique).to.eq(true, 'index should not be unique');
   });
 
+  // SQlite doesnt allow altering a column default value
+  if (dialect !== 'sqlite3') {
+    it('adds default value to existing tables', async () => {
+      const User1 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+          },
+        },
+        { timestamps: false },
+      );
+
+      // create without the default value
+      await User1.sync({ force: true });
+
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+            defaultValue: 'active',
+          },
+        },
+        { timestamps: false },
+      );
+
+      const out1 = await getTableProperties(User1);
+
+      // alter to add the default value
+      await User2.sync({ alter: true });
+
+      const out2 = await getTableProperties(User2);
+
+      expect(out1.status.defaultValue).to.eq(null);
+      expect(out2.status.defaultValue).to.eq('active');
+    });
+
+    it('updates default value for existing tables', async () => {
+      const User1 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+            defaultValue: 'active',
+          },
+        },
+        { timestamps: false },
+      );
+
+      // create without the default value
+      await User1.sync({ force: true });
+
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+            defaultValue: 'pending',
+          },
+        },
+        { timestamps: false },
+      );
+
+      const out1 = await getTableProperties(User1);
+
+      // alter to add the default value
+      await User2.sync({ alter: true });
+
+      const out2 = await getTableProperties(User2);
+
+      expect(out1.status.defaultValue).to.eq('active');
+      expect(out2.status.defaultValue).to.eq('pending');
+    });
+
+    it('removes default value from existing tables', async () => {
+      const User1 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+            defaultValue: 'active',
+          },
+        },
+        { timestamps: false },
+      );
+
+      // create without the default value
+      await User1.sync({ force: true });
+
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+        'User',
+        {
+          status: {
+            type: DataTypes.STRING,
+          },
+        },
+        { timestamps: false },
+      );
+
+      const out1 = await getTableProperties(User1);
+
+      // alter to add the default value
+      await User2.sync({ alter: true });
+
+      const out2 = await getTableProperties(User2);
+
+      expect(out2.status.defaultValue).to.eq(null);
+      expect(out1.status.defaultValue).to.eq('active');
+    });
+  }
+
   const SCHEMA_ONE = 'schema_one';
   const SCHEMA_TWO = 'schema_two';
 
@@ -712,4 +827,8 @@ async function getNonPrimaryIndexes(model) {
 
 function getIndexFields(index) {
   return index.fields.map(field => field.attribute).sort();
+}
+
+async function getTableProperties(model) {
+  return sequelize.queryInterface.describeTable(model.table);
 }
