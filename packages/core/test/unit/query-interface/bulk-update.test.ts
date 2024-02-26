@@ -47,7 +47,7 @@ describe('QueryInterface#bulkUpdate', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2`,
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
+      'db2 ibmi': `SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2)`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -100,7 +100,8 @@ describe('QueryInterface#bulkUpdate', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $one',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $one);`,
+      'db2 ibmi':
+        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $one)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -131,7 +132,8 @@ describe('QueryInterface#bulkUpdate', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $1',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $1);`,
+      'db2 ibmi':
+        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $1)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
