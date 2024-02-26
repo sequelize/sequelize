@@ -23,10 +23,15 @@ export interface DatabaseDescription {
   name: string;
 }
 
+export interface DefaultValueDescription {
+  raw: string;
+  parsed: string;
+}
+
 export interface ColumnDescription {
   type: string;
   allowNull: boolean;
-  defaultValue: string;
+  defaultValue: DefaultValueDescription;
   primaryKey: boolean;
   autoIncrement: boolean;
   comment: string | null;

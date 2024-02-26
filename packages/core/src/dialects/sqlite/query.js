@@ -99,16 +99,20 @@ export class SqliteQuery extends AbstractQuery {
       // this is the sqlite way of getting the metadata of a table
       result = {};
 
-      let defaultValue;
       for (const _result of results) {
-        if (_result.dflt_value === null) {
+        const defaultValue = {
+          raw: _result.dflt_value,
+          parsed: _result.dflt_value,
+        };
+
+        if (defaultValue.raw === null) {
           // Column schema omits any "DEFAULT ..."
-          defaultValue = undefined;
-        } else if (_result.dflt_value === 'NULL') {
+          defaultValue.parsed = undefined;
+        } else if (defaultValue.raw === 'NULL') {
           // Column schema is a "DEFAULT NULL"
-          defaultValue = null;
+          defaultValue.parsed = null;
         } else {
-          defaultValue = _result.dflt_value;
+          defaultValue.parsed = defaultValue.raw;
         }
 
         result[_result.name] = {
@@ -119,13 +123,13 @@ export class SqliteQuery extends AbstractQuery {
         };
 
         if (result[_result.name].type === 'TINYINT(1)') {
-          result[_result.name].defaultValue = { 0: false, 1: true }[
-            result[_result.name].defaultValue
+          defaultValue.parsed = { 0: false, 1: true }[
+            defaultValue.raw
           ];
         }
 
-        if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll("'", '');
+        if (typeof defaultValue.parsed === 'string') {
+          defaultValue.parsed = defaultValue.raw.replaceAll("'", '');
         }
       }
 

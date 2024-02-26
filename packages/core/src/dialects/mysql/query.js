@@ -141,7 +141,10 @@ export class MySqlQuery extends AbstractQuery {
             ? _result.Type.replace(enumRegex, 'ENUM')
             : _result.Type.toUpperCase(),
           allowNull: _result.Null === 'YES',
-          defaultValue: _result.Default,
+          defaultValue: {
+            raw: _result.Default,
+            parsed: _result.Default,
+          },
           primaryKey: _result.Key === 'PRI',
           autoIncrement:
             Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',

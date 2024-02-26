@@ -206,14 +206,15 @@ export class Db2Query extends AbstractQuery {
     if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
-        if (_result.Default) {
-          _result.Default = _result.Default.replace("('", '').replace("')", '').replaceAll("'", '');
+        const defaultValue = {
+          raw: _result.Default,
+          parsed: _result.Default ? _result.Default.replace("('", '').replace("')", '').replaceAll("'", '') : undefined,
         }
 
         result[_result.Name] = {
           type: _result.Type.toUpperCase(),
           allowNull: _result.IsNull === 'Y',
-          defaultValue: _result.Default,
+          defaultValue,
           primaryKey: _result.KeySeq > 0,
           autoIncrement: _result.IsIdentity === 'Y',
           comment: _result.Comment,
