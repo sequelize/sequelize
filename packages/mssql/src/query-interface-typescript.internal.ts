@@ -1,13 +1,18 @@
 import type {
+  AttributeOptions,
   CommitTransactionOptions,
   CreateSavepointOptions,
+  DataType,
+  QueryRawOptions,
   RollbackSavepointOptions,
   RollbackTransactionOptions,
   StartTransactionOptions,
+  TableOrModel,
 } from '@sequelize/core';
 import { AbstractQueryInterface, Transaction } from '@sequelize/core';
 import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { extractTableIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { ASYNC_QUEUE } from './_internal/symbols.js';
 import type { MsSqlConnection } from './connection-manager.js';
 import type { MsSqlDialect } from './dialect.js';
@@ -23,6 +28,35 @@ export class MsSqlQueryInterfaceTypescript<
 
     super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
+  }
+
+  /**
+   * A wrapper that fixes MSSQL's inability to cleanly change columns from existing tables if they have a default constraint.
+   *
+   * @override
+   */
+  async changeColumn(
+    tableOrModel: TableOrModel,
+    columnName: string,
+    dataTypeOrOptions: DataType | AttributeOptions,
+    options: QueryRawOptions,
+  ): Promise<void> {
+    const allConstraints = await this.showConstraints(tableOrModel, { ...options, columnName });
+    const constraints = allConstraints.filter(constraint =>
+      ['CHECK', 'DEFAULT'].includes(constraint.constraintType),
+    );
+    await Promise.all(
+      constraints.map(async constraint =>
+        this.removeConstraint(tableOrModel, constraint.constraintName, options),
+      ),
+    );
+
+    await super.changeColumn(
+      extractTableIdentifier(tableOrModel),
+      columnName,
+      dataTypeOrOptions,
+      options,
+    );
   }
 
   async _commitTransaction(
