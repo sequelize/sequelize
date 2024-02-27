@@ -1,5 +1,6 @@
-import NodeUtil from 'node:util';
 import type { InspectOptions } from 'node:util';
+import NodeUtil from 'node:util';
+import { find } from './iterators.js';
 
 export class SetView<V> {
   #target: Set<V>;
@@ -14,6 +15,10 @@ export class SetView<V> {
    */
   has(value: V): boolean {
     return this.#target.has(value);
+  }
+
+  find(callback: (model: V) => boolean): V | undefined {
+    return find(this, callback);
   }
 
   /**
@@ -59,6 +64,14 @@ export class MapView<K, V> {
    */
   get(key: K): V | undefined {
     return this.#target.get(key);
+  }
+
+  getOrThrow(key: K): V {
+    if (!this.#target.has(key)) {
+      throw new Error(`No value found for key: ${key}`);
+    }
+
+    return this.#target.get(key)!;
   }
 
   /**

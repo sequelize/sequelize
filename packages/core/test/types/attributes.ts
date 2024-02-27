@@ -27,7 +27,8 @@ interface ProjectAttributes extends ProjectCreationAttributes {
 
 class Project
   extends Model<ProjectAttributes, ProjectCreationAttributes>
-  implements ProjectAttributes {
+  implements ProjectAttributes
+{
   declare id: number;
   declare ownerId: number;
   declare name: string;

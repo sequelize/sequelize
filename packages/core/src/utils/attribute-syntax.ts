@@ -46,7 +46,9 @@ const builtInModifiers: Record<string, Class<DialectAwareFn>> = noPrototype({
 function getModifier(name: string): Class<DialectAwareFn> {
   const ModifierClass = builtInModifiers[name.toLowerCase()];
   if (!ModifierClass) {
-    throw new Error(`${name} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`);
+    throw new Error(
+      `${name} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`,
+    );
   }
 
   return ModifierClass;

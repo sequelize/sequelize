@@ -1,5 +1,5 @@
 import type {
-  BelongsTo,
+  BelongsToAssociation,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
@@ -21,7 +21,7 @@ export class User extends Model<
   InferCreationAttributes<User, { omit: NonUserAttributes }>
 > {
   static associations: {
-    group: BelongsTo<User, UserGroup>,
+    group: BelongsToAssociation<User, UserGroup>;
   };
 
   declare id: CreationOptional<number>;
@@ -70,12 +70,14 @@ User.init(
         return {};
       },
     },
-    indexes: [{
-      fields: ['firstName'],
-      using: 'BTREE',
-      name: 'firstNameIdx',
-      concurrently: true,
-    }],
+    indexes: [
+      {
+        fields: ['firstName'],
+        using: 'BTREE',
+        name: 'firstNameIdx',
+        concurrently: true,
+      },
+    ],
     sequelize,
   },
 );
@@ -111,12 +113,9 @@ User.addScope('withoutLastName', {
   },
 });
 
-User.addScope(
-  'withFirstName',
-  (firstName: string) => ({
-    where: { firstName },
-  }),
-);
+User.addScope('withFirstName', (firstName: string) => ({
+  where: { firstName },
+}));
 
 // associate with a class-based model
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
@@ -136,10 +135,8 @@ const groupType: ModelStatic<UserGroup> = User.associations.group.target;
 User.findOne({ include: [{ model: UserGroup }] });
 User.findOne({ include: [{ model: UserPost }] });
 
-User.scope([
-  'custom2',
-  { method: ['custom', 32] },
-]);
+User.scope(['custom2', { method: ['custom', 32] }]);
+User.withScope(['custom2', { method: ['custom', 32] }]);
 
 const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });
 instance.isSoftDeleted();

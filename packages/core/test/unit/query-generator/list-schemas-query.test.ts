@@ -21,7 +21,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
   });
 
   it('supports a skip option', () => {
-    expectsql(() => queryGenerator.listSchemasQuery({ skip: ['test', 'Te\'st2'] }), {
+    expectsql(() => queryGenerator.listSchemasQuery({ skip: ['test', "Te'st2"] }), {
       db2: `SELECT SCHEMANAME AS "schema" FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('ERRORSCHEMA', 'NULLID', 'SQLJ', 'test', 'Te''st2')`,
       ibmi: `SELECT DISTINCT SCHEMA_NAME AS "schema" FROM QSYS2.SYSSCHEMAAUTH WHERE GRANTEE = CURRENT USER AND SCHEMA_NAME NOT LIKE 'Q%' AND SCHEMA_NAME NOT LIKE 'SYS%' AND SCHEMA_NAME NOT IN ('test', 'Te''st2')`,
       mssql: `SELECT [name] AS [schema] FROM sys.schemas WHERE [name] NOT IN (N'dbo', N'guest', N'db_accessadmin', N'db_backupoperator', N'db_datareader', N'db_datawriter', N'db_ddladmin', N'db_denydatareader', N'db_denydatawriter', N'db_owner', N'db_securityadmin', N'INFORMATION_SCHEMA', N'sys', N'test', N'Te''st2')`,

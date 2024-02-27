@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -8,22 +8,23 @@ const dialectName = dialect.name;
 
 describe('DataTypes.TINYINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the TINYINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the TINYINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
         title: 'TINYINT',
         dataType: DataTypes.TINYINT,
         expect: {
-        // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
+          // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
           'mssql postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT',
           'sqlite snowflake': 'INTEGER',
         },
       },
       {
-      // This option (length) is ignored when unavailable.
+        // This option (length) is ignored when unavailable.
         title: 'TINYINT(2)',
         dataType: DataTypes.TINYINT(2),
         expect: {
@@ -45,7 +46,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         title: 'TINYINT.UNSIGNED',
         dataType: DataTypes.TINYINT.UNSIGNED,
         expect: {
-        // Fallback to bigger type + check constraint
+          // Fallback to bigger type + check constraint
           'postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT UNSIGNED',
           // sqlite & snowflake only supports INTEGER as a column type
@@ -143,8 +144,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.SMALLINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the SMALLINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the SMALLINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
@@ -273,8 +275,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.MEDIUMINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the MEDIUMINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the MEDIUMINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
@@ -397,8 +400,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.INTEGER', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the INTEGER.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the INTEGER.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('INTEGER', DataTypes.INTEGER, {
       default: 'INTEGER',
@@ -477,10 +481,12 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.BIGINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
-    const unsignedUnsupportedError = new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
+    const unsignedUnsupportedError =
+      new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('BIGINT', DataTypes.BIGINT, {
       default: 'BIGINT',

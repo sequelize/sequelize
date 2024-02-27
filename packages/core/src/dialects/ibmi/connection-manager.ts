@@ -1,6 +1,6 @@
 import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
 import { ConnectionRefusedError } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
@@ -20,8 +20,8 @@ type Lib = typeof import('odbc');
 export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: IBMiDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: IBMiDialect) {
+    super(dialect);
 
     this.lib = this._loadDialectModule('odbc') as Lib;
   }
@@ -59,7 +59,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnect
 
     let connection;
     try {
-      connection = await this.lib.connect(connectionString) as IBMiConnection;
+      connection = (await this.lib.connect(connectionString)) as IBMiConnection;
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;

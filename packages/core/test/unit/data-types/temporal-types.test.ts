@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -135,7 +135,7 @@ describe('DataTypes.TIME', () => {
     testDataTypeSql('TIME(6)', DataTypes.TIME(6), {
       default: 'TIME(6)',
       db2: new Error(`db2 does not support the TIME(precision) data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       sqlite: 'TEXT',
     });
   });

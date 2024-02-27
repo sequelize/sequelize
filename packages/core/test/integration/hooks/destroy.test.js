@@ -73,23 +73,27 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
     describe('with paranoid mode enabled', () => {
       beforeEach(function () {
-        this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-          username: DataTypes.STRING,
-          updatedBy: DataTypes.INTEGER,
-          virtualField: {
-            type: DataTypes.VIRTUAL(DataTypes.INTEGER, ['updatedBy']),
-            get() {
-              return this.updatedBy - 1;
+        this.ParanoidUser = this.sequelize.define(
+          'ParanoidUser',
+          {
+            username: DataTypes.STRING,
+            updatedBy: DataTypes.INTEGER,
+            virtualField: {
+              type: DataTypes.VIRTUAL(DataTypes.INTEGER, ['updatedBy']),
+              get() {
+                return this.updatedBy - 1;
+              },
             },
           },
-        }, {
-          paranoid: true,
-          hooks: {
-            beforeDestroy: instance => {
-              instance.updatedBy = 1;
+          {
+            paranoid: true,
+            hooks: {
+              beforeDestroy: instance => {
+                instance.updatedBy = 1;
+              },
             },
           },
-        });
+        );
       });
 
       it('sets other changed values when soft deleting and a beforeDestroy hooks kicks in', async function () {
@@ -113,5 +117,4 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
-
 });

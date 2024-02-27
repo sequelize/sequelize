@@ -5,9 +5,9 @@ import type { Association } from './base';
 
 export * from './base';
 export * from './belongs-to';
-export * from './has-one';
-export * from './has-many';
 export * from './belongs-to-many';
+export * from './has-many';
+export * from './has-one';
 
 export interface BeforeAssociateEventData {
   source: ModelStatic<Model>;

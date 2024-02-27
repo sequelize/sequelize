@@ -1,14 +1,20 @@
-import assert from 'node:assert';
-import { expect } from 'chai';
-import { BelongsToMany as BelongsToManyAssociation, Model } from '@sequelize/core';
 import type { InferAttributes, NonAttribute } from '@sequelize/core';
+import { BelongsToManyAssociation, Model } from '@sequelize/core';
 import { BelongsTo, BelongsToMany, HasMany, HasOne } from '@sequelize/core/decorators-legacy';
-import { sequelize, typeTest } from '../../support';
+import { expect } from 'chai';
+import assert from 'node:assert';
+import { resetSequelizeInstance, sequelize, typeTest } from '../../support';
 
-const CANNOT_INHERIT_ASSOCIATION_ERROR = /Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from/;
-const CANNOT_USE_AS_ERROR = 'The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.';
+const CANNOT_INHERIT_ASSOCIATION_ERROR =
+  /Models that use @HasOne, @HasMany, or @BelongsToMany associations cannot be inherited from/;
+const CANNOT_USE_AS_ERROR =
+  'The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.';
 
 describe('@BelongsTo', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a belongsTo association', () => {
     class User extends Model<InferAttributes<User>> {}
 
@@ -20,7 +26,7 @@ describe('@BelongsTo', () => {
       declare user2: User;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @BelongsTo(seq => seq.model('User'), 'userId')
+      @BelongsTo(seq => seq.models.getOrThrow('User'), 'userId')
       declare user3: User;
 
       declare userId: number;
@@ -111,7 +117,9 @@ describe('@BelongsTo', () => {
 
     class User extends BaseUser {}
 
-    expect(() => sequelize.addModels([User, DummyModel])).to.throw(/Models that use @BelongsTo associations with the "inverse" option cannot be inherited from/);
+    expect(() => sequelize.addModels([User, DummyModel])).to.throw(
+      /Models that use @BelongsTo associations with the "inverse" option cannot be inherited from/,
+    );
   });
 
   it('throws if the same association is declared twice', () => {
@@ -129,7 +137,9 @@ describe('@BelongsTo', () => {
       declare dummy?: NonAttribute<DummyModel>;
     }
 
-    expect(() => sequelize.addModels([User, DummyModel])).to.throw(`You have defined two associations with the same name "dummy" on the model "User"`);
+    expect(() => sequelize.addModels([User, DummyModel])).to.throw(
+      `You have defined two associations with the same name "dummy" on the model "User"`,
+    );
   });
 
   it('throws if the "as" option is used', () => {
@@ -153,6 +163,10 @@ describe('@BelongsTo', () => {
 });
 
 describe('@HasOne', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a hasOne association', () => {
     class User extends Model<InferAttributes<User>> {
       @HasOne(() => Profile, 'userId')
@@ -162,7 +176,7 @@ describe('@HasOne', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasOne(seq => seq.model('Profile'), 'userId')
+      @HasOne(seq => seq.models.getOrThrow('Profile'), 'userId')
       declare profile3: Profile;
     }
 
@@ -212,7 +226,9 @@ describe('@HasOne', () => {
 
     class User extends BaseUser {}
 
-    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(
+      CANNOT_INHERIT_ASSOCIATION_ERROR,
+    );
   });
 
   it('throws if the "as" option is used', () => {
@@ -236,6 +252,10 @@ describe('@HasOne', () => {
 });
 
 describe('@HasMany', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a hasMany association', () => {
     class User extends Model<InferAttributes<User>> {
       @HasMany(() => Profile, 'userId')
@@ -245,7 +265,7 @@ describe('@HasMany', () => {
       declare profile2: Profile;
 
       // Added in https://github.com/sequelize/sequelize-typescript/pull/1206 to help with circular dependencies.
-      @HasMany(seq => seq.model('Profile'), { foreignKey: 'userId' })
+      @HasMany(seq => seq.models.getOrThrow('Profile'), { foreignKey: 'userId' })
       declare profile3: Profile;
     }
 
@@ -295,7 +315,9 @@ describe('@HasMany', () => {
 
     class User extends BaseUser {}
 
-    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(
+      CANNOT_INHERIT_ASSOCIATION_ERROR,
+    );
   });
 
   it('throws if the "as" option is used', () => {
@@ -319,6 +341,10 @@ describe('@HasMany', () => {
 });
 
 describe('@BelongsToMany', () => {
+  beforeEach(() => {
+    resetSequelizeInstance();
+  });
+
   it('defines a belongsToMany association', () => {
     class User extends Model<InferAttributes<User>> {
       @BelongsToMany(() => Role, {
@@ -343,15 +369,15 @@ describe('@BelongsToMany', () => {
     expect(Role.associations.users.associationType).to.eq('BelongsToMany');
 
     expect(userToRole.target).to.eq(Role);
-    expect(userToRole.throughModel).to.eq(sequelize.model('UserRole'));
+    expect(userToRole.throughModel).to.eq(sequelize.models.getOrThrow('UserRole'));
   });
 
   it('supports lazy target & through', () => {
     class UserRole extends Model<InferAttributes<UserRole>> {}
 
     class User extends Model<InferAttributes<User>> {
-      @BelongsToMany(seq => seq.model('Role'), {
-        through: seq => seq.model('UserRole'),
+      @BelongsToMany(seq => seq.models.getOrThrow('Role'), {
+        through: seq => seq.models.getOrThrow('UserRole'),
         inverse: { as: 'users' },
       })
       declare roles: Role[];
@@ -382,7 +408,9 @@ describe('@BelongsToMany', () => {
 
     class User extends BaseUser {}
 
-    expect(() => sequelize.addModels([DummyModel, User])).to.throw(CANNOT_INHERIT_ASSOCIATION_ERROR);
+    expect(() => sequelize.addModels([DummyModel, User])).to.throw(
+      CANNOT_INHERIT_ASSOCIATION_ERROR,
+    );
   });
 
   it('throws if the "as" option is used', () => {

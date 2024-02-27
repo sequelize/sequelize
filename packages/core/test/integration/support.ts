@@ -1,11 +1,17 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import uniq from 'lodash/uniq';
-import pTimeout from 'p-timeout';
 import type { Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
-import { createSequelizeInstance, getTestDialect, resetSequelizeInstance, sequelize } from '../support';
+import uniq from 'lodash/uniq';
+import fs from 'node:fs';
+import pTimeout from 'p-timeout';
+import {
+  createSequelizeInstance,
+  getSqliteDatabasePath,
+  getTestDialect,
+  rand,
+  resetSequelizeInstance,
+  sequelize,
+} from '../support';
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -18,9 +24,12 @@ const runningQueries = new Set<AbstractQuery>();
 before(async () => {
   // Sometimes the SYSTOOLSPACE tablespace is not available when running tests on DB2. This creates it.
   if (getTestDialect() === 'db2') {
-    const res = await sequelize.query<{ TBSPACE: string }>(`SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`, {
-      type: QueryTypes.SELECT,
-    });
+    const res = await sequelize.query<{ TBSPACE: string }>(
+      `SELECT TBSPACE FROM SYSCAT.TABLESPACES WHERE TBSPACE = 'SYSTOOLSPACE'`,
+      {
+        type: QueryTypes.SELECT,
+      },
+    );
 
     const tableExists = res[0]?.TBSPACE === 'SYSTOOLSPACE';
 
@@ -84,11 +93,12 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
 export async function createMultiTransactionalTestSequelizeInstance(
   sequelizeOrOptions: Sequelize | Options,
 ): Promise<Sequelize> {
-  const sequelizeOptions = sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
+  const sequelizeOptions =
+    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
-    const p = path.join(__dirname, 'tmp', 'db.sqlite');
+    const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);
     }
@@ -181,11 +191,11 @@ afterEach('database reset', async () => {
         break;
 
       case 'truncate':
-        await sequelizeInstance.truncate({ restartIdentity: true });
+        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
         break;
 
       case 'destroy':
-        await sequelizeInstance.destroyAll({ cascade: true, force: true });
+        await sequelizeInstance.destroyAll({ force: true });
         break;
 
       default:
@@ -198,12 +208,14 @@ afterEach('database reset', async () => {
     throw new Error('The main sequelize instance was closed. This is not allowed.');
   }
 
-  await Promise.all([...singleTestInstances].map(async instance => {
-    allSequelizeInstances.delete(instance);
-    if (!instance.connectionManager.isClosed) {
-      await instance.close();
-    }
-  }));
+  await Promise.all(
+    [...singleTestInstances].map(async instance => {
+      allSequelizeInstances.delete(instance);
+      if (!instance.connectionManager.isClosed) {
+        await instance.close();
+      }
+    }),
+  );
 
   singleTestInstances.clear();
 
@@ -224,8 +236,7 @@ The following methods can be used to mark a sequelize instance for automatic dis
 async function clearDatabaseInternal(customSequelize: Sequelize) {
   const qi = customSequelize.queryInterface;
   await qi.dropAllTables();
-  customSequelize.modelManager.models = [];
-  customSequelize.models = {};
+  resetSequelizeInstance(customSequelize);
 
   if (qi.dropAllEnums) {
     await qi.dropAllEnums();
@@ -246,11 +257,15 @@ export async function clearDatabase(customSequelize: Sequelize = sequelize) {
 
 afterEach('no running queries checker', () => {
   if (runningQueries.size > 0) {
-    throw new Error(`Expected 0 queries running after this test, but there are still ${
-      runningQueries.size
-    } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${
-      [...runningQueries].map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`).join('\n')
-    }`);
+    throw new Error(
+      `Expected 0 queries running after this test, but there are still ${
+        runningQueries.size
+      } queries running in the database (or, at least, the \`afterQuery\` Sequelize hook did not fire for them):\n\n${[
+        ...runningQueries,
+      ]
+        .map((query: AbstractQuery) => `       ${query.uuid}: ${query.sql}`)
+        .join('\n')}`,
+    );
   }
 });
 
@@ -261,7 +276,15 @@ export async function dropTestDatabases(customSequelize: Sequelize = sequelize) 
 
   const qi = customSequelize.queryInterface;
   const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
-  await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+  if (getTestDialect() === 'db2') {
+    for (const db of databases) {
+      // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
+      // eslint-disable-next-line no-await-in-loop
+      await qi.dropDatabase(db.name);
+    }
+  } else {
+    await Promise.all(databases.map(async db => qi.dropDatabase(db.name)));
+  }
 }
 
 export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
@@ -271,22 +294,7 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  const qi = customSequelize.queryInterface;
-  const schemas = await qi.listSchemas({ skip: [customSequelize.config.database] });
-  const schemasPromise = [];
-  for (const schemaName of schemas) {
-    const promise = customSequelize.dropSchema(schemaName);
-    if (getTestDialect() === 'db2') {
-      // https://github.com/sequelize/sequelize/pull/14453#issuecomment-1155581572
-      // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
-      // eslint-disable-next-line no-await-in-loop
-      await promise;
-    } else {
-      schemasPromise.push(promise);
-    }
-  }
-
-  await Promise.all(schemasPromise);
+  await customSequelize.queryInterface.dropAllSchemas({ skip: [customSequelize.config.database] });
 }
 
 export * from '../support';

@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -9,8 +9,9 @@ const dialectName = dialect.name;
 
 describe('DataTypes.STRING', () => {
   describe('toSql', () => {
-    const binaryCollationUnsupportedError = new Error(`${dialectName} does not support the STRING.BINARY data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const binaryCollationUnsupportedError =
+      new Error(`${dialectName} does not support the STRING.BINARY data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('STRING', DataTypes.STRING, {
       default: 'VARCHAR(255)',
@@ -112,8 +113,9 @@ describe('DataTypes.TEXT', () => {
 describe('DataTypes.CITEXT', () => {
   describe('toSql', () => {
     testDataTypeSql('CITEXT', DataTypes.CITEXT, {
-      default: new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+      default:
+        new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'CITEXT',
       sqlite: 'TEXT COLLATE NOCASE',
     });
@@ -138,10 +140,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.CHAR', () => {
   describe('toSql', () => {
-    const binaryNotSupportedError = new Error(`${dialectName} does not support the CHAR.BINARY data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const binaryNotSupportedError =
+      new Error(`${dialectName} does not support the CHAR.BINARY data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
     const charNotSupportedError = new Error(`${dialectName} does not support the CHAR data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('CHAR', DataTypes.CHAR, {
       default: 'CHAR(255)',
@@ -178,7 +181,7 @@ describe('DataTypes.TSVECTOR', () => {
   describe('toSql', () => {
     testDataTypeSql('TSVECTOR', DataTypes.TSVECTOR, {
       default: new Error(`${dialectName} does not support the TSVECTOR data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'TSVECTOR',
     });
   });

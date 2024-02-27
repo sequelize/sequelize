@@ -75,26 +75,34 @@ class Model1 extends Model {}
 
 class Model2 extends Model {}
 
-const MyModel: ModelStatic<Model1> = sequelize.models.asd;
+const MyModel: ModelStatic<Model1> = sequelize.models.getOrThrow('asd');
 MyModel.hasOne(Model2);
 MyModel.findAll();
 
 async function test() {
-  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
+  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', {
+    type: QueryTypes.RAW,
+  });
 
-  const res2: { count: number } | null = await sequelize
-    .query<{ count: number }>('SELECT COUNT(1) as count FROM `user`', {
+  const res2: { count: number } | null = await sequelize.query<{ count: number }>(
+    'SELECT COUNT(1) as count FROM `user`',
+    {
       type: QueryTypes.SELECT,
       plain: true,
-    });
+    },
+  );
 
-  const res3: { [key: string]: unknown } | null = await sequelize
-    .query('SELECT COUNT(1) as count FROM `user`', {
+  const res3: { [key: string]: unknown } | null = await sequelize.query(
+    'SELECT COUNT(1) as count FROM `user`',
+    {
       plain: true,
-    });
+    },
+  );
 
-  const res4: { [key: string]: unknown } | null = await sequelize
-    .query('SELECT COUNT(1) as count FROM `user` WHERE 1 = 2', {
+  const res4: { [key: string]: unknown } | null = await sequelize.query(
+    'SELECT COUNT(1) as count FROM `user` WHERE 1 = 2',
+    {
       plain: true,
-    });
+    },
+  );
 }

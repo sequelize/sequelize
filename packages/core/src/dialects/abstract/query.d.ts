@@ -45,10 +45,10 @@ export interface AbstractQueryFormatBindOptions {
 }
 
 /**
-* An abstract class that Sequelize uses to add query support for a dialect.
-*
-* This interface is only exposed when running before/afterQuery lifecycle events.
-*/
+ * An abstract class that Sequelize uses to add query support for a dialect.
+ *
+ * This interface is only exposed when running before/afterQuery lifecycle events.
+ */
 export class AbstractQuery {
   /**
    * The SQL being executed by this Query.
@@ -162,9 +162,9 @@ export class AbstractQuery {
   isBulkUpdateQuery(): boolean;
 
   /**
-   * Checks if the query type is BULKDELETE
+   * Checks if the query type is DELETE
    */
-  isBulkDeleteQuery(): boolean;
+  isDeleteQuery(): boolean;
 
   /**
    * Checks if the query type is UPDATE
@@ -195,8 +195,8 @@ export class AbstractQuery {
    */
   protected _logQuery(
     sql: string,
-    debugContext: ((msg: string) => any),
-    parameters: unknown[] | Record<string, unknown>
+    debugContext: (msg: string) => any,
+    parameters: unknown[] | Record<string, unknown>,
   ): () => void;
 
   /**

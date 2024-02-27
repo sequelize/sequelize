@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
+import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast.js';
 import wkx from 'wkx';
 import { isValidTimeZone } from '../../utils/dayjs.js';
-import type { MySqlTypeCastValue } from './connection-manager.js';
 import type { MysqlDialect } from './index.js';
 
 /**
@@ -12,17 +12,18 @@ import type { MysqlDialect } from './index.js';
  */
 export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
   /*
-  * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
-  * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
-  */
-  dialect.registerDataTypeParser(['DATETIME'], (value: MySqlTypeCastValue) => {
+   * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
+   * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
+   */
+  dialect.registerDataTypeParser(['DATETIME'], (value: Field) => {
     const valueStr = value.string();
     if (valueStr === null) {
       return null;
     }
 
     const timeZone = dialect.sequelize.options.timezone;
-    if (timeZone === '+00:00') { // default value
+    if (timeZone === '+00:00') {
+      // default value
       // mysql returns a UTC date string that looks like the following:
       // 2022-01-01 00:00:00
       // The above does not specify a time zone offset, so Date.parse will try to parse it as a local time.
@@ -41,16 +42,16 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
   });
 
   // dateonly
-  dialect.registerDataTypeParser(['DATE'], (value: MySqlTypeCastValue) => {
+  dialect.registerDataTypeParser(['DATE'], (value: Field) => {
     return value.string();
   });
 
   // bigint
-  dialect.registerDataTypeParser(['LONGLONG'], (value: MySqlTypeCastValue) => {
+  dialect.registerDataTypeParser(['LONGLONG'], (value: Field) => {
     return value.string();
   });
 
-  dialect.registerDataTypeParser(['GEOMETRY'], (value: MySqlTypeCastValue) => {
+  dialect.registerDataTypeParser(['GEOMETRY'], (value: Field) => {
     let buffer = value.buffer();
     // Empty buffer, MySQL doesn't support POINT EMPTY
     // check, https://dev.mysql.com/worklog/task/?id=2381
@@ -59,7 +60,7 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
     }
 
     // For some reason, discard the first 4 bytes
-    buffer = buffer.slice(4);
+    buffer = buffer.subarray(4);
 
     return wkx.Geometry.parse(buffer).toGeoJSON({ shortCrs: true });
   });

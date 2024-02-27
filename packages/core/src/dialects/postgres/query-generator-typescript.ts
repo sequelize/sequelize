@@ -1,39 +1,53 @@
+import semver from 'semver';
 import type { Expression } from '../../sequelize.js';
 import { rejectInvalidOptions } from '../../utils/check.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { EscapeOptions, RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
+import type {
+  EscapeOptions,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
+import type { PostgresDialect } from './index.js';
+import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
 
-const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>(['collate', 'ctype', 'encoding', 'template']);
+const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
+  'collate',
+  'ctype',
+  'encoding',
+  'template',
+]);
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalDatabaseNames() {
-    return ['postgres'];
-  }
+  readonly #internals: PostgresQueryGeneratorInternal;
 
-  protected _getTechnicalSchemaNames() {
-    return ['information_schema', 'tiger', 'tiger_data', 'topology'];
+  constructor(
+    dialect: PostgresDialect,
+    internals: PostgresQueryGeneratorInternal = new PostgresQueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    this.#internals = internals;
   }
 
   listDatabasesQuery(options?: ListDatabasesQueryOptions) {
-    const databasesToSkip = this._getTechnicalDatabaseNames();
-
+    let databasesToSkip = this.#internals.getTechnicalDatabaseNames();
     if (options && Array.isArray(options?.skip)) {
-      databasesToSkip.push(...options.skip);
+      databasesToSkip = [...databasesToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -46,7 +60,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (options) {
       rejectInvalidOptions(
         'createDatabaseQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -63,7 +77,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = ['public', ...this._getTechnicalSchemaNames()];
+    const schemasToSkip = ['public', ...this.#internals.getTechnicalSchemaNames()];
 
     if (options && Array.isArray(options?.skip)) {
       schemasToSkip.push(...options.skip);
@@ -71,10 +85,11 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       `SELECT schema_name AS "schema" FROM information_schema.schemata`,
-      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`]);
+      `WHERE schema_name !~ E'^pg_' AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+    ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -108,14 +123,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys'`,
       options?.schema
         ? `AND table_schema = ${this.escape(options.schema)}`
-        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND table_schema !~ E'^pg_' AND table_schema NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY table_schema, table_name',
     ]);
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     const beforeTable = this.extractTableDetails(beforeTableName);
@@ -123,11 +141,15 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (beforeTable.schema !== afterTable.schema) {
       if (!options?.changeSchema) {
-        throw new Error('To move a table between schemas, you must set `options.changeSchema` to true.');
+        throw new Error(
+          'To move a table between schemas, you must set `options.changeSchema` to true.',
+        );
       }
 
       if (beforeTable.tableName !== afterTable.tableName) {
-        throw new Error(`Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`);
+        throw new Error(
+          `Renaming a table and moving it to a different schema is not supported by ${this.dialect.name}.`,
+        );
       }
 
       return `ALTER TABLE ${this.quoteTable(beforeTableName)} SET SCHEMA ${this.quoteIdentifier(afterTable.schema!)}`;
@@ -136,7 +158,15 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    return joinSQLFragments([
+      `TRUNCATE ${this.quoteTable(tableName)}`,
+      options?.restartIdentity ? 'RESTART IDENTITY' : '',
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     // Postgres converts camelCased alias to lowercase unless quoted
@@ -165,13 +195,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema)}`,
       options?.columnName ? `AND kcu.column_name = ${this.escape(options.columnName)}` : '',
-      options?.constraintName ? `AND c.constraint_name = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.constraint_type = ${this.escape(options.constraintType)}` : '',
+      options?.constraintName
+        ? `AND c.constraint_name = ${this.escape(options.constraintName)}`
+        : '',
+      options?.constraintType
+        ? `AND c.constraint_type = ${this.escape(options.constraintType)}`
+        : '',
       'ORDER BY c.constraint_name, kcu.ordinal_position',
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [>=6]: refactor the query to use pg_indexes
@@ -187,12 +221,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
     if (options?.cascade && options?.concurrently) {
-      throw new Error(`Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`);
+      throw new Error(
+        `Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`,
+      );
     }
 
     let indexName;
@@ -212,17 +248,20 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
-    const operator = path.length === 1
-      ? (unquote ? '->>' : '->')
-      : (unquote ? '#>>' : '#>');
+  jsonPathExtractionQuery(
+    sqlExpression: string,
+    path: ReadonlyArray<number | string>,
+    unquote: boolean,
+  ): string {
+    const operator = path.length === 1 ? (unquote ? '->>' : '->') : unquote ? '#>>' : '#>';
 
-    const pathSql = path.length === 1
-      // when accessing an array index with ->, the index must be a number
-      // when accessing an object key with ->, the key must be a string
-      ? this.escape(path[0])
-      // when accessing with #>, the path is always an array of strings
-      : this.escape(path.map(value => String(value)));
+    const pathSql =
+      path.length === 1
+        ? // when accessing an array index with ->, the index must be a number
+          // when accessing an object key with ->, the key must be a string
+          this.escape(path[0])
+        : // when accessing with #>, the path is always an array of strings
+          this.escape(path.map(value => String(value)));
 
     return sqlExpression + operator + pathSql;
   }
@@ -231,20 +270,23 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `${this.escape(arg, options)}#>>ARRAY[]::TEXT[]`;
   }
 
-  versionQuery() {
-    return 'SHOW SERVER_VERSION';
+  getUuidV1FunctionCall(): string {
+    return 'uuid_generate_v1()';
   }
 
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
+  getUuidV4FunctionCall(): string {
+    const dialectVersion = this.sequelize.getDatabaseVersion();
+
+    if (semver.lt(dialectVersion, '13.0.0')) {
+      return 'uuid_generate_v4()';
     }
 
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
+    // uuid_generate_v4 requires the uuid-ossp extension, which is not installed by default.
+    // This has broader support, as it is part of the core Postgres distribution, but is only available since Postgres 13.
+    return 'gen_random_uuid()';
+  }
 
-    return fragment;
+  versionQuery() {
+    return 'SHOW SERVER_VERSION';
   }
 }

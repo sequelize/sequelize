@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../integration/support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
@@ -13,7 +13,10 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
   describe('getAssociations', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', { username: DataTypes.STRING });
-      this.Task = this.sequelize.define('Task', { title: DataTypes.STRING, active: DataTypes.BOOLEAN });
+      this.Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING,
+        active: DataTypes.BOOLEAN,
+      });
 
       this.User.belongsToMany(this.Task, { through: 'UserTasks' });
       this.Task.belongsToMany(this.User, { through: 'UserTasks' });
@@ -41,107 +44,139 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
     });
 
     it('supports non primary key attributes for joins (custom through model)', async function () {
-      const User = this.sequelize.define('User', {
-        id: {
-          type: DataTypes.UUID,
-          allowNull: false,
-          primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
-          field: 'user_id',
-        },
-        userSecondId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-          defaultValue: DataTypes.UUIDV4,
-          field: 'user_second_id',
-        },
-      }, {
-        tableName: 'tbl_user',
-        indexes: [
-          {
-            unique: true,
-            fields: ['user_second_id'],
+      const User = this.sequelize.define(
+        'User',
+        {
+          id: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            primaryKey: true,
+            defaultValue: sql.uuidV4,
+            field: 'user_id',
           },
-        ],
-      });
+          userSecondId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV4,
+            field: 'user_second_id',
+          },
+        },
+        {
+          tableName: 'tbl_user',
+          indexes: [
+            {
+              unique: true,
+              fields: ['user_second_id'],
+            },
+          ],
+        },
+      );
 
-      const Group = this.sequelize.define('Group', {
-        id: {
-          type: DataTypes.UUID,
-          allowNull: false,
-          primaryKey: true,
-          defaultValue: DataTypes.UUIDV4,
-          field: 'group_id',
-        },
-        groupSecondId: {
-          type: DataTypes.UUID,
-          allowNull: false,
-          defaultValue: DataTypes.UUIDV4,
-          field: 'group_second_id',
-        },
-      }, {
-        tableName: 'tbl_group',
-        indexes: [
-          {
-            unique: true,
-            fields: ['group_second_id'],
+      const Group = this.sequelize.define(
+        'Group',
+        {
+          id: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            primaryKey: true,
+            defaultValue: sql.uuidV4,
+            field: 'group_id',
           },
-        ],
-      });
+          groupSecondId: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV4,
+            field: 'group_second_id',
+          },
+        },
+        {
+          tableName: 'tbl_group',
+          indexes: [
+            {
+              unique: true,
+              fields: ['group_second_id'],
+            },
+          ],
+        },
+      );
 
-      const User_has_Group = this.sequelize.define('User_has_Group', {}, {
-        tableName: 'tbl_user_has_group',
-        indexes: [
-          {
-            unique: true,
-            fields: ['UserUserSecondId', 'GroupGroupSecondId'],
-          },
-        ],
-      });
+      const User_has_Group = this.sequelize.define(
+        'User_has_Group',
+        {},
+        {
+          tableName: 'tbl_user_has_group',
+          indexes: [
+            {
+              unique: true,
+              fields: ['UserUserSecondId', 'GroupGroupSecondId'],
+            },
+          ],
+        },
+      );
 
       User.belongsToMany(Group, { through: User_has_Group, sourceKey: 'userSecondId' });
       Group.belongsToMany(User, { through: User_has_Group, sourceKey: 'groupSecondId' });
 
       await this.sequelize.sync({ force: true });
-      const [user1, user2, group1, group2] = await Promise.all([User.create(), User.create(), Group.create(), Group.create()]);
+      const [user1, user2, group1, group2] = await Promise.all([
+        User.create(),
+        User.create(),
+        Group.create(),
+        Group.create(),
+      ]);
       await Promise.all([user1.addGroup(group1), user2.addGroup(group2)]);
 
-      const [users, groups] = await Promise.all([User.findAll({
-        where: {},
-        include: [Group],
-      }), Group.findAll({
-        include: [User],
-      })]);
+      const [users, groups] = await Promise.all([
+        User.findAll({
+          where: {},
+          include: [Group],
+        }),
+        Group.findAll({
+          include: [User],
+        }),
+      ]);
 
       expect(users.length).to.equal(2);
       expect(users[0].Groups.length).to.equal(1);
       expect(users[1].Groups.length).to.equal(1);
       expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[0].userSecondId);
+        expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(
+          users[0].userSecondId,
+        );
       } else {
         expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.equal(users[0].userSecondId);
       }
 
       expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+          users[0].Groups[0].groupSecondId,
+        );
       } else {
-        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(users[0].Groups[0].groupSecondId);
+        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(
+          users[0].Groups[0].groupSecondId,
+        );
       }
 
       expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(users[1].userSecondId);
+        expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(
+          users[1].userSecondId,
+        );
       } else {
         expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.equal(users[1].userSecondId);
       }
 
       expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+          users[1].Groups[0].groupSecondId,
+        );
       } else {
-        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(users[1].Groups[0].groupSecondId);
+        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(
+          users[1].Groups[0].groupSecondId,
+        );
       }
 
       expect(groups.length).to.equal(2);
@@ -149,30 +184,46 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
       expect(groups[1].Users.length).to.equal(1);
       expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[0].groupSecondId);
+        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+          groups[0].groupSecondId,
+        );
       } else {
-        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.equal(groups[0].groupSecondId);
+        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.equal(
+          groups[0].groupSecondId,
+        );
       }
 
       expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[0].Users[0].userSecondId);
+        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(
+          groups[0].Users[0].userSecondId,
+        );
       } else {
-        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.equal(groups[0].Users[0].userSecondId);
+        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.equal(
+          groups[0].Users[0].userSecondId,
+        );
       }
 
       expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(groups[1].groupSecondId);
+        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+          groups[1].groupSecondId,
+        );
       } else {
-        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.equal(groups[1].groupSecondId);
+        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.equal(
+          groups[1].groupSecondId,
+        );
       }
 
       expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(groups[1].Users[0].userSecondId);
+        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(
+          groups[1].Users[0].userSecondId,
+        );
       } else {
-        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.equal(groups[1].Users[0].userSecondId);
+        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.equal(
+          groups[1].Users[0].userSecondId,
+        );
       }
     });
   });
@@ -317,8 +368,7 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
         const a1 = this.A.build({ name: 'a1' });
         const b1 = this.B.build({ name: 'b1' });
 
-        await a1
-          .save();
+        await a1.save();
 
         await b1.save();
         await b1.setRelation1(a1);
@@ -345,8 +395,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
@@ -391,9 +441,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('values', () => {
     it('returns all values', async function () {
-      const User = this.sequelize.define('UserHelper', {
-        username: DataTypes.STRING,
-      }, { timestamps: false, logging: false });
+      const User = this.sequelize.define(
+        'UserHelper',
+        {
+          username: DataTypes.STRING,
+        },
+        { timestamps: false, logging: false },
+      );
 
       await User.sync();
       const user = User.build({ username: 'foo' });
@@ -402,7 +456,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   describe(Support.getTestDialectTeaser('Model'), () => {
-
     before(function () {
       this.clock = sinon.useFakeTimers();
     });
@@ -412,7 +465,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     beforeEach(async function () {
-
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
         secretValue: DataTypes.STRING,

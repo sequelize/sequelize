@@ -10,7 +10,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
@@ -19,9 +19,7 @@ import type { SnowflakeDialect } from './index.js';
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection {
-
-}
+export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection {}
 
 // TODO: once the code has been split into packages, we won't need to lazy load this anymore
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
@@ -30,8 +28,8 @@ type Lib = typeof import('snowflake-sdk');
 export class SnowflakeConnectionManager extends AbstractConnectionManager<SnowflakeConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: SnowflakeDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: SnowflakeDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('snowflake-sdk') as Lib;
   }
 
@@ -75,10 +73,15 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<Snowfl
       if (!this.sequelize.config.keepDefaultTimezone) {
         // TODO: remove default timezone.
         // default value is '+00:00', put a quick workaround for it.
-        const tzOffset = this.sequelize.options.timezone === '+00:00' ? 'Etc/UTC' : this.sequelize.options.timezone;
+        const tzOffset =
+          this.sequelize.options.timezone === '+00:00'
+            ? 'Etc/UTC'
+            : this.sequelize.options.timezone;
         const isNamedTzOffset = tzOffset.includes('/');
         if (!isNamedTzOffset) {
-          throw new Error('Snowflake only supports named timezones for the sequelize "timezone" option.');
+          throw new Error(
+            'Snowflake only supports named timezones for the sequelize "timezone" option.',
+          );
         }
 
         await new Promise<void>((resolve, reject) => {

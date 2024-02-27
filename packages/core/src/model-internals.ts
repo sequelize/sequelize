@@ -1,7 +1,9 @@
 import NodeUtil from 'node:util';
 import type { IndexOptions } from './dialects/abstract/query-interface.js';
+import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Transactionable } from './model';
+import type { Attributes, Model, Transactionable } from './model';
+import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
 // TODO: strictly type this file during the TS migration of model.js
@@ -69,7 +71,9 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
         include.subQueryFilter = include.subQuery;
       } else {
         include.subQueryFilter = false;
-        include.subQuery = include.subQuery || include.hasParentRequired && include.hasRequired && !include.separate;
+        include.subQuery =
+          include.subQuery ||
+          (include.hasParentRequired && include.hasRequired && !include.separate);
       }
     }
 
@@ -86,8 +90,10 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
     }
 
     /* Legacy */
-    options.hasIncludeWhere = options.hasIncludeWhere || include.hasIncludeWhere || Boolean(include.where);
-    options.hasIncludeRequired = options.hasIncludeRequired || include.hasIncludeRequired || Boolean(include.required);
+    options.hasIncludeWhere =
+      options.hasIncludeWhere || include.hasIncludeWhere || Boolean(include.where);
+    options.hasIncludeRequired =
+      options.hasIncludeRequired || include.hasIncludeRequired || Boolean(include.required);
 
     if (include.association.isMultiAssociation || include.hasMultiAssociation) {
       options.hasMultiAssociation = true;
@@ -115,7 +121,9 @@ export function combineIncludes(a: any, b: any): any {
   }
 
   if (!Array.isArray(a) || !Array.isArray(b)) {
-    throw new TypeError('Includes should have already been normalized before calling this method, but it received something else than an array.');
+    throw new TypeError(
+      'Includes should have already been normalized before calling this method, but it received something else than an array.',
+    );
   }
 
   const combinedIncludes = [...a];
@@ -149,12 +157,21 @@ Got ${NodeUtil.inspect(include)} instead`);
 }
 
 export function setTransactionFromCls(options: Transactionable, sequelize: Sequelize): void {
-  if (options.transaction && (options.connection && options.connection !== options.transaction.getConnection())) {
-    throw new Error(`You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`);
+  if (
+    options.transaction &&
+    options.connection &&
+    options.connection !== options.transaction.getConnection()
+  ) {
+    throw new Error(
+      `You are using mismatching "transaction" and "connection" options. Please pass either one of them, or make sure they're both using the same connection.`,
+    );
   }
 
   if (options.transaction === undefined && options.connection == null) {
-    options.transaction = sequelize.getCurrentClsTransaction();
+    const currentTransaction = sequelize.getCurrentClsTransaction();
+    if (currentTransaction) {
+      options.transaction = currentTransaction;
+    }
   }
 
   if (options.connection) {
@@ -164,7 +181,10 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
       options.transaction = clsTransaction;
     }
   } else {
-    options.connection = options.transaction?.getConnectionIfExists();
+    const connection = options.transaction?.getConnectionIfExists();
+    if (connection) {
+      options.connection = connection;
+    }
   }
 }
 
@@ -181,4 +201,75 @@ export function conformIndex(index: IndexOptions): IndexOptions {
   }
 
   return index;
+}
+
+export function getPrimaryKeyValueOrThrow(instance: Model, attributeName: string): unknown {
+  const attrVal = instance.get(attributeName, { raw: true });
+  if (attrVal == null) {
+    throw new TypeError(
+      `This model instance method needs to be able to identify the entity in a stable way, but this model instance is missing the value of its primary key "${attributeName}". Make sure that attribute was not excluded when retrieving the model from the database.`,
+    );
+  }
+
+  return attrVal;
+}
+
+/**
+ * Returns a Where Object that can be used to uniquely select this instance, using the instance's primary keys.
+ *
+ * @param instance The instance for which the where options should be built.
+ * @param checkVersion include version attribute in where hash
+ * @param nullIfImpossible return null instead of throwing an error if the instance is missing its
+ *   primary keys and therefore no Where object can be built.
+ */
+export function getModelPkWhere<M extends Model>(
+  instance: M,
+  checkVersion?: boolean,
+  nullIfImpossible?: boolean,
+): WhereAttributeHash<Attributes<M>> | null {
+  const modelDefinition = instance.modelDefinition;
+
+  if (modelDefinition.primaryKeysAttributeNames.size === 0) {
+    if (nullIfImpossible) {
+      return null;
+    }
+
+    assertHasPrimaryKey(modelDefinition);
+  }
+
+  const where = Object.create(null);
+
+  for (const attributeName of modelDefinition.primaryKeysAttributeNames) {
+    const attrVal = nullIfImpossible
+      ? instance.get(attributeName, { raw: true })
+      : getPrimaryKeyValueOrThrow(instance, attributeName);
+
+    // nullIfImpossible case
+    if (attrVal == null) {
+      return null;
+    }
+
+    where[attributeName] = attrVal;
+  }
+
+  const versionAttr = modelDefinition.versionAttributeName;
+  if (checkVersion && versionAttr) {
+    where[versionAttr] = instance.get(versionAttr, { raw: true });
+  }
+
+  return where;
+}
+
+export function assertHasPrimaryKey(modelDefinition: ModelDefinition) {
+  if (modelDefinition.primaryKeysAttributeNames.size === 0) {
+    throw new Error(
+      `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition.
+Either add a primary key to this model, or use one of the following alternatives:
+
+- instance methods "save", "update", "decrement", "increment": Use the static "update" method instead.
+- instance method "reload": Use the static "findOne" method instead.
+- instance methods "destroy" and "restore": use the static "destroy" and "restore" methods instead.
+        `.trim(),
+    );
+  }
 }

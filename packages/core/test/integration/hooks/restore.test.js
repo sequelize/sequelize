@@ -19,14 +19,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       },
     });
 
-    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-      username: DataTypes.STRING,
-      mood: {
-        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+    this.ParanoidUser = this.sequelize.define(
+      'ParanoidUser',
+      {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+        },
       },
-    }, {
-      paranoid: true,
-    });
+      {
+        paranoid: true,
+      },
+    );
 
     await this.sequelize.sync({ force: true });
   });
@@ -84,5 +88,4 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
     });
   });
-
 });

@@ -1,6 +1,6 @@
 import maxBy from 'lodash/maxBy.js';
-import * as BaseTypes from '../abstract/data-types.js';
 import type { AcceptedDate } from '../abstract/data-types.js';
+import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
 export class DATE extends BaseTypes.DATE {
@@ -34,12 +34,6 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
 export class TEXT extends BaseTypes.TEXT {
   toSql() {
     return 'TEXT';
-  }
-}
-
-export class JSON extends BaseTypes.JSON {
-  escape(value: unknown) {
-    return globalThis.JSON.stringify(value);
   }
 }
 

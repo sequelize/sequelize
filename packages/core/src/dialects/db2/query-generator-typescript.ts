@@ -1,37 +1,65 @@
+import { randomBytes } from 'node:crypto';
+import { Op } from '../../operators.js';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
+import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import {
+  DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
-import type { RemoveIndexQueryOptions, TableNameOrModel } from '../abstract/query-generator-typescript';
 import type {
-  AddLimitOffsetOptions,
+  DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
-
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
-const RENAME_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof RenameTableQueryOptions>();
+import type { Db2Dialect } from './index.js';
+import { Db2QueryGeneratorInternal } from './query-generator-internal.js';
 
 /**
  * Temporary class to ease the TypeScript migration
  */
 export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
-  protected _getTechnicalSchemaNames() {
-    return ['ERRORSCHEMA', 'NULLID', 'SQLJ'];
+  readonly #internals: Db2QueryGeneratorInternal;
+
+  constructor(
+    dialect: Db2Dialect,
+    internals: Db2QueryGeneratorInternal = new Db2QueryGeneratorInternal(dialect),
+  ) {
+    super(dialect, internals);
+
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP_LIKE');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP_LIKE');
+
+    this.#internals = internals;
+  }
+
+  dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+        'dropSchemaQuery',
+        this.dialect,
+        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return `DROP SCHEMA ${this.quoteIdentifier(schemaName)} RESTRICT`;
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
-
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
     if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
+      schemasToSkip = [...schemasToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
@@ -40,7 +68,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  describeTableQuery(tableName: TableNameOrModel) {
+  describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -69,22 +97,25 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `FROM SYSCAT.TABLES WHERE TYPE = 'T'`,
       options?.schema
         ? `AND TABSCHEMA = ${this.escape(options.schema)}`
-        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        : `AND TABSCHEMA NOT LIKE 'SYS%' AND TABSCHEMA NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY TABSCHEMA, TABNAME',
     ]);
   }
 
   renameTableQuery(
-    beforeTableName: TableNameOrModel,
-    afterTableName: TableNameOrModel,
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
     if (options) {
       rejectInvalidOptions(
         'renameTableQuery',
-        this.dialect.name,
+        this.dialect,
         RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        RENAME_TABLE_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -93,13 +124,29 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     const afterTable = this.extractTableDetails(afterTableName);
 
     if (beforeTable.schema !== afterTable.schema) {
-      throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
+      throw new Error(
+        `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
+      );
     }
 
     return `RENAME TABLE ${this.quoteTable(beforeTableName)} TO ${this.quoteIdentifier(afterTable.tableName)}`;
   }
 
-  private _getConstraintType(type: ConstraintType): string {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
+  }
+
+  #getConstraintType(type: ConstraintType): string {
     switch (type) {
       case 'CHECK':
         return 'K';
@@ -114,7 +161,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
   }
 
-  showConstraintsQuery(tableName: TableNameOrModel, options?: ShowConstraintsQueryOptions) {
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -139,12 +186,14 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
       options?.columnName ? `AND k.COLNAME = ${this.escape(options.columnName)}` : '',
       options?.constraintName ? `AND c.CONSTNAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.TYPE = ${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      options?.constraintType
+        ? `AND c.TYPE = ${this.escape(this.#getConstraintType(options.constraintType))}`
+        : '',
       'ORDER BY c.CONSTNAME, k.COLSEQ, fk.COLSEQ',
     ]);
   }
 
-  showIndexesQuery(tableName: TableNameOrModel) {
+  showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -164,16 +213,16 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableNameOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
     if (options) {
       rejectInvalidOptions(
         'removeIndexQuery',
-        this.dialect.name,
+        this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -193,22 +242,17 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A';
   }
 
-  tableExistsQuery(tableName: TableNameOrModel): string {
+  tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
     return `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = ${this.escape(table.tableName)} AND TABSCHEMA = ${this.escape(table.schema)}`;
   }
 
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)} ROWS`;
-    }
+  createSavepointQuery(savepointName: string): string {
+    return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
 
-    if (options.limit != null) {
-      fragment += ` FETCH NEXT ${this.escape(options.limit, options)} ROWS ONLY`;
-    }
-
-    return fragment;
+  generateTransactionId(): string {
+    return randomBytes(10).toString('hex');
   }
 }

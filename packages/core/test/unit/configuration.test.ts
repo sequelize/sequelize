@@ -1,12 +1,14 @@
-import assert from 'node:assert';
-import path from 'node:path';
-import { expect } from 'chai';
 import type { Dialect } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { getSequelizeInstance, getTestDialect } from '../support';
+import { expect } from 'chai';
+import assert from 'node:assert';
+import path from 'node:path';
+import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 describe('Sequelize constructor', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0027']);
+
   it('throws when no dialect is supplied', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test');
@@ -147,11 +149,14 @@ describe('Sequelize constructor', () => {
     });
 
     it('merges querystring parameters with dialectOptions', () => {
-      const sequelize = new Sequelize(`${dialect}://example.com:9821/dbname?an_option=123&other_option=abc`, {
-        dialectOptions: {
-          thirdOption: 3,
+      const sequelize = new Sequelize(
+        `${dialect}://example.com:9821/dbname?an_option=123&other_option=abc`,
+        {
+          dialectOptions: {
+            thirdOption: 3,
+          },
         },
-      });
+      );
 
       expect(sequelize.config.replication.write).to.deep.eq({
         database: 'dbname',
@@ -170,7 +175,9 @@ describe('Sequelize constructor', () => {
     });
 
     it('handle JSON dialectOptions in querystring parameters', () => {
-      const sequelize = new Sequelize(`${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`);
+      const sequelize = new Sequelize(
+        `${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`,
+      );
 
       const dialectOptionsOptions = sequelize.config.replication.write.dialectOptions?.options;
       assert(dialectOptionsOptions !== null && typeof dialectOptionsOptions === 'object');
@@ -193,11 +200,21 @@ describe('Sequelize constructor', () => {
     });
 
     it('priorises the ?host querystring parameter over the rest of the URI', () => {
-      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=example.com`);
+      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
 
       const options = sequelize.options;
-      expect(options.host).to.equal('example.com');
-      expect(options.replication.write.host).to.equal('example.com');
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
+    });
+
+    it('supports using a socket path as an encoded domain', () => {
+      const sequelize = new Sequelize(
+        `${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`,
+      );
+
+      const options = sequelize.options;
+      expect(options.host).to.equal('/tmp/mysocket');
+      expect(options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
     it('supports connection strings in replication options', async () => {
@@ -323,7 +340,9 @@ describe('Sequelize constructor', () => {
     });
 
     it('should prefer storage in options object', () => {
-      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
+      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {
+        storage: '/completely/different/path.db',
+      });
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
       // TODO: Potential issue with storage param not resolving properly on windows
@@ -332,14 +351,18 @@ describe('Sequelize constructor', () => {
       expect(options.storage).to.equal('/completely/different/path.db');
     });
 
-    it('should be able to use :memory:', () => {
+    it('should be able to use :memory: (1)', () => {
       const sequelize = new Sequelize('sqlite://:memory:');
       const options = sequelize.options;
       expect(options.dialect).to.equal('sqlite');
+      expect(options.storage).to.equal(':memory:');
+    });
 
-      // empty host is treated as :memory:
-      expect(options.host).to.equal('');
-      expect(options.storage).to.equal(undefined);
+    it('should be able to use :memory: (2)', () => {
+      const sequelize = new Sequelize('sqlite::memory:');
+      const options = sequelize.options;
+      expect(options.dialect).to.equal('sqlite');
+      expect(options.storage).to.equal(':memory:');
     });
   });
 });

@@ -1,8 +1,8 @@
+import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
-import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
 import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import type { Db2Dialect } from './index.js';
@@ -29,8 +29,8 @@ export interface Db2Connection extends Connection, Db2LibDatabase {
 export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connection> {
   private readonly lib;
 
-  constructor(dialect: Db2Dialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: Db2Dialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('ibm_db') as Lib;
   }
 

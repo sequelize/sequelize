@@ -26,30 +26,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     await this.User.sync({ force: true });
 
-    await this.User.bulkCreate([{
-      id: 1,
-      aNumber: 0,
-      bNumber: 0,
-    }, {
-      id: 2,
-      aNumber: 0,
-      bNumber: 0,
-    }, {
-      id: 3,
-      aNumber: 0,
-      bNumber: 0,
-    }, {
-      id: 4,
-      aNumber: 0,
-      bNumber: 0,
-      cNumber: 0,
-    }]);
+    await this.User.bulkCreate([
+      {
+        id: 1,
+        aNumber: 0,
+        bNumber: 0,
+      },
+      {
+        id: 2,
+        aNumber: 0,
+        bNumber: 0,
+      },
+      {
+        id: 3,
+        aNumber: 0,
+        bNumber: 0,
+      },
+      {
+        id: 4,
+        aNumber: 0,
+        bNumber: 0,
+        cNumber: 0,
+      },
+    ]);
   });
 
-  for (const method of [
-    'increment',
-    'decrement',
-  ]) {
+  for (const method of ['increment', 'decrement']) {
     describe(method, () => {
       before(function () {
         this.assert = (increment, decrement) => {
@@ -134,9 +136,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('with timestamps set to true', async function () {
-        const User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER,
-        }, { timestamps: true });
+        const User = this.sequelize.define(
+          'IncrementUser',
+          {
+            aNumber: DataTypes.INTEGER,
+          },
+          { timestamps: true },
+        );
 
         await User.sync({ force: true });
         const user = await User.create({ aNumber: 1 });
@@ -149,9 +155,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('with timestamps set to true and options.silent set to true', async function () {
-        const User = this.sequelize.define('IncrementUser', {
-          aNumber: DataTypes.INTEGER,
-        }, { timestamps: true });
+        const User = this.sequelize.define(
+          'IncrementUser',
+          {
+            aNumber: DataTypes.INTEGER,
+          },
+          { timestamps: true },
+        );
 
         await User.sync({ force: true });
         const user = await User.create({ aNumber: 1 });
@@ -166,18 +176,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should work with scopes', async function () {
-        const User = this.sequelize.define('User', {
-          aNumber: DataTypes.INTEGER,
-          name: DataTypes.STRING,
-        }, {
-          scopes: {
-            jeff: {
-              where: {
-                name: 'Jeff',
+        const User = this.sequelize.define(
+          'User',
+          {
+            aNumber: DataTypes.INTEGER,
+            name: DataTypes.STRING,
+          },
+          {
+            scopes: {
+              jeff: {
+                where: {
+                  name: 'Jeff',
+                },
               },
             },
           },
-        });
+        );
 
         await User.sync({ force: true });
 
@@ -192,8 +206,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         ]);
 
-        await User.scope('jeff')[method]('aNumber', {});
-        const jeff = await User.scope('jeff').findOne();
+        await User.withScope('jeff')[method]('aNumber', {});
+        const jeff = await User.withScope('jeff').findOne();
         expect(jeff.aNumber).to.equal(this.assert(2, 0));
 
         const notJeff = await User.findOne({
@@ -209,7 +223,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: ['foo', 'bar'],
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));
@@ -218,7 +232,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: { exclude: ['foo', 'bar'] },
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));
@@ -227,12 +241,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: { include: ['foo', 'bar'] },
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));
       });
-
     });
   }
 });

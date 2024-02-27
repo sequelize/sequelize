@@ -62,10 +62,13 @@ describe('Model#findOrBuild', () => {
     });
 
     it('initialize with includes', async function () {
-      const [, user2] = await this.User.bulkCreate([
-        { username: 'Mello', age: 10 },
-        { username: 'Mello', age: 20 },
-      ], { returning: true });
+      const [, user2] = await this.User.bulkCreate(
+        [
+          { username: 'Mello', age: 10 },
+          { username: 'Mello', age: 20 },
+        ],
+        { returning: true },
+      );
 
       const project = await this.Project.create({
         name: 'Investigate',
@@ -81,9 +84,11 @@ describe('Model#findOrBuild', () => {
         where: {
           age: 20,
         },
-        include: [{
-          model: this.Project,
-        }],
+        include: [
+          {
+            model: this.Project,
+          },
+        ],
       });
 
       expect(created).to.be.false;
@@ -91,16 +96,21 @@ describe('Model#findOrBuild', () => {
       expect(user.get('username')).to.equal('Mello');
       expect(user.get('age')).to.equal(20);
 
-      expect(user.Projects).to.have.length(1);
-      expect(user.Projects[0].get('name')).to.equal('Investigate');
+      expect(user.projects).to.have.length(1);
+      expect(user.projects[0].get('name')).to.equal('Investigate');
     });
   });
 
   context('test-specific models', () => {
     if (Support.sequelize.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
-        const User = sequelize.define('User', { username: DataTypes.STRING, foo: DataTypes.STRING });
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
+        const User = sequelize.define('User', {
+          username: DataTypes.STRING,
+          foo: DataTypes.STRING,
+        });
 
         await User.sync({ force: true });
         const t = await sequelize.startUnmanagedTransaction();

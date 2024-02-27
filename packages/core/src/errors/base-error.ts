@@ -77,7 +77,6 @@ function addCause(message: string = '', cause?: unknown) {
 }
 
 function getErrorMessage(error: unknown) {
-
   if (error instanceof Error) {
     return error.message;
   }

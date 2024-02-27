@@ -41,10 +41,19 @@ export class Db2Dialect extends AbstractDialect {
       changeSchema: false,
       changeSchemaAndTable: false,
     },
+    createSchema: {
+      authorization: true,
+    },
+    connectionTransactionMethods: true,
+    startTransaction: {
+      useBegin: true,
+    },
   });
 
   readonly defaultVersion = '1.0.0';
-  readonly dataTypesDocumentationUrl = 'https://www.ibm.com/support/knowledgecenter/SSEPGG_11.1.0/com.ibm.db2.luw.sql.ref.doc/doc/r0008478.html';
+  readonly dataTypesDocumentationUrl =
+    'https://www.ibm.com/support/knowledgecenter/SSEPGG_11.1.0/com.ibm.db2.luw.sql.ref.doc/doc/r0008478.html';
+
   readonly connectionManager: Db2ConnectionManager;
   readonly queryGenerator: Db2QueryGenerator;
   readonly queryInterface: Db2QueryInterface;
@@ -55,12 +64,9 @@ export class Db2Dialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize) {
     super(sequelize, DataTypes, 'db2');
-    this.connectionManager = new Db2ConnectionManager(this, sequelize);
-    this.queryGenerator = new Db2QueryGenerator({
-      dialect: this,
-      sequelize,
-    });
-    this.queryInterface = new Db2QueryInterface(sequelize, this.queryGenerator);
+    this.connectionManager = new Db2ConnectionManager(this);
+    this.queryGenerator = new Db2QueryGenerator(this);
+    this.queryInterface = new Db2QueryInterface(this);
 
     this.registerDataTypeParser(['CHAR () FOR BIT DATA', 'VARCHAR () FOR BIT DATA'], value => {
       return value.toString();
