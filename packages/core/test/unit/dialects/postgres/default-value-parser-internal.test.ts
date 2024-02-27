@@ -115,5 +115,31 @@ if (dialect.startsWith('postgres')) {
         );
       });
     });
+
+    for (const type of ['JSON', 'JSONB']) {
+      describe(`for ${type}`, () => {
+        it(`should return the parsed JSON when rawDefaultValue is a ${type}`, () => {
+          expect(
+            parseDefaultValue(`'{"key": "value"}'::${type.toLowerCase()}`, {
+              ...defaultField,
+              type,
+            }),
+          ).to.eql({
+            key: 'value',
+          });
+        });
+
+        it(`should unescape single quotes when rawDefaultValue is a ${type} with escaped quotes`, () => {
+          expect(
+            parseDefaultValue(`'{"key": "value''s"}'::${type.toLowerCase()}`, {
+              ...defaultField,
+              type,
+            }),
+          ).to.eql({
+            key: "value's",
+          });
+        });
+      });
+    }
   });
 }

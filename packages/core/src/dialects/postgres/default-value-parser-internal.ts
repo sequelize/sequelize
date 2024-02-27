@@ -31,6 +31,18 @@ export function parseDefaultValue(
     return rawDefaultValue;
   }
 
+  if (
+    (field.type === 'JSON' && rawDefaultValue.endsWith('::json')) ||
+    (field.type === 'JSONB' && rawDefaultValue.endsWith('::jsonb'))
+  ) {
+    const json = rawDefaultValue
+      .replace(/^'/, '')
+      .replace(/'?::jsonb?$/, '')
+      .replaceAll("''", "'");
+
+    return JSON.parse(json);
+  }
+
   if (rawDefaultValue.startsWith("'")) {
     return parseStringValue(rawDefaultValue);
   }

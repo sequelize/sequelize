@@ -349,6 +349,70 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       }
 
+      describe('Enums', () => {
+        it('should return the right default value for enums', async function () {
+          await this.sequelize.queryInterface.createTable('users_enum', {
+            state: {
+              type: DataTypes.ENUM('happy', 'sad', 'meh'),
+              defaultValue: 'happy',
+            },
+          });
+
+          const metadata = await this.queryInterface.describeTable('users_enum');
+          expect(metadata.state.defaultValue).to.eql('happy');
+        });
+      });
+
+      if (Support.sequelize.dialect.supports.dataTypes.ARRAY) {
+        describe('ARRAY', () => {
+          it('should return the right default value for arrays of strings', async function () {
+            await this.sequelize.queryInterface.createTable('users_array', {
+              tags: {
+                type: DataTypes.ARRAY(DataTypes.STRING),
+                defaultValue: ['happy', 'sad', 'meh'],
+              },
+            });
+
+            const metadata = await this.queryInterface.describeTable('users_array');
+            expect(metadata.tags.defaultValue).to.eql(
+              literal(
+                "ARRAY['happy'::character varying(255), 'sad'::character varying(255), 'meh'::character varying(255)]",
+              ),
+            );
+          });
+
+          it('should return the right default value for arrays of integers', async function () {
+            await this.sequelize.queryInterface.createTable('users_array', {
+              tags: {
+                type: DataTypes.ARRAY(DataTypes.INTEGER),
+                defaultValue: [1, 2, 3],
+              },
+            });
+
+            const metadata = await this.queryInterface.describeTable('users_array');
+            expect(metadata.tags.defaultValue).to.eql(literal('ARRAY[1, 2, 3]'));
+          });
+        });
+      }
+
+      [DataTypes.JSON, DataTypes.JSONB].forEach(dataType => {
+        if (Support.sequelize.dialect.supports.dataTypes[dataType.name]) {
+          describe(`for fields of type ${dataType.name}`, () => {
+            it('should return the right default value for a JSON object', async function () {
+              await this.sequelize.queryInterface.createTable('user_with_json', {
+                settings: {
+                  type: dataType,
+                  defaultValue: { foo: "bar's" },
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('user_with_json');
+              expect(metadata.settings.defaultValue).to.eql({ foo: "bar's" });
+            });
+          });
+        }
+      });
+
       it('should return the right default value for a function call', async function () {
         const now =
           dialect === 'sqlite' ? 'CURRENT_TIMESTAMP' : dialect === 'mssql' ? 'getdate()' : 'now()';
