@@ -40,6 +40,7 @@ type InsertOptions = ParameterOptions &
 
 type BulkInsertOptions = ParameterOptions & {
   hasTrigger?: boolean;
+  bindParam?: false | ((value: unknown) => string);
 
   updateOnDuplicate?: string[];
   ignoreDuplicates?: boolean;
@@ -93,13 +94,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     valueHash: object,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
     options?: InsertOptions,
-  ): { query: string; bind?: unknown[] };
+  ): { query: string; bind?: Record<string, unknown> };
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): string;
+  ): { query: string; bind?: Record<string, unknown> };
 
   addColumnQuery(
     table: TableName,
@@ -114,7 +115,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     where: WhereOptions,
     options?: UpdateOptions,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): { query: string; bind?: unknown[] };
+  ): { query: string; bind?: Record<string, unknown> };
 
   arithmeticQuery(
     operator: string,

@@ -19,7 +19,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   it('parses named replacements in literals', async () => {
     const { User } = vars;
 
-    const sql = queryGenerator.bulkInsertQuery(
+    const { query } = queryGenerator.bulkInsertQuery(
       User.table,
       [
         {
@@ -33,7 +33,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
       },
     );
 
-    expectsql(sql, {
+    expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('a string');`,
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'a string');`,
       // TODO: ibmi should be the same as `default`, since the 'returning' option is not specified

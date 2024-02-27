@@ -195,7 +195,7 @@ describe('Model', () => {
               default: {
                 // mysql, sqlite
                 expect(sql).to.include(
-                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL',
+                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (',
                 );
               }
             }

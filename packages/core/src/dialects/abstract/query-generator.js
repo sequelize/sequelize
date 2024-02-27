@@ -292,6 +292,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
+    const bind = Object.create(null);
+    const bindParam = options.bindParam ?? this.bindParam(bind);
     const tuples = [];
     const serials = {};
     const allAttributes = [];
@@ -318,7 +320,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
+          bindParam,
           type: fieldMappedAttributes[key]?.type,
           replacements: options.replacements,
         });
@@ -386,7 +388,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return joinSQLFragments([
+    const query = joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -399,6 +401,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
+
+    const result = { query };
+
+    if (bindParam !== false) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**
