@@ -249,8 +249,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         '-99',
       ].forEach(defaultValue => {
         [DataTypes.STRING, DataTypes.TEXT, DataTypes.STRING(50)]
-          // TEXT fields in MySQL cannot have a default value
-          .filter(dataType => dataType !== DataTypes.TEXT || dialect !== 'mysql')
+          // TEXT fields in MySQL or MariaDB cannot have a default value
+          .filter(
+            dataType =>
+              dataType !== DataTypes.TEXT || (dialect !== 'mysql' && dialect !== 'mariadb'),
+          )
+          // .filter(dataType => dataType !== DataTypes.TEXT || dialect !== 'mariadb' || Support.sequelize.config.)
           .forEach(dataType => {
             it(`should return the right default value ${defaultValue} for fields of type ${dataType}`, async function () {
               await this.sequelize.queryInterface.createTable('with_string_default', {
@@ -396,7 +400,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       [DataTypes.JSON, DataTypes.JSONB].forEach(dataType => {
-        if (Support.sequelize.dialect.supports.dataTypes[dataType.name]) {
+        // MariaDB does not support default values in JSON fields
+        if (Support.sequelize.dialect.supports.dataTypes[dataType.name] && dialect !== 'mariadb') {
           describe(`for fields of type ${dataType.name}`, () => {
             it('should return the right default value for a JSON object', async function () {
               await this.sequelize.queryInterface.createTable('user_with_json', {
@@ -415,7 +420,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       it('should return the right default value for a function call', async function () {
         const now =
-          dialect === 'sqlite' ? 'CURRENT_TIMESTAMP' : dialect === 'mssql' ? 'getdate()' : 'now()';
+          dialect === 'sqlite'
+            ? 'CURRENT_TIMESTAMP'
+            : dialect === 'mssql'
+              ? 'getdate()'
+              : dialect === 'mariadb'
+                ? 'current_timestamp()'
+                : 'now()';
 
         await this.sequelize.queryInterface.createTable(
           'user_with_date',
@@ -445,7 +456,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         Support.expectPerDialect(() => metadata.id.defaultValue, {
           postgres: literal(`nextval('user_autoincrement_id_seq'::regclass)`),
-          mysql: undefined,
+          'mysql mariadb': undefined,
           sqlite: undefined,
         });
       });

@@ -6,31 +6,34 @@ const NUMBER_TYPES = ['INT', 'TINYINT', 'SMALLINT', 'MEDIUMINT', 'BIGINT', 'FLOA
 export function parseDefaultValue(
   rawDefaultValue: string | null,
   field: Omit<ColumnDescription, 'defaultValue'>,
-  extra: string,
 ): unknown {
-  if (extra?.toUpperCase().includes('DEFAULT_GENERATED')) {
-    if (rawDefaultValue) {
-      return literal(rawDefaultValue);
-    }
-
+  if (field.autoIncrement || rawDefaultValue === null) {
     return undefined;
   }
 
-  if (field.autoIncrement) {
-    return undefined;
-  }
-
-  if (rawDefaultValue === null) {
+  if (rawDefaultValue === 'NULL') {
     return null;
   }
 
   if (
-    NUMBER_TYPES.includes(field.type) &&
+    NUMBER_TYPES.some(type => field.type.startsWith(type)) &&
     rawDefaultValue &&
     !Number.isNaN(Number(rawDefaultValue))
   ) {
     return Number(rawDefaultValue);
   }
 
-  return rawDefaultValue;
+  if (field.type.startsWith('DECIMAL(')) {
+    return rawDefaultValue;
+  }
+
+  if (rawDefaultValue.startsWith("'") && rawDefaultValue.endsWith("'")) {
+    return rawDefaultValue.slice(1, -1).replaceAll("''", "'").replaceAll('\\\\', '\\');
+  }
+
+  if (!Number.isNaN(Number(rawDefaultValue))) {
+    return rawDefaultValue;
+  }
+
+  return literal(rawDefaultValue);
 }

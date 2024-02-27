@@ -59,7 +59,20 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+    const table = this.extractTableDetails(tableName);
+
+    return `SELECT TABLE_NAME AS 'Table',
+        COLUMN_NAME AS 'Field',
+        COLUMN_DEFAULT AS 'Default',
+        IS_NULLABLE AS 'Null',
+        COLUMN_TYPE AS 'Type',
+        EXTRA AS 'Extra',
+        COLUMN_COMMENT AS 'Comment',
+        COLUMN_KEY AS 'Key'
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE ${table.schema ? `TABLE_SCHEMA = ${this.escape(table.schema)}` : ''}
+      AND TABLE_NAME = ${this.escape(table.tableName)}
+      ORDER BY TABLE_NAME, ORDINAL_POSITION`;
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {

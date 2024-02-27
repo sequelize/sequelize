@@ -21,8 +21,8 @@ if (dialect.startsWith('mysql')) {
     });
 
     it('should return undefined for auto incremented value', () => {
-      expect(parseDefaultValue(null, { ...defaultField, type: 'INT' }, 'auto_increment')).to.be
-        .undefined;
+      expect(parseDefaultValue(null, { ...defaultField, type: 'INT', autoIncrement: true }, '')).to
+        .be.undefined;
     });
 
     it('should return undefined for default generated value', () => {
