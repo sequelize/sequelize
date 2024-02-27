@@ -176,8 +176,10 @@ export class MsSqlQuery extends AbstractQuery {
       for (const _result of data) {
         const defaultValue = {
           raw: _result.Default,
-          parsed: _result.Default ? _result.Default.replace("('", '').replace("')", '').replaceAll("'", '') : undefined,
-        }
+          parsed: _result.Default
+            ? _result.Default.replace("('", '').replace("')", '').replaceAll("'", '')
+            : undefined,
+        };
 
         result[_result.Name] = {
           type: _result.Type.toUpperCase(),

@@ -161,7 +161,7 @@ export class MariaDbQuery extends AbstractQuery {
           allowNull: _result.Null === 'YES',
           defaultValue: {
             raw: _result.Default,
-            parsed: _result.Default
+            parsed: _result.Default,
           },
           primaryKey: _result.Key === 'PRI',
           autoIncrement:

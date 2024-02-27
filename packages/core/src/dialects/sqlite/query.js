@@ -123,9 +123,7 @@ export class SqliteQuery extends AbstractQuery {
         };
 
         if (result[_result.name].type === 'TINYINT(1)') {
-          defaultValue.parsed = { 0: false, 1: true }[
-            defaultValue.raw
-          ];
+          defaultValue.parsed = { 0: false, 1: true }[defaultValue.raw];
         }
 
         if (typeof defaultValue.parsed === 'string') {
