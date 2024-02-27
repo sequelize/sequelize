@@ -206,8 +206,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         ]);
 
-        await User.scope('jeff')[method]('aNumber', {});
-        const jeff = await User.scope('jeff').findOne();
+        await User.withScope('jeff')[method]('aNumber', {});
+        const jeff = await User.withScope('jeff').findOne();
         expect(jeff.aNumber).to.equal(this.assert(2, 0));
 
         const notJeff = await User.findOne({
@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: ['foo', 'bar'],
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));
@@ -232,7 +232,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: { exclude: ['foo', 'bar'] },
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));
@@ -241,7 +241,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.User.addScope('test', {
           attributes: { include: ['foo', 'bar'] },
         });
-        const createdUser = await this.User.scope('test').create({ id: 5, aNumber: 5 });
+        const createdUser = await this.User.withScope('test').create({ id: 5, aNumber: 5 });
         await createdUser[method]('aNumber', { by: 2 });
         const user = await this.User.findByPk(5);
         expect(user.aNumber).to.equal(this.assert(7, 3));

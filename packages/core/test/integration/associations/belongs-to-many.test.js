@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, IsolationLevel, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, IsolationLevel, Op, Sequelize, sql } = require('@sequelize/core');
 const assert = require('node:assert');
 const sinon = require('sinon');
 
@@ -178,19 +178,19 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .define('User', {
             username: DataTypes.STRING,
           })
-          .schema('acme', '_');
+          .withSchema({ schema: 'acme', schemaDelimiter: '_' });
         const AcmeProject = this.sequelize
           .define('Project', {
             title: DataTypes.STRING,
             active: DataTypes.BOOLEAN,
           })
-          .schema('acme', '_');
+          .withSchema({ schema: 'acme', schemaDelimiter: '_' });
         const AcmeProjectUsers = this.sequelize
           .define('ProjectUsers', {
             status: DataTypes.STRING,
             data: DataTypes.INTEGER,
           })
-          .schema('acme', '_');
+          .withSchema({ schema: 'acme', schemaDelimiter: '_' });
 
         AcmeUser.belongsToMany(AcmeProject, {
           through: AcmeProjectUsers,
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           id_user: {
             type: DataTypes.UUID,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             allowNull: false,
           },
         },
@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
           },
         },
         {
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
         },
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
         },
@@ -371,13 +371,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -399,13 +399,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -537,13 +537,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -565,7 +565,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
         },
@@ -681,13 +681,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -709,13 +709,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -855,13 +855,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -883,13 +883,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -1043,12 +1043,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -1070,12 +1070,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -1135,13 +1135,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -1163,13 +1163,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -1290,13 +1290,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -1318,13 +1318,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -1474,7 +1474,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
         },
@@ -1490,7 +1490,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'company_id',
           },
         },
@@ -1506,7 +1506,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
         },
@@ -2638,7 +2638,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         id: {
           primaryKey: true,
           type: DataTypes.UUID,
-          defaultValue: DataTypes.UUIDV4,
+          defaultValue: sql.uuidV4,
         },
         name: {
           type: DataTypes.STRING,

@@ -1,13 +1,15 @@
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { allowDeprecationsInSuite, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
 describe('DataTypes.REAL', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0014']);
+
   const zeroFillUnsupportedError =
     new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);

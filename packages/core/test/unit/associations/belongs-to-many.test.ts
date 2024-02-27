@@ -1325,8 +1325,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('BelongsToMany');
-
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
@@ -1355,8 +1354,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('BelongsToMany');
         expect(firstArg.association.constructor.name).to.equal('BelongsToMany');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {

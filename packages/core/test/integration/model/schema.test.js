@@ -180,10 +180,10 @@ describe('Model', () => {
         foreignKeyConstraints: false,
       });
 
-      this.EmployeeOne = this.Employee.schema(SCHEMA_ONE);
-      this.EmployeeTwo = this.Employee.schema(SCHEMA_TWO);
-      this.RestaurantOne = this.Restaurant.schema(SCHEMA_ONE);
-      this.RestaurantTwo = this.Restaurant.schema(SCHEMA_TWO);
+      this.EmployeeOne = this.Employee.withSchema(SCHEMA_ONE);
+      this.EmployeeTwo = this.Employee.withSchema(SCHEMA_TWO);
+      this.RestaurantOne = this.Restaurant.withSchema(SCHEMA_ONE);
+      this.RestaurantTwo = this.Restaurant.withSchema(SCHEMA_TWO);
 
       await Promise.all([current.createSchema(SCHEMA_ONE), current.createSchema(SCHEMA_TWO)]);
 
@@ -442,7 +442,7 @@ describe('Model', () => {
         expect(employees.length).to.equal(1);
         expect(employees[0].last_name).to.equal('two');
 
-        const obj = await this.Employee.schema(SCHEMA_TWO).findOne({
+        const obj = await this.Employee.withSchema(SCHEMA_TWO).findOne({
           where: { last_name: 'two' },
           include: [
             {
@@ -465,21 +465,21 @@ describe('Model', () => {
       it('should build and persist instances to 2 schemas concurrently in any order', async function () {
         const Restaurant = this.Restaurant;
 
-        let restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.1' });
-        const restaurauntModelSchema2 = Restaurant.schema(SCHEMA_TWO).build({ bar: 'two.1' });
+        let restaurauntModelSchema1 = Restaurant.withSchema(SCHEMA_ONE).build({ bar: 'one.1' });
+        const restaurauntModelSchema2 = Restaurant.withSchema(SCHEMA_TWO).build({ bar: 'two.1' });
 
         await restaurauntModelSchema1.save();
-        restaurauntModelSchema1 = Restaurant.schema(SCHEMA_ONE).build({ bar: 'one.2' });
+        restaurauntModelSchema1 = Restaurant.withSchema(SCHEMA_ONE).build({ bar: 'one.2' });
         await restaurauntModelSchema2.save();
         await restaurauntModelSchema1.save();
-        const restaurantsOne = await Restaurant.schema(SCHEMA_ONE).findAll();
+        const restaurantsOne = await Restaurant.withSchema(SCHEMA_ONE).findAll();
         expect(restaurantsOne).to.not.be.null;
         expect(restaurantsOne.length).to.equal(2);
         for (const restaurant of restaurantsOne) {
           expect(restaurant.bar).to.contain('one');
         }
 
-        const restaurantsTwo = await Restaurant.schema(SCHEMA_TWO).findAll();
+        const restaurantsTwo = await Restaurant.withSchema(SCHEMA_TWO).findAll();
         expect(restaurantsTwo).to.not.be.null;
         expect(restaurantsTwo.length).to.equal(1);
         for (const restaurant of restaurantsTwo) {

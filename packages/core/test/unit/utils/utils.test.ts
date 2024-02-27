@@ -14,7 +14,7 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { allowDeprecationsInSuite, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -170,6 +170,8 @@ describe('Utils', () => {
   });
 
   describe('toDefaultValue', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0026']);
+
     it('return uuid v1', () => {
       expect(
         /^[\da-z-]{36}$/.test(

@@ -15,8 +15,35 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   });
 
   describe('describeTable', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0015']);
+
     if (Support.sequelize.dialect.supports.schemas) {
-      it('reads the metadata of the table with schema', async function () {
+      it('reads the metadata of the table with schema in object', async function () {
+        const MyTable1 = this.sequelize.define('my_table', {
+          username1: DataTypes.STRING,
+        });
+
+        const MyTable2 = this.sequelize.define(
+          'my_table',
+          {
+            username2: DataTypes.STRING,
+          },
+          { schema: 'test_meta' },
+        );
+
+        await this.sequelize.createSchema('test_meta');
+        await MyTable1.sync({ force: true });
+        await MyTable2.sync({ force: true });
+        const metadata0 = await this.queryInterface.describeTable({
+          tableName: 'my_tables',
+          schema: 'test_meta',
+        });
+        expect(metadata0.username2).not.to.be.undefined;
+        const metadata = await this.queryInterface.describeTable('my_tables');
+        expect(metadata.username1).not.to.be.undefined;
+      });
+
+      it('reads the metadata of the table with schema parameter', async function () {
         const MyTable1 = this.sequelize.define('my_table', {
           username1: DataTypes.STRING,
         });

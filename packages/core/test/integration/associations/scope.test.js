@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
         expect(comment0.get('commentable')).to.equal('post');
         expect(comment0.get('isMain')).to.be.false;
-        const post0 = await this.Post.scope('withMainComment').findByPk(this.post.get('id'));
+        const post0 = await this.Post.withScope('withMainComment').findByPk(this.post.get('id'));
         expect(post0.mainComment).to.be.null;
 
         const mainComment1 = await post0.createMainComment({
@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
         this.mainComment = mainComment1;
         expect(mainComment1.get('commentable')).to.equal('post');
         expect(mainComment1.get('isMain')).to.be.true;
-        const post = await this.Post.scope('withMainComment').findByPk(this.post.id);
+        const post = await this.Post.withScope('withMainComment').findByPk(this.post.id);
         expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
         const mainComment0 = await post.getMainComment();
         expect(mainComment0.get('commentable')).to.equal('post');
@@ -167,7 +167,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
         expect(post0.mainComment.get('commentable')).to.equal('post');
         expect(post0.mainComment.get('isMain')).to.be.true;
-        const post = await this.Post.scope('withMainComment').findByPk(post0.id);
+        const post = await this.Post.withScope('withMainComment').findByPk(post0.id);
         expect(post.mainComment.get('commentable')).to.equal('post');
         expect(post.mainComment.get('isMain')).to.be.true;
       });
@@ -289,11 +289,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           title: 'I am a post comment',
         });
 
-        await this.Post.scope('withComments').findAll({
+        await this.Post.withScope('withComments').findAll({
           logging,
         });
 
-        await this.Post.scope('withComments').findAll({
+        await this.Post.withScope('withComments').findAll({
           logging,
         });
 
@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           expect(comment.get('commentable')).to.equal('post');
         }
 
-        post = await this.Post.scope('withComments').findByPk(this.post.id);
+        post = await this.Post.withScope('withComments').findByPk(this.post.id);
         for (const comment of post.comments) {
           expect(comment.get('commentable')).to.equal('post');
         }

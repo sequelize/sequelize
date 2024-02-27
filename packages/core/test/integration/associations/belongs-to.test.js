@@ -128,10 +128,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       it('supports schemas', async function () {
         const User = this.sequelize
           .define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING })
-          .schema('archive');
+          .withSchema('archive');
         const Task = this.sequelize
           .define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING })
-          .schema('archive');
+          .withSchema('archive');
 
         Task.belongsTo(User);
 
@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               allowNull: false,
             },
           })
-          .schema('archive');
+          .withSchema('archive');
         const Task = this.sequelize
           .define('TaskXYZ', {
             user_id: {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               references: { model: User, key: 'uid' },
             },
           })
-          .schema('archive');
+          .withSchema('archive');
 
         Task.belongsTo(User, { foreignKey: 'user_id' });
 

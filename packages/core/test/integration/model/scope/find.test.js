@@ -106,13 +106,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able use where in scope', async function () {
-      const users = await this.ScopeMe.scope({ where: { parent_id: 2 } }).findAll();
+      const users = await this.ScopeMe.withScope({ where: { parent_id: 2 } }).findAll();
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('tobi');
     });
 
     it('should be able to combine scope and findAll where clauses', async function () {
-      const users = await this.ScopeMe.scope({ where: { parent_id: 1 } }).findAll({
+      const users = await this.ScopeMe.withScope({ where: { parent_id: 1 } }).findAll({
         where: { access_level: 3 },
       });
       expect(users).to.have.length(2);
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to combine multiple scopes', async function () {
-      const users = await this.ScopeMe.scope('defaultScope', 'highValue').findAll();
+      const users = await this.ScopeMe.withScope('defaultScope', 'highValue').findAll();
       expect(users).to.have.length(2);
       expect(['tobi', 'dan'].includes(users[0].username)).to.be.true;
       expect(['tobi', 'dan'].includes(users[1].username)).to.be.true;
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should be able to handle $and in scopes', async function () {
-      const users = await this.ScopeMe.scope('andScope').findAll();
+      const users = await this.ScopeMe.withScope('andScope').findAll();
       expect(users).to.have.length(1);
       expect(users[0].username).to.equal('tony');
     });
@@ -153,12 +153,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('other scopes with values from previous finds', async function () {
-        const users0 = await this.ScopeMe.scope('highValue').findAll({
+        const users0 = await this.ScopeMe.withScope('highValue').findAll({
           where: { access_level: 10 },
         });
         expect(users0).to.have.length(1);
 
-        const users = await this.ScopeMe.scope('highValue').findAll();
+        const users = await this.ScopeMe.withScope('highValue').findAll();
         // This should not have other_value: 10
         expect(users).to.have.length(2);
       });

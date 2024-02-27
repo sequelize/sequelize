@@ -14,7 +14,7 @@ import moment from 'moment';
 import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
 import { Blob } from 'node:buffer';
-import { beforeAll2, sequelize, setResetMode } from '../support';
+import { allowDeprecationsInSuite, beforeAll2, sequelize, setResetMode } from '../support';
 
 dayjs.extend(DayjsTimezone);
 
@@ -806,6 +806,8 @@ describe('DataTypes', () => {
 
   for (const attrType of ['REAL', 'DOUBLE', 'FLOAT'] as const) {
     describe(`${attrType}`, () => {
+      allowDeprecationsInSuite(['SEQUELIZE0014']);
+
       const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare attr: number | bigint | string;
