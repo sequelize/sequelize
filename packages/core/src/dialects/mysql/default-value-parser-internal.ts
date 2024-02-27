@@ -5,12 +5,12 @@ export function parseDefaultValue(
   columnType: string,
   extra: string,
 ): unknown {
-  if (rawDefaultValue === null) {
-    return null;
-  }
-
   if (extra?.includes('DEFAULT_GENERATED') || extra?.includes('AUTO_INCREMENT')) {
     return undefined;
+  }
+
+  if (rawDefaultValue === null) {
+    return null;
   }
 
   if (
