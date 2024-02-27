@@ -66,22 +66,24 @@ function parseAttributeSyntaxInternal(
   // going to be slow once per attribute.
   const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`);
+    throw new TypeError(
+      `Failed to parse syntax of attribute. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`,
+    );
   }
 
   if (parsed.isPartial) {
-    throw new TypeError(`Failed to fully parse syntax of attribute. Parse error at index ${parsed.reachBytes}:\n${code}\n${' '.repeat(parsed.reachBytes)}^`);
+    throw new TypeError(
+      `Failed to fully parse syntax of attribute. Parse error at index ${parsed.reachBytes}:\n${code}\n${' '.repeat(parsed.reachBytes)}^`,
+    );
   }
 
   const [attribute, accesses, transforms] = parsed.root.value;
 
-  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(attribute);
+  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn =
+    parseAssociationPath(attribute);
 
   if (accesses.value.length > 0) {
-    result = new JsonPath(
-      result,
-      parseJsonAccesses(accesses.value),
-    );
+    result = new JsonPath(result, parseJsonAccesses(accesses.value));
   }
 
   if (transforms.value.length > 0) {
@@ -104,17 +106,16 @@ function parseAttributeSyntaxInternal(
   return result;
 }
 
-function parseAssociationPath(syntax: AttributeParser.Term_AttributeBegin): AssociationPath | Attribute {
+function parseAssociationPath(
+  syntax: AttributeParser.Term_AttributeBegin,
+): AssociationPath | Attribute {
   const child = syntax.value[0];
 
   if (child.type === 'literal') {
     return new Attribute(child.value);
   }
 
-  const path = [
-    child.value[0].value,
-    ...child.value[1].value.map(x => x.value[0].value),
-  ];
+  const path = [child.value[0].value, ...child.value[1].value.map(x => x.value[0].value)];
 
   const attr = path.pop()!; // path will be at least 1 long
 
@@ -140,11 +141,15 @@ export interface ParsedJsonPropertyKey {
 function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   const parsed = AttributeParser.Parse_PartialJsonPath(code, false);
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`);
+    throw new TypeError(
+      `Failed to parse syntax of json path. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`,
+    );
   }
 
   if (parsed.isPartial) {
-    throw new TypeError(`Failed to fully parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`);
+    throw new TypeError(
+      `Failed to fully parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`,
+    );
   }
 
   const [base, accesses, transforms] = parsed.root.value;

@@ -23,8 +23,9 @@ describe('parseAttributeSyntax', () => {
 
   it('throws for unbalanced association syntax', () => {
     // The error points at the erroneous character each time, but we only test the first one
-    expect(() => parseAttributeSyntax('foo$')).to
-      .throwWithCause(`Failed to fully parse syntax of attribute. Parse error at index 3:`);
+    expect(() => parseAttributeSyntax('foo$')).to.throwWithCause(
+      `Failed to fully parse syntax of attribute. Parse error at index 3:`,
+    );
 
     expect(() => parseAttributeSyntax('$foo')).to
       .throwWithCause(`Failed to parse syntax of attribute. Parse error at index 5:
@@ -61,12 +62,14 @@ $foo
   it('treats everything after ::/: as a cast/modifier', () => {
     // "json.property" is treated as a cast, not a JSON path
     // but it's not a valid cast, so it will throw
-    expect(() => parseAttributeSyntax('textAttr::json.property')).to
-      .throwWithCause(`Failed to fully parse syntax of attribute. Parse error at index 14:`);
+    expect(() => parseAttributeSyntax('textAttr::json.property')).to.throwWithCause(
+      `Failed to fully parse syntax of attribute. Parse error at index 14:`,
+    );
 
     // "json.property" is treated as a modifier (which does not exist and will throw), not a JSON path
-    expect(() => parseAttributeSyntax('textAttr:json.property')).to
-      .throwWithCause(`Failed to fully parse syntax of attribute. Parse error at index 13:`);
+    expect(() => parseAttributeSyntax('textAttr:json.property')).to.throwWithCause(
+      `Failed to fully parse syntax of attribute. Parse error at index 13:`,
+    );
   });
 
   it('parses JSON paths', () => {
