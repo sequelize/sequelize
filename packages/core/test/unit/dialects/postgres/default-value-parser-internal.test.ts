@@ -66,7 +66,7 @@ describe('[POSTGRES Specific] parseDefaultValue', () => {
     });
   });
 
-  describe('for function calls', ()=>{
+  describe('for function calls', () => {
     it('should return undefined when rawDefaultValue is a function call', () => {
       expect(parseDefaultValue('now()', 'TIMESTAMP')).to.be.undefined;
     });

@@ -228,7 +228,7 @@ export class PostgresQuery extends AbstractQuery {
           allowNull: row.Null === 'YES',
           defaultValue: {
             raw: row.Default,
-            parsed: parseDefaultValue(row.Default, row.Type.toUpperCase())
+            parsed: parseDefaultValue(row.Default, row.Type.toUpperCase()),
           },
           comment: row.Comment,
           special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],

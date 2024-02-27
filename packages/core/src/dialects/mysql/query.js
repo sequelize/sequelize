@@ -137,7 +137,7 @@ export class MySqlQuery extends AbstractQuery {
 
       for (const _result of data) {
         const enumRegex = /^enum/i;
-        const type =  enumRegex.test(_result.Type)
+        const type = enumRegex.test(_result.Type)
           ? _result.Type.replace(enumRegex, 'ENUM')
           : _result.Type.toUpperCase();
 
