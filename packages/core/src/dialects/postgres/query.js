@@ -223,17 +223,17 @@ export class PostgresQuery extends AbstractQuery {
       const result = {};
 
       for (const row of rows) {
-        result[row.Field] = {
+        const field = {
           type: row.Type.toUpperCase(),
           allowNull: row.Null === 'YES',
-          defaultValue: {
-            raw: row.Default,
-            parsed: parseDefaultValue(row.Default, row.Type.toUpperCase()),
-          },
           comment: row.Comment,
           special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
+
+        field.defaultValue = parseDefaultValue(row.Default, field);
+
+        result[row.Field] = field;
       }
 
       return result;

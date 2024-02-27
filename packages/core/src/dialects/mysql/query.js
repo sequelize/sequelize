@@ -137,22 +137,21 @@ export class MySqlQuery extends AbstractQuery {
 
       for (const _result of data) {
         const enumRegex = /^enum/i;
-        const type = enumRegex.test(_result.Type)
-          ? _result.Type.replace(enumRegex, 'ENUM')
-          : _result.Type.toUpperCase();
 
-        result[_result.Field] = {
-          type,
+        const field = {
+          type: enumRegex.test(_result.Type)
+            ? _result.Type.replace(enumRegex, 'ENUM')
+            : _result.Type.toUpperCase(),
           allowNull: _result.Null === 'YES',
-          defaultValue: {
-            raw: _result.Default,
-            parsed: parseDefaultValue(_result.Default, type, _result.Extra),
-          },
           primaryKey: _result.Key === 'PRI',
           autoIncrement:
             Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
+
+        field.defaultValue = parseDefaultValue(_result.Default, field, _result.Extra);
+
+        result[_result.Field] = field;
       }
 
       return result;

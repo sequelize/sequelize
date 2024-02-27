@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -29,11 +29,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
       } else if (dialect === 'postgres') {
-        expect(result.table_id.defaultValue).to.have.property(
-          'raw',
-          `nextval('"TableWithPK_table_id_seq"'::regclass)`,
+        expect(result.table_id.defaultValue).to.eql(
+          literal(`nextval('"TableWithPK_table_id_seq"'::regclass)`),
         );
-        expect(result.table_id.defaultValue).to.have.property('parsed', undefined);
       }
     });
 

@@ -1,13 +1,23 @@
-export function parseDefaultValue(rawDefaultValue: string | null, columnType: string): unknown {
+import { literal } from '../../expression-builders/literal';
+import type { ColumnDescription } from '../abstract/query-interface.types';
+
+export function parseDefaultValue(
+  rawDefaultValue: string | null,
+  field: Omit<ColumnDescription, 'defaultValue'>,
+): unknown {
+  if (rawDefaultValue === null && !field.allowNull) {
+    return undefined;
+  }
+
   if (rawDefaultValue === null || rawDefaultValue.startsWith('NULL::')) {
     return null;
   }
 
-  if (['true', 'false'].includes(rawDefaultValue) && columnType === 'BOOLEAN') {
+  if (['true', 'false'].includes(rawDefaultValue) && field.type === 'BOOLEAN') {
     return rawDefaultValue === 'true';
   }
 
-  if (columnType !== 'NUMERIC') {
+  if (field.type !== 'NUMERIC') {
     if (rawDefaultValue && !Number.isNaN(Number(rawDefaultValue))) {
       return Number(rawDefaultValue);
     }
@@ -25,7 +35,7 @@ export function parseDefaultValue(rawDefaultValue: string | null, columnType: st
     return parseStringValue(rawDefaultValue);
   }
 
-  return undefined;
+  return literal(rawDefaultValue);
 }
 
 function parseStringValue(rawDefaultValue: string): string | undefined {

@@ -12,7 +12,6 @@ import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
-import { literal } from '../../expression-builders/literal';
 
 const DataTypes = require('../../data-types');
 const { QueryTypes } = require('../../query-types');
@@ -261,11 +260,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       attribute: attrNameAfter,
       type: data.type,
       allowNull: data.allowNull,
-      defaultValue: data.defaultValue.raw
-        ? literal(data.defaultValue.raw)
-        : data.allowNull
-          ? null
-          : undefined,
+      defaultValue: data.defaultValue,
     };
 
     // fix: a not-null column cannot have null as default value

@@ -126,13 +126,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       switch (dialect) {
         case 'sqlite':
-          expect(username.defaultValue).to.have.property('parsed', undefined);
+          expect(username.defaultValue).to.be.undefined;
           break;
         default:
-          expect(username.defaultValue).to.have.property('parsed', null);
+          expect(username.defaultValue).to.eq(null);
       }
 
-      expect(city.defaultValue).to.have.property('parsed', null);
+      expect(city.defaultValue).to.eq(null);
 
       assertVal = 'TINYINT(1)';
       switch (dialect) {
@@ -155,16 +155,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
         case 'sqlite':
-          expect(isAdmin.defaultValue).to.eql({
-            raw: undefined,
-            parsed: undefined,
-          });
+          expect(isAdmin.defaultValue).to.be.undefined;
           break;
         default:
-          expect(isAdmin.defaultValue).to.eql({
-            raw: null,
-            parsed: null,
-          });
+          expect(isAdmin.defaultValue).to.eql(null);
       }
 
       if (dialect.startsWith('postgres')) {
@@ -268,17 +262,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               });
 
               const metadata = await this.queryInterface.describeTable('with_string_default');
-              expect(metadata.username.defaultValue).to.have.property('parsed', defaultValue);
-
-              Support.expectPerDialect(() => metadata.username.defaultValue.raw, {
-                postgres:
-                  dataType === DataTypes.TEXT && defaultValue === null
-                    ? null
-                    : defaultValue
-                      ? `'${defaultValue?.replaceAll("'", "''")}'::${dataType === DataTypes.TEXT ? 'text' : 'character varying'}`
-                      : `NULL::${dataType === DataTypes.TEXT ? 'text' : 'character varying'}`,
-                mysql: defaultValue === null ? null : `${defaultValue}`,
-              });
+              expect(metadata.username.defaultValue).to.eql(defaultValue);
             });
           });
       });
@@ -303,17 +287,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               });
 
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.have.property('parsed', defaultValue);
-
-              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
-                postgres:
-                  defaultValue === null
-                    ? null
-                    : defaultValue < 0
-                      ? `'${defaultValue}'::integer`
-                      : `${defaultValue}`,
-                mysql: defaultValue === null ? null : `${defaultValue}`,
-              });
+              expect(metadata.age.defaultValue).to.eq(defaultValue);
             });
           });
         });
@@ -331,22 +305,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               });
 
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.have.property('parsed', defaultValue);
-
-              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
-                postgres:
-                  defaultValue === null
-                    ? null
-                    : defaultValue < 0
-                      ? `'${defaultValue}'::numeric`
-                      : `${defaultValue}`,
-                mysql:
-                  defaultValue === null
-                    ? null
-                    : dataType instanceof DataTypes.DECIMAL
-                      ? `${padEnd(defaultValue, 2, '0')}`
-                      : `${defaultValue}`,
-              });
+              expect(metadata.age.defaultValue).to.eq(defaultValue);
             });
           });
         });
@@ -364,25 +323,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               });
 
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.have.property(
-                'parsed',
-                defaultValue === null ? null : defaultValue,
-              );
-
-              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
-                postgres:
-                  defaultValue === null
-                    ? `NULL::numeric`
-                    : defaultValue < 0
-                      ? `'${defaultValue}'::numeric`
-                      : `${defaultValue}`,
-                mysql:
-                  defaultValue === null
-                    ? null
-                    : dataType instanceof DataTypes.DECIMAL
-                      ? `${padEnd(defaultValue, 2, '0')}`
-                      : `${defaultValue}`,
-              });
+              expect(metadata.age.defaultValue).to.have.eq(defaultValue);
             });
           });
         });
@@ -404,9 +345,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         );
 
         const metadata = await this.queryInterface.describeTable('user_with_date');
-        expect(metadata.date.defaultValue).to.have.property('parsed', undefined);
-
-        expect(metadata.date.defaultValue.raw).to.eql(now);
+        expect(metadata.date.defaultValue).to.eql(literal(now));
       });
 
       it('should return the right default value for autoincrement', async function () {
@@ -420,13 +359,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         const metadata = await this.queryInterface.describeTable('user_autoincrement');
 
-        Support.expectPerDialect(() => metadata.id.defaultValue.raw, {
-          postgres: `nextval('user_autoincrement_id_seq'::regclass)`,
-          mysql: null,
-        });
-
-        Support.expectPerDialect(() => metadata.id.defaultValue.parsed, {
-          postgres: undefined,
+        Support.expectPerDialect(() => metadata.id.defaultValue, {
+          postgres: literal(`nextval('user_autoincrement_id_seq'::regclass)`),
           mysql: null,
         });
       });
