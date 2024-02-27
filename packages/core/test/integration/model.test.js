@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { AggregateError, DataTypes, Op, Sequelize, sql, Literal } = require('@sequelize/core');
+const { AggregateError, DataTypes, Literal, Op, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
