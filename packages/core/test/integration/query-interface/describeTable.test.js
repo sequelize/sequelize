@@ -267,34 +267,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 },
               });
 
-              let expectedRawDefaultValue;
-              switch (dialect) {
-                case 'postgres': {
-                  const type = dataType === DataTypes.TEXT ? 'text' : 'character varying';
-
-                  if (type === 'text' && defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else {
-                    expectedRawDefaultValue = defaultValue
-                      ? `'${defaultValue?.replaceAll("'", "''")}'::${type}`
-                      : `NULL::${type}`;
-                  }
-
-                  break;
-                }
-
-                case 'mysql':
-                  expectedRawDefaultValue = defaultValue === null ? null : `${defaultValue}`;
-                  break;
-
-                default:
-                  expectedRawDefaultValue = `'${defaultValue}'`;
-              }
-
               const metadata = await this.queryInterface.describeTable('with_string_default');
-              expect(metadata.username.defaultValue).to.eql({
-                raw: expectedRawDefaultValue,
-                parsed: defaultValue,
+              expect(metadata.username.defaultValue).to.have.property('parsed', defaultValue);
+
+              Support.expectPerDialect(() => metadata.username.defaultValue.raw, {
+                postgres:
+                  dataType === DataTypes.TEXT && defaultValue === null
+                    ? null
+                    : defaultValue
+                      ? `'${defaultValue?.replaceAll("'", "''")}'::${dataType === DataTypes.TEXT ? 'text' : 'character varying'}`
+                      : `NULL::${dataType === DataTypes.TEXT ? 'text' : 'character varying'}`,
+                mysql: defaultValue === null ? null : `${defaultValue}`,
               });
             });
           });
@@ -319,34 +302,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 },
               });
 
-              let expectedRawDefaultValue;
-              switch (dialect) {
-                case 'postgres':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else if (defaultValue < 0) {
-                    expectedRawDefaultValue = `'${defaultValue}'::integer`;
-                  } else {
-                    expectedRawDefaultValue = `${defaultValue}`;
-                  }
-
-                  break;
-                case 'mysql':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else {
-                    expectedRawDefaultValue = `${defaultValue}`;
-                  }
-
-                  break;
-                default:
-                  expectedRawDefaultValue = `${defaultValue}`;
-              }
-
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.eql({
-                raw: expectedRawDefaultValue,
-                parsed: defaultValue === null ? null : defaultValue,
+              expect(metadata.age.defaultValue).to.have.property('parsed', defaultValue);
+
+              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
+                postgres:
+                  defaultValue === null
+                    ? null
+                    : defaultValue < 0
+                      ? `'${defaultValue}'::integer`
+                      : `${defaultValue}`,
+                mysql: defaultValue === null ? null : `${defaultValue}`,
               });
             });
           });
@@ -364,38 +330,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 },
               });
 
-              let expectedRawDefaultValue;
-              switch (dialect) {
-                case 'postgres':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else if (defaultValue < 0) {
-                    expectedRawDefaultValue = `'${defaultValue}'::numeric`;
-                  } else {
-                    expectedRawDefaultValue = `${defaultValue}`;
-                  }
-
-                  break;
-                case 'mysql':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else {
-                    expectedRawDefaultValue =
-                      dataType instanceof DataTypes.DECIMAL
-                        ? `${padEnd(defaultValue, 2, '0')}`
-                        : `${defaultValue}`;
-                  }
-
-                  break;
-
-                default:
-                  expectedRawDefaultValue = `${defaultValue}`;
-              }
-
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.eql({
-                raw: expectedRawDefaultValue,
-                parsed: defaultValue === null ? null : defaultValue,
+              expect(metadata.age.defaultValue).to.have.property('parsed', defaultValue);
+
+              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
+                postgres:
+                  defaultValue === null
+                    ? null
+                    : defaultValue < 0
+                      ? `'${defaultValue}'::numeric`
+                      : `${defaultValue}`,
+                mysql:
+                  defaultValue === null
+                    ? null
+                    : dataType instanceof DataTypes.DECIMAL
+                      ? `${padEnd(defaultValue, 2, '0')}`
+                      : `${defaultValue}`,
               });
             });
           });
@@ -413,38 +363,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 },
               });
 
-              let expectedRawDefaultValue;
-              switch (dialect) {
-                case 'postgres':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = `NULL::numeric`;
-                  } else if (defaultValue === null || defaultValue < 0) {
-                    expectedRawDefaultValue = `'${defaultValue}'::numeric`;
-                  } else {
-                    expectedRawDefaultValue = `${defaultValue}`;
-                  }
-
-                  break;
-                case 'mysql':
-                  if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else {
-                    expectedRawDefaultValue =
-                      dataType instanceof DataTypes.DECIMAL
-                        ? `${padEnd(defaultValue, 2, '0')}`
-                        : `${defaultValue}`;
-                  }
-
-                  break;
-
-                default:
-                  expectedRawDefaultValue = `${defaultValue}`;
-              }
-
               const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.eql({
-                raw: expectedRawDefaultValue,
-                parsed: defaultValue === null ? null : defaultValue,
+              expect(metadata.age.defaultValue).to.have.property(
+                'parsed',
+                defaultValue === null ? null : defaultValue,
+              );
+
+              Support.expectPerDialect(() => metadata.age.defaultValue.raw, {
+                postgres:
+                  defaultValue === null
+                    ? `NULL::numeric`
+                    : defaultValue < 0
+                      ? `'${defaultValue}'::numeric`
+                      : `${defaultValue}`,
+                mysql:
+                  defaultValue === null
+                    ? null
+                    : dataType instanceof DataTypes.DECIMAL
+                      ? `${padEnd(defaultValue, 2, '0')}`
+                      : `${defaultValue}`,
               });
             });
           });
@@ -467,10 +404,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         );
 
         const metadata = await this.queryInterface.describeTable('user_with_date');
-        expect(metadata.date.defaultValue).to.eql({
-          parsed: undefined,
-          raw: now,
-        });
+        expect(metadata.date.defaultValue).to.have.property('parsed', undefined);
+
+        expect(metadata.date.defaultValue.raw).to.eql(now);
       });
 
       it('should return the right default value for autoincrement', async function () {
@@ -483,9 +419,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
 
         const metadata = await this.queryInterface.describeTable('user_autoincrement');
-        expect(metadata.id.defaultValue).to.eql({
-          raw: dialect === 'postgres' ? `nextval('user_autoincrement_id_seq'::regclass)` : null,
-          parsed: dialect === 'postgres' ? undefined : null,
+
+        Support.expectPerDialect(() => metadata.id.defaultValue.raw, {
+          postgres: `nextval('user_autoincrement_id_seq'::regclass)`,
+          mysql: null,
+        });
+
+        Support.expectPerDialect(() => metadata.id.defaultValue.parsed, {
+          postgres: undefined,
+          mysql: null,
         });
       });
 
