@@ -8,7 +8,7 @@ export function parseDefaultValue(
   field: Omit<ColumnDescription, 'defaultValue'>,
   extra: string,
 ): unknown {
-  if (extra?.includes('DEFAULT_GENERATED')) {
+  if (extra?.toUpperCase().includes('DEFAULT_GENERATED')) {
     if (rawDefaultValue) {
       return literal(rawDefaultValue);
     }
@@ -16,7 +16,7 @@ export function parseDefaultValue(
     return undefined;
   }
 
-  if (extra?.includes('AUTO_INCREMENT')) {
+  if (extra?.toUpperCase().includes('AUTO_INCREMENT')) {
     return undefined;
   }
 

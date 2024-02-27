@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, literal } = require('@sequelize/core');
-const padEnd = require('lodash/padEnd');
 
 const dialect = Support.getTestDialect();
 
@@ -277,7 +276,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         DataTypes.DOUBLE,
       ].forEach(dataType => {
         describe(`for fields of type ${dataType}`, () => {
-          [0, 99, -99, null].forEach(defaultValue => {
+          [0, 99, -99, 1, 0, null].forEach(defaultValue => {
             it(`should return ${defaultValue} as the default value`, async function () {
               await this.sequelize.queryInterface.createTable('with_number_default', {
                 age: {
@@ -295,7 +294,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       [DataTypes.FLOAT, DataTypes.DOUBLE].forEach(dataType => {
         describe(`for fields of type ${dataType}`, () => {
-          [99.75, -99.75, 99, null].forEach(defaultValue => {
+          [99.75, -99.75, 99, 1, 0, null].forEach(defaultValue => {
             it(`should return ${defaultValue} as the default value`, async function () {
               await this.sequelize.queryInterface.createTable('with_number_default', {
                 age: {
@@ -311,27 +310,48 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
 
-      [DataTypes.DECIMAL(10, 2)].forEach(dataType => {
-        describe(`for fields of type ${dataType}`, () => {
-          ['99.75', '-99.75', '99.00', null].forEach(defaultValue => {
-            it(`should return ${defaultValue} as the default value`, async function () {
-              await this.sequelize.queryInterface.createTable('with_number_default', {
-                age: {
-                  type: dataType,
-                  defaultValue,
-                },
-              });
+      if (Support.sequelize.dialect.supports.dataTypes.DECIMAL) {
+        [DataTypes.DECIMAL(10, 2)].forEach(dataType => {
+          describe(`for fields of type ${dataType}`, () => {
+            ['99.75', '-99.75', '99.00', null].forEach(defaultValue => {
+              it(`should return ${defaultValue} as the default value`, async function () {
+                await this.sequelize.queryInterface.createTable('with_number_default', {
+                  age: {
+                    type: dataType,
+                    defaultValue,
+                  },
+                });
 
-              const metadata = await this.queryInterface.describeTable('with_number_default');
-              expect(metadata.age.defaultValue).to.have.eq(defaultValue);
+                const metadata = await this.queryInterface.describeTable('with_number_default');
+                expect(metadata.age.defaultValue).to.have.eq(defaultValue);
+              });
             });
           });
         });
-      });
+      }
+
+      if (dialect === 'postgres') {
+        describe('Boolean', () => {
+          [true, false, null].forEach(defaultValue => {
+            it(`should return the right default value ${defaultValue} for booleans`, async function () {
+              await this.sequelize.queryInterface.createTable('users_booleans', {
+                active: {
+                  type: DataTypes.BOOLEAN,
+                  defaultValue,
+                  allowNull: true,
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('users_booleans');
+              expect(metadata.active.defaultValue).to.eql(defaultValue);
+            });
+          });
+        });
+      }
 
       it('should return the right default value for a function call', async function () {
         const now =
-          dialect === 'sqlite' ? "datetime('now')" : dialect === 'mssql' ? 'getdate()' : 'now()';
+          dialect === 'sqlite' ? 'CURRENT_TIMESTAMP' : dialect === 'mssql' ? 'getdate()' : 'now()';
 
         await this.sequelize.queryInterface.createTable(
           'user_with_date',
@@ -361,7 +381,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         Support.expectPerDialect(() => metadata.id.defaultValue, {
           postgres: literal(`nextval('user_autoincrement_id_seq'::regclass)`),
-          mysql: null,
+          mysql: undefined,
+          sqlite: undefined,
         });
       });
 

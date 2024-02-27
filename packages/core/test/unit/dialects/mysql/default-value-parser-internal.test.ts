@@ -21,13 +21,13 @@ if (dialect.startsWith('mysql')) {
     });
 
     it('should return undefined for auto incremented value', () => {
-      expect(parseDefaultValue(null, { ...defaultField, type: 'INT' }, 'AUTO_INCREMENT')).to.be
+      expect(parseDefaultValue(null, { ...defaultField, type: 'INT' }, 'auto_increment')).to.be
         .undefined;
     });
 
     it('should return undefined for default generated value', () => {
       expect(
-        parseDefaultValue('now()', { ...defaultField, type: 'DATE' }, 'DEFAULT_GENERATED'),
+        parseDefaultValue('now()', { ...defaultField, type: 'DATE' }, 'default_generated'),
       ).to.eql(literal('now()'));
     });
 

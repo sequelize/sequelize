@@ -8,6 +8,7 @@ const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
+const { parseDefaultValue } = require('./default-value-parser-internal');
 
 const debug = logger.debugContext('sql:sqlite');
 
@@ -100,35 +101,15 @@ export class SqliteQuery extends AbstractQuery {
       result = {};
 
       for (const _result of results) {
-        const defaultValue = {
-          raw: _result.dflt_value,
-          parsed: _result.dflt_value,
-        };
-
-        if (defaultValue.raw === null) {
-          // Column schema omits any "DEFAULT ..."
-          defaultValue.parsed = undefined;
-        } else if (defaultValue.raw === 'NULL') {
-          // Column schema is a "DEFAULT NULL"
-          defaultValue.parsed = null;
-        } else {
-          defaultValue.parsed = defaultValue.raw;
-        }
-
-        result[_result.name] = {
+        const field = {
           type: _result.type,
           allowNull: _result.notnull === 0,
-          defaultValue,
           primaryKey: _result.pk !== 0,
         };
 
-        if (result[_result.name].type === 'TINYINT(1)') {
-          defaultValue.parsed = { 0: false, 1: true }[defaultValue.raw];
-        }
+        field.defaultValue = parseDefaultValue(_result.dflt_value, field);
 
-        if (typeof defaultValue.parsed === 'string') {
-          defaultValue.parsed = defaultValue.raw.replaceAll("'", '');
-        }
+        result[_result.name] = field;
       }
 
       return result;
