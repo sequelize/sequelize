@@ -2213,7 +2213,7 @@ __metadata:
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.14.202"
     "@types/mocha": "npm:10.0.6"
-    "@types/pg": "npm:8.11.1"
+    "@types/pg": "npm:8.11.2"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
@@ -2239,7 +2239,7 @@ __metadata:
     mariadb: "npm:3.2.3"
     mocha: "npm:10.3.0"
     moment: "npm:2.30.1"
-    mysql2: "npm:3.9.1"
+    mysql2: "npm:3.9.2"
     nyc: "npm:15.1.0"
     odbc: "npm:2.4.8"
     p-map: "npm:4.0.0"
@@ -2310,7 +2310,7 @@ __metadata:
     prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
-    typedoc: "npm:0.25.8"
+    typedoc: "npm:0.25.9"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.17"
     typedoc-plugin-missing-exports: "npm:2.2.0"
@@ -3260,14 +3260,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:8.11.1":
-  version: 8.11.1
-  resolution: "@types/pg@npm:8.11.1"
+"@types/pg@npm:8.11.2":
+  version: 8.11.2
+  resolution: "@types/pg@npm:8.11.2"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/7563075e037c8f7579cfb55e60e0891b742537ac50dc1d802051185513f850725fb05a635418ff26602c7cb6f176f6677a0099d586d51b72c651bb741b05b6e7
+  checksum: 10c0/6d873af7f71785d5d4db49311c5c73628918b2b1ece83f17073c4470b2fce6bd24a37de23a42ea0221df4e1c7dc43ea035bb9d0b6274f86ec692b21503a9a55c
   languageName: node
   linkType: hard
 
@@ -9779,9 +9779,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.9.1":
-  version: 3.9.1
-  resolution: "mysql2@npm:3.9.1"
+"mysql2@npm:3.9.2":
+  version: 3.9.2
+  resolution: "mysql2@npm:3.9.2"
   dependencies:
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
@@ -9791,7 +9791,7 @@ __metadata:
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/d37a1f87769a096bebe7681a6baa8e1a70f8dfedeea410c729a32d3212ed47f37bb9ce890d734e685721eda8aeb95dbdabbba0e718ceef241f5ec95abd206b9c
+  checksum: 10c0/244f7282c64886991823e23f4ef4140943692201789b174e0fed7d50aeed4fc7579b29e848f3b24869a2f2247ee5b3669090122508138a9413c73bd3ca54618f
   languageName: node
   linkType: hard
 
@@ -13497,9 +13497,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.25.8":
-  version: 0.25.8
-  resolution: "typedoc@npm:0.25.8"
+"typedoc@npm:0.25.9":
+  version: 0.25.9
+  resolution: "typedoc@npm:0.25.9"
   dependencies:
     lunr: "npm:^2.3.9"
     marked: "npm:^4.3.0"
@@ -13509,7 +13509,7 @@ __metadata:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x
   bin:
     typedoc: bin/typedoc
-  checksum: 10c0/f1adb64bd124a04da57227bdd7ec367a38e17b59e33b1acfaf04da560efc6318b0f7a0dfee85b90671b5e81e1e6dca6ca0d7157c10774c7a1a1f0931e8b30099
+  checksum: 10c0/6964bbe2bbaf3aa9f538bc5b4199086fa3affd87796895cb0464caa9d6594ad883348273385cf3babc37ff95622d264eebf305bdfb35cebb94c3570c57080cff
   languageName: node
   linkType: hard
 
