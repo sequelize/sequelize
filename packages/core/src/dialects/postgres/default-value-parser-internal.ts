@@ -7,14 +7,18 @@ export function parseDefaultValue(rawDefaultValue: string | null, columnType: st
     return rawDefaultValue === 'true';
   }
 
-  if (rawDefaultValue && !Number.isNaN(Number(rawDefaultValue))) {
-    return Number(rawDefaultValue);
-  }
+  if (columnType !== 'NUMERIC') {
+    if (rawDefaultValue && !Number.isNaN(Number(rawDefaultValue))) {
+      return Number(rawDefaultValue);
+    }
 
-  if (rawDefaultValue.endsWith('::numeric') || rawDefaultValue.endsWith('::integer')) {
-    const unQuote = rawDefaultValue.replace(/^'/, '').replace(/'?::.*$/, '');
+    if (rawDefaultValue.endsWith('::numeric') || rawDefaultValue.endsWith('::integer')) {
+      const unQuote = rawDefaultValue.replace(/^'/, '').replace(/'?::.*$/, '');
 
-    return Number(unQuote);
+      return Number(unQuote);
+    }
+  } else if (!rawDefaultValue.startsWith("'")) {
+    return rawDefaultValue;
   }
 
   if (rawDefaultValue.startsWith("'")) {

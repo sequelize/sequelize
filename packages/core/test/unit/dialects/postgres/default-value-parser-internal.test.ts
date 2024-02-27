@@ -41,11 +41,21 @@ if (dialect.startsWith('postgres')) {
       });
 
       it('should return a number when rawDefaultValue a numeric value', () => {
-        expect(parseDefaultValue('0.01::numeric', 'DECIMAL')).to.eq(0.01);
+        expect(parseDefaultValue('0.01::numeric', 'DOUBLE')).to.eq(0.01);
       });
 
       it('should return a number when rawDefaultValue a negative numeric value', () => {
-        expect(parseDefaultValue("'-0.01'::numeric", 'DECIMAL')).to.eq(-0.01);
+        expect(parseDefaultValue("'-0.01'::numeric", 'DOUBLE')).to.eq(-0.01);
+      });
+    });
+
+    describe('for decimal numbers', () => {
+      it('should return a string representing the decimal number when rawDefaultValue is a decimal number', () => {
+        expect(parseDefaultValue('0.01', 'NUMERIC')).to.eq('0.01');
+      });
+
+      it('should return a string representing the decimal number when rawDefaultValue is a negative decimal number', () => {
+        expect(parseDefaultValue("'-0.01'::numeric", 'NUMERIC')).to.eq('-0.01');
       });
     });
 

@@ -417,8 +417,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               switch (dialect) {
                 case 'postgres':
                   if (defaultValue === null) {
-                    expectedRawDefaultValue = null;
-                  } else if (defaultValue < 0) {
+                    expectedRawDefaultValue = `NULL::numeric`;
+                  } else if (defaultValue === null || defaultValue < 0) {
                     expectedRawDefaultValue = `'${defaultValue}'::numeric`;
                   } else {
                     expectedRawDefaultValue = `${defaultValue}`;
