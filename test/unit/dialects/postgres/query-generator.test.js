@@ -819,101 +819,182 @@ if (dialect.startsWith('postgres')) {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT DO NOTHING;"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2) ON CONFLICT DO NOTHING;',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: true }],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') RETURNING *;"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2) RETURNING *;',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: ['id', 'sentToId'] }],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') RETURNING \"id\",\"sentToId\";"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2) RETURNING "id","sentToId";',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true, returning: true }],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT DO NOTHING RETURNING *;"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2) ON CONFLICT DO NOTHING RETURNING *;',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($1),($2);',
+            bind: ["foo';DROP TABLE myTable;", 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","birthday") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', new Date('2011-03-27 10:01:55 +0000'), 'bar', new Date('2012-03-27 10:01:55 +0000')]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"foo\") VALUES ('foo',1),('bar',2);"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","foo") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', 1, 'bar', 2]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL),('bar',NULL);"
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { omitNull: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { omitNull: true } } // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: undefined }, { name: 'bar', nullValue: undefined }]],
-          expectation: "INSERT INTO \"myTable\" (\"name\",\"nullValue\") VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","nullValue") VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { omitNull: true } } // Note: As above
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: JSON.stringify({ info: 'Look ma a " quote' }) }, { name: JSON.stringify({ info: 'Look ma another " quote' }) }]],
-          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('{\"info\":\"Look ma a \\\" quote\"}'),('{\"info\":\"Look ma another \\\" quote\"}');"
+          expectation: {
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1),($2);',
+            bind: ['{"info":"Look ma a \\" quote"}', '{"info":"Look ma another \\" quote"}']
+          }
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar');"
+          expectation: {
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1),($2);',
+            bind: ["foo';DROP TABLE mySchema.myTable;", 'bar']
+          }
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
-          expectation: "INSERT INTO \"mySchema\".\"myTable\" (\"name\") VALUES ('foo'),('bar') ON CONFLICT (\"name\") DO UPDATE SET \"name\"=EXCLUDED.\"name\";"
+          expectation: {
+            query: 'INSERT INTO "mySchema"."myTable" ("name") VALUES ($1),($2) ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name";',
+            bind: ['foo', 'bar']
+          }
         },
 
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO myTable (name) VALUES ('foo'),('bar');",
+          expectation: {
+            query: 'INSERT INTO myTable (name) VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO myTable (name) VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          expectation: {
+            query: 'INSERT INTO myTable (name) VALUES ($1),($2);',
+            bind: ["foo';DROP TABLE myTable;", 'bar']
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
-          expectation: "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+          expectation: {
+            query: 'INSERT INTO myTable (name,birthday) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', new Date('2011-03-27 10:01:55.000 +00:00'), 'bar', new Date('2012-03-27 10:01:55.000 +00:00')]
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1 }, { name: 'bar', foo: 2 }]],
-          expectation: "INSERT INTO myTable (name,foo) VALUES ('foo',1),('bar',2);",
+          expectation: {
+            query: 'INSERT INTO myTable (name,foo) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', 1, 'bar', 2]
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);",
-          context: { options: { quoteIdentifiers: false, omitNull: false } }
+          expectation: {
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
+          context: { options: { omitNull: false, quoteIdentifiers: false } }
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: null }, { name: 'bar', nullValue: null }]],
-          expectation: "INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { omitNull: true, quoteIdentifiers: false } } // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         }, {
           arguments: ['myTable', [{ name: 'foo', nullValue: undefined }, { name: 'bar', nullValue: undefined }]],
-          expectation: "INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);",
+          expectation: {
+            query: 'INSERT INTO myTable (name,nullValue) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', null, 'bar', null]
+          },
           context: { options: { omitNull: true, quoteIdentifiers: false } } // Note: As above
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'),('bar');",
+          expectation: {
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: JSON.stringify({ info: 'Look ma a " quote' }) }, { name: JSON.stringify({ info: 'Look ma another " quote' }) }]],
-          expectation: "INSERT INTO mySchema.myTable (name) VALUES ('{\"info\":\"Look ma a \\\" quote\"}'),('{\"info\":\"Look ma another \\\" quote\"}');",
+          expectation: {
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1),($2);',
+            bind: ['{"info":"Look ma a \\" quote"}', '{"info":"Look ma another \\" quote"}']
+          },
           context: { options: { quoteIdentifiers: false } }
         }, {
           arguments: [{ schema: 'mySchema', tableName: 'myTable' }, [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar');",
+          expectation: {
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($1),($2);',
+            bind: ["foo';DROP TABLE mySchema.myTable;", 'bar']
+          },
           context: { options: { quoteIdentifiers: false } }
         }
       ],

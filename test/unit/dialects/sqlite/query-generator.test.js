@@ -466,46 +466,85 @@ if (dialect === 'sqlite') {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1),($2);',
+            bind: ["'bar'", 'foo']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', birthday: moment('2011-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }, { name: 'bar', birthday: moment('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate() }]],
-          expectation: "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', new Date('2011-03-27 10:01:55.000 +00:00'), 'bar', new Date('2012-03-27 10:01:55.000 +00:00')]
+          }
         }, {
           arguments: ['myTable', [{ name: 'bar', value: null }, { name: 'foo', value: 1 }]],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2),($3,$4);',
+            bind: ['bar', null, 'foo', 1]
+          }
         }, {
           arguments: ['myTable', [{ name: 'bar', value: undefined }, { name: 'bar', value: 2 }]],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('bar',2);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2),($3,$4);',
+            bind: ['bar', null, 'bar', 2]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', value: true }, { name: 'bar', value: false }]],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', true, 'bar', false]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', value: false }, { name: 'bar', value: false }]],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0),('bar',0);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`value`) VALUES ($1,$2),($3,$4);',
+            bind: ['foo', false, 'bar', false]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3),($4,$5,$6);',
+            bind: ['foo', 1, null, 'bar', 2, null]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: { options: { omitNull: false } }
+          context: { options: { omitNull: false } },
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3),($4,$5,$6);',
+            bind: ['foo', 1, null, 'bar', 2, null]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: { options: { omitNull: true } } // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+          context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3),($4,$5,$6);',
+            bind: ['foo', 1, null, 'bar', 2, null]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo', foo: 1, nullValue: null }, { name: 'bar', foo: 2, nullValue: null }]],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: { options: { omitNull: true } } // Note: As above
+          context: { options: { omitNull: true } }, // Note: As above
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($1,$2,$3),($4,$5,$6);',
+            bind: ['foo', 1, null, 'bar', 2, null]
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: "INSERT OR IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');"
+          expectation: {
+            query: 'INSERT OR IGNORE INTO `myTable` (`name`) VALUES ($1),($2);',
+            bind: ['foo', 'bar']
+          }
         }, {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { updateOnDuplicate: ['name'], upsertKeys: ['name'] }],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;"
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($1),($2) ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;',
+            bind: ['foo', 'bar']
+          }
         }
       ],
 

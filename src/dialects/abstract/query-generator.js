@@ -321,6 +321,8 @@ class QueryGenerator {
     options = options || {};
     fieldMappedAttributes = fieldMappedAttributes || {};
 
+    const bind = options.bind || [];
+    const bindParam = options.bindParam === void 0 && !options.replacements ? this.bindParam(bind) : options.bindParam || false;
     const tuples = [];
     const serials = {};
     const allAttributes = [];
@@ -331,10 +333,8 @@ class QueryGenerator {
         if (!allAttributes.includes(key)) {
           allAttributes.push(key);
         }
-        if (
-          fieldMappedAttributes[key]
-          && fieldMappedAttributes[key].autoIncrement === true
-        ) {
+
+        if (fieldMappedAttributes[key] && fieldMappedAttributes[key].autoIncrement === true) {
           serials[key] = true;
         }
       });
@@ -342,15 +342,16 @@ class QueryGenerator {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (
-          this._dialect.supports.bulkDefault
-          && serials[key] === true
-        ) {
+        if (this._dialect.supports.bulkDefault && serials[key] === true) {
           // fieldValueHashes[key] ?? 'DEFAULT'
           return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
         }
 
-        return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' });
+        if (fieldValueHash[key] instanceof Utils.SequelizeMethod || bindParam === false) {
+          return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' });
+        }
+
+        return this.format(fieldValueHash[key] !== undefined ? fieldValueHash[key] : null, fieldMappedAttributes[key], { context: 'INSERT' }, bindParam);
       });
 
       tuples.push(`(${values.join(',')})`);
@@ -405,7 +406,7 @@ class QueryGenerator {
       returning += returnValues.returningFragment;
     }
 
-    return Utils.joinSQLFragments([
+    const query = Utils.joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -418,6 +419,14 @@ class QueryGenerator {
       returning,
       ';'
     ]);
+
+    const result = { query };
+
+    if (bindParam !== false) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**

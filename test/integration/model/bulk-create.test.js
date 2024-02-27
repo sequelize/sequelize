@@ -165,7 +165,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
           } else { // mysql, sqlite
-            expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL');
+            expect(sql).to.include('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (');
           }
         }
       });
