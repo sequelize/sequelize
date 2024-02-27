@@ -2,8 +2,9 @@
 
 import { assertNoReservedBind } from '../../utils/sql';
 
-const _ = require('lodash');
-const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript')
+const intersection = require('lodash/intersection');
+const uniq = require('lodash/uniq');
+const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript');
 const { QueryTypes } = require('../../query-types');
 
 export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
@@ -43,12 +44,12 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
     // Always use PK, if no constraint available OR update data contains PK
     if (
       options.upsertKeys.length === 0
-      || _.intersection(options.updateOnDuplicate, primaryKeys).length
+      || intersection(options.updateOnDuplicate, primaryKeys).length
     ) {
       options.upsertKeys = primaryKeys;
     }
 
-    options.upsertKeys = _.uniq(options.upsertKeys);
+    options.upsertKeys = uniq(options.upsertKeys);
 
     let whereHasNull = false;
 
@@ -61,6 +62,7 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
     if (whereHasNull === true) {
       where = options.upsertKeys.reduce((result, attribute) => {
         result[attribute] = insertValues[attribute];
+
         return result;
       }, {});
     }
@@ -68,12 +70,14 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
     if (typeof tableName === 'object') {
       tableName = tableName.tableName;
     }
+
     const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
     // we need set this to undefined otherwise sequelize would raise an error
     // Error: Both `sql.bind` and `options.bind` cannot be set at the same time
     if (sql.bind) {
       options.bind = undefined;
     }
+
     return await this.sequelize.query(sql, options);
   }
 }

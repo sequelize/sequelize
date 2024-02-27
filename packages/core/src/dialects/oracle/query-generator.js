@@ -9,15 +9,11 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { EMPTY_OBJECT, getObjectFromMap } from '../../utils/object';
 import { normalizeDataType } from '../abstract/data-types-utils';
-import { 
-  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
-} from '../abstract/query-generator';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
+import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
 
 const DataTypes = require('../../data-types');
 const _ = require('lodash');
-import { OracleQueryGeneratorTypeScript } from './query-generator-typescript';
-const Transaction = require('../../transaction');
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
@@ -48,12 +44,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       '  IF SQLCODE != -1918 THEN',
       '    RAISE;',
       '  END IF;',
-      'END;'
+      'END;',
     ].join(' ');
   }
 
   versionQuery() {
-    return "SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'";
+    return `SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'`;
   }
 
   createTableQuery(tableName, attributes, options) {
@@ -66,18 +62,22 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         options,
       );
     }
-    const primaryKeys = [],
-      foreignKeys = Object.create(null),
-      attrStr = [],
-      checkStr = [];
+
+    const primaryKeys = [];
+    const foreignKeys = Object.create(null);
+    const attrStr = [];
+    const checkStr = [];
 
     const values = {
-      table: this.quoteTable(tableName)
+      table: this.quoteTable(tableName),
     };
 
     // Starting by dealing with all attributes
     for (let attr in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attr)) continue;
+      if (!Object.hasOwn(attributes, attr)) {
+        continue;
+      }
+
       const dataType = attributes[attr];
       attr = this.quoteIdentifier(attr);
 
@@ -116,11 +116,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     // Dealing with FKs
     for (const fkey in foreignKeys) {
-      if (!Object.prototype.hasOwnProperty.call(foreignKeys, fkey)) continue;
+      if (!Object.hasOwn(foreignKeys, fkey)) {
+        continue;
+      }
+
       // Oracle default response for FK, doesn't support if defined
       if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
         foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
       }
+
       values.attributes += `,FOREIGN KEY (${fkey}) ${foreignKeys[fkey]}`;
     }
 
@@ -138,6 +142,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
             if (typeof field === 'string') {
               return field;
             }
+
             return field.attribute;
 
           });
@@ -164,6 +169,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
                     break;
                   }
                 }
+
                 if (i === currUnique.fields.length) {
                   break;
                 }
@@ -174,7 +180,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
               const indexName = 'name' in index ? index.name : '';
               const constraintToAdd = {
                 name: indexName,
-                fields
+                fields,
               };
               if (!('uniqueKeys' in options)) {
                 options.uniqueKeys = {};
@@ -198,7 +204,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // only need to sort primary keys once, don't do it in place
       let sortedPrimaryKeys = [...primaryKeys];
       sortedPrimaryKeys = sortedPrimaryKeys.map(elem => {
-        return elem.replace(/"/g, '');
+        return elem.replaceAll('"', '');
       });
       sortedPrimaryKeys.sort();
       _.each(options.uniqueKeys, (columns, indexName) => {
@@ -218,8 +224,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         if (typeof indexName !== 'string') {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
-        values.attributes +=
-          `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+
+        values.attributes
+          += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
@@ -227,7 +234,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const query = joinSQLFragments([
       'CREATE TABLE',
       values.table,
-      `(${values.attributes})`
+      `(${values.attributes})`,
     ]);
 
     return joinSQLFragments([
@@ -238,13 +245,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'IF SQLCODE != -955 THEN',
       'RAISE;',
       'END IF;',
-      'END;'
+      'END;',
     ]);
   }
 
   // TODO: write your own escape function
   tableExistsQuery(table) {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
+
     return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${this.escape(tableName)} AND OWNER = ${table.schema ? this.escape(schemaName) : 'USER'}`;
   }
 
@@ -254,9 +262,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (options && options.constraintType === 'FOREIGN KEY') {
       return this.getForeignKeysQuery(tableName);
     }
+
     let table = this.extractTableDetails(tableName);
-    let schema = this.getCatalogName(table.schema);
+    const schema = this.getCatalogName(table.schema);
     table = this.getCatalogName(table.tableName);
+
     return joinSQLFragments([
       'SELECT C.CONSTRAINT_NAME "constraintName",',
       `CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
@@ -290,11 +300,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
   listTablesQuery(options) {
     let query = `SELECT owner as "schema", table_name as "tableName" FROM all_tables where OWNER IN`;
-    if(options && options.schema) {
+    if (options && options.schema) {
       query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\' AND USERNAME=${this.escape(options.schema)})`;
     } else {
       query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\')`;
     }
+
     return query;
   }
 
@@ -308,7 +319,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' IF SQLCODE != -942 THEN',
       '   RAISE;',
       ' END IF;',
-      'END;'
+      'END;',
     ]);
   }
 
@@ -321,6 +332,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (typeof tableName !== 'string' && attributes.name) {
       attributes.name = `${tableName.schema}.${attributes.name}`;
     }
+
     return super.addIndexQuery(tableName, attributes, options, rawTablename);
   }
 
@@ -355,8 +367,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
         attributeName: key,
-        context: 'addColumn'
-      })
+        context: 'addColumn',
+      }),
     ]);
 
     return joinSQLFragments([
@@ -364,12 +376,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       attribute,
-      ';'
+      ';',
     ]);
   }
 
   /**
-   * Function to add new foreign key to the attribute 
+   * Function to add new foreign key to the attribute
    * Block for add and drop foreign key constraint query
    * taking the assumption that there is a single column foreign key reference always
    * i.e. we always do - FOREIGN KEY (a) reference B(a) during createTable queryGenerator
@@ -404,14 +416,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       tableNameConstant,
       'AND cons_columns =',
       attributeNameConstant,
-      ';'
+      ';',
     ].join(' ');
     const secondQuery = joinSQLFragments([
       `ALTER TABLE ${this.quoteTable(table)}`,
       'ADD FOREIGN KEY',
       `(${this.quoteIdentifier(attributeName)})`,
-      definition.replace(/.+?(?=REFERENCES)/, '')
+      definition.replace(/.+?(?=REFERENCES)/, ''),
     ]);
+
     return [
       'BEGIN',
       getConsNameQuery,
@@ -422,7 +435,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'IF CONS_NAME IS NOT NULL THEN',
       ` EXECUTE IMMEDIATE 'ALTER TABLE ${this.quoteTable(table)} DROP CONSTRAINT "'||CONS_NAME||'"';`,
       'END IF;',
-      `EXECUTE IMMEDIATE ${this.escape(secondQuery)};`
+      `EXECUTE IMMEDIATE ${this.escape(secondQuery)};`,
     ].join(' ');
   }
 
@@ -439,9 +452,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.quoteTable(table),
       'MODIFY',
       this.quoteIdentifier(attributeName),
-      definition
+      definition,
     ]);
     const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
+
     return [
       'BEGIN',
       `EXECUTE IMMEDIATE ${this.escape(query)};`,
@@ -453,7 +467,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' ELSE',
       '   RAISE;',
       ' END IF;',
-      'END;'
+      'END;',
     ].join(' ');
   }
 
@@ -461,10 +475,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const sql = [
       'DECLARE',
       'CONS_NAME VARCHAR2(200);',
-      'BEGIN'
+      'BEGIN',
     ];
     for (const attributeName in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attributeName)) continue;
+      if (!Object.prototype.hasOwnProperty.call(attributes, attributeName)) {
+        continue;
+      }
+
       const definition = attributes[attributeName];
       if (definition.match(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
@@ -473,12 +490,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         sql.push(this._modifyQuery(definition, table, attributeName));
       }
     }
+
     sql.push('END;');
+
     return sql.join(' ');
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
     const newName = Object.keys(attributes)[0];
+
     return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(newName)}`;
   }
 
@@ -505,6 +525,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       if (element.startsWith('"')) {
         element = element.substring(1, element.length - 1);
       }
+
       outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });
       const returnAttribute = `${outbindParam(undefined)}`;
       returnAttributes.push(returnAttribute);
@@ -542,7 +563,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         ' :isUpdate := 0; ',
         'ELSE ',
         ' :isUpdate := 1; ',
-        ' END IF; '
+        ' END IF; ',
       ].join('') : [
         insertQuery.query,
         ' :isUpdate := 0; ',
@@ -550,13 +571,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         'EXCEPTION WHEN OTHERS THEN',
         ' IF SQLCODE != -1 THEN',
         '   RAISE;',
-        ' END IF;'
+        ' END IF;',
       ].join(''),
-      'END;'
+      'END;',
     ];
 
     const query = sql.join('');
-    //const result = { query };
 
     if (options.bindParam !== false) {
       options.bind = updateQuery.bind || insertQuery.bind;
@@ -587,9 +607,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const oracledb = this.sequelize.connectionManager.lib;
 
     // Generating the allColumns map
-    // The data is provided as an array of objects. 
-    // Each object may contain differing numbers of attributes. 
-    // A set of the attribute names that are used in all objects must be determined. 
+    // The data is provided as an array of objects.
+    // Each object may contain differing numbers of attributes.
+    // A set of the attribute names that are used in all objects must be determined.
     // The allColumns map contains the column names and indicates whether the value is generated or not
     // We set allColumns[key] to true if the field is an
     // auto-increment field and the value given is null and fieldMappedAttributes[key]
@@ -623,21 +643,23 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           // If we get any other row that has this specific column as non-null we must raise an error
           // Since for an auto-increment column, either all row has to be null or all row has to be a non-null
           if (fieldValueHash[key] !== null) {
-            throw Error('For an auto-increment column either all row must be null or non-null, a mix of null and non-null is not allowed!');
+            throw new Error('For an auto-increment column either all row must be null or non-null, a mix of null and non-null is not allowed!');
           }
+
           // Return DEFAULT for auto-increment column and if all values for the column is null in each row
           return 'DEFAULT';
         }
+
         // Sanitizes the values given by the user and pushes it to the tuple list using inBindParam function and
         // also generates the inbind position for the sql string for example (:1, :2, :3.....) which is a by product of the push
-        return this.escape(fieldValueHash[key] ?? null,{
+        return this.escape(fieldValueHash[key] ?? null, {
           model: options.model,
           type: fieldMappedAttributes[key] ? fieldMappedAttributes[key].type : null,
-          bindParam: inbindParam
+          bindParam: inbindParam,
         });
       });
 
-      // Even though the bind variable positions are calculated for each row we only retain the values for the first row 
+      // Even though the bind variable positions are calculated for each row we only retain the values for the first row
       // since the values will be identical
       if (!inBindPosition) {
         inBindPosition = tempBindPositions;
@@ -657,7 +679,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // Iterating over the allColumns keys to get the bindDef for inbind and outbinds
     // and also to get the list of insert and return column after applying this.quoteIdentifier
     for (const key of Object.keys(allColumns)) {
-      // If fieldMappenAttributes[attr] is defined we generate the bindDef 
+      // If fieldMappenAttributes[attr] is defined we generate the bindDef
       // and return clause else we can skip it
       if (fieldMappedAttributes[key]) {
         // BindDef for the specific column
@@ -680,6 +702,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           inBindBindDefMap[key] = bindDef;
         }
       }
+
       // Quoting and pushing each insert column based on quoteIdentifier option
       insertColumns.push(this.quoteIdentifier(key));
     }
@@ -694,7 +717,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       `(${insertColumns.join(',')})`,
       'VALUES',
       // InBind position for the insert query (for example :1, :2, :3....)
-      `(${inBindPosition})`
+      `(${inBindPosition})`,
     ]);
 
     // If returnColumn.length is > 0
@@ -709,7 +732,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         'INTO',
         // List of outbindPosition (for example :4, :5, :6....)
         // Start offset depends on where inbindPosition end
-        `${returnColumnBindPositions}`
+        `${returnColumnBindPositions}`,
       ]);
     }
 
@@ -720,9 +743,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     options.bind = tuples;
     // Setting options.inbindAttribute
     options.inbindAttributes = inBindBindDefMap;
+
     return result;
   }
-
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     const table = tableName;
@@ -734,30 +757,30 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // Note that the condition <e> has to be in the subquery; otherwise, the subquery would select <l> arbitrary rows.
     if (options.limit) {
       const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
-      queryTmpl =
-        `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
+      queryTmpl
+        = `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
         })`;
     } else {
       const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';
       queryTmpl = `DELETE FROM ${this.quoteTable(table)}${whereTmpl}`;
     }
+
     return queryTmpl;
   }
 
   attributeToSQL(attribute, options) {
     if (!_.isPlainObject(attribute)) {
       attribute = {
-        type: attribute
+        type: attribute,
       };
     }
-
 
     // handle self referential constraints
     if (attribute.references) {
       if (attribute.Model && attribute.Model.tableName === attribute.references.tableName) {
         this.sequelize.log(
-          'Oracle does not support self referencial constraints, ' +
-          'we will remove it but we recommend restructuring your query'
+          'Oracle does not support self referencial constraints, '
+          + 'we will remove it but we recommend restructuring your query',
         );
         attribute.onDelete = '';
       }
@@ -768,24 +791,30 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      template +=
-        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values.map(value => {
+      template
+        += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values.map(value => {
           return this.escape(value, undefined, {});
         }).join(', ')
         }))`;
+
       return template;
     }
+
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
+
       return template;
     }
+
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
-      template +=
-        ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
+      template
+        += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
+
       return template;
     }
+
     if (attribute.autoIncrement) {
       template = ' NUMBER(*,0) GENERATED BY DEFAULT ON NULL AS IDENTITY';
     } else if (attribute.type && attribute.type === 'DOUBLE') {
@@ -797,14 +826,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         attribute.type.options.unsigned = false;
         unsignedTemplate += ` CHECK(${this.quoteIdentifier(options.attributeName)} >= 0)`;
       }
+
       template = attribute.type.toString();
 
       // Blobs/texts cannot have a defaultValue
       if (
-        attribute.type &&
-        attribute.type !== 'TEXT' &&
-        attribute.type._binary !== true &&
-        defaultValueSchemable(attribute.defaultValue, this.dialect)
+        attribute.type
+        && attribute.type !== 'TEXT'
+        && attribute.type._binary !== true
+        && defaultValueSchemable(attribute.defaultValue, this.dialect)
       ) {
         template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
       }
@@ -817,6 +847,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           template += ' NULL';
         }
       }
+
       template += unsignedTemplate;
     } else {
       template = '';
@@ -842,6 +873,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     return template;
   }
+
   attributesToSQL(attributes, options) {
     const result = {};
 
@@ -888,7 +920,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       table.schema ? this.escape(schemaName) : 'USER',
       ' and COLUMN_NAME = ',
       this.escape(column),
-      ' AND POSITION IS NOT NULL ORDER BY POSITION'
+      ' AND POSITION IS NOT NULL ORDER BY POSITION',
     ].join('');
 
     return sql;
@@ -908,12 +940,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
       ' JOIN all_cons_columns b ON c.owner = b.owner AND c.r_constraint_name = b.constraint_name',
-      " WHERE c.constraint_type  = 'R'",
+      ' WHERE c.constraint_type  = \'R\'',
       ' AND a.table_name = ',
       this.escape(tableName),
       ' AND a.owner = ',
       (tableDetails.schema && schemaName !== '') ? this.escape(schemaName) : 'USER',
-      ' ORDER BY a.table_name, a.constraint_name'
+      ' ORDER BY a.table_name, a.constraint_name',
     ].join('');
 
     return sql;
@@ -933,10 +965,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.escape(tableName),
       'AND cols.owner = ',
       table.schema ? this.escape(schemaName) : 'USER ',
-      "AND cons.constraint_type = 'P' ",
+      'AND cons.constraint_type = \'P\' ',
       'AND cons.constraint_name = cols.constraint_name ',
       'AND cons.owner = cols.owner ',
-      'ORDER BY cols.table_name, cols.position'
+      'ORDER BY cols.table_name, cols.position',
     ].join('');
 
     return sql;
@@ -1028,6 +1060,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           hasInvalidToken = true;
           break;
         }
+
         currentIndex += tokenMatches[0].length;
         continue;
       }
@@ -1050,6 +1083,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
   addTicks(identifier, tickChar) {
     identifier = identifier.replace(new RegExp(tickChar, 'g'), '');
+
     return tickChar + identifier + tickChar;
   }
 
@@ -1077,10 +1111,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const regExp = /^(([\w][\w\d_]*))$/g;
 
     if (
-      optForceQuote !== true &&
-      optQuoteIdentifiers === false &&
-      regExp.test(identifier) &&
-      !ORACLE_RESERVED_WORDS.includes(identifier.toUpperCase())
+      optForceQuote !== true
+      && optQuoteIdentifiers === false
+      && regExp.test(identifier)
+      && !ORACLE_RESERVED_WORDS.includes(identifier.toUpperCase())
     ) {
       // In Oracle, if tables, attributes or alias are created double-quoted,
       // they are always case sensitive. If they contain any lowercase
@@ -1089,6 +1123,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // Here, we strip quotes if we don't want case sensitivity.
       return identifier;
     }
+
     return quoteIdentifier(identifier, this.dialect.TICK_CHAR_LEFT, this.dialect.TICK_CHAR_RIGHT);
   }
 
@@ -1102,9 +1137,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   */
   bindParam(bind, posOffset = 0) {
     let i = Object.keys(bind).length;
+
     return value => {
       const bindName = `sequelize_${++i}`;
       bind[bindName] = value;
+
       return `:${Object.keys(bind).length + posOffset}`;
     };
   }
@@ -1116,6 +1153,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     return 'SELECT 1+1 AS result FROM DUAL';
   }
 }
+
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);

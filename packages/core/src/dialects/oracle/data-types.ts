@@ -1,11 +1,11 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
+import dayjs from 'dayjs';
 import type { Falsy } from '../../generic/falsy';
 import * as BaseTypes from '../abstract/data-types.js';
+import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import type { Lib } from './connection-manager.js';
-import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
-import dayjs from 'dayjs';
 
 let Moment: any;
 try {
@@ -35,7 +35,7 @@ export class STRING extends BaseTypes.STRING {
 
   _getBindDef(oracledb: Lib) {
     if (this.options.binary) {
-      return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length || 255};
+      return { type: oracledb.DB_TYPE_RAW, maxSize: this.options.length || 255 };
     }
 
     return { type: oracledb.DB_TYPE_VARCHAR, maxSize: this.options.length || 255 };
@@ -63,6 +63,7 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     if (value === '1' || value === 'true') {
       return true;
     }
+
     return false;
   }
 }
@@ -82,6 +83,7 @@ export class NOW extends BaseTypes.NOW {
     return 'SYSDATE';
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   toBindableValue(value: never): unknown {
     return 'SYSDATE';
   }
@@ -159,10 +161,11 @@ export class DATE extends BaseTypes.DATE {
     if (dayjs.isDayjs(value) || isMoment(value)) {
       return options.bindParam(this._sanitize(value));
     }
+
     return options.bindParam(value);
   }
-  // TODO: parse()
-  _sanitize(value : any) {
+
+  _sanitize(value: any) {
     return new Date(value);
   }
 }
@@ -197,10 +200,11 @@ export class DECIMAL extends BaseTypes.DECIMAL {
   }
 
   // Oracle treats DECIMAL as NUMBER(precision, scale).
-  sanitize(value: AcceptedNumber) : AcceptedNumber {
+  sanitize(value: AcceptedNumber): AcceptedNumber {
     if (typeof value === 'bigint') {
       return value.toString();
     }
+
     return value;
   }
 }
@@ -262,13 +266,15 @@ export class REAL extends BaseTypes.REAL {
   }
 
   // https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0BA2E065-8006-426C-A3CB-1F6B0C8F283C
-  toBindableValue(value : any) {
+  toBindableValue(value: any) {
     if (value === Number.POSITIVE_INFINITY) {
       return 'inf';
     }
+
     if (value === Number.NEGATIVE_INFINITY) {
       return '-inf';
     }
+
     return value;
   }
 
@@ -334,7 +340,7 @@ export class JSON extends BaseTypes.JSON {
     return { type: oracledb.DB_TYPE_BLOB };
   }
 
-  toBindableValue(value: any): string{
+  toBindableValue(value: any): string {
     if (value === null) {
       const sequelize = this._getDialect().sequelize;
 
@@ -343,10 +349,11 @@ export class JSON extends BaseTypes.JSON {
         throw new Error(`Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`);
       }
     }
+
     return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
   }
 
-  getBindParamSql(value: any, options: BindParamOptions) : any {
+  getBindParamSql(value: any, options: BindParamOptions): any {
     return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
   }
 }
@@ -388,6 +395,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
     if (value) {
       return dayjs.utc(value).format('YYYY-MM-DD');
     }
+
     return value;
   }
 
@@ -400,10 +408,11 @@ export class DATEONLY extends BaseTypes.DATEONLY {
      *
      * @override
      */
-  getBindParamSql(value: AcceptedDate, options: BindParamOptions) : string {
+  getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
     if (typeof value === 'string') {
       return options.bindParam(new Date(value));
     }
+
     return options.bindParam(value);
   }
 }

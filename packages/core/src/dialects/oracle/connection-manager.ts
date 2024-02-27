@@ -1,6 +1,7 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
 import type { Connection as oracledbConnection } from 'oracledb';
+import semver from 'semver';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -9,22 +10,20 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import semver from 'semver';
 import type { ConnectionOptions } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
+import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import { OracleDialect } from './index.js';
-import type { Connection  } from '../abstract/connection-manager';
+import type { OracleDialect } from './index.js';
 
 const debug = logger.debugContext('connection:oracle');
 
-const event = require('events');
-
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports
 export type Lib = typeof import('oracledb');
 
-export interface OracleConnection extends Connection, oracledbConnection {
+export interface OracleConnection extends AbstractConnection, oracledbConnection {
   isHealthy(): boolean;
-  on(event: 'error', listener: (err: any) => void):this;
+  on(event: 'error', listener: (err: any) => void): this;
 }
 
 export class OracleConnectionManager extends AbstractConnectionManager<OracleConnection> {
@@ -36,20 +35,23 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
   }
 
   buildConnectString(config: ConnectionOptions) {
-    if (!config.host || config.host.length === 0)
+    if (!config.host || config.host.length === 0) {
       return config.database;
+    }
+
     let connectString = config.host;
     if (config.port) {
       connectString += `:${config.port}`;
     } else {
       connectString += ':1521';
     }
+
     if (config.database && config.database.length > 0) {
       connectString += `/${config.database}`;
     }
+
     return connectString;
   }
-
 
   /**
    * Method for initializing the lib
@@ -61,12 +63,14 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
       if (dialectOptions && 'maxRows' in dialectOptions) {
         this.lib.maxRows = this.sequelize.config.dialectOptions.maxRows;
       }
+
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
         this.lib.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
       } else {
         this.lib.fetchAsString = [this.lib.CLOB];
       }
     }
+
     // Retrieve BLOB always as Buffer.
     this.lib.fetchAsBuffer = [this.lib.BLOB];
   }
@@ -76,13 +80,12 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
       user: config.username,
       password: config.password,
       connectString: this.buildConnectString(config),
-      ...config.dialectOptions
+      ...config.dialectOptions,
     };
 
     try {
-      const connection: OracleConnection = await this.lib.getConnection(connectionConfig) as OracleConnection; 
-      // @ts-ignore: Object is possibly 'null'.
-      this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString).version;
+      const connection: OracleConnection = await this.lib.getConnection(connectionConfig) as OracleConnection;
+      this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString)!.version;
 
       debug('connection acquired');
       connection.on('error', error => {
@@ -96,8 +99,8 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
       });
 
       return connection;
-    } catch (err: any) {
-      let errorCode = err.message.split(':');
+    } catch (error: any) {
+      let errorCode = error.message.split(':');
       errorCode = errorCode[0];
 
       switch (errorCode) {
@@ -108,29 +111,29 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
         case 'NJS-511': // NJS-511: connection refused
         case 'NJS-516': // NJS-516: No Config Dir
         case 'NJS-517': // NJS-517: TNS Entry not found
-        case 'NJS-520': // NJS-520: TNS Names File missing  
-          throw new ConnectionRefusedError(err);
+        case 'NJS-520': // NJS-520: TNS Names File missing
+          throw new ConnectionRefusedError(error);
         case 'ORA-28000': // ORA-28000: Account locked
         case 'ORA-28040': // ORA-28040: No matching authentication protocol
         case 'ORA-01017': // ORA-01017: invalid username/password; logon denied
         case 'NJS-506': // NJS-506: TLS Auth Failure
-          throw new AccessDeniedError(err);
+          throw new AccessDeniedError(error);
         case 'ORA-12541': // ORA-12541: TNS: No listener
         case 'NJS-503': // NJS-503: Connection Incomplete
         case 'NJS-508': // NJS-508: TLS HOST MATCH Failure
         case 'NJS-507': // NJS-507: TLS DN MATCH Failure
-          throw new HostNotReachableError(err);
+          throw new HostNotReachableError(error);
         case 'NJS-512': // NJS-512: Invalid Connect String Parameters
         case 'NJS-515': // NJS-515: Invalid EZCONNECT Syntax
         case 'NJS-518': // NJS-518: Invald ServiceName
         case 'NJS-519': // NJS-519: Invald SID
-          throw new InvalidConnectionError(err);
+          throw new InvalidConnectionError(error);
         case 'ORA-12170': // ORA-12170: TNS: Connect Timeout occurred
         case 'NJS-510': // NJS-510: Connect Timeout occurred
 
-          throw new ConnectionTimedOutError(err);
+          throw new ConnectionTimedOutError(error);
         default:
-          throw new ConnectionError(err);
+          throw new ConnectionError(error);
       }
     }
   }
@@ -138,15 +141,18 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleCon
   async disconnect(connection: OracleConnection) {
     if (!connection.isHealthy()) {
       debug('connection tried to disconnect but was already at CLOSED state');
+
       return;
     }
 
     await new Promise<void>((resolve, reject) => {
-      connection.close((error) => {
+      connection.close(error => {
         if (error) {
           return void reject();
         }
+
         resolve();
+
         return undefined;
       });
     });

@@ -2,7 +2,7 @@
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
 import type { FetchDatabaseVersionOptions, QiDropAllTablesOptions } from '../abstract/query-interface.types.js';
-import { OracleDialect } from './index.js';
+import type { OracleDialect } from './index.js';
 
 export class OracleQueryInterfaceTypescript<Dialect extends OracleDialect = OracleDialect> extends AbstractQueryInterface {
 

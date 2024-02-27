@@ -1,11 +1,17 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
+import extend from 'lodash/extend';
+import mapKeys from 'lodash/mapKeys';
+import mapValues from 'lodash/mapValues';
+import isPlainObject from 'lodash/isPlainObject';
+import reduce from 'lodash/reduce';
+import toPairs from 'lodash/toPairs';
 import { AbstractQuery } from '../abstract/query';
-import { extend, mapKeys, mapValues, isPlainObject, reduce, toPairs } from 'lodash';
 import { nameIndex } from '../../utils/string';
 import { logger } from '../../utils/logger';
 
 const SequelizeErrors = require('../../errors');
+
 const debug = logger.debugContext('sql:oracle');
 
 export class OracleQuery extends AbstractQuery {
@@ -15,9 +21,9 @@ export class OracleQuery extends AbstractQuery {
       {
         logging: console.log,
         plain: false,
-        raw: false
+        raw: false,
       },
-      options || {}
+      options || {},
     );
 
     this.checkLoggingOption();
@@ -42,15 +48,18 @@ export class OracleQuery extends AbstractQuery {
         if (keyValue.type.getDataTypeId() === 'DECIMAL') {
           fInfo[key] = { type: oracledb.STRING };
         }
+
         // Fetching BIGINT as string since, node-oracledb doesn't support JS BIGINT yet
         if (keyValue.type.getDataTypeId() === 'BIGINT') {
           fInfo[key] = { type: oracledb.STRING };
         }
       }
-      if ( fInfo ) {
+
+      if (fInfo) {
         execOpts.fetchInfo = fInfo;
       }
     }
+
     return execOpts;
   }
 
@@ -74,7 +83,7 @@ export class OracleQuery extends AbstractQuery {
             this.options[bindingDictionary][key] = {
               ...oldBinding,
               type: oracledb.STRING,
-              maxSize: 10000000 //TOTALLY ARBITRARY Number to prevent query failure
+              maxSize: 10000000, //TOTALLY ARBITRARY Number to prevent query failure
             };
           }
         }
@@ -130,16 +139,22 @@ export class OracleQuery extends AbstractQuery {
     // TRANSACTION SUPPORT
     if (this.sql.startsWith('BEGIN TRANSACTION')) {
       this.autocommit = false;
+
       return Promise.resolve();
     }
+
     if (this.sql.startsWith('SET AUTOCOMMIT ON')) {
       this.autocommit = true;
+
       return Promise.resolve();
     }
+
     if (this.sql.startsWith('SET AUTOCOMMIT OFF')) {
       this.autocommit = false;
+
       return Promise.resolve();
     }
+
     if (this.sql.startsWith('DECLARE x NUMBER')) {
       // Calling a stored procedure for bulkInsert with NO attributes, returns nothing
       if (this.autoCommit === undefined) {
@@ -152,6 +167,7 @@ export class OracleQuery extends AbstractQuery {
 
       try {
         await this.connection.execute(this.sql, this.bindParameters, { autoCommit: this.autoCommit });
+
         return Object.create(null);
       } catch (error) {
         throw this.formatError(error);
@@ -159,6 +175,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     }
+
     if (this.sql.startsWith('BEGIN')) {
       // Call to stored procedures - BEGIN TRANSACTION has been treated before
       if (this.autoCommit === undefined) {
@@ -172,11 +189,12 @@ export class OracleQuery extends AbstractQuery {
       try {
         const result = await this.connection.execute(this.sql, this.bindParameters, {
           outFormat: this.outFormat,
-          autoCommit: this.autoCommit
+          autoCommit: this.autoCommit,
         });
         if (!Array.isArray(result.outBinds)) {
           return [result.outBinds];
         }
+
         return result.outBinds;
       } catch (error) {
         throw this.formatError(error);
@@ -184,9 +202,11 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     }
+
     if (this.sql.startsWith('COMMIT TRANSACTION')) {
       try {
         await this.connection.commit();
+
         return Object.create(null);
       } catch (error) {
         throw this.formatError(error);
@@ -194,9 +214,11 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     }
+
     if (this.sql.startsWith('ROLLBACK TRANSACTION')) {
       try {
         await this.connection.rollback();
+
         return Object.create(null);
       } catch (error) {
         throw this.formatError(error);
@@ -204,9 +226,11 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     }
+
     if (this.sql.startsWith('SET TRANSACTION')) {
       try {
         await this.connection.execute(this.sql, [], { autoCommit: false });
+
         return Object.create(null);
       } catch (error) {
         throw this.formatError(error);
@@ -214,6 +238,7 @@ export class OracleQuery extends AbstractQuery {
         complete();
       }
     }
+
     // QUERY SUPPORT
     // As Oracle does everything in transaction, if autoCommit is not defined, we set it to true
     if (this.autoCommit === undefined) {
@@ -228,13 +253,16 @@ export class OracleQuery extends AbstractQuery {
     if ('inputParameters' in this.options && this.options.inputParameters !== null) {
       Object.assign(this.bindParameters, this.options.inputParameters);
     }
+
     const execOpts = this.getExecOptions();
     if (this.options.executeMany && bindDef.length > 0) {
       execOpts.bindDefs = bindDef;
     }
+
     const executePromise = this.options.executeMany ? this.connection.executeMany(this.sql, this.bindParameters, execOpts) : this.connection.execute(this.sql, this.bindParameters, execOpts);
     try {
       const result = await executePromise;
+
       return this.formatResults(result);
     } catch (error) {
       throw this.formatError(error);
@@ -256,8 +284,10 @@ export class OracleQuery extends AbstractQuery {
       if (values[key] !== undefined) {
         return `:${key}`;
       }
+
       return undefined;
     };
+
     sql = AbstractQuery.formatBindParameters(sql, values, dialect, replacementFunc)[0];
 
     return [sql, values];
@@ -276,6 +306,7 @@ export class OracleQuery extends AbstractQuery {
     attrsMap = Object.assign(attrsMap, reduce(rawAttributes, (mp, _, key) => {
       const catalogKey = this.sequelize.queryInterface.queryGenerator.getCatalogName(key);
       mp[catalogKey] = key;
+
       return mp;
     }, {}));
   }
@@ -303,16 +334,17 @@ export class OracleQuery extends AbstractQuery {
         if (typeof v === 'object') {
           v = v[1];
         }
+
         const catalogv = this.sequelize.queryInterface.queryGenerator.getCatalogName(v);
         mp[catalogv] = v;
+
         return mp;
       }, {});
-
 
       // Building the attribute map by matching the column names received
       // from DB and the one in model.rawAttributes
       if (this.model) {
-        let modelDefinition = this.model.modelDefinition;
+        const modelDefinition = this.model.modelDefinition;
         this._getAttributeMap(attrsMap, modelDefinition.rawAttributes);
       }
 
@@ -324,12 +356,15 @@ export class OracleQuery extends AbstractQuery {
             .reduce((acc, [key, value]) => {
               const mapping = Object.values(obj).find(element => {
                 const catalogElement = this.sequelize.queryInterface.queryGenerator.getCatalogName(element);
+
                 return catalogElement === key;
               });
-              if (mapping)
+              if (mapping) {
                 acc[mapping || key] = value;
+              }
+
               return acc;
-            }, {})
+            }, {}),
           );
       }
 
@@ -340,6 +375,7 @@ export class OracleQuery extends AbstractQuery {
           if (typeof targetAttr === 'string' && targetAttr !== key) {
             return targetAttr;
           }
+
           return key;
         });
       });
@@ -355,17 +391,20 @@ export class OracleQuery extends AbstractQuery {
             if (modelDefinition.rawAttributes[key].type.getDataTypeId() === 'JSON') {
               value = JSON.parse(value);
             }
+
             // For some types, the "name" of the type is returned with the length, we remove it
             // For Boolean we skip this because BOOLEAN is mapped to CHAR(1) and we dont' want to
             // remove the (1) for BOOLEAN
             if (typeid.indexOf('(') > -1 && modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN') {
               typeid = typeid.substr(0, typeid.indexOf('('));
             }
+
             const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);
             if (value !== null & parser) {
               value = parser(value);
             }
           }
+
           return value;
         });
       });
@@ -403,12 +442,14 @@ export class OracleQuery extends AbstractQuery {
         if (this.instance) {
           insertData = [insertData];
         }
+
         // Mapping the bind parameter to their values
-        const res = insertData.map(row =>{
+        const res = insertData.map(row => {
           const obj = {};
-          row.forEach((element, index) =>{
+          row.forEach((element, index) => {
             obj[keys[index]] = element[0];
           });
+
           return obj;
         });
         insertData = res;
@@ -419,9 +460,12 @@ export class OracleQuery extends AbstractQuery {
           result = res;
         }
       }
+
       this.handleInsertQuery(insertData);
+
       return [result, data.rowsAffected];
     }
+
     if (this.isDescribeQuery()) {
       result = {};
       // Getting the table name on which we are doing describe query
@@ -431,10 +475,11 @@ export class OracleQuery extends AbstractQuery {
       if (this.sequelize.models && table.length > 0) {
         this._getAttributeMap(modelAttributes, this.sequelize.models[table[0]].modelDefinition.rawAttributes);
       }
+
       data.rows.forEach(_result => {
         if (_result.Default) {
-          _result.Default = _result.Default.replace("('", '')
-            .replace("')", '')
+          _result.Default = _result.Default.replace(`('`, '')
+            .replace(`')`, '')
             .replace(/'/g, ''); /* jshint ignore: line */
         }
 
@@ -449,7 +494,7 @@ export class OracleQuery extends AbstractQuery {
             type: _result.DATA_TYPE.toUpperCase(),
             allowNull: _result.NULLABLE === 'N' ? false : true,
             defaultValue: undefined,
-            primaryKey: _result.CONSTRAINT_TYPE === 'P'
+            primaryKey: _result.CONSTRAINT_TYPE === 'P',
           };
         }
       });
@@ -458,6 +503,7 @@ export class OracleQuery extends AbstractQuery {
     } else if (this.isSelectQuery()) {
       const rows = data.rows;
       const result = this._processRows(rows);
+
       return this.handleSelectQuery(result);
     } else if (this.isCallQuery()) {
       result = data.rows[0];
@@ -475,6 +521,7 @@ export class OracleQuery extends AbstractQuery {
       for (const k in keys) {
         obj[keys[k]] = data[k];
       }
+
       obj.isUpdate = data[data.length - 1];
       data = obj;
       result = [{ isNewRecord: data.isUpdate, value: data }, data.isUpdate == 0];
@@ -490,6 +537,7 @@ export class OracleQuery extends AbstractQuery {
       if (data && data.rows) {
         return [data.rows, data.metaData];
       }
+
       return [data, data];
     }
 
@@ -503,6 +551,7 @@ export class OracleQuery extends AbstractQuery {
       for (const key in result) {
         constraint[key] = result[key];
       }
+
       return constraint;
     });
   }
@@ -514,9 +563,9 @@ export class OracleQuery extends AbstractQuery {
     if (match && match.length > 1) {
       match[1] = match[1].replace('(', '').replace(')', '').split('.')[1]; // As we get (SEQUELIZE.UNIQNAME), we replace to have UNIQNAME
       const errors = [];
-      let fields = [],
-        message = 'Validation error',
-        uniqueKey = null;
+      let fields = [];
+      let message = 'Validation error';
+      let uniqueKey = null;
 
       if (this.model) {
         const uniqueKeys = this.model.getIndexes();
@@ -540,8 +589,8 @@ export class OracleQuery extends AbstractQuery {
               this.getUniqueConstraintErrorMessage(field),
               'unique violation',
               field,
-              null
-            )
+              null,
+            ),
           );
         });
       }
@@ -550,7 +599,7 @@ export class OracleQuery extends AbstractQuery {
         message,
         errors,
         cause: err,
-        fields
+        fields,
       });
     }
 
@@ -560,7 +609,7 @@ export class OracleQuery extends AbstractQuery {
       return new SequelizeErrors.ForeignKeyConstraintError({
         fields: null,
         index: match[1],
-        parent: err
+        cause: err,
       });
     }
 
@@ -589,11 +638,11 @@ export class OracleQuery extends AbstractQuery {
       // We create the object
       if (!acc[indexRecord.INDEX_NAME]) {
         acc[indexRecord.INDEX_NAME] = {
-          unique: indexRecord.UNIQUENESS === 'UNIQUE' ? true : false,
+          unique: indexRecord.UNIQUENESS === 'UNIQUE',
           primary: indexRecord.CONSTRAINT_TYPE === 'P',
           name: indexRecord.INDEX_NAME,
           tableName: indexRecord.TABLE_NAME.toLowerCase(),
-          type: undefined
+          type: undefined,
         };
         acc[indexRecord.INDEX_NAME].fields = [];
       }
@@ -603,7 +652,7 @@ export class OracleQuery extends AbstractQuery {
         name: indexRecord.COLUMN_NAME,
         length: undefined,
         order: indexRecord.DESCEND,
-        collate: undefined
+        collate: undefined,
       });
     });
 
@@ -618,12 +667,14 @@ export class OracleQuery extends AbstractQuery {
       if (acc[accKey].name.match(/SYS_C[0-9]*/)) {
         acc[accKey].name = nameIndex(columns, acc[accKey].tableName).name;
       }
+
       acc[accKey].fields.map(field => {
-        field.attribute =field.name;
+        field.attribute = field.name;
         delete field.name;
       });
       returnIndexes.push(acc[accKey]);
     }
+
     return returnIndexes;
   }
 
@@ -642,8 +693,8 @@ export class OracleQuery extends AbstractQuery {
       let autoIncrementAlias = null;
 
       if (
-        Object.prototype.hasOwnProperty.call(modelDefinition.rawAttributes, autoIncrementField) &&
-        modelDefinition.rawAttributes[autoIncrementField].field !== undefined
+        Object.hasOwn(modelDefinition.rawAttributes, autoIncrementField)
+        && modelDefinition.rawAttributes[autoIncrementField].field !== undefined
       ) {
         autoIncrementAlias = modelDefinition.rawAttributes[autoIncrementField].field;
       }

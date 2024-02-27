@@ -98,7 +98,7 @@ export class OracleDialect extends AbstractDialect {
     return createNamedParamBindCollector(':');
   }
 
-  static getDefaultPort() : number {
+  static getDefaultPort(): number {
     return 1521;
   }
 
@@ -106,7 +106,9 @@ export class OracleDialect extends AbstractDialect {
     if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
       return val;
     }
-    val = val.replace(/'/g, "''");
+
+    val = val.replaceAll('\'', '\'\'');
+
     return `'${val}'`;
   }
 

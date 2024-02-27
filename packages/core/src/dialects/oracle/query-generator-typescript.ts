@@ -1,32 +1,38 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
+import { IsolationLevel } from '../../transaction';
 import { rejectInvalidOptions } from '../../utils/check';
-import { generateIndexName } from '../../utils/string';
-import { EMPTY_SET } from '../../utils/object.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { extractModelDefinition, isModelStatic } from '../../utils/model-utils';
+import { EMPTY_SET } from '../../utils/object.js';
+import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
+import type {
+  BulkDeleteQueryOptions,
+  CreateSchemaQueryOptions,
+  RemoveColumnQueryOptions,
+  RemoveConstraintQueryOptions,
+  RenameTableQueryOptions,
+  TruncateTableQueryOptions,
+} from '../abstract/query-generator.types';
 import type { TableNameWithSchema } from '../abstract/query-interface';
-import type { BulkDeleteQueryOptions, CreateSchemaQueryOptions, RemoveConstraintQueryOptions, RenameTableQueryOptions, TruncateTableQueryOptions } from '../abstract/query-generator.types';
-import { RemoveColumnQueryOptions } from '../abstract/query-generator.types';
-import { isModelStatic, extractModelDefinition } from '../../utils/model-utils';
 import { OracleQueryGeneratorInternal } from './query-generator-internal';
 import type { OracleDialect } from './index.js';
-import { IsolationLevel } from '../../transaction';
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: OracleQueryGeneratorInternal;
 
   constructor(
     dialect: OracleDialect,
-    internals: OracleQueryGeneratorInternal = new OracleQueryGeneratorInternal(dialect)
+    internals: OracleQueryGeneratorInternal = new OracleQueryGeneratorInternal(dialect),
   ) {
     super(dialect, internals);
 
@@ -136,9 +142,9 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         constraintName,
         options?.cascade ? 'CASCADE' : '',
       ]);
-    } else {
-      return super.removeConstraintQuery(tableName, constraintName, options);
     }
+
+    return super.removeConstraintQuery(tableName, constraintName, options);
   }
 
   renameTableQuery(
@@ -155,14 +161,15 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         options,
       );
     }
+
     const beforeTable = this.extractTableDetails(beforeTableName);
     const afterTable = this.extractTableDetails(afterTableName);
-    let renamedTable  = afterTable.tableName;
+    const renamedTable = afterTable.tableName;
 
     if (beforeTable.schema !== afterTable.schema) {
       throw new Error(`Moving tables between schemas is not supported by ${this.dialect.name} dialect.`);
     }
-    
+
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(renamedTable)}`;
   }
 
@@ -178,15 +185,16 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       EMPTY_SET,
       options,
     );
+
     return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'DROP COLUMN',
-      this.quoteIdentifier(attributeName)
+      this.quoteIdentifier(attributeName),
     ]);
   }
 
-  createSchemaQuery(schema : string, options: CreateSchemaQueryOptions) : string {
+  createSchemaQuery(schema: string, options: CreateSchemaQueryOptions): string {
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
@@ -196,7 +204,9 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         options,
       );
     }
+
     const quotedSchema = this.quoteIdentifier(schema);
+
     return [
       'DECLARE',
       'USER_FOUND BOOLEAN := FALSE;',
@@ -238,7 +248,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       this.escape(`ALTER USER ${quotedSchema} QUOTA UNLIMITED ON USERS`),
       ';',
       ' END IF;',
-      'END;'
+      'END;',
     ].join(' ');
   }
 
@@ -252,6 +262,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         options,
       );
     }
+
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
@@ -270,17 +281,18 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       }
 
       const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
-      queryTmpl =
-        `DELETE FROM ${table} WHERE rowid IN (SELECT rowid FROM ${table} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
+      queryTmpl
+        = `DELETE FROM ${table} WHERE rowid IN (SELECT rowid FROM ${table} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
         })`;
     } else {
       const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';
       queryTmpl = `DELETE FROM ${table}${whereTmpl}`;
     }
+
     return queryTmpl;
   }
 
-  setIsolationLevelQuery(isolationLevel : IsolationLevel): string {
+  setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
 
     switch (isolationLevel) {
       case IsolationLevel.READ_UNCOMMITTED:
@@ -288,14 +300,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         return 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED';
       case IsolationLevel.REPEATABLE_READ:
       case IsolationLevel.SERIALIZABLE:
-        // Serializable mode is equal to Snapshot Isolation (SI) 
+        // Serializable mode is equal to Snapshot Isolation (SI)
         // defined in ANSI std.
         return 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE';
       default:
         throw new Error(`The ${isolationLevel} isolation level is not supported by ${this.dialect.name}.`);
     }
   }
-  
+
   commitTransactionQuery() {
     return 'COMMIT TRANSACTION';
   }
