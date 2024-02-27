@@ -4148,7 +4148,7 @@ __metadata:
   bin:
     wasm-opt: bin/wasm-opt
     wasm2js: bin/wasm2js
-  checksum: 1068a29b111bb5423749b623a47bb3bc1ef88e8760aa7a0dae5c3dfa6e418eb34763a8688a11cd64b7076c9bb58edab3905c56fab3f3d2a85b3b78b8fff859b1
+  checksum: 10c0/1fcedaad2bb1eb1a837191f3a47be607cdf791aeb95fc85f5f77441225cbaf887488fd068d4f90e237fc5fb1ad57a30a3b1136d9d65e8577ef1318387c92f781
   languageName: node
   linkType: hard
 
@@ -4215,10 +4215,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bnf-parser@npm:3.1.6":
-  version: 3.1.6
-  resolution: "bnf-parser@npm:3.1.6"
-  checksum: fb0ee9dcfc0840ad72e846a6a1bd3f11eb541526ad8b1867dbbac9b3ad141421c215a5cfc0fd3c9802da94a6aa43c1acb5cffa6c9a2bde5a0984347ee5934a76
+"bnf-parser@npm:4.1.0":
+  version: 4.1.0
+  resolution: "bnf-parser@npm:4.1.0"
+  dependencies:
+    binaryen: "npm:^113.0.0"
+    chalk: "npm:^5.3.0"
+  bin:
+    bnf-compile: bin/cli.js
+  checksum: 10c0/088362bff02544819d0fc4721bb35cc3910b0c29dca4554f9ed1bb9ffb4747509ee3a3e7bb3fdeb090914edc458c5f997b8257496b0abbbcbfe6a792dd2c920a
   languageName: node
   linkType: hard
 
