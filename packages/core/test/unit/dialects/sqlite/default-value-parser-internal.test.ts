@@ -26,7 +26,7 @@ if (dialect.startsWith('sqlite')) {
 
     for (const type of ['INTEGER', 'REAL']) {
       it(`should return a number for ${type}`, () => {
-        expect(parseDefaultValue('1', { ...defaultField, type }, '')).to.equal(1);
+        expect(parseDefaultValue('1', { ...defaultField, type })).to.equal(1);
       });
     }
 
