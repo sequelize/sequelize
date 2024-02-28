@@ -400,12 +400,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       [DataTypes.JSON, DataTypes.JSONB].forEach(dataType => {
-        // MariaDB does not support default values in JSON fields
+        // MariaDB, MySQL does not support default values in JSON fields
         // SQLite handles JSON fields as TEXT
         if (
           Support.sequelize.dialect.supports.dataTypes[dataType.name] &&
-          dialect !== 'mariadb' &&
-          dialect !== 'sqlite'
+          !['mariadb', 'mysql', 'sqlite'].includes(dialect)
         ) {
           describe(`for fields of type ${dataType.name}`, () => {
             it('should return the right default value for a JSON object', async function () {
