@@ -8,6 +8,19 @@ describe('QueryGenerator#describeTableQuery', () => {
   it('produces a query to describe a table', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [myTable];',
+      mariadb: `SELECT 
+        TABLE_NAME AS 'Table',
+        COLUMN_NAME AS 'Field',
+        COLUMN_DEFAULT AS 'Default',
+        IS_NULLABLE AS 'Null',
+        COLUMN_TYPE AS 'Type',
+        EXTRA AS 'Extra',
+        COLUMN_COMMENT AS 'Comment',
+        COLUMN_KEY AS 'Key'
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = 'sequelize_test'
+        AND TABLE_NAME = 'myTable'
+      ORDER BY TABLE_NAME, ORDINAL_POSITION`,
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -83,6 +96,19 @@ describe('QueryGenerator#describeTableQuery', () => {
 
     expectsql(() => queryGenerator.describeTableQuery(MyModel), {
       default: 'SHOW FULL COLUMNS FROM [MyModels];',
+      mariadb: `SELECT 
+        TABLE_NAME AS 'Table',
+        COLUMN_NAME AS 'Field',
+        COLUMN_DEFAULT AS 'Default',
+        IS_NULLABLE AS 'Null',
+        COLUMN_TYPE AS 'Type',
+        EXTRA AS 'Extra',
+        COLUMN_COMMENT AS 'Comment',
+        COLUMN_KEY AS 'Key'
+      FROM INFORMATION_SCHEMA.COLUMNS 
+      WHERE TABLE_SCHEMA = 'sequelize_test'
+        AND TABLE_NAME = 'MyModels'
+      ORDER BY TABLE_NAME, ORDINAL_POSITION`,
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -159,6 +185,19 @@ describe('QueryGenerator#describeTableQuery', () => {
 
     expectsql(() => queryGenerator.describeTableQuery(myDefinition), {
       default: 'SHOW FULL COLUMNS FROM [MyModels];',
+      mariadb: `SELECT 
+          TABLE_NAME AS 'Table',
+          COLUMN_NAME AS 'Field',
+          COLUMN_DEFAULT AS 'Default',
+          IS_NULLABLE AS 'Null',
+          COLUMN_TYPE AS 'Type',
+          EXTRA AS 'Extra',
+          COLUMN_COMMENT AS 'Comment',
+          COLUMN_KEY AS 'Key'
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = 'sequelize_test'
+          AND TABLE_NAME = 'MyModels'
+        ORDER BY TABLE_NAME, ORDINAL_POSITION`,
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -234,6 +273,19 @@ describe('QueryGenerator#describeTableQuery', () => {
       () => queryGenerator.describeTableQuery({ tableName: 'myTable', schema: 'mySchema' }),
       {
         default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
+        mariadb: `SELECT 
+          TABLE_NAME AS 'Table',
+          COLUMN_NAME AS 'Field',
+          COLUMN_DEFAULT AS 'Default',
+          IS_NULLABLE AS 'Null',
+          COLUMN_TYPE AS 'Type',
+          EXTRA AS 'Extra',
+          COLUMN_COMMENT AS 'Comment',
+          COLUMN_KEY AS 'Key'
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = 'mySchema'
+          AND TABLE_NAME = 'myTable'
+        ORDER BY TABLE_NAME, ORDINAL_POSITION`,
         postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -312,6 +364,19 @@ describe('QueryGenerator#describeTableQuery', () => {
         }),
       {
         default: 'SHOW FULL COLUMNS FROM [myTable];',
+        mariadb: `SELECT 
+          TABLE_NAME AS 'Table',
+          COLUMN_NAME AS 'Field',
+          COLUMN_DEFAULT AS 'Default',
+          IS_NULLABLE AS 'Null',
+          COLUMN_TYPE AS 'Type',
+          EXTRA AS 'Extra',
+          COLUMN_COMMENT AS 'Comment',
+          COLUMN_KEY AS 'Key'
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = 'sequelize_test'
+          AND TABLE_NAME = 'myTable'
+        ORDER BY TABLE_NAME, ORDINAL_POSITION`,
         postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
@@ -388,6 +453,19 @@ describe('QueryGenerator#describeTableQuery', () => {
 
     expectsql(() => queryGeneratorSchema.describeTableQuery('myTable'), {
       default: 'SHOW FULL COLUMNS FROM [mySchema].[myTable];',
+      mariadb: `SELECT 
+          TABLE_NAME AS 'Table',
+          COLUMN_NAME AS 'Field',
+          COLUMN_DEFAULT AS 'Default',
+          IS_NULLABLE AS 'Null',
+          COLUMN_TYPE AS 'Type',
+          EXTRA AS 'Extra',
+          COLUMN_COMMENT AS 'Comment',
+          COLUMN_KEY AS 'Key'
+        FROM INFORMATION_SCHEMA.COLUMNS 
+        WHERE TABLE_SCHEMA = 'mySchema'
+          AND TABLE_NAME = 'myTable'
+        ORDER BY TABLE_NAME, ORDINAL_POSITION`,
       postgres: `SELECT
         pk.constraint_type as "Constraint",
         c.column_name as "Field",
