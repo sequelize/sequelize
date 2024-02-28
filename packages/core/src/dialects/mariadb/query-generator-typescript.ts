@@ -61,7 +61,8 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   describeTableQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
-    return `SELECT TABLE_NAME AS 'Table',
+    return `SELECT 
+        TABLE_NAME AS 'Table',
         COLUMN_NAME AS 'Field',
         COLUMN_DEFAULT AS 'Default',
         IS_NULLABLE AS 'Null',
@@ -71,7 +72,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
         COLUMN_KEY AS 'Key'
       FROM INFORMATION_SCHEMA.COLUMNS
       WHERE ${table.schema ? `TABLE_SCHEMA = ${this.escape(table.schema)}` : ''}
-      AND TABLE_NAME = ${this.escape(table.tableName)}
+        AND TABLE_NAME = ${this.escape(table.tableName)}
       ORDER BY TABLE_NAME, ORDINAL_POSITION`;
   }
 
