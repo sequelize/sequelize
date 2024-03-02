@@ -1,6 +1,6 @@
 import type {
   Connection as TediousConnection,
-  ConnectionConfig as TediousConnectionConfig,
+  ConnectionConfiguration as TediousConnectionConfig,
 } from 'tedious';
 import {
   AccessDeniedError,
@@ -13,6 +13,7 @@ import {
 import type { ConnectionOptions } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
+import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { AsyncQueue } from './async-queue';
@@ -25,22 +26,11 @@ const debugTedious = logger.debugContext('connection:mssql:tedious');
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type Lib = typeof import('tedious');
 
-interface TediousConnectionState {
-  name: string;
-}
-
 export interface MsSqlConnection extends Connection, TediousConnection {
   // custom properties we attach to the connection
   // TODO: replace with Symbols.
   queue: AsyncQueue;
   lib: Lib;
-
-  // undeclared tedious properties
-  closed: boolean;
-  loggedIn: boolean;
-  state: TediousConnectionState;
-  // on prototype
-  STATE: Record<string, TediousConnectionState>;
 }
 
 export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConnection> {
@@ -52,11 +42,11 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
   }
 
   async connect(config: ConnectionOptions): Promise<MsSqlConnection> {
-    const options: TediousConnectionConfig['options'] = {
+    const options: TediousConnectionConfig['options'] = removeUndefined({
       port: typeof config.port === 'string' ? Number.parseInt(config.port, 10) : config.port,
       database: config.database,
       trustServerCertificate: true,
-    };
+    });
 
     const authentication: TediousConnectionConfig['authentication'] = {
       type: 'default',
@@ -82,11 +72,11 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
       Object.assign(options, config.dialectOptions.options);
     }
 
-    const connectionConfig: TediousConnectionConfig = {
+    const connectionConfig: TediousConnectionConfig = removeUndefined({
       server: config.host,
       authentication,
       options,
-    };
+    });
 
     try {
       return await new Promise((resolve, reject) => {
@@ -206,6 +196,6 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
   }
 
   validate(connection: MsSqlConnection) {
-    return connection && (connection.loggedIn || connection.state.name === 'LoggedIn');
+    return connection?.state.name === 'LoggedIn';
   }
 }
