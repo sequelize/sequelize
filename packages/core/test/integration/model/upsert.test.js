@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { beforeEach2, sequelize } = require('../support');
-const { DataTypes, Sequelize, sql } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = sequelize.dialect.name;
 
@@ -1044,6 +1044,58 @@ describe('Model', () => {
             const rowCount = await User.count();
 
             expect(rowCount).to.eq(2);
+          });
+        });
+      }
+
+      if (sequelize.dialect.supports.inserts.onConflictUpdateWhere) {
+        describe('conflictUpdateWhere', () => {
+          const initalUser = { name: 'Abdou', intVal: 10, uniqueId: 'Abdou-1' };
+          const options = {
+            conflictAttributes: ['uniqueId'],
+            updateOnDuplicate: ['intVal'],
+            upsertKeys: ['uniqueId'],
+            onConflictUpdateWhere: {
+              intVal: { [Op.gte]: 15 },
+            },
+            isNewRecord: false,
+          };
+          const vars = beforeEach2(async () => {
+            const User = sequelize.define('users', {
+              name: DataTypes.STRING,
+              intVal: DataTypes.INTEGER,
+              uniqueId: { type: DataTypes.STRING, unique: true },
+            });
+
+            await User.sync({ force: true });
+            await User.create(initalUser);
+
+            return { User };
+          });
+
+          it('Should throw SequelizeEmptyResultError when conflict if where condition is not met', async () => {
+            const { User } = vars;
+            await expect(User.create(
+              { name: 'Abdou', intVal: 20, uniqueId: 'Abdou-1' },
+              options,
+            )).to.be.rejectedWith(Sequelize.EmptyResultError);
+            const user = await User.findOne({ where: { uniqueId: 'Abdou-1' } });
+            expect(user.intVal).to.eq(10);
+          });
+
+          it('Should update exisiting record on conflict if where condition is met', async () => {
+            const { User } = vars;
+            const user = await User.create(
+              { name: 'Abdou', intVal: 20, uniqueId: 'Abdou-1' },
+              {
+                ...options,
+                onConflictUpdateWhere: {
+                  intVal: { [Op.gte]: 9 },
+                },
+              },
+            );
+
+            expect(user.intVal).to.eq(20);
           });
         });
       }

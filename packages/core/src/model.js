@@ -221,10 +221,10 @@ export class Model extends ModelTypeScript {
       const defaults =
         modelDefinition.defaultValues.size > 0
           ? mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
-              const value = getDefaultValue();
+            const value = getDefaultValue();
 
-              return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
-            })
+            return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
+          })
           : Object.create(null);
 
       // set id to null if not passed as value, a newly created dao has no id
@@ -1937,7 +1937,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (!options || !options.where || arguments.length > 1) {
       throw new Error(
         'Missing where attribute in the options parameter passed to findOrBuild. ' +
-          'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
+        'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
       );
     }
 
@@ -1979,7 +1979,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (!options || !options.where || arguments.length > 1) {
       throw new Error(
         'Missing where attribute in the options parameter passed to findOrCreate. ' +
-          'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
+        'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
       );
     }
 
@@ -2340,6 +2340,10 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
+      if (options.onConflictUpdateWhere && !['postgres', 'sqlite'].includes(dialect)) {
+        throw new Error(`${dialect} does not support the conflictUpdateWhere option.`);
+      }
+
       const model = options.model;
       const modelDefinition = model.modelDefinition;
 
@@ -2479,6 +2483,7 @@ ${associationOwner._getAssociationDebugList()}`);
           fieldMappedAttributes[attribute.columnName] = attribute;
         }
 
+        // TODO: abdou
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {
@@ -2640,7 +2645,7 @@ ${associationOwner._getAssociationDebugList()}`);
                         attributeName === include.association.foreignKey ||
                         attributeName === include.association.otherKey ||
                         typeof associationInstance[include.association.through.model.name][
-                          attributeName
+                        attributeName
                         ] === 'undefined'
                       ) {
                         continue;
@@ -3420,8 +3425,8 @@ Instead of specifying a Model, either:
     assert(options && options.where, 'Missing where attribute in the options parameter');
     assert(
       isPlainObject(options.where) ||
-        Array.isArray(options.where) ||
-        options.where instanceof BaseSqlExpression,
+      Array.isArray(options.where) ||
+      options.where instanceof BaseSqlExpression,
       'Expected plain object, array or sequelize method in the options.where parameter',
     );
   }

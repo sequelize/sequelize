@@ -41,6 +41,7 @@ export class PostgresDialect extends AbstractDialect {
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
       onConflictWhere: true,
+      onConflictUpdateWhere: true,
     },
     dataTypes: {
       ARRAY: true,

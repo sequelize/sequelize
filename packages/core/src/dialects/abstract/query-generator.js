@@ -1,3 +1,4 @@
+
 'use strict';
 
 import compact from 'lodash/compact';
@@ -25,6 +26,7 @@ import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/forma
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
+import { isString } from '../../utils/check'
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -169,6 +171,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       throw new Error('missing dialect support for conflictWhere option');
     }
 
+    if (!isEmpty(options.onConflictUpdateWhere) && !this.dialect.supports.inserts.onConflictUpdateWhere) {
+      throw new Error('missing dialect support for onConflictUpdateWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -184,7 +190,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
+          fragments.push(this.whereQuery(options.conflictWhere, {...options}));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -193,6 +199,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           fragments.push('DO NOTHING');
         } else {
           fragments.push('DO UPDATE SET', updateKeys.join(','));
+          if (this.dialect.supports.inserts.onConflictUpdateWhere && options.onConflictUpdateWhere) {
+            // We need to use the mainAlias here to avoid ambiguous column names in the conditional update clause between the main table and the EXCLUDED values
+            options.mainAlias = isString(table) ? table : table.tableName;
+            fragments.push(this.whereQuery(options.onConflictUpdateWhere, options))
+          }
         }
 
         onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
@@ -281,7 +292,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Returns an insert into command for multiple values.
    *
-   * @param {string} tableName
+   * @param {TableName} tableName
    * @param {object} fieldValueHashes
    * @param {object} options
    * @param {object} fieldMappedAttributes
@@ -348,6 +359,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           whereClause = this.whereQuery(options.conflictWhere, options);
         }
 
+        let conditionalUpdateClause = '';
+        if (this.dialect.supports.inserts.onConflictUpdateWhere && options.onConflictUpdateWhere) {
+          // We need to use the mainAlias here to avoid ambiguous column names in the conditional update clause between the main table and the EXCLUDED values
+          options.mainAlias = isString(tableName) ? tableName : tableName.tableName;
+          conditionalUpdateClause = this.whereQuery(options.onConflictUpdateWhere, options);
+        }
+
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
         onDuplicateKeyUpdate = [
           'ON CONFLICT',
@@ -357,6 +375,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           whereClause,
           'DO UPDATE SET',
           updateKeys.join(','),
+          conditionalUpdateClause,
         ];
       } else {
         // mysql / maria
@@ -715,11 +734,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const escapedIndexName =
       tableName.schema && this.dialect.name === 'db2'
         ? // 'quoteTable' isn't the best name: it quotes any identifier.
-          // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
-          this.quoteTable({
-            schema: tableName.schema,
-            tableName: options.name,
-          })
+        // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+        this.quoteTable({
+          schema: tableName.schema,
+          tableName: options.name,
+        })
         : this.quoteIdentifiers(options.name);
 
     ind = ind.concat(
@@ -1041,12 +1060,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     mainTable.quotedName = !Array.isArray(mainTable.name)
       ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
       : tableName
-          .map(t => {
-            return Array.isArray(t)
-              ? this.quoteTable(t[0], { ...options, alias: t[1] })
-              : this.quoteTable(t, { ...options, alias: true });
-          })
-          .join(', ');
+        .map(t => {
+          return Array.isArray(t)
+            ? this.quoteTable(t[0], { ...options, alias: t[1] })
+            : this.quoteTable(t, { ...options, alias: true });
+        })
+        .join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
     const mainModelAttributes = mainModelDefinition?.attributes;

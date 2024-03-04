@@ -1213,6 +1213,79 @@ describe('Model', () => {
               });
             });
           }
+
+          if (dialect.supports.inserts.onConflictUpdateWhere) {
+            describe('onConflictUpdateWhere', () => {
+              const options = {
+                conflictAttributes: ['uniqueName'],
+                updateOnDuplicate: ['secretValue', 'intVal'],
+                onConflictUpdateWhere: {
+                  intVal: { [Op.gte]: 15 },
+                },
+              };
+              const initialUsers = [
+                { uniqueName: 'Peter', secretValue: '11', intVal: 7 },
+                { uniqueName: 'Abdou', secretValue: '25', intVal: 10 },
+              ];
+
+              it('should ignore the onConflictUpdateWhere option if conflict is detected but where clause does not meet the conditions ', async function () {
+                await this.User.bulkCreate(initialUsers);
+                const conflictingData = [
+                  { uniqueName: 'Peter', secretValue: '33', intVal: 10 },
+                  { uniqueName: 'Abdou', secretValue: '56', intVal: 13 },
+                ];
+
+                await this.User.bulkCreate(conflictingData, options);
+                const users = await this.User.findAll({ order: ['id'] });
+                expect(users[0].secretValue).to.equal(initialUsers[0].secretValue);
+                expect(users[0].intVal).to.equal(initialUsers[0].intVal);
+                expect(users[1].secretValue).to.equal(initialUsers[1].secretValue);
+                expect(users[1].intVal).to.equal(initialUsers[1].intVal);
+              });
+
+              it('should update the record if a conflict is detected and the where clause meets the condition', async function () {
+                await this.User.bulkCreate(initialUsers);
+                const conflictingData = [
+                  { uniqueName: 'Peter', secretValue: '33', intVal: 10 },
+                  { uniqueName: 'Abdou', secretValue: '56', intVal: 13 },
+                ];
+
+                await this.User.bulkCreate(conflictingData, {
+                  ...options,
+                  onConflictUpdateWhere: { intVal: { [Op.gte]: 6 } },
+                });
+                const users = await this.User.findAll({ order: ['id'] });
+                expect(users[0].secretValue).to.equal(conflictingData[0].secretValue);
+                expect(users[0].intVal).to.equal(conflictingData[0].intVal);
+                expect(users[1].secretValue).to.equal(conflictingData[1].secretValue);
+                expect(users[1].intVal).to.equal(conflictingData[1].intVal);
+              });
+            });
+          } else {
+            it('should throw an error when the onConflictUpdateWhere option is passed', async function () {
+              const data = [
+                { uniqueName: 'Peter', secretValue: '42' },
+                { uniqueName: 'Paul', secretValue: '23' },
+              ];
+
+              await this.User.bulkCreate(data);
+              data.push({ uniqueName: 'Michael', secretValue: '26' });
+
+              try {
+                await this.User.bulkCreate(data, {
+                  conflictAttributes: ['uniqueName'],
+                  updateOnDuplicate: ['secretValue', 'intVal'],
+                  onConflictUpdateWhere: {
+                    intVal: { [Op.gte]: 15 },
+                  },
+                });
+              } catch (error) {
+                expect(error.message).to.equal(
+                  `${dialectName} does not support the onConflictUpdateWhere option.`,
+                );
+              }
+            });
+          }
         }
       });
     }

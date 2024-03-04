@@ -359,6 +359,13 @@ if (dialect.startsWith('postgres')) {
           },
         },
         {
+          arguments: ['myTable', { name: 'foo' }, {}, { updateOnDuplicate: ['name'], upsertKeys: ['name'], onConflictUpdateWhere: { id: 10 } }],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name" WHERE "id" = 10;',
+            bind: { sequelize_1: 'foo' },
+          },
+        },
+        {
           arguments: ['myTable', { name: 'foo' }, {}, { returning: true }],
           expectation: {
             query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) RETURNING *;',
@@ -704,6 +711,15 @@ if (dialect.startsWith('postgres')) {
           ],
           expectation:
             'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name";',
+        },
+        {
+          arguments: [
+            { schema: 'mySchema', tableName: 'myTable' },
+            [{ name: 'foo' }, { name: 'bar' }],
+            { updateOnDuplicate: ['name'], upsertKeys: ['name'], onConflictUpdateWhere: { id: 10 } },
+          ],
+          expectation:
+            'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name" WHERE "id" = 10;',
         },
 
         // Variants when quoteIdentifiers is false

@@ -1217,6 +1217,11 @@ export interface BulkCreateOptions<TAttributes = any>
    */
   conflictWhere?: WhereOptions<TAttributes>;
   /**
+   * An optional parameter that specifies a where clause for the 'ON CONFLICT DO UPDATE SET ... WHERE' part of the query
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.35.0
+   */
+  onConflictUpdateWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
