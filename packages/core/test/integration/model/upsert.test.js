@@ -1084,7 +1084,7 @@ describe('Model', () => {
             }
 
             const user = await User.findOne({ where: { uniqueId: 'Abdou-1' } });
-              expect(user.intVal).to.eq(10);
+            expect(user.intVal).to.eq(10);
           });
 
           it('Should update exisiting record on conflict if where condition is met', async () => {

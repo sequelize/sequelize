@@ -108,7 +108,7 @@ export type DialectSupports = {
   inserts: {
     ignoreDuplicates: string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
     updateOnDuplicate: boolean | string /* whether dialect supports ON DUPLICATE KEY UPDATE */;
-    onConflictUpdateWhere: boolean /* whether dialect supports ON CONFLICT DU UPDATE SET ... WHERE */
+    onConflictUpdateWhere: boolean /* whether dialect supports ON CONFLICT DU UPDATE SET ... WHERE */;
     onConflictDoNothing: string /* dialect specific words for ON CONFLICT DO NOTHING */;
     onConflictWhere: boolean /* whether dialect supports ON CONFLICT WHERE */;
     conflictFields: boolean /* whether the dialect supports specifying conflict fields or not */;

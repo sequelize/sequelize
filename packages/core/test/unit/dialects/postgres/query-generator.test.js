@@ -359,9 +359,19 @@ if (dialect.startsWith('postgres')) {
           },
         },
         {
-          arguments: ['myTable', { name: 'foo' }, {}, { updateOnDuplicate: ['name'], upsertKeys: ['name'], onConflictUpdateWhere: { id: 10 } }],
+          arguments: [
+            'myTable',
+            { name: 'foo' },
+            {},
+            {
+              updateOnDuplicate: ['name'],
+              upsertKeys: ['name'],
+              onConflictUpdateWhere: { id: 10 },
+            },
+          ],
           expectation: {
-            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name" WHERE "myTable"."id" = 10;',
+            query:
+              'INSERT INTO "myTable" ("name") VALUES ($sequelize_1) ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name" WHERE "myTable"."id" = 10;',
             bind: { sequelize_1: 'foo' },
           },
         },
@@ -716,7 +726,11 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'], upsertKeys: ['name'], onConflictUpdateWhere: { id: 10 } },
+            {
+              updateOnDuplicate: ['name'],
+              upsertKeys: ['name'],
+              onConflictUpdateWhere: { id: 10 },
+            },
           ],
           expectation:
             'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name" WHERE "myTable"."id" = 10;',
