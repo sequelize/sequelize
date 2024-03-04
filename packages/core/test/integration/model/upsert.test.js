@@ -1058,7 +1058,7 @@ describe('Model', () => {
             onConflictUpdateWhere: {
               intVal: { [Op.gte]: 15 },
             },
-            isNewRecord: false,
+            isNewRecord: true,
           };
           const vars = beforeEach2(async () => {
             const User = sequelize.define('users', {
@@ -1073,14 +1073,18 @@ describe('Model', () => {
             return { User };
           });
 
-          it('Should throw SequelizeEmptyResultError when conflict if where condition is not met', async () => {
+          it('Should keep old entry when conflict if where condition is not met', async () => {
             const { User } = vars;
-            await expect(User.create(
-              { name: 'Abdou', intVal: 20, uniqueId: 'Abdou-1' },
-              options,
-            )).to.be.rejectedWith(Sequelize.EmptyResultError);
+            try {
+              // sqlite won't throw an error
+              await User.create({ name: 'Abdou', intVal: 20, uniqueId: 'Abdou-1' }, options);
+            } catch (error) {
+              // postgres will throw a unique constraint error when on conflict update where condition is not met
+              expect(error).to.be.an.instanceOf(Sequelize.EmptyResultError);
+            }
+
             const user = await User.findOne({ where: { uniqueId: 'Abdou-1' } });
-            expect(user.intVal).to.eq(10);
+              expect(user.intVal).to.eq(10);
           });
 
           it('Should update exisiting record on conflict if where condition is met', async () => {
