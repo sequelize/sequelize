@@ -2305,7 +2305,7 @@ __metadata:
     esbuild: "npm:0.17.19"
     eslint: "npm:8.57.0"
     eslint-plugin-jsdoc: "npm:48.2.1"
-    eslint-plugin-mocha: "npm:10.4.0"
+    eslint-plugin-mocha: "npm:10.4.1"
     fast-glob: "npm:3.3.2"
     husky: "npm:9.0.11"
     lerna: "npm:8.1.2"
@@ -6124,16 +6124,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-mocha@npm:10.4.0":
-  version: 10.4.0
-  resolution: "eslint-plugin-mocha@npm:10.4.0"
+"eslint-plugin-mocha@npm:10.4.1":
+  version: 10.4.1
+  resolution: "eslint-plugin-mocha@npm:10.4.1"
   dependencies:
     eslint-utils: "npm:^3.0.0"
-    globals: "npm:^14.0.0"
+    globals: "npm:^13.24.0"
     rambda: "npm:^7.4.0"
   peerDependencies:
     eslint: ">=7.0.0"
-  checksum: 10c0/99fc3e1fa4a8e0a7d902b5414b46e3b8f42d524dd3a339e88ac187bbfd03144a3ceb790086339b7b59672cd16992e8365eb6190439e7e202420851adbb480100
+  checksum: 10c0/7cfe0db2bf19bb02d568bc6a7adb352776e55912f730af8a49dd7e061c753bb77b7009a183ab89d70b516d28a486c8484beb0d207c9ef63b735273dd885a9ccc
   languageName: node
   linkType: hard
 
@@ -7298,19 +7298,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^13.19.0":
+"globals@npm:^13.19.0, globals@npm:^13.24.0":
   version: 13.24.0
   resolution: "globals@npm:13.24.0"
   dependencies:
     type-fest: "npm:^0.20.2"
   checksum: 10c0/d3c11aeea898eb83d5ec7a99508600fbe8f83d2cf00cbb77f873dbf2bcb39428eff1b538e4915c993d8a3b3473fa71eeebfe22c9bb3a3003d1e26b1f2c8a42cd
-  languageName: node
-  linkType: hard
-
-"globals@npm:^14.0.0":
-  version: 14.0.0
-  resolution: "globals@npm:14.0.0"
-  checksum: 10c0/b96ff42620c9231ad468d4c58ff42afee7777ee1c963013ff8aabe095a451d0ceeb8dcd8ef4cbd64d2538cef45f787a78ba3a9574f4a634438963e334471302d
   languageName: node
   linkType: hard
 
