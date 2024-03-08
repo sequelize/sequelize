@@ -1304,6 +1304,11 @@ export interface SaveOptions<TAttributes = any> extends Logging, Transactionable
    * @default false
    */
   omitNull?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: boolean | Array<keyof TAttributes>;
 }
 
 /**
