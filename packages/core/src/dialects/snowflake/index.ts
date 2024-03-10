@@ -5,7 +5,7 @@ import { SnowflakeConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types.js';
 import { SnowflakeQuery } from './query';
 import { SnowflakeQueryGenerator } from './query-generator';
-import { SnowflakeQueryInterface } from './query-interface';
+import { SnowflakeQueryInterface } from './query-interface.js';
 
 export class SnowflakeDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
