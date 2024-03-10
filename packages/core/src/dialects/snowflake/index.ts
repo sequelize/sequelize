@@ -36,6 +36,7 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     indexViaAlter: true,
     indexHints: true,
+    upserts: false,
     schemas: true,
     multiDatabases: true,
     dataTypes: {
