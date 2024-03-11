@@ -17,7 +17,10 @@ import type { Where } from './where.js';
  *
  * @private
  */
-export class BaseSqlExpression {}
+export class BaseSqlExpression {
+  // this (type-only) brand makes the BaseSqlExpression class unique, so that TypeScript can differentiate it from other classes with the same shape
+  protected declare readonly brand: string;
+}
 
 export type DynamicSqlExpression =
   | List
