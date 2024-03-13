@@ -133,6 +133,7 @@ export class HasManyAssociation<
       addMultiple: `add${plural}`,
       add: `add${singular}`,
       create: `create${singular}`,
+      createMultiple: `create${plural}`,
       remove: `remove${singular}`,
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
