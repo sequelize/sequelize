@@ -1618,7 +1618,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       await this.customSequelize.sync({ force: true });
       const createdPlayer = await Player.create({
-        name: 'Player 1', team: { id: 1, name: 'My new team' },
+        name: 'Player 1',
+        team: { id: 1, name: 'My new team' },
       });
       expect(createdPlayer.team instanceof Team).to.be.ok;
       expect(createdPlayer.teamId).to.equal(1);
