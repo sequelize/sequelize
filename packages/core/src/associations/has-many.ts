@@ -218,7 +218,19 @@ export class HasManyAssociation<
     mixinMethods(
       this,
       mixinTargetPrototype,
-      ['get', 'count', 'hasSingle', 'hasAll', 'set', 'add', 'addMultiple', 'remove', 'removeMultiple', 'create', 'createMultiple'],
+      [
+        'get',
+        'count',
+        'hasSingle',
+        'hasAll',
+        'set',
+        'add',
+        'addMultiple',
+        'remove',
+        'removeMultiple',
+        'create',
+        'createMultiple',
+      ],
       {
         hasSingle: 'has',
         hasAll: 'has',

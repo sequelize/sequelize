@@ -258,17 +258,17 @@ export type SingleAssociationAccessors = {
 };
 
 export type MultiAssociationAccessors = {
-  get: string,
-  set: string,
-  addMultiple: string,
-  add: string,
-  create: string,
-  createMultiple: string,
-  remove: string,
-  removeMultiple: string,
-  hasSingle: string,
-  hasAll: string,
-  count: string,
+  get: string;
+  set: string;
+  addMultiple: string;
+  add: string;
+  create: string;
+  createMultiple: string;
+  remove: string;
+  removeMultiple: string;
+  hasSingle: string;
+  hasAll: string;
+  count: string;
 };
 
 /** Foreign Key Options */
