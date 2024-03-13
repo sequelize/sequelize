@@ -1,14 +1,17 @@
-import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { sequelize } from '../../support';
+import { expect } from 'chai';
+import { allowDeprecationsInSuite, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
 
 describe('DataTypes.REAL', () => {
-  const zeroFillUnsupportedError = new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
+  allowDeprecationsInSuite(['SEQUELIZE0014']);
+
+  const zeroFillUnsupportedError =
+    new Error(`${dialectName} does not support the REAL.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('REAL', DataTypes.REAL, {
@@ -30,10 +33,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
   });
 
-  testDataTypeSql('REAL({ precision: 11, scale: 12 }).UNSIGNED', DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED, {
-    default: 'REAL(11, 12) UNSIGNED',
-    'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
-  });
+  testDataTypeSql(
+    'REAL({ precision: 11, scale: 12 }).UNSIGNED',
+    DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED,
+    {
+      default: 'REAL(11, 12) UNSIGNED',
+      'sqlite snowflake ibmi db2 mssql postgres': 'REAL',
+    },
+  );
 
   testDataTypeSql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
     default: zeroFillUnsupportedError,
@@ -52,7 +59,8 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 });
 
 describe('DataTypes.DOUBLE', () => {
-  const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DOUBLE.ZEROFILL data type.
+  const zeroFillUnsupportedError =
+    new Error(`${dialectName} does not support the DOUBLE.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('DOUBLE', DataTypes.DOUBLE, {
@@ -102,14 +110,21 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   });
 
   it('requires both scale & precision to be specified', () => {
-    expect(() => DataTypes.DOUBLE(10)).to.throw('The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.DOUBLE({ precision: 10 })).to.throw('The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.DOUBLE({ scale: 2 })).to.throw('The DOUBLE DataType requires that the "precision" option be specified if the "scale" option is specified.');
+    expect(() => DataTypes.DOUBLE(10)).to.throw(
+      'The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.DOUBLE({ precision: 10 })).to.throw(
+      'The DOUBLE DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.DOUBLE({ scale: 2 })).to.throw(
+      'The DOUBLE DataType requires that the "precision" option be specified if the "scale" option is specified.',
+    );
   });
 });
 
 describe('DataTypes.FLOAT', () => {
-  const zeroFillUnsupportedError = new Error(`${dialectName} does not support the FLOAT.ZEROFILL data type.
+  const zeroFillUnsupportedError =
+    new Error(`${dialectName} does not support the FLOAT.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   // Must be a single-precision floating point if available,
@@ -139,11 +154,15 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     'postgres mssql sqlite db2 ibmi': 'REAL',
   });
 
-  testDataTypeSql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED, {
-    'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-    snowflake: 'FLOAT',
-    'postgres mssql sqlite db2 ibmi': 'REAL',
-  });
+  testDataTypeSql(
+    'FLOAT({ length: 11, decimals: 12 }).UNSIGNED',
+    DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED,
+    {
+      'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
+      snowflake: 'FLOAT',
+      'postgres mssql sqlite db2 ibmi': 'REAL',
+    },
+  );
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
     default: zeroFillUnsupportedError,
@@ -161,9 +180,15 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   });
 
   it('requires both scale & precision to be specified', () => {
-    expect(() => DataTypes.FLOAT(10)).to.throw('The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.FLOAT({ precision: 10 })).to.throw('The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.FLOAT({ scale: 2 })).to.throw('The FLOAT DataType requires that the "precision" option be specified if the "scale" option is specified.');
+    expect(() => DataTypes.FLOAT(10)).to.throw(
+      'The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.FLOAT({ precision: 10 })).to.throw(
+      'The FLOAT DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.FLOAT({ scale: 2 })).to.throw(
+      'The FLOAT DataType requires that the "precision" option be specified if the "scale" option is specified.',
+    );
   });
 
   describe('validate', () => {
@@ -188,13 +213,16 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 });
 
 describe('DECIMAL', () => {
-  const zeroFillUnsupportedError = new Error(`${dialectName} does not support the DECIMAL.ZEROFILL data type.
+  const zeroFillUnsupportedError =
+    new Error(`${dialectName} does not support the DECIMAL.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
   const unsupportedError = new Error(`${dialectName} does not support the DECIMAL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
   testDataTypeSql('DECIMAL', DataTypes.DECIMAL, {
-    default: new Error(`${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`),
+    default: new Error(
+      `${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`,
+    ),
     sqlite: unsupportedError,
     postgres: 'DECIMAL',
   });
@@ -204,10 +232,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     sqlite: unsupportedError,
   });
 
-  testDataTypeSql('DECIMAL({ precision: 10, scale: 2 })', DataTypes.DECIMAL({ precision: 10, scale: 2 }), {
-    default: 'DECIMAL(10, 2)',
-    sqlite: unsupportedError,
-  });
+  testDataTypeSql(
+    'DECIMAL({ precision: 10, scale: 2 })',
+    DataTypes.DECIMAL({ precision: 10, scale: 2 }),
+    {
+      default: 'DECIMAL(10, 2)',
+      sqlite: unsupportedError,
+    },
+  );
 
   testDataTypeSql('DECIMAL(10, 2).UNSIGNED', DataTypes.DECIMAL(10, 2).UNSIGNED, {
     default: 'DECIMAL(10, 2)',
@@ -221,16 +253,26 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED ZEROFILL',
   });
 
-  testDataTypeSql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
-    default: 'DECIMAL(10, 2)',
-    'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
-    sqlite: unsupportedError,
-  });
+  testDataTypeSql(
+    'DECIMAL({ precision: 10, scale: 2 }).UNSIGNED',
+    DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED,
+    {
+      default: 'DECIMAL(10, 2)',
+      'mysql mariadb': 'DECIMAL(10, 2) UNSIGNED',
+      sqlite: unsupportedError,
+    },
+  );
 
   it('requires both scale & precision to be specified', () => {
-    expect(() => DataTypes.DECIMAL(10)).to.throw('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.DECIMAL({ precision: 10 })).to.throw('The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.');
-    expect(() => DataTypes.DECIMAL({ scale: 2 })).to.throw('The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.');
+    expect(() => DataTypes.DECIMAL(10)).to.throw(
+      'The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.DECIMAL({ precision: 10 })).to.throw(
+      'The DECIMAL DataType requires that the "scale" option be specified if the "precision" option is specified.',
+    );
+    expect(() => DataTypes.DECIMAL({ scale: 2 })).to.throw(
+      'The DECIMAL DataType requires that the "precision" option be specified if the "scale" option is specified.',
+    );
   });
 
   describe('validate', () => {

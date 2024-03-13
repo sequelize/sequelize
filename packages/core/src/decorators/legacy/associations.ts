@@ -50,11 +50,15 @@ function decorateAssociation(
   }
 
   if (typeof associationName === 'symbol') {
-    throw new TypeError('Symbol associations are not currently supported. We welcome a PR that implements this feature.');
+    throw new TypeError(
+      'Symbol associations are not currently supported. We welcome a PR that implements this feature.',
+    );
   }
 
   if (options.as) {
-    throw new Error('The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.');
+    throw new Error(
+      'The "as" option is not allowed when using association decorators. The name of the decorated field is used as the association name.',
+    );
   }
 
   const associations = registeredAssociations.get(sourceClass) ?? [];
@@ -65,10 +69,14 @@ function decorateAssociation(
 
 export function HasOne<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
-  optionsOrForeignKey: Omit<HasOneOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
+  optionsOrForeignKey:
+    | Omit<HasOneOptions<string, AttributeNames<Target>>, 'as'>
+    | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
-    const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
+    const options = isString(optionsOrForeignKey)
+      ? { foreignKey: optionsOrForeignKey }
+      : optionsOrForeignKey;
 
     decorateAssociation('HasOne', source, target, associationName, options);
   };
@@ -76,10 +84,14 @@ export function HasOne<Target extends Model>(
 
 export function HasMany<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
-  optionsOrForeignKey: Omit<HasManyOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
+  optionsOrForeignKey:
+    | Omit<HasManyOptions<string, AttributeNames<Target>>, 'as'>
+    | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
-    const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
+    const options = isString(optionsOrForeignKey)
+      ? { foreignKey: optionsOrForeignKey }
+      : optionsOrForeignKey;
 
     decorateAssociation('HasMany', source, target, associationName, options);
   };
@@ -97,7 +109,9 @@ export function BelongsTo<SourceKey extends string, Target extends Model>(
     source: Model,
     associationName: string,
   ) => {
-    const options = isString(optionsOrForeignKey) ? { foreignKey: optionsOrForeignKey } : optionsOrForeignKey;
+    const options = isString(optionsOrForeignKey)
+      ? { foreignKey: optionsOrForeignKey }
+      : optionsOrForeignKey;
 
     decorateAssociation('BelongsTo', source, target, associationName, options);
   };
@@ -107,10 +121,7 @@ export function BelongsToMany(
   target: MaybeForwardedModelStatic,
   options: Omit<BelongsToManyOptions, 'as'>,
 ): PropertyDecorator {
-  return (
-    source: Object,
-    associationName: string | symbol,
-  ) => {
+  return (source: Object, associationName: string | symbol) => {
     decorateAssociation('BelongsToMany', source, target, associationName, options);
   };
 }
@@ -130,16 +141,36 @@ export function initDecoratedAssociations(source: ModelStatic, sequelize: Sequel
 
     switch (type) {
       case 'BelongsTo':
-        BelongsToAssociation.associate(AssociationSecret, source, target, options as BelongsToOptions<string, string>);
+        BelongsToAssociation.associate(
+          AssociationSecret,
+          source,
+          target,
+          options as BelongsToOptions<string, string>,
+        );
         break;
       case 'HasOne':
-        HasOneAssociation.associate(AssociationSecret, source, target, options as HasOneOptions<string, string>);
+        HasOneAssociation.associate(
+          AssociationSecret,
+          source,
+          target,
+          options as HasOneOptions<string, string>,
+        );
         break;
       case 'HasMany':
-        HasManyAssociation.associate(AssociationSecret, source, target, options as HasManyOptions<string, string>);
+        HasManyAssociation.associate(
+          AssociationSecret,
+          source,
+          target,
+          options as HasManyOptions<string, string>,
+        );
         break;
       case 'BelongsToMany':
-        BelongsToManyAssociation.associate(AssociationSecret, source, target, options as BelongsToManyOptions);
+        BelongsToManyAssociation.associate(
+          AssociationSecret,
+          source,
+          target,
+          options as BelongsToManyOptions,
+        );
         break;
       default:
         throw new Error(`Unknown association type: ${type}`);
@@ -148,7 +179,8 @@ export function initDecoratedAssociations(source: ModelStatic, sequelize: Sequel
 }
 
 function getDeclaredAssociations(model: ModelStatic): readonly RegisteredAssociation[] {
-  const associations: readonly RegisteredAssociation[] = registeredAssociations.get(model) ?? EMPTY_ARRAY;
+  const associations: readonly RegisteredAssociation[] =
+    registeredAssociations.get(model) ?? EMPTY_ARRAY;
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {

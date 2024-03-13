@@ -2,18 +2,28 @@ import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
 import { isBigInt, isNumber, isString } from '../../utils/check.js';
+import type {
+  AbstractDataType,
+  AcceptableTypeOf,
+  AcceptedDate,
+  BindParamOptions,
+} from '../abstract/data-types';
 import * as BaseTypes from '../abstract/data-types';
-import type { AbstractDataType, AcceptableTypeOf, AcceptedDate, BindParamOptions } from '../abstract/data-types';
 import { attributeTypeToSql } from '../abstract/data-types-utils.js';
 import type { AbstractDialect } from '../abstract/index.js';
 import * as Hstore from './hstore';
 import { PostgresQueryGenerator } from './query-generator';
 import * as RangeParser from './range';
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+function removeUnsupportedIntegerOptions(
+  dataType: BaseTypes.BaseIntegerDataType,
+  dialect: AbstractDialect,
+) {
   if (dataType.options.length != null) {
     // this option only makes sense for zerofill
-    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`,
+    );
 
     delete dataType.options.length;
   }
@@ -33,8 +43,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 
   sanitize(value: unknown): unknown {
-    if (value === Number.POSITIVE_INFINITY
-      || value === Number.NEGATIVE_INFINITY) {
+    if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
       return value;
     }
 
@@ -51,7 +60,6 @@ export class DATEONLY extends BaseTypes.DATEONLY {
 
     return super.sanitize(value);
   }
-
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
@@ -82,8 +90,7 @@ export class DATE extends BaseTypes.DATE {
   }
 
   validate(value: any) {
-    if (value === Number.POSITIVE_INFINITY
-      || value === Number.NEGATIVE_INFINITY) {
+    if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
       // valid
       return;
     }
@@ -294,7 +301,9 @@ export class HSTORE extends BaseTypes.HSTORE {
   }
 }
 
-export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER> extends BaseTypes.RANGE<T> {
+export class RANGE<
+  T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER,
+> extends BaseTypes.RANGE<T> {
   toBindableValue(values: Rangable<AcceptableTypeOf<T>>): string {
     if (!Array.isArray(values)) {
       throw new TypeError('Range values must be an array');
@@ -308,7 +317,9 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
       }
 
       if (!isString(out)) {
-        throw new Error('DataTypes.RANGE only accepts types that are represented by either strings, numbers or bigints.');
+        throw new Error(
+          'DataTypes.RANGE only accepts types that are represented by either strings, numbers or bigints.',
+        );
       }
 
       return out;
@@ -322,10 +333,7 @@ export class RANGE<T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = IN
     return `${dialect.escapeString(value)}::${this.toSql()}`;
   }
 
-  getBindParamSql(
-    values: Rangable<AcceptableTypeOf<T>>,
-    options: BindParamOptions,
-  ): string {
+  getBindParamSql(values: Rangable<AcceptableTypeOf<T>>, options: BindParamOptions): string {
     const value = this.toBindableValue(values);
 
     return `${options.bindParam(value)}::${this.toSql()}`;
@@ -353,27 +361,26 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
     const mappedValues = isString(type) ? values : values.map(value => type.escape(value));
 
     // Types that don't need to specify their cast
-    const unambiguousType = type instanceof BaseTypes.TEXT
-      || type instanceof BaseTypes.INTEGER;
+    const unambiguousType = type instanceof BaseTypes.TEXT || type instanceof BaseTypes.INTEGER;
 
-    const cast = mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';
+    const cast =
+      mappedValues.length === 0 || !unambiguousType ? `::${attributeTypeToSql(type)}[]` : '';
 
     return `ARRAY[${mappedValues.join(',')}]${cast}`;
   }
 
-  getBindParamSql(
-    values: Array<AcceptableTypeOf<T>>,
-    options: BindParamOptions,
-  ) {
+  getBindParamSql(values: Array<AcceptableTypeOf<T>>, options: BindParamOptions) {
     if (isString(this.options.type)) {
       return options.bindParam(values);
     }
 
     const subType: AbstractDataType<any> = this.options.type;
 
-    return options.bindParam(values.map((value: any) => {
-      return subType.toBindableValue(value);
-    }));
+    return options.bindParam(
+      values.map((value: any) => {
+        return subType.toBindableValue(value);
+      }),
+    );
   }
 }
 
@@ -381,13 +388,15 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
   override toSql(): string {
     const context = this.usageContext;
     if (context == null) {
-      throw new Error('Could not determine the name of this enum because it is not attached to an attribute or a column.');
+      throw new Error(
+        'Could not determine the name of this enum because it is not attached to an attribute or a column.',
+      );
     }
 
     let tableName;
     let columnName;
     if ('model' in context) {
-      tableName = context.model.getTableName();
+      tableName = context.model.table;
 
       const attribute = context.model.getAttributes()[context.attributeName];
       columnName = attribute.field ?? context.attributeName;
@@ -398,7 +407,10 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
 
     const queryGenerator = context.sequelize.dialect.queryGenerator;
 
-    assert(queryGenerator instanceof PostgresQueryGenerator, 'expected queryGenerator to be PostgresQueryGenerator');
+    assert(
+      queryGenerator instanceof PostgresQueryGenerator,
+      'expected queryGenerator to be PostgresQueryGenerator',
+    );
 
     return queryGenerator.pgEnumName(tableName, columnName);
   }

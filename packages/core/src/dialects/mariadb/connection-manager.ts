@@ -15,7 +15,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
@@ -43,8 +43,8 @@ type Lib = typeof import('mariadb');
 export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: MariaDbDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: MariaDbDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('mariadb') as Lib;
   }
 
@@ -70,8 +70,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
   async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z')
-      : tzOffset;
+    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
 
     const connectionConfig: MariaDbConnectionConfig = removeUndefined({
       host: config.host,
@@ -88,9 +87,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbC
     if (!this.sequelize.config.keepDefaultTimezone) {
       // set timezone for this connection
       if (connectionConfig.initSql) {
-        if (!Array.isArray(
-          connectionConfig.initSql,
-        )) {
+        if (!Array.isArray(connectionConfig.initSql)) {
           connectionConfig.initSql = [connectionConfig.initSql];
         }
 

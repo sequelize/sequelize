@@ -8,8 +8,13 @@ const { AggregateError } = errors;
 describe('errors', () => {
   it('should maintain stack trace with message', () => {
     const errorsWithMessage = [
-      'BaseError', 'ValidationError', 'InstanceError',
-      'EmptyResultError', 'EagerLoadingError', 'AssociationError', 'QueryError',
+      'BaseError',
+      'ValidationError',
+      'InstanceError',
+      'EmptyResultError',
+      'EagerLoadingError',
+      'AssociationError',
+      'QueryError',
     ];
 
     for (const errorName of errorsWithMessage) {
@@ -34,8 +39,13 @@ describe('errors', () => {
 
   it('should maintain stack trace without message', () => {
     const errorsWithoutMessage = [
-      'ConnectionError', 'ConnectionRefusedError', 'ConnectionTimedOutError',
-      'AccessDeniedError', 'HostNotFoundError', 'HostNotReachableError', 'InvalidConnectionError',
+      'ConnectionError',
+      'ConnectionRefusedError',
+      'ConnectionTimedOutError',
+      'AccessDeniedError',
+      'HostNotFoundError',
+      'HostNotReachableError',
+      'InvalidConnectionError',
     ];
 
     for (const errorName of errorsWithoutMessage) {
@@ -61,16 +71,15 @@ describe('errors', () => {
 
   describe('AggregateError', () => {
     it('get .message works', () => {
-      expect(String(
-        new AggregateError([
-          new Error('foo'),
-          new Error('bar\nbaz'),
+      expect(
+        String(
           new AggregateError([
-            new Error('this\nis\na\ntest'),
-            new Error('qux'),
+            new Error('foo'),
+            new Error('bar\nbaz'),
+            new AggregateError([new Error('this\nis\na\ntest'), new Error('qux')]),
           ]),
-        ]),
-      )).to.equal(
+        ),
+      ).to.equal(
         `AggregateError of:
   Error: foo
   Error: bar

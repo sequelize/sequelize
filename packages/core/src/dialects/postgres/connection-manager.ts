@@ -1,5 +1,5 @@
-import assert from 'node:assert';
 import pick from 'lodash/pick';
+import assert from 'node:assert';
 import type { Client, ClientConfig } from 'pg';
 import type { TypeId, TypeParser } from 'pg-types';
 import semver from 'semver';
@@ -11,8 +11,8 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors';
-import { Sequelize } from '../../sequelize.js';
 import type { ConnectionOptions } from '../../sequelize.js';
+import { Sequelize } from '../../sequelize.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
@@ -57,8 +57,8 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   #oidMap = new Map<number, TypeOids>();
   #oidParserCache = new Map<number, TypeParser<any, any>>();
 
-  constructor(dialect: PostgresDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: PostgresDialect) {
+    super(dialect);
 
     const pgLib = this._loadDialectModule('pg') as Lib;
     this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
@@ -72,41 +72,42 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
 
     // @ts-expect-error -- "dialectOptions.options" must be a string in PG, but a Record in MSSQL. We'll fix the typings when we split the dialects into their own modules.
     const connectionConfig: ClientConfig = {
-      ...(config.dialectOptions && pick(config.dialectOptions, [
-        // see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]
-        'application_name',
-        // choose the SSL mode with the PGSSLMODE environment variable
-        // object format: [https://github.com/brianc/node-postgres/blob/ee19e74ffa6309c9c5e8e01746261a8f651661f8/lib/connection.js#L79]
-        // see also [http://www.postgresql.org/docs/9.3/static/libpq-ssl.html]
-        'ssl',
-        // In addition to the values accepted by the corresponding server,
-        // you can use "auto" to determine the right encoding from the
-        // current locale in the client (LC_CTYPE environment variable on Unix systems)
-        'client_encoding',
-        // !! DO NOT SET THIS TO TRUE !!
-        // (unless you know what you're doing)
-        // see [http://www.postgresql.org/message-id/flat/bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com#bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com]
-        'binary',
-        // This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
-        // this feature has been added in pg module v6.0.0, check pg/CHANGELOG.md
-        'keepAlive',
-        // Times out queries after a set time in milliseconds in the database end. Added in pg v7.3
-        'statement_timeout',
-        // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
-        'query_timeout',
-        // Number of milliseconds to wait for connection, default is no timeout.
-        'connectionTimeoutMillis',
-        // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
-        'idle_in_transaction_session_timeout',
-        // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
-        'lock_timeout',
-        // Postgres allows additional session variables to be configured in the connection string in the `options` param.
-        // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
-        'options',
-        // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
-        // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
-        'stream',
-      ])),
+      ...(config.dialectOptions &&
+        pick(config.dialectOptions, [
+          // see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]
+          'application_name',
+          // choose the SSL mode with the PGSSLMODE environment variable
+          // object format: [https://github.com/brianc/node-postgres/blob/ee19e74ffa6309c9c5e8e01746261a8f651661f8/lib/connection.js#L79]
+          // see also [http://www.postgresql.org/docs/9.3/static/libpq-ssl.html]
+          'ssl',
+          // In addition to the values accepted by the corresponding server,
+          // you can use "auto" to determine the right encoding from the
+          // current locale in the client (LC_CTYPE environment variable on Unix systems)
+          'client_encoding',
+          // !! DO NOT SET THIS TO TRUE !!
+          // (unless you know what you're doing)
+          // see [http://www.postgresql.org/message-id/flat/bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com#bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com]
+          'binary',
+          // This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
+          // this feature has been added in pg module v6.0.0, check pg/CHANGELOG.md
+          'keepAlive',
+          // Times out queries after a set time in milliseconds in the database end. Added in pg v7.3
+          'statement_timeout',
+          // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
+          'query_timeout',
+          // Number of milliseconds to wait for connection, default is no timeout.
+          'connectionTimeoutMillis',
+          // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
+          'idle_in_transaction_session_timeout',
+          // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
+          'lock_timeout',
+          // Postgres allows additional session variables to be configured in the connection string in the `options` param.
+          // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
+          'options',
+          // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
+          // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
+          'stream',
+        ])),
       port,
       ...pick(config, ['password', 'host', 'database']),
       user: config.username,
@@ -120,13 +121,12 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     await new Promise((resolve, reject) => {
       let responded = false;
 
-      const parameterHandler = (message: { parameterName: string, parameterValue: string }) => {
+      const parameterHandler = (message: { parameterName: string; parameterValue: string }) => {
         switch (message.parameterName) {
           case 'server_version': {
             const version = semver.coerce(message.parameterValue)?.version;
-            this.sequelize.options.databaseVersion = version && semver.valid(version)
-              ? version
-              : this.dialect.defaultVersion;
+            this.sequelize.options.databaseVersion =
+              version && semver.valid(version) ? version : this.dialect.defaultVersion;
 
             break;
           }
@@ -207,7 +207,10 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
 
     let query = '';
 
-    if (this.sequelize.options.standardConformingStrings !== false && connection.standard_conforming_strings) {
+    if (
+      this.sequelize.options.standardConformingStrings !== false &&
+      connection.standard_conforming_strings
+    ) {
       // Disable escape characters in strings
       // see https://github.com/sequelize/sequelize/issues/3545 (security issue)
       // see https://www.postgresql.org/docs/current/static/runtime-config-compatible.html#GUC-STANDARD-CONFORMING-STRINGS
@@ -221,11 +224,19 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
 
     // Redshift dosen't support client_min_messages, use 'ignore' to skip this settings.
     // If no option, the default value in sequelize is 'warning'
-    if (!(config.dialectOptions && config.dialectOptions.clientMinMessages && config.dialectOptions.clientMinMessages.toLowerCase() === 'ignore'
-      || this.sequelize.options.clientMinMessages === false)) {
-      const clientMinMessages = config.dialectOptions && config.dialectOptions.clientMinMessages || this.sequelize.options.clientMinMessages || 'warning';
+    if (
+      !(
+        (config.dialectOptions &&
+          config.dialectOptions.clientMinMessages &&
+          config.dialectOptions.clientMinMessages.toLowerCase() === 'ignore') ||
+        this.sequelize.options.clientMinMessages === false
+      )
+    ) {
+      const clientMinMessages =
+        (config.dialectOptions && config.dialectOptions.clientMinMessages) ||
+        this.sequelize.options.clientMinMessages ||
+        'warning';
       query += `SET client_min_messages TO ${clientMinMessages};`;
-
     }
 
     if (!this.sequelize.config.keepDefaultTimezone) {

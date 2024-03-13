@@ -2,13 +2,13 @@
 
 /* eslint-disable unicorn/prefer-top-level-await */
 
+import { build } from 'esbuild';
+import glob from 'fast-glob';
 import childProcess from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
-import { build } from 'esbuild';
-import glob from 'fast-glob';
 
 // if this script is moved, this will need to be adjusted
 
@@ -19,7 +19,9 @@ const packages = await fs.readdir(`${rootDir}/packages`);
 
 const packageName = process.argv[2];
 if (!packageName || !packages.includes(packageName)) {
-  console.error(`Please specify the name of the package to build: node build-packages.mjs <package-name> (one of ${packages.join(', ')})`);
+  console.error(
+    `Please specify the name of the package to build: node build-packages.mjs <package-name> (one of ${packages.join(', ')})`,
+  );
   process.exit(1);
 }
 
@@ -32,7 +34,10 @@ const typesDir = path.join(packageDir, 'types');
 
 const [sourceFiles] = await Promise.all([
   // Find all .js and .ts files from /src.
-  glob(`${glob.convertPathToPattern(sourceDir)}/**/*.{mjs,cjs,js,mts,cts,ts}`, { onlyFiles: true, absolute: false }),
+  glob(`${glob.convertPathToPattern(sourceDir)}/**/*.{mjs,cjs,js,mts,cts,ts}`, {
+    onlyFiles: true,
+    absolute: false,
+  }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
   // Delete /types for a full rebuild.
@@ -78,10 +83,7 @@ await Promise.all([
     env: {
       // binaries installed from modules have symlinks in
       // <pkg root>/node_modules/.bin.
-      PATH: `${process.env.PATH || ''}:${path.join(
-        rootDir,
-        'node_modules/.bin',
-      )}`,
+      PATH: `${process.env.PATH || ''}:${path.join(rootDir, 'node_modules/.bin')}`,
     },
     cwd: packageDir,
   }),
@@ -97,10 +99,12 @@ async function rmDir(dirName) {
 }
 
 async function copyFiles(files, fromFolder, toFolder) {
-  await Promise.all(files.map(async file => {
-    const to = path.join(toFolder, path.relative(fromFolder, file));
-    const dir = path.dirname(to);
-    await fs.mkdir(dir, { recursive: true });
-    await fs.copyFile(file, to);
-  }));
+  await Promise.all(
+    files.map(async file => {
+      const to = path.join(toFolder, path.relative(fromFolder, file));
+      const dir = path.dirname(to);
+      await fs.mkdir(dir, { recursive: true });
+      await fs.copyFile(file, to);
+    }),
+  );
 }

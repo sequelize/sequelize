@@ -1,31 +1,22 @@
 'use strict';
 
-const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
-const util        = require('node:util');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
 
-const expectsql   = Support.expectsql;
-const current     = Support.sequelize;
-const sql         = current.dialect.queryGenerator;
+const sql = sequelize.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-  describe('group', () => {
-    const testsql = function (options, expectation) {
-      const model = options.model;
+describe('QueryGenerator#selectQuery with "group"', () => {
+  function expectSelect(options, expectation) {
+    const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
-        return expectsql(
-          sql.selectQuery(
-            options.table || model && model.getTableName(),
-            options,
-            options.model,
-          ),
-          expectation,
-        );
-      });
-    };
+    return expectsql(
+      sql.selectQuery(options.table || (model && model.table), options, options.model),
+      expectation,
+    );
+  }
 
-    const User = Support.sequelize.define('User', {
+  const vars = beforeAll2(() => {
+    const User = sequelize.define('User', {
       name: {
         type: DataTypes.STRING,
         field: 'name',
@@ -33,28 +24,44 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
     });
 
-    testsql({
-      model: User,
-      group: ['name'],
-    }, {
-      default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
-      postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-      db2: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-      ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
-      mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
-      snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
-    });
+    return { User };
+  });
 
-    testsql({
-      model: User,
-      group: [],
-    }, {
-      default: 'SELECT * FROM `Users` AS `User`;',
-      postgres: 'SELECT * FROM "Users" AS "User";',
-      db2: 'SELECT * FROM "Users" AS "User";',
-      ibmi: 'SELECT * FROM "Users" AS "User"',
-      mssql: 'SELECT * FROM [Users] AS [User];',
-      snowflake: 'SELECT * FROM "Users" AS "User";',
-    });
+  it('supports simple GROUP BY', () => {
+    const { User } = vars;
+
+    expectSelect(
+      {
+        model: User,
+        group: ['name'],
+      },
+      {
+        default: 'SELECT * FROM `Users` AS `User` GROUP BY `name`;',
+        postgres: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+        db2: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+        ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
+        mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
+        snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+      },
+    );
+  });
+
+  it('does not add GROUP BY if it is empty', () => {
+    const { User } = vars;
+
+    expectSelect(
+      {
+        model: User,
+        group: [],
+      },
+      {
+        default: 'SELECT * FROM `Users` AS `User`;',
+        postgres: 'SELECT * FROM "Users" AS "User";',
+        db2: 'SELECT * FROM "Users" AS "User";',
+        ibmi: 'SELECT * FROM "Users" AS "User"',
+        mssql: 'SELECT * FROM [Users] AS [User];',
+        snowflake: 'SELECT * FROM "Users" AS "User";',
+      },
+    );
   });
 });

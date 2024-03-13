@@ -19,7 +19,7 @@ if (dialect.startsWith('postgres')) {
           Table1.belongsToMany(Table2, { through: 'wp_table1swp_table2s' });
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
 
-          expect(this.sequelize.modelManager.getModel('wp_table1swp_table2s')).to.exist;
+          expect(this.sequelize.models.get('wp_table1swp_table2s')).to.exist;
         });
       });
 
@@ -33,11 +33,11 @@ if (dialect.startsWith('postgres')) {
         });
 
         it('should not use a combined name', function () {
-          expect(this.sequelize.modelManager.getModel('ms_table1sms_table2s')).not.to.exist;
+          expect(this.sequelize.models.get('ms_table1sms_table2s')).not.to.exist;
         });
 
         it('should use the specified name', function () {
-          expect(this.sequelize.modelManager.getModel('table1_to_table2')).to.exist;
+          expect(this.sequelize.models.get('table1_to_table2')).to.exist;
         });
       });
     });

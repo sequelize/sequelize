@@ -5,8 +5,8 @@
  * @module logging
  * @access package
  */
-import util from 'node:util';
 import nodeDebug from 'debug';
+import util from 'node:util';
 
 /**
  * The configuration for sequelize's logging interface.

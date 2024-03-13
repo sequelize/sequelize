@@ -21,9 +21,12 @@ async function test(): Promise<void> {
   }
 
   user.update({}, {});
-  user.update({}, {
-    silent: true,
-  });
+  user.update(
+    {},
+    {
+      silent: true,
+    },
+  );
 
   const user2 = await User.create({ firstName: 'John', groupId: 1 });
   await User.findAndCountAll({ distinct: true });

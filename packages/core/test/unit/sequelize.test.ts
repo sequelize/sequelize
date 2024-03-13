@@ -1,7 +1,7 @@
+import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { Sequelize, sql } from '@sequelize/core';
 import { createSequelizeInstance, sequelize } from '../support';
 
 describe('Sequelize', () => {

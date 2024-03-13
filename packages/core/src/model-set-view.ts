@@ -1,51 +1,37 @@
-'use strict';
-
-import defaults from 'lodash/defaults';
+import { inspect } from 'node:util';
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
-import type { ModelStatic } from './model';
-import type { Sequelize } from './sequelize';
+import type { Model, ModelStatic } from './model';
+import type { SequelizeTypeScript } from './sequelize-typescript.js';
+import { SetView } from './utils/immutability.js';
 
-export class ModelManager {
-  #sequelize: Sequelize;
-  declare models: ModelStatic[];
+export class ModelSetView extends SetView<ModelStatic> {
+  readonly #sequelize: SequelizeTypeScript;
 
-  constructor(sequelize: Sequelize) {
-    this.models = [];
+  constructor(sequelize: SequelizeTypeScript, set: Set<ModelStatic>) {
+    super(set);
+
     this.#sequelize = sequelize;
   }
 
-  addModel<T extends ModelStatic>(model: T): T {
-    this.models.push(model);
-    this.#sequelize.models[model.name] = model;
+  get<M extends Model = Model>(modelName: string): ModelStatic<M> | undefined {
+    return this.find(model => model.modelDefinition.modelName === modelName) as
+      | ModelStatic<M>
+      | undefined;
+  }
+
+  getOrThrow<M extends Model = Model>(modelName: string): ModelStatic<M> {
+    const model = this.get<M>(modelName);
+
+    if (!model) {
+      throw new Error(`Model ${inspect(modelName)} was not added to this Sequelize instance.`);
+    }
 
     return model;
   }
 
-  removeModel(modelToRemove: ModelStatic): void {
-    this.models = this.models.filter(
-      model => model.name !== modelToRemove.name,
-    );
-
-    delete this.#sequelize.models[modelToRemove.name];
-  }
-
-  getModel(modelName: string): ModelStatic | undefined {
-    return this.models.find(model => model.name === modelName);
-  }
-
-  findModel(
-    callback: (model: ModelStatic) => boolean,
-  ): ModelStatic | undefined {
-    return this.models.find(callback);
-  }
-
-  hasModel(targetModel: ModelStatic): boolean {
-    return this.models.includes(targetModel);
-  }
-
-  get all(): ModelStatic[] {
-    return this.models;
+  hasByName(modelName: string): boolean {
+    return this.get(modelName) !== undefined;
   }
 
   /**
@@ -61,7 +47,7 @@ export class ModelManager {
 
     const queryGenerator = this.#sequelize.queryGenerator;
 
-    for (const model of this.models) {
+    for (const model of this) {
       let deps = [];
       const tableName = queryGenerator.quoteTable(model);
 
@@ -88,10 +74,7 @@ export class ModelManager {
     try {
       sorted = sorter.sort();
     } catch (error: unknown) {
-      if (
-        error instanceof Error
-        && !error.message.startsWith('Cyclic dependency found.')
-      ) {
+      if (error instanceof Error && !error.message.startsWith('Cyclic dependency found.')) {
         throw error;
       }
 
@@ -116,20 +99,16 @@ export class ModelManager {
    *
    * @deprecated
    */
-  forEachModel(
-    iterator: (model: ModelStatic) => void,
-    options?: { reverse?: boolean },
-  ) {
+  forEachModel(iterator: (model: ModelStatic) => void, options?: { reverse?: boolean }) {
     const sortedModels = this.getModelsTopoSortedByForeignKey();
     if (sortedModels == null) {
       throw new Error('Cyclic dependency found.');
     }
 
-    options = defaults(options || {}, {
-      reverse: true,
-    });
+    // TODO: options should be false by default
+    const reverse = options?.reverse ?? true;
 
-    if (options.reverse) {
+    if (reverse) {
       sortedModels.reverse();
     }
 

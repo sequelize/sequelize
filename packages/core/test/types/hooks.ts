@@ -1,5 +1,10 @@
-import { expectTypeOf } from 'expect-type';
-import type { ConnectionOptions, FindOptions, QueryOptions, SaveOptions, UpsertOptions } from '@sequelize/core';
+import type {
+  ConnectionOptions,
+  FindOptions,
+  QueryOptions,
+  SaveOptions,
+  UpsertOptions,
+} from '@sequelize/core';
 import { Model, Sequelize } from '@sequelize/core';
 import type {
   AfterAssociateEventData,
@@ -13,6 +18,7 @@ import type {
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
 import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
+import { expectTypeOf } from 'expect-type';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {
@@ -41,7 +47,7 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
     afterUpsert(m, options) {
-      expectTypeOf(m).toEqualTypeOf<[ TestModel, boolean | null ]>();
+      expectTypeOf(m).toEqualTypeOf<[TestModel, boolean | null]>();
       expectTypeOf(options).toEqualTypeOf<UpsertOptions>();
     },
     beforeAssociate(data, options) {
@@ -178,9 +184,12 @@ sequelize.afterPoolAcquire((connection: Connection, options?: GetConnectionOptio
   expectTypeOf(options).toMatchTypeOf<GetConnectionOptions | undefined>();
 });
 
-sequelize.addHook('afterPoolAcquire', (...args: [Connection | GetConnectionOptions | undefined]) => {
-  expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
-});
+sequelize.addHook(
+  'afterPoolAcquire',
+  (...args: [Connection | GetConnectionOptions | undefined]) => {
+    expectTypeOf(args).toMatchTypeOf<[Connection | GetConnectionOptions | undefined]>();
+  },
+);
 
 sequelize.beforeQuery((options, query) => {
   expectTypeOf(options).toEqualTypeOf<QueryOptions>();

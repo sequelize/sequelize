@@ -1,4 +1,7 @@
-import type { Connection as TediousConnection, ConnectionConfig as TediousConnectionConfig } from 'tedious';
+import type {
+  Connection as TediousConnection,
+  ConnectionConfig as TediousConnectionConfig,
+} from 'tedious';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -7,7 +10,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors/index.js';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
@@ -43,8 +46,8 @@ export interface MsSqlConnection extends Connection, TediousConnection {
 export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConnection> {
   lib: Lib;
 
-  constructor(dialect: MssqlDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: MssqlDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('tedious') as Lib;
   }
 
@@ -66,8 +69,8 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
     if (config.dialectOptions) {
       // only set port if no instance name was provided
       if (
-        isPlainObject(config.dialectOptions.options)
-        && config.dialectOptions.options.instanceName
+        isPlainObject(config.dialectOptions.options) &&
+        config.dialectOptions.options.instanceName
       ) {
         delete options.port;
       }
@@ -87,7 +90,9 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
 
     try {
       return await new Promise((resolve, reject) => {
-        const connection: MsSqlConnection = new this.lib.Connection(connectionConfig) as MsSqlConnection;
+        const connection: MsSqlConnection = new this.lib.Connection(
+          connectionConfig,
+        ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {
           connection.connect();
         }
@@ -132,7 +137,10 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
          * E.g. connectTimeout is set higher than requestTimeout
          */
         connection.on('error', (error: unknown) => {
-          if (isErrorWithStringCode(error) && (error.code === 'ESOCKET' || error.code === 'ECONNRESET')) {
+          if (
+            isErrorWithStringCode(error) &&
+            (error.code === 'ESOCKET' || error.code === 'ECONNRESET')
+          ) {
             void this.pool.destroy(connection);
           }
         });

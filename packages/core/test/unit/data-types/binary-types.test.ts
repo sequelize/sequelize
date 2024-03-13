@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { testDataTypeSql } from './_utils';
 
 describe('DataTypes.BLOB', () => {
@@ -52,7 +52,10 @@ describe('DataTypes.BLOB', () => {
 
       expect(() => {
         type.validate(12_345);
-      }).to.throw(ValidationErrorItem, '12345 is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+      }).to.throw(
+        ValidationErrorItem,
+        '12345 is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.',
+      );
     });
 
     it('should not throw if `value` is a blob', () => {

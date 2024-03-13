@@ -1,9 +1,9 @@
-import { Blob } from 'node:buffer';
-import util from 'node:util';
 import dayjs from 'dayjs';
 import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
+import { Blob } from 'node:buffer';
+import util from 'node:util';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
 import type { Falsy } from '../../generic/falsy';
@@ -28,8 +28,8 @@ import {
   isDataTypeClass,
   throwUnsupportedDataType,
 } from './data-types-utils.js';
-import type { TableNameWithSchema } from './query-interface.js';
 import type { AbstractDialect } from './index.js';
+import type { TableNameWithSchema } from './query-interface.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.
 //       right now, they share a lot of the same logic.
@@ -38,7 +38,9 @@ import type { AbstractDialect } from './index.js';
 let Moment: any;
 try {
   Moment = require('moment');
-} catch { /* ignore */ }
+} catch {
+  /* ignore */
+}
 
 function isMoment(value: any): boolean {
   return Moment?.isMoment(value) ?? false;
@@ -46,9 +48,7 @@ function isMoment(value: any): boolean {
 
 // If T is a constructor, returns the type of what `new T()` would return,
 // otherwise, returns T
-export type Constructed<T> = T extends abstract new () => infer Instance
-  ? Instance
-  : T;
+export type Constructed<T> = T extends abstract new () => infer Instance ? Instance : T;
 
 export type AcceptableTypeOf<T extends DataType> =
   Constructed<T> extends AbstractDataType<infer Acceptable> ? Acceptable : never;
@@ -56,13 +56,9 @@ export type AcceptableTypeOf<T extends DataType> =
 export type DataTypeInstance = AbstractDataType<any>;
 export type DataTypeClass = Class<AbstractDataType<any>>;
 
-export type DataTypeClassOrInstance =
-  | DataTypeInstance
-  | DataTypeClass;
+export type DataTypeClassOrInstance = DataTypeInstance | DataTypeClass;
 
-export type DataType =
-  | string
-  | DataTypeClassOrInstance;
+export type DataType = string | DataTypeClassOrInstance;
 
 export type NormalizedDataType = string | DataTypeInstance;
 
@@ -71,8 +67,8 @@ export interface BindParamOptions {
 }
 
 export type DataTypeUseContext =
-  | { model: ModelStatic, attributeName: string, sequelize: Sequelize }
-  | { tableName: TableNameWithSchema, columnName: string, sequelize: Sequelize };
+  | { model: ModelStatic; attributeName: string; sequelize: Sequelize }
+  | { tableName: TableNameWithSchema; columnName: string; sequelize: Sequelize };
 
 /**
  * A symbol that can be used as the key for a static property on a DataType class to uniquely identify it.
@@ -122,7 +118,9 @@ export abstract class AbstractDataType<
    * @hidden
    */
   static get escape() {
-    throw new Error('The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.');
+    throw new Error(
+      'The "escape" static property has been removed. Each DataType is responsible for escaping its value correctly.',
+    );
   }
 
   // TODO: Remove in v8
@@ -159,7 +157,8 @@ export abstract class AbstractDataType<
 
   // TODO: move to utils?
   protected _construct<Constructor extends abstract new () => AbstractDataType<any>>(
-    ...args: ConstructorParameters<Constructor>): this {
+    ...args: ConstructorParameters<Constructor>
+  ): this {
     const constructor = this.constructor as new (
       ..._args: ConstructorParameters<Constructor>
     ) => this;
@@ -167,10 +166,7 @@ export abstract class AbstractDataType<
     return new constructor(...args);
   }
 
-  areValuesEqual(
-    value: AcceptedType,
-    originalValue: AcceptedType,
-  ): boolean {
+  areValuesEqual(value: AcceptedType, originalValue: AcceptedType): boolean {
     return isEqual(value, originalValue);
   }
 
@@ -224,7 +220,9 @@ export abstract class AbstractDataType<
     const asBindValue = this.toBindableValue(value);
 
     if (!isString(asBindValue)) {
-      throw new Error(`${this.constructor.name}#stringify has been overridden to return a non-string value, so ${this.constructor.name}#escape must be implemented to handle that value correctly.`);
+      throw new Error(
+        `${this.constructor.name}#stringify has been overridden to return a non-string value, so ${this.constructor.name}#escape must be implemented to handle that value correctly.`,
+      );
     }
 
     return this._getDialect().escapeString(asBindValue);
@@ -309,12 +307,15 @@ export abstract class AbstractDataType<
     // get dialect-specific implementation
     const subClass = dialect.getDataTypeForDialect(DataTypeClass);
 
-    const replacement: this = (!subClass || subClass === DataTypeClass)
-      // optimisation: re-use instance if it doesn't belong to any dialect yet.
-      ? this.#dialect == null ? this : this.clone()
-      // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
-      // @ts-expect-error -- see ^
-      : new subClass(this.options) as this;
+    const replacement: this =
+      !subClass || subClass === DataTypeClass
+        ? // optimisation: re-use instance if it doesn't belong to any dialect yet.
+          this.#dialect == null
+          ? this
+          : this.clone()
+        : // there is a convention that all DataTypes must accept a single "options" parameter as one of their signatures, but it's impossible to enforce in typing
+          // @ts-expect-error -- see ^
+          (new subClass(this.options) as this);
 
     replacement.#dialect = dialect;
     replacement._checkOptionSupport(dialect);
@@ -351,7 +352,9 @@ export abstract class AbstractDataType<
    */
   attachUsageContext(usageContext: DataTypeUseContext): this {
     if (this.usageContext && !isEqual(this.usageContext, usageContext)) {
-      throw new Error(`This DataType is already attached to ${printContext(this.usageContext)}, and therefore cannot be attached to ${printContext(usageContext)}.`);
+      throw new Error(
+        `This DataType is already attached to ${printContext(this.usageContext)}, and therefore cannot be attached to ${printContext(usageContext)}.`,
+      );
     }
 
     this.usageContext = Object.freeze(usageContext);
@@ -406,11 +409,12 @@ export class STRING extends AbstractDataType<string | Buffer> {
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
-  constructor(...args:
-    | []
-    | [length: number]
-    | [length: number, binary: boolean]
-    | [options: StringTypeOptions]
+  constructor(
+    ...args:
+      | []
+      | [length: number]
+      | [length: number, binary: boolean]
+      | [options: StringTypeOptions]
   );
 
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
@@ -556,10 +560,14 @@ export class TEXT extends AbstractDataType<string> {
   constructor(lengthOrOptions?: TextLength | TextOptions) {
     super();
 
-    const length = (typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions)?.toLowerCase();
+    const length = (
+      typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions
+    )?.toLowerCase();
 
     if (length != null && !validTextLengths.includes(length)) {
-      throw new TypeError(`If specified, the "length" option must be one of: ${validTextLengths.join(', ')}`);
+      throw new TypeError(
+        `If specified, the "length" option must be one of: ${validTextLengths.join(', ')}`,
+      );
     }
 
     this.options = {
@@ -668,17 +676,14 @@ export interface DecimalNumberOptions extends NumberOptions {
   scale?: number | undefined;
 }
 
-type AcceptedNumber =
-  | number
-  | bigint
-  | boolean
-  | string
-  | null;
+type AcceptedNumber = number | bigint | boolean | string | null;
 
 /**
  * Base number type which is used to build other types
  */
-export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> extends AbstractDataType<AcceptedNumber> {
+export class BaseNumberDataType<
+  Options extends NumberOptions = NumberOptions,
+> extends AbstractDataType<AcceptedNumber> {
   readonly options: Options;
 
   constructor(options?: Options) {
@@ -713,7 +718,10 @@ export class BaseNumberDataType<Options extends NumberOptions = NumberOptions> e
   validate(value: any): asserts value is number {
     if (typeof value === 'number' && Number.isInteger(value) && !Number.isSafeInteger(value)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        util.format(`${this.constructor.name} received an integer % that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`, value),
+        util.format(
+          `${this.constructor.name} received an integer % that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`,
+          value,
+        ),
       );
     }
 
@@ -779,11 +787,15 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
     super.validate(value);
 
     if (typeof value === 'number' && !Number.isInteger(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(
+        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
+      );
     }
 
     if (!Validator.isInt(String(value))) {
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(
+        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
+      );
     }
   }
 
@@ -993,11 +1005,12 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
-  constructor(...args:
-    | []
-    | [precision: number]
-    | [precision: number, scale: number]
-    | [options: DecimalNumberOptions]
+  constructor(
+    ...args:
+      | []
+      | [precision: number]
+      | [precision: number, scale: number]
+      | [options: DecimalNumberOptions]
   );
 
   constructor(precisionOrOptions?: number | DecimalNumberOptions, scale?: number) {
@@ -1011,11 +1024,15 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
 
     if (this.options.scale != null && this.options.precision == null) {
-      throw new Error(`The ${this.getDataTypeId()} DataType requires that the "precision" option be specified if the "scale" option is specified.`);
+      throw new Error(
+        `The ${this.getDataTypeId()} DataType requires that the "precision" option be specified if the "scale" option is specified.`,
+      );
     }
 
     if (this.options.scale == null && this.options.precision != null) {
-      throw new Error(`The ${this.getDataTypeId()} DataType requires that the "scale" option be specified if the "precision" option is specified.`);
+      throw new Error(
+        `The ${this.getDataTypeId()} DataType requires that the "scale" option be specified if the "precision" option is specified.`,
+      );
     }
   }
 
@@ -1029,7 +1046,9 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(
+        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
+      );
     }
 
     if (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) {
@@ -1041,7 +1060,9 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
         return;
       }
 
-      ValidationErrorItem.throwDataTypeValidationError(`${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`);
+      ValidationErrorItem.throwDataTypeValidationError(
+        `${util.inspect(value)} is not a valid ${this.toString().toLowerCase()}`,
+      );
     }
 
     super.validate(value);
@@ -1073,8 +1094,13 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
     }
 
     const supportTable2 = dialect.supports.dataTypes[typeId];
-    if (!supportTable2.scaleAndPrecision && (this.options.scale != null || this.options.precision != null)) {
-      dialect.warnDataTypeIssue(`${dialect.name} does not support ${this.getDataTypeId()} with scale or precision specified. These options are ignored.`);
+    if (
+      !supportTable2.scaleAndPrecision &&
+      (this.options.scale != null || this.options.precision != null)
+    ) {
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support ${this.getDataTypeId()} with scale or precision specified. These options are ignored.`,
+      );
 
       delete this.options.scale;
       delete this.options.precision;
@@ -1214,11 +1240,15 @@ export class DECIMAL extends BaseDecimalNumberDataType {
     }
 
     if (this.isUnconstrained() && !decimalSupport.unconstrained) {
-      throw new Error(`${dialect.name} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`);
+      throw new Error(
+        `${dialect.name} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`,
+      );
     }
 
     if (!this.isUnconstrained() && !decimalSupport.constrained) {
-      dialect.warnDataTypeIssue(`${dialect.name} does not support constrained DECIMAL types. The "precision" and "scale" options will be ignored.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support constrained DECIMAL types. The "precision" and "scale" options will be ignored.`,
+      );
       this.options.scale = undefined;
       this.options.precision = undefined;
     }
@@ -1233,7 +1263,9 @@ export class DECIMAL extends BaseDecimalNumberDataType {
 
       // catch loss of precision issues
       if (Number.isInteger(value) && !Number.isSafeInteger(value)) {
-        throw new Error(`${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`);
+        throw new Error(
+          `${this.getDataTypeId()} received an integer ${util.inspect(value)} that is not a safely represented using the JavaScript number type. Use a JavaScript bigint or a string instead.`,
+        );
       }
     }
 
@@ -1352,7 +1384,8 @@ export class TIME extends AbstractDataType<string> {
     super();
 
     this.options = {
-      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+      precision:
+        typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
   }
 
@@ -1409,10 +1442,14 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     super();
 
     this.options = {
-      precision: typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
+      precision:
+        typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
     };
 
-    if (this.options.precision != null && (this.options.precision < 0 || !Number.isInteger(this.options.precision))) {
+    if (
+      this.options.precision != null &&
+      (this.options.precision < 0 || !Number.isInteger(this.options.precision))
+    ) {
       throw new TypeError('Option "precision" must be a positive integer');
     }
   }
@@ -1443,24 +1480,23 @@ export class DATE extends AbstractDataType<AcceptedDate> {
       return new Date(value);
     }
 
-    throw new TypeError(`${util.inspect(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`);
+    throw new TypeError(
+      `${util.inspect(value)} cannot be converted to a Date object, and is not a DayJS nor Moment object`,
+    );
   }
 
   parseDatabaseValue(value: unknown): unknown {
     return this.sanitize(value);
   }
 
-  areValuesEqual(
-    value: AcceptedDate,
-    originalValue: AcceptedDate,
-  ): boolean {
+  areValuesEqual(value: AcceptedDate, originalValue: AcceptedDate): boolean {
     if (
-      originalValue
-      && Boolean(value)
-      && (value === originalValue
-        || (value instanceof Date
-          && originalValue instanceof Date
-          && value.getTime() === originalValue.getTime()))
+      originalValue &&
+      Boolean(value) &&
+      (value === originalValue ||
+        (value instanceof Date &&
+          originalValue instanceof Date &&
+          value.getTime() === originalValue.getTime()))
     ) {
       return true;
     }
@@ -1571,14 +1607,22 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
 
   validate(value: any) {
     if (!isPlainObject(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(util.format('%O is not a valid hstore, it must be a plain object', value));
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid hstore, it must be a plain object', value),
+      );
     }
 
     const hstore = value as Record<PropertyKey, unknown>;
 
     for (const key of Object.keys(hstore)) {
       if (!isString(hstore[key])) {
-        ValidationErrorItem.throwDataTypeValidationError(util.format(`%O is not a valid hstore, its values must be strings but ${key} is %O`, hstore, hstore[key]));
+        ValidationErrorItem.throwDataTypeValidationError(
+          util.format(
+            `%O is not a valid hstore, its values must be strings but ${key} is %O`,
+            hstore,
+            hstore[key],
+          ),
+        );
       }
     }
   }
@@ -1629,7 +1673,9 @@ export class JSON extends AbstractDataType<any> {
 
       const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
       if (isExplicit) {
-        throw new Error(`Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`);
+        throw new Error(
+          `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
+        );
       }
     }
 
@@ -1754,7 +1800,12 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
   }
 
   validate(value: any) {
-    if (Buffer.isBuffer(value) || typeof value === 'string' || value instanceof Uint8Array || value instanceof ArrayBuffer) {
+    if (
+      Buffer.isBuffer(value) ||
+      typeof value === 'string' ||
+      value instanceof Uint8Array ||
+      value instanceof ArrayBuffer
+    ) {
       return;
     }
 
@@ -1817,13 +1868,13 @@ const defaultRangeParser = buildRangeParser(identity);
  *
  * @category DataTypes
  */
-export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> extends AbstractDataType<
-  Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>
-> {
+export class RANGE<
+  T extends BaseNumberDataType | DATE | DATEONLY = INTEGER,
+> extends AbstractDataType<Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'RANGE';
   readonly options: {
-    subtype: AbstractDataType<any>,
+    subtype: AbstractDataType<any>;
   };
 
   /**
@@ -1832,12 +1883,11 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   constructor(subtypeOrOptions: DataTypeClassOrInstance | RangeOptions) {
     super();
 
-    const subtypeRaw = (isDataType(subtypeOrOptions) ? subtypeOrOptions : subtypeOrOptions?.subtype)
-      ?? new INTEGER();
+    const subtypeRaw =
+      (isDataType(subtypeOrOptions) ? subtypeOrOptions : subtypeOrOptions?.subtype) ??
+      new INTEGER();
 
-    const subtype: DataTypeInstance = isDataTypeClass(subtypeRaw)
-      ? new subtypeRaw()
-      : subtypeRaw;
+    const subtype: DataTypeInstance = isDataTypeClass(subtypeRaw) ? new subtypeRaw() : subtypeRaw;
 
     this.options = {
       subtype,
@@ -1871,7 +1921,9 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
     }
 
     if (!Array.isArray(value)) {
-      throw new Error(`DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`);
+      throw new Error(
+        `DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`,
+      );
     }
 
     return value.map(part => {
@@ -1925,9 +1977,13 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
   }
 }
 
+export interface UuidOptions {
+  version: 1 | 4 | 'all';
+}
+
 /**
  * A column storing a unique universal identifier.
- * Use with `UUIDV1` or `UUIDV4` for default values.
+ * Use with `sql.uuidV1` or `sql.uuidV4` for default values.
  *
  * __Fallback policy:__
  * If this type is not supported, it will be replaced by a string type with a CHECK constraint to enforce a GUID format.
@@ -1936,7 +1992,8 @@ export class RANGE<T extends BaseNumberDataType | DATE | DATEONLY = INTEGER> ext
  * ```ts
  * const User = sequelize.define('User', {
  *   id: {
- *     type: DataTypes.UUID,
+ *     type: DataTypes.UUID.V4,
+ *     defaultValue: sql.uuidV4,
  *   },
  * });
  * ```
@@ -1947,10 +2004,42 @@ export class UUID extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUID';
 
+  readonly options: UuidOptions;
+
+  constructor(options?: Partial<UuidOptions>) {
+    super();
+
+    this.options = {
+      version: options?.version ?? 'all',
+    };
+  }
+
+  get V4() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 4,
+    });
+  }
+
+  static get V4() {
+    return new this({ version: 4 });
+  }
+
+  get V1() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 1,
+    });
+  }
+
+  static get V1() {
+    return new this({ version: 1 });
+  }
+
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isUUID(value)) {
+    if (typeof value !== 'string' || !Validator.isUUID(value, this.options.version)) {
       ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid uuid', value),
+        util.format(`%O is not a valid uuid (version: ${this.options.version})`, value),
       );
     }
   }
@@ -1964,19 +2053,9 @@ export class UUID extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v1 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV1,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V1` (data type) & `sql.uuidV1` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV1 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
@@ -1998,19 +2077,9 @@ export class UUIDV1 extends AbstractDataType<string> {
  * A default unique universal identifier generated following the UUID v4 standard.
  * Cannot be used as a type, must be used as a default value instead.
  *
- * @example
- * ```ts
- * const User = sequelize.define('User', {
- *   id: {
- *     type: DataTypes.UUID,
- *     defaultValue: DataTypes.UUIDV4,
- *   },
- * });
- * ```
- *
  * @category DataTypes
+ * @deprecated use `DataTypes.UUID.V4` (data type) & `sql.uuidV4` (default value) instead
  */
-// TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class UUIDV4 extends AbstractDataType<string> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
@@ -2095,27 +2164,35 @@ export class VIRTUAL<T> extends AbstractDataType<T> {
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
-  constructor(...args:
-    | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
-    | [options?: VirtualOptions]
+  constructor(
+    ...args:
+      | [returnType?: DataTypeClassOrInstance, attributeDependencies?: string[]]
+      | [options?: VirtualOptions]
   );
 
   /**
    * @param [returnTypeOrOptions] return type for virtual type, or an option bag
    * @param [attributeDependencies] array of attributes this virtual type is dependent on
    */
-  constructor(returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions, attributeDependencies?: string[]) {
+  constructor(
+    returnTypeOrOptions?: DataTypeClassOrInstance | VirtualOptions,
+    attributeDependencies?: string[],
+  ) {
     super();
 
-    const returnType = returnTypeOrOptions == null ? undefined
-      : isDataType(returnTypeOrOptions) ? returnTypeOrOptions
-      : returnTypeOrOptions.returnType;
+    const returnType =
+      returnTypeOrOptions == null
+        ? undefined
+        : isDataType(returnTypeOrOptions)
+          ? returnTypeOrOptions
+          : returnTypeOrOptions.returnType;
 
     this.options = {
       returnType: returnType ? dataTypeClassOrInstanceToInstance(returnType) : undefined,
-      attributeDependencies: (isDataType(returnTypeOrOptions)
-        ? attributeDependencies
-        : returnTypeOrOptions?.attributeDependencies) ?? [],
+      attributeDependencies:
+        (isDataType(returnTypeOrOptions)
+          ? attributeDependencies
+          : returnTypeOrOptions?.attributeDependencies) ?? [],
     };
   }
 
@@ -2181,10 +2258,8 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
-  constructor(...args:
-    | [options: EnumOptions<Member>]
-    | [members: EnumValues<Member>]
-    | [...members: Member[]]
+  constructor(
+    ...args: [options: EnumOptions<Member>] | [members: EnumValues<Member>] | [...members: Member[]]
   );
   constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
@@ -2192,7 +2267,8 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     const values: readonly Member[] = this.#getEnumValues(args);
 
     if (values.length === 0) {
-      throw new TypeError(`
+      throw new TypeError(
+        `
 DataTypes.ENUM cannot be used without specifying its possible enum values.
 
 Note that the "values" property has been removed from column definitions. The following is no longer supported:
@@ -2211,12 +2287,18 @@ sequelize.define('MyModel', {
     type: DataTypes.ENUM(['admin', 'user']),
   },
 });
-`.trim());
+`.trim(),
+      );
     }
 
     for (const value of values) {
       if (typeof value !== 'string') {
-        throw new TypeError(util.format(`One of the possible values passed to DataTypes.ENUM (%O) is not a string. Only strings can be used as enum values.`, value));
+        throw new TypeError(
+          util.format(
+            `One of the possible values passed to DataTypes.ENUM (%O) is not a string. Only strings can be used as enum values.`,
+            value,
+          ),
+        );
       }
     }
 
@@ -2225,7 +2307,9 @@ sequelize.define('MyModel', {
     };
   }
 
-  #getEnumValues(args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]): readonly Member[] {
+  #getEnumValues(
+    args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]],
+  ): readonly Member[] {
     if (args.length === 0) {
       return EMPTY_ARRAY;
     }
@@ -2237,7 +2321,9 @@ sequelize.define('MyModel', {
     }
 
     if (rest.length > 0) {
-      throw new TypeError('DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.');
+      throw new TypeError(
+        'DataTypes.ENUM has been constructed incorrectly: Its first parameter is the option bag or the array of values, but more than one parameter has been provided.',
+      );
     }
 
     let enumOrArray: EnumValues<Member>;
@@ -2259,7 +2345,9 @@ sequelize.define('MyModel', {
     const enumKeys = Object.keys(theEnum) as Member[];
     for (const enumKey of enumKeys) {
       if (theEnum[enumKey] !== enumKey) {
-        throw new TypeError(`DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.`);
+        throw new TypeError(
+          `DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.`,
+        );
       }
     }
 
@@ -2300,7 +2388,9 @@ interface NormalizedArrayOptions {
  *
  * @category DataTypes
  */
-export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Array<AcceptableTypeOf<T>>> {
+export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
+  Array<AcceptableTypeOf<T>>
+> {
   /** @hidden */
   static readonly [kDataTypeIdentifier]: string = 'ARRAY';
   readonly options: NormalizedArrayOptions;
@@ -2360,7 +2450,9 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
 
   parseDatabaseValue(value: unknown[]): unknown {
     if (!Array.isArray(value)) {
-      throw new Error(`DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`);
+      throw new Error(
+        `DataTypes.ARRAY Received a non-array value from database: ${util.inspect(value)}`,
+      );
     }
 
     if (isString(this.options.type)) {
@@ -2412,11 +2504,8 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<Arr
     return super.attachUsageContext(usageContext);
   }
 
-  static is<T extends AbstractDataType<any>>(
-    obj: unknown,
-    type: new () => T,
-  ): obj is ARRAY<T> {
-    return obj instanceof ARRAY && (obj).options.type instanceof type;
+  static is<T extends AbstractDataType<any>>(obj: unknown, type: new () => T): obj is ARRAY<T> {
+    return obj instanceof ARRAY && obj.options.type instanceof type;
   }
 }
 
@@ -2498,17 +2587,12 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
   // we have to define the constructor overloads using tuples due to a TypeScript limitation
   //  https://github.com/microsoft/TypeScript/issues/29732, to play nice with classToInvokable.
   /** @hidden */
-  constructor(...args:
-    | [type: GeoJsonType, srid?: number]
-    | [options: GeometryOptions]
-  );
+  constructor(...args: [type: GeoJsonType, srid?: number] | [options: GeometryOptions]);
 
   constructor(typeOrOptions: GeoJsonType | GeometryOptions, srid?: number) {
     super();
 
-    this.options = isObject(typeOrOptions)
-      ? { ...typeOrOptions }
-      : { type: typeOrOptions, srid };
+    this.options = isObject(typeOrOptions) ? { ...typeOrOptions } : { type: typeOrOptions, srid };
   }
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -2684,7 +2768,7 @@ export class MACADDR extends AbstractDataType<string> {
   }
 
   validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isMACAddress(value)) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '48' })) {
       ValidationErrorItem.throwDataTypeValidationError(
         util.format('%O is not a valid MACADDR', value),
       );
@@ -2693,6 +2777,44 @@ export class MACADDR extends AbstractDataType<string> {
 
   toSql(): string {
     return 'MACADDR';
+  }
+}
+
+/**
+ * The MACADDR type stores MAC addresses. Takes 8 bytes
+ *
+ * Only available for Postgres
+ *
+ * __Fallback policy:__
+ * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.MACADDR8
+ * ```
+ *
+ * @category DataTypes
+ */
+export class MACADDR8 extends AbstractDataType<string> {
+  /** @hidden */
+  static readonly [kDataTypeIdentifier]: string = 'MACADDR8';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      throwUnsupportedDataType(dialect, 'MACADDR8');
+    }
+  }
+
+  validate(value: any) {
+    if (typeof value !== 'string' || !Validator.isMACAddress(value, { eui: '64' })) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid MACADDR8', value),
+      );
+    }
+  }
+
+  toSql(): string {
+    return 'MACADDR8';
   }
 }
 
@@ -2738,7 +2860,9 @@ function rejectBlobs(value: unknown) {
   // We have a DataType called BLOB. People might try to use the built-in Blob type with it, which they cannot.
   // To clarify why it doesn't work, we have a dedicated message for it.
   if (Blob && value instanceof Blob) {
-    ValidationErrorItem.throwDataTypeValidationError('Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+    ValidationErrorItem.throwDataTypeValidationError(
+      'Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.',
+    );
   }
 }
 
@@ -2746,9 +2870,9 @@ function assertDataTypeSupported(dialect: AbstractDialect, dataType: AbstractDat
   const typeId = dataType.getDataTypeId();
 
   if (
-    typeId in dialect.supports.dataTypes
+    typeId in dialect.supports.dataTypes &&
     // @ts-expect-error -- it's possible that typeId isn't listed in the support table, but that's checked above
-    && !dialect.supports.dataTypes[typeId]
+    !dialect.supports.dataTypes[typeId]
   ) {
     throwUnsupportedDataType(dialect, typeId);
   }

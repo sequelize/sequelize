@@ -28,9 +28,7 @@ export class AsyncQueue {
     this.closed = true;
     this.rejectCurrent(
       new ConnectionError(
-        new AsyncQueueError(
-          'the connection was closed before this query could finish executing',
-        ),
+        new AsyncQueueError('the connection was closed before this query could finish executing'),
       ),
     );
   }
@@ -45,9 +43,7 @@ export class AsyncQueue {
         if (this.closed) {
           return reject(
             new ConnectionError(
-              new AsyncQueueError(
-                'the connection was closed before this query could be executed',
-              ),
+              new AsyncQueueError('the connection was closed before this query could be executed'),
             ),
           );
         }

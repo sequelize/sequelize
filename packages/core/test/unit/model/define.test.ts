@@ -1,19 +1,23 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
-import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
+import { beforeAll2, createSequelizeInstance, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
 describe('Model', () => {
   describe('define', () => {
     it('should allow custom timestamps with underscored: true', () => {
-      const User = sequelize.define('User', {}, {
-        createdAt: 'createdAt',
-        updatedAt: 'updatedAt',
-        timestamps: true,
-        underscored: true,
-      });
+      const User = sequelize.define(
+        'User',
+        {},
+        {
+          createdAt: 'createdAt',
+          updatedAt: 'updatedAt',
+          timestamps: true,
+          underscored: true,
+        },
+      );
 
       expect(User.getAttributes()).to.haveOwnProperty('createdAt');
       expect(User.getAttributes()).to.haveOwnProperty('updatedAt');
@@ -30,7 +34,9 @@ describe('Model', () => {
         sequelize.define('foo', {
           id: DataTypes.INTEGER,
         });
-      }).to.throw('An attribute called \'id\' was defined in model \'foos\' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its \'primaryKey\' option to true. If this is intended, explicitly set its \'primaryKey\' option to false');
+      }).to.throw(
+        "An attribute called 'id' was defined in model 'foos' but primaryKey is not set. This is likely to be an error, which can be fixed by setting its 'primaryKey' option to true. If this is intended, explicitly set its 'primaryKey' option to false",
+      );
     });
 
     it('allows creating an "id" field as the primary key', () => {
@@ -59,9 +65,13 @@ describe('Model', () => {
     });
 
     it('should not add the default PK when noPrimaryKey is set to true', () => {
-      const User = sequelize.define('User', {}, {
-        noPrimaryKey: true,
-      });
+      const User = sequelize.define(
+        'User',
+        {},
+        {
+          noPrimaryKey: true,
+        },
+      );
 
       expect(User.getAttributes()).not.to.have.property('id');
     });
@@ -103,12 +113,14 @@ describe('Model', () => {
         },
       });
 
-      expect(User.getIndexes()).to.deep.equal([{
-        fields: ['firstName'],
-        column: 'firstName',
-        unique: true,
-        name: 'users_first_name_unique',
-      }]);
+      expect(User.getIndexes()).to.deep.equal([
+        {
+          fields: ['firstName'],
+          column: 'firstName',
+          unique: true,
+          name: 'users_first_name_unique',
+        },
+      ]);
     });
 
     it('supports marking multiple attributes as composite unique', () => {
@@ -123,12 +135,14 @@ describe('Model', () => {
         },
       });
 
-      expect(User.getIndexes()).to.deep.equal([{
-        fields: ['firstName', 'lastName'],
-        column: 'firstName',
-        unique: true,
-        name: 'firstName-lastName',
-      }]);
+      expect(User.getIndexes()).to.deep.equal([
+        {
+          fields: ['firstName', 'lastName'],
+          column: 'firstName',
+          unique: true,
+          name: 'firstName-lastName',
+        },
+      ]);
     });
 
     it('supports using the same attribute in multiple uniques', () => {
@@ -153,12 +167,14 @@ describe('Model', () => {
           column: 'firstName',
           unique: true,
           name: 'users_first_name_unique',
-        }, {
+        },
+        {
           fields: ['firstName', 'lastName'],
           column: 'firstName',
           unique: true,
           name: 'firstName-lastName',
-        }, {
+        },
+        {
           fields: ['firstName', 'country'],
           column: 'firstName',
           unique: true,
@@ -172,13 +188,17 @@ describe('Model', () => {
         sequelize.define('foo', {
           $id: DataTypes.INTEGER,
         });
-      }).to.throw('Name of attribute "$id" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
+      }).to.throw(
+        'Name of attribute "$id" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.',
+      );
 
       expect(() => {
         sequelize.define('foo', {
           id$: DataTypes.INTEGER,
         });
-      }).to.throw('Name of attribute "id$" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.');
+      }).to.throw(
+        'Name of attribute "id$" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.',
+      );
     });
 
     it('should throw when the attribute name is ambiguous with json.path syntax', () => {
@@ -186,7 +206,9 @@ describe('Model', () => {
         sequelize.define('foo', {
           'my.attribute': DataTypes.INTEGER,
         });
-      }).to.throw('Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.');
+      }).to.throw(
+        'Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.',
+      );
     });
 
     it('should throw when the attribute name is ambiguous with casting syntax', () => {
@@ -194,7 +216,9 @@ describe('Model', () => {
         sequelize.define('foo', {
           'id::int': DataTypes.INTEGER,
         });
-      }).to.throw('Name of attribute "id::int" in model "foo" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.');
+      }).to.throw(
+        'Name of attribute "id::int" in model "foo" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.',
+      );
     });
 
     it('should throw when the attribute name is ambiguous with nested-association syntax', () => {
@@ -202,7 +226,9 @@ describe('Model', () => {
         sequelize.define('foo', {
           'my->attribute': DataTypes.INTEGER,
         });
-      }).to.throw('Name of attribute "my->attribute" in model "foo" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.');
+      }).to.throw(
+        'Name of attribute "my->attribute" in model "foo" cannot include the character sequence "->" as it is reserved syntax used in SQL generated by Sequelize to target nested associations.',
+      );
     });
 
     it('should defend against null or undefined "unique" attributes', () => {
@@ -270,7 +296,9 @@ describe('Model', () => {
           userid: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           userscore: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         });
-      }).to.throwWithCause(`Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`);
+      }).to.throwWithCause(
+        `Only one autoIncrement attribute is allowed per model, but both 'userscore' and 'userid' are marked as autoIncrement.`,
+      );
     });
 
     it('should set the schema to the global value unless another value is provided', () => {
@@ -316,12 +344,19 @@ describe('Model', () => {
 
           // @ts-expect-error -- only used in testing
           const warnings = console.warn.args.map(args => args[0]);
-          expect(warnings.some(
-            (msg: string) => msg.includes(`does not support FLOAT with scale or precision specified. These options are ignored.`),
-          )).to.eq(true, 'warning was not logged');
+          expect(
+            warnings.some((msg: string) =>
+              msg.includes(
+                `does not support FLOAT with scale or precision specified. These options are ignored.`,
+              ),
+            ),
+          ).to.eq(true, 'warning was not logged');
         } else {
           // @ts-expect-error -- only used in testing
-          expect(console.warn.called).to.equal(false, 'console.warn was called but it should not have been');
+          expect(console.warn.called).to.equal(
+            false,
+            'console.warn was called but it should not have been',
+          );
         }
       });
     });
@@ -333,9 +368,18 @@ describe('Model', () => {
           const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
 
           const { physicalAttributes } = MyModel.modelDefinition;
-          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 6);
-          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 6);
-          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 6);
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property(
+            'type.options.precision',
+            6,
+          );
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property(
+            'type.options.precision',
+            6,
+          );
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property(
+            'type.options.precision',
+            6,
+          );
         });
       });
 
@@ -347,9 +391,18 @@ describe('Model', () => {
           const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
 
           const { physicalAttributes } = MyModel.modelDefinition;
-          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', 4);
-          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', 4);
-          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', 4);
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property(
+            'type.options.precision',
+            4,
+          );
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property(
+            'type.options.precision',
+            4,
+          );
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property(
+            'type.options.precision',
+            4,
+          );
         });
       });
 
@@ -361,11 +414,62 @@ describe('Model', () => {
           const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
 
           const { physicalAttributes } = MyModel.modelDefinition;
-          expect(physicalAttributes.get('createdAt')).to.have.nested.property('type.options.precision', undefined);
-          expect(physicalAttributes.get('updatedAt')).to.have.nested.property('type.options.precision', undefined);
-          expect(physicalAttributes.get('deletedAt')).to.have.nested.property('type.options.precision', undefined);
+          expect(physicalAttributes.get('createdAt')).to.have.nested.property(
+            'type.options.precision',
+            undefined,
+          );
+          expect(physicalAttributes.get('updatedAt')).to.have.nested.property(
+            'type.options.precision',
+            undefined,
+          );
+          expect(physicalAttributes.get('deletedAt')).to.have.nested.property(
+            'type.options.precision',
+            undefined,
+          );
         });
       });
+    });
+  });
+
+  describe('afterDefine / beforeDefine', () => {
+    const vars = beforeAll2(() => {
+      sequelize.hooks.addListener('beforeDefine', (attributes, options) => {
+        options.modelName = 'bar';
+        options.name!.plural = 'barrs';
+        attributes.type = DataTypes.STRING;
+      });
+
+      sequelize.hooks.addListener('afterDefine', factory => {
+        factory.options.name.singular = 'barr';
+      });
+
+      const TestModel = sequelize.define('foo', { name: DataTypes.STRING });
+
+      return { TestModel };
+    });
+
+    it('beforeDefine hook can change model name', () => {
+      const { TestModel } = vars;
+      expect(TestModel.name).to.equal('bar');
+    });
+
+    it('beforeDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.plural).to.equal('barrs');
+    });
+
+    it('beforeDefine hook can alter attributes', () => {
+      const { TestModel } = vars;
+      expect(TestModel.getAttributes().type).to.be.ok;
+    });
+
+    it('afterDefine hook can alter options', () => {
+      const { TestModel } = vars;
+      expect(TestModel.options.name.singular).to.equal('barr');
+    });
+
+    after(() => {
+      sequelize.hooks.removeAllListeners();
     });
   });
 });

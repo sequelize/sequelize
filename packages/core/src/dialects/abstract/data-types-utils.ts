@@ -1,7 +1,12 @@
 import NodeUtils from 'node:util';
 import { BaseError, ValidationErrorItem } from '../../errors/index.js';
 import type { Model } from '../../model.js';
-import type { DataType, DataTypeClass, DataTypeClassOrInstance, DataTypeInstance } from './data-types.js';
+import type {
+  DataType,
+  DataTypeClass,
+  DataTypeClassOrInstance,
+  DataTypeInstance,
+} from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 
@@ -21,8 +26,15 @@ export function cloneDataType(value: DataTypeInstance | string): DataTypeInstanc
   return value.clone();
 }
 
-export function normalizeDataType(Type: DataTypeClassOrInstance, dialect: AbstractDialect): AbstractDataType<unknown>;
+export function normalizeDataType(
+  Type: DataTypeClassOrInstance,
+  dialect: AbstractDialect,
+): AbstractDataType<unknown>;
 export function normalizeDataType(Type: string, dialect: AbstractDialect): string;
+export function normalizeDataType(
+  Type: DataTypeClassOrInstance | string,
+  dialect: AbstractDialect,
+): AbstractDataType<unknown> | string;
 export function normalizeDataType(
   Type: DataTypeClassOrInstance | string,
   dialect: AbstractDialect,
@@ -32,7 +44,9 @@ export function normalizeDataType(
   }
 
   if (typeof Type !== 'function' && !(Type instanceof AbstractDataType)) {
-    throw new TypeError(`Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`);
+    throw new TypeError(
+      `Expected type to be a string, a DataType class, or a DataType instance, but got ${NodeUtils.inspect(Type)}.`,
+    );
   }
 
   const type = dataTypeClassOrInstanceToInstance(Type);
@@ -45,9 +59,7 @@ export function normalizeDataType(
 }
 
 export function dataTypeClassOrInstanceToInstance(Type: DataTypeClassOrInstance): DataTypeInstance {
-  return typeof Type === 'function'
-    ? new Type()
-    : Type;
+  return typeof Type === 'function' ? new Type() : Type;
 }
 
 export function validateDataType(
@@ -62,9 +74,12 @@ export function validateDataType(
     return null;
   } catch (error) {
     if (!(error instanceof ValidationErrorItem)) {
-      throw new BaseError(`Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must throw an instance of ValidationErrorItem instead)`, {
-        cause: error,
-      });
+      throw new BaseError(
+        `Validation encountered an unexpected error while validating attribute ${attributeName}. (Note: If this error is intended, ${type.constructor.name}#validate must throw an instance of ValidationErrorItem instead)`,
+        {
+          cause: error,
+        },
+      );
     }
 
     error.path = attributeName;
@@ -86,10 +101,15 @@ export function attributeTypeToSql(type: AbstractDataType<any> | string): string
     return type.toSql();
   }
 
-  throw new Error('attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType');
+  throw new Error(
+    'attributeTypeToSql received a type that is neither a string or an instance of AbstractDataType',
+  );
 }
 
-export function getDataTypeParser(dialect: AbstractDialect, dataType: DataTypeClassOrInstance): (value: unknown) => unknown {
+export function getDataTypeParser(
+  dialect: AbstractDialect,
+  dataType: DataTypeClassOrInstance,
+): (value: unknown) => unknown {
   const type = normalizeDataType(dataType, dialect);
 
   return (value: unknown) => {

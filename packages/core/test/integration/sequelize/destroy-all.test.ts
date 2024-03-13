@@ -1,7 +1,12 @@
-import { expect } from 'chai';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, NotNull } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { sequelize, setResetMode } from '../support';
 
 describe('Sequelize#destroyAll', () => {

@@ -2,12 +2,12 @@
 
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
+import { EMPTY_SET } from '../../utils/object.js';
 import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import { generateIndexName } from '../../utils/string';
 import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator';
 
@@ -16,9 +16,8 @@ import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 
-const DataTypes = require('../../data-types');
 const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const randomBytes = require('node:crypto').randomBytes;
+const DataTypes = require('../../data-types');
 const { Op } = require('../../operators');
 
 /* istanbul ignore next */
@@ -26,75 +25,14 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
-const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
-  createSchemaQuery(schema, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect.name,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return [
-      'IF NOT EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
-      'WHERE schema_name =', this.escape(schema), ')',
-      'BEGIN',
-      'EXEC sp_executesql N\'CREATE SCHEMA',
-      this.quoteIdentifier(schema),
-      ';\'',
-      'END;',
-    ].join(' ');
-  }
-
-  dropSchemaQuery(schema) {
-    // Mimics Postgres CASCADE, will drop objects belonging to the schema
-    const quotedSchema = this.escape(schema);
-
-    return [
-      'IF EXISTS (SELECT schema_name',
-      'FROM information_schema.schemata',
-      'WHERE schema_name =', quotedSchema, ')',
-      'BEGIN',
-      'DECLARE @id INT, @ms_sql NVARCHAR(2000);',
-      'DECLARE @cascade TABLE (',
-      'id INT NOT NULL IDENTITY PRIMARY KEY,',
-      'ms_sql NVARCHAR(2000) NOT NULL );',
-      'INSERT INTO @cascade ( ms_sql )',
-      'SELECT CASE WHEN o.type IN (\'F\',\'PK\')',
-      'THEN N\'ALTER TABLE [\'+ s.name + N\'].[\' + p.name + N\'] DROP CONSTRAINT [\' + o.name + N\']\'',
-      'ELSE N\'DROP TABLE [\'+ s.name + N\'].[\' + o.name + N\']\' END',
-      'FROM sys.objects o',
-      'JOIN sys.schemas s on o.schema_id = s.schema_id',
-      'LEFT OUTER JOIN sys.objects p on o.parent_object_id = p.object_id',
-      'WHERE o.type IN (\'F\', \'PK\', \'U\') AND s.name = ', quotedSchema,
-      'ORDER BY o.type ASC;',
-      'SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id;',
-      'WHILE @id IS NOT NULL',
-      'BEGIN',
-      'BEGIN TRY EXEC sp_executesql @ms_sql; END TRY',
-      'BEGIN CATCH BREAK; THROW; END CATCH;',
-      'DELETE FROM @cascade WHERE id = @id;',
-      'SELECT @id = NULL, @ms_sql = NULL;',
-      'SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id;',
-      'END',
-      'EXEC sp_executesql N\'DROP SCHEMA', this.quoteIdentifier(schema), ';\'',
-      'END;',
-    ].join(' ');
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -126,10 +64,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           if (dataType.includes('REFERENCES')) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
+            attributesClauseParts.push(
+              `${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`,
+            );
             foreignKeys[attr] = match[2];
           } else {
-            attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+            attributesClauseParts.push(
+              `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
+            );
           }
         } else if (dataType.includes('REFERENCES')) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
@@ -150,11 +92,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           indexName = generateIndexName(tableName, columns);
         }
 
-        attributesClauseParts.push(`CONSTRAINT ${
-          this.quoteIdentifier(indexName)
-        } UNIQUE (${
-          columns.fields.map(field => this.quoteIdentifier(field)).join(', ')
-        })`);
+        attributesClauseParts.push(
+          `CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields
+            .map(field => this.quoteIdentifier(field))
+            .join(', ')})`,
+        );
       });
     }
 
@@ -164,7 +106,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     for (const fkey in foreignKeys) {
       if (Object.hasOwn(foreignKeys, fkey)) {
-        attributesClauseParts.push(`FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`);
+        attributesClauseParts.push(
+          `FOREIGN KEY (${this.quoteIdentifier(fkey)}) ${foreignKeys[fkey]}`,
+        );
       }
     }
 
@@ -182,9 +126,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        EMPTY_SET,
         options,
       );
     }
@@ -243,7 +187,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
 
       if (definition.includes('REFERENCES')) {
-        constraintString.push(`FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`);
+        constraintString.push(
+          `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`,
+        );
       } else {
         attrString.push(`${quotedAttrName} ${definition}`);
       }
@@ -266,15 +212,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       'EXEC sp_rename',
       `'${this.quoteTable(tableName)}.${attrBefore}',`,
       `'${newName}',`,
-      '\'COLUMN\'',
+      "'COLUMN'",
       ';',
     ]);
   }
 
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
     const quotedTable = this.quoteTable(tableName);
-    options = options || {};
-    attributes = attributes || {};
+    options ||= {};
+    attributes ||= {};
 
     const tuples = [];
     const allAttributes = [];
@@ -295,7 +241,12 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // special case for empty objects with primary keys
       const fields = Object.keys(attrValueHash);
       const firstAttr = attributes[fields[0]];
-      if (fields.length === 1 && firstAttr && firstAttr.autoIncrement && attrValueHash[fields[0]] === null) {
+      if (
+        fields.length === 1 &&
+        firstAttr &&
+        firstAttr.autoIncrement &&
+        attrValueHash[fields[0]] === null
+      ) {
         allQueries.push(emptyQuery);
         continue;
       }
@@ -318,20 +269,25 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (allAttributes.length > 0) {
       for (const attrValueHash of attrValueHashes) {
-        tuples.push(`(${
-          allAttributes.map(key => {
-            // TODO: bindParam
-            // TODO: pass "model"
-            return this.escape(attrValueHash[key] ?? null, {
-              type: attributes[key]?.type,
-              replacements: options.replacements,
-            });
-          }).join(',')
-        })`);
+        tuples.push(
+          `(${allAttributes
+            .map(key => {
+              // TODO: bindParam
+              // TODO: pass "model"
+              return this.escape(attrValueHash[key] ?? null, {
+                type: attributes[key]?.type,
+                replacements: options.replacements,
+              });
+            })
+            .join(',')})`,
+        );
       }
 
       const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
-      allQueries.push(tupleStr => `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`);
+      allQueries.push(
+        tupleStr =>
+          `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleStr}`,
+      );
     }
 
     const commands = [];
@@ -401,10 +357,12 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const updateKeys = Object.keys(updateValues);
     const insertKeys = Object.keys(insertValues);
     const insertKeysQuoted = insertKeys.map(key => this.quoteIdentifier(key)).join(', ');
-    const insertValuesEscaped = insertKeys.map(key => {
-      // TODO: pass "model", "type" and "bindParam" options
-      return this.escape(insertValues[key], options);
-    }).join(', ');
+    const insertValuesEscaped = insertKeys
+      .map(key => {
+        // TODO: pass "model", "type" and "bindParam" options
+        return this.escape(insertValues[key], options);
+      })
+      .join(', ');
     const sourceTableQuery = `VALUES(${insertValuesEscaped})`; // Virtual Table
     let joinCondition;
 
@@ -467,14 +425,18 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Remove the IDENTITY_INSERT Column from update
-    const filteredUpdateClauses = updateKeys.filter(key => !identityColumns.includes(key))
+    const filteredUpdateClauses = updateKeys
+      .filter(key => !identityColumns.includes(key))
       .map(key => {
         const value = this.escape(updateValues[key], undefined, options);
         key = this.quoteIdentifier(key);
 
         return `${targetTableAlias}.${key} = ${value}`;
       });
-    const updateSnippet = filteredUpdateClauses.length > 0 ? `WHEN MATCHED THEN UPDATE SET ${filteredUpdateClauses.join(', ')}` : '';
+    const updateSnippet =
+      filteredUpdateClauses.length > 0
+        ? `WHEN MATCHED THEN UPDATE SET ${filteredUpdateClauses.join(', ')}`
+        : '';
 
     const insertSnippet = `(${insertKeysQuoted}) VALUES(${insertValuesEscaped})`;
 
@@ -487,28 +449,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return query;
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
-  }
-
-  deleteQuery(tableName, where, options = {}, model) {
-    const table = this.quoteTable(tableName);
-
-    const escapeOptions = { ...options, model };
-    const whereClause = this.whereQuery(where, escapeOptions);
-
-    return joinSQLFragments([
-      'DELETE',
-      options.limit && `TOP(${this.escape(options.limit, escapeOptions)})`,
-      'FROM',
-      table,
-      whereClause,
-      ';',
-      'SELECT @@ROWCOUNT AS AFFECTEDROWS',
-      ';',
-    ]);
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
@@ -517,9 +457,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // handle self-referential constraints
-    if (attribute.references && attribute.Model && this.isSameTable(attribute.Model.tableName, attribute.references.table)) {
-      this.sequelize.log('MSSQL does not support self-referential constraints, '
-          + 'we will remove it but we recommend restructuring your query');
+    if (
+      attribute.references &&
+      attribute.Model &&
+      this.isSameTable(attribute.Model.tableName, attribute.references.table)
+    ) {
+      this.sequelize.log(
+        'MSSQL does not support self-referential constraints, ' +
+          'we will remove it but we recommend restructuring your query',
+      );
       attribute.onDelete = '';
       attribute.onUpdate = '';
     }
@@ -529,9 +475,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values.map(value => {
-        return this.escape(value, options);
-      }).join(', ')}))`;
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
+        .map(value => {
+          return this.escape(value, options);
+        })
+        .join(', ')}))`;
 
       return template;
     }
@@ -540,7 +488,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue)) {
+    } else if (
+      !attribute.primaryKey &&
+      !defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ' NULL';
     }
 
@@ -549,12 +500,18 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     // Blobs/texts cannot have a defaultValue
-    if (attribute.type !== 'TEXT' && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue)) {
+    if (
+      attribute.type !== 'TEXT' &&
+      attribute.type._binary !== true &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
-    if (attribute.unique === true && (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)) {
+    if (
+      attribute.unique === true &&
+      (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+    ) {
       template += ' UNIQUE';
     }
 
@@ -641,35 +598,5 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
   renameFunction() {
     throwMethodUndefined('renameFunction');
-  }
-
-  setIsolationLevelQuery() {}
-
-  generateTransactionId() {
-    return randomBytes(10).toString('hex');
-  }
-
-  startTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `SAVE TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'BEGIN TRANSACTION;';
-  }
-
-  commitTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return;
-    }
-
-    return 'COMMIT TRANSACTION;';
-  }
-
-  rollbackTransactionQuery(transaction) {
-    if (transaction.parent) {
-      return `ROLLBACK TRANSACTION ${this.quoteIdentifier(transaction.name)};`;
-    }
-
-    return 'ROLLBACK TRANSACTION;';
   }
 }

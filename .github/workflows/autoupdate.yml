@@ -1,0 +1,17 @@
+name: auto-update PRs
+on:
+  pull_request:
+    types: [auto_merge_enabled]
+  push:
+    branches:
+      - main
+jobs:
+  autoupdate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker://chinthakagodawita/autoupdate-action:v1
+        env:
+          GITHUB_TOKEN: '${{ secrets.AUTOMERGE_PAT }}'
+          PR_FILTER: 'auto_merge'
+          PR_READY_STATE: 'ready_for_review'
+          MERGE_CONFLICT_ACTION: 'fail'

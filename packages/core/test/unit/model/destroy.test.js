@@ -10,7 +10,6 @@ const sinon = require('sinon');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('method destroy', () => {
     const User = current.define('User', {
       name: DataTypes.STRING,
@@ -18,7 +17,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     before(function () {
-      this.stubDelete = sinon.stub(current.queryInterface, 'bulkDelete').resolves([]);
+      this.stubDelete = sinon.stub(current, 'queryRaw').resolves([]);
     });
 
     beforeEach(function () {

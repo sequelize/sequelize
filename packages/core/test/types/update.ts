@@ -9,12 +9,15 @@ TestModel.update({}, { where: {}, returning: true });
 TestModel.update({}, { where: {}, returning: ['foo'] });
 
 User.update({}, { where: {} });
-User.update({
-  id: 123,
-  username: fn('FN'),
-  firstName: col('id'),
-  lastName: literal('Smith'),
-}, { where: {} });
+User.update(
+  {
+    id: 123,
+    username: fn('FN'),
+    firstName: col('id'),
+    lastName: literal('Smith'),
+  },
+  { where: {} },
+);
 User.update({}, { where: {}, returning: true });
 User.update({}, { where: {}, returning: false });
 User.update({}, { where: {}, returning: ['username'] });
@@ -32,4 +35,3 @@ User.update({}, {});
 User.update({ foo: '<bar>' }, { where: {} });
 // @ts-expect-error -- invalid attribute
 User.build().update({ foo: '<bar>' });
-

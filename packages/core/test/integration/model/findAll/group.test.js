@@ -28,28 +28,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await current.sync({ force: true });
 
         // Create an enviroment
-        await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
-        ]);
+        await Post.bulkCreate([{ name: 'post-1' }, { name: 'post-2' }]);
 
         await Comment.bulkCreate([
-          { text: 'Market', PostId: 1 },
-          { text: 'Text', PostId: 2 },
-          { text: 'Abc', PostId: 2 },
-          { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Market', postId: 1 },
+          { text: 'Text', postId: 2 },
+          { text: 'Abc', postId: 2 },
+          { text: 'Semaphor', postId: 1 },
+          { text: 'Text', postId: 1 },
         ]);
 
         const posts = await Post.findAll({
-          attributes: [[Sequelize.fn('COUNT', Sequelize.col('Comments.id')), 'comment_count']],
-          include: [
-            { model: Comment, attributes: [] },
-          ],
+          attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'comment_count']],
+          include: [{ model: Comment, attributes: [] }],
           group: ['Post.id'],
-          order: [
-            ['id'],
-          ],
+          order: [['id']],
         });
 
         expect(Number.parseInt(posts[0].get('comment_count'), 10)).to.equal(3);
@@ -72,28 +65,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await current.sync({ force: true });
 
-        await Post.bulkCreate([
-          { name: 'post-1' },
-          { name: 'post-2' },
-        ]);
+        await Post.bulkCreate([{ name: 'post-1' }, { name: 'post-2' }]);
 
         await Comment.bulkCreate([
-          { text: 'Market', PostId: 1 },
-          { text: 'Text', PostId: 2 },
-          { text: 'Abc', PostId: 2 },
-          { text: 'Semaphor', PostId: 1 },
-          { text: 'Text', PostId: 1 },
+          { text: 'Market', postId: 1 },
+          { text: 'Text', postId: 2 },
+          { text: 'Abc', postId: 2 },
+          { text: 'Semaphor', postId: 1 },
+          { text: 'Text', postId: 1 },
         ]);
 
         const posts = await Comment.findAll({
-          attributes: ['PostId', [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count']],
-          include: [
-            { model: Post, attributes: [] },
+          attributes: [
+            'postId',
+            [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count'],
           ],
-          group: ['PostId'],
-          order: [
-            ['PostId'],
-          ],
+          include: [{ model: Post, attributes: [] }],
+          group: ['postId'],
+          order: [['postId']],
         });
 
         expect(posts[0].get().hasOwnProperty('id')).to.equal(false);

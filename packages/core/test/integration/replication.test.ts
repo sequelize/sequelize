@@ -1,11 +1,11 @@
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { DataTypes } from '@sequelize/core';
 import {
   beforeEach2,
+  createSequelizeInstance,
   destroySequelizeAfterTest,
   getConnectionOptionsWithoutPool,
-  getSequelizeInstance,
   getTestDialect,
   getTestDialectTeaser,
   setResetMode,
@@ -22,7 +22,7 @@ describe(getTestDialectTeaser('Replication'), () => {
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
       const sandbox = sinon.createSandbox();
-      const sequelize = getSequelizeInstance('', '', '', {
+      const sequelize = createSequelizeInstance({
         replication: {
           write: getConnectionOptionsWithoutPool(),
           read: [getConnectionOptionsWithoutPool()],

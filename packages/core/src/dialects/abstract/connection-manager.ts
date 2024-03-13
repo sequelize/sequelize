@@ -6,8 +6,8 @@ import type { ConnectionOptions, Dialect, Sequelize } from '../../sequelize.js';
 import { isNodeError } from '../../utils/check.js';
 import * as deprecations from '../../utils/deprecations';
 import { logger } from '../../utils/logger';
-import { ReplicationPool } from './replication-pool.js';
 import type { AbstractDialect } from './index.js';
+import { ReplicationPool } from './replication-pool.js';
 
 const debug = logger.debugContext('connection-manager');
 
@@ -53,7 +53,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
   #versionPromise: Promise<void> | null = null;
   #closed: boolean = false;
 
-  constructor(dialect: AbstractDialect, sequelize: Sequelize) {
+  constructor(dialect: AbstractDialect) {
+    const sequelize = dialect.sequelize;
     const config: Sequelize['config'] = cloneDeep(sequelize.config) ?? {};
 
     this.sequelize = sequelize;
@@ -166,7 +167,9 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
     // Mark close of pool
     this.getConnection = async function getConnection() {
-      throw new Error('ConnectionManager.getConnection was called after the connection manager was closed!');
+      throw new Error(
+        'ConnectionManager.getConnection was called after the connection manager was closed!',
+      );
     };
 
     return this._onProcessExit();
@@ -182,7 +185,6 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
     await this._initDatabaseVersion();
 
     try {
-
       await this.sequelize.hooks.runAsync('beforePoolAcquire', options);
 
       const result = await this.pool.acquire(options?.type, options?.useMaster);
@@ -214,7 +216,8 @@ export class AbstractConnectionManager<TConnection extends Connection = Connecti
 
     this.#versionPromise = (async () => {
       try {
-        const connection = conn ?? await this._connect(this.config.replication.write || this.config);
+        const connection =
+          conn ?? (await this._connect(this.config.replication.write || this.config));
 
         const version = await this.sequelize.fetchDatabaseVersion({
           logging: false,

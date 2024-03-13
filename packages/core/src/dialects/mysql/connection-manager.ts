@@ -1,11 +1,12 @@
-import assert from 'node:assert';
-import { promisify } from 'node:util';
 import dayjs from 'dayjs';
 import type {
   Connection,
   ConnectionOptions as MySqlConnectionOptions,
   createConnection as mysqlCreateConnection,
 } from 'mysql2';
+import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast';
+import assert from 'node:assert';
+import { promisify } from 'node:util';
 import {
   AccessDeniedError,
   ConnectionError,
@@ -14,7 +15,7 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '../../errors';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions } from '../../sequelize.js';
 import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
@@ -25,22 +26,11 @@ const debug = logger.debugContext('connection:mysql');
 
 // TODO: once the code has been split into packages, we won't need to lazy load mysql2 anymore
 type Lib = {
-  createConnection: typeof mysqlCreateConnection,
-  Connection: Connection,
+  createConnection: typeof mysqlCreateConnection;
+  Connection: Connection;
 };
 
 export interface MySqlConnection extends Connection, AbstractConnection {}
-
-export interface MySqlTypeCastValue {
-  type: string;
-  length: number;
-  db: string;
-  table: string;
-  name: string;
-  string(): string;
-  buffer(): Buffer;
-  geometry(): unknown;
-}
 
 /**
  * MySQL Connection Manager
@@ -54,12 +44,12 @@ export interface MySqlTypeCastValue {
 export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConnection> {
   private readonly lib: Lib;
 
-  constructor(dialect: AbstractDialect, sequelize: Sequelize) {
-    super(dialect, sequelize);
+  constructor(dialect: AbstractDialect) {
+    super(dialect);
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 
-  #typecast(field: MySqlTypeCastValue, next: () => void): unknown {
+  #typecast(field: Field, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);
@@ -164,15 +154,17 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
   }
 
   validate(connection: MySqlConnection) {
-    return connection
+    return (
+      connection &&
       // @ts-expect-error -- undeclared var
-      && !connection._fatalError
+      !connection._fatalError &&
       // @ts-expect-error -- undeclared var
-      && !connection._protocolError
+      !connection._protocolError &&
       // @ts-expect-error -- undeclared var
-      && !connection._closing
+      !connection._closing &&
       // @ts-expect-error -- undeclared var
-      && !connection.stream.destroyed;
+      !connection.stream.destroyed
+    );
   }
 }
 

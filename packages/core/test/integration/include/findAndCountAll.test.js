@@ -19,64 +19,92 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
   describe('findAndCountAll', () => {
     it('should be able to include two required models with a limit. Result rows should match limit.', async function () {
-      const Project = this.sequelize.define('Project', { id: { type: DataTypes.INTEGER, primaryKey: true }, name: DataTypes.STRING(40) });
-      const Task = this.sequelize.define('Task', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
-      const Employee = this.sequelize.define('Employee', { name: DataTypes.STRING(40), fk: DataTypes.INTEGER });
+      const Project = this.sequelize.define('Project', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        name: DataTypes.STRING(40),
+      });
+      const Task = this.sequelize.define('Task', {
+        name: DataTypes.STRING(40),
+        fk: DataTypes.INTEGER,
+      });
+      const Employee = this.sequelize.define('Employee', {
+        name: DataTypes.STRING(40),
+        fk: DataTypes.INTEGER,
+      });
 
-      Project.hasMany(Task, { foreignKey: 'fk', foreignKeyConstraints: false  });
-      Project.hasMany(Employee, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Project.hasMany(Task, { foreignKey: 'fk', foreignKeyConstraints: false });
+      Project.hasMany(Employee, { foreignKey: 'fk', foreignKeyConstraints: false });
 
-      Task.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
-      Employee.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false  });
+      Task.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false });
+      Employee.belongsTo(Project, { foreignKey: 'fk', foreignKeyConstraints: false });
 
       // Sync them
       await this.sequelize.sync({ force: true });
 
       // Create an enviroment
-      await Promise.all([Project.bulkCreate([
-        { id: 1, name: 'No tasks' },
-        { id: 2, name: 'No tasks no employees' },
-        { id: 3, name: 'No employees' },
-        { id: 4, name: 'In progress A' },
-        { id: 5, name: 'In progress B' },
-        { id: 6, name: 'In progress C' },
-      ]), Task.bulkCreate([
-        { name: 'Important task', fk: 3 },
-        { name: 'Important task', fk: 4 },
-        { name: 'Important task', fk: 5 },
-        { name: 'Important task', fk: 6 },
-      ]), Employee.bulkCreate([
-        { name: 'Jane Doe', fk: 1 },
-        { name: 'John Doe', fk: 4 },
-        { name: 'Jane John Doe', fk: 5 },
-        { name: 'John Jane Doe', fk: 6 },
-      ])]);
+      await Promise.all([
+        Project.bulkCreate([
+          { id: 1, name: 'No tasks' },
+          { id: 2, name: 'No tasks no employees' },
+          { id: 3, name: 'No employees' },
+          { id: 4, name: 'In progress A' },
+          { id: 5, name: 'In progress B' },
+          { id: 6, name: 'In progress C' },
+        ]),
+        Task.bulkCreate([
+          { name: 'Important task', fk: 3 },
+          { name: 'Important task', fk: 4 },
+          { name: 'Important task', fk: 5 },
+          { name: 'Important task', fk: 6 },
+        ]),
+        Employee.bulkCreate([
+          { name: 'Jane Doe', fk: 1 },
+          { name: 'John Doe', fk: 4 },
+          { name: 'Jane John Doe', fk: 5 },
+          { name: 'John Jane Doe', fk: 6 },
+        ]),
+      ]);
 
       // Find all projects with tasks and employees
       const availableProjects = 3;
       const limit = 2;
 
       const result = await Project.findAndCountAll({
-        include: [{
-          model: Task, required: true,
-        },
-        {
-          model: Employee, required: true,
-        }],
+        include: [
+          {
+            model: Task,
+            required: true,
+          },
+          {
+            model: Employee,
+            required: true,
+          },
+        ],
         limit,
       });
 
       expect(result.count).to.equal(availableProjects);
-      expect(result.rows.length).to.equal(limit, 'Complete set of available rows were not returned.');
+      expect(result.rows.length).to.equal(
+        limit,
+        'Complete set of available rows were not returned.',
+      );
     });
 
     it('should be able to include a required model. Result rows should match count', async function () {
-      const User = this.sequelize.define('User', { name: DataTypes.STRING(40) }, { paranoid: true });
-      const SomeConnection = this.sequelize.define('SomeConnection', {
-        m: DataTypes.STRING(40),
-        fk: DataTypes.INTEGER,
-        u: DataTypes.INTEGER,
-      }, { paranoid: true });
+      const User = this.sequelize.define(
+        'User',
+        { name: DataTypes.STRING(40) },
+        { paranoid: true },
+      );
+      const SomeConnection = this.sequelize.define(
+        'SomeConnection',
+        {
+          m: DataTypes.STRING(40),
+          fk: DataTypes.INTEGER,
+          u: DataTypes.INTEGER,
+        },
+        { paranoid: true },
+      );
       const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true });
       const B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true });
       const C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true });
@@ -98,49 +126,51 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       // Create an enviroment
 
-      await Promise.all([User.bulkCreate([
-        { name: 'Youtube' },
-        { name: 'Facebook' },
-        { name: 'Google' },
-        { name: 'Yahoo' },
-        { name: '404' },
-      ]), SomeConnection.bulkCreate([ // Lets count, m: A and u: 1
-        { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
-        { u: 2, m: 'A', fk: 1 },
-        { u: 3, m: 'A', fk: 1 },
-        { u: 4, m: 'A', fk: 1 },
-        { u: 5, m: 'A', fk: 1 },
-        { u: 1, m: 'B', fk: 1 },
-        { u: 2, m: 'B', fk: 1 },
-        { u: 3, m: 'B', fk: 1 },
-        { u: 4, m: 'B', fk: 1 },
-        { u: 5, m: 'B', fk: 1 },
-        { u: 1, m: 'C', fk: 1 },
-        { u: 2, m: 'C', fk: 1 },
-        { u: 3, m: 'C', fk: 1 },
-        { u: 4, m: 'C', fk: 1 },
-        { u: 5, m: 'C', fk: 1 },
-        { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
-        { u: 4, m: 'A', fk: 2 },
-        { u: 2, m: 'A', fk: 2 },
-        { u: 1, m: 'A', fk: 3 }, // 3
-        { u: 2, m: 'A', fk: 3 },
-        { u: 3, m: 'A', fk: 3 },
-        { u: 2, m: 'B', fk: 2 },
-        { u: 1, m: 'A', fk: 4 }, // 4
-        { u: 4, m: 'A', fk: 2 },
-      ]), A.bulkCreate([
-        { name: 'Just' },
-        { name: 'for' },
-        { name: 'testing' },
-        { name: 'proposes' },
-        { name: 'only' },
-      ]), B.bulkCreate([
-        { name: 'this should not' },
-        { name: 'be loaded' },
-      ]), C.bulkCreate([
-        { name: 'because we only want A' },
-      ])]);
+      await Promise.all([
+        User.bulkCreate([
+          { name: 'Youtube' },
+          { name: 'Facebook' },
+          { name: 'Google' },
+          { name: 'Yahoo' },
+          { name: '404' },
+        ]),
+        SomeConnection.bulkCreate([
+          // Lets count, m: A and u: 1
+          { u: 1, m: 'A', fk: 1 }, // 1  // Will be deleted
+          { u: 2, m: 'A', fk: 1 },
+          { u: 3, m: 'A', fk: 1 },
+          { u: 4, m: 'A', fk: 1 },
+          { u: 5, m: 'A', fk: 1 },
+          { u: 1, m: 'B', fk: 1 },
+          { u: 2, m: 'B', fk: 1 },
+          { u: 3, m: 'B', fk: 1 },
+          { u: 4, m: 'B', fk: 1 },
+          { u: 5, m: 'B', fk: 1 },
+          { u: 1, m: 'C', fk: 1 },
+          { u: 2, m: 'C', fk: 1 },
+          { u: 3, m: 'C', fk: 1 },
+          { u: 4, m: 'C', fk: 1 },
+          { u: 5, m: 'C', fk: 1 },
+          { u: 1, m: 'A', fk: 2 }, // 2 // Will be deleted
+          { u: 4, m: 'A', fk: 2 },
+          { u: 2, m: 'A', fk: 2 },
+          { u: 1, m: 'A', fk: 3 }, // 3
+          { u: 2, m: 'A', fk: 3 },
+          { u: 3, m: 'A', fk: 3 },
+          { u: 2, m: 'B', fk: 2 },
+          { u: 1, m: 'A', fk: 4 }, // 4
+          { u: 4, m: 'A', fk: 2 },
+        ]),
+        A.bulkCreate([
+          { name: 'Just' },
+          { name: 'for' },
+          { name: 'testing' },
+          { name: 'proposes' },
+          { name: 'only' },
+        ]),
+        B.bulkCreate([{ name: 'this should not' }, { name: 'be loaded' }]),
+        C.bulkCreate([{ name: 'because we only want A' }]),
+      ]);
 
       // Delete some of conns to prove the concept
       await SomeConnection.destroy({
@@ -155,13 +185,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       // Last and most important queries ( we connected 4, but deleted 2, witch means we must get 2 only )
       const result = await A.findAndCountAll({
-        include: [{
-          model: SomeConnection, required: true,
-          where: {
-            m: 'A', // Pseudo Polymorphy
-            u: 1,
+        include: [
+          {
+            model: SomeConnection,
+            required: true,
+            where: {
+              m: 'A', // Pseudo Polymorphy
+              u: 1,
+            },
           },
-        }],
+        ],
         limit: 5,
       });
 
@@ -182,13 +215,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       User.hasMany(Project);
 
-      let userId = null;
-
       await User.sync({ force: true });
       await Project.sync({ force: true });
-      const results = await Promise.all([User.create(), Project.create(), Project.create(), Project.create()]);
+      const results = await Promise.all([
+        User.create(),
+        Project.create(),
+        Project.create(),
+        Project.create(),
+      ]);
       const user = results[0];
-      userId = user.id;
+      const userId = user.id;
       await user.setProjects([results[1], results[2], results[3]]);
 
       const result = await User.findAndCountAll({
@@ -198,7 +234,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       });
 
       expect(result.rows.length).to.equal(1);
-      expect(result.rows[0].Projects.length).to.equal(3);
+      expect(result.rows[0].projects.length).to.equal(3);
       expect(result.count).to.equal(1);
     });
 
@@ -214,7 +250,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Make five instances of Foo
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the last four instances of Foo
-      await Bar.bulkCreate([{ FooId: 2 }, { FooId: 3 }, { FooId: 4 }, { FooId: 5 }]);
+      await Bar.bulkCreate([{ fooId: 2 }, { fooId: 3 }, { fooId: 4 }, { fooId: 5 }]);
 
       // Query for the first two instances of Foo which have related Bars
       const result0 = await Foo.findAndCountAll({
@@ -247,7 +283,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
       await Foo.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]);
       // Make four instances of Bar, related to the first two instances of Foo
-      await Bar.bulkCreate([{ FooId: 1, m: 'yes' }, { FooId: 1, m: 'yes' }, { FooId: 1, m: 'no' }, { FooId: 2, m: 'yes' }]);
+      await Bar.bulkCreate([
+        { fooId: 1, m: 'yes' },
+        { fooId: 1, m: 'yes' },
+        { fooId: 1, m: 'no' },
+        { fooId: 2, m: 'yes' },
+      ]);
 
       // Query for the first instance of Foo which have related Bars with m === 'yes'
       const result = await Foo.findAndCountAll({
@@ -296,21 +337,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       // Create an enviroment
-      await User.bulkCreate([
-        { name: 'user-name-1' },
-        { name: 'user-name-2' },
-      ]);
+      await User.bulkCreate([{ name: 'user-name-1' }, { name: 'user-name-2' }]);
 
       await Project.bulkCreate([
-        { m: 'A', UserId: 1 },
-        { m: 'A', UserId: 2 },
+        { m: 'A', userId: 1 },
+        { m: 'A', userId: 2 },
       ]);
 
       await Task.bulkCreate([
-        { ProjectId: 1, name: 'Just' },
-        { ProjectId: 1, name: 'for' },
-        { ProjectId: 2, name: 'testing' },
-        { ProjectId: 2, name: 'proposes' },
+        { projectId: 1, name: 'Just' },
+        { projectId: 1, name: 'for' },
+        { projectId: 2, name: 'testing' },
+        { projectId: 2, name: 'proposes' },
       ]);
 
       // Find All Tasks with Project(m=a) and User(name=user-name-2)
@@ -322,10 +360,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           {
             model: Project,
             where: { [Op.and]: [{ m: 'A' }] },
-            include: [{
-              model: User,
-              where: { [Op.and]: [{ name: 'user-name-2' }] },
-            },
+            include: [
+              {
+                model: User,
+                where: { [Op.and]: [{ name: 'user-name-2' }] },
+              },
             ],
           },
           { model: Tag },
@@ -360,9 +399,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       await Project.bulkCreate([
-        { name: 'naam-satya', UserId: 1 },
-        { name: 'guru-satya', UserId: 2 },
-        { name: 'app-satya', UserId: 2 },
+        { name: 'naam-satya', userId: 1 },
+        { name: 'guru-satya', userId: 2 },
+        { name: 'app-satya', userId: 2 },
       ]);
 
       const result = await User.findAndCountAll({

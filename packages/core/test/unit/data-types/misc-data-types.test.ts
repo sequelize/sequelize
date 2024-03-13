@@ -1,8 +1,8 @@
-import assert from 'node:assert';
-import { expect } from 'chai';
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, JSON_NULL, SQL_NULL, ValidationErrorItem } from '@sequelize/core';
 import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import { expect } from 'chai';
+import assert from 'node:assert';
 import { createSequelizeInstance, expectsql, sequelize, typeTest } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -90,7 +90,10 @@ describe('DataTypes.ENUM', () => {
       sequelize.define('User', {
         anEnum: DataTypes.ENUM({ values: Test }),
       });
-    }).to.throwWithCause(Error, 'DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.');
+    }).to.throwWithCause(
+      Error,
+      'DataTypes.ENUM has been constructed incorrectly: When specifying values as a TypeScript enum or an object of key-values, the values of the object must be equal to their keys.',
+    );
   });
 
   typeTest('accepts readonly arrays', () => {
@@ -118,7 +121,10 @@ describe('DataTypes.ENUM', () => {
       sequelize.define('omnomnom', {
         bla: { type: DataTypes.ENUM },
       });
-    }).to.throwWithCause(Error, 'DataTypes.ENUM cannot be used without specifying its possible enum values.');
+    }).to.throwWithCause(
+      Error,
+      'DataTypes.ENUM cannot be used without specifying its possible enum values.',
+    );
   });
 
   describe('validate', () => {
@@ -146,7 +152,10 @@ describe('DataTypes.RANGE', () => {
 
       expect(() => {
         type.validate('foobar');
-      }).to.throw(ValidationErrorItem, 'A range must either be an array with two elements, or an empty array for the empty range.');
+      }).to.throw(
+        ValidationErrorItem,
+        'A range must either be an array with two elements, or an empty array for the empty range.',
+      );
     });
 
     it('should throw an error if `value` is not an array with two elements', () => {
@@ -154,7 +163,10 @@ describe('DataTypes.RANGE', () => {
 
       expect(() => {
         type.validate([1]);
-      }).to.throw(ValidationErrorItem, 'A range must either be an array with two elements, or an empty array for the empty range.');
+      }).to.throw(
+        ValidationErrorItem,
+        'A range must either be an array with two elements, or an empty array for the empty range.',
+      );
     });
 
     it('should not throw if `value` is a range', () => {
@@ -167,7 +179,9 @@ describe('DataTypes.RANGE', () => {
 
 describe('DataTypes.JSON', () => {
   testDataTypeSql('JSON', DataTypes.JSON, {
-    default: new Error(`${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+    default: new Error(
+      `${dialectName} does not support the JSON data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`,
+    ),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
     'mariadb mysql postgres': 'JSON',
@@ -224,11 +238,17 @@ describe('DataTypes.JSON', () => {
     });
 
     it('nested object', () => {
-      expectsql(queryGenerator.escape({ some: 'nested', more: { nested: true }, answer: 42 }, { type: new DataTypes.JSON() }), {
-        default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
-        mysql: `CAST('{"some":"nested","more":{"nested":true},"answer":42}' AS JSON)`,
-        mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
-      });
+      expectsql(
+        queryGenerator.escape(
+          { some: 'nested', more: { nested: true }, answer: 42 },
+          { type: new DataTypes.JSON() },
+        ),
+        {
+          default: `'{"some":"nested","more":{"nested":true},"answer":42}'`,
+          mysql: `CAST('{"some":"nested","more":{"nested":true},"answer":42}' AS JSON)`,
+          mssql: `N'{"some":"nested","more":{"nested":true},"answer":42}'`,
+        },
+      );
     });
   });
 
@@ -266,7 +286,9 @@ describe('DataTypes.JSON', () => {
     }).queryGenerator;
 
     it('rejects the JS null when used as the top level value', () => {
-      expect(() => explicitNullQueryGenerator.escape(null, { type: new DataTypes.JSON() })).to.throw(/"nullJsonStringification" option is set to "explicit"/);
+      expect(() =>
+        explicitNullQueryGenerator.escape(null, { type: new DataTypes.JSON() }),
+      ).to.throw(/"nullJsonStringification" option is set to "explicit"/);
     });
 
     it('escapes nested JS null as the JSON null', () => {
@@ -295,7 +317,9 @@ describe('DataTypes.JSON', () => {
 
 describe('DataTypes.JSONB', () => {
   testDataTypeSql('JSONB', DataTypes.JSONB, {
-    default: new Error(`${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+    default: new Error(
+      `${dialectName} does not support the JSONB data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`,
+    ),
     postgres: 'JSONB',
   });
 });
@@ -303,7 +327,9 @@ describe('DataTypes.JSONB', () => {
 describe('DataTypes.HSTORE', () => {
   describe('toSql', () => {
     testDataTypeSql('HSTORE', DataTypes.HSTORE, {
-      default: new Error(`${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+      default: new Error(
+        `${dialectName} does not support the HSTORE data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`,
+      ),
       postgres: 'HSTORE',
     });
   });

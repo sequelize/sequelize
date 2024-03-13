@@ -1,9 +1,6 @@
-import type { Sequelize } from '../../sequelize.js';
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { MsSqlQueryGenerator } from './query-generator.js';
+import type { MssqlDialect } from './index.js';
+import { MsSqlQueryInterfaceTypescript } from './query-interface-typescript.js';
 
-export class MsSqlQueryInterface extends AbstractQueryInterface {
-  queryGenerator: MsSqlQueryGenerator;
-
-  constructor(sequelize: Sequelize, queryGenerator: MsSqlQueryGenerator);
-}
+export class MsSqlQueryInterface<
+  Dialect extends MssqlDialect = MssqlDialect,
+> extends MsSqlQueryInterfaceTypescript<Dialect> {}

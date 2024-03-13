@@ -8,37 +8,39 @@ const Support = require('../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {
-
     describe('findAndCountAll', () => {
-
       beforeEach(async function () {
-        this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: DataTypes.STRING,
-          email: DataTypes.STRING,
-          access_level: DataTypes.INTEGER,
-          other_value: DataTypes.INTEGER,
-        }, {
-          defaultScope: {
-            where: {
-              access_level: {
-                [Op.gte]: 5,
-              },
-            },
-            attributes: ['username', 'email', 'access_level'],
+        this.ScopeMe = this.sequelize.define(
+          'ScopeMe',
+          {
+            username: DataTypes.STRING,
+            email: DataTypes.STRING,
+            access_level: DataTypes.INTEGER,
+            other_value: DataTypes.INTEGER,
           },
-          scopes: {
-            lowAccess: {
+          {
+            defaultScope: {
               where: {
                 access_level: {
-                  [Op.lte]: 5,
+                  [Op.gte]: 5,
                 },
               },
+              attributes: ['username', 'email', 'access_level'],
             },
-            withOrder: {
-              order: ['username'],
+            scopes: {
+              lowAccess: {
+                where: {
+                  access_level: {
+                    [Op.lte]: 5,
+                  },
+                },
+              },
+              withOrder: {
+                order: ['username'],
+              },
             },
           },
-        });
+        );
 
         await this.sequelize.sync({ force: true });
         const records = [
@@ -58,38 +60,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', async function () {
-        const result = await this.ScopeMe.findAndCountAll({ where: { access_level: { [Op.gt]: 5 } } });
+        const result = await this.ScopeMe.findAndCountAll({
+          where: { access_level: { [Op.gt]: 5 } },
+        });
         expect(result.count).to.equal(1);
         expect(result.rows.length).to.equal(1);
       });
 
       it('should be able to unscope', async function () {
-        const result = await this.ScopeMe.unscoped().findAndCountAll({ limit: 1 });
+        const result = await this.ScopeMe.withoutScope().findAndCountAll({ limit: 1 });
         expect(result.count).to.equal(4);
         expect(result.rows.length).to.equal(1);
       });
 
       it('should be able to apply other scopes', async function () {
-        const result = await this.ScopeMe.scope('lowAccess').findAndCountAll();
+        const result = await this.ScopeMe.withScope('lowAccess').findAndCountAll();
         expect(result.count).to.equal(3);
       });
 
       it('should be able to merge scopes with where', async function () {
-        const result = await this.ScopeMe.scope('lowAccess')
-          .findAndCountAll({ where: { username: 'dan' } });
+        const result = await this.ScopeMe.withScope('lowAccess').findAndCountAll({
+          where: { username: 'dan' },
+        });
 
         expect(result.count).to.equal(1);
       });
 
       it('should be able to merge multiple scopes', async function () {
-        const result = await this.ScopeMe.scope('defaultScope', 'lowAccess')
-          .findAndCountAll();
+        const result = await this.ScopeMe.withScope('defaultScope', 'lowAccess').findAndCountAll();
 
         expect(result.count).to.equal(1);
       });
 
       it('should ignore the order option if it is found within the scope', async function () {
-        const result = await this.ScopeMe.scope('withOrder').findAndCountAll();
+        const result = await this.ScopeMe.withScope('withOrder').findAndCountAll();
         expect(result.count).to.equal(4);
       });
     });

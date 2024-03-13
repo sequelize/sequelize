@@ -3,12 +3,12 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const Support   = require('../../support');
+const Support = require('../../support');
 
-const current   = Support.sequelize;
+const current = Support.sequelize;
 const { DataTypes } = require('@sequelize/core');
 
-const dayjs    = require('dayjs');
+const dayjs = require('dayjs');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('isSoftDeleted', () => {
@@ -22,30 +22,40 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         },
       });
 
-      const ParanoidUser = current.define('User', {
-        name: DataTypes.STRING,
-        birthdate: DataTypes.DATE,
-        meta: DataTypes.TEXT,
-        deletedAt: {
-          type: DataTypes.DATE,
+      const ParanoidUser = current.define(
+        'User',
+        {
+          name: DataTypes.STRING,
+          birthdate: DataTypes.DATE,
+          meta: DataTypes.TEXT,
+          deletedAt: {
+            type: DataTypes.DATE,
+          },
         },
-      }, {
-        paranoid: true,
-      });
+        {
+          paranoid: true,
+        },
+      );
 
-      this.paranoidUser = ParanoidUser.build({
-        name: 'a',
-      }, {
-        isNewRecord: false,
-        raw: true,
-      });
+      this.paranoidUser = ParanoidUser.build(
+        {
+          name: 'a',
+        },
+        {
+          isNewRecord: false,
+          raw: true,
+        },
+      );
 
-      this.user = User.build({
-        name: 'a',
-      }, {
-        isNewRecord: false,
-        raw: true,
-      });
+      this.user = User.build(
+        {
+          name: 'a',
+        },
+        {
+          isNewRecord: false,
+          raw: true,
+        },
+      );
     });
 
     it('should not throw if paranoid is set to true', function () {

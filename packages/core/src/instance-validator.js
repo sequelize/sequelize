@@ -1,10 +1,10 @@
 'use strict';
 
+import { BelongsToAssociation } from './associations/belongs-to';
 import { AbstractDataType } from './dialects/abstract/data-types';
 import { validateDataType } from './dialects/abstract/data-types-utils';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { BelongsToAssociation } from './associations/belongs-to';
 
 import difference from 'lodash/difference';
 import forIn from 'lodash/forIn';
@@ -31,7 +31,10 @@ export class InstanceValidator {
     };
 
     if (options.fields && !options.skip) {
-      options.skip = difference(Array.from(modelInstance.constructor.modelDefinition.attributes.keys()), options.fields);
+      options.skip = difference(
+        Array.from(modelInstance.modelDefinition.attributes.keys()),
+        options.fields,
+      );
     } else {
       options.skip ??= [];
     }
@@ -77,10 +80,7 @@ export class InstanceValidator {
 
     this.inProgress = true;
 
-    await Promise.all([
-      this._perAttributeValidators(),
-      this._customValidators(),
-    ]);
+    await Promise.all([this._perAttributeValidators(), this._customValidators()]);
 
     if (this.errors.length > 0) {
       throw new sequelizeError.ValidationError(null, this.errors);
@@ -112,16 +112,29 @@ export class InstanceValidator {
    * @private
    */
   async _validateAndRunHooks() {
-    await this.modelInstance.constructor.hooks.runAsync('beforeValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync(
+      'beforeValidate',
+      this.modelInstance,
+      this.options,
+    );
 
     try {
       await this._validate();
     } catch (error) {
-      const newError = await this.modelInstance.constructor.hooks.runAsync('validationFailed', this.modelInstance, this.options, error);
+      const newError = await this.modelInstance.constructor.hooks.runAsync(
+        'validationFailed',
+        this.modelInstance,
+        this.options,
+        error,
+      );
       throw newError || error;
     }
 
-    await this.modelInstance.constructor.hooks.runAsync('afterValidate', this.modelInstance, this.options);
+    await this.modelInstance.constructor.hooks.runAsync(
+      'afterValidate',
+      this.modelInstance,
+      this.options,
+    );
 
     return this.modelInstance;
   }
@@ -136,7 +149,7 @@ export class InstanceValidator {
     // promisify all attribute invocations
     const validators = [];
 
-    const { attributes } = this.modelInstance.constructor.modelDefinition;
+    const { attributes } = this.modelInstance.modelDefinition;
 
     for (const attribute of attributes.values()) {
       const attrName = attribute.attributeName;
@@ -213,7 +226,7 @@ export class InstanceValidator {
     // Promisify each validator
     const validators = [];
 
-    const attribute = this.modelInstance.constructor.modelDefinition.attributes.get(attributeName);
+    const attribute = this.modelInstance.modelDefinition.attributes.get(attributeName);
 
     forIn(attribute.validate, (test, validatorType) => {
       if (['isUrl', 'isURL', 'isEmail'].includes(validatorType)) {
@@ -229,7 +242,9 @@ export class InstanceValidator {
 
       // Custom validators should always run, except if value is null and allowNull is false (see #9143)
       if (typeof test === 'function') {
-        validators.push(this._invokeCustomValidator(test, validatorType, true, value, attributeName));
+        validators.push(
+          this._invokeCustomValidator(test, validatorType, true, value, attributeName),
+        );
 
         return;
       }
@@ -239,17 +254,32 @@ export class InstanceValidator {
         return;
       }
 
-      const validatorPromise = this._invokeBuiltinValidator(value, test, validatorType, attributeName);
+      const validatorPromise = this._invokeBuiltinValidator(
+        value,
+        test,
+        validatorType,
+        attributeName,
+      );
       // errors are handled in settling, stub this
       validatorPromise.catch(() => {});
       validators.push(validatorPromise);
     });
 
-    return Promise
-      .all(validators.map(validator => validator.catch(error => {
-        const isBuiltIn = Boolean(error.validatorName);
-        this._pushError(isBuiltIn, attributeName, error, value, error.validatorName, error.validatorArgs);
-      })));
+    return Promise.all(
+      validators.map(validator =>
+        validator.catch(error => {
+          const isBuiltIn = Boolean(error.validatorName);
+          this._pushError(
+            isBuiltIn,
+            attributeName,
+            error,
+            value,
+            error.validatorName,
+            error.validatorArgs,
+          );
+        }),
+      ),
+    );
   }
 
   /**
@@ -328,7 +358,10 @@ export class InstanceValidator {
     const validatorArgs = this._extractValidatorArgs(test, validatorType, field);
 
     if (!validator[validatorType](valueString, ...validatorArgs)) {
-      throw Object.assign(new Error(test.msg || `Validation ${validatorType} on ${field} failed`), { validatorName: validatorType, validatorArgs });
+      throw Object.assign(new Error(test.msg || `Validation ${validatorType} on ${field} failed`), {
+        validatorName: validatorType,
+        validatorArgs,
+      });
     }
   }
 
@@ -343,7 +376,9 @@ export class InstanceValidator {
    */
   _extractValidatorArgs(test, validatorType, field) {
     let validatorArgs = test.args || test;
-    const isLocalizedValidator = typeof validatorArgs !== 'string' && ['isAlpha', 'isAlphanumeric', 'isMobilePhone'].includes(validatorType);
+    const isLocalizedValidator =
+      typeof validatorArgs !== 'string' &&
+      ['isAlpha', 'isAlphanumeric', 'isMobilePhone'].includes(validatorType);
 
     if (!Array.isArray(validatorArgs)) {
       if (validatorType === 'isImmutable') {
@@ -371,25 +406,39 @@ export class InstanceValidator {
    */
   _validateSchema(attribute, attributeName, value) {
     if (attribute.allowNull === false && value == null) {
-      const association = Object.values(this.modelInstance.constructor.associations).find(association => association instanceof BelongsToAssociation && association.foreignKey === attribute.fieldName);
+      const association = Object.values(this.modelInstance.constructor.associations).find(
+        association =>
+          association instanceof BelongsToAssociation &&
+          association.foreignKey === attribute.fieldName,
+      );
       if (!association || !this.modelInstance.get(association.as)) {
-        const modelDefinition = this.modelInstance.constructor.modelDefinition;
+        const modelDefinition = this.modelInstance.modelDefinition;
         const validators = modelDefinition.attributes.get(attributeName)?.validate;
-        const errMsg = get(validators, 'notNull.msg', `${this.modelInstance.constructor.name}.${attributeName} cannot be null`);
+        const errMsg = get(
+          validators,
+          'notNull.msg',
+          `${this.modelInstance.constructor.name}.${attributeName} cannot be null`,
+        );
 
-        this.errors.push(new sequelizeError.ValidationErrorItem(
-          errMsg,
-          'notNull violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
-          attributeName,
-          value,
-          this.modelInstance,
-          'is_null',
-        ));
+        this.errors.push(
+          new sequelizeError.ValidationErrorItem(
+            errMsg,
+            'notNull violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
+            attributeName,
+            value,
+            this.modelInstance,
+            'is_null',
+          ),
+        );
       }
     }
 
     const type = attribute.type;
-    if (value != null && !(value instanceof BaseSqlExpression) && type instanceof AbstractDataType) {
+    if (
+      value != null &&
+      !(value instanceof BaseSqlExpression) &&
+      type instanceof AbstractDataType
+    ) {
       const error = validateDataType(value, type, attributeName, this.modelInstance);
       if (error) {
         this.errors.push(error);
