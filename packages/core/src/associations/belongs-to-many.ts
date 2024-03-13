@@ -349,6 +349,8 @@ export class BelongsToManyAssociation<
       addMultiple: `add${plural}`,
       add: `add${singular}`,
       create: `create${singular}`,
+      createMultiple: `create${plural}`,
+      // TODO: add createMultiple association method for BelongsTo relationship
       remove: `remove${singular}`,
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
