@@ -43,6 +43,12 @@ export const MIN_RADIX_INCLUSIVE = 2;
 const integerRegExps: Array<RegExp | undefined> = Array.from({ length: numericSymbols.length });
 
 export function getIsIntegerRegExp(radix: number): RegExp {
+  if (radix < MIN_RADIX_INCLUSIVE || radix > MAX_RADIX_INCLUSIVE) {
+    throw new RangeError(
+      `parseSafeInteger() radix argument must be between ${MIN_RADIX_INCLUSIVE} and ${MAX_RADIX_INCLUSIVE}`,
+    );
+  }
+
   if (!integerRegExps[radix]) {
     /**
      * Get all characters that are valid digits in this base (radix)

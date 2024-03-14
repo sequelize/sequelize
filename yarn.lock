@@ -2333,6 +2333,7 @@ __metadata:
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
+    expect-type: "npm:0.18.0"
     lodash: "npm:4.17.21"
     mocha: "npm:10.3.0"
   languageName: unknown
@@ -6449,6 +6450,13 @@ __metadata:
   version: 0.13.0
   resolution: "expect-type@npm:0.13.0"
   checksum: 10c0/dd1d1f7738e465db7b700292e3884440eea185f28d6ccd9a3dc41fb13c4cd82c6943d886ca9292d29aa97cad936a20220d606154ab448d3d5d2ef127515c6188
+  languageName: node
+  linkType: hard
+
+"expect-type@npm:0.18.0":
+  version: 0.18.0
+  resolution: "expect-type@npm:0.18.0"
+  checksum: 10c0/c0bd8a894de57da9e6a8fde7df5b9f363a6232c2e2df375b72cf01d4318cc4161d30d1ae82fa575cad3fd96276e0642f7065cd6b44c08f270d660fab78db6d8a
   languageName: node
   linkType: hard
 
