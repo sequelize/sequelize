@@ -38,8 +38,4 @@ export class SetView<V> implements ReadonlySetLike<V> {
   toMutableSet(): Set<V> {
     return new Set(this.#target);
   }
-
-  toJSON() {
-    return [...this.#target];
-  }
 }

@@ -18,10 +18,6 @@ export function cloneDeepPlainValues<T>(value: T, transferUnclonables?: boolean)
   }
 
   if (isAnyObject(value)) {
-    if (value instanceof Date) {
-      return new Date(value) as T;
-    }
-
     const prototype = Object.getPrototypeOf(value);
 
     if (prototype !== null && prototype !== Object.prototype) {

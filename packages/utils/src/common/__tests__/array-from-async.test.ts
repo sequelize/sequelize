@@ -6,7 +6,8 @@ describe('arrayFromAsync', () => {
     async function* asyncGenerator() {
       yield 1;
       yield 2;
-      yield 3;
+      // eslint-disable-next-line -- redundant but still needs to be tested
+      yield Promise.resolve(3);
     }
 
     const result = await arrayFromAsync(asyncGenerator());
