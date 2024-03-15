@@ -1,5 +1,5 @@
+import { parseFiniteNumber } from '@sequelize/utils';
 import { expect } from 'chai';
-import { parseFiniteNumber } from '../parse-finite-number';
 
 describe('parseFiniteNumber', () => {
   it('should return null when input is not a valid number syntax', () => {
@@ -29,7 +29,7 @@ describe('parseFiniteNumber', () => {
     expect(parseFiniteNumber('-123.456')).to.equal(-123.456);
   });
 
-  it('should throw an error when input is a BigInt outside of the Safe Integer range', () => {
+  it('should return null when input is a BigInt outside of the Safe Integer range', () => {
     expect(parseFiniteNumber(BigInt(Number.MAX_SAFE_INTEGER) + 1n)).to.be.null;
   });
 

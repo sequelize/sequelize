@@ -33,3 +33,4 @@ export * from './predicates/is-valid-number-syntax.js';
 export * from './set/set-view.js';
 export * from './shallow-clone-pojo.js';
 export * from './types.js';
+export * from './upcast.js';

@@ -1,7 +1,6 @@
+import { isError, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isError } from '../is-error';
 
 describe('isError', () => {
   it('returns true for Error', () => {

@@ -1,5 +1,5 @@
+import { isValidNumberSyntax } from '@sequelize/utils';
 import { expect } from 'chai';
-import { isValidNumberSyntax } from '../is-valid-number-syntax';
 
 describe('isValidNumberSyntax', () => {
   it('returns true for valid base 10 numbers', () => {

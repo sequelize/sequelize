@@ -1,6 +1,6 @@
+import { parallelForEach } from '@sequelize/utils';
 import { expect } from 'chai';
 import { setTimeout } from 'node:timers/promises';
-import { parallelForEach } from '../parallel-for-each';
 
 describe('parallelForEach', () => {
   it('executes the callbacks in parallel', async () => {

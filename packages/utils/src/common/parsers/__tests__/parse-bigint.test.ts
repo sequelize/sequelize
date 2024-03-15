@@ -1,5 +1,5 @@
+import { parseBigInt } from '@sequelize/utils';
 import { expect } from 'chai';
-import { parseBigInt } from '../parse-bigint';
 
 describe('parseBigInt', () => {
   it('should return null when input is not a valid number syntax', () => {

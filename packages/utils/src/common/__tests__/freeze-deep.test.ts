@@ -1,5 +1,5 @@
+import { freezeDeep, freezeDescendants } from '@sequelize/utils';
 import { expect } from 'chai';
-import { freezeDeep, freezeDescendants } from '../freeze-deep';
 
 describe('freezeDeep', () => {
   it('should freeze a plain object', () => {

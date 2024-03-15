@@ -1,5 +1,5 @@
+import { cloneDeepPlainValues } from '@sequelize/utils';
 import { expect } from 'chai';
-import { cloneDeepPlainValues } from '../clone-deep-plain-values';
 
 describe('cloneDeepPlainValues', () => {
   it('should clone plain values', () => {

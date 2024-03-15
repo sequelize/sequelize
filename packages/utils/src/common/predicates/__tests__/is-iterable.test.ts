@@ -1,7 +1,6 @@
+import { isIterable, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isIterable } from '../is-iterable';
 
 describe('isIterable', () => {
   it('returns true for iterables', () => {

@@ -1,7 +1,6 @@
+import { isString, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isString } from '../is-string';
 
 describe('isString', () => {
   it('returns true for string', () => {

@@ -1,7 +1,6 @@
+import { isAnyObject, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isAnyObject } from '../is-any-object';
 
 describe('isAnyObject', () => {
   it('returns true for plain objects', () => {

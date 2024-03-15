@@ -1,7 +1,6 @@
+import { isFunction, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isFunction } from '../is-function';
 
 describe('isFunction', () => {
   it('returns true for function', () => {

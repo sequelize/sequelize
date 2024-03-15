@@ -1,5 +1,5 @@
+import { inspect } from '@sequelize/utils';
 import { expect } from 'chai';
-import { inspect } from '../inspect';
 
 describe('inspect function', () => {
   it('supports primitives', () => {
@@ -19,6 +19,11 @@ describe('inspect function', () => {
 
     const result = inspect(input);
     expect(result).to.equal('[function test]');
+  });
+
+  it('supports anonymous functions', () => {
+    const result = inspect(() => {});
+    expect(result).to.equal('[function (anonymous)]');
   });
 
   it('returns an object representation when the input is an object', () => {

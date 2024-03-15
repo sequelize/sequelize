@@ -1,7 +1,6 @@
+import { isNullish, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isNullish } from '../is-nullish';
 
 describe('isNullish', () => {
   it('returns true for null and undefined', () => {

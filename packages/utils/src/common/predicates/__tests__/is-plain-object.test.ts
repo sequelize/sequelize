@@ -1,9 +1,7 @@
+import type { AnyRecord } from '@sequelize/utils';
+import { isPlainObject, pojo, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { pojo } from '../../pojo.js';
-import type { AnyRecord } from '../../types.js';
-import { upcast } from '../../upcast.js';
-import { isPlainObject } from '../is-plain-object';
 
 describe('isPlainObject', () => {
   it('returns true for plain object (Object prototype or null prototype)', () => {

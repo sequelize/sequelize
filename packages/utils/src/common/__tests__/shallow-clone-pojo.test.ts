@@ -1,5 +1,5 @@
+import { shallowClonePojo } from '@sequelize/utils';
 import { expect } from 'chai';
-import { shallowClonePojo } from '../shallow-clone-pojo';
 
 describe('shallowClonePojo', () => {
   it('returns a shallow copy of the provided object', () => {

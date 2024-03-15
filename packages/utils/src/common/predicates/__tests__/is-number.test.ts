@@ -1,7 +1,6 @@
+import { isNumber, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isNumber } from '../is-number';
 
 describe('isNumber', () => {
   it('returns true for number', () => {

@@ -1,7 +1,6 @@
+import { isBigInt, upcast } from '@sequelize/utils';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
-import { upcast } from '../../upcast.js';
-import { isBigInt } from '../is-big-int';
 
 describe('isBigInt', () => {
   it('returns true for bigint', () => {

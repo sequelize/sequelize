@@ -1,5 +1,5 @@
+import { isValidIntegerSyntax } from '@sequelize/utils';
 import { expect } from 'chai';
-import { isValidIntegerSyntax } from '../is-valid-integer-syntax';
 
 describe('isValidIntegerSyntax', () => {
   it('returns true when input is a valid integer syntax', () => {

@@ -1,5 +1,5 @@
+import { parseSafeInteger } from '@sequelize/utils';
 import { expect } from 'chai';
-import { parseSafeInteger } from '../parse-safe-integer';
 
 describe('parseSafeInteger', () => {
   it('returns null when input is not a valid integer syntax', () => {
@@ -19,12 +19,12 @@ describe('parseSafeInteger', () => {
 
   it('returns a number when input is a valid integer string', () => {
     expect(parseSafeInteger('123')).to.equal(123);
-    expect(parseSafeInteger('-123')).to.equal(123);
+    expect(parseSafeInteger('-123')).to.equal(-123);
   });
 
   it('returns a number when input is a safe bigint', () => {
     expect(parseSafeInteger(123n)).to.equal(123);
-    expect(parseSafeInteger(-123n)).to.equal(123);
+    expect(parseSafeInteger(-123n)).to.equal(-123);
   });
 
   it('returns null when input is a non-integer number', () => {
@@ -37,7 +37,9 @@ describe('parseSafeInteger', () => {
   });
 
   it('returns null if the input contains the scientific notation in base other than 10', () => {
-    expect(parseSafeInteger('1e3', 16)).to.equal(1e3);
+    // note: for radix 15 and above, the letter "e" is a valid digit so this would be a valid number,
+    // but not one written in the scientific notation.
+    expect(parseSafeInteger('1e3', 8)).to.equal(null);
   });
 
   it('returns null if the input contains a numeric separator', () => {
