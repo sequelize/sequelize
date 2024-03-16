@@ -137,7 +137,7 @@ module.exports = {
     },
     {
       // Disable slow rules that are not important in tests (perf)
-      files: ['*.test.{ts,js}'],
+      files: ['packages/*/test/**/*', '*.test.{ts,js}'],
       rules: {
         'import/no-extraneous-dependencies': 'off',
         // no need to check jsdoc in tests & docs
