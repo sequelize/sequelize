@@ -808,7 +808,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
       const out = parseSafeInteger(value);
 
       // let validate sort this validation instead
-      if (Number.isNaN(out)) {
+      if (out === null) {
         return value;
       }
 
