@@ -55,7 +55,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
   readonly #arrayParserLib: ArrayParserLib;
 
   #oidMap = new Map<number, TypeOids>();
-  #oidParserCache = new Map<number, TypeParser<any, any>>();
+  readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);

@@ -478,10 +478,10 @@ export abstract class AbstractDialect {
   readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   /** dialect-specific implementation of shared data types */
-  #dataTypeOverrides: Map<string, Class<AbstractDataType<any>>>;
+  readonly #dataTypeOverrides: Map<string, Class<AbstractDataType<any>>>;
   /** base implementations of shared data types */
-  #baseDataTypes: Map<string, Class<AbstractDataType<any>>>;
-  #dataTypeParsers = new Map<unknown, TypeParser>();
+  readonly #baseDataTypes: Map<string, Class<AbstractDataType<any>>>;
+  readonly #dataTypeParsers = new Map<unknown, TypeParser>();
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
@@ -555,7 +555,7 @@ export abstract class AbstractDialect {
     return this.#dataTypeOverrides.get(typeId) ?? null;
   }
 
-  #printedWarnings = new Set<string>();
+  readonly #printedWarnings = new Set<string>();
   warnDataTypeIssue(text: string): void {
     // TODO: log this to sequelize's log option instead (requires a logger with multiple log levels first)
     if (this.#printedWarnings.has(text)) {

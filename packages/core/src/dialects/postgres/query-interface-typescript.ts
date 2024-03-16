@@ -6,7 +6,7 @@ import type { PostgresDialect } from './index.js';
 export class PostgresQueryInterfaceTypescript<
   Dialect extends PostgresDialect = PostgresDialect,
 > extends AbstractQueryInterface<Dialect> {
-  #internalQueryInterface: AbstractQueryInterfaceInternal;
+  readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   constructor(dialect: Dialect, internalQueryInterface?: AbstractQueryInterfaceInternal) {
     internalQueryInterface ??= new AbstractQueryInterfaceInternal(dialect);

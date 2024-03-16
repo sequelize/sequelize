@@ -45,7 +45,7 @@ export class PojoWhere {
 
 class ObjectPool<T> {
   #freeItems: T[];
-  #factory: () => T;
+  readonly #factory: () => T;
   #lastOccupiedIndex: number;
   constructor(factory: () => T, initialSize: number) {
     this.#freeItems = Array.from({ length: initialSize }).map(factory);
@@ -113,8 +113,8 @@ export class WhereSqlBuilder {
     [Op.allKeysExist]: '?&',
   };
 
-  #jsonType: NormalizedDataType | undefined;
-  #arrayOfTextType: NormalizedDataType | undefined;
+  readonly #jsonType: NormalizedDataType | undefined;
+  readonly #arrayOfTextType: NormalizedDataType | undefined;
 
   constructor(dialect: AbstractDialect) {
     this.#dialect = dialect;
