@@ -15,3 +15,4 @@ jobs:
           PR_FILTER: 'auto_merge'
           PR_READY_STATE: 'ready_for_review'
           MERGE_CONFLICT_ACTION: 'fail'
+          EXCLUDED_LABELS: 'no-autoupdate'
