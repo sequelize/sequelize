@@ -1,7 +1,9 @@
 /**
  * Represents any plain function (no `this`)
  */
-export type AnyFunction = (...args: unknown[]) => unknown;
+export type AnyFunction = (...args: any[]) => any;
+
+export type UnknownFunction = (...args: unknown[]) => unknown;
 
 /**
  * Represents any plain object (or Record, as TypeScript calls it).
