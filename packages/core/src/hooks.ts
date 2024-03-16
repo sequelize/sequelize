@@ -16,14 +16,14 @@ type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
  * @private
  */
 export class HookHandler<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #eventTarget: object;
-  #listeners = new MultiMap<
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #eventTarget: object;
+  readonly #listeners = new MultiMap<
     PropertyKey,
     { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] }
   >();
 
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(
     eventTarget: object,
@@ -197,9 +197,9 @@ export class HookHandler<HookConfig extends {}> {
 }
 
 export class HookHandlerBuilder<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(validHookNames: Array<keyof HookConfig>, onRunHook?: OnRunHook<HookConfig>) {
     this.#validHookNames = validHookNames;
