@@ -41,7 +41,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const initialMethod = function wrapper() {};
 
     each(methods, (alias, method) => {
-      // @ts-expect-error -- dynamic prototype access, not worth typing
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
       User.prototype[method] = initialMethod;
     });
 
