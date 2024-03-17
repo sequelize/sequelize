@@ -15,8 +15,10 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
    * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
    * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
    */
-  dialect.registerDataTypeParser(['DATETIME'], (value: Field) => {
-    const valueStr = value.string();
+  dialect.registerDataTypeParser(['DATETIME'], (field: Field) => {
+    const valueBuf = field.buffer();
+    const valueStr = valueBuf!.toString();
+
     if (valueStr === null) {
       return null;
     }
@@ -42,17 +44,17 @@ export function registerMySqlDbDataTypeParsers(dialect: MysqlDialect) {
   });
 
   // dateonly
-  dialect.registerDataTypeParser(['DATE'], (value: Field) => {
-    return value.string();
+  dialect.registerDataTypeParser(['DATE'], (field: Field) => {
+    return field.string();
   });
 
   // bigint
-  dialect.registerDataTypeParser(['LONGLONG'], (value: Field) => {
-    return value.string();
+  dialect.registerDataTypeParser(['LONGLONG'], (field: Field) => {
+    return field.string();
   });
 
-  dialect.registerDataTypeParser(['GEOMETRY'], (value: Field) => {
-    let buffer = value.buffer();
+  dialect.registerDataTypeParser(['GEOMETRY'], (field: Field) => {
+    let buffer = field.buffer();
     // Empty buffer, MySQL doesn't support POINT EMPTY
     // check, https://dev.mysql.com/worklog/task/?id=2381
     if (!buffer || buffer.length === 0) {

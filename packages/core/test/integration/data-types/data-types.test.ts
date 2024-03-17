@@ -1212,6 +1212,40 @@ describe('DataTypes', () => {
     });
   });
 
+  describe('DATE (regression tests)', () => {
+    it.only('parses date column correctly (#17141)', async () => {
+      // Bug report: https://github.com/sequelize/sequelize/issues/17141
+
+      const Call = sequelize.define(
+        'Call',
+        {
+          callAt: {
+            type: DataTypes.DATE,
+            allowNull: false,
+          },
+          type: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+        },
+        {
+          timestamps: false,
+          tableName: 'calls',
+        },
+      );
+
+      await Call.sync({ force: true });
+      await Call.create({ type: 1, callAt: new Date() });
+
+      const [call] = await sequelize.query('SELECT callAt FROM calls WHERE type = $1 LIMIT 1', {
+        bind: [1],
+        type: QueryTypes.SELECT,
+      });
+
+      console.log(call);
+    });
+  });
+
   describe('DATE(precision)', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
