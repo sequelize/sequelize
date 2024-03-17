@@ -309,7 +309,7 @@ export abstract class SequelizeTypeScript {
     this.#transactionCls = new AsyncLocalStorage<Transaction>();
   }
 
-  #models = new Set<ModelStatic>();
+  readonly #models = new Set<ModelStatic>();
   readonly models = new ModelSetView(this, this.#models);
 
   get modelManager(): never {

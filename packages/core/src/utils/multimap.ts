@@ -1,5 +1,5 @@
 export class Multimap<K, V> {
-  #internalMap = new Map<K, V[]>();
+  readonly #internalMap = new Map<K, V[]>();
 
   clear() {
     this.#internalMap.clear();

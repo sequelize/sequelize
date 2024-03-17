@@ -3,7 +3,7 @@ import NodeUtil from 'node:util';
 import { find } from './iterators.js';
 
 export class SetView<V> {
-  #target: Set<V>;
+  readonly #target: Set<V>;
 
   constructor(target: Set<V>) {
     this.#target = target;
@@ -50,7 +50,7 @@ export class SetView<V> {
 }
 
 export class MapView<K, V> {
-  #target: Map<K, V>;
+  readonly #target: Map<K, V>;
 
   constructor(target: Map<K, V>) {
     this.#target = target;

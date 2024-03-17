@@ -85,7 +85,7 @@ export function registerModelAttributeOptions(
     return;
   }
 
-  const existingOptions = existingAttributesOptions[attributeName]!;
+  const existingOptions = existingAttributesOptions[attributeName];
 
   mergeAttributeOptions(attributeName, model, existingOptions, options, false);
 }
