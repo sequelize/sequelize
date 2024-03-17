@@ -395,7 +395,7 @@ export class BelongsToAssociation<
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
-      value = (associatedInstance as T)[this.targetKey];
+      value = associatedInstance[this.targetKey];
     }
 
     sourceInstance.set(this.foreignKey, value);
