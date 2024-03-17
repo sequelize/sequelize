@@ -1,0 +1,112 @@
+name: 🐛 Bug report
+description: Create a bug report to help us improve
+labels: ['type: bug', 'pending-approval']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Bug Report Checklist
+
+        If you don't follow the issue template, your issue may be closed.
+
+        Remember to properly format your code in code blocks.
+
+        Please note this is an issue tracker, not a support forum.
+        For general questions, please use one of these:
+        - StackOverflow: https://stackoverflow.com/questions/tagged/sequelize.js
+        - GitHub discussions: https://github.com/sequelize/sequelize/discussions
+  - type: 'checkboxes'
+    attributes:
+      label: 'Checklist'
+      options:
+        - label: "I understand that my issue will be automatically closed if I don't fill in the requested information."
+          required: true
+        - label: 'I have read the [contribution guidelines](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md).'
+          required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## Issue Description
+
+        Please provide a reproducible test case that demonstrates the bug.
+        You can do so by forking https://github.com/sequelize/sequelize-sscce and opening a PR to it with your test case.
+
+        Please understand that your issue will be closed if you do not provide a reproducible example.
+  - type: input
+    attributes:
+      label: Link to SSCCE PR
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What do you expect to happen?
+      description: Explain what behavior you wanted/expected. You may include an output.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: What is actually happening?
+      description: Describe what happened. Including relevant details like complete stacktraces & the SQL output
+    validations:
+      required: true
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+
+        Please provide as much information about your environment as possible.
+  - type: input
+    attributes:
+      label: Node.js version
+      description: |
+        Command to get the Node.js version: `node -v`
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Sequelize version
+      description: |
+        If you are using Sequelize 6, run the following command to get the Sequelize version:
+        - `npm list sequelize` (if using npm)
+        - `yarn list --pattern sequelize` (if using yarn)
+
+        If you are using Sequelize 7, run the following command to get the Sequelize version:
+        - `npm list @sequelize/core` (if using npm)
+        - `yarn list --pattern @sequelize/core` (if using yarn)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Database name & version
+      description: |
+        e.g. 'PostgreSQL 14', 'MariaDB 10.11', etc…
+
+        Unless you're certain the issue is not database-specific, please include the database name and version.
+  - type: input
+    attributes:
+      label: Connector library name & version
+      description: |
+        The name of the npm package you're using to connect to your database. e.g. 'pg', 'pg-native', 'mysql2', 'tedious', etc…
+
+        Unless you're certain the issue is not database-specific, please include the connector name and version.
+  - type: input
+    attributes:
+      label: TypeScript version (if any)
+      description: |
+        Command to get the TypeScript version:
+        - `npm list typescript` (if using npm)
+        - `yarn list --pattern typescript` (if using yarn)
+  - type: input
+    attributes:
+      label: Operating System
+      description: |
+        e.g. 'Windows 10', 'Ubuntu 20.04', etc…
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Anything else?
+      description: |
+        Don't hesitate to include links, references, images, and anything else that will help us understand the issue you are encountering.
+    validations:
+      required: false
