@@ -146,14 +146,23 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const as = Math.random().toString();
       const association = User.hasMany(Task, { as });
 
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.get]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.set]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.addMultiple]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.add]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.remove]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.removeMultiple]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.hasSingle]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.hasAll]).to.be.an('function');
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       expect(User.prototype[association.accessors.count]).to.be.an('function');
     });
 
@@ -176,6 +185,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
       function originalMethod() {}
 
       each(methods, (alias, method) => {
+        // @ts-expect-error -- dynamic prototype access, not worth typing
         User.prototype[method] = originalMethod;
       });
 

@@ -41,6 +41,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const initialMethod = function wrapper() {};
 
     each(methods, (alias, method) => {
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       User.prototype[method] = initialMethod;
     });
 

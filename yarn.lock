@@ -2267,7 +2267,7 @@ __metadata:
     sqlite3: "npm:5.1.7"
     tedious: "npm:16.7.0"
     toposort-class: "npm:^1.0.1"
-    type-fest: "npm:^3.0.0"
+    type-fest: "npm:^4.12.0"
     uuid: "npm:^9.0.0"
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"
@@ -13624,6 +13624,13 @@ __metadata:
   version: 3.13.1
   resolution: "type-fest@npm:3.13.1"
   checksum: 10c0/547d22186f73a8c04590b70dcf63baff390078c75ea8acd366bbd510fd0646e348bd1970e47ecf795b7cff0b41d26e9c475c1fedd6ef5c45c82075fbf916b629
+  languageName: node
+  linkType: hard
+
+"type-fest@npm:^4.12.0":
+  version: 4.12.0
+  resolution: "type-fest@npm:4.12.0"
+  checksum: 10c0/00a7a178d98974449a48f2f2fab1ee33c5ead38fb85eee284de0217de824416e6cbf6dce5d55e12a5d9ac1b557bff96f83e345a2c5983b56619095aba6743625
   languageName: node
   linkType: hard
 

@@ -102,6 +102,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
     function originalFunction() {}
 
     each(methods, (alias, method) => {
+      // @ts-expect-error -- dynamic prototype access, not worth typing
       User.prototype[method] = originalFunction;
     });
 
