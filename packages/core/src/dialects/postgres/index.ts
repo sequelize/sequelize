@@ -101,7 +101,11 @@ export class PostgresDialect extends AbstractDialect {
       readOnly: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
+    },
+    update: {
+      limit: false,
+      returning: true,
     },
   });
 

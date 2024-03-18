@@ -17,7 +17,6 @@ const numericOptions: SupportableNumericOptions = {
 export class MysqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
-    'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
     settingIsolationLevelDuringTransaction: false,
@@ -69,6 +68,9 @@ export class MysqlDialect extends AbstractDialect {
     },
     startTransaction: {
       readOnly: true,
+    },
+    update: {
+      ignoreDuplicates: true,
     },
   });
 

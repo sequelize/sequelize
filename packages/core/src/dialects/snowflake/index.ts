@@ -10,7 +10,6 @@ import { SnowflakeQueryInterface } from './query-interface';
 export class SnowflakeDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
-    'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
     savepoints: false,
@@ -56,7 +55,10 @@ export class SnowflakeDialect extends AbstractDialect {
       ifExists: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
+    },
+    update: {
+      limit: false,
     },
   });
 

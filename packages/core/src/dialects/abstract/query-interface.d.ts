@@ -9,11 +9,10 @@ import type {
   Filterable,
   Model,
   ModelStatic,
-  NormalizedAttributeOptions,
 } from '../../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
 import type { AllowLowercase } from '../../utils/types.js';
-import type { DataType } from './data-types.js';
+import type { DataType, DataTypeClassOrInstance } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator-typescript';
 import type { AddColumnQueryOptions } from './query-generator.js';
@@ -371,7 +370,7 @@ export class AbstractQueryInterface<
     values: object,
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
+    columnDefinitions?: { [columnName: string]: DataTypeClassOrInstance },
   ): Promise<object>;
 
   /**

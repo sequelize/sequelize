@@ -1,13 +1,19 @@
 import { randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
 import type { Expression } from '../../sequelize.js';
-import { rejectInvalidOptions } from '../../utils/check';
+import { isPlainObject, rejectInvalidOptions } from '../../utils/check';
+import { join, map } from '../../utils/iterators.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { buildJsonPath } from '../../utils/json.js';
+import { extractModelDefinition } from '../../utils/model-utils.js';
 import { EMPTY_SET } from '../../utils/object.js';
+import { createBindParamGenerator } from '../../utils/sql.js';
 import { generateIndexName } from '../../utils/string';
+import type { NormalizedDataType } from '../abstract/data-types.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
 import type {
   EscapeOptions,
+  QueryWithBindParams,
   RemoveIndexQueryOptions,
   TableOrModel,
 } from '../abstract/query-generator-typescript';
@@ -15,6 +21,7 @@ import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  UPDATE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
@@ -25,6 +32,7 @@ import type {
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
 import type { MssqlDialect } from './index.js';
@@ -342,9 +350,155 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return 'NEWID()';
   }
 
-  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {
-    const sql = super.bulkDeleteQuery(tableName, options);
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions) {
+    const sql = super.bulkDeleteQuery(tableOrModel, options);
 
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    valueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'updateQuery',
+        this.dialect,
+        UPDATE_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.update,
+        options,
+      );
+    }
+
+    if (!isPlainObject(valueHash)) {
+      throw new Error(`Invalid value: ${inspect(valueHash)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const attributeMap = new Map<string, NormalizedDataType>();
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const updateOptions: UpdateQueryOptions = {
+      ...options,
+      model: modelDefinition,
+      bindParam:
+        options?.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam,
+    };
+
+    if (modelDefinition && updateOptions.columnTypes) {
+      throw new Error(
+        'Using options.columnTypes in updateQuery is not allowed if a model or model definition is specified.',
+      );
+    } else if (updateOptions.columnTypes) {
+      for (const column of Object.keys(updateOptions.columnTypes)) {
+        attributeMap.set(
+          column,
+          this.sequelize.normalizeDataType(updateOptions.columnTypes[column]),
+        );
+      }
+    }
+
+    const updateFragment: string[] = [];
+    for (const column of Object.keys(valueHash)) {
+      const rowValue = valueHash[column];
+      if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      }
+
+      if (modelDefinition) {
+        const columnName = modelDefinition.getColumnName(column);
+        const attribute = modelDefinition.physicalAttributes.getOrThrow(column);
+        if (attribute.autoIncrement) {
+          // Skip auto-increment fields if the dialect does not support updating them
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support updating auto-increment fields.`,
+          );
+        }
+
+        updateFragment.push(
+          `${this.quoteIdentifier(columnName)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attribute.type,
+          })}`,
+        );
+      } else {
+        updateFragment.push(
+          `${this.quoteIdentifier(column)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attributeMap.get(column),
+          })}`,
+        );
+      }
+    }
+
+    if (updateFragment.length === 0) {
+      throw new Error('No values to update');
+    }
+
+    const table = this.quoteTable(tableOrModel);
+    const queries: string[] = [];
+    const returnFields = this.#internals.formatReturnFields(updateOptions, modelDefinition);
+    const returningFragment = updateOptions.returning
+      ? joinSQLFragments([
+          'OUTPUT',
+          returnFields.map(field => `INSERTED.${field}`).join(', '),
+          updateOptions.hasTrigger ? 'INTO @output_table' : '',
+        ])
+      : '';
+
+    if (updateOptions.returning && updateOptions.hasTrigger) {
+      if (!modelDefinition) {
+        throw new Error(
+          'Using options.returning with triggers in updateQuery is not allowed if no model or model definition is specified.',
+        );
+      }
+
+      queries.push(this.#internals.generateOutputTableFragment(updateOptions, modelDefinition));
+    }
+
+    const queryFragments = [`UPDATE ${table} SET`, updateFragment.join(','), returningFragment];
+    const whereFragment = updateOptions.where
+      ? this.whereQuery(updateOptions.where, updateOptions)
+      : '';
+
+    if (updateOptions.limit) {
+      if (!modelDefinition) {
+        throw new Error(
+          'Using options.limit in updateQuery is not allowed if no model or model definition is specified.',
+        );
+      }
+
+      const pks = join(
+        map(modelDefinition.primaryKeysAttributeNames, attrName => {
+          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
+        }),
+        ', ',
+      );
+
+      const primaryKeys = modelDefinition.primaryKeysAttributeNames.size > 1 ? `(${pks})` : pks;
+
+      queryFragments.push(
+        `WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        whereFragment,
+        `ORDER BY ${pks}`,
+        this.#internals.addLimitAndOffset(updateOptions),
+        ')',
+      );
+    } else {
+      queryFragments.push(whereFragment, this.#internals.addLimitAndOffset(updateOptions));
+    }
+
+    queries.push(joinSQLFragments(queryFragments));
+
+    if (updateOptions.returning && updateOptions.hasTrigger) {
+      queries.push('SELECT * FROM @output_table');
+    }
+
+    return {
+      query: queries.join('; '),
+      bind: typeof updateOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 }

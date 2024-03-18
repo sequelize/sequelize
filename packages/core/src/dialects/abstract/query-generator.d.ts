@@ -47,10 +47,6 @@ type BulkInsertOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
 };
 
-type UpdateOptions = ParameterOptions & {
-  bindParam?: false | ((value: unknown) => string);
-};
-
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
 };
@@ -108,14 +104,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options?: AddColumnQueryOptions,
   ): string;
 
-  updateQuery(
-    tableName: TableName,
-    attrValueHash: object,
-    where: WhereOptions,
-    options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): { query: string; bind?: unknown[] };
-
   arithmeticQuery(
     operator: string,
     tableName: TableName,
@@ -131,13 +119,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions,
   ): string;
-
-  /**
-   * Creates a function that can be used to collect bind parameters.
-   *
-   * @param bind A mutable object to which bind parameters will be added.
-   */
-  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 
   attributesToSQL(
     attributes: ColumnsDescription,

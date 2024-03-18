@@ -1,9 +1,14 @@
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
+import { getDb2IbmiSelectFromFinalTable } from '../../utils/sql';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
+import type {
+  QueryWithBindParams,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -15,6 +20,7 @@ import type {
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '../abstract/query-generator.types';
 import type { IBMiDialect } from './index.js';
 import { IBMiQueryGeneratorInternal } from './query-generator-internal.js';
@@ -228,5 +234,25 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   createSavepointQuery(savepointName: string): string {
     return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    attrValueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    const updateQuery = super.updateQuery(tableOrModel, attrValueHash, {
+      ...options,
+      returning: false,
+    });
+
+    updateQuery.query = getDb2IbmiSelectFromFinalTable(
+      this.#internals,
+      tableOrModel,
+      updateQuery.query,
+      options,
+    );
+
+    return updateQuery;
   }
 }

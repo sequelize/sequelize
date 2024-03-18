@@ -1,17 +1,25 @@
 import { randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
 import { IsolationLevel } from '../../transaction';
-import { rejectInvalidOptions } from '../../utils/check';
+import { isPlainObject, rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { isModelStatic } from '../../utils/model-utils';
+import { extractModelDefinition } from '../../utils/model-utils';
 import { EMPTY_SET } from '../../utils/object.js';
+import { createBindParamGenerator } from '../../utils/sql';
 import { generateIndexName } from '../../utils/string';
+import type { NormalizedDataType } from '../abstract/data-types';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
+import type {
+  QueryWithBindParams,
+  RemoveIndexQueryOptions,
+  TableOrModel,
+} from '../abstract/query-generator-typescript';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  UPDATE_QUERY_SUPPORTABLE_OPTIONS,
 } from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
@@ -21,6 +29,7 @@ import type {
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '../abstract/query-generator.types';
 import type { SqliteDialect } from './index.js';
 import { SqliteQueryGeneratorInternal } from './query-generator-internal.js';
@@ -285,24 +294,135 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {
-    const table = this.quoteTable(tableName);
-    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions) {
+    const table = this.quoteTable(tableOrModel);
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const whereOptions = { ...options, model: modelDefinition };
+    const whereFragment = whereOptions.where
+      ? this.whereQuery(whereOptions.where, whereOptions)
+      : '';
 
-    if (options.limit) {
+    if (whereOptions.limit) {
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE rowid IN (`,
         `SELECT rowid FROM ${table}`,
-        options.where ? this.whereQuery(options.where, whereOptions) : '',
-        this.#internals.addLimitAndOffset(options),
+        whereFragment,
+        this.#internals.addLimitAndOffset(whereOptions),
         ')',
       ]);
     }
 
-    return joinSQLFragments([
-      `DELETE FROM ${table}`,
-      options.where ? this.whereQuery(options.where, whereOptions) : '',
-    ]);
+    return joinSQLFragments([`DELETE FROM ${table}`, whereFragment]);
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    valueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'updateQuery',
+        this.dialect,
+        UPDATE_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.update,
+        options,
+      );
+    }
+
+    if (!isPlainObject(valueHash)) {
+      throw new Error(`Invalid value: ${inspect(valueHash)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const attributeMap = new Map<string, NormalizedDataType>();
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const updateOptions: UpdateQueryOptions = {
+      ...options,
+      model: modelDefinition,
+      bindParam:
+        options?.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam,
+    };
+
+    if (modelDefinition && updateOptions.columnTypes) {
+      throw new Error(
+        'Using options.columnTypes in updateQuery is not allowed if a model or model definition is specified.',
+      );
+    } else if (updateOptions.columnTypes) {
+      for (const column of Object.keys(updateOptions.columnTypes)) {
+        attributeMap.set(
+          column,
+          this.sequelize.normalizeDataType(updateOptions.columnTypes[column]),
+        );
+      }
+    }
+
+    const updateFragment: string[] = [];
+    for (const column of Object.keys(valueHash)) {
+      const rowValue = valueHash[column];
+      if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      }
+
+      if (modelDefinition) {
+        const columnName = modelDefinition.getColumnName(column);
+        const attribute = modelDefinition.physicalAttributes.getOrThrow(column);
+
+        updateFragment.push(
+          `${this.quoteIdentifier(columnName)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attribute.type,
+          })}`,
+        );
+      } else {
+        updateFragment.push(
+          `${this.quoteIdentifier(column)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attributeMap.get(column),
+          })}`,
+        );
+      }
+    }
+
+    if (updateFragment.length === 0) {
+      throw new Error('No values to update');
+    }
+
+    const table = this.quoteTable(tableOrModel);
+    const queryFragments = [
+      'UPDATE',
+      updateOptions.ignoreDuplicates ? 'OR IGNORE' : '',
+      table,
+      'SET',
+      updateFragment.join(','),
+    ];
+    const whereFragment = updateOptions.where
+      ? this.whereQuery(updateOptions.where, updateOptions)
+      : '';
+
+    if (updateOptions.limit) {
+      queryFragments.push(
+        `WHERE rowid IN (`,
+        `SELECT rowid FROM ${table}`,
+        whereFragment,
+        this.#internals.addLimitAndOffset(updateOptions),
+        ')',
+      );
+    } else {
+      queryFragments.push(whereFragment, this.#internals.addLimitAndOffset(updateOptions));
+    }
+
+    if (updateOptions.returning) {
+      queryFragments.push(
+        `RETURNING ${this.#internals.formatReturnFields(updateOptions, modelDefinition).join(', ')}`,
+      );
+    }
+
+    return {
+      query: joinSQLFragments(queryFragments),
+      bind: typeof updateOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 
   /**

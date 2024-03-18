@@ -5,7 +5,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
  */
 export class Literal extends BaseSqlExpression {
   /** this (type-only) brand prevents TypeScript from thinking Cast is assignable to Literal because they share the same shape */
-  private declare readonly brand: 'literal';
+  protected declare readonly brand: 'literal';
 
   readonly val: ReadonlyArray<string | BaseSqlExpression>;
 

@@ -14,7 +14,10 @@ import type { Deferrable } from './deferrable';
 import type { Connection } from './dialects/abstract/connection-manager.js';
 import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
 import type { IndexField, IndexOptions, TableName } from './dialects/abstract/query-interface';
-import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type {
+  BaseSqlExpression,
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
@@ -727,7 +730,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number | Literal>;
+  limit?: Nullish<number | BaseSqlExpression>;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -902,7 +905,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number | Literal>;
+  limit?: Nullish<number | BaseSqlExpression>;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -1262,7 +1265,7 @@ export interface DestroyOptions<TAttributes = any>
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: Nullish<number | BaseSqlExpression>;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1289,7 +1292,7 @@ export interface RestoreOptions<TAttributes = any>
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: Nullish<number | BaseSqlExpression>;
 }
 
 /**
@@ -1338,20 +1341,24 @@ export interface UpdateOptions<TAttributes = any>
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * How many rows to update
-   *
-   * Only for mysql and mariadb,
-   * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number | Literal>;
+  limit?: Nullish<number | BaseSqlExpression>;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
    */
   silent?: boolean;
+
+  /**
+   * Ignore duplicate values for primary keys?
+   *
+   * @default false
+   */
+  ignoreDuplicates?: boolean;
 }
 
 /**

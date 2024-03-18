@@ -51,6 +51,14 @@ export class SqliteDialect extends AbstractDialect {
     truncate: {
       restartIdentity: false,
     },
+    delete: {
+      limit: false,
+    },
+    update: {
+      ignoreDuplicates: true,
+      limit: false,
+      returning: true,
+    },
   });
 
   readonly defaultVersion = '3.8.0';
