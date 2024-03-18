@@ -17,6 +17,7 @@
     "sync-exports": "lerna run sync-exports",
     "build": "lerna run build",
     "docs": "typedoc",
+    "delete-changelog": "node dev/delete-changelog.mjs",
     "fix-commit": "export TMPFILE=$(mktemp) && grep -v '^#' $(git rev-parse --git-dir)/COMMIT_EDITMSG > $TMPFILE && git commit -e -F $TMPFILE",
     "------------------------------------- local test dbs --------------------------------------": "",
     "reset-mariadb": "bash dev/mariadb/oldest/reset.sh; bash dev/mariadb/latest/reset.sh",
