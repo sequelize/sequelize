@@ -1,0 +1,33 @@
+# After updating this file run:
+#   yarn build
+# To update the compiled artifacts
+
+## Used when parsing the attribute
+attribute ::= attributeBegin jsonAccess* transform* ;
+  attributeBegin ::= association | ...identifier ;
+
+## Used when parsing a nested JSON path used inside of an attribute
+## Difference with "attribute" is in the first part. Instead of accepting:
+##  $association.attribute$ & attribute
+## It accepts:
+##  key, "quotedKey", and [0] (index access)
+partialJsonPath ::= jsonBase jsonAccess* transform* ;
+  jsonBase ::= indexAccess | ...key ;
+
+# Internals
+identifier  ::= ( "A"->"Z"+ | "a"->"z"+ | "0"->"9"+ | "_" )+ ;
+digit       ::= "0"->"9" ;
+number      ::= ...digit+ ;
+association ::= %"$" ...identifier (%"." ...identifier)* %"$" ;
+jsonAccess  ::= indexAccess | keyAccess ;
+indexAccess ::= %"[" ...number %"]" ;
+keyAccess   ::= %"." ...key ;
+
+# path segments accept dashes without needing to be quoted
+key ::= nonEmptyString | ( "A"->"Z"+ | "a"->"z"+ | "0"->"9"+ | "_" | "-" )+ ;
+  nonEmptyString ::= ...(%"\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\"") ;
+    escapedCharacter          ::= %"\\" ( "\"" | "\\" );
+    anyExceptQuoteOrBackslash ::= !("\"" | "\\");
+transform  ::= cast | modifier ;
+  cast     ::= %"::" ...identifier ;
+  modifier ::= %":"  ...identifier ;

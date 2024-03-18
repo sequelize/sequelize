@@ -2229,7 +2229,7 @@ __metadata:
     "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:^13.7.5"
-    bnf-parser: "npm:3.1.6"
+    bnf-parser: "npm:4.1.0"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
@@ -4320,6 +4320,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"binaryen@npm:^113.0.0":
+  version: 113.0.0
+  resolution: "binaryen@npm:113.0.0"
+  bin:
+    wasm-opt: bin/wasm-opt
+    wasm2js: bin/wasm2js
+  checksum: 10c0/1fcedaad2bb1eb1a837191f3a47be607cdf791aeb95fc85f5f77441225cbaf887488fd068d4f90e237fc5fb1ad57a30a3b1136d9d65e8577ef1318387c92f781
+  languageName: node
+  linkType: hard
+
 "binascii@npm:0.0.2":
   version: 0.0.2
   resolution: "binascii@npm:0.0.2"
@@ -4383,10 +4393,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bnf-parser@npm:3.1.6":
-  version: 3.1.6
-  resolution: "bnf-parser@npm:3.1.6"
-  checksum: 10c0/fb0ee9dcfc0840ad72e846a6a1bd3f11eb541526ad8b1867dbbac9b3ad141421c215a5cfc0fd3c9802da94a6aa43c1acb5cffa6c9a2bde5a0984347ee5934a76
+"bnf-parser@npm:4.1.0":
+  version: 4.1.0
+  resolution: "bnf-parser@npm:4.1.0"
+  dependencies:
+    binaryen: "npm:^113.0.0"
+    chalk: "npm:^5.3.0"
+  bin:
+    bnf-compile: bin/cli.js
+  checksum: 10c0/088362bff02544819d0fc4721bb35cc3910b0c29dca4554f9ed1bb9ffb4747509ee3a3e7bb3fdeb090914edc458c5f997b8257496b0abbbcbfe6a792dd2c920a
   languageName: node
   linkType: hard
 
@@ -4736,7 +4751,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:5.3.0":
+"chalk@npm:5.3.0, chalk@npm:^5.3.0":
   version: 5.3.0
   resolution: "chalk@npm:5.3.0"
   checksum: 10c0/8297d436b2c0f95801103ff2ef67268d362021b8210daf8ddbe349695333eb3610a71122172ff3b0272f1ef2cf7cc2c41fdaa4715f52e49ffe04c56340feed09

@@ -1,5 +1,3 @@
-import type { SyntaxNode } from 'bnf-parser';
-import { BNF, Compile, ParseError } from 'bnf-parser';
 import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
 import { AssociationPath } from '../expression-builders/association-path.js';
@@ -8,6 +6,8 @@ import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
+import { ParseError, type SyntaxNode } from './bnf/shared.js';
+import * as AttributeParser from './bnf/syntax.js';
 import { noPrototype } from './object.js';
 
 /**
@@ -54,83 +54,9 @@ function getModifier(name: string): Class<DialectAwareFn> {
   return ModifierClass;
 }
 
-const attributeParser = (() => {
-  const advancedAttributeBnf = `
-    # Entry points
-
-    ## Used when parsing the attribute
-    attribute ::= ( ...association | ...identifier ) jsonPath? castOrModifiers?;
-
-    ## Used when parsing a nested JSON path used inside of an attribute
-    ## Difference with "attribute" is in the first part. Instead of accepting:
-    ##  $association.attribute$ & attribute
-    ## It accepts:
-    ##  key, "quotedKey", and [0] (index access)
-    partialJsonPath ::= ( ...indexAccess | ...key ) jsonPath? castOrModifiers? ;
-
-    # Internals
-
-    identifier ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
-    digit ::= "0"->"9" ;
-    number ::= ...digit+ ;
-    association ::= %"$" identifier ("." identifier)* %"$" ;
-    jsonPath ::= ( ...indexAccess | ...keyAccess )+ ;
-    indexAccess ::= %"[" number %"]" ;
-    keyAccess ::= %"." key ;
-    # path segments accept dashes without needing to be quoted
-    key ::= nonEmptyString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
-    nonEmptyString ::= ...(%"\\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\\"") ;
-    escapedCharacter ::= %"\\\\" ( "\\"" | "\\\\" );
-    any ::= !"" ;
-    anyExceptQuoteOrBackslash ::= !("\\"" | "\\\\");
-    castOrModifiers ::= (...cast | ...modifier)+;
-    cast ::= %"::" identifier ;
-    modifier ::= %":" identifier ;
-  `;
-
-  const parsedAttributeBnf = BNF.parse(advancedAttributeBnf);
-  if (parsedAttributeBnf instanceof ParseError) {
-    throw new Error(
-      `Failed to initialize attribute syntax parser. This is a Sequelize bug: ${parsedAttributeBnf.toString()}`,
-    );
-  }
-
-  return Compile(parsedAttributeBnf);
-})();
-
-interface UselessNode<Type extends string, WrappedValue extends SyntaxNode[]> extends SyntaxNode {
-  type: Type;
-  value: WrappedValue;
-}
-
 export interface StringNode<Type extends string> extends SyntaxNode {
   type: Type;
   value: string;
-}
-
-interface AttributeAst extends SyntaxNode {
-  type: 'attribute';
-  value: [
-    attribute: StringNode<'association' | 'identifier'>,
-    jsonPath: UselessNode<
-      'jsonPath?',
-      [
-        UselessNode<
-          'jsonPath',
-          [UselessNode<'(...)+', Array<StringNode<'keyAccess' | 'indexAccess'>>>]
-        >,
-      ]
-    >,
-    castOrModifiers: UselessNode<
-      'castOrModifiers?',
-      [
-        UselessNode<
-          'castOrModifiers',
-          [UselessNode<'(...)+', Array<StringNode<'cast' | 'modifier'>>>]
-        >,
-      ]
-    >,
-  ];
 }
 
 function parseAttributeSyntaxInternal(
@@ -138,40 +64,41 @@ function parseAttributeSyntaxInternal(
 ): Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn {
   // This function is expensive (parsing produces a lot of objects), but we cache the final result, so it's only
   // going to be slow once per attribute.
-  const parsed = attributeParser.parse(code, false, 'attribute') as AttributeAst | ParseError;
+  const parsed = AttributeParser.Parse_Attribute(code, false);
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:
-${code}
-${' '.repeat(parsed.ref.start.index)}^`);
+    throw new TypeError(
+      `Failed to parse syntax of attribute. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`,
+    );
   }
 
-  const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
-
-  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(
-    attributeNode.value,
-  );
-
-  const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
-  if (jsonPathNodes) {
-    const path = jsonPathNodes.map(pathNode => {
-      return parseJsonPathSegment(pathNode);
-    });
-
-    result = new JsonPath(result, path);
+  if (parsed.isPartial) {
+    throw new TypeError(
+      `Failed to fully parse syntax of attribute. Parse error at index ${parsed.reachBytes}:\n${code}\n${' '.repeat(parsed.reachBytes)}^`,
+    );
   }
 
-  const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
-  if (castOrModifierNodes) {
+  const [attribute, accesses, transforms] = parsed.root.value;
+
+  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn =
+    parseAssociationPath(attribute);
+
+  if (accesses.value.length > 0) {
+    result = new JsonPath(result, parseJsonAccesses(accesses.value));
+  }
+
+  if (transforms.value.length > 0) {
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
-    for (const castOrModifierNode of castOrModifierNodes) {
-      if (castOrModifierNode.type === 'cast') {
-        result = new Cast(result, castOrModifierNode.value);
+    for (const transform of transforms.value) {
+      const option = transform.value[0];
+      const identifier = option.value[0].value;
+
+      if (option.type === 'cast') {
+        result = new Cast(result, identifier);
         continue;
       }
 
-      const ModifierClass = getModifier(castOrModifierNode.value);
-
+      const ModifierClass = getModifier(identifier);
       result = new ModifierClass(result);
     }
   }
@@ -179,16 +106,25 @@ ${' '.repeat(parsed.ref.start.index)}^`);
   return result;
 }
 
-function parseAssociationPath(syntax: string): AssociationPath | Attribute {
-  const path = syntax.split('.');
+function parseAssociationPath(
+  syntax: AttributeParser.Term_AttributeBegin,
+): AssociationPath | Attribute {
+  const child = syntax.value[0];
 
-  if (path.length > 1) {
-    const attr = path.pop()!;
-
-    return new AssociationPath(path, attr);
+  if (child.type === 'literal') {
+    return new Attribute(child.value);
   }
 
-  return new Attribute(syntax);
+  const path = [child.value[0].value, ...child.value[1].value.map(x => x.value[0].value)];
+
+  const attr = path.pop()!; // path will be at least 1 long
+
+  // If association has no child identifiers, convert it to an attribute
+  if (path.length === 0) {
+    return new Attribute(attr);
+  }
+
+  return new AssociationPath(path, attr);
 }
 
 /**
@@ -202,63 +138,36 @@ export interface ParsedJsonPropertyKey {
   readonly castsAndModifiers: ReadonlyArray<string | Class<DialectAwareFn>>;
 }
 
-interface JsonPathAst extends SyntaxNode {
-  type: 'partialJsonPath';
-  value: [
-    firstKey: StringNode<'key' | 'indexAccess'>,
-    jsonPath: UselessNode<
-      'jsonPath?',
-      [
-        UselessNode<
-          'jsonPath',
-          [UselessNode<'(...)+', Array<StringNode<'keyAccess' | 'indexAccess'>>>]
-        >,
-      ]
-    >,
-    castOrModifiers: UselessNode<
-      'castOrModifiers?',
-      [
-        UselessNode<
-          'castOrModifiers',
-          [UselessNode<'(...)+', Array<StringNode<'cast' | 'modifier'>>>]
-        >,
-      ]
-    >,
-  ];
-}
-
 function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
-  const parsed = attributeParser.parse(code, false, 'partialJsonPath') as JsonPathAst | ParseError;
+  const parsed = AttributeParser.Parse_PartialJsonPath(code, false);
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.ref.start.index}:
-${code}
-${' '.repeat(parsed.ref.start.index)}^`);
+    throw new TypeError(
+      `Failed to parse syntax of json path. Parse error at index ${parsed.ref.end.index}:\n${code}\n${' '.repeat(parsed.ref.end.index)}^`,
+    );
   }
 
-  const [firstKey, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
-
-  const pathSegments: Array<string | number> = [parseJsonPathSegment(firstKey)];
-
-  const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
-  if (jsonPathNodes) {
-    for (const pathNode of jsonPathNodes) {
-      pathSegments.push(parseJsonPathSegment(pathNode));
-    }
+  if (parsed.isPartial) {
+    throw new TypeError(
+      `Failed to fully parse syntax of json path. Parse error at index ${parsed.reach?.index || 0}:\n${code}\n${' '.repeat(parsed.reach?.index || 0)}^`,
+    );
   }
 
-  const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
+  const [base, accesses, transforms] = parsed.root.value;
+  const pathSegments = [parseJsonBase(base), ...parseJsonAccesses(accesses.value)];
+
   const castsAndModifiers: Array<string | Class<DialectAwareFn>> = [];
-
-  if (castOrModifierNodes) {
+  if (transforms.value.length > 0) {
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
-    for (const castOrModifierNode of castOrModifierNodes) {
-      if (castOrModifierNode.type === 'cast') {
-        castsAndModifiers.push(castOrModifierNode.value);
+    for (const transform of transforms.value) {
+      const option = transform.value[0];
+
+      if (option.type === 'cast') {
+        castsAndModifiers.push(option.value[0].value);
         continue;
       }
 
-      const ModifierClass = getModifier(castOrModifierNode.value);
+      const ModifierClass = getModifier(option.value[0].value);
 
       castsAndModifiers.push(ModifierClass);
     }
@@ -267,10 +176,22 @@ ${' '.repeat(parsed.ref.start.index)}^`);
   return { pathSegments, castsAndModifiers };
 }
 
-function parseJsonPathSegment(node: StringNode<string>): string | number {
-  if (node.type === 'indexAccess') {
-    return Number(node.value);
+function parseJsonBase(node: AttributeParser.Term_JsonBase): string | number {
+  const child = node.value[0];
+  if (child.type === 'indexAccess') {
+    return Number(child.value[0].value);
   }
 
-  return node.value;
+  return child.value;
+}
+
+function parseJsonAccesses(nodes: AttributeParser.Term_JsonAccess[]): Array<string | number> {
+  return nodes.map(node => {
+    const child = node.value[0];
+    if (child.type === 'indexAccess') {
+      return Number(child.value[0].value);
+    }
+
+    return child.value[0].value;
+  });
 }

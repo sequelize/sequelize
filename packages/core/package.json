@@ -48,7 +48,6 @@
   "dependencies": {
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
-    "bnf-parser": "3.1.6",
     "dayjs": "^1.11.5",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
@@ -80,6 +79,7 @@
     "@types/snowflake-sdk": "1.6.20",
     "@types/tedious": "4.0.14",
     "@types/uuid": "9.0.8",
+    "bnf-parser": "4.1.0",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
     "chai-datetime": "1.8.0",
@@ -202,7 +202,8 @@
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
-    "build": "node ../../build-packages.mjs core"
+    "build": "yarn build-bnf && node ../../build-packages.mjs core",
+    "build-bnf": "bnf-compile ./src/utils/bnf/ ./src/utils/bnf/"
   },
   "support": true
 }

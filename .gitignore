@@ -16,6 +16,8 @@ node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+/packages/core/src/utils/bnf/*.js
+/packages/core/src/utils/bnf/*.d.ts
 /packages/core/test/sqlite-databases
 /.nx
 
