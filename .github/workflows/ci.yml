@@ -243,10 +243,15 @@ jobs:
     needs: [docs, test-sqlite, test-postgres, test-oldest-latest]
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
+      - name: Generate Sequelize Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
@@ -268,6 +273,8 @@ jobs:
       - name: Set npm auth token
         run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
       - run: yarn publish-all
+        env:
+          GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@aa12fcb2943e8899cbcc29ff6f73409b32b48fa1 # master
         with:
