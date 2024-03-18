@@ -2,10 +2,10 @@ name: CI
 on:
   push:
     branches:
-      - v7
       - renovate/**
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
@@ -241,7 +241,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [docs, test-sqlite, test-postgres, test-oldest-latest]
-    if: github.ref == 'refs/heads/v7'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
