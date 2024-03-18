@@ -1,3 +1,5 @@
+import { isError } from '@sequelize/utils';
+import { isNodeError } from '@sequelize/utils/node.js';
 import dayjs from 'dayjs';
 import type {
   Connection,
@@ -16,7 +18,6 @@ import {
   InvalidConnectionError,
 } from '../../errors';
 import type { ConnectionOptions } from '../../sequelize.js';
-import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';

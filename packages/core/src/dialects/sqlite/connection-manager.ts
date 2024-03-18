@@ -1,10 +1,10 @@
+import { map } from '@sequelize/utils';
+import { checkFileExists } from '@sequelize/utils/node.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
 import { ConnectionError } from '../../errors/index.js';
-import { checkFileExists } from '../../utils/fs.js';
-import { map } from '../../utils/iterators.js';
 import { logger } from '../../utils/logger';
 import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';

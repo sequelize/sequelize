@@ -11,12 +11,12 @@ import type { MariaDbDialect } from './index.js';
  */
 export function registerMariaDbDbDataTypeParsers(dialect: MariaDbDialect) {
   dialect.registerDataTypeParser(['DATETIME'], (value: FieldInfo) => {
-    const valueStr = value.string();
+    const valueStr: string | null = value.string();
     if (valueStr === null) {
       return null;
     }
 
-    const timeZone = dialect.sequelize.options.timezone;
+    const timeZone: string = dialect.sequelize.options.timezone;
     if (timeZone === '+00:00') {
       // default value
       // mariadb returns a UTC date string that looks like the following:

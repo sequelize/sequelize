@@ -1,3 +1,4 @@
+import type { PartialBy } from '@sequelize/utils';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -35,7 +36,6 @@ import { getModelRepository } from './model-repository.js';
 import type { DestroyOptions, Model } from './model.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
-import type { PartialBy } from './utils/types.js';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**

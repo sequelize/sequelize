@@ -1,3 +1,4 @@
+import { EMPTY_ARRAY } from '@sequelize/utils';
 import { Deferrable } from '../../deferrable.js';
 import type { AssociationPath } from '../../expression-builders/association-path.js';
 import type { Attribute } from '../../expression-builders/attribute.js';
@@ -10,7 +11,6 @@ import type { JsonPath } from '../../expression-builders/json-path.js';
 import type { Literal } from '../../expression-builders/literal.js';
 import type { Sequelize } from '../../sequelize.js';
 import { extractModelDefinition } from '../../utils/model-utils.js';
-import { EMPTY_ARRAY } from '../../utils/object.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
 import type { AbstractDialect } from './index.js';

@@ -30,6 +30,8 @@ module.exports = {
 
     // enable this as an error, or keep disabled (not warning)
     'unicorn/no-unsafe-regex': 'off',
+    // conflicts with prettier
+    'unicorn/number-literal-case': 'off',
 
     // TODO: enable in follow-up PR. Requires the utils package.
     'no-restricted-syntax': 'off',
@@ -135,7 +137,7 @@ module.exports = {
     },
     {
       // Disable slow rules that are not important in tests (perf)
-      files: ['packages/*/test/**/*'],
+      files: ['packages/*/test/**/*', '*.test.{ts,js}'],
       rules: {
         'import/no-extraneous-dependencies': 'off',
         // no need to check jsdoc in tests & docs

@@ -1,8 +1,8 @@
+import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';
 import wkx from 'wkx';
 import type { Falsy } from '../../generic/falsy.js';
 import type { GeoJson } from '../../geo-json.js';
-import { isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
 import * as BaseTypes from '../abstract/data-types.js';
