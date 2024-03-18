@@ -20,9 +20,9 @@ await Promise.all(
   }),
 );
 
-async function tryAccess(path) {
+async function tryAccess(filename) {
   try {
-    await fs.access(path);
+    await fs.access(filename);
 
     return true;
   } catch {
