@@ -254,6 +254,10 @@ jobs:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
           # We need the entire history to generate the changelog properly
           fetch-depth: 0
+          # The credentials used for checkout are persisted
+          # Lerna will use the same credentials later for "git push".
+          # This must be done using the Sequelize bot.
+          token: '${{ steps.generate-token.outputs.token }}'
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 20.x
