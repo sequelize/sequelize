@@ -31,7 +31,7 @@
   "type": "commonjs",
   "version": "0.0.0-development",
   "dependencies": {
-    "@types/lodash": "4.14.202",
+    "@types/lodash": "4.17.0",
     "lodash": "4.17.21"
   },
   "devDependencies": {

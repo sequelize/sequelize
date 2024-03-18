@@ -62,7 +62,7 @@
     "@rushstack/eslint-patch": "1.7.2",
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.12",
-    "@types/lodash": "4.14.202",
+    "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
     "@types/node": "20.11.28",
     "chai": "4.4.1",
