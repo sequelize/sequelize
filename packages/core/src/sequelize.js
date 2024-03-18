@@ -28,6 +28,7 @@ import { Where, where } from './expression-builders/where.js';
 import { importModels } from './import-models.js';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
+import { ManualOnDelete } from './model-repository.types.js';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import {
   COMPLETES_TRANSACTION,
@@ -1254,6 +1255,7 @@ Sequelize.useInflection = useInflection;
 
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
+Sequelize.ManualOnDelete = ManualOnDelete;
 
 /**
  * Expose various errors available

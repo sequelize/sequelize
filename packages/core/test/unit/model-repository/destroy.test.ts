@@ -164,12 +164,15 @@ describe('ModelRepository#destroy', () => {
     await repository._UNSTABLE_destroy([instance1, instance2]);
 
     expect(beforeDestroyManySpy.callCount).to.eq(1);
-    expect(beforeDestroyManySpy.getCall(0).args).to.deep.eq([[instance1, instance2], {}]);
+    expect(beforeDestroyManySpy.getCall(0).args).to.deep.eq([
+      [instance1, instance2],
+      { manualOnDelete: 'paranoid' },
+    ]);
 
     expect(afterDestroyManySpy.callCount).to.eq(1);
     expect(afterDestroyManySpy.getCall(0).args).to.deep.eq([
       [instance1, instance2],
-      {},
+      { manualOnDelete: 'paranoid' },
       undefined, // returned from queryRaw stub
     ]);
   });
