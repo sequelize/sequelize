@@ -1,4 +1,4 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -66,7 +66,7 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
-  it('does not generate extra bind params with bindParams: false', async () => {
+  it('does not generate extra bind params with parameterStyle: "replacement"', async () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.updateQuery(
@@ -78,7 +78,7 @@ describe('QueryGenerator#updateQuery', () => {
       },
       literal('first_name = $2'),
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.replacement,
       },
     );
 
