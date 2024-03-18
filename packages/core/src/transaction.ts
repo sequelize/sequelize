@@ -1,8 +1,8 @@
+import type { StrictRequiredBy } from '@sequelize/utils';
+import { EMPTY_OBJECT } from '@sequelize/utils';
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
 import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
-import { EMPTY_OBJECT } from './utils/object.js';
-import type { StrictRequiredBy } from './utils/types.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 

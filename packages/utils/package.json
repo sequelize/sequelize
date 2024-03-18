@@ -1,0 +1,45 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "Sequelize Utility Library",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "exports": {
+    ".": {
+      "node": "./lib/common/index.node.js",
+      "default": "./lib/common/index.js",
+      "types": "./lib/common/index.d.ts"
+    },
+    "./node.js": {
+      "node": "./lib/node/index.js",
+      "types": "./lib/node/index.d.ts"
+    }
+  },
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/utils",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "test": "concurrently \"npm:test-*\"",
+    "build": "tsc --project tsconfig.build.json",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "commonjs",
+  "version": "0.0.0-development",
+  "dependencies": {
+    "@types/lodash": "4.17.0",
+    "lodash": "4.17.21"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.12",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "concurrently": "8.2.2",
+    "expect-type": "0.18.0",
+    "mocha": "10.3.0"
+  }
+}

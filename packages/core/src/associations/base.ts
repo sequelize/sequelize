@@ -1,8 +1,8 @@
+import type { AllowIterable, Nullish, PartialBy } from '@sequelize/utils';
+import { isIterable } from '@sequelize/utils';
 import isObject from 'lodash/isObject.js';
 import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
-import { isIterable } from '../utils/check.js';
 import { cloneDeep } from '../utils/object.js';
-import type { AllowIterable, Nullish, PartialBy } from '../utils/types.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { AssociationSecret } from './helpers';
 
@@ -210,7 +210,7 @@ export abstract class MultiAssociation<
   }
 
   protected toInstanceOrPkArray(
-    input: Nullish<AllowIterable<T | Exclude<T[TargetKey], any[]>>>,
+    input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | Nullish,
   ): Array<T | Exclude<T[TargetKey], any[]>> {
     if (input == null) {
       return [];

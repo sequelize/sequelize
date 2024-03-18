@@ -1,3 +1,10 @@
+import type {
+  AllowArray,
+  AllowReadonlyArray,
+  AnyFunction,
+  Nullish,
+  StrictRequiredBy,
+} from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
 import type {
   Association,
@@ -27,15 +34,7 @@ import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
 import type { QueryOptions, Sequelize, SyncOptions } from './sequelize';
 import type { COMPLETES_TRANSACTION } from './transaction';
-import type {
-  AllowArray,
-  AllowReadonlyArray,
-  AnyFunction,
-  MakeNullishOptional,
-  Nullish,
-  OmitConstructors,
-  StrictRequiredBy,
-} from './utils/types.js';
+import type { MakeNullishOptional, OmitConstructors } from './utils/types.js';
 
 export interface Logging {
   /**
@@ -727,7 +726,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -902,7 +901,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -910,7 +909,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: Nullish<number | Literal>;
+  offset?: number | Literal | Nullish;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
@@ -1281,7 +1280,7 @@ export interface DestroyOptions<TAttributes = any>
   /**
    * How many rows to delete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1308,7 +1307,7 @@ export interface RestoreOptions<TAttributes = any>
   /**
    * How many rows to undelete
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 }
 
 /**
@@ -1365,7 +1364,7 @@ export interface UpdateOptions<TAttributes = any>
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: Nullish<number | Literal>;
+  limit?: number | Literal | Nullish;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -2340,7 +2339,7 @@ export abstract class Model<
    */
   static withSchema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string | SchemaOptions>,
+    schema: string | SchemaOptions | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2349,7 +2348,7 @@ export abstract class Model<
    */
   static schema<M extends Model>(
     this: ModelStatic<M>,
-    schema: Nullish<string>,
+    schema: string | Nullish,
     options?: { schemaDelimiter?: string } | string,
   ): ModelStatic<M>;
 
@@ -2368,7 +2367,7 @@ export abstract class Model<
    */
   static withScope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**
@@ -2377,7 +2376,7 @@ export abstract class Model<
    */
   static scope<M extends Model>(
     this: ModelStatic<M>,
-    scopes?: Nullish<AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>>>,
+    scopes?: AllowReadonlyArray<string | ScopeOptions> | WhereOptions<Attributes<M>> | Nullish,
   ): ModelStatic<M>;
 
   /**
