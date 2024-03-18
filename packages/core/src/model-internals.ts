@@ -2,7 +2,7 @@ import NodeUtil from 'node:util';
 import type { IndexOptions } from './dialects/abstract/query-interface.js';
 import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Attributes, Model, Transactionable } from './model';
+import type { Attributes, Model, ModelStatic, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
 import { isModelStatic } from './utils/model-utils.js';
@@ -272,4 +272,18 @@ Either add a primary key to this model, or use one of the following alternatives
         `.trim(),
     );
   }
+}
+
+export function getDefaultCreateInclude(model: ModelStatic, values: Object) {
+  const associations = [];
+  const associationNames = Object.keys(model.associations);
+  if (values) {
+    for (const value of Object.keys(values)) {
+      if (associationNames.includes(value)) {
+        associations.push(value);
+      }
+    }
+  }
+
+  return associations;
 }

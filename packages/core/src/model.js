@@ -13,6 +13,7 @@ import { BaseSqlExpression } from './expression-builders/base-sql-expression.js'
 import {
   _validateIncludedElements,
   combineIncludes,
+  getDefaultCreateInclude,
   getModelPkWhere,
   setTransactionFromCls,
   throwInvalidInclude,
@@ -1916,6 +1917,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
+    options.include ??= getDefaultCreateInclude(this, values);
 
     return await this.build(values, {
       isNewRecord: true,
