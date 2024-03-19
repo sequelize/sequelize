@@ -1,3 +1,5 @@
+import type { PartialBy } from '@sequelize/utils';
+import { isNullish, isString } from '@sequelize/utils';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type {
   CreateSchemaOptions,
@@ -53,9 +55,7 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
-import { isNullish, isString } from './utils/check.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
-import type { PartialBy } from './utils/types.js';
 
 export interface SequelizeHooks extends ModelHooks {
   /**

@@ -1,10 +1,12 @@
+import { isError } from '@sequelize/utils';
+import { isNodeError } from '@sequelize/utils/node.js';
 import dayjs from 'dayjs';
 import type {
   Connection,
   ConnectionOptions as MySqlConnectionOptions,
+  TypeCastField,
   createConnection as mysqlCreateConnection,
 } from 'mysql2';
-import type { Field } from 'mysql2/typings/mysql/lib/parsers/typeCast';
 import assert from 'node:assert';
 import { promisify } from 'node:util';
 import {
@@ -16,7 +18,6 @@ import {
   InvalidConnectionError,
 } from '../../errors';
 import type { ConnectionOptions } from '../../sequelize.js';
-import { isError, isNodeError } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
@@ -49,7 +50,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConne
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }
 
-  #typecast(field: Field, next: () => void): unknown {
+  #typecast(field: TypeCastField, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);

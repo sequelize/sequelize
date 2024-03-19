@@ -1,3 +1,5 @@
+import type { Nullish } from '@sequelize/utils';
+import { EMPTY_ARRAY, EMPTY_OBJECT, isPlainObject, isString } from '@sequelize/utils';
 import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/base-error.js';
 import { AssociationPath } from '../../expression-builders/association-path.js';
@@ -14,11 +16,8 @@ import type { AbstractDialect, Expression, ModelDefinition, WhereOptions } from 
 import { Op } from '../../operators';
 import type { ParsedJsonPropertyKey } from '../../utils/attribute-syntax.js';
 import { parseAttributeSyntax, parseNestedJsonKeySyntax } from '../../utils/attribute-syntax.js';
-import { isPlainObject, isString } from '../../utils/check.js';
 import { noOpCol } from '../../utils/deprecations.js';
 import { extractModelDefinition } from '../../utils/model-utils.js';
-import { EMPTY_ARRAY, EMPTY_OBJECT } from '../../utils/object.js';
-import type { Nullish } from '../../utils/types.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
 import * as DataTypes from './data-types.js';
@@ -220,7 +219,7 @@ export class WhereSqlBuilder {
       if (operatorOrAttribute === Op.not) {
         const generatedResult = this.#handleRecursiveNotOrAndWithImplicitAndArray(
           // @ts-expect-error -- This is a recursive type, which TS does not handle well
-          input[Op.not] as WhereOptions<TAttributes>,
+          input[Op.not],
           handlePart,
         );
 
@@ -825,7 +824,6 @@ export class WhereSqlBuilder {
     const keys = [...stringKeys, ...getOperators(whereValue)];
 
     const parts: string[] = keys.map(key => {
-      // @ts-expect-error -- this recursive type is too difficult for TS to handle
       const value = whereValue[key];
 
       // nested JSON path
@@ -948,7 +946,7 @@ export class WhereSqlBuilder {
 
   #getOperandType(
     operand: Expression,
-    modelDefinition: Nullish<ModelDefinition>,
+    modelDefinition: ModelDefinition | Nullish,
   ): NormalizedDataType | undefined {
     if (operand instanceof Cast) {
       // TODO: if operand.type is a string (= SQL Type), look up a per-dialect mapping of SQL types to Sequelize types?

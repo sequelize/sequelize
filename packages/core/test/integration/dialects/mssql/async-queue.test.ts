@@ -1,5 +1,5 @@
 import { AsyncQueueError, ConnectionError, DataTypes, Model } from '@sequelize/core';
-import type { MsSqlConnection } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/connection-manager';
+import type { MsSqlConnection } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mssql/connection-manager.js';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import { beforeAll2, sequelize, setResetMode } from '../../support';
