@@ -32,7 +32,7 @@ describe('Model#increment', () => {
     it('should allow increments even if options are not given', () => {
       const User = sequelize.define('User', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },

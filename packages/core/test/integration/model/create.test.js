@@ -1265,15 +1265,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
     });
 
-    it('sets a 64 bit int in bigint', async function () {
-      const User = this.customSequelize.define('UserWithBigIntFields', {
-        big: DataTypes.BIGINT,
-      });
+    if (current.dialect.supports.dataTypes.BIGINT) {
+      it('sets a 64 bit int in bigint', async function () {
+        const User = this.customSequelize.define('UserWithBigIntFields', {
+          big: DataTypes.BIGINT,
+        });
 
-      await User.sync({ force: true });
-      const user = await User.create({ big: '9223372036854775807' });
-      expect(user.big).to.equal('9223372036854775807');
-    });
+        await User.sync({ force: true });
+        const user = await User.create({ big: '9223372036854775807' });
+        expect(user.big).to.equal('9223372036854775807');
+      });
+    }
 
     it('sets auto increment fields', async function () {
       const User = this.customSequelize.define('UserWithAutoIncrementField', {
@@ -1354,10 +1356,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('can omit autoincremental columns', async function () {
       const data = { title: 'Iliad' };
-      const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT];
+      const dataTypes = [DataTypes.INTEGER];
       const sync = [];
       const promises = [];
       const books = [];
+
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        dataTypes.push(DataTypes.BIGINT);
+      }
 
       for (const [index, dataType] of dataTypes.entries()) {
         books[index] = this.customSequelize.define(`Book${index}`, {
