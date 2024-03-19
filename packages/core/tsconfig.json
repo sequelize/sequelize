@@ -6,7 +6,7 @@
     "allowJs": false,
     "declaration": true,
     "sourceRoot": "",
-    "outDir": "./types",
+    "outDir": "./lib",
     "strict": true,
     "baseUrl": "./",
     "rootDir": "./src",

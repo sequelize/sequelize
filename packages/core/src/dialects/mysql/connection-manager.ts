@@ -1,5 +1,5 @@
 import { isError } from '@sequelize/utils';
-import { isNodeError } from '@sequelize/utils/node.js';
+import { isNodeError } from '@sequelize/utils/node';
 import dayjs from 'dayjs';
 import type {
   Connection,

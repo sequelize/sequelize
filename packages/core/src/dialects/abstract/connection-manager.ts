@@ -1,4 +1,4 @@
-import { isNodeError } from '@sequelize/utils/node.js';
+import { isNodeError } from '@sequelize/utils/node';
 import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
