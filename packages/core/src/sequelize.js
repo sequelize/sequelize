@@ -353,10 +353,10 @@ const sequelize = new Sequelize({
         Dialect = require('./dialects/mariadb').MariaDbDialect;
         break;
       case 'mssql':
-        Dialect = require('./dialects/mssql').MssqlDialect;
+        Dialect = require('./dialects/mssql').MsSqlDialect;
         break;
       case 'mysql':
-        Dialect = require('./dialects/mysql').MysqlDialect;
+        Dialect = require('./dialects/mysql').MySqlDialect;
         break;
       case 'postgres':
         throw new Error(
