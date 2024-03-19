@@ -1,6 +1,6 @@
+import { EMPTY_ARRAY } from '@sequelize/utils';
 import isEqual from 'lodash/isEqual';
 import { classToInvokable } from './utils/class-to-invokable.js';
-import { EMPTY_ARRAY } from './utils/object.js';
 
 /**
  * Can be used to make foreign key constraints deferrable.

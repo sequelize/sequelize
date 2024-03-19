@@ -1,3 +1,4 @@
+import { EMPTY_OBJECT } from '@sequelize/utils';
 import { cloneDataType } from '../../dialects/abstract/data-types-utils.js';
 import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
@@ -5,7 +6,7 @@ import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isModelStatic } from '../../utils/model-utils.js';
-import { EMPTY_OBJECT, cloneDeep, getAllOwnEntries } from '../../utils/object.js';
+import { cloneDeep, getAllOwnEntries } from '../../utils/object.js';
 
 export interface RegisteredModelOptions extends ModelOptions {
   /**
@@ -85,7 +86,7 @@ export function registerModelAttributeOptions(
     return;
   }
 
-  const existingOptions = existingAttributesOptions[attributeName]!;
+  const existingOptions = existingAttributesOptions[attributeName];
 
   mergeAttributeOptions(attributeName, model, existingOptions, options, false);
 }

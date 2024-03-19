@@ -1,19 +1,6 @@
+import { isIterable } from '@sequelize/utils';
 import pickBy from 'lodash/pickBy';
 import type { AbstractDialect } from '../dialects/abstract/index.js';
-import { BaseError } from '../errors/index.js';
-
-export function isNullish(val: unknown): val is null | undefined {
-  return val == null;
-}
-
-export function isNodeError(val: unknown): val is NodeJS.ErrnoException {
-  return val instanceof Error && 'code' in val;
-}
-
-export function isIterable(val: unknown): val is Iterable<unknown> {
-  // @ts-expect-error -- TS does not allow accessing Symbol.iterator like this.
-  return val != null && val[Symbol.iterator];
-}
 
 /**
  * Some dialects emit an Error with a string code, that are not ErrnoException.
@@ -27,49 +14,6 @@ export function isErrorWithStringCode(val: unknown): val is Error & { code: stri
     // @ts-expect-error -- 'code' doesn't exist on Error, but it's dynamically added by Node
     typeof val.code === 'string'
   );
-}
-
-export function assertIsErrorWithStringCode(val: unknown): asserts val is Error & { code: string } {
-  if (!isErrorWithStringCode(val)) {
-    throw new Error('Expected Error with string "code" property');
-  }
-}
-
-export function isError(val: unknown): val is Error {
-  return val instanceof Error;
-}
-
-export function assertCaughtError(val: unknown): asserts val is Error {
-  if (!isError(val)) {
-    throw new BaseError('A non-error value was thrown', { cause: val });
-  }
-}
-
-export function isString(val: unknown): val is string {
-  return typeof val === 'string';
-}
-
-export function isBigInt(val: unknown): val is bigint {
-  return typeof val === 'bigint';
-}
-
-export function isNumber(val: unknown): val is number {
-  return typeof val === 'number';
-}
-
-/**
- * Works like lodash's isPlainObject, but has better typings
- *
- * @param value The value to check
- */
-export function isPlainObject(value: unknown): value is object {
-  if (value === null || typeof value !== 'object') {
-    return false;
-  }
-
-  const prototype = Object.getPrototypeOf(value);
-
-  return prototype === null || prototype === Object.prototype;
 }
 
 export function isDevEnv(): boolean {
