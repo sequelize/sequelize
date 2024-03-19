@@ -4,11 +4,12 @@
   "engines": {
     "node": ">=18.0.0"
   },
+  "types": "./lib/common/index.d.ts",
   "exports": {
     ".": {
       "node": "./lib/common/index.node.js",
-      "default": "./lib/common/index.js",
-      "types": "./lib/common/index.d.ts"
+      "types": "./lib/common/index.d.ts",
+      "default": "./lib/common/index.js"
     },
     "./node.js": {
       "node": "./lib/node/index.js",
@@ -22,7 +23,7 @@
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
     "test": "concurrently \"npm:test-*\"",
-    "build": "tsc --project tsconfig.build.json",
+    "build": "../../build-packages.mjs utils",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
