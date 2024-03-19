@@ -1,6 +1,6 @@
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { isNodeError } from '@sequelize/utils/node.js';
+import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';

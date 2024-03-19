@@ -1,5 +1,5 @@
 import { map } from '@sequelize/utils';
-import { checkFileExists } from '@sequelize/utils/node.js';
+import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';

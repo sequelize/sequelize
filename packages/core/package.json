@@ -17,21 +17,27 @@
   },
   "homepage": "https://sequelize.org/",
   "main": "./lib/index.js",
-  "types": "./types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "type": "commonjs",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
     },
     "./decorators-legacy": {
-      "types": "./types/decorators/legacy/index.d.ts",
       "import": "./lib/decorators/legacy/index.mjs",
-      "require": "./lib/decorators/legacy/index.js"
+      "require": {
+        "types": "./lib/decorators/legacy/index.d.ts",
+        "default": "./lib/decorators/legacy/index.js"
+      }
     },
     "./_non-semver-use-at-your-own-risk_/*": {
-      "types": "./types/*",
       "default": "./lib/*"
     },
     "./package.json": "./package.json"
