@@ -1,3 +1,4 @@
+import { isError, isPlainObject } from '@sequelize/utils';
 import type {
   Connection as TediousConnection,
   ConnectionConfig as TediousConnectionConfig,
@@ -11,7 +12,7 @@ import {
   InvalidConnectionError,
 } from '../../errors/index.js';
 import type { ConnectionOptions } from '../../sequelize.js';
-import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
+import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
@@ -150,7 +151,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
         }
       });
     } catch (error: unknown) {
-      assertCaughtError(error);
+      isError.assert(error);
 
       if (!isErrorWithStringCode(error)) {
         throw new ConnectionError(error);

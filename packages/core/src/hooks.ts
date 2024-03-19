@@ -1,5 +1,5 @@
-import { Multimap } from './utils/multimap.js';
-import type { AllowArray, Nullish } from './utils/types.js';
+import type { AllowArray, Nullish } from '@sequelize/utils';
+import { MultiMap } from '@sequelize/utils';
 
 export type AsyncHookReturn = Promise<void> | void;
 
@@ -16,14 +16,14 @@ type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
  * @private
  */
 export class HookHandler<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #eventTarget: object;
-  #listeners = new Multimap<
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #eventTarget: object;
+  readonly #listeners = new MultiMap<
     PropertyKey,
-    { listenerName: Nullish<string>; callback: HookConfig[keyof HookConfig] }
+    { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] }
   >();
 
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(
     eventTarget: object,
@@ -44,13 +44,13 @@ export class HookHandler<HookConfig extends {}> {
     if (typeof listenerOrListenerName === 'string') {
       const listener = this.#getNamedListener(hookName, listenerOrListenerName);
       if (listener) {
-        this.#listeners.delete(hookName, listener);
+        this.#listeners.deleteValue(hookName, listener);
       }
     } else {
-      const listeners = this.#listeners.getAll(hookName);
+      const listeners = this.#listeners.get(hookName);
       for (const listener of listeners) {
         if (listener.callback === listenerOrListenerName) {
-          this.#listeners.delete(hookName, listener);
+          this.#listeners.deleteValue(hookName, listener);
         }
       }
     }
@@ -63,8 +63,8 @@ export class HookHandler<HookConfig extends {}> {
   #getNamedListener<HookName extends keyof HookConfig>(
     hookName: HookName,
     listenerName: string,
-  ): { listenerName: Nullish<string>; callback: HookConfig[keyof HookConfig] } | null {
-    const listeners = this.#listeners.getAll(hookName);
+  ): { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] } | null {
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {
         return listener;
@@ -94,7 +94,7 @@ export class HookHandler<HookConfig extends {}> {
   ): void {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
       const out = listener.callback(...args);
@@ -119,7 +119,7 @@ export class HookHandler<HookConfig extends {}> {
   ): Promise<void> {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       /* eslint-disable no-await-in-loop */
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
@@ -197,9 +197,9 @@ export class HookHandler<HookConfig extends {}> {
 }
 
 export class HookHandlerBuilder<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(validHookNames: Array<keyof HookConfig>, onRunHook?: OnRunHook<HookConfig>) {
     this.#validHookNames = validHookNames;

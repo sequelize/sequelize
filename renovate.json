@@ -16,5 +16,6 @@
       "automerge": true
     }
   ],
+  "labels": ["no-autoupdate"],
   "postUpdateOptions": ["yarnDedupeHighest"]
 }

@@ -1,3 +1,4 @@
+import type { Nullish } from '@sequelize/utils';
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { Literal } from '../../expression-builders/literal';
@@ -5,7 +6,6 @@ import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
 import type { BindOrReplacements } from '../../sequelize';
 import type { TableHints } from '../../table-hints';
 import type { TransactionType } from '../../transaction';
-import type { Nullish } from '../../utils/types';
 import type { TableOrModel } from './query-generator-typescript';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
@@ -183,13 +183,13 @@ export interface AttributeToSqlOptions {
 
 export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
-  tableHints?: TableHints[];
+  tableHints?: TableHints[] | undefined;
 }
 
 export interface AddLimitOffsetOptions {
-  limit?: Nullish<number | Literal>;
-  offset?: Nullish<number | Literal>;
-  replacements?: BindOrReplacements;
+  limit?: number | Literal | Nullish;
+  offset?: number | Literal | Nullish;
+  replacements?: BindOrReplacements | undefined;
 }
 
 export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}

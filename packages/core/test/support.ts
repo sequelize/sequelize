@@ -1,6 +1,6 @@
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { isNodeError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -533,6 +533,7 @@ export function createTester<Params extends any[]>(
 
 /**
  * Works like {@link beforeEach}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
@@ -550,6 +551,7 @@ export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> 
 
 /**
  * Works like {@link before}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {

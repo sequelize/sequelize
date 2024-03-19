@@ -11,7 +11,7 @@
  * @module
  */
 
-export * as DataTypes from './data-types';
+export * as DataTypes from './data-types.js';
 export type {
   ArrayOptions,
   BindParamOptions,
@@ -43,10 +43,10 @@ export type {
   GeoJsonPolygon,
   PositionPosition,
 } from './geo-json.js';
-export { IndexHints } from './index-hints';
-export { Op, type OpTypes } from './operators';
-export { QueryTypes } from './query-types';
-export { TableHints } from './table-hints';
+export { IndexHints } from './index-hints.js';
+export { Op, type OpTypes } from './operators.js';
+export { QueryTypes } from './query-types.js';
+export { TableHints } from './table-hints.js';
 export {
   IsolationLevel,
   Lock,
@@ -56,18 +56,18 @@ export {
   type ManagedTransactionOptions,
   type NormalizedTransactionOptions,
   type TransactionOptions,
-} from './transaction';
+} from './transaction.js';
 
-export * from './associations/index';
-export type { Connection } from './dialects/abstract/connection-manager';
-export * from './dialects/abstract/query-generator.types';
-export * from './dialects/abstract/query-interface';
-export * from './dialects/abstract/query-interface.types';
-export * from './errors';
-export * from './model';
-export * from './sequelize';
+export * from './associations/index.js';
+export type { Connection } from './dialects/abstract/connection-manager.js';
+export * from './dialects/abstract/query-generator.types.js';
+export * from './dialects/abstract/query-interface.js';
+export * from './dialects/abstract/query-interface.types.js';
+export * from './errors/index.js';
+export * from './model.js';
+export * from './sequelize.js';
 
-export { ConstraintChecking, Deferrable } from './deferrable';
+export { ConstraintChecking, Deferrable } from './deferrable.js';
 export { AbstractDialect } from './dialects/abstract/index.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export type { WhereOptions } from './dialects/abstract/where-sql-builder-types.js';
@@ -76,10 +76,10 @@ export { ModelDefinition } from './model-definition.js';
 
 // TODO [>=8]: remove this alias
 // eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
-export { Sequelize as default } from './sequelize';
-export { isModelStatic, isSameInitialModel } from './utils/model-utils';
-export { useInflection } from './utils/string';
-export type { Validator } from './utils/validator-extras';
+export { Sequelize as default } from './sequelize.js';
+export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';
+export { useInflection } from './utils/string.js';
+export type { Validator } from './utils/validator-extras.js';
 
 export { AssociationPath } from './expression-builders/association-path.js';
 export { Attribute } from './expression-builders/attribute.js';
