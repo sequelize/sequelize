@@ -2313,7 +2313,7 @@ __metadata:
     "@types/chai": "npm:4.3.13"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
-    "@types/node": "npm:20.11.29"
+    "@types/node": "npm:20.11.30"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
@@ -3347,12 +3347,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.29":
-  version: 20.11.29
-  resolution: "@types/node@npm:20.11.29"
+"@types/node@npm:*, @types/node@npm:20.11.30":
+  version: 20.11.30
+  resolution: "@types/node@npm:20.11.30"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/b839bad64b2d0e2b4a2d09a53c019ac06c732ac66ea88f3a86a9d2f28a789caf8fd56b888f577183459733abfa1b77e4bf6986cde18b2ec63e1939427aa0d387
+  checksum: 10c0/867cfaf969c6d8850d8d7304e7ab739898a50ecb1395b61ff2335644f5f48d7a46fbc4a14cee967aed65ec134b61a746edae70d1f32f11321ccf29165e3bc4e6
   languageName: node
   linkType: hard
 
