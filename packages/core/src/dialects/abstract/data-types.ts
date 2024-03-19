@@ -6,7 +6,6 @@ import {
   parseSafeInteger,
 } from '@sequelize/utils';
 import dayjs from 'dayjs';
-import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import { Blob } from 'node:buffer';
@@ -23,8 +22,6 @@ import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { validator as Validator } from '../../utils/validator-extras';
-import type { HstoreRecord } from '../postgres/hstore.js';
-import { buildRangeParser } from '../postgres/range.js';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
@@ -77,7 +74,7 @@ export type DataTypeUseContext =
 /**
  * A symbol that can be used as the key for a static property on a DataType class to uniquely identify it.
  */
-const kDataTypeIdentifier = Symbol('sequelize.DataTypeIdentifier');
+export const kDataTypeIdentifier = Symbol('sequelize.DataTypeIdentifier');
 
 /**
  * @category DataTypes
@@ -1586,57 +1583,6 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
 }
 
 /**
- * A key / value store column. Only available in Postgres.
- *
- * __Fallback policy:__
- * If the dialect does not support this type natively, an error will be raised.
- *
- * @example
- * ```ts
- * DataTypes.HSTORE
- * ```
- *
- * @category DataTypes
- */
-export class HSTORE extends AbstractDataType<HstoreRecord> {
-  /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'HSTORE';
-
-  protected _checkOptionSupport(dialect: AbstractDialect) {
-    super._checkOptionSupport(dialect);
-    if (!dialect.supports.dataTypes.HSTORE) {
-      throwUnsupportedDataType(dialect, 'HSTORE');
-    }
-  }
-
-  validate(value: any) {
-    if (!isPlainObject(value)) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid hstore, it must be a plain object', value),
-      );
-    }
-
-    const hstore = value as Record<PropertyKey, unknown>;
-
-    for (const key of Object.keys(hstore)) {
-      if (!isString(hstore[key])) {
-        ValidationErrorItem.throwDataTypeValidationError(
-          util.format(
-            `%O is not a valid hstore, its values must be strings but ${key} is %O`,
-            hstore,
-            hstore[key],
-          ),
-        );
-      }
-    }
-  }
-
-  toSql(): string {
-    return 'HSTORE';
-  }
-}
-
-/**
  * A JSON string column.
  *
  * __Fallback policy:__
@@ -1847,32 +1793,7 @@ export interface RangeOptions {
   subtype?: DataTypeClassOrInstance;
 }
 
-const defaultRangeParser = buildRangeParser(identity);
-
-/**
- * Range types are data types representing a range of values of some element type (called the range's subtype).
- * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
- *
- * __Fallback policy:__
- * If this type is not supported, an error will be raised.
- *
- * @example
- * ```ts
- * // A range of integers
- * DataTypes.RANGE(DataTypes.INTEGER)
- * // A range of bigints
- * DataTypes.RANGE(DataTypes.BIGINT)
- * // A range of decimals
- * DataTypes.RANGE(DataTypes.DECIMAL)
- * // A range of timestamps
- * DataTypes.RANGE(DataTypes.DATE)
- * // A range of dates
- * DataTypes.RANGE(DataTypes.DATEONLY)
- * ```
- *
- * @category DataTypes
- */
-export class RANGE<
+export class AbstractRange<
   T extends BaseNumberDataType | DATE | DATEONLY = INTEGER,
 > extends AbstractDataType<Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>> {
   /** @hidden */
@@ -1918,24 +1839,8 @@ export class RANGE<
     return replacement;
   }
 
-  parseDatabaseValue(value: unknown): unknown {
-    // node-postgres workaround: The SQL Type-based parser is not called by node-postgres for values returned by Model.findOrCreate.
-    if (typeof value === 'string') {
-      value = defaultRangeParser(value);
-    }
-
-    if (!Array.isArray(value)) {
-      throw new Error(
-        `DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`,
-      );
-    }
-
-    return value.map(part => {
-      return {
-        ...part,
-        value: this.options.subtype.parseDatabaseValue(part.value),
-      };
-    });
+  parseDatabaseValue(_value: unknown): unknown {
+    throw new Error('RANGE has not been implemented in this dialect.');
   }
 
   sanitize(value: unknown): unknown {

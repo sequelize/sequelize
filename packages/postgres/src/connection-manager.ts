@@ -1,31 +1,26 @@
-import pick from 'lodash/pick';
-import assert from 'node:assert';
-import type { Client, ClientConfig } from 'pg';
-import type { TypeId, TypeParser } from 'pg-types';
-import semver from 'semver';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   ConnectionError,
   ConnectionRefusedError,
   ConnectionTimedOutError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { Sequelize } from '../../sequelize.js';
-import { isValidTimeZone } from '../../utils/dayjs';
-import { logger } from '../../utils/logger';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { PostgresDialect } from './index.js';
+  Sequelize,
+} from '@sequelize/core';
+import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import pick from 'lodash/pick';
+import assert from 'node:assert';
+import type { ClientConfig } from 'pg';
+import * as Pg from 'pg';
+import type { TypeId, TypeParser } from 'pg-types';
+import { parse as parseArray } from 'postgres-array';
+import semver from 'semver';
+import type { PostgresDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:pg');
-
-// TODO: once the code has been split into packages, we won't need to lazy load pg anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('pg');
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type ArrayParserLib = typeof import('postgres-array');
 
 type TypeFormat = 'text' | 'binary';
 
@@ -39,7 +34,7 @@ interface TypeOids {
   rangeOid?: number;
 }
 
-export interface PgConnection extends Connection, Client {
+export interface PgConnection extends Connection, Pg.Client {
   // custom property we attach to the client
   // TODO: replace with Symbols.
   _invalid?: boolean;
@@ -51,20 +46,17 @@ export interface PgConnection extends Connection, Client {
 }
 
 export class PostgresConnectionManager extends AbstractConnectionManager<PgConnection> {
-  private readonly lib: Lib;
-  readonly #arrayParserLib: ArrayParserLib;
-
-  #oidMap = new Map<number, TypeOids>();
+  readonly #lib: typeof Pg;
+  readonly #oidMap = new Map<number, TypeOids>();
   readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);
 
-    const pgLib = this._loadDialectModule('pg') as Lib;
-    this.lib = this.sequelize.config.native ? pgLib.native! : pgLib;
-    assert(this.lib != null, 'pg-native module not found, please install it');
+    const pgLib = dialect.options.native ? Pg.native : Pg;
+    assert(pgLib != null, 'pg-native module not found, please install it');
 
-    this.#arrayParserLib = this._loadDialectModule('postgres-array') as ArrayParserLib;
+    this.#lib = pgLib;
   }
 
   async connect(config: ConnectionOptions): Promise<PgConnection> {
@@ -116,7 +108,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       },
     };
 
-    const connection: PgConnection = new this.lib.Client(connectionConfig);
+    const connection: PgConnection = new this.#lib.Client(connectionConfig);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -306,13 +298,14 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       results = results.pop();
     }
 
-    const newNameOidMap = new Map<number, TypeOids>();
+    const oidMap = this.#oidMap;
+    oidMap.clear();
 
     for (const row of results.rows) {
       // Mapping base types and their arrays
       // Array types are declared twice, once as part of the same row as the base type, once as their own row.
-      if (!newNameOidMap.has(row.oid)) {
-        newNameOidMap.set(row.oid, {
+      if (!oidMap.has(row.oid)) {
+        oidMap.set(row.oid, {
           oid: row.oid,
           typeName: row.typname,
           type: 'base',
@@ -320,7 +313,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       }
 
       if (row.typarray) {
-        newNameOidMap.set(row.typarray, {
+        oidMap.set(row.typarray, {
           oid: row.typarray,
           typeName: row.typname,
           type: 'array',
@@ -329,7 +322,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       }
 
       if (row.rngtypid) {
-        newNameOidMap.set(row.rngtypid, {
+        oidMap.set(row.rngtypid, {
           oid: row.rngtypid,
           typeName: row.rngtypname,
           type: 'range',
@@ -338,7 +331,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       }
 
       if (row.rngtyparray) {
-        newNameOidMap.set(row.rngtyparray, {
+        oidMap.set(row.rngtyparray, {
           oid: row.rngtyparray,
           typeName: row.rngtypname,
           type: 'range-array',
@@ -347,14 +340,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
         });
       }
     }
-
-    // Replace all OID mappings. Avoids temporary empty OID mappings.
-    this.#oidMap = newNameOidMap;
   }
 
   #buildArrayParser(subTypeParser: (value: string) => unknown): (source: string) => unknown[] {
     return (source: string) => {
-      return this.#arrayParserLib.parse(source, subTypeParser);
+      return parseArray(source, subTypeParser);
     };
   }
 

@@ -55,8 +55,6 @@ export const UUIDV1 = classToInvokable(DataTypes.UUIDV1);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const UUIDV4 = classToInvokable(DataTypes.UUIDV4);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
-export const HSTORE = classToInvokable(DataTypes.HSTORE);
-/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const JSON = classToInvokable(DataTypes.JSON);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const JSONB = classToInvokable(DataTypes.JSONB);
@@ -66,8 +64,6 @@ export const VIRTUAL = classToInvokable(DataTypes.VIRTUAL);
 export const ARRAY = classToInvokable(DataTypes.ARRAY);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const ENUM = classToInvokable(DataTypes.ENUM);
-/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
-export const RANGE = classToInvokable(DataTypes.RANGE);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const REAL = classToInvokable(DataTypes.REAL);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */

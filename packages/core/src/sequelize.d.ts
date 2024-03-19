@@ -171,7 +171,6 @@ export interface Config {
   readonly password: string | null;
   readonly pool: NormalizedPoolOptions;
   readonly protocol: 'tcp';
-  readonly native: boolean;
   readonly ssl: boolean;
   readonly replication: NormalizedReplicationOptions;
   readonly dialectModulePath: null | string;
@@ -345,14 +344,6 @@ export interface Options extends Logging {
    * ```
    */
   models?: ModelStatic[];
-
-  /**
-   * A flag that defines if the native library shall be used or not.
-   * Currently only has an effect for postgres
-   *
-   * @default false
-   */
-  native?: boolean;
 
   /**
    * When representing the JavaScript null primitive in a JSON column, Sequelize can

@@ -5,7 +5,7 @@ import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions } from '../../sequelize';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { DataType } from '../abstract/data-types';
-import type { TableOrModel } from '../abstract/query-generator-typescript';
+import type { TableOrModel } from '../abstract/query-generator.types.js';
 import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,

@@ -1,12 +1,23 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
-import { PostgresConnectionManager } from './connection-manager';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
+import { PostgresConnectionManager } from './connection-manager.js';
 import { registerPostgresDbDataTypeParsers } from './data-types-db.js';
 import * as DataTypes from './data-types.js';
-import { PostgresQuery } from './query';
-import { PostgresQueryGenerator } from './query-generator';
-import { PostgresQueryInterface } from './query-interface';
+import { PostgresQueryGenerator } from './query-generator.js';
+import { PostgresQueryInterface } from './query-interface.js';
+import { PostgresQuery } from './query.js';
+
+export interface PostgresDialectOptions {
+  /**
+   * Defines whether the native library shall be used or not.
+   * If true, you need to have `pg-native` installed.
+   *
+   * @default false
+   */
+  native?: boolean;
+}
 
 export class PostgresDialect extends AbstractDialect {
   static readonly supports = AbstractDialect.extendSupport({
@@ -115,12 +126,14 @@ export class PostgresDialect extends AbstractDialect {
   readonly defaultVersion = '11.0.0';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
+  readonly options: PostgresDialectOptions;
 
-  constructor(sequelize: Sequelize) {
+  constructor(sequelize: Sequelize, options?: PostgresDialectOptions | undefined) {
     super(sequelize, DataTypes, 'postgres');
     this.connectionManager = new PostgresConnectionManager(this);
     this.queryGenerator = new PostgresQueryGenerator(this);
     this.queryInterface = new PostgresQueryInterface(this);
+    this.options = options ? Object.freeze(shallowClonePojo(options)) : EMPTY_OBJECT;
 
     registerPostgresDbDataTypeParsers(this);
   }

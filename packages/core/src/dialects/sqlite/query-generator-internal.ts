@@ -1,5 +1,5 @@
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
+import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
 import type { SqliteDialect } from './index.js';
 
 export class SqliteQueryGeneratorInternal<

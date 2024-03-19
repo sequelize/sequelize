@@ -1,8 +1,8 @@
+import { getDataTypeParser } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import identity from 'lodash/identity';
 import assert from 'node:assert';
 import wkx from 'wkx';
-import { getDataTypeParser } from '../abstract/data-types-utils.js';
-import * as BaseTypes from '../abstract/data-types.js';
 import * as Hstore from './hstore.js';
 import type { PostgresDialect } from './index.js';
 import { buildRangeParser } from './range.js';

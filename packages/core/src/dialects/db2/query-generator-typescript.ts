@@ -5,7 +5,6 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { RemoveIndexQueryOptions, TableOrModel } from '../abstract/query-generator-typescript';
 import {
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
@@ -16,8 +15,10 @@ import type {
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';

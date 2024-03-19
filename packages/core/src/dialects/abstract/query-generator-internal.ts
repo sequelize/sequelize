@@ -14,11 +14,9 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { injectReplacements } from '../../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
 import type { AbstractDialect } from './index.js';
-import type { EscapeOptions, TableOrModel } from './query-generator-typescript.js';
-import type {
-  AddLimitOffsetOptions,
-  GetConstraintSnippetQueryOptions,
-} from './query-generator.types.js';
+import type { EscapeOptions } from './query-generator-typescript.js';
+import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
+import type { GetConstraintSnippetQueryOptions, TableOrModel } from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {

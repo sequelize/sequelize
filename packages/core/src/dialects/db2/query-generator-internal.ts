@@ -1,6 +1,6 @@
 import { formatDb2StyleLimitOffset } from '../../utils/sql.js';
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
+import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
 import type { Db2Dialect } from './index.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze(['ERRORSCHEMA', 'NULLID', 'SQLJ']);

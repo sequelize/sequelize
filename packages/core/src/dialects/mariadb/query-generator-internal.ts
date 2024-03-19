@@ -1,6 +1,6 @@
 import { formatMySqlStyleLimitOffset } from '../../utils/sql.js';
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
+import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
 import type { MariaDbDialect } from './index.js';
 
 const TECHNICAL_SCHEMAS = Object.freeze([

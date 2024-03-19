@@ -21,7 +21,7 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
 import * as DataTypes from './data-types.js';
-import { AbstractDataType } from './data-types.js';
+import { AbstractDataType, AbstractRange } from './data-types.js';
 import type { FormatWhereOptions } from './query-generator-typescript.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
@@ -462,7 +462,7 @@ export class WhereSqlBuilder {
     // - RANGE<VALUE> Op.contains VALUE
     // - ARRAY<VALUE> Op.contains ARRAY<VALUE>
     // When the left operand is a range RANGE, we must be able to serialize the right operand as either a RANGE or a VALUE.
-    if (!rightDataType && leftDataType instanceof DataTypes.RANGE && !Array.isArray(right)) {
+    if (!rightDataType && leftDataType instanceof AbstractRange && !Array.isArray(right)) {
       // This serializes the right operand as a VALUE
       return this.formatBinaryOperation(
         left,
@@ -494,7 +494,7 @@ export class WhereSqlBuilder {
     // This serializes VALUE contained RANGE
     if (
       leftDataType instanceof AbstractDataType &&
-      !(leftDataType instanceof DataTypes.RANGE) &&
+      !(leftDataType instanceof DataTypes.AbstractRange) &&
       !(leftDataType instanceof DataTypes.ARRAY) &&
       Array.isArray(right)
     ) {
@@ -503,7 +503,7 @@ export class WhereSqlBuilder {
         leftDataType,
         operator,
         right,
-        new DataTypes.RANGE(leftDataType).toDialectDataType(this.#dialect),
+        new DataTypes.AbstractRange(leftDataType).toDialectDataType(this.#dialect),
         options,
       );
     }

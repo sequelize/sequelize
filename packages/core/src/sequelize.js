@@ -122,11 +122,6 @@ export class Sequelize extends SequelizeTypeScript {
    *   // - default: false
    *   omitNull: true,
    *
-   *   // a flag for using a native library or not.
-   *   // in the case of 'pg' -- set this to true will allow SSL support
-   *   // - default: false
-   *   native: true,
-   *
    *   // A flag that defines if connection should be over ssl or not
    *   // - default: undefined
    *   ssl: true,
@@ -172,7 +167,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {string}   [options.username=null] The username which is used to authenticate against the database.
    * @param {string}   [options.password=null] The password which is used to authenticate against the database.
    * @param {string}   [options.database=null] The name of the database.
-   * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, postgres, sqlite, db2, mariadb and mssql.
+   * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, sqlite, db2, ibmi, snowflake, mariadb, mssql or a dialect class.
    * @param {string}   [options.dialectModule=null] If specified, use this dialect library. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'require("pg.js")' here
    * @param {string}   [options.dialectModulePath=null] If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify '/path/to/pg.js' here
    * @param {object}   [options.dialectOptions] An object of additional options, which are passed directly to the connection library
@@ -192,7 +187,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
-   * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    * @param {boolean}  [options.ssl=undefined] A flag that defines if connection should be over ssl or not
    * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
@@ -266,7 +260,6 @@ export class Sequelize extends SequelizeTypeScript {
       standardConformingStrings: true,
       logging: console.debug,
       omitNull: false,
-      native: false,
       replication: false,
       ssl: undefined,
       // TODO [>7]: remove this option
@@ -296,6 +289,20 @@ export class Sequelize extends SequelizeTypeScript {
         evict: 1000,
       }),
     };
+
+    if ('native' in options) {
+      throw new Error(`The "native" option is not longer accepted by Sequelize core. You need to pass it to the database adapter you are using instead.
+Example:
+
+import { PostgresAdapter } from '@sequelize/postgres';
+
+const sequelize = new Sequelize({
+  dialect: new PostgresAdapter({
+    native: true,
+  }),
+});
+`);
+    }
 
     // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
     if (!this.options.disableClsTransactions) {
@@ -346,8 +353,9 @@ export class Sequelize extends SequelizeTypeScript {
         Dialect = require('./dialects/mysql').MysqlDialect;
         break;
       case 'postgres':
-        Dialect = require('./dialects/postgres').PostgresDialect;
-        break;
+        throw new Error(
+          'The postgres dialect is no longer bundled with the core Sequelize library. Please install @sequelize/postgres, and set the "dialect" option to the SequelizePostgres class.',
+        );
       case 'sqlite':
         Dialect = require('./dialects/sqlite').SqliteDialect;
         break;
@@ -423,7 +431,6 @@ export class Sequelize extends SequelizeTypeScript {
     this.config = {
       ...connectionConfig,
       pool: this.options.pool,
-      native: this.options.native,
       replication: this.options.replication,
       dialectModule: this.options.dialectModule,
       dialectModulePath: this.options.dialectModulePath,

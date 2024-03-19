@@ -6,11 +6,7 @@ import { buildJsonPath } from '../../utils/json.js';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type {
-  EscapeOptions,
-  RemoveIndexQueryOptions,
-  TableOrModel,
-} from '../abstract/query-generator-typescript';
+import type { EscapeOptions } from '../abstract/query-generator-typescript';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
@@ -22,8 +18,10 @@ import type {
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
@@ -126,7 +124,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
       `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND t.TABLE_SCHEMA = ${this.escape(table.schema!)}`,
+      `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}`,
     ]);
   }
 
@@ -165,7 +163,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
         );
       }
 
-      return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema!)} TRANSFER ${this.quoteTable(beforeTableName)}`;
+      return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema)} TRANSFER ${this.quoteTable(beforeTableName)}`;
     }
 
     return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;

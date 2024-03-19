@@ -1,0 +1,37 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "Postgres Connector for Sequelize",
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    }
+  },
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/postgres",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "../../build-packages.mjs validator-js",
+    "test": "concurrently \"npm:test-*\"",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js"
+  },
+  "type": "commonjs",
+  "version": "0.0.0-development",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "@sequelize/utils": "workspace:*",
+    "@types/pg": "8.11.2",
+    "lodash": "4.17.21",
+    "pg": "8.11.3",
+    "pg-hstore": "2.3.4",
+    "postgres-array": "3.0.2",
+    "semver": "7.6.0",
+    "wkx": "0.5.0"
+  }
+}

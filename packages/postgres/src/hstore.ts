@@ -1,4 +1,7 @@
-const hstore = require('pg-hstore')({ sanitize: true });
+// @ts-expect-error -- TODO: fork pg-hstore and add types
+import PgHstore from 'pg-hstore';
+
+const hstore = PgHstore({ sanitize: true });
 
 type HstoreValue = boolean | number | string;
 

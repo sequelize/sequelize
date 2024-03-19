@@ -1,4 +1,4 @@
-import type { PostgresDialect } from './index.js';
+import type { PostgresDialect } from './dialect.js';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
 
 export class PostgresQueryInterface<

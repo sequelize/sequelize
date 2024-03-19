@@ -1,8 +1,8 @@
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../dialects/abstract/index.js';
 import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import type { AddLimitOffsetOptions } from '../dialects/abstract/query-generator.internal-types.js';
 import type { AbstractQueryGenerator } from '../dialects/abstract/query-generator.js';
-import type { AddLimitOffsetOptions } from '../dialects/abstract/query-generator.types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { BindOrReplacements } from '../sequelize.js';
 

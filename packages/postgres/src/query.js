@@ -1,5 +1,17 @@
 'use strict';
 
+import {
+  AbstractQuery,
+  DatabaseError,
+  EmptyResultError,
+  ExclusionConstraintError,
+  ForeignKeyConstraintError,
+  QueryTypes,
+  UniqueConstraintError,
+  UnknownConstraintError,
+  ValidationErrorItem,
+} from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import escapeRegExp from 'lodash/escapeRegExp';
 import forOwn from 'lodash/forOwn';
 import isEmpty from 'lodash/isEmpty';
@@ -7,11 +19,6 @@ import isEqual from 'lodash/isEqual';
 import mapKeys from 'lodash/mapKeys';
 import toPairs from 'lodash/toPairs';
 import zipObject from 'lodash/zipObject';
-
-const { AbstractQuery } = require('../abstract/query');
-const { QueryTypes } = require('../../query-types');
-const sequelizeErrors = require('../../errors');
-const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:pg');
 
@@ -277,7 +284,7 @@ export class PostgresQuery extends AbstractQuery {
         // If we are creating an instance, and we get no rows, the create failed but did not throw.
         // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
         if (this.isInsertQuery() && !this.isUpsertQuery() && rowCount === 0) {
-          throw new sequelizeErrors.EmptyResultError();
+          throw new EmptyResultError();
         }
 
         if (rows[0]) {
@@ -342,7 +349,7 @@ export class PostgresQuery extends AbstractQuery {
         table = errMessage.match(/on table "(.+?)"/);
         table = table ? table[1] : undefined;
 
-        return new sequelizeErrors.ForeignKeyConstraintError({
+        return new ForeignKeyConstraintError({
           message: errMessage,
           fields: null,
           index,
@@ -359,9 +366,9 @@ export class PostgresQuery extends AbstractQuery {
 
           forOwn(fields, (value, field) => {
             errors.push(
-              new sequelizeErrors.ValidationErrorItem(
+              new ValidationErrorItem(
                 this.getUniqueConstraintErrorMessage(field),
-                'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+                'unique violation', // ValidationErrorItem.Origins.DB,
                 field,
                 value,
                 this.instance,
@@ -379,10 +386,10 @@ export class PostgresQuery extends AbstractQuery {
             }
           }
 
-          return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+          return new UniqueConstraintError({ message, errors, cause: err, fields });
         }
 
-        return new sequelizeErrors.UniqueConstraintError({
+        return new UniqueConstraintError({
           message: errMessage,
           cause: err,
         });
@@ -396,7 +403,7 @@ export class PostgresQuery extends AbstractQuery {
 
         message = 'Exclusion constraint error';
 
-        return new sequelizeErrors.ExclusionConstraintError({
+        return new ExclusionConstraintError({
           message,
           constraint: err.constraint,
           fields,
@@ -412,7 +419,7 @@ export class PostgresQuery extends AbstractQuery {
           table = errMessage.match(/relation "(.+?)"/i);
           table = table ? table[1] : undefined;
 
-          throw new sequelizeErrors.UnknownConstraintError({
+          throw new UnknownConstraintError({
             message,
             constraint: index,
             fields,
@@ -423,7 +430,7 @@ export class PostgresQuery extends AbstractQuery {
 
       // falls through
       default:
-        return new sequelizeErrors.DatabaseError(err);
+        return new DatabaseError(err);
     }
   }
 

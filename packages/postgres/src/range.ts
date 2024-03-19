@@ -1,6 +1,6 @@
+import type { InputRangePart, Rangable, Range, RangePart } from '@sequelize/core';
 import isPlainObject from 'lodash/isPlainObject';
 import NodeUtil from 'node:util';
-import type { InputRangePart, Rangable, Range, RangePart } from '../../model.js';
 
 function stringifyRangeBound<T extends {}>(
   bound: T | number | null,

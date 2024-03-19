@@ -3,7 +3,6 @@ import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { EMPTY_SET } from '../../utils/object.js';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type { TableOrModel } from '../abstract/query-generator-typescript';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
@@ -18,6 +17,7 @@ import type {
   ListTablesQueryOptions,
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { SnowflakeDialect } from './index.js';

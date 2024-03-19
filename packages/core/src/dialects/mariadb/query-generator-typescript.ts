@@ -6,11 +6,7 @@ import { buildJsonPath } from '../../utils/json.js';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type {
-  EscapeOptions,
-  RemoveIndexQueryOptions,
-  TableOrModel,
-} from '../abstract/query-generator-typescript';
+import type { EscapeOptions } from '../abstract/query-generator-typescript';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -18,7 +14,9 @@ import {
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types.js';
 import type { MariaDbDialect } from './index.js';
