@@ -29,7 +29,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.38",
   "publishConfig": {
     "access": "public"
   },
