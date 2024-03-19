@@ -39,6 +39,9 @@ export class SqliteDialect extends AbstractDialect {
       COLLATE_BINARY: true,
       CITEXT: true,
       DECIMAL: false,
+      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
+      // issue: https://github.com/TryGhost/node-sqlite3/issues/922
+      BIGINT: false,
       JSON: true,
     },
     // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
