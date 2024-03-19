@@ -34,7 +34,7 @@ interface TypeOids {
   rangeOid?: number;
 }
 
-export interface PgConnection extends Connection, Pg.Client {
+export interface PostgresConnection extends Connection, Pg.Client {
   // custom property we attach to the client
   // TODO: replace with Symbols.
   _invalid?: boolean;
@@ -45,7 +45,10 @@ export interface PgConnection extends Connection, Pg.Client {
   _ending?: boolean;
 }
 
-export class PostgresConnectionManager extends AbstractConnectionManager<PgConnection> {
+export class PostgresConnectionManager extends AbstractConnectionManager<
+  PostgresDialect,
+  PostgresConnection
+> {
   readonly #lib: typeof Pg;
   readonly #oidMap = new Map<number, TypeOids>();
   readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
@@ -59,7 +62,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     this.#lib = pgLib;
   }
 
-  async connect(config: ConnectionOptions): Promise<PgConnection> {
+  async connect(config: ConnectionOptions): Promise<PostgresConnection> {
     const port = Number(config.port ?? this.dialect.getDefaultPort());
 
     // @ts-expect-error -- "dialectOptions.options" must be a string in PG, but a Record in MSSQL. We'll fix the typings when we split the dialects into their own modules.
@@ -108,7 +111,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       },
     };
 
-    const connection: PgConnection = new this.#lib.Client(connectionConfig);
+    const connection: PostgresConnection = new this.#lib.Client(connectionConfig);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -143,7 +146,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       // node-postgres does not treat this as an error since no active query was ever emitted
       connection.once('end', endHandler);
 
-      if (!this.sequelize.config.native) {
+      if (!this.dialect.options.native) {
         // Receive various server parameters for further configuration
         // @ts-expect-error -- undeclared type
         connection.connection.on('parameterStatus', parameterHandler);
@@ -152,7 +155,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
       connection.connect(err => {
         responded = true;
 
-        if (!this.sequelize.config.native) {
+        if (!this.dialect.options.native) {
           // remove parameter handler
           // @ts-expect-error -- undeclared type
           connection.connection.removeListener('parameterStatus', parameterHandler);
@@ -248,7 +251,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     return connection;
   }
 
-  async disconnect(connection: PgConnection): Promise<void> {
+  async disconnect(connection: PostgresConnection): Promise<void> {
     if (connection._ending) {
       debug('connection tried to disconnect but was already at ENDING state');
 
@@ -258,11 +261,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<PgConne
     await connection.end();
   }
 
-  validate(connection: PgConnection) {
+  validate(connection: PostgresConnection) {
     return !connection._invalid && !connection._ending;
   }
 
-  async #refreshOidMap(connection: PgConnection | Sequelize): Promise<void> {
+  async #refreshOidMap(connection: PostgresConnection | Sequelize): Promise<void> {
     const sql = `
       WITH ranges AS (SELECT pg_range.rngtypid,
                              pg_type.typname  AS rngtypname,

@@ -1,5 +1,6 @@
-import type { Dialect, Options } from '@sequelize/core';
+import type { AbstractAdapter, Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { PostgresAdapter } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -16,7 +17,10 @@ import { Config } from './config/config';
 
 const expect = chai.expect;
 
-const distDir = path.resolve(__dirname, '../lib');
+const distDir = path.resolve(__dirname, '..', 'lib');
+const packagesDir = path.resolve(__dirname, '..', '..');
+
+const NON_DIALECT_PACKAGES = Object.freeze(['utils', 'validator-js', 'core']);
 
 chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
@@ -122,14 +126,16 @@ export async function nextUnhandledRejection() {
 }
 
 export function createSequelizeInstance(options: Options = {}): Sequelize {
-  options.dialect = getTestDialect();
+  const dialect = getTestDialect();
 
-  const config = Config[options.dialect];
+  const config = Config[dialect];
 
   const sequelizeOptions = defaults(options, {
+    database: config.database,
+    username: config.username,
+    password: config.password,
     host: options.host || config.host,
     logging: process.env.SEQ_LOG ? console.debug : false,
-    dialect: options.dialect,
     port: options.port || process.env.SEQ_PORT || config.port,
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
@@ -138,20 +144,11 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     disableClsTransactions: true,
   });
 
-  if (process.env.DIALECT === 'postgres-native') {
-    sequelizeOptions.native = true;
-  }
-
   if (config.storage || config.storage === '') {
     sequelizeOptions.storage = config.storage;
   }
 
-  return getSequelizeInstance(
-    config.database!,
-    config.username!,
-    config.password!,
-    sequelizeOptions,
-  );
+  return getSequelizeInstance(sequelizeOptions);
 }
 
 export function getConnectionOptionsWithoutPool() {
@@ -162,22 +159,32 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(
-  db: string,
-  user: string,
-  pass: string,
-  options?: Options,
-): Sequelize {
-  options ||= {};
-  options.dialect = options.dialect || getTestDialect();
+function getTestDialectAdapter(): Dialect | AbstractAdapter {
+  const dialect = getTestDialect();
 
-  return new Sequelize(db, user, pass, options);
+  if (dialect === 'postgres') {
+    return new PostgresAdapter({
+      native: process.env.DIALECT === 'postgres-native',
+    });
+  }
+
+  return dialect;
+}
+
+export function getSequelizeInstance(options?: Options): Sequelize {
+  options ??= {};
+  options.dialect ??= options.dialect || getTestDialectAdapter();
+
+  return new Sequelize(options);
 }
 
 export function getSupportedDialects() {
-  return fs
-    .readdirSync(path.join(distDir, 'dialects'))
-    .filter(file => !file.includes('.js') && !file.includes('abstract'));
+  return [
+    ...fs
+      .readdirSync(path.join(distDir, 'dialects'))
+      .filter(file => !file.includes('.js') && !file.includes('abstract')),
+    ...fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file)),
+  ];
 }
 
 export function getTestDialect(): Dialect {

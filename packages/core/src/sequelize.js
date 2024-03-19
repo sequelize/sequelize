@@ -13,7 +13,12 @@ import { HasOneAssociation } from './associations/has-one';
 import { Association } from './associations/index';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
+import { AbstractAdapter } from './dialects/abstract/abstract-adapter.js';
+import { AbstractConnectionManager } from './dialects/abstract/connection-manager.js';
+import { AbstractDialect } from './dialects/abstract/index.js';
+import { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 import { AbstractQueryInterface } from './dialects/abstract/query-interface';
+import { AbstractQuery } from './dialects/abstract/query.js';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
@@ -339,6 +344,7 @@ const sequelize = new Sequelize({
     //  REPLICATION CONFIG NORMALIZATION
     // ==========================================
 
+    // TODO: add `this.options.adapter`. If `dialect` is provided, throw an error explaining how to use `adapter` instead.
     let Dialect;
     // Requiring the dialect in a switch-case to keep the
     // require calls static. (Browserify fix)
@@ -374,6 +380,7 @@ const sequelize = new Sequelize({
         );
     }
 
+    // TODO: credential resolution should be done in the dialect itself
     if (!this.options.port) {
       this.options.port = Dialect.getDefaultPort();
     } else {
@@ -1258,6 +1265,12 @@ Sequelize.useInflection = useInflection;
 
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
+
+Sequelize.AbstractConnectionManager = AbstractConnectionManager;
+Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
+Sequelize.AbstractQuery = AbstractQuery;
+Sequelize.AbstractDialect = AbstractDialect;
+Sequelize.AbstractAdapter = AbstractAdapter;
 
 /**
  * Expose various errors available

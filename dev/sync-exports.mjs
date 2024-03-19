@@ -1,15 +1,27 @@
 #!/usr/bin/env node
 
-import { EMPTY_OBJECT, arrayFromAsync, parallelForEach, pojo } from '@sequelize/utils';
-import { listDirectories, listFilesRecursive, readFileIfExists } from '@sequelize/utils/node.js';
 import isEqual from 'lodash/isEqual.js';
 import fs from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
+
+const require = createRequire(import.meta.url);
+
+// eslint-disable-next-line import/no-commonjs -- @sequelize/utils is not ESM yet
+const { arrayFromAsync, EMPTY_OBJECT, parallelForEach, pojo } = require('@sequelize/utils');
+
+// eslint-disable-next-line import/no-commonjs -- @sequelize/utils is not ESM yet
+const { listDirectories, listFilesRecursive, readFileIfExists } = require('@sequelize/utils/node');
 
 /**
  * does not modify the contents of the file but exits with code 1 if outdated, 0 if not
  */
 const checkOutdated = process.argv.includes('--check-outdated');
+
+/**
+ * The package contains multiple individual exports that each need their own index file
+ */
+const multipleEntryPoints = process.argv.includes('--multi-entry-points');
 
 const requestedSrcDir = process.argv[2];
 if (!requestedSrcDir) {
@@ -22,14 +34,14 @@ console.info(
   `${checkOutdated ? 'Testing synchronization of' : 'Synchronizing'} exports of folder ${srcDir}`,
 );
 
-const folders = await listDirectories(srcDir);
+const folders = multipleEntryPoints
+  ? await listDirectories(srcDir).map(folder => path.join(srcDir, folder))
+  : [srcDir];
 
 const outdatedPaths = [];
 
 await parallelForEach(folders, async folder => {
-  const folderAbsolutePath = path.join(srcDir, folder);
-
-  const files = await arrayFromAsync(listFilesRecursive(folderAbsolutePath));
+  const files = await arrayFromAsync(listFilesRecursive(folder));
 
   const commonExports = [];
 
@@ -41,7 +53,7 @@ await parallelForEach(folders, async folder => {
 
   files
     .map(file => {
-      return path.relative(folderAbsolutePath, file).replace(/\.ts$/, '.js');
+      return path.relative(folder, file).replace(/\.ts$/, '.js');
     })
     .filter(pathname => {
       return (
@@ -49,7 +61,9 @@ await parallelForEach(folders, async folder => {
         !pathname.startsWith('.DS_Store') &&
         !pathname.endsWith('.spec.ts') &&
         !pathname.includes('__tests__/') &&
-        !pathname.includes('_internal/')
+        !pathname.includes('_internal/') &&
+        !pathname.includes('.internal') &&
+        !pathname.endsWith('.d.js')
       );
     })
     // eslint-disable-next-line unicorn/no-array-for-each -- clearer like this, perf doesn't matter
@@ -68,13 +82,13 @@ await parallelForEach(folders, async folder => {
   const nodeExports = getExportsWithOverrides(commonExports, nodeExportOverrides);
 
   const promises = [];
-  promises.push(outputExports(baseExports, path.join(folderAbsolutePath, 'index.ts')));
+  promises.push(outputExports(baseExports, path.join(folder, 'index.ts')));
   if (!isEqual(browserExports, baseExports)) {
-    promises.push(outputExports(browserExports, path.join(folderAbsolutePath, 'index.browser.ts')));
+    promises.push(outputExports(browserExports, path.join(folder, 'index.browser.ts')));
   }
 
   if (!isEqual(nodeExports, baseExports)) {
-    promises.push(outputExports(nodeExports, path.join(folderAbsolutePath, 'index.node.ts')));
+    promises.push(outputExports(nodeExports, path.join(folder, 'index.node.ts')));
   }
 
   await Promise.all(promises);

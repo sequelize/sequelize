@@ -471,7 +471,7 @@ export abstract class AbstractDialect {
   abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly queryInterface: AbstractQueryInterface;
-  abstract readonly connectionManager: AbstractConnectionManager<any>;
+  abstract readonly connectionManager: AbstractConnectionManager<any, any>;
   abstract readonly dataTypesDocumentationUrl: string;
 
   readonly name: Dialect;

@@ -1,7 +1,7 @@
 'use strict';
 
 import { DataTypes, QueryTypes } from '@sequelize/core';
-import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.js';
+import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.internal.js';
 
 /**
  * The interface that Sequelize uses to talk with Postgres database

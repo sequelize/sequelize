@@ -1,6 +1,6 @@
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
 import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 
 const TECHNICAL_DATABASE_NAMES = Object.freeze(['master', 'model', 'msdb', 'tempdb']);
 
@@ -19,7 +19,7 @@ const TECHNICAL_SCHEMA_NAMES = Object.freeze([
 ]);
 
 export class MsSqlQueryGeneratorInternal<
-  Dialect extends MssqlDialect = MssqlDialect,
+  Dialect extends MsSqlDialect = MsSqlDialect,
 > extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalDatabaseNames() {
     return TECHNICAL_DATABASE_NAMES;

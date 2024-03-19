@@ -1,6 +1,7 @@
 import type { RequiredBy } from '@sequelize/utils';
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type {
+  AbstractAdapter,
   DataTypes,
   IsolationLevel,
   Op,
@@ -187,7 +188,7 @@ export interface Options extends Logging {
    *
    * @default 'mysql'
    */
-  dialect?: Dialect;
+  dialect?: Dialect | AbstractAdapter;
 
   /**
    * If specified, will use the provided module as the dialect.

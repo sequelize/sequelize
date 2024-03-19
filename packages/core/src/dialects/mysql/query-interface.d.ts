@@ -1,6 +1,6 @@
 import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { MysqlDialect } from './index.js';
+import type { MySqlDialect } from './index.js';
 
 export class MySqlQueryInterface<
-  Dialect extends MysqlDialect = MysqlDialect,
+  Dialect extends MySqlDialect = MySqlDialect,
 > extends AbstractQueryInterface<Dialect> {}

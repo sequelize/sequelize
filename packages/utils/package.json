@@ -26,8 +26,8 @@
     "build": "../../build-packages.mjs utils",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js",
-    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
-    "sync-exports": "../../dev/sync-exports.mjs ./src"
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated --multi-entry-points",
+    "sync-exports": "../../dev/sync-exports.mjs ./src --multi-entry-points"
   },
   "type": "commonjs",
   "version": "7.0.0-alpha.38",

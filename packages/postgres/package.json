@@ -7,16 +7,20 @@
       "default": "./lib/index.js"
     }
   },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
   "name": "@sequelize/postgres",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "../../build-packages.mjs validator-js",
+    "build": "../../build-packages.mjs postgres",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
-    "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js"
+    "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
   "version": "0.0.0-development",

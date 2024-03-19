@@ -10,7 +10,7 @@ import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/di
 import { isString } from '@sequelize/utils';
 import assert from 'node:assert';
 import wkx from 'wkx';
-import { PostgresQueryGenerator } from './query-generator';
+import { PostgresQueryGenerator } from '../query-generator';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,

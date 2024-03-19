@@ -14,6 +14,7 @@
 export * from './associations/index.js';
 export * as DataTypes from './data-types.js';
 export { ConstraintChecking, Deferrable } from './deferrable.js';
+export * from './dialects/abstract/abstract-adapter.js';
 export * from './dialects/abstract/connection-manager.js';
 export type {
   ArrayOptions,

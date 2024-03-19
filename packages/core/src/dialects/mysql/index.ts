@@ -14,7 +14,7 @@ const numericOptions: SupportableNumericOptions = {
   unsigned: true,
 };
 
-export class MysqlDialect extends AbstractDialect {
+export class MySqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,

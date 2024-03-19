@@ -3,8 +3,8 @@ import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/di
 import identity from 'lodash/identity';
 import assert from 'node:assert';
 import wkx from 'wkx';
+import type { PostgresDialect } from '../dialect.js';
 import * as Hstore from './hstore.js';
-import type { PostgresDialect } from './index.js';
 import { buildRangeParser } from './range.js';
 
 /**

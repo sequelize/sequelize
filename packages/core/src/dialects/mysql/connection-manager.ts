@@ -21,7 +21,7 @@ import type { ConnectionOptions } from '../../sequelize.js';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { AbstractDialect } from '../abstract/index.js';
+import type { MySqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mysql');
 
@@ -42,10 +42,13 @@ export interface MySqlConnection extends Connection, AbstractConnection {}
  *
  * @private
  */
-export class MySqlConnectionManager extends AbstractConnectionManager<MySqlConnection> {
+export class MySqlConnectionManager extends AbstractConnectionManager<
+  MySqlDialect,
+  MySqlConnection
+> {
   private readonly lib: Lib;
 
-  constructor(dialect: AbstractDialect) {
+  constructor(dialect: MySqlDialect) {
     super(dialect);
     this.lib = this._loadDialectModule('mysql2') as Lib;
   }

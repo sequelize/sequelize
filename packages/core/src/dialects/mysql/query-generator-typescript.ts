@@ -19,7 +19,7 @@ import type {
   TableOrModel,
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
-import type { MysqlDialect } from './index.js';
+import type { MySqlDialect } from './index.js';
 import { MySqlQueryGeneratorInternal } from './query-generator-internal.js';
 
 /**
@@ -29,7 +29,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: MySqlQueryGeneratorInternal;
 
   constructor(
-    dialect: MysqlDialect,
+    dialect: MySqlDialect,
     internals: MySqlQueryGeneratorInternal = new MySqlQueryGeneratorInternal(dialect),
   ) {
     super(dialect, internals);

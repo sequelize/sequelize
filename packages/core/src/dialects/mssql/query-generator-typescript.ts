@@ -25,7 +25,7 @@ import type {
   TruncateTableQueryOptions,
 } from '../abstract/query-generator.types';
 import type { ConstraintType } from '../abstract/query-interface.types';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 import { MsSqlQueryGeneratorInternal } from './query-generator-internal.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
@@ -40,7 +40,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: MsSqlQueryGeneratorInternal;
 
   constructor(
-    dialect: MssqlDialect,
+    dialect: MsSqlDialect,
     internals: MsSqlQueryGeneratorInternal = new MsSqlQueryGeneratorInternal(dialect),
   ) {
     super(dialect, internals);

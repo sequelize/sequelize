@@ -63,7 +63,6 @@
     "inflection": "^3.0.0",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
-    "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
@@ -74,6 +73,7 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
+    "@sequelize/postgres": "workspace:*",
     "@types/chai": "4.3.13",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",

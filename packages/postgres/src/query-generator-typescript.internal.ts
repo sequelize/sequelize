@@ -18,7 +18,7 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
-import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+import { PostgresQueryGeneratorInternal } from './query-generator.internal.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'collate',
