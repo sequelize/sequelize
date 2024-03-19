@@ -11,7 +11,7 @@
       "types": "./lib/common/index.d.ts",
       "default": "./lib/common/index.js"
     },
-    "./node.js": {
+    "./node": {
       "node": "./lib/node/index.js",
       "types": "./lib/node/index.d.ts"
     }
