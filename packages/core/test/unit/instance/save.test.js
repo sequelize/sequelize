@@ -35,7 +35,7 @@ describe('Model#save', () => {
     it('should allow saves even if options are not given', () => {
       const User = sequelize.define('User', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },
