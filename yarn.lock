@@ -2226,7 +2226,7 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
@@ -2310,7 +2310,7 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:20.1.1"
     "@rushstack/eslint-patch": "npm:1.8.0"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
     "@types/node": "npm:20.11.30"
@@ -2347,7 +2347,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
@@ -2363,7 +2363,7 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
@@ -3258,10 +3258,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*, @types/chai@npm:4.3.13":
-  version: 4.3.13
-  resolution: "@types/chai@npm:4.3.13"
-  checksum: 10c0/34a8514c4fabe8f743c506481a90269ed761ddab6bf89bd88f122061e6797bf52e7e1e23812ebbd1eda6100b128667c5c3ec9ed1f198688202ddf433d2a8f7ff
+"@types/chai@npm:*, @types/chai@npm:4.3.14":
+  version: 4.3.14
+  resolution: "@types/chai@npm:4.3.14"
+  checksum: 10c0/7712594c1e457cb99c7227d0fe1afcbb900bbd1369494ec2d2b0d79a383057a09ab13d23d7b300287394b99995a8c017aa55e6b9a369b77910bc10310ba504af
   languageName: node
   linkType: hard
 
