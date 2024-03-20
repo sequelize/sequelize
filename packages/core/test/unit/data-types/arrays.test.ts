@@ -1,4 +1,5 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { PostgresDataTypes } from '@sequelize/postgres';
 import { expect } from 'chai';
 import { allowDeprecationsInSuite, expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
@@ -27,7 +28,7 @@ describe('DataTypes.ARRAY', () => {
     postgres: 'INTEGER[]',
   });
 
-  testDataTypeSql('ARRAY(HSTORE)', DataTypes.ARRAY(DataTypes.HSTORE), {
+  testDataTypeSql('ARRAY(HSTORE)', DataTypes.ARRAY(PostgresDataTypes.HSTORE), {
     default: unsupportedError,
     postgres: 'HSTORE[]',
   });

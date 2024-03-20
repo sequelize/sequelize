@@ -5,6 +5,7 @@ import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import pick from 'lodash/pick';
 import retry from 'retry-as-promised';
 import { BelongsToAssociation } from './associations/belongs-to';
 import { BelongsToManyAssociation } from './associations/belongs-to-many';
@@ -13,7 +14,6 @@ import { HasOneAssociation } from './associations/has-one';
 import { Association } from './associations/index';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
-import { AbstractAdapter } from './dialects/abstract/abstract-adapter.js';
 import { AbstractConnectionManager } from './dialects/abstract/connection-manager.js';
 import { AbstractDialect } from './dialects/abstract/index.js';
 import { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
@@ -43,6 +43,7 @@ import { setTransactionFromCls } from './model-internals.js';
 import { Op } from './operators';
 import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
+import { importDialect } from './sequelize.internals.js';
 import { TableHints } from './table-hints';
 import {
   COMPLETES_TRANSACTION,
@@ -295,31 +296,9 @@ export class Sequelize extends SequelizeTypeScript {
       }),
     };
 
-    if ('native' in options) {
-      throw new Error(`The "native" option is not longer accepted by Sequelize core. You need to pass it to the database adapter you are using instead.
-Example:
-
-import { PostgresAdapter } from '@sequelize/postgres';
-
-const sequelize = new Sequelize({
-  dialect: new PostgresAdapter({
-    native: true,
-  }),
-});
-`);
-    }
-
     // TODO: remove & assign property directly once this constructor has been migrated to the SequelizeTypeScript class
     if (!this.options.disableClsTransactions) {
       this._setupTransactionCls();
-    }
-
-    if (!this.options.dialect) {
-      throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
-    }
-
-    if (this.options.dialect === 'postgresql') {
-      this.options.dialect = 'postgres';
     }
 
     //     if (this.options.define.hooks) {
@@ -344,45 +323,17 @@ const sequelize = new Sequelize({
     //  REPLICATION CONFIG NORMALIZATION
     // ==========================================
 
-    // TODO: add `this.options.adapter`. If `dialect` is provided, throw an error explaining how to use `adapter` instead.
-    let Dialect;
-    // Requiring the dialect in a switch-case to keep the
-    // require calls static. (Browserify fix)
-    switch (this.options.dialect) {
-      case 'mariadb':
-        Dialect = require('./dialects/mariadb').MariaDbDialect;
-        break;
-      case 'mssql':
-        Dialect = require('./dialects/mssql').MsSqlDialect;
-        break;
-      case 'mysql':
-        Dialect = require('./dialects/mysql').MySqlDialect;
-        break;
-      case 'postgres':
-        throw new Error(
-          'The postgres dialect is no longer bundled with the core Sequelize library. Please install @sequelize/postgres, and set the "dialect" option to the SequelizePostgres class.',
-        );
-      case 'sqlite':
-        Dialect = require('./dialects/sqlite').SqliteDialect;
-        break;
-      case 'ibmi':
-        Dialect = require('./dialects/ibmi').IBMiDialect;
-        break;
-      case 'db2':
-        Dialect = require('./dialects/db2').Db2Dialect;
-        break;
-      case 'snowflake':
-        Dialect = require('./dialects/snowflake').SnowflakeDialect;
-        break;
-      default:
-        throw new Error(
-          `The dialect ${this.options.dialect} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,
-        );
+    if (!this.options.dialect) {
+      throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
     }
+
+    const DialectClass = isString(this.options.dialect)
+      ? importDialect(this.options.dialect)
+      : this.options.dialect;
 
     // TODO: credential resolution should be done in the dialect itself
     if (!this.options.port) {
-      this.options.port = Dialect.getDefaultPort();
+      this.options.port = DialectClass.getDefaultPort();
     } else {
       this.options.port = Number(this.options.port);
     }
@@ -444,7 +395,13 @@ const sequelize = new Sequelize({
       keepDefaultTimezone: this.options.keepDefaultTimezone,
     };
 
-    this.dialect = new Dialect(this);
+    // TODO: remove dialect options from this.options
+    // TODO: throw if any provided option is neither a dialect option nor a sequelize option
+    const dialectOptionNames = DialectClass.getSupportedOptions();
+    const pickedDialectOptions = pick(this.options, dialectOptionNames);
+
+    this.dialect = new DialectClass(this, pickedDialectOptions);
+
     if ('typeValidation' in options) {
       throw new Error(
         'The typeValidation has been renamed to noTypeValidation, and is false by default',
@@ -1270,7 +1227,6 @@ Sequelize.AbstractConnectionManager = AbstractConnectionManager;
 Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
 Sequelize.AbstractQuery = AbstractQuery;
 Sequelize.AbstractDialect = AbstractDialect;
-Sequelize.AbstractAdapter = AbstractAdapter;
 
 /**
  * Expose various errors available

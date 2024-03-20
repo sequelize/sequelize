@@ -1,6 +1,6 @@
-import type { AbstractAdapter, Dialect, Options } from '@sequelize/core';
+import type { AbstractDialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { PostgresAdapter } from '@sequelize/postgres';
+import { PostgresDialect } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
+import type { DialectName } from '../src/index.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;
@@ -125,7 +126,7 @@ export async function nextUnhandledRejection() {
   });
 }
 
-export function createSequelizeInstance(options: Options = {}): Sequelize {
+export function createSequelizeInstance(options: Options<AbstractDialect> = {}): Sequelize {
   const dialect = getTestDialect();
 
   const config = Config[dialect];
@@ -142,10 +143,19 @@ export function createSequelizeInstance(options: Options = {}): Sequelize {
     minifyAliases: options.minifyAliases || config.minifyAliases,
     // the test suite was written before CLS was turned on by default.
     disableClsTransactions: true,
-  });
+  } as const);
 
   if (config.storage || config.storage === '') {
     sequelizeOptions.storage = config.storage;
+  }
+
+  if (dialect === 'postgres') {
+    const sequelizePostgresOptions: Options<PostgresDialect> = {
+      dialect: PostgresDialect,
+      native: process.env.DIALECT === 'postgres-native',
+    };
+
+    return getSequelizeInstance(sequelizePostgresOptions);
   }
 
   return getSequelizeInstance(sequelizeOptions);
@@ -157,18 +167,6 @@ export function getConnectionOptionsWithoutPool() {
   delete config.pool;
 
   return config;
-}
-
-function getTestDialectAdapter(): Dialect | AbstractAdapter {
-  const dialect = getTestDialect();
-
-  if (dialect === 'postgres') {
-    return new PostgresAdapter({
-      native: process.env.DIALECT === 'postgres-native',
-    });
-  }
-
-  return dialect;
 }
 
 export function getSequelizeInstance(options?: Options): Sequelize {
@@ -187,7 +185,7 @@ export function getSupportedDialects() {
   ];
 }
 
-export function getTestDialect(): Dialect {
+export function getTestDialect(): DialectName {
   let envDialect = process.env.DIALECT || '';
 
   if (envDialect === 'postgres-native') {
@@ -202,7 +200,7 @@ export function getTestDialect(): Dialect {
     );
   }
 
-  return envDialect as Dialect;
+  return envDialect as DialectName;
 }
 
 export function getTestDialectTeaser(moduleName: string): string {

@@ -16,11 +16,7 @@ import type {
 } from '.';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type {
-  AbstractConnectionManager,
-  Connection,
-  GetConnectionOptions,
-} from './dialects/abstract/connection-manager.js';
+import type { Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
 import { normalizeDataType, validateDataType } from './dialects/abstract/data-types-utils.js';
 import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
@@ -115,7 +111,7 @@ export interface StaticSequelizeHooks {
   /**
    * A hook that is run at the beginning of the creation of a Sequelize instance.
    */
-  beforeInit(options: Options): void;
+  beforeInit(options: Options<AbstractDialect>): void;
 
   /**
    * A hook that is run at the end of the creation of a Sequelize instance.
@@ -188,10 +184,10 @@ export const SUPPORTED_DIALECTS = Object.freeze([
  * This is a temporary class used to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
  * Always use {@link Sequelize} instead.
  */
-export abstract class SequelizeTypeScript {
+export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   // created by the Sequelize subclass. Will eventually be migrated here.
-  abstract readonly dialect: AbstractDialect;
-  declare readonly options: NormalizedOptions;
+  abstract readonly dialect: Dialect;
+  declare readonly options: NormalizedOptions<Dialect>;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
@@ -290,18 +286,18 @@ export abstract class SequelizeTypeScript {
   /**
    * The QueryInterface instance, dialect dependant.
    */
-  get queryInterface() {
+  get queryInterface(): Dialect['queryInterface'] {
     return this.dialect.queryInterface;
   }
 
   /**
    * The QueryGenerator instance, dialect dependant.
    */
-  get queryGenerator() {
+  get queryGenerator(): Dialect['queryGenerator'] {
     return this.dialect.queryGenerator;
   }
 
-  get connectionManager(): AbstractConnectionManager {
+  get connectionManager(): Dialect['connectionManager'] {
     return this.dialect.connectionManager;
   }
 

@@ -16,7 +16,7 @@ import type {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import {
   AbstractRange,
-  kDataTypeIdentifier,
+  DataTypeIdentifier,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import { isBigInt, isNumber, isPlainObject, isString } from '@sequelize/utils';
 import identity from 'lodash/identity.js';
@@ -41,7 +41,7 @@ import { buildRangeParser } from './range.js';
  */
 export class HSTORE extends DataTypes.ABSTRACT<HstoreRecord> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'HSTORE';
+  static readonly [DataTypeIdentifier]: string = 'HSTORE';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);

@@ -3,7 +3,6 @@
 export * from './connection-manager.js';
 export * from './dialect.js';
 export * from './extra-data-types.js';
-export * from './postgres-adapter.js';
 export * from './query-generator.js';
 export * from './query-interface.js';
 export * from './query.js';

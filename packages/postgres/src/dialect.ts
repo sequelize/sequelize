@@ -1,5 +1,9 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
+import type {
+  BindCollector,
+  DialectSupports,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
@@ -9,7 +13,7 @@ import { PostgresQueryGenerator } from './query-generator.js';
 import { PostgresQueryInterface } from './query-interface.js';
 import { PostgresQuery } from './query.js';
 
-export interface PostgresDialectOptions {
+export type PostgresDialectOptions = {
   /**
    * Defines whether the native library shall be used or not.
    * If true, you need to have `pg-native` installed.
@@ -17,10 +21,10 @@ export interface PostgresDialectOptions {
    * @default false
    */
   native?: boolean;
-}
+};
 
-export class PostgresDialect extends AbstractDialect {
-  static readonly supports = AbstractDialect.extendSupport({
+export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
+  static readonly supports: DialectSupports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
@@ -130,15 +134,15 @@ export class PostgresDialect extends AbstractDialect {
 
   constructor(sequelize: Sequelize, options?: PostgresDialectOptions | undefined) {
     super(sequelize, DataTypes, 'postgres');
+    this.options = options ? Object.freeze(shallowClonePojo(options)) : EMPTY_OBJECT;
     this.connectionManager = new PostgresConnectionManager(this);
     this.queryGenerator = new PostgresQueryGenerator(this);
     this.queryInterface = new PostgresQueryInterface(this);
-    this.options = options ? Object.freeze(shallowClonePojo(options)) : EMPTY_OBJECT;
 
     registerPostgresDbDataTypeParsers(this);
   }
 
-  createBindCollector() {
+  createBindCollector(): BindCollector {
     return createSpecifiedOrderedBindCollector();
   }
 
@@ -174,5 +178,9 @@ export class PostgresDialect extends AbstractDialect {
 
   static getDefaultPort() {
     return 5432;
+  }
+
+  static getSupportedOptions(): ReadonlyArray<keyof PostgresDialectOptions> {
+    return ['native'];
   }
 }

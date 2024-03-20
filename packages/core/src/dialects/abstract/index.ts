@@ -1,7 +1,8 @@
+import { freezeDeep, isFunction } from '@sequelize/utils';
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
-import type { Dialect, Sequelize } from '../../sequelize.js';
+import type { DialectName, Sequelize } from '../../sequelize.js';
 import { logger } from '../../utils/logger.js';
 import type { DeepPartial } from '../../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
@@ -269,14 +270,20 @@ export type DialectSupports = {
 
 type TypeParser = (...params: any[]) => unknown;
 
-export abstract class AbstractDialect {
+declare const OptionType: unique symbol;
+
+export type DialectOptions<Dialect extends AbstractDialect> = Dialect[typeof OptionType];
+
+export abstract class AbstractDialect<Options extends object = {}> {
+  declare [OptionType]: Options;
+
   /**
    * List of features this dialect supports.
    *
    * Important: Dialect implementations inherit these values.
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
-  static readonly supports: DialectSupports = {
+  static readonly supports: DialectSupports = freezeDeep({
     DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,
@@ -460,7 +467,7 @@ export abstract class AbstractDialect {
     delete: {
       modelWithLimit: false,
     },
-  };
+  });
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
     return merge(cloneDeep(this.supports) ?? {}, supportsOverwrite);
@@ -477,7 +484,7 @@ export abstract class AbstractDialect {
   abstract readonly connectionManager: AbstractConnectionManager<any, any>;
   abstract readonly dataTypesDocumentationUrl: string;
 
-  readonly name: Dialect;
+  readonly name: DialectName;
   readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   /** dialect-specific implementation of shared data types */
@@ -495,7 +502,7 @@ export abstract class AbstractDialect {
   constructor(
     sequelize: Sequelize,
     dialectDataTypes: Record<string, Class<AbstractDataType<any>>>,
-    dialectName: Dialect,
+    dialectName: DialectName,
   ) {
     this.sequelize = sequelize;
     this.DataTypes = dialectDataTypes;
@@ -503,6 +510,11 @@ export abstract class AbstractDialect {
 
     const baseDataTypes = new Map<string, Class<AbstractDataType<any>>>();
     for (const dataType of Object.values(BaseDataTypes) as Array<Class<AbstractDataType<any>>>) {
+      // Some exports are not Data Types
+      if (!isFunction(dataType)) {
+        continue;
+      }
+
       const dataTypeId: string = (dataType as unknown as typeof AbstractDataType).getDataTypeId();
 
       // intermediary data type
@@ -657,6 +669,13 @@ export abstract class AbstractDialect {
 
   static getDefaultPort(): number {
     throw new Error(`getDefaultPort not implemented in ${this.name}`);
+  }
+
+  static getSupportedOptions(): readonly string[] {
+    throw new Error(
+      `Dialect ${this.name} does not implement the static method getSupportedOptions.
+It must return the list of option names that can be passed to the dialect constructor.`,
+    );
   }
 }
 
