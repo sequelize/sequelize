@@ -68,9 +68,9 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
     hooksReworked();
 
     if (hook) {
-      // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+      // TODO: remove this eslint-disable once we drop support for TypeScript 5.1
       // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-      // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript struggled with the multiple possible signatures of addListener
+      // @ts-ignore -- In TypeScript 5.1, this is valid. In all other versions, this is not.
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
@@ -107,9 +107,9 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
     hooksReworked();
 
     if (hook) {
-      // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+      // TODO: remove this eslint-disable once we drop support for TypeScript 5.1
       // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-      // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript struggled with the multiple possible signatures of addListener
+      // @ts-ignore -- In TypeScript 5.1, this is valid. In all other versions, this is not.
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
