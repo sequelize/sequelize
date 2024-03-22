@@ -78,6 +78,8 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: ESM / CJS export equivalence
         run: yarn test-unit-esm
+      - name: Unit tests (utils)
+        run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
       - name: Unit tests (mariadb)
