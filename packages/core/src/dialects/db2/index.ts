@@ -93,4 +93,8 @@ export class Db2Dialect extends AbstractDialect {
   static getDefaultPort() {
     return 3306;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

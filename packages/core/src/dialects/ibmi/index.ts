@@ -85,4 +85,8 @@ export class IBMiDialect extends AbstractDialect {
   static getDefaultPort() {
     return 25_000;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

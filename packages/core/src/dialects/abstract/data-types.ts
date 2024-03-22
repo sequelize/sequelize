@@ -1586,6 +1586,59 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 }
 
+export type HstoreRecord = Record<string, boolean | number | string | null>;
+
+/**
+ * A key / value store column. Only available in Postgres.
+ *
+ * __Fallback policy:__
+ * If the dialect does not support this type natively, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * DataTypes.HSTORE
+ * ```
+ *
+ * @category DataTypes
+ */
+export class HSTORE extends AbstractDataType<HstoreRecord> {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'HSTORE';
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    if (!dialect.supports.dataTypes.HSTORE) {
+      throwUnsupportedDataType(dialect, 'HSTORE');
+    }
+  }
+
+  validate(value: any) {
+    if (!isPlainObject(value)) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid hstore, it must be a plain object', value),
+      );
+    }
+
+    const hstore = value as Record<PropertyKey, unknown>;
+
+    for (const key of Object.keys(hstore)) {
+      if (!isString(hstore[key])) {
+        ValidationErrorItem.throwDataTypeValidationError(
+          util.format(
+            `%O is not a valid hstore, its values must be strings but ${key} is %O`,
+            hstore,
+            hstore[key],
+          ),
+        );
+      }
+    }
+  }
+
+  toSql(): string {
+    return 'HSTORE';
+  }
+}
+
 /**
  * A JSON string column.
  *
@@ -1797,7 +1850,7 @@ export interface RangeOptions {
   subtype?: DataTypeClassOrInstance;
 }
 
-export class AbstractRange<
+export class RANGE<
   T extends BaseNumberDataType | DATE | DATEONLY = INTEGER,
 > extends AbstractDataType<Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>> {
   /** @hidden */
@@ -1844,7 +1897,7 @@ export class AbstractRange<
   }
 
   parseDatabaseValue(_value: unknown): unknown {
-    throw new Error('RANGE has not been implemented in this dialect.');
+    throw new Error(`DataTypes.RANGE is not supported in ${this._getDialect().name}.`);
   }
 
   sanitize(value: unknown): unknown {

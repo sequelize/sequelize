@@ -3,8 +3,14 @@
   "description": "Postgres Connector for Sequelize",
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "default": "./lib/index.js"
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
     }
   },
   "main": "./lib/index.js",
@@ -18,7 +24,7 @@
     "build": "../../build-packages.mjs postgres",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
-    "test-unit": "mocha src/**/*.test.ts -r ../../test/register-esbuild.js",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
@@ -37,5 +43,11 @@
     "postgres-array": "3.0.2",
     "semver": "7.6.0",
     "wkx": "0.5.0"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.14",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "mocha": "10.3.0"
   }
 }

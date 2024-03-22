@@ -220,7 +220,7 @@ describe('Sequelize constructor', () => {
     it('supports connection strings in replication options', async () => {
       const uri = `${dialect}://username:password@host:1234/database`;
 
-      const sequelize = getSequelizeInstance('', '', '', {
+      const sequelize = getSequelizeInstance({
         replication: {
           write: uri,
           read: [uri],

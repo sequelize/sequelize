@@ -1,6 +1,5 @@
 import type { Rangable } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import { PostgresDataTypes } from '@sequelize/postgres';
 import { expect } from 'chai';
 import { createSequelizeInstance, sequelize } from '../../../support';
 
@@ -17,11 +16,11 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
 
   const dialect = sequelizeWithTzOffset.dialect;
 
-  const integerRangeType = PostgresDataTypes.RANGE(DataTypes.INTEGER).toDialectDataType(dialect);
-  const bigintRangeType = PostgresDataTypes.RANGE(DataTypes.BIGINT).toDialectDataType(dialect);
-  const decimalRangeType = PostgresDataTypes.RANGE(DataTypes.DECIMAL).toDialectDataType(dialect);
-  const dateRangeType = PostgresDataTypes.RANGE(DataTypes.DATE).toDialectDataType(dialect);
-  const dateOnlyRangeType = PostgresDataTypes.RANGE(DataTypes.DATEONLY).toDialectDataType(dialect);
+  const integerRangeType = DataTypes.RANGE(DataTypes.INTEGER).toDialectDataType(dialect);
+  const bigintRangeType = DataTypes.RANGE(DataTypes.BIGINT).toDialectDataType(dialect);
+  const decimalRangeType = DataTypes.RANGE(DataTypes.DECIMAL).toDialectDataType(dialect);
+  const dateRangeType = DataTypes.RANGE(DataTypes.DATE).toDialectDataType(dialect);
+  const dateOnlyRangeType = DataTypes.RANGE(DataTypes.DATEONLY).toDialectDataType(dialect);
 
   describe('escape', () => {
     it('should handle empty objects correctly', () => {

@@ -1,21 +1,8 @@
 {
+  "extends": "../../tsconfig-preset.json",
   "compilerOptions": {
-    "target": "esnext",
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
-    "allowJs": false,
-    "declaration": true,
-    "sourceRoot": "",
     "outDir": "./lib",
-    "strict": true,
-    "rootDir": "./src",
-    "types": ["node"],
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "checkJs": false,
-    "stripInternal": true,
-    "exactOptionalPropertyTypes": true
+    "rootDir": "./src"
   },
   "include": ["./src/**/*.ts"]
 }

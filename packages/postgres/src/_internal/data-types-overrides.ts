@@ -1,4 +1,4 @@
-import type { AbstractDialect } from '@sequelize/core';
+import type { AbstractDialect, Rangable } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
 import type {
   AbstractDataType,
@@ -7,10 +7,12 @@ import type {
   BindParamOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import { isString } from '@sequelize/utils';
+import { isBigInt, isNumber, isString } from '@sequelize/utils';
 import assert from 'node:assert';
 import wkx from 'wkx';
 import { PostgresQueryGenerator } from '../query-generator';
+import { stringifyHstore } from './hstore.js';
+import { stringifyRange } from './range.js';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -286,6 +288,69 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
     return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
   }
+}
+
+export class HSTORE extends BaseTypes.HSTORE {
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
+    if (value == null) {
+      return value;
+    }
+
+    return stringifyHstore(value);
+  }
+}
+
+export class RANGE<
+  T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER,
+> extends BaseTypes.RANGE<T> {
+  toBindableValue(values: Rangable<AcceptableTypeOf<T>>): string {
+    if (!Array.isArray(values)) {
+      throw new TypeError('Range values must be an array');
+    }
+
+    return stringifyRange(values, rangePart => {
+      let out = this.options.subtype.toBindableValue(rangePart);
+
+      if (isNumber(out) || isBigInt(out)) {
+        out = String(out);
+      }
+
+      if (!isString(out)) {
+        throw new Error(
+          'DataTypes.RANGE only accepts types that are represented by either strings, numbers or bigints.',
+        );
+      }
+
+      return out;
+    });
+  }
+
+  escape(values: Rangable<AcceptableTypeOf<T>>): string {
+    const value = this.toBindableValue(values);
+    const dialect = this._getDialect();
+
+    return `${dialect.escapeString(value)}::${this.toSql()}`;
+  }
+
+  getBindParamSql(values: Rangable<AcceptableTypeOf<T>>, options: BindParamOptions): string {
+    const value = this.toBindableValue(values);
+
+    return `${options.bindParam(value)}::${this.toSql()}`;
+  }
+
+  toSql() {
+    const subTypeClass = this.options.subtype.constructor as typeof BaseTypes.AbstractDataType;
+
+    return RANGE.typeMap[subTypeClass.getDataTypeId().toLowerCase()];
+  }
+
+  static typeMap: Record<string, string> = {
+    integer: 'int4range',
+    decimal: 'numrange',
+    date: 'tstzrange',
+    dateonly: 'daterange',
+    bigint: 'int8range',
+  };
 }
 
 export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.ARRAY<T> {

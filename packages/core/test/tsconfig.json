@@ -7,5 +7,5 @@
     "exactOptionalPropertyTypes": false,
     "experimentalDecorators": true
   },
-  "include": ["./types/**/*", "./**/**/*.ts"]
+  "include": ["./**/**/*.ts"]
 }

@@ -149,6 +149,7 @@ export function createSequelizeInstance(options: Options<AbstractDialect> = {}):
 
   if (dialect === 'postgres') {
     const sequelizePostgresOptions: Options<PostgresDialect> = {
+      ...sequelizeOptions,
       dialect: PostgresDialect,
       native: process.env.DIALECT === 'postgres-native',
     };
@@ -167,9 +168,9 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(options?: Options): Sequelize {
+export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequelize {
   options ??= {};
-  options.dialect ??= options.dialect || getTestDialectAdapter();
+  options.dialect ||= getTestDialect();
 
   return new Sequelize(options);
 }
@@ -215,7 +216,7 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect, 4>;
+type ExpectationKey = 'default' | Permutations<DialectName, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
@@ -230,11 +231,11 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
-  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> =
+  const expectations: PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>> =
     Object.create(null);
 
   for (const [key, value] of Object.entries(assertions)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
@@ -369,17 +370,17 @@ export function expectsql(
 ): void {
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
     'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+  const expectations: PartialRecord<'default' | DialectName, string | Error> = Object.create(null);
 
   /**
    * The list of expectations that are run against more than one dialect, which enables the transformation of
    * identifier quoting to match the dialect.
    */
-  const combinedExpectations = new Set<Dialect | 'default'>();
+  const combinedExpectations = new Set<DialectName | 'default'>();
   combinedExpectations.add('default');
 
   for (const [key, value] of Object.entries(rawExpectationMap)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     if (acceptedDialects.length > 1) {
       for (const dialect of acceptedDialects) {

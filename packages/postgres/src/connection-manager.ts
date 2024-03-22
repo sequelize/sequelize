@@ -365,8 +365,17 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       return customParser;
     }
 
-    // @ts-expect-error -- pg did not provide a broadly-typed version of getTypeParser. The typing boilerplate is not worth the result.
-    return this.lib.types.getTypeParser(oid, format);
+    // This verbose switch statement is here because `getTypeParser` is missing a signature
+    // where "format" is a union of 'text' and 'binary' and undefined, so TypeScript can't
+    // infer the correct return type.
+    switch (format) {
+      case 'text':
+        return this.#lib.types.getTypeParser(oid, format);
+      case 'binary':
+        return this.#lib.types.getTypeParser(oid, format);
+      default:
+        return this.#lib.types.getTypeParser(oid);
+    }
   }
 
   #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser<any, any> | null {

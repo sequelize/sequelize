@@ -8,14 +8,16 @@
     "sourceRoot": "",
     "outDir": "./lib",
     "strict": true,
-    "baseUrl": "./",
     "rootDir": "./src",
-    "types": ["node", "mocha"],
+    "types": ["node", "mocha", "chai"],
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "checkJs": false,
     "stripInternal": true,
     "exactOptionalPropertyTypes": true
+  },
+  "ts-node": {
+    "transpileOnly": true
   }
 }

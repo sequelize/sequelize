@@ -1,7 +1,8 @@
 {
-  "extends": "./packages/core/test/tsconfig.json",
+  "extends": "./tsconfig-preset.json",
   "compilerOptions": {
-    "rootDir": "."
+    "rootDir": ".",
+    "noEmit": true
   },
-  "include": ["./dev/**/*.ts", "./sscce.ts"]
+  "include": ["./**/*.ts"]
 }

@@ -122,4 +122,8 @@ export class MsSqlDialect extends AbstractDialect {
   static getDefaultPort() {
     return 1433;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

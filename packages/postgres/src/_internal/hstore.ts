@@ -1,16 +1,13 @@
+import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 // @ts-expect-error -- TODO: fork pg-hstore and add types
 import PgHstore from 'pg-hstore';
 
 const hstore = PgHstore({ sanitize: true });
 
-type HstoreValue = boolean | number | string;
-
-export type HstoreRecord = Record<string, HstoreValue>;
-
-export function stringify(data: Record<string, HstoreValue>): string {
+export function stringifyHstore(data: HstoreRecord): string {
   return hstore.stringify(data);
 }
 
-export function parse(value: string): Record<string, HstoreValue> {
+export function parseHstore(value: string): HstoreRecord {
   return hstore.parse(value);
 }

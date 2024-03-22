@@ -67,7 +67,7 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
   dialect.registerDataTypeParser(['hstore'], (value: unknown) => {
     assert(typeof value === 'string', 'Expected hstore value to be a string');
 
-    return Hstore.parse(value);
+    return Hstore.parseHstore(value);
   });
 
   const parseInteger = getDataTypeParser(dialect, BaseTypes.INTEGER);

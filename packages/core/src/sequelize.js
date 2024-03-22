@@ -402,6 +402,18 @@ export class Sequelize extends SequelizeTypeScript {
 
     this.dialect = new DialectClass(this, pickedDialectOptions);
 
+    // TODO: Once all packages are migrated, fully remove dialectModule and dialectModulePath
+    //  They require synchronous imports, which is not possible in ESM, and are not TypeScript-friendly.
+    //  Note: even if we end up keeping dialectModule for some dialects, dialectModulePath must be removed.
+    if (
+      this.dialect.name === 'postgres' &&
+      (this.options.dialectModule || this.options.dialectModulePath)
+    ) {
+      throw new Error(
+        'Support for the "dialectModule" and "dialectModulePath" options have been removed. Please reach out to the maintainers of Sequelize if you need this feature so we can provide a better alternative that is compatible with the new dialect packages.',
+      );
+    }
+
     if ('typeValidation' in options) {
       throw new Error(
         'The typeValidation has been renamed to noTypeValidation, and is false by default',
@@ -435,7 +447,7 @@ export class Sequelize extends SequelizeTypeScript {
   getDialect() {
     noGetDialect();
 
-    return this.options.dialect;
+    return this.dialect.name;
   }
 
   /**
@@ -725,7 +737,7 @@ Use Sequelize#query if you wish to use replacements.`);
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
-      if (this.options.dialect === 'db2' && options.alter && options.alter.drop === false) {
+      if (this.dialect.name === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
       }
 
@@ -758,7 +770,7 @@ Use Sequelize#query if you wish to use replacements.`);
     // Prepare options
     options = { ...this.options.setSessionVariables, ...options };
 
-    if (!['mysql', 'mariadb'].includes(this.options.dialect)) {
+    if (!['mysql', 'mariadb'].includes(this.dialect.name)) {
       throw new Error('sequelize.setSessionVariables is only supported for mysql or mariadb');
     }
 
@@ -954,7 +966,7 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     await this.query(
-      `SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
       options,
     );
   }
@@ -964,8 +976,9 @@ Use Sequelize#query if you wish to use replacements.`);
    *
    * @returns {Fn}
    */
+  // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite', 'snowflake'].includes(this.options.dialect)) {
+    if (['postgres', 'sqlite', 'snowflake'].includes(this.dialect.name)) {
       return fn('RANDOM');
     }
 
