@@ -1,17 +1,10 @@
 #!/usr/bin/env node
 
+import { EMPTY_OBJECT, arrayFromAsync, parallelForEach, pojo } from '@sequelize/utils';
+import { listDirectories, listFilesRecursive, readFileIfExists } from '@sequelize/utils/node';
 import isEqual from 'lodash/isEqual.js';
 import fs from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import path from 'node:path';
-
-const require = createRequire(import.meta.url);
-
-// eslint-disable-next-line import/no-commonjs -- @sequelize/utils is not ESM yet
-const { arrayFromAsync, EMPTY_OBJECT, parallelForEach, pojo } = require('@sequelize/utils');
-
-// eslint-disable-next-line import/no-commonjs -- @sequelize/utils is not ESM yet
-const { listDirectories, listFilesRecursive, readFileIfExists } = require('@sequelize/utils/node');
 
 /**
  * does not modify the contents of the file but exits with code 1 if outdated, 0 if not

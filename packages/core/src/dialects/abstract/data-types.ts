@@ -1850,6 +1850,29 @@ export interface RangeOptions {
   subtype?: DataTypeClassOrInstance;
 }
 
+/**
+ * Range types are data types representing a range of values of some element type (called the range's subtype).
+ * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
+ *
+ * __Fallback policy:__
+ * If this type is not supported, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * // A range of integers
+ * DataTypes.RANGE(DataTypes.INTEGER)
+ * // A range of bigints
+ * DataTypes.RANGE(DataTypes.BIGINT)
+ * // A range of decimals
+ * DataTypes.RANGE(DataTypes.DECIMAL)
+ * // A range of timestamps
+ * DataTypes.RANGE(DataTypes.DATE)
+ * // A range of dates
+ * DataTypes.RANGE(DataTypes.DATEONLY)
+ * ```
+ *
+ * @category DataTypes
+ */
 export class RANGE<
   T extends BaseNumberDataType | DATE | DATEONLY = INTEGER,
 > extends AbstractDataType<Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>> {

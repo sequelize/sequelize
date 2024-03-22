@@ -4,7 +4,7 @@ import identity from 'lodash/identity';
 import assert from 'node:assert';
 import wkx from 'wkx';
 import type { PostgresDialect } from '../dialect.js';
-import * as Hstore from './hstore.js';
+import { parseHstore } from './hstore.js';
 import { buildRangeParser } from './range.js';
 
 /**
@@ -67,7 +67,7 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
   dialect.registerDataTypeParser(['hstore'], (value: unknown) => {
     assert(typeof value === 'string', 'Expected hstore value to be a string');
 
-    return Hstore.parseHstore(value);
+    return parseHstore(value);
   });
 
   const parseInteger = getDataTypeParser(dialect, BaseTypes.INTEGER);
