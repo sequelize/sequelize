@@ -8,7 +8,7 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["prod", "^prod"],
-      "outputs": ["{projectRoot}/lib", "{projectRoot}/types"]
+      "outputs": ["{projectRoot}/lib"]
     },
     "test-typings": {
       "inputs": ["default", "^prod"]

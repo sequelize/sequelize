@@ -1,8 +1,8 @@
+import { isString } from '@sequelize/utils';
 import type { TableOrModel } from '../dialects/abstract/query-generator-typescript.js';
 import type { TableNameWithSchema } from '../dialects/abstract/query-interface.js';
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
-import { isString } from './check.js';
 
 /**
  * Returns true if the value is a model subclass.

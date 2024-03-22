@@ -1,7 +1,7 @@
+import type { AllowArray } from '@sequelize/utils';
 import type { DynamicSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import type { WhereOperators } from '../../model.js';
 import type { Op } from '../../operators.js';
-import type { AllowArray } from '../../utils/types.js';
 
 /**
  * This type allows using `Op.or`, `Op.and`, and `Op.not` recursively around another type.

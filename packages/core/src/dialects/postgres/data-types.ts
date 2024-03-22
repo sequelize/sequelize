@@ -1,7 +1,7 @@
+import { isBigInt, isNumber, isString } from '@sequelize/utils';
 import assert from 'node:assert';
 import wkx from 'wkx';
 import type { Rangable } from '../../model.js';
-import { isBigInt, isNumber, isString } from '../../utils/check.js';
 import type {
   AbstractDataType,
   AcceptableTypeOf,

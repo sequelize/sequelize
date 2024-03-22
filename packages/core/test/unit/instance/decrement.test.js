@@ -31,7 +31,7 @@ describe('Model#decrement', () => {
     it('should allow decrements even if options are not given', async () => {
       const User = sequelize.define('User', {
         id: {
-          type: DataTypes.BIGINT,
+          type: DataTypes.INTEGER,
           primaryKey: true,
           autoIncrement: true,
         },
