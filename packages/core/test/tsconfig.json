@@ -2,7 +2,6 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "rootDir": ".",
-    "baseUrl": ".",
     "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised", "chai-datetime"],
     "noEmit": true,
     "exactOptionalPropertyTypes": false,
