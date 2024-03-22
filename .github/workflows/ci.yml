@@ -2,10 +2,10 @@ name: CI
 on:
   push:
     branches:
-      - v7
       - renovate/**
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
@@ -35,7 +35,7 @@ jobs:
       - name: Reset NX cache
         run: yarn nx reset
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/validator-js/lib ./packages/utils/lib ./node_modules
       - uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -280,17 +280,25 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [docs, test-sqlite, test-postgres, test-oldest-latest]
-    if: github.ref == 'refs/heads/v7'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: '${{ secrets.NPM_TOKEN }}'
     steps:
+      - name: Generate Sequelize Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
           # We need the entire history to generate the changelog properly
           fetch-depth: 0
+          # The credentials used for checkout are persisted
+          # Lerna will use the same credentials later for "git push".
+          # This must be done using the Sequelize bot.
+          token: '${{ steps.generate-token.outputs.token }}'
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 20.x
@@ -307,6 +315,9 @@ jobs:
       - name: Set npm auth token
         run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
       - run: yarn publish-all
+        env:
+          GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
+          GH_TOKEN: '${{ steps.generate-token.outputs.token }}'
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@aa12fcb2943e8899cbcc29ff6f73409b32b48fa1 # master
         with:

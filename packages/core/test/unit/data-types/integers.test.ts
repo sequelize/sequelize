@@ -497,89 +497,94 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   });
 });
 
-describe('DataTypes.BIGINT', () => {
-  describe('toSql', () => {
-    const zeroFillUnsupportedError =
-      new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
+if (dialect.supports.dataTypes.BIGINT) {
+  describe('DataTypes.BIGINT', () => {
+    describe('toSql', () => {
+      const zeroFillUnsupportedError =
+        new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
-    const unsignedUnsupportedError =
-      new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
+      const unsignedUnsupportedError =
+        new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
-    testDataTypeSql('BIGINT', DataTypes.BIGINT, {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
-      oracle: 'NUMBER(19, 0)',
+      testDataTypeSql('BIGINT', DataTypes.BIGINT, {
+        default: 'BIGINT',
+        'sqlite snowflake': 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED',
+        // INTEGER in snowflake goes up to 99999999999999999999999999999999999999, which is enough to store an unsigned 64-bit integer.
+        snowflake: 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11)', DataTypes.BIGINT(11), {
+        default: 'BIGINT',
+        'sqlite snowflake': 'INTEGER',
+        'mysql mariadb': 'BIGINT(11)',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
+        default: 'BIGINT',
+        'sqlite snowflake': 'INTEGER',
+        'mysql mariadb': 'BIGINT(11)',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
+        // There is no type big enough to hold values between 0 & 2^32-1
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED',
+        snowflake: 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+      });
     });
 
-    testDataTypeSql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
-      default: unsignedUnsupportedError,
-      'mysql mariadb': 'BIGINT UNSIGNED',
-      // INTEGER in snowflake goes up to 99999999999999999999999999999999999999, which is enough to store an unsigned 64-bit integer.
-      snowflake: 'INTEGER',
-      oracle: 'NUMBER(19, 0)',
-    });
+    describe('validate', () => {
+      it('should throw an error if `value` is invalid', () => {
+        const type = DataTypes.BIGINT().toDialectDataType(dialect);
 
-    testDataTypeSql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
-    });
+        expect(() => {
+          type.validate('foobar');
+        }).to.throw(
+          ValidationErrorItem,
+          `'foobar' is not a valid ${type.toString().toLowerCase()}`,
+        );
 
-    testDataTypeSql('BIGINT(11)', DataTypes.BIGINT(11), {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
-      'mysql mariadb': 'BIGINT(11)',
-      oracle: 'NUMBER(19, 0)',
-    });
+        expect(() => {
+          type.validate(123.45);
+        }).to.throw(ValidationErrorItem, `123.45 is not a valid ${type.toString().toLowerCase()}`);
+      });
 
-    testDataTypeSql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
-      'mysql mariadb': 'BIGINT(11)',
-      oracle: 'NUMBER(19, 0)',
-    });
+      it('should not throw if `value` is an integer', () => {
+        const type = DataTypes.BIGINT();
 
-    testDataTypeSql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
-      // There is no type big enough to hold values between 0 & 2^32-1
-      default: unsignedUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED',
-      snowflake: 'INTEGER',
-      oracle: 'NUMBER(19, 0)',
-    });
-
-    testDataTypeSql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
-    });
-
-    testDataTypeSql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) ZEROFILL',
-    });
-
-    testDataTypeSql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+        expect(() => type.validate('9223372036854775807')).not.to.throw();
+      });
     });
   });
-
-  describe('validate', () => {
-    it('should throw an error if `value` is invalid', () => {
-      const type = DataTypes.BIGINT().toDialectDataType(dialect);
-
-      expect(() => {
-        type.validate('foobar');
-      }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${type.toString().toLowerCase()}`);
-
-      expect(() => {
-        type.validate(123.45);
-      }).to.throw(ValidationErrorItem, `123.45 is not a valid ${type.toString().toLowerCase()}`);
-    });
-
-    it('should not throw if `value` is an integer', () => {
-      const type = DataTypes.BIGINT();
-
-      expect(() => type.validate('9223372036854775807')).not.to.throw();
-    });
-  });
-});
+}

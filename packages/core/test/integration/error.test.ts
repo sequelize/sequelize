@@ -20,7 +20,7 @@ import {
   ValidationErrorItem,
   ValidationErrorItemOrigin,
 } from '@sequelize/core';
-import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error';
+import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error.js';
 import { assert, expect } from 'chai';
 import { spy } from 'sinon';
 import {

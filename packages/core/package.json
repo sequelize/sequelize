@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
-  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, Oracle and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "0.0.0-development",
+  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, Oracle, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
+  "version": "7.0.0-alpha.38",
   "funding": [
     {
       "type": "opencollective",
@@ -17,21 +17,27 @@
   },
   "homepage": "https://sequelize.org/",
   "main": "./lib/index.js",
-  "types": "./types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "type": "commonjs",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
     },
     "./decorators-legacy": {
-      "types": "./types/decorators/legacy/index.d.ts",
       "import": "./lib/decorators/legacy/index.mjs",
-      "require": "./lib/decorators/legacy/index.js"
+      "require": {
+        "types": "./lib/decorators/legacy/index.d.ts",
+        "default": "./lib/decorators/legacy/index.js"
+      }
     },
     "./_non-semver-use-at-your-own-risk_/*": {
-      "types": "./types/*",
       "default": "./lib/*"
     },
     "./package.json": "./package.json"
@@ -46,6 +52,7 @@
   ],
   "license": "MIT",
   "dependencies": {
+    "@sequelize/utils": "workspace:*",
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
@@ -67,14 +74,14 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.12",
+    "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
     "@types/ibm_db": "2.0.16",
-    "@types/lodash": "4.14.202",
+    "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
     "@types/oracledb": "^6.0.4",
-    "@types/pg": "8.11.2",
+    "@types/pg": "8.11.4",
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
@@ -89,7 +96,7 @@
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
-    "mariadb": "3.2.3",
+    "mariadb": "3.3.0",
     "mocha": "10.3.0",
     "moment": "2.30.1",
     "mysql2": "3.9.2",

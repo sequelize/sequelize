@@ -1,5 +1,6 @@
 'use strict';
 
+import { EMPTY_OBJECT, isString, shallowClonePojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
@@ -9,7 +10,12 @@ import { BelongsToAssociation } from './associations/belongs-to';
 import { BelongsToManyAssociation } from './associations/belongs-to-many';
 import { HasManyAssociation } from './associations/has-many';
 import { HasOneAssociation } from './associations/has-one';
+import { Association } from './associations/index';
+import * as DataTypes from './data-types';
+import { ConstraintChecking, Deferrable } from './deferrable';
+import { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
@@ -26,9 +32,13 @@ import { sql } from './expression-builders/sql';
 import { Value } from './expression-builders/value';
 import { Where, where } from './expression-builders/where.js';
 import { importModels } from './import-models.js';
+import { IndexHints } from './index-hints';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
+import { Op } from './operators';
+import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
+import { TableHints } from './table-hints';
 import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
@@ -37,7 +47,7 @@ import {
   TransactionNestMode,
   TransactionType,
 } from './transaction.js';
-import { isString } from './utils/check.js';
+import * as Deprecations from './utils/deprecations';
 import {
   noGetDialect,
   noGetQueryInterface,
@@ -46,23 +56,10 @@ import {
   noSequelizeModel,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
-
-const DataTypes = require('./data-types');
-const { ConstraintChecking, Deferrable } = require('./deferrable');
-const { QueryTypes } = require('./query-types');
-const { TableHints } = require('./table-hints');
-const { IndexHints } = require('./index-hints');
-const sequelizeErrors = require('./errors');
-const { Association } = require('./associations/index');
-const Validator = require('./utils/validator-extras').validator;
-const { Op } = require('./operators');
-const deprecations = require('./utils/deprecations');
-const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
-require('./utils/dayjs');
+import { validator as Validator } from './utils/validator-extras';
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -319,12 +316,12 @@ export class Sequelize extends SequelizeTypeScript {
     //     }
 
     if (this.options.logging === true) {
-      deprecations.noTrueLogging();
+      Deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
 
     if (this.options.quoteIdentifiers === false) {
-      deprecations.alwaysQuoteIdentifiers();
+      Deprecations.alwaysQuoteIdentifiers();
     }
 
     if (options.hooks) {
@@ -1064,7 +1061,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     if (options.logging) {
       if (options.logging === true) {
-        deprecations.noTrueLogging();
+        Deprecations.noTrueLogging();
         options.logging = console.debug;
       }
 
@@ -1262,8 +1259,8 @@ Sequelize.JSON_NULL = JSON_NULL;
  * Expose various errors available
  */
 
-for (const error of Object.keys(sequelizeErrors)) {
-  Sequelize[error] = sequelizeErrors[error];
+for (const error of Object.keys(SequelizeErrors)) {
+  Sequelize[error] = SequelizeErrors[error];
 }
 
 /**

@@ -1,3 +1,4 @@
+import type { RequiredBy } from '@sequelize/utils';
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type {
   DataTypes,
@@ -40,7 +41,6 @@ import type {
 } from './model';
 import type { SUPPORTED_DIALECTS, SequelizeHooks } from './sequelize-typescript.js';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
-import type { RequiredBy } from './utils/types.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
 

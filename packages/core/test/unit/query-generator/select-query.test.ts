@@ -48,7 +48,7 @@ describe('QueryGenerator#selectQuery', () => {
           autoIncrement: true,
           primaryKey: true,
         },
-        duration: DataTypes.BIGINT,
+        duration: DataTypes.INTEGER,
       },
       { timestamps: false },
     );

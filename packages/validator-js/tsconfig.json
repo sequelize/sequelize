@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "commonjs",
-    "moduleResolution": "node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "allowJs": false,
     "declaration": true,
     "sourceRoot": "",
-    "outDir": "./types",
+    "outDir": "./lib",
     "strict": true,
     "baseUrl": "./",
     "rootDir": "./src",
@@ -16,13 +16,7 @@
     "forceConsistentCasingInFileNames": true,
     "checkJs": false,
     "stripInternal": true,
-    "exactOptionalPropertyTypes": true,
-    "paths": {
-      "@sequelize/core": ["../core/types/index.d.ts"],
-      "@sequelize/core/_non-semver-use-at-your-own-risk_/*": ["../core/types/*"],
-      "@sequelize/core/package.json": ["../core/package.json"],
-      "@sequelize/core/decorators-legacy": ["../core/types/decorators/legacy/index.d.ts"]
-    }
+    "exactOptionalPropertyTypes": true
   },
   "include": ["./src/**/*.ts"]
 }
