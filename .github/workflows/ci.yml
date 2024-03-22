@@ -112,10 +112,10 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
-      - name: Unit tests (validator.js)
-        run: yarn lerna run test-unit --scope=@sequelize/validator.js
-      - name: Unit tests (sqlite)
-        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
+      - name: Build sequelize
+        run: yarn build
+      - name: Unit tests
+        run: yarn lerna run test-unit
       - name: Integration tests (sqlite)
         run: yarn lerna run test-integration-sqlite --scope=@sequelize/core
   docs:
@@ -138,7 +138,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ['5.0', '5.1', '5.2', '5.3']
+        ts-version: ['5.1', '5.2', '5.3', '5.4']
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint

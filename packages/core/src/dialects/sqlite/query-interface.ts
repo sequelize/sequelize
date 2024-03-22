@@ -3,6 +3,7 @@ import { BaseError, UnknownConstraintError } from '../../errors';
 import type { AttributeOptions } from '../../model';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions } from '../../sequelize';
+import { isErrorWithStringCode } from '../../utils/check.js';
 import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
 import type { DataType } from '../abstract/data-types';
 import type { TableOrModel } from '../abstract/query-generator.types.js';
@@ -125,7 +126,11 @@ export class SqliteQueryInterface<
 
       return data;
     } catch (error) {
-      if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
+      if (
+        error instanceof BaseError &&
+        isErrorWithStringCode(error.cause) &&
+        error.cause.code === 'ER_NO_SUCH_TABLE'
+      ) {
         throw new Error(
           `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
         );

@@ -8,7 +8,6 @@
     "sourceRoot": "",
     "outDir": "./lib",
     "strict": true,
-    "baseUrl": "./",
     "rootDir": "./src",
     "types": ["node"],
     "allowSyntheticDefaultImports": true,

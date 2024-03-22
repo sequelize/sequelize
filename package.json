@@ -61,7 +61,7 @@
     "@ephys/eslint-config-typescript": "20.1.1",
     "@rushstack/eslint-patch": "1.8.0",
     "@sequelize/utils": "workspace:*",
-    "@types/chai": "4.3.13",
+    "@types/chai": "4.3.14",
     "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
     "@types/node": "20.11.30",
@@ -90,7 +90,7 @@
     "typedoc-plugin-carbon-ads": "1.6.0",
     "typedoc-plugin-mdn-links": "3.1.18",
     "typedoc-plugin-missing-exports": "2.2.0",
-    "typescript": "5.3.3"
+    "typescript": "5.4.2"
   },
   "packageManager": "yarn@4.1.1",
   "lint-staged": {

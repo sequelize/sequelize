@@ -184,8 +184,9 @@ export function assertAssociationModelIsDefined(model: ModelStatic<any>): void {
   }
 }
 
-export type AssociationStatic<T extends Association> = Class<T> &
-  OmitConstructors<typeof Association>;
+export type AssociationStatic<T extends Association> = {
+  new (...arguments_: any[]): T;
+} & OmitConstructors<typeof Association>;
 
 export function defineAssociation<
   T extends Association,
