@@ -2214,10 +2214,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-patch@npm:1.7.2":
-  version: 1.7.2
-  resolution: "@rushstack/eslint-patch@npm:1.7.2"
-  checksum: 10c0/bfb3e2110bfaf4cf9f900db2626bec62f5cd492907de0c5e43feaac0aa8c1fb13d6c89978dc60f6d7a1bc5d6906e8a3bf009aa2cd79d031b70ab1d8026a0975d
+"@rushstack/eslint-patch@npm:1.8.0":
+  version: 1.8.0
+  resolution: "@rushstack/eslint-patch@npm:1.8.0"
+  checksum: 10c0/b8cb64176fe6f0778fccb8294f98acd325625cf75968cf3537c4d51b5d9b7dc62e3cbb82165aa473830555070ff6cc0d01ca64da3d734a5d0ce1bd90b5f24d7e
   languageName: node
   linkType: hard
 
@@ -2226,14 +2226,14 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
-    "@types/pg": "npm:8.11.3"
+    "@types/pg": "npm:8.11.4"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
@@ -2256,7 +2256,7 @@ __metadata:
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:5.0.0"
     lodash: "npm:^4.17.21"
-    mariadb: "npm:3.2.3"
+    mariadb: "npm:3.3.0"
     mocha: "npm:10.3.0"
     moment: "npm:2.30.1"
     mysql2: "npm:3.9.2"
@@ -2308,9 +2308,9 @@ __metadata:
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.1.1"
-    "@rushstack/eslint-patch": "npm:1.7.2"
+    "@rushstack/eslint-patch": "npm:1.8.0"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
     "@types/node": "npm:20.11.30"
@@ -2347,7 +2347,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
@@ -2363,7 +2363,7 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
-    "@types/chai": "npm:4.3.13"
+    "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
@@ -3258,10 +3258,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*, @types/chai@npm:4.3.13":
-  version: 4.3.13
-  resolution: "@types/chai@npm:4.3.13"
-  checksum: 10c0/34a8514c4fabe8f743c506481a90269ed761ddab6bf89bd88f122061e6797bf52e7e1e23812ebbd1eda6100b128667c5c3ec9ed1f198688202ddf433d2a8f7ff
+"@types/chai@npm:*, @types/chai@npm:4.3.14":
+  version: 4.3.14
+  resolution: "@types/chai@npm:4.3.14"
+  checksum: 10c0/7712594c1e457cb99c7227d0fe1afcbb900bbd1369494ec2d2b0d79a383057a09ab13d23d7b300287394b99995a8c017aa55e6b9a369b77910bc10310ba504af
   languageName: node
   linkType: hard
 
@@ -3274,7 +3274,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:^7946.0.10":
+"@types/geojson@npm:^7946.0.14":
   version: 7946.0.14
   resolution: "@types/geojson@npm:7946.0.14"
   checksum: 10c0/54f3997708fa2970c03eeb31f7e4540a0eb6387b15e9f8a60513a1409c23cafec8d618525404573468b59c6fecbfd053724b3327f7fca416729c26271d799f55
@@ -3347,19 +3347,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.30":
+"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:^20.11.17":
   version: 20.11.30
   resolution: "@types/node@npm:20.11.30"
   dependencies:
     undici-types: "npm:~5.26.4"
   checksum: 10c0/867cfaf969c6d8850d8d7304e7ab739898a50ecb1395b61ff2335644f5f48d7a46fbc4a14cee967aed65ec134b61a746edae70d1f32f11321ccf29165e3bc4e6
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^17.0.45":
-  version: 17.0.45
-  resolution: "@types/node@npm:17.0.45"
-  checksum: 10c0/0db377133d709b33a47892581a21a41cd7958f22723a3cc6c71d55ac018121382de42fbfc7970d5ae3e7819dbe5f40e1c6a5174aedf7e7964e9cb8fa72b580b0
   languageName: node
   linkType: hard
 
@@ -3370,14 +3363,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:8.11.3":
-  version: 8.11.3
-  resolution: "@types/pg@npm:8.11.3"
+"@types/pg@npm:8.11.4":
+  version: 8.11.4
+  resolution: "@types/pg@npm:8.11.4"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/64f23a6400647c1f571514f887488ebc8b1f2b10b2021e53a8d2b05378a5c8a7552f62f973631b321312dfc0a2c2d455ea4c99921c641d0ec43248bf5e65ef10
+  checksum: 10c0/81158ffa9d2f9b2b299a1650756b90fc418e0040e654d7d9ee46734a3c874d07b638af86d765e22e9c8246054c30a0274ee4dea58a0a7ed5c0c4aa01964a09ef
   languageName: node
   linkType: hard
 
@@ -9352,7 +9345,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:^10.0.1, lru-cache@npm:^9.1.1 || ^10.0.0":
+"lru-cache@npm:^10.0.1, lru-cache@npm:^10.2.0, lru-cache@npm:^9.1.1 || ^10.0.0":
   version: 10.2.0
   resolution: "lru-cache@npm:10.2.0"
   checksum: 10c0/c9847612aa2daaef102d30542a8d6d9b2c2bb36581c1bf0dc3ebf5e5f3352c772a749e604afae2e46873b930a9e9523743faac4e5b937c576ab29196774712ee
@@ -9513,16 +9506,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:3.2.3":
-  version: 3.2.3
-  resolution: "mariadb@npm:3.2.3"
+"mariadb@npm:3.3.0":
+  version: 3.3.0
+  resolution: "mariadb@npm:3.3.0"
   dependencies:
-    "@types/geojson": "npm:^7946.0.10"
-    "@types/node": "npm:^17.0.45"
+    "@types/geojson": "npm:^7946.0.14"
+    "@types/node": "npm:^20.11.17"
     denque: "npm:^2.1.0"
     iconv-lite: "npm:^0.6.3"
-    lru-cache: "npm:^10.0.1"
-  checksum: 10c0/77cd155c75347fd47341d4928b26fc2ecc52d8013be960d595c4567392be04a1603b7ba415aa03b82686d2f84a32abf778009402eeea2c478e5d2b0dadf5773d
+    lru-cache: "npm:^10.2.0"
+  checksum: 10c0/0fea9658d44064544a04560fdfeff7ea4b108d0938119a154ff583a02c34bc2cae392843c3e4bed07d2d98ab560610b216bbefb91994a3e68331876a853a7266
   languageName: node
   linkType: hard
 
