@@ -2249,7 +2249,7 @@ __metadata:
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.2"
-    expect-type: "npm:0.19.0"
+    expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.2.12"
     fs-jetpack: "npm:5.1.0"
     ibm_db: "npm:3.2.3"
@@ -6649,6 +6649,13 @@ __metadata:
   dependencies:
     homedir-polyfill: "npm:^1.0.1"
   checksum: 10c0/205a60497422746d1c3acbc1d65bd609b945066f239a2b785e69a7a651ac4cbeb4e08555b1ea0023abbe855e6fcb5bbf27d0b371367fdccd303d4fb2b4d66845
+  languageName: node
+  linkType: hard
+
+"expect-type@npm:0.13.0":
+  version: 0.13.0
+  resolution: "expect-type@npm:0.13.0"
+  checksum: 10c0/dd1d1f7738e465db7b700292e3884440eea185f28d6ccd9a3dc41fb13c4cd82c6943d886ca9292d29aa97cad936a20220d606154ab448d3d5d2ef127515c6188
   languageName: node
   linkType: hard
 
