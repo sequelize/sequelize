@@ -296,7 +296,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = Object.create(null);;
+    const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];
