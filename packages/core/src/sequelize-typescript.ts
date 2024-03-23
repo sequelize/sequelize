@@ -373,7 +373,7 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
    * This method returns undefined if no transaction is active in the current asynchronous operation,
-   * or if {@link Options.disableClsTransactions} is true.
+   * or if {@link SequelizeCoreOptions.disableClsTransactions} is true.
    */
   getCurrentClsTransaction(): Transaction | undefined {
     return this.#transactionCls?.getStore();
@@ -397,7 +397,7 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
    * ```
    *
    * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
-   * This can be disabled by setting {@link Options.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
+   * This can be disabled by setting {@link SequelizeCoreOptions.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
    *
    * ```ts
    * const sequelize = new Sequelize({
@@ -511,7 +511,7 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
    * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
    *
    * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
-   * even if {@link Options.disableClsTransactions} is false.
+   * even if {@link SequelizeCoreOptions.disableClsTransactions} is false.
    *
    * @example
    * ```ts

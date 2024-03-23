@@ -91,7 +91,7 @@ export interface DefaultSetOptions {}
 /**
  * Connection Pool options.
  *
- * Used in {@link Options.pool}
+ * Used in {@link SequelizeCoreOptions.pool}
  */
 export interface PoolOptions {
   /**
@@ -180,7 +180,9 @@ export interface Config {
 export type DialectName = (typeof SUPPORTED_DIALECTS)[number];
 
 /**
- * Options of the {@link Sequelize} constructor used by the core library
+ * Options of the {@link Sequelize} constructor used by the core library.
+ *
+ * See {@link Options} for the full list of options, including those dialect-specific.
  */
 interface SequelizeCoreOptions<Dialect extends AbstractDialect> extends Logging {
   /**
@@ -484,7 +486,7 @@ interface SequelizeCoreOptions<Dialect extends AbstractDialect> extends Logging 
  * Options for the constructor of the {@link Sequelize} main class.
  */
 export type Options<Dialect extends AbstractDialect> = SequelizeCoreOptions<Dialect> &
-  DialectOptions<Dialect>;
+  Omit<DialectOptions<Dialect>, keyof SequelizeCoreOptions<AbstractDialect>>;
 
 export type NormalizedOptions<Dialect extends AbstractDialect> = StrictRequiredBy<
   Options<Dialect>,
