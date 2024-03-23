@@ -138,9 +138,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       suffix += returnValues.returningFragment;
 
       // ensure that the return output is properly mapped to model fields.
-      if (this.dialect.supports.returnValues) {
-        options.mapToModel = true;
-      }
+      options.mapToModel = true;
     }
 
     if (attributes) {
