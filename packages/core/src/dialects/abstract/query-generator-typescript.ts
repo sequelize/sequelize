@@ -921,8 +921,11 @@ export class AbstractQueryGeneratorTypeScript {
     const table = this.quoteTable(tableOrModel);
     const modelDefinition = extractModelDefinition(tableOrModel);
     const whereOptions = { ...options, model: modelDefinition };
+    const whereFragment = whereOptions.where
+      ? this.whereQuery(whereOptions.where, whereOptions)
+      : '';
 
-    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+    if (whereOptions.limit && !this.dialect.supports.delete.limit) {
       if (!modelDefinition) {
         throw new Error(
           'Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.',
@@ -930,9 +933,9 @@ export class AbstractQueryGeneratorTypeScript {
       }
 
       const pks = join(
-        map(modelDefinition.primaryKeysAttributeNames, attrName => {
-          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
-        }),
+        map(modelDefinition.primaryKeysAttributeNames.values(), attrName =>
+          this.quoteIdentifier(modelDefinition.getColumnName(attrName)),
+        ),
         ', ',
       );
 
@@ -941,17 +944,17 @@ export class AbstractQueryGeneratorTypeScript {
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
         `SELECT ${pks} FROM ${table}`,
-        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        whereFragment,
         `ORDER BY ${pks}`,
-        this.#internals.addLimitAndOffset(options),
+        this.#internals.addLimitAndOffset(whereOptions),
         ')',
       ]);
     }
 
     return joinSQLFragments([
       `DELETE FROM ${this.quoteTable(tableOrModel)}`,
-      options.where ? this.whereQuery(options.where, whereOptions) : '',
-      this.#internals.addLimitAndOffset(options),
+      whereFragment,
+      this.#internals.addLimitAndOffset(whereOptions),
     ]);
   }
 

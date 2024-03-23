@@ -340,8 +340,8 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return 'NEWID()';
   }
 
-  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {
-    const sql = super.bulkDeleteQuery(tableName, options);
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions) {
+    const sql = super.bulkDeleteQuery(tableOrModel, options);
 
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
   }
