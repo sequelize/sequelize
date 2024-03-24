@@ -1,4 +1,4 @@
-import type { AbstractDialect, Options } from '@sequelize/core';
+import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { PostgresDialect } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
@@ -13,7 +13,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
-import type { DialectName } from '../src/index.js';
 import { Config } from './config/config';
 
 const expect = chai.expect;

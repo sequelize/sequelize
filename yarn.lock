@@ -2277,6 +2277,7 @@ __metadata:
     tedious: "npm:16.7.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.12.0"
+    typescript: "npm:5.4.3"
     uuid: "npm:^9.0.0"
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"

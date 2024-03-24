@@ -1,5 +1,6 @@
 import type { Options } from '@sequelize/core';
 import { DataTypes, QueryTypes } from '@sequelize/core';
+import type { PostgresDialect } from '@sequelize/postgres';
 import { expect } from 'chai';
 import {
   createSingleTestSequelizeInstance,
@@ -14,7 +15,7 @@ describe('[POSTGRES] Sequelize', () => {
     return;
   }
 
-  async function checkTimezoneParsing(baseOptions: Options) {
+  async function checkTimezoneParsing(baseOptions: Options<PostgresDialect>) {
     const options = { ...baseOptions, timezone: 'Asia/Kolkata', timestamps: true };
     const tzSequelize = createSingleTestSequelizeInstance(options);
 
@@ -25,7 +26,7 @@ describe('[POSTGRES] Sequelize', () => {
   }
 
   it('should correctly parse the timezone while fetching hstore oids', async () => {
-    await checkTimezoneParsing(defaultSequelize.options);
+    await checkTimezoneParsing(defaultSequelize.options as Options<PostgresDialect>);
   });
 
   it('should set client_min_messages to warning by default', async () => {
