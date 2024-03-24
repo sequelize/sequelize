@@ -1,7 +1,5 @@
 'use strict';
 
-import assert from 'node:assert';
-import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import {
   AbstractQuery,
   DatabaseError,
@@ -10,6 +8,8 @@ import {
   UnknownConstraintError,
   ValidationErrorItem,
 } from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import assert from 'node:assert';
 
 import forOwn from 'lodash/forOwn';
 
