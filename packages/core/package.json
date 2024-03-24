@@ -159,7 +159,7 @@
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
-    "test-typings": "tsc --noEmit && tsc test -b test/tsconfig.json",
+    "test-typings": "tsc --noEmit && tsc -b test/tsconfig.json",
     "----------------------------------------- tests ---------------------------------------------------": "",
     "mocha": "mocha -r ../../test/register-esbuild.js",
     "_test-unit": "yarn mocha \"test/unit/**/*.test.[tj]s\"",
