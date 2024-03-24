@@ -17,7 +17,7 @@ import { logger } from '../../utils/logger';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { AsyncQueue } from './async-queue';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
@@ -44,10 +44,13 @@ export interface MsSqlConnection extends Connection, TediousConnection {
   STATE: Record<string, TediousConnectionState>;
 }
 
-export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConnection> {
+export class MsSqlConnectionManager extends AbstractConnectionManager<
+  MsSqlDialect,
+  MsSqlConnection
+> {
   lib: Lib;
 
-  constructor(dialect: MssqlDialect) {
+  constructor(dialect: MsSqlDialect) {
     super(dialect);
     this.lib = this._loadDialectModule('tedious') as Lib;
   }

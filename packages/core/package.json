@@ -63,7 +63,6 @@
     "inflection": "^3.0.0",
     "lodash": "^4.17.21",
     "pg-connection-string": "^2.5.0",
-    "pg-hstore": "^2.3.4",
     "retry-as-promised": "^7.0.3",
     "semver": "^7.3.7",
     "sequelize-pool": "^8.0.0",
@@ -80,7 +79,6 @@
     "@types/ibm_db": "2.0.16",
     "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
-    "@types/pg": "8.11.4",
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
@@ -105,7 +103,6 @@
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
-    "pg": "8.11.3",
     "rimraf": "5.0.5",
     "sinon": "17.0.1",
     "sinon-chai": "3.7.0",
@@ -124,9 +121,6 @@
       "optional": true
     },
     "odbc": {
-      "optional": true
-    },
-    "pg": {
       "optional": true
     },
     "snowflake-sdk": {

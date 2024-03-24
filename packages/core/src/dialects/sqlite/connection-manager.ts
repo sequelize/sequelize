@@ -21,7 +21,10 @@ interface SqliteConnection extends Connection, Database {
   filename: string;
 }
 
-export class SqliteConnectionManager extends AbstractConnectionManager<SqliteConnection> {
+export class SqliteConnectionManager extends AbstractConnectionManager<
+  SqliteDialect,
+  SqliteConnection
+> {
   private readonly lib: Lib;
   private readonly connections = new Map<string, SqliteConnection>();
 

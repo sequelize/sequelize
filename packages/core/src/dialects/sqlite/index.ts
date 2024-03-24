@@ -84,4 +84,8 @@ export class SqliteDialect extends AbstractDialect {
   static getDefaultPort() {
     return 0;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

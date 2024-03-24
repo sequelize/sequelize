@@ -1,7 +1,7 @@
 import { formatMySqlStyleLimitOffset } from '../../utils/sql.js';
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
-import type { MysqlDialect } from './index.js';
+import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
+import type { MySqlDialect } from './index.js';
 
 const TECHNICAL_SCHEMAS = Object.freeze([
   'MYSQL',
@@ -15,7 +15,7 @@ const TECHNICAL_SCHEMAS = Object.freeze([
 ]);
 
 export class MySqlQueryGeneratorInternal<
-  Dialect extends MysqlDialect = MysqlDialect,
+  Dialect extends MySqlDialect = MySqlDialect,
 > extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalSchemaNames(): readonly string[] {
     return TECHNICAL_SCHEMAS;

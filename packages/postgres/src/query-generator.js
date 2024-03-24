@@ -1,20 +1,19 @@
 'use strict';
 
+import { DataTypes } from '@sequelize/core';
+import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import isEmpty from 'lodash/isEmpty';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
 import reduce from 'lodash/reduce';
-import { rejectInvalidOptions } from '../../utils/check';
-import { quoteIdentifier } from '../../utils/dialect';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { generateIndexName } from '../../utils/string';
-import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
-import { ENUM } from './data-types';
-import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
-import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript';
-
-const DataTypes = require('../../data-types');
+import { ENUM } from './_internal/data-types-overrides.js';
+import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
+import { PostgresQueryGeneratorInternal } from './query-generator.internal.js';
 
 /**
  * list of reserved words in PostgreSQL 10

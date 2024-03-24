@@ -1,3 +1,4 @@
+import type { RequiredBy } from '@sequelize/utils';
 import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
@@ -51,24 +52,17 @@ import type {
   QuoteTableOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
+  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from './query-generator.types.js';
-import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
-
-export type TableOrModel = TableName | ModelStatic | ModelDefinition;
-
-// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveIndexQueryOptions {
-  concurrently?: boolean;
-  ifExists?: boolean;
-  cascade?: boolean;
-}
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
@@ -592,7 +586,7 @@ export class AbstractQueryGeneratorTypeScript {
   extractTableDetails(
     tableOrModel: TableOrModel,
     options?: { schema?: string; delimiter?: string },
-  ): TableNameWithSchema {
+  ): RequiredBy<TableNameWithSchema, 'schema'> {
     const tableIdentifier = extractTableIdentifier(tableOrModel);
 
     if (!isPlainObject(tableIdentifier)) {

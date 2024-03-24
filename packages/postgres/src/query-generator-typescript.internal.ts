@@ -1,26 +1,24 @@
-import semver from 'semver';
-import type { Expression } from '../../sequelize.js';
-import { rejectInvalidOptions } from '../../utils/check.js';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { generateIndexName } from '../../utils/string';
-import { AbstractQueryGenerator } from '../abstract/query-generator';
-import type {
-  EscapeOptions,
-  RemoveIndexQueryOptions,
-  TableOrModel,
-} from '../abstract/query-generator-typescript';
-import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
-} from '../abstract/query-generator.types';
-import type { PostgresDialect } from './index.js';
-import { PostgresQueryGeneratorInternal } from './query-generator-internal.js';
+} from '@sequelize/core';
+import { AbstractQueryGenerator } from '@sequelize/core';
+import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import type { Expression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/sequelize.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import semver from 'semver';
+import type { PostgresDialect } from './dialect.js';
+import { PostgresQueryGeneratorInternal } from './query-generator.internal.js';
 
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'collate',
@@ -113,7 +111,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'AND pk.table_name=c.table_name',
       'AND pk.column_name=c.column_name',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
-      `AND c.table_schema = ${this.escape(table.schema!)}`,
+      `AND c.table_schema = ${this.escape(table.schema)}`,
     ]);
   }
 
@@ -152,7 +150,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
         );
       }
 
-      return `ALTER TABLE ${this.quoteTable(beforeTableName)} SET SCHEMA ${this.quoteIdentifier(afterTable.schema!)}`;
+      return `ALTER TABLE ${this.quoteTable(beforeTableName)} SET SCHEMA ${this.quoteIdentifier(afterTable.schema)}`;
     }
 
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteIdentifier(afterTable.tableName)}`;
@@ -243,7 +241,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DROP INDEX',
       options?.concurrently ? 'CONCURRENTLY' : '',
       options?.ifExists ? 'IF EXISTS' : '',
-      `${this.quoteIdentifier(table.schema!)}.${this.quoteIdentifier(indexName)}`,
+      `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`,
       options?.cascade ? 'CASCADE' : '',
     ]);
   }

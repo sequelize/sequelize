@@ -2,7 +2,7 @@ import { ForeignKeyConstraintError } from '../../errors';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, Sequelize } from '../../sequelize';
 import { TransactionNestMode } from '../../transaction';
-import type { TableOrModel } from '../abstract/query-generator-typescript';
+import type { TableOrModel } from '../abstract/query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
 import type { SqliteDialect } from './index.js';
 import type { SqliteQueryGenerator } from './query-generator';

@@ -17,7 +17,7 @@ export interface IBMiConnection extends Connection, OdbcConnection {
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type Lib = typeof import('odbc');
 
-export class IBMiConnectionManager extends AbstractConnectionManager<IBMiConnection> {
+export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect, IBMiConnection> {
   private readonly lib: Lib;
 
   constructor(dialect: IBMiDialect) {

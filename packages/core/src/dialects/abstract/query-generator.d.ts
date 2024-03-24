@@ -11,9 +11,9 @@ import type {
   SearchPathable,
 } from '../../model.js';
 import type { DataType } from './data-types.js';
-import type { TableOrModel } from './query-generator-typescript.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
-import type { AttributeToSqlOptions } from './query-generator.types.js';
+import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
+import type { TableOrModel } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';

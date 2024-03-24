@@ -26,7 +26,7 @@ export interface Db2Connection extends Connection, Db2LibDatabase {
  *
  * @private
  */
-export class Db2ConnectionManager extends AbstractConnectionManager<Db2Connection> {
+export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, Db2Connection> {
   private readonly lib;
 
   constructor(dialect: Db2Dialect) {

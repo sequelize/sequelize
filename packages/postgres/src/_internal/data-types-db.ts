@@ -1,10 +1,10 @@
+import { getDataTypeParser } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import identity from 'lodash/identity';
 import assert from 'node:assert';
 import wkx from 'wkx';
-import { getDataTypeParser } from '../abstract/data-types-utils.js';
-import * as BaseTypes from '../abstract/data-types.js';
-import * as Hstore from './hstore.js';
-import type { PostgresDialect } from './index.js';
+import type { PostgresDialect } from '../dialect.js';
+import { parseHstore } from './hstore.js';
 import { buildRangeParser } from './range.js';
 
 /**
@@ -67,7 +67,7 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
   dialect.registerDataTypeParser(['hstore'], (value: unknown) => {
     assert(typeof value === 'string', 'Expected hstore value to be a string');
 
-    return Hstore.parse(value);
+    return parseHstore(value);
   });
 
   const parseInteger = getDataTypeParser(dialect, BaseTypes.INTEGER);

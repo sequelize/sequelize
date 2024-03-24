@@ -1,15 +1,30 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createSpecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
-import { PostgresConnectionManager } from './connection-manager';
-import { registerPostgresDbDataTypeParsers } from './data-types-db.js';
-import * as DataTypes from './data-types.js';
-import { PostgresQuery } from './query';
-import { PostgresQueryGenerator } from './query-generator';
-import { PostgresQueryInterface } from './query-interface';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import type {
+  BindCollector,
+  DialectSupports,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
+import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
+import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import { PostgresConnectionManager } from './connection-manager.js';
+import { PostgresQueryGenerator } from './query-generator.js';
+import { PostgresQueryInterface } from './query-interface.js';
+import { PostgresQuery } from './query.js';
 
-export class PostgresDialect extends AbstractDialect {
-  static readonly supports = AbstractDialect.extendSupport({
+export type PostgresDialectOptions = {
+  /**
+   * Defines whether the native library shall be used or not.
+   * If true, you need to have `pg-native` installed.
+   *
+   * @default false
+   */
+  native?: boolean;
+};
+
+export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
+  static readonly supports: DialectSupports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
@@ -115,9 +130,11 @@ export class PostgresDialect extends AbstractDialect {
   readonly defaultVersion = '11.0.0';
   readonly TICK_CHAR_LEFT = '"';
   readonly TICK_CHAR_RIGHT = '"';
+  readonly options: PostgresDialectOptions;
 
-  constructor(sequelize: Sequelize) {
+  constructor(sequelize: Sequelize, options?: PostgresDialectOptions | undefined) {
     super(sequelize, DataTypes, 'postgres');
+    this.options = options ? Object.freeze(shallowClonePojo(options)) : EMPTY_OBJECT;
     this.connectionManager = new PostgresConnectionManager(this);
     this.queryGenerator = new PostgresQueryGenerator(this);
     this.queryInterface = new PostgresQueryInterface(this);
@@ -125,7 +142,7 @@ export class PostgresDialect extends AbstractDialect {
     registerPostgresDbDataTypeParsers(this);
   }
 
-  createBindCollector() {
+  createBindCollector(): BindCollector {
     return createSpecifiedOrderedBindCollector();
   }
 
@@ -161,5 +178,9 @@ export class PostgresDialect extends AbstractDialect {
 
   static getDefaultPort() {
     return 5432;
+  }
+
+  static getSupportedOptions(): ReadonlyArray<keyof PostgresDialectOptions> {
+    return ['native'];
   }
 }

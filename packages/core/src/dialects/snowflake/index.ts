@@ -95,4 +95,8 @@ export class SnowflakeDialect extends AbstractDialect {
   static getDefaultPort() {
     return 3306;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

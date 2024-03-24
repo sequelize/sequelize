@@ -1,5 +1,5 @@
 import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.types.js';
+import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
 import type { SnowflakeDialect } from './index.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([

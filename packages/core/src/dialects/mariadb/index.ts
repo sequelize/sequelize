@@ -115,4 +115,8 @@ export class MariaDbDialect extends AbstractDialect {
   static getDefaultPort() {
     return 3306;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }

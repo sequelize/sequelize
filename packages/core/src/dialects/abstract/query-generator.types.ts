@@ -1,14 +1,16 @@
-import type { Nullish } from '@sequelize/utils';
 import type { Deferrable } from '../../deferrable';
 import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression';
 import type { Literal } from '../../expression-builders/literal';
-import type { Filterable, IndexHintable, ReferentialAction } from '../../model';
-import type { BindOrReplacements } from '../../sequelize';
+import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '../../model';
+import type { ModelDefinition } from '../../model-definition.js';
 import type { TableHints } from '../../table-hints';
 import type { TransactionType } from '../../transaction';
-import type { TableOrModel } from './query-generator-typescript';
+import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
+import type { TableName } from './query-interface.js';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
+
+export type TableOrModel = TableName | ModelStatic | ModelDefinition;
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
@@ -174,22 +176,16 @@ export interface StartTransactionQueryOptions {
   transactionType?: TransactionType | undefined;
 }
 
-export interface AttributeToSqlOptions {
-  context: 'addColumn' | 'changeColumn' | 'createTable';
-  schema?: string;
-  table: string;
-  withoutForeignKeyConstraints?: boolean;
-}
-
 export interface QuoteTableOptions extends IndexHintable {
   alias: boolean | string;
   tableHints?: TableHints[] | undefined;
 }
 
-export interface AddLimitOffsetOptions {
-  limit?: number | Literal | Nullish;
-  offset?: number | Literal | Nullish;
-  replacements?: BindOrReplacements | undefined;
-}
-
 export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}
+
+// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveIndexQueryOptions {
+  concurrently?: boolean;
+  ifExists?: boolean;
+  cascade?: boolean;
+}

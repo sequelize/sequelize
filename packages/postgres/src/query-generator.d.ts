@@ -1,5 +1,5 @@
-import type { TableName } from '../abstract/query-interface.js';
-import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript.js';
+import type { TableName } from '@sequelize/core';
+import { PostgresQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 type PgEnumNameOptions = {
   schema?: boolean;

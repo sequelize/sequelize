@@ -1,6 +1,6 @@
+import type { InputRangePart, Rangable, Range, RangePart } from '@sequelize/core';
 import isPlainObject from 'lodash/isPlainObject';
 import NodeUtil from 'node:util';
-import type { InputRangePart, Rangable, Range, RangePart } from '../../model.js';
 
 function stringifyRangeBound<T extends {}>(
   bound: T | number | null,
@@ -43,7 +43,7 @@ function parseRangeBound<T>(bound: string, parseType: ParseValue<T>): T | number
   return parseType(bound);
 }
 
-export function stringify<T extends {}>(
+export function stringifyRange<T extends {}>(
   range: Rangable<T>,
   stringifyBoundary: (val: T) => string,
 ): string {
@@ -71,7 +71,7 @@ export function stringify<T extends {}>(
   return `${(inclusivity[0] ? '[' : '(') + bounds[0]},${bounds[1]}${inclusivity[1] ? ']' : ')'}`;
 }
 
-export function parse<T>(value: string, parser: ParseValue<T>): Range<T> {
+export function parseRange<T>(value: string, parser: ParseValue<T>): Range<T> {
   if (typeof value !== 'string') {
     throw new TypeError(`Sequelize could not parse range "${value}" as its format is incompatible`);
   }
@@ -113,6 +113,6 @@ export function buildRangeParser(
       );
     }
 
-    return parse(value, subTypeParser);
+    return parseRange(value, subTypeParser);
   };
 }

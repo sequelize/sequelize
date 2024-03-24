@@ -1,7 +1,7 @@
-import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal.js';
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { FetchDatabaseVersionOptions } from '../abstract/query-interface.types.js';
-import type { PostgresDialect } from './index.js';
+import type { FetchDatabaseVersionOptions } from '@sequelize/core';
+import { AbstractQueryInterface } from '@sequelize/core';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import type { PostgresDialect } from './dialect.js';
 
 export class PostgresQueryInterfaceTypescript<
   Dialect extends PostgresDialect = PostgresDialect,

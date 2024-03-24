@@ -25,7 +25,10 @@ export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type Lib = typeof import('snowflake-sdk');
 
-export class SnowflakeConnectionManager extends AbstractConnectionManager<SnowflakeConnection> {
+export class SnowflakeConnectionManager extends AbstractConnectionManager<
+  SnowflakeDialect,
+  SnowflakeConnection
+> {
   private readonly lib: Lib;
 
   constructor(dialect: SnowflakeDialect) {

@@ -40,7 +40,10 @@ type Lib = typeof import('mariadb');
  *
  * @private
  */
-export class MariaDbConnectionManager extends AbstractConnectionManager<MariaDbConnection> {
+export class MariaDbConnectionManager extends AbstractConnectionManager<
+  MariaDbDialect,
+  MariaDbConnection
+> {
   private readonly lib: Lib;
 
   constructor(dialect: MariaDbDialect) {

@@ -25,8 +25,11 @@ export const or = Pkg.or;
 export const SQL_NULL = Pkg.SQL_NULL;
 export const JSON_NULL = Pkg.JSON_NULL;
 
-// export * from './lib/query-interface';
 export const AbstractQueryInterface = Pkg.AbstractQueryInterface;
+export const AbstractConnectionManager = Pkg.AbstractConnectionManager;
+export const AbstractQueryGenerator = Pkg.AbstractQueryGenerator;
+export const AbstractQuery = Pkg.AbstractQuery;
+export const AbstractDialect = Pkg.AbstractDialect;
 
 // export * from './lib/model';
 export const Model = Pkg.Model;
