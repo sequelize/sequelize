@@ -8,6 +8,7 @@ const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
+const { parseDefaultValue } = require('./default-value-parser-internal');
 
 const debug = logger.debugContext('sql:sqlite');
 
@@ -99,34 +100,16 @@ export class SqliteQuery extends AbstractQuery {
       // this is the sqlite way of getting the metadata of a table
       result = {};
 
-      let defaultValue;
       for (const _result of results) {
-        if (_result.dflt_value === null) {
-          // Column schema omits any "DEFAULT ..."
-          defaultValue = undefined;
-        } else if (_result.dflt_value === 'NULL') {
-          // Column schema is a "DEFAULT NULL"
-          defaultValue = null;
-        } else {
-          defaultValue = _result.dflt_value;
-        }
-
-        result[_result.name] = {
+        const field = {
           type: _result.type,
           allowNull: _result.notnull === 0,
-          defaultValue,
           primaryKey: _result.pk !== 0,
         };
 
-        if (result[_result.name].type === 'TINYINT(1)') {
-          result[_result.name].defaultValue = { 0: false, 1: true }[
-            result[_result.name].defaultValue
-          ];
-        }
+        field.defaultValue = parseDefaultValue(_result.dflt_value, field);
 
-        if (typeof result[_result.name].defaultValue === 'string') {
-          result[_result.name].defaultValue = result[_result.name].defaultValue.replaceAll("'", '');
-        }
+        result[_result.name] = field;
       }
 
       return result;

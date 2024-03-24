@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { AggregateError, DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
+const { AggregateError, DataTypes, Literal, Op, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -1037,7 +1037,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (dialectName === 'postgres') {
           test++;
-          expect(table.id.defaultValue).to.not.contain('special');
+          expect(table.id.defaultValue).to.be.instanceOf(Literal);
+          expect(table.id.defaultValue.val[0]).to.not.contain('special');
         }
 
         table = await this.sequelize.queryInterface.describeTable(
@@ -1057,7 +1058,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (dialectName === 'postgres') {
           test++;
-          expect(table.id.defaultValue).to.contain('special');
+          expect(table.id.defaultValue).to.be.instanceOf(Literal);
+          expect(table.id.defaultValue.val[0]).to.contain('special');
         }
 
         expect(test).to.equal(2);

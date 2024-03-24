@@ -26,7 +26,7 @@ export interface DatabaseDescription {
 export interface ColumnDescription {
   type: string;
   allowNull: boolean;
-  defaultValue: string;
+  defaultValue: unknown;
   primaryKey: boolean;
   autoIncrement: boolean;
   comment: string | null;

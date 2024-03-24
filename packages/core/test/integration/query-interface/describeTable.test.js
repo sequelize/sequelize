@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, literal } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -128,14 +128,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(username.defaultValue).to.be.undefined;
           break;
         default:
-          expect(username.defaultValue).to.be.null;
+          expect(username.defaultValue).to.eq(null);
       }
 
-      switch (dialect) {
-        case 'sqlite':
-          expect(city.defaultValue).to.be.null;
-          break;
-      }
+      expect(city.defaultValue).to.eq(null);
 
       assertVal = 'TINYINT(1)';
       switch (dialect) {
@@ -161,7 +157,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(isAdmin.defaultValue).to.be.undefined;
           break;
         default:
-          expect(isAdmin.defaultValue).to.be.null;
+          expect(isAdmin.defaultValue).to.eql(null);
       }
 
       if (dialect.startsWith('postgres')) {
@@ -233,6 +229,261 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const metadata = await this.queryInterface.describeTable('my.user');
 
       expect(metadata).to.haveOwnProperty('name');
+    });
+
+    describe('default value parsing', () => {
+      [
+        'normal value',
+        "with'quote",
+        'with"quote',
+        'with\\backslash',
+        "with\\'backslash and quote",
+        'with\\"backslash and quote',
+        'with::double',
+        "'surrounded by single quotes'",
+        null,
+        'null',
+        'NULL',
+        "Test('containing function call in string')",
+        '99',
+        '-99',
+      ].forEach(defaultValue => {
+        [DataTypes.STRING, DataTypes.TEXT, DataTypes.STRING(50)]
+          // TEXT fields in MySQL or MariaDB cannot have a default value
+          .filter(
+            dataType =>
+              dataType !== DataTypes.TEXT || (dialect !== 'mysql' && dialect !== 'mariadb'),
+          )
+          // .filter(dataType => dataType !== DataTypes.TEXT || dialect !== 'mariadb' || Support.sequelize.config.)
+          .forEach(dataType => {
+            it(`should return the right default value ${defaultValue} for fields of type ${dataType}`, async function () {
+              await this.sequelize.queryInterface.createTable('with_string_default', {
+                username: {
+                  type: dataType,
+                  defaultValue,
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('with_string_default');
+              expect(metadata.username.defaultValue).to.eql(defaultValue);
+            });
+          });
+      });
+
+      [
+        DataTypes.INTEGER,
+        DataTypes.BIGINT,
+        DataTypes.MEDIUMINT,
+        DataTypes.TINYINT,
+        DataTypes.SMALLINT,
+        DataTypes.FLOAT,
+        DataTypes.DOUBLE,
+      ].forEach(dataType => {
+        describe(`for fields of type ${dataType}`, () => {
+          [0, 99, -99, 1, 0, null].forEach(defaultValue => {
+            it(`should return ${defaultValue} as the default value`, async function () {
+              await this.sequelize.queryInterface.createTable('with_number_default', {
+                age: {
+                  type: dataType,
+                  defaultValue,
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('with_number_default');
+              expect(metadata.age.defaultValue).to.eq(defaultValue);
+            });
+          });
+        });
+      });
+
+      [DataTypes.FLOAT, DataTypes.DOUBLE].forEach(dataType => {
+        describe(`for fields of type ${dataType}`, () => {
+          [99.75, -99.75, 99, 1, 0, null].forEach(defaultValue => {
+            it(`should return ${defaultValue} as the default value`, async function () {
+              await this.sequelize.queryInterface.createTable('with_number_default', {
+                age: {
+                  type: dataType,
+                  defaultValue,
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('with_number_default');
+              expect(metadata.age.defaultValue).to.eq(defaultValue);
+            });
+          });
+        });
+      });
+
+      if (Support.sequelize.dialect.supports.dataTypes.DECIMAL) {
+        [DataTypes.DECIMAL(10, 2)].forEach(dataType => {
+          describe(`for fields of type ${dataType}`, () => {
+            ['99.75', '-99.75', '99.00', null].forEach(defaultValue => {
+              it(`should return ${defaultValue} as the default value`, async function () {
+                await this.sequelize.queryInterface.createTable('with_number_default', {
+                  age: {
+                    type: dataType,
+                    defaultValue,
+                  },
+                });
+
+                const metadata = await this.queryInterface.describeTable('with_number_default');
+                expect(metadata.age.defaultValue).to.have.eq(defaultValue);
+              });
+            });
+          });
+        });
+      }
+
+      if (dialect === 'postgres') {
+        describe('Boolean', () => {
+          [true, false, null].forEach(defaultValue => {
+            it(`should return the right default value ${defaultValue} for booleans`, async function () {
+              await this.sequelize.queryInterface.createTable('users_booleans', {
+                active: {
+                  type: DataTypes.BOOLEAN,
+                  defaultValue,
+                  allowNull: true,
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('users_booleans');
+              expect(metadata.active.defaultValue).to.eql(defaultValue);
+            });
+          });
+        });
+      }
+
+      describe('Enums', () => {
+        it('should return the right default value for enums', async function () {
+          await this.sequelize.queryInterface.createTable('users_enum', {
+            state: {
+              type: DataTypes.ENUM('happy', 'sad', 'meh'),
+              defaultValue: 'happy',
+            },
+          });
+
+          const metadata = await this.queryInterface.describeTable('users_enum');
+          expect(metadata.state.defaultValue).to.eql('happy');
+        });
+      });
+
+      if (Support.sequelize.dialect.supports.dataTypes.ARRAY) {
+        describe('ARRAY', () => {
+          it('should return the right default value for arrays of strings', async function () {
+            await this.sequelize.queryInterface.createTable('users_array', {
+              tags: {
+                type: DataTypes.ARRAY(DataTypes.STRING),
+                defaultValue: ['happy', 'sad', 'meh'],
+              },
+            });
+
+            const metadata = await this.queryInterface.describeTable('users_array');
+            expect(metadata.tags.defaultValue).to.eql(
+              literal(
+                "ARRAY['happy'::character varying(255), 'sad'::character varying(255), 'meh'::character varying(255)]",
+              ),
+            );
+          });
+
+          it('should return the right default value for arrays of integers', async function () {
+            await this.sequelize.queryInterface.createTable('users_array', {
+              tags: {
+                type: DataTypes.ARRAY(DataTypes.INTEGER),
+                defaultValue: [1, 2, 3],
+              },
+            });
+
+            const metadata = await this.queryInterface.describeTable('users_array');
+            expect(metadata.tags.defaultValue).to.eql(literal('ARRAY[1, 2, 3]'));
+          });
+        });
+      }
+
+      [DataTypes.JSON, DataTypes.JSONB].forEach(dataType => {
+        // MariaDB, MySQL does not support default values in JSON fields
+        // SQLite handles JSON fields as TEXT
+        if (
+          Support.sequelize.dialect.supports.dataTypes[dataType.name] &&
+          !['mariadb', 'mysql', 'sqlite'].includes(dialect)
+        ) {
+          describe(`for fields of type ${dataType.name}`, () => {
+            it('should return the right default value for a JSON object', async function () {
+              await this.sequelize.queryInterface.createTable('user_with_json', {
+                settings: {
+                  type: dataType,
+                  defaultValue: { foo: "bar's" },
+                },
+              });
+
+              const metadata = await this.queryInterface.describeTable('user_with_json');
+              expect(metadata.settings.defaultValue).to.eql({ foo: "bar's" });
+            });
+          });
+        }
+      });
+
+      it('should return the right default value for a function call', async function () {
+        const now =
+          dialect === 'sqlite'
+            ? 'CURRENT_TIMESTAMP'
+            : dialect === 'mssql'
+              ? 'getdate()'
+              : dialect === 'mariadb'
+                ? 'current_timestamp()'
+                : 'now()';
+
+        await this.sequelize.queryInterface.createTable(
+          'user_with_date',
+          {
+            date: {
+              type: DataTypes.DATE,
+              defaultValue: literal(now),
+            },
+          },
+          { freezeTableName: true },
+        );
+
+        const metadata = await this.queryInterface.describeTable('user_with_date');
+        expect(metadata.date.defaultValue).to.eql(literal(now));
+      });
+
+      it('should return the right default value for autoincrement', async function () {
+        await this.sequelize.queryInterface.createTable('user_autoincrement', {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+        });
+
+        const metadata = await this.queryInterface.describeTable('user_autoincrement');
+
+        Support.expectPerDialect(() => metadata.id.defaultValue, {
+          postgres: literal(`nextval('user_autoincrement_id_seq'::regclass)`),
+          'mysql mariadb': undefined,
+          sqlite: undefined,
+        });
+      });
+
+      if (Support.sequelize.dialect.supports.dataTypes.BOOLEAN) {
+        [true, false, null].forEach(defaultValue => {
+          it(`should return the right default value ${defaultValue} for booleans`, async function () {
+            await this.sequelize.queryInterface.createTable('users_booleans', {
+              active: {
+                type: DataTypes.BOOLEAN,
+                defaultValue,
+                allowNull: false,
+              },
+            });
+
+            const metadata = await this.queryInterface.describeTable('users_booleans');
+            expect(metadata.active.defaultValue).to.eql({
+              parsed: defaultValue,
+              raw: defaultValue,
+            });
+          });
+        });
+      }
     });
   });
 });

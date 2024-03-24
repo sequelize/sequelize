@@ -9,6 +9,7 @@ const { AbstractQuery } = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const DataTypes = require('../../data-types');
 const { logger } = require('../../utils/logger');
+const { parseDefaultValue } = require('./default-value-parser-internal');
 
 const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
@@ -154,17 +155,20 @@ export class MariaDbQuery extends AbstractQuery {
       result = {};
 
       for (const _result of data) {
-        result[_result.Field] = {
+        const field = {
           type: _result.Type.toLowerCase().startsWith('enum')
             ? _result.Type.replace(/^enum/i, 'ENUM')
             : _result.Type.toUpperCase(),
           allowNull: _result.Null === 'YES',
-          defaultValue: _result.Default,
           primaryKey: _result.Key === 'PRI',
           autoIncrement:
             Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
+
+        field.defaultValue = parseDefaultValue(_result.Default, field);
+
+        result[_result.Field] = field;
       }
 
       return result;

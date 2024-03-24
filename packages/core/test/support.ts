@@ -236,7 +236,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
         throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
       }
 
-      if (expectations[dialect] !== undefined) {
+      if (Object.hasOwn(expectations, dialect)) {
         throw new Error(`The expectation for ${dialect} was already defined.`);
       }
 
@@ -254,8 +254,14 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     result = error;
   }
 
-  const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
-  if (expectation === undefined) {
+  const expectation = Object.hasOwn(expectations, sequelize.dialect.name)
+    ? expectations[sequelize.dialect.name]
+    : expectations.default;
+
+  if (
+    !Object.hasOwn(expectations, sequelize.dialect.name) &&
+    !Object.hasOwn(expectations, 'default')
+  ) {
     throw new Error(
       `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
     );

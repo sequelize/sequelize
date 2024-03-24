@@ -12,6 +12,7 @@ const { AbstractQuery } = require('../abstract/query');
 const { QueryTypes } = require('../../query-types');
 const sequelizeErrors = require('../../errors');
 const { logger } = require('../../utils/logger');
+const { parseDefaultValue } = require('./default-value-parser-internal');
 
 const debug = logger.debugContext('sql:pg');
 
@@ -222,35 +223,17 @@ export class PostgresQuery extends AbstractQuery {
       const result = {};
 
       for (const row of rows) {
-        result[row.Field] = {
+        const field = {
           type: row.Type.toUpperCase(),
           allowNull: row.Null === 'YES',
-          defaultValue: row.Default,
           comment: row.Comment,
           special: row.special ? this.sequelize.queryGenerator.fromArray(row.special) : [],
           primaryKey: row.Constraint === 'PRIMARY KEY',
         };
 
-        if (result[row.Field].type === 'BOOLEAN') {
-          result[row.Field].defaultValue = { false: false, true: true }[
-            result[row.Field].defaultValue
-          ];
+        field.defaultValue = parseDefaultValue(row.Default, field);
 
-          if (result[row.Field].defaultValue === undefined) {
-            result[row.Field].defaultValue = null;
-          }
-        }
-
-        if (typeof result[row.Field].defaultValue === 'string') {
-          result[row.Field].defaultValue = result[row.Field].defaultValue.replaceAll("'", '');
-
-          if (result[row.Field].defaultValue.includes('::')) {
-            const split = result[row.Field].defaultValue.split('::');
-            if (split[1].toLowerCase() !== 'regclass)') {
-              result[row.Field].defaultValue = split[0];
-            }
-          }
-        }
+        result[row.Field] = field;
       }
 
       return result;

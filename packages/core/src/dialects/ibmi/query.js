@@ -109,7 +109,10 @@ export class IBMiQuery extends AbstractQuery {
             ? _result.Type.replace(enumRegex, 'ENUM')
             : _result.DATA_TYPE.toUpperCase(),
           allowNull: _result.IS_NULLABLE === 'Y',
-          defaultValue: _result.COLUMN_DEFAULT,
+          defaultValue: {
+            raw: _result.COLUMN_DEFAULT,
+            parsed: _result.COLUMN_DEFAULT,
+          },
           primaryKey: _result.CONSTRAINT_TYPE === 'PRIMARY KEY',
           autoIncrement: _result.IS_GENERATED !== 'IDENTITY_GENERATION',
         };
