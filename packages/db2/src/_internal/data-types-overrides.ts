@@ -2,7 +2,10 @@ import type { AbstractDialect } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import maxBy from 'lodash/maxBy.js';
+
+dayjs.extend(utc);
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -134,7 +137,7 @@ export class DATE extends BaseTypes.DATE {
   }
 
   toBindableValue(date: AcceptedDate) {
-    date = dayjs(date);
+    date = dayjs(date).utc(false);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
