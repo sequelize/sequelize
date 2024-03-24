@@ -28,7 +28,7 @@ console.info(
 );
 
 const folders = multipleEntryPoints
-  ? await listDirectories(srcDir).map(folder => path.join(srcDir, folder))
+  ? (await listDirectories(srcDir)).map(folder => path.join(srcDir, folder))
   : [srcDir];
 
 const outdatedPaths = [];
