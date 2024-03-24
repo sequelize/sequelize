@@ -1,16 +1,17 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils/check';
-import { removeNullishValuesFromHash } from '../../utils/format';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { removeTrailingSemicolon } from '../../utils/string';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { attributeTypeToSql, normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
+import { DataTypes, Op } from '@sequelize/core';
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -21,9 +22,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 import startsWith from 'lodash/startsWith';
 import template from 'lodash/template';
-
-const DataTypes = require('../../data-types');
-const { Op } = require('../../operators');
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 

@@ -1,20 +1,15 @@
 import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
+import * as Db2 from 'ibm_db';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
-import { ConnectionError, ConnectionRefusedError } from '../../errors/index.js';
-import type { ConnectionOptions } from '../../sequelize.js';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { Db2Dialect } from './index.js';
-
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('ibm_db');
+import type { Connection, ConnectionOptions } from '@sequelize/core';
+import { AbstractConnectionManager, ConnectionError, ConnectionRefusedError } from '@sequelize/core';
+import type { Db2Dialect } from './dialect.js';
 
 export interface Db2Connection extends Connection, Db2LibDatabase {
   // properties added by us
   // TODO: replace with Symbols.
-  lib: Lib;
+  lib: typeof Db2;
 }
 
 /**
@@ -27,11 +22,11 @@ export interface Db2Connection extends Connection, Db2LibDatabase {
  * @private
  */
 export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, Db2Connection> {
-  private readonly lib;
+  readonly #lib: typeof Db2;
 
   constructor(dialect: Db2Dialect) {
     super(dialect);
-    this.lib = this._loadDialectModule('ibm_db') as Lib;
+    this.#lib = Db2;
   }
 
   /**
@@ -63,8 +58,8 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
 
     try {
       return await new Promise((resolve, reject) => {
-        const connection = new this.lib.Database() as Db2Connection;
-        connection.lib = this.lib;
+        const connection = new this.#lib.Database() as Db2Connection;
+        connection.lib = this.#lib;
         connection.open(connectionConfig, error => {
           if (error) {
             if (error.message && error.message.includes('SQL30081N')) {

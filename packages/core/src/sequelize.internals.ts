@@ -19,7 +19,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
     case 'ibmi':
       return require('./dialects/ibmi').IBMiDialect;
     case 'db2':
-      return require('./dialects/db2').Db2Dialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/db2').Db2Dialect;
     case 'snowflake':
       return require('./dialects/snowflake').SnowflakeDialect;
     default:

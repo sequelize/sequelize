@@ -1,5 +1,6 @@
 import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { Db2Dialect } from '@sequelize/db2';
 import { PostgresDialect } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
@@ -144,6 +145,15 @@ export function createSequelizeInstance(options: Options<AbstractDialect> = {}):
 
   if (config.storage || config.storage === '') {
     sequelizeOptions.storage = config.storage;
+  }
+
+  if (dialect === 'db2') {
+    const sequelizeDb2Options: Options<Db2Dialect> = {
+      ...sequelizeOptions,
+      dialect: Db2Dialect,
+    };
+
+    return getSequelizeInstance(sequelizeDb2Options);
   }
 
   if (dialect === 'postgres') {

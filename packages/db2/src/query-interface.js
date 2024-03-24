@@ -1,16 +1,14 @@
 'use strict';
 
-import { isWhereEmpty } from '../../utils/query-builder-utils';
-import { assertNoReservedBind } from '../../utils/sql';
-import { Db2QueryInterfaceTypeScript } from './query-interface-typescript';
+import { Op, QueryTypes } from '@sequelize/core';
+import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { Db2QueryInterfaceTypeScript } from './query-interface-typescript.internal';
 
 import clone from 'lodash/clone';
 import intersection from 'lodash/intersection';
 import isPlainObject from 'lodash/isPlainObject';
 import mapValues from 'lodash/mapValues';
-
-const { Op } = require('../../operators');
-const { QueryTypes } = require('../../query-types');
 
 /**
  * The interface that Sequelize uses to talk with Db2 database

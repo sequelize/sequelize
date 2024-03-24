@@ -76,7 +76,6 @@
     "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
-    "@types/ibm_db": "2.0.16",
     "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
     "@types/semver": "7.5.8",
@@ -91,7 +90,6 @@
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
     "mariadb": "3.3.0",
     "mocha": "10.3.0",
@@ -111,9 +109,6 @@
     "tedious": "16.7.0"
   },
   "peerDependenciesMeta": {
-    "ibm_db": {
-      "optional": true
-    },
     "mariadb": {
       "optional": true
     },
