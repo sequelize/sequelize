@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { arrayFromAsync, parallelForEach, pojo } from '@sequelize/utils';
+import { EMPTY_OBJECT, arrayFromAsync, parallelForEach, pojo } from '@sequelize/utils';
 import { listDirectories, listFilesRecursive, readFileIfExists } from '@sequelize/utils/node.js';
 import isEqual from 'lodash/isEqual.js';
 import fs from 'node:fs/promises';
@@ -63,17 +63,21 @@ await parallelForEach(folders, async folder => {
       }
     });
 
+  const baseExports = getExportsWithOverrides(commonExports, EMPTY_OBJECT);
   const browserExports = getExportsWithOverrides(commonExports, browserExportOverrides);
   const nodeExports = getExportsWithOverrides(commonExports, nodeExportOverrides);
 
-  if (isEqual(browserExports, nodeExports)) {
-    await outputExports(browserExports, path.join(folderAbsolutePath, 'index.ts'));
-  } else {
-    await Promise.all([
-      outputExports(browserExports, path.join(folderAbsolutePath, 'index.browser.ts')),
-      outputExports(nodeExports, path.join(folderAbsolutePath, 'index.node.ts')),
-    ]);
+  const promises = [];
+  promises.push(outputExports(baseExports, path.join(folderAbsolutePath, 'index.ts')));
+  if (!isEqual(browserExports, baseExports)) {
+    promises.push(outputExports(browserExports, path.join(folderAbsolutePath, 'index.browser.ts')));
   }
+
+  if (!isEqual(nodeExports, baseExports)) {
+    promises.push(outputExports(nodeExports, path.join(folderAbsolutePath, 'index.node.ts')));
+  }
+
+  await Promise.all(promises);
 });
 
 async function outputExports(exports, indexPath) {

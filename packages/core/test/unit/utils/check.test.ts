@@ -4,12 +4,14 @@ import {
   isWhereEmpty,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { allowDeprecationsInSuite, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
 describe('utils / check', () => {
   describe('defaultValueSchemable', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0026']);
+
     it('should return false if the value is a NOW', () => {
       expect(defaultValueSchemable(DataTypes.NOW, dialect)).to.equal(false);
       expect(defaultValueSchemable(DataTypes.NOW(), dialect)).to.equal(false);

@@ -1,5 +1,5 @@
 import type { ReadonlyMapLike } from '@sequelize/utils';
-import { SetView, combinedIterator } from '@sequelize/utils';
+import { SetView, combinedIterator, map } from '@sequelize/utils';
 // @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
 import baseIsNative from 'lodash/_baseIsNative';
 import cloneDeepWith from 'lodash/cloneDeepWith';

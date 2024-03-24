@@ -1,5 +1,5 @@
-import { pojo } from "./pojo.js";
-import type { ReadOnlyRecord } from "./types.js";
+import { pojo } from './pojo.js';
+import type { ReadOnlyRecord } from './types.js';
 
 /**
  * An immutable empty array meant to be used as a default value in places where the value won't be mutated,

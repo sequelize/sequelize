@@ -14,7 +14,7 @@ import moment from 'moment';
 import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
 import { Blob } from 'node:buffer';
-import { beforeAll2, sequelize, setResetMode } from '../support';
+import { allowDeprecationsInSuite, beforeAll2, sequelize, setResetMode } from '../support';
 
 dayjs.extend(DayjsTimezone);
 
@@ -686,39 +686,36 @@ describe('DataTypes', () => {
     });
   }
 
-  describe('BIGINT', () => {
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare bigintAttr: number | bigint | string;
-      }
+  if (dialect.supports.dataTypes.BIGINT) {
+    describe('BIGINT', () => {
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare bigintAttr: number | bigint | string;
+        }
 
-      User.init(
-        {
-          bigintAttr: {
-            type: DataTypes.BIGINT,
-            allowNull: false,
+        User.init(
+          {
+            bigintAttr: {
+              type: DataTypes.BIGINT,
+              allowNull: false,
+            },
           },
-        },
-        { sequelize },
-      );
+          { sequelize },
+        );
 
-      await User.sync({ force: true });
+        await User.sync({ force: true });
 
-      return { User };
-    });
+        return { User };
+      });
 
-    it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'bigintAttr', 123, '123');
-      await testSimpleInOut(vars.User, 'bigintAttr', 123n, '123');
-      await testSimpleInOut(vars.User, 'bigintAttr', '123', '123');
+      it('accepts numbers, bigints, strings', async () => {
+        await testSimpleInOut(vars.User, 'bigintAttr', 123, '123');
+        await testSimpleInOut(vars.User, 'bigintAttr', 123n, '123');
+        await testSimpleInOut(vars.User, 'bigintAttr', '123', '123');
 
-      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_991n, '9007199254740991');
-    });
+        await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_991n, '9007199254740991');
+      });
 
-    // sqlite3 loses precision for bigints because it parses them as JS numbers.
-    // issue: https://github.com/TryGhost/node-sqlite3/issues/922
-    // better-sqlite3 supports it: https://github.com/sequelize/sequelize/issues/11400
-    if (dialect.name !== 'sqlite') {
       it('does not lose precision', async () => {
         await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_993n, '9007199254740993');
         await testSimpleInOut(
@@ -730,70 +727,63 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'bigintAttr', '9007199254740993', '9007199254740993');
         await testSimpleInOut(vars.User, 'bigintAttr', '-9007199254740993', '-9007199254740993');
       });
-    }
 
-    it('rejects unsafe integers', async () => {
-      await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
+      it('rejects unsafe integers', async () => {
+        await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
 
-      await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
-    });
-
-    it('rejects non-integer strings', async () => {
-      await expect(vars.User.create({ bigintAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
-    });
-
-    if (dialect.name === 'sqlite') {
-      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
-      // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
-      it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
+        await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
       });
-    } else {
-      // This is the desired behavior
+
+      it('rejects non-integer strings', async () => {
+        await expect(vars.User.create({ bigintAttr: '' })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: 'abc' })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
+      });
+
       it('is deserialized as a string when DataType is not specified', async () => {
         await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
       });
-    }
 
-    if (dialect.supports.dataTypes.INTS.unsigned) {
-      describe(`BIGINT.UNSIGNED`, () => {
-        const vars2 = beforeAll2(async () => {
-          class User extends Model<InferAttributes<User>> {
-            declare intAttr: number | bigint | string;
-          }
+      if (dialect.supports.dataTypes.INTS.unsigned) {
+        describe(`BIGINT.UNSIGNED`, () => {
+          const vars2 = beforeAll2(async () => {
+            class User extends Model<InferAttributes<User>> {
+              declare intAttr: number | bigint | string;
+            }
 
-          User.init(
-            {
-              intAttr: {
-                type: DataTypes.BIGINT.UNSIGNED,
-                allowNull: false,
+            User.init(
+              {
+                intAttr: {
+                  type: DataTypes.BIGINT.UNSIGNED,
+                  allowNull: false,
+                },
               },
-            },
-            { sequelize },
-          );
+              { sequelize },
+            );
 
-          await User.sync({ force: true });
+            await User.sync({ force: true });
 
-          return { User };
+            return { User };
+          });
+
+          it('rejects out-of-range numbers', async () => {
+            await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be
+              .rejected;
+            await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
+          });
         });
-
-        it('rejects out-of-range numbers', async () => {
-          await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be
-            .rejected;
-          await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
-        });
-      });
-    }
-  });
+      }
+    });
+  }
 
   for (const attrType of ['REAL', 'DOUBLE', 'FLOAT'] as const) {
     describe(`${attrType}`, () => {
+      allowDeprecationsInSuite(['SEQUELIZE0014']);
+
       const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare attr: number | bigint | string;

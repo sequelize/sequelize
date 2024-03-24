@@ -1,1 +1,3 @@
-yarn lint-staged
+yarn lint-staged --concurrent false
+yarn delete-changelog
+git add .

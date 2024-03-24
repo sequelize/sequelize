@@ -1,11 +1,13 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { expectsql, sequelize } from '../../support';
+import { allowDeprecationsInSuite, expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const { dialect, queryGenerator } = sequelize;
 
 describe('DataTypes.ARRAY', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0014']);
+
   const unsupportedError = new Error(
     `${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`,
   );

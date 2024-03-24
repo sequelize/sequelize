@@ -148,7 +148,7 @@ export class BelongsToAssociation<
 
     this.foreignKey = foreignKey as SourceKey;
 
-    this.targetKeyField = getColumnName(targetAttributes.get(this.targetKey)!);
+    this.targetKeyField = getColumnName(targetAttributes.getOrThrow(this.targetKey));
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
 
     const targetAttribute = targetAttributes.get(this.targetKey)!;
@@ -395,7 +395,7 @@ export class BelongsToAssociation<
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
-      value = (associatedInstance as T)[this.targetKey];
+      value = associatedInstance[this.targetKey];
     }
 
     sourceInstance.set(this.foreignKey, value);

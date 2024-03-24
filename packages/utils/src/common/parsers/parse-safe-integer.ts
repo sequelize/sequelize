@@ -1,17 +1,10 @@
 import { buildNullBasedParser } from '../_internal/build-parser.js';
-import { MAX_RADIX_INCLUSIVE, MIN_RADIX_INCLUSIVE } from '../_internal/integer-regexp.js';
 import { inspect } from '../inspect.js';
 import { isBigInt } from '../predicates/is-big-int.js';
 import { isValidIntegerSyntax } from '../predicates/is-valid-integer-syntax.js';
 import { parseFiniteNumber } from './parse-finite-number.js';
 
 function parseSafeIntegerInternal(value: string | bigint, radix: number = 10): number | null {
-  if (radix < MIN_RADIX_INCLUSIVE || radix > MAX_RADIX_INCLUSIVE) {
-    throw new RangeError(
-      `parseSafeInteger() radix argument must be between ${MIN_RADIX_INCLUSIVE} and ${MAX_RADIX_INCLUSIVE}`,
-    );
-  }
-
   let result: number | null;
   if (isBigInt(value) || radix === 10) {
     // delegating to parseNumber as it supports scientific notation & only base 10 is allowed

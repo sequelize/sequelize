@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../integration/support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
@@ -51,13 +51,13 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_id',
           },
           userSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'user_second_id',
           },
         },
@@ -79,13 +79,13 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
             type: DataTypes.UUID,
             allowNull: false,
             primaryKey: true,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_id',
           },
           groupSecondId: {
             type: DataTypes.UUID,
             allowNull: false,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
             field: 'group_second_id',
           },
         },
@@ -395,8 +395,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },

@@ -1,6 +1,6 @@
 import type { Dialect, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { isNodeError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
@@ -62,8 +62,6 @@ export function inlineErrorCause(error: unknown): string {
 
   let message = error.message;
 
-  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
   if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
@@ -533,6 +531,7 @@ export function createTester<Params extends any[]>(
 
 /**
  * Works like {@link beforeEach}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
@@ -550,6 +549,7 @@ export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> 
 
 /**
  * Works like {@link before}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
@@ -594,27 +594,11 @@ if (typeof after !== 'undefined') {
 
 // TODO: ignoredDeprecations should be removed in favour of EMPTY_ARRAY
 const ignoredDeprecations: readonly string[] = [
-  'SEQUELIZE0005',
-  'SEQUELIZE0006',
-  'SEQUELIZE0007',
-  'SEQUELIZE0008',
-  'SEQUELIZE0009',
-  'SEQUELIZE0011',
-  'SEQUELIZE0012',
   'SEQUELIZE0013',
-  'SEQUELIZE0014',
-  'SEQUELIZE0015',
-  'SEQUELIZE0016',
-  'SEQUELIZE0017',
   'SEQUELIZE0018',
   'SEQUELIZE0019',
-  'SEQUELIZE0020',
   'SEQUELIZE0021',
   'SEQUELIZE0022',
-  'SEQUELIZE0024',
-  'SEQUELIZE0025',
-  'SEQUELIZE0026',
-  'SEQUELIZE0027',
 ];
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
@@ -627,6 +611,7 @@ export function allowDeprecationsInSuite(codes: readonly string[]) {
   });
 }
 
+// TODO: the DeprecationWarning is only thrown once. We should figure out a way to reset that or move all tests that use deprecated tests to one suite per deprecation.
 process.on('warning', (warning: NodeJS.ErrnoException) => {
   if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
     throw warning;

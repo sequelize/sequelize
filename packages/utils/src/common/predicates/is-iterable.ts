@@ -3,10 +3,11 @@ import type {
   NegatedAssertionFunction,
 } from '../_internal/build-predicate-function.js';
 import { buildAssertionFunction, toBe } from '../_internal/build-predicate-function.js';
+import { isFunction } from './is-function.js';
 
 const tuple = buildAssertionFunction((value: unknown): value is Iterable<unknown> => {
   // @ts-expect-error -- TS does not allow accessing Symbol.iterator like this.
-  return value != null && value[Symbol.iterator];
+  return value != null && isFunction(value[Symbol.iterator]);
 }, toBe('an iterable'));
 
 /**

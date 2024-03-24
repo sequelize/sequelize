@@ -20,9 +20,7 @@ export function inspect(value: unknown): string {
   }
 
   if (isFunction(value)) {
-    const name = Object.prototype.toString.call(value);
-
-    return name.replace(/^\[object /, '[function ');
+    return `[function ${value.name || '(anonymous)'}]`;
   }
 
   if (isAnyObject(value)) {

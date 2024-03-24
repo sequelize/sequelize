@@ -41,6 +41,9 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     const initialMethod = function wrapper() {};
 
     each(methods, (alias, method) => {
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
       User.prototype[method] = initialMethod;
     });
 
@@ -201,8 +204,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
-
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
@@ -232,8 +234,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('BelongsTo');
         expect(firstArg.association.constructor.name).to.equal('BelongsTo');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {

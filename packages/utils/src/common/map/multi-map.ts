@@ -1,7 +1,17 @@
-import type { Entry, MapLike } from "../types.js";
+import uniq from 'lodash/uniq.js';
+import { EMPTY_ARRAY } from '../consts.js';
+import type { Entry, MapLike } from '../types.js';
 
-export class MultiMap<K, V> implements MapLike<K, V[]> {
-  #internalMap = new Map<K, V[]>();
+export class MultiMap<K, V> implements MapLike<K, readonly V[]> {
+  readonly #internalMap = new Map<K, readonly V[]>();
+
+  constructor(entries?: Iterable<readonly [K, readonly V[]]>) {
+    if (entries) {
+      for (const [key, values] of entries) {
+        this.set(key, values);
+      }
+    }
+  }
 
   get size() {
     return this.#internalMap.size;
@@ -13,13 +23,14 @@ export class MultiMap<K, V> implements MapLike<K, V[]> {
 
   append(key: K, value: V): this {
     const valueSet = this.#internalMap.get(key);
-    if (valueSet != null) {
-      valueSet.push(value);
-
+    if (valueSet?.includes(value)) {
       return this;
     }
 
-    this.#internalMap.set(key, [value]);
+    const newValue = valueSet ? [...valueSet, value] : [value];
+    Object.freeze(newValue);
+
+    this.#internalMap.set(key, newValue);
 
     return this;
   }
@@ -30,12 +41,19 @@ export class MultiMap<K, V> implements MapLike<K, V[]> {
       return false;
     }
 
-    const index = valueSet.indexOf(value);
-    if (index === -1) {
+    const newValueSet = valueSet.filter(val => val !== value);
+    if (newValueSet.length === valueSet.length) {
       return false;
     }
 
-    valueSet.splice(index, 1);
+    if (newValueSet.length === 0) {
+      this.#internalMap.delete(key);
+
+      return true;
+    }
+
+    Object.freeze(newValueSet);
+    this.#internalMap.set(key, newValueSet);
 
     return true;
   }
@@ -48,45 +66,43 @@ export class MultiMap<K, V> implements MapLike<K, V[]> {
     return this.#internalMap.keys();
   }
 
-  getAll(key: K): V[] {
-    const values = this.#internalMap.get(key);
-
-    if (values) {
-      return [...values];
-    }
-
-    return [];
-  }
-
   count(key: K): number {
     const values = this.#internalMap.get(key);
 
     return values?.length ?? 0;
   }
 
-  [Symbol.iterator](): IterableIterator<Entry<K, V[]>> {
+  [Symbol.iterator](): IterableIterator<Entry<K, readonly V[]>> {
     return this.#internalMap[Symbol.iterator]();
   }
 
-  entries(): IterableIterator<Entry<K, V[]>> {
+  entries(): IterableIterator<Entry<K, readonly V[]>> {
     return this.#internalMap.entries();
   }
 
-  get(key: K): V[] | undefined {
-    return this.#internalMap.get(key);
+  get(key: K): readonly V[] {
+    return this.#internalMap.get(key) ?? EMPTY_ARRAY;
   }
 
   has(key: K): boolean {
     return this.#internalMap.has(key);
   }
 
-  set(key: K, values: V[]): this {
-    this.#internalMap.set(key, values);
+  set(key: K, values: readonly V[]): this {
+    if (values.length === 0) {
+      this.#internalMap.delete(key);
+
+      return this;
+    }
+
+    const uniqueValues = Object.freeze(uniq(values));
+
+    this.#internalMap.set(key, uniqueValues);
 
     return this;
   }
 
-  values(): IterableIterator<V[]> {
+  values(): IterableIterator<readonly V[]> {
     return this.#internalMap.values();
   }
 }

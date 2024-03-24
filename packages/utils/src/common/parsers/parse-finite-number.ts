@@ -7,9 +7,7 @@ import { isValidNumberSyntax } from '../predicates/is-valid-number-syntax.js';
 function parseFiniteNumberInternal(value: string | bigint): number | null {
   if (isBigInt(value)) {
     if (value > Number.MAX_SAFE_INTEGER || value < Number.MIN_SAFE_INTEGER) {
-      throw new TypeError(
-        `Cannot cast BigInt ${value} to Number, because the value would be outside of the Safe Integer range.`,
-      );
+      return null;
     }
 
     return Number(value);

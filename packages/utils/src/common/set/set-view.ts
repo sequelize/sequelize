@@ -1,10 +1,8 @@
-import NodeUtil, { type InspectOptions } from "node:util";
-import type { ReadonlySetLike } from "../types.js";
-import { pojo } from "../pojo.js";
-import { find } from "../iterator-utils/find.js";
+import { find } from '../iterator-utils/find.js';
+import type { ReadonlySetLike } from '../types.js';
 
 export class SetView<V> implements ReadonlySetLike<V> {
-  #target: Set<V>;
+  readonly #target: Set<V>;
 
   /**
    * @returns the number of (unique) elements in Set.
@@ -37,18 +35,7 @@ export class SetView<V> implements ReadonlySetLike<V> {
     return this.#target.values();
   }
 
-  toJSON() {
-    return [...this.#target];
-  }
-
-  [NodeUtil.inspect.custom](depth: number, options: InspectOptions): string {
-    const newOptions = Object.assign(pojo(), options, {
-      depth: options.depth == null ? null : options.depth - 1,
-    });
-
-    return NodeUtil.inspect(this.#target, newOptions).replace(
-      /^Set/,
-      "SetView",
-    );
+  toMutableSet(): Set<V> {
+    return new Set(this.#target);
   }
 }

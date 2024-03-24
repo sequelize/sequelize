@@ -128,10 +128,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       it('supports schemas', async function () {
         const User = this.sequelize
           .define('UserXYZ', { username: DataTypes.STRING, gender: DataTypes.STRING })
-          .schema('archive');
+          .withSchema('archive');
         const Task = this.sequelize
           .define('TaskXYZ', { title: DataTypes.STRING, status: DataTypes.STRING })
-          .schema('archive');
+          .withSchema('archive');
 
         Task.belongsTo(User);
 
@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               allowNull: false,
             },
           })
-          .schema('archive');
+          .withSchema('archive');
         const Task = this.sequelize
           .define('TaskXYZ', {
             user_id: {
@@ -171,7 +171,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               references: { model: User, key: 'uid' },
             },
           })
-          .schema('archive');
+          .withSchema('archive');
 
         Task.belongsTo(User, { foreignKey: 'user_id' });
 
@@ -851,8 +851,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('association options', () => {
     it('can specify data type for auto-generated relational keys', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING];
+      const dataTypes = [DataTypes.INTEGER, DataTypes.STRING];
       const Tasks = {};
+
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        dataTypes.push(DataTypes.BIGINT);
+      }
 
       for (const dataType of dataTypes) {
         const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;

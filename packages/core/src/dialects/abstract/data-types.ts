@@ -808,7 +808,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
       const out = parseSafeInteger(value);
 
       // let validate sort this validation instead
-      if (Number.isNaN(out)) {
+      if (out === null) {
         return value;
       }
 
@@ -977,6 +977,10 @@ export class BIGINT extends BaseIntegerDataType {
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+
+    if (!dialect.supports.dataTypes.BIGINT) {
+      throwUnsupportedDataType(dialect, 'BIGINT');
+    }
 
     if (this.options.unsigned && !this._supportsNativeUnsigned(dialect)) {
       throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.UNSIGNED`);
