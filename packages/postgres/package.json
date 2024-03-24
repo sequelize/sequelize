@@ -36,7 +36,7 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/pg": "8.11.2",
+    "@types/pg": "8.11.4",
     "lodash": "4.17.21",
     "pg": "8.11.3",
     "pg-hstore": "2.3.4",
