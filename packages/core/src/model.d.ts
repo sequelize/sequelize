@@ -1069,7 +1069,16 @@ export interface CreateOptions<TAttributes = any>
    * dialect specific ON CONFLICT DO NOTHING / INSERT IGNORE
    */
   ignoreDuplicates?: boolean;
-
+  /**
+   * Fields to update if row key already exists (on duplicate key update)? (only supported by MySQL,
+   * MariaDB, SQLite >= 3.24.0 & Postgres >= 9.5).
+   */
+  updateOnDuplicate?: Array<keyof TAttributes>;
+  /**
+   * An optional parameter that specifies a where clause for the 'ON CONFLICT DO UPDATE SET ... WHERE' part of the query
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.35.0
+   */
+  onConflictUpdateWhere?: WhereOptions<TAttributes>;
   /**
    * Return the affected rows (only for postgres)
    */
@@ -1151,6 +1160,11 @@ export interface UpsertOptions<TAttributes = any>
    */
   conflictWhere?: WhereOptions<TAttributes>;
   /**
+   * An optional parameter that specifies a where clause for the 'ON CONFLICT DO UPDATE SET ... WHERE' part of the query
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.35.0
+   */
+  onConflictUpdateWhere?: WhereOptions<TAttributes>;
+  /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
@@ -1215,6 +1229,11 @@ export interface BulkCreateOptions<TAttributes = any>
    * Only supported in Postgres >= 9.5 and sqlite >= 9.5
    */
   conflictWhere?: WhereOptions<TAttributes>;
+  /**
+   * An optional parameter that specifies a where clause for the 'ON CONFLICT DO UPDATE SET ... WHERE' part of the query
+   * Only supported in Postgres >= 9.5 and SQLite >= 3.35.0
+   */
+  onConflictUpdateWhere?: WhereOptions<TAttributes>;
   /**
    * Optional override for the conflict fields in the ON CONFLICT part of the query.
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0

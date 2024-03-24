@@ -2337,6 +2337,10 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
+      if (options.onConflictUpdateWhere && !['postgres', 'sqlite'].includes(dialect)) {
+        throw new Error(`${dialect} does not support the conflictUpdateWhere option.`);
+      }
+
       const model = options.model;
       const modelDefinition = model.modelDefinition;
 
@@ -2476,6 +2480,7 @@ ${associationOwner._getAssociationDebugList()}`);
           fieldMappedAttributes[attribute.columnName] = attribute;
         }
 
+        // TODO: abdou
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
           options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {

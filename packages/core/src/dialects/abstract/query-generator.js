@@ -21,6 +21,7 @@ import { Col } from '../../expression-builders/col.js';
 import { Literal } from '../../expression-builders/literal.js';
 import { conformIndex } from '../../model-internals';
 import { and } from '../../sequelize';
+import { isString } from '../../utils/check';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
@@ -169,6 +170,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       throw new Error('missing dialect support for conflictWhere option');
     }
 
+    if (
+      !isEmpty(options.onConflictUpdateWhere) &&
+      !this.dialect.supports.inserts.onConflictUpdateWhere
+    ) {
+      throw new Error('missing dialect support for onConflictUpdateWhere option');
+    }
+
     // `options.updateOnDuplicate` is the list of field names to update if a duplicate key is hit during the insert.  It
     // contains just the field names.  This option is _usually_ explicitly set by the corresponding query-interface
     // upsert function.
@@ -184,7 +192,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
+          fragments.push(this.whereQuery(options.conflictWhere, { ...options }));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -193,6 +201,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           fragments.push('DO NOTHING');
         } else {
           fragments.push('DO UPDATE SET', updateKeys.join(','));
+          if (
+            this.dialect.supports.inserts.onConflictUpdateWhere &&
+            options.onConflictUpdateWhere
+          ) {
+            // We need to use the mainAlias here to avoid ambiguous column names in the conditional update clause between the main table and the EXCLUDED values
+            options.mainAlias = isString(table) ? table : table.tableName;
+            fragments.push(this.whereQuery(options.onConflictUpdateWhere, options));
+          }
         }
 
         onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
@@ -281,7 +297,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Returns an insert into command for multiple values.
    *
-   * @param {string} tableName
+   * @param {TableName} tableName
    * @param {object} fieldValueHashes
    * @param {object} options
    * @param {object} fieldMappedAttributes
@@ -348,6 +364,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           whereClause = this.whereQuery(options.conflictWhere, options);
         }
 
+        let conditionalUpdateClause = '';
+        if (this.dialect.supports.inserts.onConflictUpdateWhere && options.onConflictUpdateWhere) {
+          // We need to use the mainAlias here to avoid ambiguous column names in the conditional update clause between the main table and the EXCLUDED values
+          options.mainAlias = isString(tableName) ? tableName : tableName.tableName;
+          conditionalUpdateClause = this.whereQuery(options.onConflictUpdateWhere, options);
+        }
+
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
         onDuplicateKeyUpdate = [
           'ON CONFLICT',
@@ -357,6 +380,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           whereClause,
           'DO UPDATE SET',
           updateKeys.join(','),
+          conditionalUpdateClause,
         ];
       } else {
         // mysql / maria

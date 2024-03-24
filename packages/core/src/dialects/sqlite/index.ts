@@ -18,6 +18,7 @@ export class SqliteDialect extends AbstractDialect {
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,
       onConflictWhere: true,
+      onConflictUpdateWhere: true,
     },
     index: {
       using: false,
