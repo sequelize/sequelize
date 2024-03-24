@@ -134,7 +134,7 @@ export class DATE extends BaseTypes.DATE {
   }
 
   toBindableValue(date: AcceptedDate) {
-    date = dayjs(date).utc(false);
+    date = dayjs(date);
 
     return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }

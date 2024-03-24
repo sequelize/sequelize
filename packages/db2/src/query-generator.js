@@ -14,7 +14,7 @@ import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { Db2QueryGeneratorTypeScript } from './query-generator-typescript';
+import { Db2QueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
