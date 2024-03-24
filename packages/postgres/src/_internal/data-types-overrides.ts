@@ -7,12 +7,13 @@ import type {
   BindParamOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import { isBigInt, isNumber, isString } from '@sequelize/utils';
+import { inspect, isBigInt, isNumber, isString } from '@sequelize/utils';
+import identity from 'lodash/identity.js';
 import assert from 'node:assert';
 import wkx from 'wkx';
 import { PostgresQueryGenerator } from '../query-generator';
 import { stringifyHstore } from './hstore.js';
-import { stringifyRange } from './range.js';
+import { buildRangeParser, stringifyRange } from './range.js';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -300,6 +301,8 @@ export class HSTORE extends BaseTypes.HSTORE {
   }
 }
 
+const defaultRangeParser = buildRangeParser(identity);
+
 export class RANGE<
   T extends BaseTypes.BaseNumberDataType | DATE | DATEONLY = INTEGER,
 > extends BaseTypes.RANGE<T> {
@@ -336,6 +339,26 @@ export class RANGE<
     const value = this.toBindableValue(values);
 
     return `${options.bindParam(value)}::${this.toSql()}`;
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    // node-postgres workaround: The SQL Type-based parser is not called by node-postgres for values returned by Model.findOrCreate.
+    if (typeof value === 'string') {
+      value = defaultRangeParser(value);
+    }
+
+    if (!Array.isArray(value)) {
+      throw new Error(
+        `DataTypes.RANGE received a non-range value from the database: ${inspect(value)}`,
+      );
+    }
+
+    return value.map(part => {
+      return {
+        ...part,
+        value: this.options.subtype.parseDatabaseValue(part.value),
+      };
+    });
   }
 
   toSql() {

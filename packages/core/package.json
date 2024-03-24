@@ -108,8 +108,7 @@
     "sinon-chai": "3.7.0",
     "snowflake-sdk": "1.10.0",
     "sqlite3": "5.1.7",
-    "tedious": "16.7.0",
-    "typescript": "5.4.3"
+    "tedious": "16.7.0"
   },
   "peerDependenciesMeta": {
     "ibm_db": {
