@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { EMPTY_OBJECT, arrayFromAsync, parallelForEach, pojo } from '@sequelize/utils';
-import { listDirectories, listFilesRecursive, readFileIfExists } from '@sequelize/utils/node.js';
+import { listDirectories, listFilesRecursive, readFileIfExists } from '@sequelize/utils/node';
 import isEqual from 'lodash/isEqual.js';
 import fs from 'node:fs/promises';
 import path from 'node:path';

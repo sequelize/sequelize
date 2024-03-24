@@ -1,15 +1,10 @@
 {
+  "extends": "../../tsconfig-preset.json",
   "compilerOptions": {
-    "declaration": true,
-    "module": "Node16",
-    "outDir": "dist",
-    "rootDir": "src",
-    "strict": true,
-    "target": "es2022",
-    "moduleResolution": "node16"
+    "outDir": "./lib",
+    "rootDir": "./src",
+    // https://github.com/oclif/core/issues/960
+    "exactOptionalPropertyTypes": false
   },
-  "include": ["./src/**/*"],
-  "ts-node": {
-    "esm": true
-  }
+  "include": ["./**/*.ts"]
 }
