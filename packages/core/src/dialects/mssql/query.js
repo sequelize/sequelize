@@ -184,7 +184,7 @@ export class MsSqlQuery extends AbstractQuery {
           defaultValue: _result.Default,
           primaryKey: _result.Constraint === 'PRIMARY KEY',
           autoIncrement: _result.IsIdentity === 1,
-          comment: _result.Comment,
+          comment: _result.Comment, // TODO: unescape this
         };
 
         if (result[_result.Name].type.includes('CHAR') && _result.Length) {

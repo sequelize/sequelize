@@ -178,10 +178,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -195,7 +192,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
       !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       const { defaultValue } = attribute;
@@ -225,7 +222,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
     }
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+      if (options?.context === 'addColumn' && options.foreignKey) {
         const fkName = this.quoteIdentifier(
           `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
         );
@@ -254,7 +251,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];

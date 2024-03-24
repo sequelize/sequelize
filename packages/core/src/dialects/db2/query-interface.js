@@ -7,7 +7,6 @@ import { Db2QueryInterfaceTypeScript } from './query-interface-typescript';
 import clone from 'lodash/clone';
 import intersection from 'lodash/intersection';
 import isPlainObject from 'lodash/isPlainObject';
-import mapValues from 'lodash/mapValues';
 
 const { Op } = require('../../operators');
 const { QueryTypes } = require('../../query-types');
@@ -81,35 +80,6 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     const result = await this.sequelize.queryRaw(sql, options);
 
     return [result, undefined];
-  }
-
-  // TODO: drop "schema" options from the option bag, it must be passed through tableName instead.
-  async createTable(tableName, attributes, options, model) {
-    let sql = '';
-
-    options = { ...options };
-
-    if (model) {
-      options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
-    }
-
-    attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
-
-    const modelTable = model?.table;
-
-    if (!tableName.schema && (options.schema || modelTable?.schema)) {
-      tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = modelTable?.schema || options.schema || tableName.schema;
-    }
-
-    attributes = this.queryGenerator.attributesToSQL(attributes, {
-      table: tableName,
-      context: 'createTable',
-      withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
-    });
-    sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
-
-    return await this.sequelize.queryRaw(sql, options);
   }
 
   async addConstraint(tableName, options) {
