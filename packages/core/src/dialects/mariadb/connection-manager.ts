@@ -1,4 +1,3 @@
-import dayjs from 'dayjs';
 import type {
   FieldInfo,
   Connection as LibConnection,
@@ -17,6 +16,7 @@ import {
 } from '../../errors/index.js';
 import type { ConnectionOptions } from '../../sequelize.js';
 import { isErrorWithStringCode } from '../../utils/check.js';
+import { timeZoneToOffsetString } from '../../utils/dayjs.js';
 import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
@@ -73,7 +73,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
+    tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
 
     const connectionConfig: MariaDbConnectionConfig = removeUndefined({
       host: config.host,

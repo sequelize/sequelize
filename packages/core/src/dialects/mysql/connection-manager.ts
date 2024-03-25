@@ -1,6 +1,5 @@
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import dayjs from 'dayjs';
 import type {
   Connection,
   ConnectionOptions as MySqlConnectionOptions,
@@ -18,6 +17,7 @@ import {
   InvalidConnectionError,
 } from '../../errors';
 import type { ConnectionOptions } from '../../sequelize.js';
+import { timeZoneToOffsetString } from '../../utils/dayjs';
 import { logger } from '../../utils/logger';
 import type { Connection as AbstractConnection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
@@ -117,7 +117,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
         // set timezone for this connection
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
-        tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
+        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
         await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       }
 
