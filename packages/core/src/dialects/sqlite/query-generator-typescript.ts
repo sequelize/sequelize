@@ -2,7 +2,7 @@ import { randomBytes } from 'node:crypto';
 import { IsolationLevel } from '../../transaction';
 import { rejectInvalidOptions } from '../../utils/check';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { isModelStatic } from '../../utils/model-utils';
+import { extractModelDefinition } from '../../utils/model-utils';
 import { EMPTY_SET } from '../../utils/object.js';
 import { generateIndexName } from '../../utils/string';
 import { AbstractQueryGenerator } from '../abstract/query-generator';
@@ -286,24 +286,25 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions) {
-    const table = this.quoteTable(tableName);
-    const whereOptions = isModelStatic(tableName) ? { ...options, model: tableName } : options;
+  bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions) {
+    const table = this.quoteTable(tableOrModel);
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const whereOptions = { ...options, model: modelDefinition };
+    const whereFragment = whereOptions.where
+      ? this.whereQuery(whereOptions.where, whereOptions)
+      : '';
 
-    if (options.limit) {
+    if (whereOptions.limit) {
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE rowid IN (`,
         `SELECT rowid FROM ${table}`,
-        options.where ? this.whereQuery(options.where, whereOptions) : '',
-        this.#internals.addLimitAndOffset(options),
+        whereFragment,
+        this.#internals.addLimitAndOffset(whereOptions),
         ')',
       ]);
     }
 
-    return joinSQLFragments([
-      `DELETE FROM ${table}`,
-      options.where ? this.whereQuery(options.where, whereOptions) : '',
-    ]);
+    return joinSQLFragments([`DELETE FROM ${table}`, whereFragment]);
   }
 
   /**
