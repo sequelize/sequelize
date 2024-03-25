@@ -2295,12 +2295,12 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
-    "@types/ibm_db": "npm:2.0.16"
+    "@types/ibm_db": "npm:^2.0.16"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
-    dayjs: "npm:1.11.10"
-    ibm_db: "npm:3.2.3"
-    lodash: "npm:4.17.21"
+    dayjs: "npm:^1.11.10"
+    ibm_db: "npm:^3.2.3"
+    lodash: "npm:^4.17.21"
     mocha: "npm:10.3.0"
   languageName: unknown
   linkType: soft
@@ -3338,7 +3338,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ibm_db@npm:2.0.16":
+"@types/ibm_db@npm:^2.0.16":
   version: 2.0.16
   resolution: "@types/ibm_db@npm:2.0.16"
   checksum: 10c0/a9f3b940b85af39d760601795d95086eee6d365b27e0e189458e33ef033c59557267b1053ca67d9e741921c525a262f54ea4bc2d97ba04add9a735a5fc2ba335
@@ -5427,7 +5427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:1.11.10, dayjs@npm:^1.11.10":
+"dayjs@npm:^1.11.10":
   version: 1.11.10
   resolution: "dayjs@npm:1.11.10"
   checksum: 10c0/4de9af50639d47df87f2e15fa36bb07e0f9ed1e9c52c6caa1482788ee9a384d668f1dbd00c54f82aaab163db07d61d2899384b8254da3a9184fc6deca080e2fe
@@ -7831,7 +7831,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.3":
+"ibm_db@npm:^3.2.3":
   version: 3.2.3
   resolution: "ibm_db@npm:3.2.3"
   dependencies:
