@@ -56,7 +56,7 @@
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
-    "dayjs": "^1.11.5",
+    "dayjs": "^1.11.10",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
     "fast-glob": "^3.2.12",
@@ -91,10 +91,8 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.0",
-    "mariadb": "3.3.0",
     "mocha": "10.3.0",
     "moment": "2.30.1",
-    "mysql2": "3.9.2",
     "nyc": "15.1.0",
     "odbc": "2.4.8",
     "p-map": "4.0.0",
@@ -109,12 +107,6 @@
     "tedious": "16.7.0"
   },
   "peerDependenciesMeta": {
-    "mariadb": {
-      "optional": true
-    },
-    "mysql2": {
-      "optional": true
-    },
     "odbc": {
       "optional": true
     },
