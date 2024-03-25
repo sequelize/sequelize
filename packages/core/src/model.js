@@ -2183,6 +2183,11 @@ ${associationOwner._getAssociationDebugList()}`);
     const createdAtAttr = modelDefinition.timestampAttributeNames.createdAt;
     const updatedAtAttr = modelDefinition.timestampAttributeNames.updatedAt;
     const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
+
+    if (options.hooks) {
+      await this.hooks.runAsync('beforeUpsert', values, options);
+    }
+
     const instance = this.build(values);
 
     options.model = this;
@@ -2239,10 +2244,6 @@ ${associationOwner._getAssociationDebugList()}`);
     ) {
       delete insertValues[this.primaryKeyField];
       delete updateValues[this.primaryKeyField];
-    }
-
-    if (options.hooks) {
-      await this.hooks.runAsync('beforeUpsert', values, options);
     }
 
     const result = await this.queryInterface.upsert(
