@@ -174,4 +174,15 @@ describe('DataTypes.ARRAY', () => {
       });
     }
   });
+
+  describe('clone', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    it('should have a different data type instance when cloning', () => {
+      const arrType = DataTypes.ARRAY(DataTypes.STRING(128)).toDialectDataType(dialect);
+      expect(arrType.options.type).to.not.equal(arrType.clone().options.type);
+    });
+  });
 });
