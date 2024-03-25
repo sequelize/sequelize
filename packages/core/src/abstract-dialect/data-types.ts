@@ -1443,11 +1443,15 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'DATE';
   readonly options: DateOptions;
+
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
   protected readonly HAS_TIMEZONE = /(?:Z|[+-]\d{2}(?::\d{2}){0,1}){0,1}$/;
 
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
   protected readonly IS_ISO8601 =
     /^\d{4}(?:-\d{2}){0,2}(?:(?:T| )\d{2}(?::\d{2}){1,2}){0,1}(?:\.\d{1,}){0,1}(?:Z|[+-]\d{2}(?::\d{2}){0,1}){0,1}$/;
 
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
   protected readonly IS_PLAIN_DATE =
     /^\d{4}(?:-\d{2}){0,2}(?:(?:T| )\d{2}(?::\d{2}){1,2}){0,1}(?:\.\d{1,}){0,1}$/;
 
