@@ -1,7 +1,7 @@
+import type { Falsy } from '@sequelize/utils';
 import maxBy from 'lodash/maxBy';
 import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/index.js';
-import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 

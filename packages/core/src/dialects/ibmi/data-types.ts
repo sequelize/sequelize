@@ -1,4 +1,4 @@
-import type { Falsy } from '../../generic/falsy.js';
+import type { Falsy } from '@sequelize/utils';
 import * as BaseTypes from '../abstract/data-types.js';
 
 export class UUID extends BaseTypes.UUID {

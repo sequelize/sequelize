@@ -1,3 +1,4 @@
+import type { Falsy } from '@sequelize/utils';
 import {
   EMPTY_ARRAY,
   isPlainObject,
@@ -12,7 +13,6 @@ import { Blob } from 'node:buffer';
 import util from 'node:util';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
-import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
 import type { ModelStatic, Rangable, RangePart } from '../../model.js';
