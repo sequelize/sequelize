@@ -1,37 +1,25 @@
-import { isError } from '@sequelize/utils';
-import { isNodeError } from '@sequelize/utils/node';
-import type {
-  Connection,
-  ConnectionOptions as MySqlConnectionOptions,
-  TypeCastField,
-  createConnection as mysqlCreateConnection,
-} from 'mysql2';
-import assert from 'node:assert';
-import { promisify } from 'node:util';
+import type { Connection as AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { timeZoneToOffsetString } from '../../utils/dayjs';
-import { logger } from '../../utils/logger';
-import type { Connection as AbstractConnection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { MySqlDialect } from './index.js';
+} from '@sequelize/core';
+import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { isError } from '@sequelize/utils';
+import { isNodeError } from '@sequelize/utils/node';
+import * as MySql from 'mysql2';
+import assert from 'node:assert';
+import { promisify } from 'node:util';
+import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
-// TODO: once the code has been split into packages, we won't need to lazy load mysql2 anymore
-type Lib = {
-  createConnection: typeof mysqlCreateConnection;
-  Connection: Connection;
-};
-
-export interface MySqlConnection extends Connection, AbstractConnection {}
+export interface MySqlConnection extends MySql.Connection, AbstractConnection {}
 
 /**
  * MySQL Connection Manager
@@ -46,14 +34,14 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlDialect,
   MySqlConnection
 > {
-  private readonly lib: Lib;
+  readonly #lib: typeof MySql;
 
   constructor(dialect: MySqlDialect) {
     super(dialect);
-    this.lib = this._loadDialectModule('mysql2') as Lib;
+    this.#lib = MySql;
   }
 
-  #typecast(field: TypeCastField, next: () => void): unknown {
+  #typecast(field: MySql.TypeCastField, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);
@@ -78,7 +66,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
-    const connectionConfig: MySqlConnectionOptions = {
+    const connectionConfig: MySql.ConnectionOptions = {
       bigNumberStrings: false,
       supportBigNumbers: true,
       flags: ['-FOUND_ROWS'],
@@ -93,7 +81,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
     };
 
     try {
-      const connection: MySqlConnection = await createConnection(this.lib, connectionConfig);
+      const connection: MySqlConnection = await createConnection(this.#lib, connectionConfig);
 
       debug('connection acquired');
 
@@ -173,8 +161,8 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 }
 
 async function createConnection(
-  lib: Lib,
-  config: MySqlConnectionOptions,
+  lib: typeof MySql,
+  config: MySql.ConnectionOptions,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
     const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;

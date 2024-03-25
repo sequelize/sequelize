@@ -11,7 +11,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
     case 'mssql':
       return require('./dialects/mssql').MsSqlDialect;
     case 'mysql':
-      return require('./dialects/mysql').MySqlDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/mysql').MySqlDialect;
     case 'postgres':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/postgres').PostgresDialect;
