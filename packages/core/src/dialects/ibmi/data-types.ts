@@ -1,4 +1,3 @@
-import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
 
 export class UUID extends BaseTypes.UUID {
@@ -8,11 +7,11 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
-  escape(value: boolean | Falsy): string {
+  escape(value: boolean | unknown): string {
     return value ? '1' : '0';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     return value ? 1 : 0;
   }
 

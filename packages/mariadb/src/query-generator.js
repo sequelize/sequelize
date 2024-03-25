@@ -1,13 +1,14 @@
 'use strict';
 
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-
+import {
+  attributeTypeToSql,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
-
-const { MariaDbQueryGeneratorTypeScript } = require('./query-generator-typescript');
+import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 

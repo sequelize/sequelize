@@ -6,7 +6,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
   // require calls static. (Browserify fix)
   switch (dialect) {
     case 'mariadb':
-      return require('./dialects/mariadb').MariaDbDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/mariadb').MariaDbDialect;
     case 'mssql':
       return require('./dialects/mssql').MsSqlDialect;
     case 'mysql':

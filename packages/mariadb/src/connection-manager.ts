@@ -1,35 +1,24 @@
-import dayjs from 'dayjs';
-import type {
-  FieldInfo,
-  Connection as LibConnection,
-  ConnectionConfig as MariaDbConnectionConfig,
-  TypeCastNextFunction,
-  TypeCastResult,
-} from 'mariadb';
-import semver from 'semver';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors/index.js';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { isErrorWithStringCode } from '../../utils/check.js';
-import { logger } from '../../utils/logger';
-import { removeUndefined } from '../../utils/object.js';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { MariaDbDialect } from './index.js';
+} from '@sequelize/core';
+import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import * as MariaDb from 'mariadb';
+import semver from 'semver';
+import type { MariaDbDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mariadb');
 
-export interface MariaDbConnection extends Connection, LibConnection {}
-
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('mariadb');
+export interface MariaDbConnection extends Connection, MariaDb.Connection {}
 
 /**
  * MariaDB Connection Manager
@@ -44,18 +33,18 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbDialect,
   MariaDbConnection
 > {
-  private readonly lib: Lib;
+  readonly #lib: typeof MariaDb;
 
   constructor(dialect: MariaDbDialect) {
     super(dialect);
-    this.lib = this._loadDialectModule('mariadb') as Lib;
+    this.#lib = MariaDb;
   }
 
-  #typeCast(field: FieldInfo, next: TypeCastNextFunction): TypeCastResult {
+  #typeCast(field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction): MariaDb.TypeCastResult {
     const parser = this.dialect.getParserForDatabaseDataType(field.type);
 
     if (parser) {
-      return parser(field) as TypeCastResult;
+      return parser(field) as MariaDb.TypeCastResult;
     }
 
     return next();
@@ -73,9 +62,9 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
+    tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
 
-    const connectionConfig: MariaDbConnectionConfig = removeUndefined({
+    const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
       host: config.host,
       port: config.port ? Number(config.port) : undefined,
       user: config.username,
@@ -84,7 +73,8 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
       timezone: tzOffset,
       foundRows: false,
       ...config.dialectOptions,
-      typeCast: (field: FieldInfo, next: TypeCastNextFunction) => this.#typeCast(field, next),
+      typeCast: (field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction) =>
+        this.#typeCast(field, next),
     });
 
     if (!this.sequelize.config.keepDefaultTimezone) {
@@ -101,7 +91,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     }
 
     try {
-      const connection = await this.lib.createConnection(connectionConfig);
+      const connection = await this.#lib.createConnection(connectionConfig);
       this.sequelize.options.databaseVersion = semver.coerce(connection.serverVersion())!.version;
 
       debug('connection acquired');

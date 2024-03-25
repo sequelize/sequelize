@@ -2244,7 +2244,7 @@ __metadata:
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
-    dayjs: "npm:^1.11.5"
+    dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.2"
@@ -2255,7 +2255,6 @@ __metadata:
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:5.0.0"
     lodash: "npm:^4.17.21"
-    mariadb: "npm:3.3.0"
     mocha: "npm:10.3.0"
     moment: "npm:2.30.1"
     mysql2: "npm:3.9.2"
@@ -2283,8 +2282,6 @@ __metadata:
   peerDependenciesMeta:
     ibm_db:
       optional: true
-    mariadb:
-      optional: true
     mysql2:
       optional: true
     odbc:
@@ -2295,6 +2292,24 @@ __metadata:
       optional: true
     tedious:
       optional: true
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/mariadb@workspace:packages/mariadb":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/mariadb@workspace:packages/mariadb"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:4.17.21"
+    mariadb: "npm:3.3.0"
+    mocha: "npm:10.3.0"
+    semver: "npm:7.6.0"
+    wkx: "npm:0.5.0"
   languageName: unknown
   linkType: soft
 
@@ -5385,7 +5400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.5":
+"dayjs@npm:^1.11.10":
   version: 1.11.10
   resolution: "dayjs@npm:1.11.10"
   checksum: 10c0/4de9af50639d47df87f2e15fa36bb07e0f9ed1e9c52c6caa1482788ee9a384d668f1dbd00c54f82aaab163db07d61d2899384b8254da3a9184fc6deca080e2fe

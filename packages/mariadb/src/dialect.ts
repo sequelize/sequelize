@@ -1,13 +1,16 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector, escapeMysqlMariaDbString } from '../../utils/sql';
-import type { SupportableNumericOptions } from '../abstract';
-import { AbstractDialect } from '../abstract';
-import { MariaDbConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types';
-import { registerMariaDbDbDataTypeParsers } from './data-types.db.js';
-import { MariaDbQuery } from './query';
-import { MariaDbQueryGenerator } from './query-generator';
-import { MariaDbQueryInterface } from './query-interface';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
+import {
+  createUnspecifiedOrderedBindCollector,
+  escapeMysqlMariaDbString,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { registerMariaDbDbDataTypeParsers } from './_internal/data-types-db.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import { MariaDbConnectionManager } from './connection-manager.js';
+import { MariaDbQueryGenerator } from './query-generator.js';
+import { MariaDbQueryInterface } from './query-interface.js';
+import { MariaDbQuery } from './query.js';
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,

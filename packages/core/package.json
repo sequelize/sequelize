@@ -56,7 +56,7 @@
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
-    "dayjs": "^1.11.5",
+    "dayjs": "^1.11.10",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
     "fast-glob": "^3.2.12",
@@ -93,7 +93,6 @@
     "fs-jetpack": "5.1.0",
     "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
-    "mariadb": "3.3.0",
     "mocha": "10.3.0",
     "moment": "2.30.1",
     "mysql2": "3.9.2",
@@ -112,9 +111,6 @@
   },
   "peerDependenciesMeta": {
     "ibm_db": {
-      "optional": true
-    },
-    "mariadb": {
       "optional": true
     },
     "mysql2": {

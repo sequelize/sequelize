@@ -1,7 +1,6 @@
 import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';
 import wkx from 'wkx';
-import type { Falsy } from '../../generic/falsy.js';
 import type { GeoJson } from '../../geo-json.js';
 import { isValidTimeZone } from '../../utils/dayjs';
 import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
@@ -75,12 +74,12 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     return 'TINYINT(1)';
   }
 
-  escape(value: boolean | Falsy): string {
+  escape(value: boolean | unknown): string {
     // must be 'true' & 'false' when inlining so the values are compatible with the 'IS' operator
     return value ? 'true' : 'false';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     // when binding, must be an integer
     return value ? 1 : 0;
   }
