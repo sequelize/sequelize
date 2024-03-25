@@ -2229,7 +2229,7 @@ __metadata:
     "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
-    "@types/debug": "npm:^4.1.7"
+    "@types/debug": "npm:^4.1.12"
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
@@ -2239,17 +2239,17 @@ __metadata:
     "@types/snowflake-sdk": "npm:1.6.20"
     "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.8"
-    "@types/validator": "npm:^13.7.5"
-    bnf-parser: "npm:3.1.6"
+    "@types/validator": "npm:^13.11.9"
+    bnf-parser: "npm:^3.1.6"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
     dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
-    dottie: "npm:^2.0.2"
+    dottie: "npm:^2.0.6"
     expect-type: "npm:0.13.0"
-    fast-glob: "npm:^3.2.12"
+    fast-glob: "npm:^3.3.2"
     fs-jetpack: "npm:5.1.0"
     ibm_db: "npm:3.2.3"
     inflection: "npm:^3.0.0"
@@ -2263,20 +2263,20 @@ __metadata:
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
-    pg-connection-string: "npm:^2.5.0"
-    retry-as-promised: "npm:^7.0.3"
+    pg-connection-string: "npm:^2.6.2"
+    retry-as-promised: "npm:^7.0.4"
     rimraf: "npm:5.0.5"
-    semver: "npm:^7.3.7"
+    semver: "npm:^7.6.0"
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
     snowflake-sdk: "npm:1.10.0"
     sqlite3: "npm:5.1.7"
-    tedious: "npm:16.7.0"
+    tedious: "npm:16.7.1"
     toposort-class: "npm:^1.0.1"
-    type-fest: "npm:^4.12.0"
-    uuid: "npm:^9.0.0"
-    validator: "npm:^13.7.0"
+    type-fest: "npm:^4.14.0"
+    uuid: "npm:^9.0.1"
+    validator: "npm:^13.11.0"
     wkx: "npm:^0.5.0"
   peerDependenciesMeta:
     ibm_db:
@@ -2302,11 +2302,11 @@ __metadata:
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
-    lodash: "npm:4.17.21"
-    mariadb: "npm:3.3.0"
+    lodash: "npm:^4.17.21"
+    mariadb: "npm:^3.3.0"
     mocha: "npm:10.3.0"
-    semver: "npm:7.6.0"
-    wkx: "npm:0.5.0"
+    semver: "npm:^7.6.0"
+    wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
 
@@ -2360,10 +2360,10 @@ __metadata:
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
-    lodash: "npm:4.17.21"
+    lodash: "npm:^4.17.21"
     mocha: "npm:10.3.0"
-    mysql2: "npm:3.9.2"
-    wkx: "npm:0.5.0"
+    mysql2: "npm:^3.9.2"
+    wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
 
@@ -2375,15 +2375,15 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/mocha": "npm:10.0.6"
-    "@types/pg": "npm:8.11.4"
+    "@types/pg": "npm:^8.11.4"
     chai: "npm:4.4.1"
-    lodash: "npm:4.17.21"
+    lodash: "npm:^4.17.21"
     mocha: "npm:10.3.0"
-    pg: "npm:8.11.3"
-    pg-hstore: "npm:2.3.4"
-    postgres-array: "npm:3.0.2"
-    semver: "npm:7.6.0"
-    wkx: "npm:0.5.0"
+    pg: "npm:^8.11.3"
+    pg-hstore: "npm:^2.3.4"
+    postgres-array: "npm:^3.0.2"
+    semver: "npm:^7.6.0"
+    wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
 
@@ -2392,12 +2392,12 @@ __metadata:
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
     "@types/chai": "npm:4.3.14"
-    "@types/lodash": "npm:4.17.0"
+    "@types/lodash": "npm:^4.17.0"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     expect-type: "npm:0.19.0"
-    lodash: "npm:4.17.21"
+    lodash: "npm:^4.17.21"
     mocha: "npm:10.3.0"
   languageName: unknown
   linkType: soft
@@ -3309,7 +3309,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/debug@npm:^4.1.7":
+"@types/debug@npm:^4.1.12":
   version: 4.1.12
   resolution: "@types/debug@npm:4.1.12"
   dependencies:
@@ -3346,7 +3346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.0":
+"@types/lodash@npm:4.17.0, @types/lodash@npm:^4.17.0":
   version: 4.17.0
   resolution: "@types/lodash@npm:4.17.0"
   checksum: 10c0/4c5b41c9a6c41e2c05d08499e96f7940bcf194dcfa84356235b630da920c2a5e05f193618cea76006719bec61c76617dff02defa9d29934f9f6a76a49291bd8f
@@ -3407,7 +3407,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:8.11.4":
+"@types/pg@npm:^8.11.4":
   version: 8.11.4
   resolution: "@types/pg@npm:8.11.4"
   dependencies:
@@ -3522,7 +3522,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/validator@npm:^13.7.5":
+"@types/validator@npm:^13.11.9":
   version: 13.11.9
   resolution: "@types/validator@npm:13.11.9"
   checksum: 10c0/856ebfcfe25d6c91a90235e0eb27302a737832530898195bbfb265da52ae7fe6d68f684942574f8818d3c262cae7a1de99f145dac73fc57217933af1bfc199cb
@@ -4427,7 +4427,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bnf-parser@npm:3.1.6":
+"bnf-parser@npm:^3.1.6":
   version: 3.1.6
   resolution: "bnf-parser@npm:3.1.6"
   checksum: 10c0/fb0ee9dcfc0840ad72e846a6a1bd3f11eb541526ad8b1867dbbac9b3ad141421c215a5cfc0fd3c9802da94a6aa43c1acb5cffa6c9a2bde5a0984347ee5934a76
@@ -5693,7 +5693,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dottie@npm:^2.0.2":
+"dottie@npm:^2.0.6":
   version: 2.0.6
   resolution: "dottie@npm:2.0.6"
   checksum: 10c0/1d99f8b61ae7541b3b70e9cde57308e0044e7bd13e09945b61cf78b303f5c51e3747e5f99c0d519551c5347427c1c1f89aedafe4bf9d9db554c7113772d99b5d
@@ -6742,7 +6742,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-glob@npm:3.3.2, fast-glob@npm:^3.2.11, fast-glob@npm:^3.2.12, fast-glob@npm:^3.2.9, fast-glob@npm:^3.3.1":
+"fast-glob@npm:3.3.2, fast-glob@npm:^3.2.11, fast-glob@npm:^3.2.9, fast-glob@npm:^3.3.1, fast-glob@npm:^3.3.2":
   version: 3.3.2
   resolution: "fast-glob@npm:3.3.2"
   dependencies:
@@ -9550,7 +9550,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:3.3.0":
+"mariadb@npm:^3.3.0":
   version: 3.3.0
   resolution: "mariadb@npm:3.3.0"
   dependencies:
@@ -10053,7 +10053,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.9.2":
+"mysql2@npm:^3.9.2":
   version: 3.9.2
   resolution: "mysql2@npm:3.9.2"
   dependencies:
@@ -11275,14 +11275,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:^2.5.0, pg-connection-string@npm:^2.6.2":
+"pg-connection-string@npm:^2.6.2":
   version: 2.6.2
   resolution: "pg-connection-string@npm:2.6.2"
   checksum: 10c0/e8fdea74fcc8bdc3d7c5c6eadd9425fdba7e67fb7fe836f9c0cecad94c8984e435256657d1d8ce0483d1fedef667e7a57e32449a63cb805cb0289fc34b62da35
   languageName: node
   linkType: hard
 
-"pg-hstore@npm:2.3.4":
+"pg-hstore@npm:^2.3.4":
   version: 2.3.4
   resolution: "pg-hstore@npm:2.3.4"
   dependencies:
@@ -11349,7 +11349,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg@npm:8.11.3":
+"pg@npm:^8.11.3":
   version: 8.11.3
   resolution: "pg@npm:8.11.3"
   dependencies:
@@ -11456,7 +11456,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres-array@npm:3.0.2, postgres-array@npm:~3.0.1":
+"postgres-array@npm:^3.0.2, postgres-array@npm:~3.0.1":
   version: 3.0.2
   resolution: "postgres-array@npm:3.0.2"
   checksum: 10c0/644aa071f67a66a59f641f8e623887d2b915bc102a32643e2aa8b54c11acd343c5ad97831ea444dd37bd4b921ba35add4aa2cb0c6b76700a8252c2324aeba5b4
@@ -11711,7 +11711,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.3.0":
+"punycode@npm:^2.1.0":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
@@ -12130,7 +12130,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"retry-as-promised@npm:^7.0.3":
+"retry-as-promised@npm:^7.0.4":
   version: 7.0.4
   resolution: "retry-as-promised@npm:7.0.4"
   checksum: 10c0/3cfe4924c80cfc0a55b3af10010941a76832ec949f01c732cb6678b9411919a3eeff0586199fb274d3c3082e215065c6555268c8345cb22e432753b62eb65bd8
@@ -12344,7 +12344,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.6.0, semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
+"semver@npm:^6.0.0, semver@npm:^6.1.2, semver@npm:^6.3.0, semver@npm:^6.3.1":
+  version: 6.3.1
+  resolution: "semver@npm:6.3.1"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
   version: 7.6.0
   resolution: "semver@npm:7.6.0"
   dependencies:
@@ -12352,15 +12361,6 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/fbfe717094ace0aa8d6332d7ef5ce727259815bd8d8815700853f4faf23aacbd7192522f0dc5af6df52ef4fa85a355ebd2f5d39f554bd028200d6cf481ab9b53
-  languageName: node
-  linkType: hard
-
-"semver@npm:^6.0.0, semver@npm:^6.1.2, semver@npm:^6.3.0, semver@npm:^6.3.1":
-  version: 6.3.1
-  resolution: "semver@npm:6.3.1"
-  bin:
-    semver: bin/semver.js
-  checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
   languageName: node
   linkType: hard
 
@@ -13303,9 +13303,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.7.0":
-  version: 16.7.0
-  resolution: "tedious@npm:16.7.0"
+"tedious@npm:16.7.1":
+  version: 16.7.1
+  resolution: "tedious@npm:16.7.1"
   dependencies:
     "@azure/identity": "npm:^3.4.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
@@ -13317,9 +13317,8 @@ __metadata:
     jsbi: "npm:^4.3.0"
     native-duplexpair: "npm:^1.0.0"
     node-abort-controller: "npm:^3.1.1"
-    punycode: "npm:^2.3.0"
     sprintf-js: "npm:^1.1.2"
-  checksum: 10c0/fc925c993e35f2e55abffc862a5ef47adc2ac998b7ca3ad3fb7235dbfb998ab0977c9bb48b09071bbcab12e02059518c9ed9edc9a308cb9d22a88a1335c833d0
+  checksum: 10c0/3e166c357852fe0630fc6f2650820dad2257c1338b2f40c3746d9556eaa4c6cce8de87a50ebccba6256773010c232737d50b5ed1f09142b75920f95db999ece0
   languageName: node
   linkType: hard
 
@@ -13677,7 +13676,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.12.0":
+"type-fest@npm:^4.14.0":
   version: 4.14.0
   resolution: "type-fest@npm:4.14.0"
   checksum: 10c0/97d03f8af58bf50b83016eb8178f19698ef930479e21fd4d4555ad4e3617d4aff0e4400f6ab2a350975f18fa6439e7248172f92dea9229cd5e9942a2daa48806
@@ -13955,7 +13954,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^9.0.0":
+"uuid@npm:^9.0.0, uuid@npm:^9.0.1":
   version: 9.0.1
   resolution: "uuid@npm:9.0.1"
   bin:
@@ -14006,7 +14005,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.7.0":
+"validator@npm:^13.11.0":
   version: 13.11.0
   resolution: "validator@npm:13.11.0"
   checksum: 10c0/0107da3add5a4ebc6391dac103c55f6d8ed055bbcc29a4c9cbf89eacfc39ba102a5618c470bdc33c6487d30847771a892134a8c791f06ef0962dd4b7a60ae0f5
@@ -14231,7 +14230,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wkx@npm:0.5.0, wkx@npm:^0.5.0":
+"wkx@npm:^0.5.0":
   version: 0.5.0
   resolution: "wkx@npm:0.5.0"
   dependencies:

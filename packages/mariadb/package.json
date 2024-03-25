@@ -36,10 +36,10 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
-    "lodash": "4.17.21",
-    "mariadb": "3.3.0",
-    "semver": "7.6.0",
-    "wkx": "0.5.0"
+    "lodash": "^4.17.21",
+    "mariadb": "^3.3.0",
+    "semver": "^7.6.0",
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",
