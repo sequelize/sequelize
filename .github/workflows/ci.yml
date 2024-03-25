@@ -84,7 +84,7 @@ jobs:
         run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (core - mariadb)
         run: yarn lerna run test-unit-mariadb --scope=@sequelize/core
-      - name: Unit tests (mysql)
+      - name: Unit tests (core - mysql)
         run: yarn lerna run test-unit-mysql --scope=@sequelize/core
       - name: Unit tests (core - postgres)
         run: yarn lerna run test-unit-postgres --scope=@sequelize/core

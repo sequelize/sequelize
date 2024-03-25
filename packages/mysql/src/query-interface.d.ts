@@ -1,5 +1,5 @@
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { MySqlDialect } from './index.js';
+import { AbstractQueryInterface } from '@sequelize/core';
+import type { MySqlDialect } from './dialect.js';
 
 export class MySqlQueryInterface<
   Dialect extends MySqlDialect = MySqlDialect,

@@ -1,18 +1,19 @@
 'use strict';
 
-import { inspect } from 'node:util';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { rejectInvalidOptions } from '../../utils/check';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator';
-
+import {
+  attributeTypeToSql,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
+import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { inspect } from '@sequelize/utils';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
-
-const { MySqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
+import { MySqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
