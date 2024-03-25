@@ -1,10 +1,11 @@
 'use strict';
 
-import { getObjectFromMap } from '../../utils/object';
-import { assertNoReservedBind, combineBinds } from '../../utils/sql';
-
-const { AbstractQueryInterface } = require('../abstract/query-interface');
-const { QueryTypes } = require('../../query-types');
+import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
+import { getObjectFromMap } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import {
+  assertNoReservedBind,
+  combineBinds,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 
 /**
  * The interface that Sequelize uses to talk with MariaDB database

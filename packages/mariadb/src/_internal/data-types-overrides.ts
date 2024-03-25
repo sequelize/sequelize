@@ -1,11 +1,16 @@
+import type { BindParamOptions, GeoJson } from '@sequelize/core';
+import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import type { Falsy } from '@sequelize/utils';
 import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import wkx from 'wkx';
-import type { GeoJson } from '../../geo-json.js';
-import { isValidTimeZone } from '../../utils/dayjs';
-import type { AcceptedDate, BindParamOptions } from '../abstract/data-types.js';
-import * as BaseTypes from '../abstract/data-types.js';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {

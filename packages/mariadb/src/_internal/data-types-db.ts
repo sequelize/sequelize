@@ -1,7 +1,7 @@
+import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import dayjs from 'dayjs';
 import type { FieldInfo } from 'mariadb';
-import { isValidTimeZone } from '../../utils/dayjs.js';
-import type { MariaDbDialect } from './index.js';
+import type { MariaDbDialect } from '../dialect.js';
 
 /**
  * First pass of DB value parsing: Parses based on the MariaDB Type ID.

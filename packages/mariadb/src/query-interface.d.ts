@@ -1,5 +1,5 @@
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { MariaDbDialect } from './index.js';
+import { AbstractQueryInterface } from '@sequelize/core';
+import type { MariaDbDialect } from './dialect.js';
 
 export class MariaDbQueryInterface<
   Dialect extends MariaDbDialect = MariaDbDialect,
