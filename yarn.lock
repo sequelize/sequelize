@@ -2308,8 +2308,6 @@ __metadata:
     ibm_db: "npm:3.2.3"
     lodash: "npm:4.17.21"
     mocha: "npm:10.3.0"
-    semver: "npm:7.6.0"
-    wkx: "npm:0.5.0"
   languageName: unknown
   linkType: soft
 

@@ -14,8 +14,6 @@ import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { Db2QueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
-
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import forEach from 'lodash/forEach';
@@ -25,6 +23,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 import startsWith from 'lodash/startsWith';
 import template from 'lodash/template';
+import { Db2QueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 

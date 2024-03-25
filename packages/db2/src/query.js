@@ -9,9 +9,8 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import assert from 'node:assert';
-
 import forOwn from 'lodash/forOwn';
+import assert from 'node:assert';
 
 const debug = logger.debugContext('sql:db2');
 
