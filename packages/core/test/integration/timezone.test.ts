@@ -39,7 +39,7 @@ describe(getTestDialectTeaser('Timezone'), () => {
       timezone: '+07:00',
     });
     const sequelizeWithNamedTimezone = createSequelizeInstance({
-      timezone: 'America/New_York',
+      timezone: 'America/Phoenix',
     });
 
     sequelize.addModels([User]);
@@ -117,10 +117,9 @@ describe(getTestDialectTeaser('Timezone'), () => {
       assert(user instanceof vars.User);
       assert(namedUser instanceof vars.NamedUser);
 
-      // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
-      expect(user.createdAt.getTime() - namedUser.createdAt.getTime()).to.be.closeTo(
-        60 * 60 * 4 * 1000 * -1,
-        3_600_000,
+      // Expect 7 hours difference, in milliseconds
+      expect(Math.abs(user.createdAt.getTime() - namedUser.createdAt.getTime())).to.equal(
+        60 * 60 * 7 * 1000,
       );
     });
   }
