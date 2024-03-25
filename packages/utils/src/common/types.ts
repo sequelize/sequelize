@@ -102,5 +102,3 @@ export interface SetLike<V> extends ReadonlySetLike<V> {
   clear(): void;
   delete(value: V): boolean;
 }
-
-export type Falsy = false | 0 | -0 | 0n | '' | null | undefined;

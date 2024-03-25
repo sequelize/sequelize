@@ -2,7 +2,6 @@ import type { BindParamOptions, GeoJson } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
-import type { Falsy } from '@sequelize/utils';
 import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
@@ -23,7 +22,7 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
     return 'TINYINT(1)';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     // when binding, must be an integer
     return value ? 1 : 0;
   }

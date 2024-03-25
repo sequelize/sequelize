@@ -1,4 +1,3 @@
-import type { Falsy } from '@sequelize/utils';
 import {
   EMPTY_ARRAY,
   isPlainObject,
@@ -444,7 +443,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     // TODO: STRING should use an unlimited length type by default - https://github.com/sequelize/sequelize/issues/14259
     return joinSQLFragments([
       `VARCHAR(${this.options.length ?? 255})`,
-      this.options.binary && 'BINARY',
+      this.options.binary ? 'BINARY' : '',
     ]);
   }
 
@@ -528,7 +527,7 @@ export class CHAR extends STRING {
   toSql() {
     return joinSQLFragments([
       `CHAR(${this.options.length ?? 255})`,
-      this.options.binary && 'BINARY',
+      this.options.binary ? 'BINARY' : '',
     ]);
   }
 }
@@ -1347,11 +1346,11 @@ export class BOOLEAN extends AbstractDataType<boolean> {
     throw new Error(`Received invalid boolean value from DB: ${util.inspect(value)}`);
   }
 
-  escape(value: boolean | Falsy): string {
+  escape(value: boolean | unknown): string {
     return value ? 'true' : 'false';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     return Boolean(value);
   }
 }
