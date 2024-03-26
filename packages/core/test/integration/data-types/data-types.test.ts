@@ -757,7 +757,11 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
+        if (dialect.name !== 'oracle') {
         await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        } else  {
+          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
+        }
       });
 
       if (dialect.supports.dataTypes.INTS.unsigned) {
