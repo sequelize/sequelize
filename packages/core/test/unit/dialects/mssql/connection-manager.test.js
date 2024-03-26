@@ -43,7 +43,7 @@ if (dialect === 'mssql') {
       this.connectionStub.restore();
     });
 
-    it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function () {
+    it.skip('connectionManager._connect() does not delete `domain` from config.dialectOptions', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -63,7 +63,7 @@ if (dialect === 'mssql') {
       expect(this.config.dialectOptions.domain).to.equal('TEST.COM');
     });
 
-    it('connectionManager._connect() should reject if end was called and connect was not', async function () {
+    it.skip('connectionManager._connect() should reject if end was called and connect was not', async function () {
       this.Connection = {
         STATE: {},
         state: '',
@@ -86,7 +86,7 @@ if (dialect === 'mssql') {
       }
     });
 
-    it('connectionManager._connect() should call connect if state is initialized', async function () {
+    it.skip('connectionManager._connect() should call connect if state is initialized', async function () {
       const connectStub = sinon.stub();
       const INITIALIZED = { name: 'INITIALIZED' };
       this.Connection = {

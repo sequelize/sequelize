@@ -52,7 +52,6 @@ export const BelongsToManyAssociation = Pkg.BelongsToManyAssociation;
 export const BaseError = Pkg.BaseError;
 
 export const AggregateError = Pkg.AggregateError;
-export const AsyncQueueError = Pkg.AsyncQueueError;
 export const AssociationError = Pkg.AssociationError;
 export const BulkRecordError = Pkg.BulkRecordError;
 export const ConnectionError = Pkg.ConnectionError;

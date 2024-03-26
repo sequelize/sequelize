@@ -9,7 +9,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/mariadb').MariaDbDialect;
     case 'mssql':
-      return require('./dialects/mssql').MsSqlDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/mssql').MsSqlDialect;
     case 'mysql':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/mysql').MySqlDialect;
