@@ -1,4 +1,4 @@
-import type { MssqlDialect } from '.';
+import type { MsSqlDialect } from '.';
 import { Transaction } from '../../transaction';
 import { rejectInvalidOptions } from '../../utils/check';
 import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
@@ -14,7 +14,7 @@ import type { MsSqlConnection } from './connection-manager';
 import { MsSqlQueryInterfaceInternal } from './query-interface-internal';
 
 export class MsSqlQueryInterfaceTypescript<
-  Dialect extends MssqlDialect = MssqlDialect,
+  Dialect extends MsSqlDialect = MsSqlDialect,
 > extends AbstractQueryInterface<Dialect> {
   readonly #internalQueryInterface: MsSqlQueryInterfaceInternal;
 

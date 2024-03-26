@@ -57,7 +57,7 @@ export class SnowflakeDialect extends AbstractDialect {
       ifExists: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
     },
   });
 
@@ -94,5 +94,9 @@ export class SnowflakeDialect extends AbstractDialect {
 
   static getDefaultPort() {
     return 3306;
+  }
+
+  static getSupportedOptions() {
+    return [];
   }
 }

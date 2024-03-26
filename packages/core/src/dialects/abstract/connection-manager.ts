@@ -3,7 +3,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
 import { ConnectionAcquireTimeoutError } from '../../errors';
-import type { ConnectionOptions, Dialect, Sequelize } from '../../sequelize.js';
+import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
 import * as deprecations from '../../utils/deprecations';
 import { logger } from '../../utils/logger';
 import type { AbstractDialect } from './index.js';
@@ -43,24 +43,25 @@ export interface Connection {
  * @param connection
  * @private
  */
-export class AbstractConnectionManager<TConnection extends Connection = Connection> {
+export class AbstractConnectionManager<
+  Dialect extends AbstractDialect = AbstractDialect,
+  TConnection extends Connection = Connection,
+> {
   protected readonly sequelize: Sequelize;
   protected readonly config: Sequelize['config'];
-  protected readonly dialect: AbstractDialect;
-  protected readonly dialectName: Dialect;
+  protected readonly dialect: Dialect;
   readonly pool: ReplicationPool<TConnection>;
 
   #versionPromise: Promise<void> | null = null;
   #closed: boolean = false;
 
-  constructor(dialect: AbstractDialect) {
+  constructor(dialect: Dialect) {
     const sequelize = dialect.sequelize;
     const config: Sequelize['config'] = cloneDeep(sequelize.config) ?? {};
 
     this.sequelize = sequelize;
     this.config = config;
     this.dialect = dialect;
-    this.dialectName = this.sequelize.options.dialect;
 
     // ===========================================================
     // Init Pool

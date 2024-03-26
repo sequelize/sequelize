@@ -1,3 +1,4 @@
+import type { RequiredBy } from '@sequelize/utils';
 import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
@@ -51,24 +52,17 @@ import type {
   QuoteTableOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
+  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
+  TableOrModel,
   TruncateTableQueryOptions,
 } from './query-generator.types.js';
-import type { TableName, TableNameWithSchema } from './query-interface.js';
+import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
-
-export type TableOrModel = TableName | ModelStatic | ModelDefinition;
-
-// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveIndexQueryOptions {
-  concurrently?: boolean;
-  ifExists?: boolean;
-  cascade?: boolean;
-}
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
@@ -592,7 +586,7 @@ export class AbstractQueryGeneratorTypeScript {
   extractTableDetails(
     tableOrModel: TableOrModel,
     options?: { schema?: string; delimiter?: string },
-  ): TableNameWithSchema {
+  ): RequiredBy<TableNameWithSchema, 'schema'> {
     const tableIdentifier = extractTableIdentifier(tableOrModel);
 
     if (!isPlainObject(tableIdentifier)) {
@@ -927,8 +921,11 @@ export class AbstractQueryGeneratorTypeScript {
     const table = this.quoteTable(tableOrModel);
     const modelDefinition = extractModelDefinition(tableOrModel);
     const whereOptions = { ...options, model: modelDefinition };
+    const whereFragment = whereOptions.where
+      ? this.whereQuery(whereOptions.where, whereOptions)
+      : '';
 
-    if (options.limit && this.dialect.supports.delete.modelWithLimit) {
+    if (whereOptions.limit && !this.dialect.supports.delete.limit) {
       if (!modelDefinition) {
         throw new Error(
           'Using LIMIT in bulkDeleteQuery requires specifying a model or model definition.',
@@ -936,9 +933,9 @@ export class AbstractQueryGeneratorTypeScript {
       }
 
       const pks = join(
-        map(modelDefinition.primaryKeysAttributeNames, attrName => {
-          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
-        }),
+        map(modelDefinition.primaryKeysAttributeNames.values(), attrName =>
+          this.quoteIdentifier(modelDefinition.getColumnName(attrName)),
+        ),
         ', ',
       );
 
@@ -947,17 +944,17 @@ export class AbstractQueryGeneratorTypeScript {
       return joinSQLFragments([
         `DELETE FROM ${table} WHERE ${primaryKeys} IN (`,
         `SELECT ${pks} FROM ${table}`,
-        options.where ? this.whereQuery(options.where, whereOptions) : '',
+        whereFragment,
         `ORDER BY ${pks}`,
-        this.#internals.addLimitAndOffset(options),
+        this.#internals.addLimitAndOffset(whereOptions),
         ')',
       ]);
     }
 
     return joinSQLFragments([
       `DELETE FROM ${this.quoteTable(tableOrModel)}`,
-      options.where ? this.whereQuery(options.where, whereOptions) : '',
-      this.#internals.addLimitAndOffset(options),
+      whereFragment,
+      this.#internals.addLimitAndOffset(whereOptions),
     ]);
   }
 

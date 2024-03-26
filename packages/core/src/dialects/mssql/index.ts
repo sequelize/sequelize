@@ -8,7 +8,7 @@ import { MsSqlQueryGenerator } from './query-generator';
 import { MsSqlQueryInterface } from './query-interface';
 import { MsSqlQuery } from './query.js';
 
-export class MssqlDialect extends AbstractDialect {
+export class MsSqlDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
@@ -66,7 +66,7 @@ export class MssqlDialect extends AbstractDialect {
       useBegin: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
     },
   });
 
@@ -121,5 +121,9 @@ export class MssqlDialect extends AbstractDialect {
 
   static getDefaultPort() {
     return 1433;
+  }
+
+  static getSupportedOptions() {
+    return [];
   }
 }

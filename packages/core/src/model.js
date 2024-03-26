@@ -949,7 +949,7 @@ ${associationOwner._getAssociationDebugList()}`);
                     ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
                     : true) &&
                   !removedConstraints[constraintName]) ||
-                this.sequelize.options.dialect === 'ibmi'
+                this.sequelize.dialect.name === 'ibmi'
               ) {
                 // Remove constraint on foreign keys.
                 await this.queryInterface.removeConstraint(tableName, constraintName, options);
@@ -967,7 +967,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const missingIndexes = this.getIndexes()
       .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
-        if (this.sequelize.options.dialect === 'postgres') {
+        if (this.sequelize.dialect.name === 'postgres') {
           // move concurrent indexes to the bottom to avoid weird deadlocks
           if (index1.concurrently === true) {
             return 1;
@@ -2121,7 +2121,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const createOptions = { ...options };
 
       // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.options.dialect === 'postgres' && options.transaction) {
+      if (this.sequelize.dialect.name === 'postgres' && options.transaction) {
         createOptions.ignoreDuplicates = true;
       }
 
@@ -2220,7 +2220,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     // Db2 does not allow NULL values for unique columns.
     // Add dummy values if not provided by test case or user.
-    if (this.sequelize.options.dialect === 'db2') {
+    if (this.sequelize.dialect.name === 'db2') {
       // TODO: remove. This is fishy and is going to be a source of bugs (because it replaces null values with arbitrary values that could be actual data).
       //  If DB2 doesn't support NULL in unique columns, then it should error if the user tries to insert NULL in one.
       this.uniqno = this.sequelize.dialect.queryGenerator.addUniqueFields(
@@ -2289,7 +2289,7 @@ ${associationOwner._getAssociationDebugList()}`);
       return [];
     }
 
-    const dialect = this.sequelize.options.dialect;
+    const dialect = this.sequelize.dialect.name;
     const now = new Date();
     options = cloneDeep(options) ?? {};
 
@@ -3973,7 +3973,7 @@ Instead of specifying a Model, either:
 
     // Db2 does not allow NULL values for unique columns.
     // Add dummy values if not provided by test case or user.
-    if (this.sequelize.options.dialect === 'db2' && this.isNewRecord) {
+    if (this.sequelize.dialect.name === 'db2' && this.isNewRecord) {
       // TODO: remove. This is fishy and is going to be a source of bugs (because it replaces null values with arbitrary values that could be actual data).
       //  If DB2 doesn't support NULL in unique columns, then it should error if the user tries to insert NULL in one.
       this.uniqno = this.sequelize.dialect.queryGenerator.addUniqueFields(

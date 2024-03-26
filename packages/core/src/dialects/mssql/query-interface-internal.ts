@@ -1,9 +1,9 @@
 import { IsolationLevel } from '../../transaction';
 import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 
 export class MsSqlQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
-  constructor(readonly dialect: MssqlDialect) {
+  constructor(readonly dialect: MsSqlDialect) {
     super(dialect);
   }
 

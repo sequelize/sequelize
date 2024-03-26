@@ -123,7 +123,7 @@ export class BelongsToAssociation<
     // else, server throws SQL0573N error. Hence, setting it here explicitly
     // for non primary columns.
     if (
-      target.sequelize.options.dialect === 'db2' &&
+      target.sequelize.dialect.name === 'db2' &&
       targetAttributes.get(this.targetKey)!.primaryKey !== true
     ) {
       // TODO: throw instead

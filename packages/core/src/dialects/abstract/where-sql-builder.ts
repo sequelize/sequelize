@@ -21,7 +21,6 @@ import { extractModelDefinition } from '../../utils/model-utils.js';
 import { getComplexKeys, getOperators } from '../../utils/where.js';
 import type { NormalizedDataType } from './data-types.js';
 import * as DataTypes from './data-types.js';
-import { AbstractDataType } from './data-types.js';
 import type { FormatWhereOptions } from './query-generator-typescript.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { WhereAttributeHashValue } from './where-sql-builder-types.js';
@@ -493,7 +492,7 @@ export class WhereSqlBuilder {
 
     // This serializes VALUE contained RANGE
     if (
-      leftDataType instanceof AbstractDataType &&
+      leftDataType instanceof DataTypes.AbstractDataType &&
       !(leftDataType instanceof DataTypes.RANGE) &&
       !(leftDataType instanceof DataTypes.ARRAY) &&
       Array.isArray(right)
