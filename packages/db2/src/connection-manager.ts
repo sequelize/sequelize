@@ -10,11 +10,7 @@ import assert from 'node:assert';
 import NodeUtil from 'node:util';
 import type { Db2Dialect } from './dialect.js';
 
-export interface Db2Connection extends Connection, Db2.Database {
-  // properties added by us
-  // TODO: replace with Symbols.
-  lib: typeof Db2;
-}
+export interface Db2Connection extends Connection, Db2.Database {}
 
 /**
  * DB2 Connection Manager
@@ -63,7 +59,6 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
     try {
       return await new Promise((resolve, reject) => {
         const connection = new this.#lib.Database() as Db2Connection;
-        connection.lib = this.#lib;
         connection.open(connectionConfig, error => {
           if (error) {
             if (error.message && error.message.includes('SQL30081N')) {
