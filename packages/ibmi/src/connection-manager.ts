@@ -1,10 +1,9 @@
+import type { Connection, ConnectionOptions } from '@sequelize/core';
+import { AbstractConnectionManager, ConnectionRefusedError } from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
-import { ConnectionRefusedError } from '../../errors/index.js';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { logger } from '../../utils/logger';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { IBMiDialect } from './index.js';
+import * as IBMi from 'odbc';
+import type { IBMiDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:ibmi');
 
@@ -13,17 +12,12 @@ export interface IBMiConnection extends Connection, OdbcConnection {
   connected: boolean;
 }
 
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('odbc');
-
 export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect, IBMiConnection> {
-  private readonly lib: Lib;
+  readonly #lib: typeof IBMi;
 
   constructor(dialect: IBMiDialect) {
     super(dialect);
-
-    this.lib = this._loadDialectModule('odbc') as Lib;
+    this.#lib = IBMi;
   }
 
   async connect(config: ConnectionOptions): Promise<IBMiConnection> {
@@ -59,7 +53,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
 
     let connection;
     try {
-      connection = (await this.lib.connect(connectionString)) as IBMiConnection;
+      connection = (await this.#lib.connect(connectionString)) as IBMiConnection;
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;

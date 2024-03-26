@@ -1,23 +1,27 @@
 'use strict';
 
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { conformIndex } from '../../model-internals';
-import { rejectInvalidOptions } from '../../utils/check';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { nameIndex, removeTrailingSemicolon } from '../../utils/string';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { DataTypes } from '@sequelize/core';
+import {
+  attributeTypeToSql,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
-
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
+import { conformIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import {
+  nameIndex,
+  removeTrailingSemicolon,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
-
-const util = require('node:util');
-const { IBMiQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const DataTypes = require('../../data-types');
+import util from 'node:util';
+import { IBMiQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const typeWithoutDefault = new Set(['BLOB']);
 

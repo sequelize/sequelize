@@ -1,16 +1,15 @@
-import { Transaction } from '../../transaction';
-import { rejectInvalidOptions } from '../../utils/check';
-import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   CommitTransactionOptions,
   RollbackTransactionOptions,
   SetIsolationLevelOptions,
   StartTransactionOptions,
-} from '../abstract/query-interface.types';
+} from '@sequelize/core';
+import { AbstractQueryInterface, Transaction } from '@sequelize/core';
+import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import type { IBMiConnection } from './connection-manager';
-import type { IBMiDialect } from './index.js';
-import { IBMiQueryInterfaceInternal } from './query-interface-internal.js';
+import type { IBMiDialect } from './dialect.js';
+import { IBMiQueryInterfaceInternal } from './query-interface.internal.js';
 
 export class IBMiQueryInterface<
   Dialect extends IBMiDialect = IBMiDialect,

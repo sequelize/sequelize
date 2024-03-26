@@ -96,7 +96,7 @@ jobs:
         run: yarn lerna run test-unit-mssql --scope=@sequelize/core
       - name: Unit tests (core - db2)
         run: yarn lerna run test-unit-db2 --scope=@sequelize/core
-      - name: Unit tests (ibmi)
+      - name: Unit tests (core - ibmi)
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core

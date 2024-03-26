@@ -1,14 +1,14 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
-import { IBMiConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types.js';
-import { IBMiQuery } from './query';
-import { IBMiQueryGenerator } from './query-generator';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import { IBMiConnectionManager } from './connection-manager.js';
+import { IBMiQueryGenerator } from './query-generator.js';
 import { IBMiQueryInterface } from './query-interface.js';
+import { IBMiQuery } from './query.js';
 
 export class IBMiDialect extends AbstractDialect {
-  static supports = AbstractDialect.extendSupport({
+  static readonly supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
     connectionTransactionMethods: true,
