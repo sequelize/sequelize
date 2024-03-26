@@ -1,24 +1,24 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils/check';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
-import { generateIndexName } from '../../utils/string';
-import { attributeTypeToSql, normalizeDataType } from '../abstract/data-types-utils';
+import { DataTypes, Op } from '@sequelize/core';
+import {
+  attributeTypeToSql,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
-
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
-
-const { MsSqlQueryGeneratorTypeScript } = require('./query-generator-typescript');
-const DataTypes = require('../../data-types');
-const { Op } = require('../../operators');
+import { MsSqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {

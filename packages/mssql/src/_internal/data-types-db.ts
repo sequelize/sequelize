@@ -1,5 +1,8 @@
 import dayjs from 'dayjs';
-import type { MsSqlDialect } from './index.js';
+import utc from 'dayjs/plugin/utc';
+import type { MsSqlDialect } from '../dialect.js';
+
+dayjs.extend(utc);
 
 /**
  * First pass of DB value parsing: Parses based on the MSSQL Type ID.

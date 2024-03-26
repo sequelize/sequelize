@@ -1,13 +1,20 @@
 'use strict';
 
-import { getAttributeName } from '../../utils/format';
-
+import {
+  AbstractQuery,
+  AggregateError,
+  DatabaseError,
+  ForeignKeyConstraintError,
+  UniqueConstraintError,
+  UnknownConstraintError,
+  ValidationErrorItem,
+} from '@sequelize/core';
+import { getAttributeName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
-
-const { AbstractQuery } = require('../abstract/query');
-const sequelizeErrors = require('../../errors');
-const { logger } = require('../../utils/logger');
+import { Request, TYPES } from 'tedious';
+import { ASYNC_QUEUE } from './_internal/symbols.js';
 
 const debug = logger.debugContext('sql:mssql');
 
@@ -71,7 +78,7 @@ export class MsSqlQuery extends AbstractQuery {
 
     const query = new Promise((resolve, reject) => {
       const rows = [];
-      const request = new connection.lib.Request(sql, (err, rowCount) => {
+      const request = new Request(sql, (err, rowCount) => {
         err ? reject(err) : resolve([rows, rowCount]);
       });
 
@@ -79,7 +86,7 @@ export class MsSqlQuery extends AbstractQuery {
         if (Array.isArray(parameters)) {
           // eslint-disable-next-line unicorn/no-for-loop
           for (let i = 0; i < parameters.length; i++) {
-            const paramType = this.getSQLTypeFromJsType(parameters[i], connection.lib.TYPES);
+            const paramType = this.getSQLTypeFromJsType(parameters[i], TYPES);
             request.addParameter(
               String(i + 1),
               paramType.type,
@@ -89,7 +96,7 @@ export class MsSqlQuery extends AbstractQuery {
           }
         } else {
           forOwn(parameters, (parameter, parameterName) => {
-            const paramType = this.getSQLTypeFromJsType(parameter, connection.lib.TYPES);
+            const paramType = this.getSQLTypeFromJsType(parameter, TYPES);
             request.addParameter(
               parameterName,
               paramType.type,
@@ -144,7 +151,7 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   run(sql, parameters) {
-    return this.connection.queue.enqueue(() => this._run(this.connection, sql, parameters));
+    return this.connection[ASYNC_QUEUE].enqueue(() => this._run(this.connection, sql, parameters));
   }
 
   /**
@@ -283,9 +290,9 @@ export class MsSqlQuery extends AbstractQuery {
       const errors = [];
       forOwn(fields, (value, field) => {
         errors.push(
-          new sequelizeErrors.ValidationErrorItem(
+          new ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
-            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+            'unique violation', // ValidationErrorItem.Origins.DB,
             field,
             value,
             this.instance,
@@ -294,14 +301,14 @@ export class MsSqlQuery extends AbstractQuery {
         );
       });
 
-      const uniqueConstraintError = new sequelizeErrors.UniqueConstraintError({
+      const uniqueConstraintError = new UniqueConstraintError({
         message,
         errors,
         cause: err,
         fields,
       });
       if (err.errors?.length > 0) {
-        return new sequelizeErrors.AggregateError([...err.errors, uniqueConstraintError]);
+        return new AggregateError([...err.errors, uniqueConstraintError]);
       }
 
       return uniqueConstraintError;
@@ -311,7 +318,7 @@ export class MsSqlQuery extends AbstractQuery {
       /The (?:DELETE|INSERT|MERGE|UPDATE) statement conflicted with the (?:FOREIGN KEY|REFERENCE) constraint "(.*)"\. The conflict occurred in database "(.*)", table "(.*)", column '(.*)'\./,
     );
     if (match && match.length > 1) {
-      const fkConstraintError = new sequelizeErrors.ForeignKeyConstraintError({
+      const fkConstraintError = new ForeignKeyConstraintError({
         index: match[1],
         cause: err,
         table: match[3],
@@ -319,7 +326,7 @@ export class MsSqlQuery extends AbstractQuery {
       });
 
       if (err.errors?.length > 0) {
-        return new sequelizeErrors.AggregateError([...err.errors, fkConstraintError]);
+        return new AggregateError([...err.errors, fkConstraintError]);
       }
 
       return fkConstraintError;
@@ -337,7 +344,7 @@ export class MsSqlQuery extends AbstractQuery {
           let table = err.sql.match(/table \[(.+?)]/i);
           table = table ? table[1] : undefined;
 
-          firstError = new sequelizeErrors.UnknownConstraintError({
+          firstError = new UnknownConstraintError({
             message: err.errors[index - 1].message,
             constraint,
             table,
@@ -347,13 +354,13 @@ export class MsSqlQuery extends AbstractQuery {
       }
 
       if (firstError) {
-        return new sequelizeErrors.AggregateError([...err.errors, firstError]);
+        return new AggregateError([...err.errors, firstError]);
       }
 
-      return new sequelizeErrors.AggregateError(err.errors);
+      return new AggregateError(err.errors);
     }
 
-    return new sequelizeErrors.DatabaseError(err);
+    return new DatabaseError(err);
   }
 
   isShowOrDescribeQuery() {

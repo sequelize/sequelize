@@ -1,17 +1,17 @@
-import type { MsSqlDialect } from '.';
-import { Transaction } from '../../transaction';
-import { rejectInvalidOptions } from '../../utils/check';
-import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   CommitTransactionOptions,
   CreateSavepointOptions,
   RollbackSavepointOptions,
   RollbackTransactionOptions,
   StartTransactionOptions,
-} from '../abstract/query-interface.types';
-import type { MsSqlConnection } from './connection-manager';
-import { MsSqlQueryInterfaceInternal } from './query-interface-internal';
+} from '@sequelize/core';
+import { AbstractQueryInterface, Transaction } from '@sequelize/core';
+import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { ASYNC_QUEUE } from './_internal/symbols.js';
+import type { MsSqlConnection } from './connection-manager.js';
+import type { MsSqlDialect } from './dialect.js';
+import { MsSqlQueryInterfaceInternal } from './query-interface.internal.js';
 
 export class MsSqlQueryInterfaceTypescript<
   Dialect extends MsSqlDialect = MsSqlDialect,
@@ -34,7 +34,7 @@ export class MsSqlQueryInterfaceTypescript<
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(
+    await connection[ASYNC_QUEUE].enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.commitTransaction(error => (error ? reject(error) : resolve()));
@@ -48,7 +48,7 @@ export class MsSqlQueryInterfaceTypescript<
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(
+    await connection[ASYNC_QUEUE].enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.saveTransaction(
@@ -68,7 +68,7 @@ export class MsSqlQueryInterfaceTypescript<
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(
+    await connection[ASYNC_QUEUE].enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.rollbackTransaction(
@@ -88,7 +88,7 @@ export class MsSqlQueryInterfaceTypescript<
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(
+    await connection[ASYNC_QUEUE].enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.rollbackTransaction(error => (error ? reject(error) : resolve()));
@@ -115,7 +115,7 @@ export class MsSqlQueryInterfaceTypescript<
     }
 
     const connection = transaction.getConnection() as MsSqlConnection;
-    await connection.queue.enqueue(
+    await connection[ASYNC_QUEUE].enqueue(
       async () =>
         new Promise<void>((resolve, reject) => {
           connection.beginTransaction(

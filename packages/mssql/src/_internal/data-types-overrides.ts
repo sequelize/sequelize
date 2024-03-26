@@ -1,8 +1,8 @@
+import type { AbstractDialect } from '@sequelize/core';
+import { BaseError } from '@sequelize/core';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import maxBy from 'lodash/maxBy';
 import NodeUtil from 'node:util';
-import { BaseError } from '../../errors/index.js';
-import * as BaseTypes from '../abstract/data-types.js';
-import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
