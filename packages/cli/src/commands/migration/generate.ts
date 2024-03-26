@@ -1,57 +1,39 @@
-import { Command, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 import chalk from 'chalk';
-import inquirer from 'inquirer';
 import { config } from '../../_internal/config.js';
+import { SequelizeCommand } from '../../_internal/sequelize-command.js';
 import type { SupportedMigrationFormat } from '../../api/generate-migration.js';
 import { SUPPORTED_MIGRATION_FORMATS, generateMigration } from '../../api/generate-migration.js';
 
-export class GenerateMigration extends Command {
+export class GenerateMigration extends SequelizeCommand<(typeof GenerateMigration)['flags']> {
+  static enableJsonFlag = true;
+
   static flags = {
     format: Flags.string({
       options: SUPPORTED_MIGRATION_FORMATS,
       summary: 'The format of the migration file to generate',
+      required: true,
     }),
     name: Flags.string({
       summary: 'A short name for the migration file',
+      default: 'unnamed',
     }),
   };
 
-  static description = 'Generates a new migration file';
+  static summary = 'Generates a new migration file';
 
-  static examples = [`<%= config.bin %> <%= command.id %>`];
+  static examples = [
+    `<%= config.bin %> <%= command.id %>`,
+    `<%= config.bin %> <%= command.id %> --format=sql`,
+    `<%= config.bin %> <%= command.id %> --name="create users table"`,
+  ];
 
-  async run(): Promise<void> {
-    const { flags } = await this.parse(GenerateMigration);
-    const format: SupportedMigrationFormat =
-      flags.format ||
-      (
-        await inquirer.prompt([
-          {
-            name: 'format',
-            message: 'In which format would you like to generate the migration?',
-            type: 'list',
-            choices: SUPPORTED_MIGRATION_FORMATS,
-          },
-        ])
-      ).format;
-
-    const migrationName =
-      flags.name ||
-      (
-        await inquirer.prompt([
-          {
-            name: 'name',
-            message: 'Specify a short name for the migration file',
-            type: 'input',
-          },
-        ])
-      ).name ||
-      'unnamed';
-
+  async run(): Promise<{ path: string }> {
+    const { format, name: migrationName } = this.flags;
     const { migrationFolder } = config;
 
     const migrationPath = await generateMigration({
-      format,
+      format: format as SupportedMigrationFormat,
       migrationName,
       migrationFolder,
     });
@@ -61,5 +43,8 @@ export class GenerateMigration extends Command {
     } else {
       this.log(`Migration file generated at ${chalk.green(migrationPath)}`);
     }
+
+    // JSON output
+    return { path: migrationPath };
   }
 }
