@@ -1,26 +1,26 @@
+import {
+  EMPTY_ARRAY,
+  isPlainObject,
+  isString,
+  parseBigInt,
+  parseSafeInteger,
+} from '@sequelize/utils';
 import dayjs from 'dayjs';
-import identity from 'lodash/identity.js';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
 import { Blob } from 'node:buffer';
 import util from 'node:util';
 import type { Class } from 'type-fest';
 import { ValidationErrorItem } from '../../errors';
-import type { Falsy } from '../../generic/falsy';
 import type { GeoJson, GeoJsonType } from '../../geo-json.js';
 import { assertIsGeoJson } from '../../geo-json.js';
 import type { ModelStatic, Rangable, RangePart } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { makeBufferFromTypedArray } from '../../utils/buffer.js';
-import { isPlainObject, isString } from '../../utils/check.js';
 import { isValidTimeZone } from '../../utils/dayjs.js';
 import { doNotUseRealDataType } from '../../utils/deprecations.js';
 import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_ARRAY } from '../../utils/object.js';
-import { parseBigInt, parseNumber } from '../../utils/parse-number.js';
 import { validator as Validator } from '../../utils/validator-extras';
-import type { HstoreRecord } from '../postgres/hstore.js';
-import { buildRangeParser } from '../postgres/range.js';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
@@ -73,7 +73,7 @@ export type DataTypeUseContext =
 /**
  * A symbol that can be used as the key for a static property on a DataType class to uniquely identify it.
  */
-const kDataTypeIdentifier = Symbol('sequelize.DataTypeIdentifier');
+export const DataTypeIdentifier = Symbol('DataTypeIdentifier');
 
 /**
  * @category DataTypes
@@ -88,10 +88,10 @@ export abstract class AbstractDataType<
    *
    * @hidden
    */
-  declare static readonly [kDataTypeIdentifier]: string;
+  declare static readonly [DataTypeIdentifier]: string;
 
   static getDataTypeId(): string {
-    return this[kDataTypeIdentifier];
+    return this[DataTypeIdentifier];
   }
 
   getDataTypeId(): string {
@@ -401,7 +401,7 @@ export interface StringTypeOptions {
  */
 export class STRING extends AbstractDataType<string | Buffer> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'STRING';
+  static readonly [DataTypeIdentifier]: string = 'STRING';
   readonly options: StringTypeOptions;
 
   constructor(length: number, binary?: boolean);
@@ -443,7 +443,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
     // TODO: STRING should use an unlimited length type by default - https://github.com/sequelize/sequelize/issues/14259
     return joinSQLFragments([
       `VARCHAR(${this.options.length ?? 255})`,
-      this.options.binary && 'BINARY',
+      this.options.binary ? 'BINARY' : '',
     ]);
   }
 
@@ -512,7 +512,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
  */
 export class CHAR extends STRING {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'CHAR';
+  static readonly [DataTypeIdentifier]: string = 'CHAR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.CHAR) {
@@ -527,7 +527,7 @@ export class CHAR extends STRING {
   toSql() {
     return joinSQLFragments([
       `CHAR(${this.options.length ?? 255})`,
-      this.options.binary && 'BINARY',
+      this.options.binary ? 'BINARY' : '',
     ]);
   }
 }
@@ -551,7 +551,7 @@ export interface TextOptions {
  */
 export class TEXT extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'TEXT';
+  static readonly [DataTypeIdentifier]: string = 'TEXT';
   readonly options: TextOptions;
 
   /**
@@ -614,7 +614,7 @@ export class TEXT extends AbstractDataType<string> {
  */
 export class CITEXT extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'CITEXT';
+  static readonly [DataTypeIdentifier]: string = 'CITEXT';
 
   toSql(): string {
     return 'CITEXT';
@@ -801,10 +801,10 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
 
   sanitize(value: unknown): unknown {
     if (typeof value === 'string' || typeof value === 'bigint') {
-      const out = parseNumber(value);
+      const out = parseSafeInteger(value);
 
       // let validate sort this validation instead
-      if (Number.isNaN(out)) {
+      if (out === null) {
         return value;
       }
 
@@ -866,7 +866,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
  */
 export class TINYINT extends BaseIntegerDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'TINYINT';
+  static readonly [DataTypeIdentifier]: string = 'TINYINT';
 
   protected getNumberSqlTypeName(): string {
     return 'TINYINT';
@@ -891,7 +891,7 @@ export class TINYINT extends BaseIntegerDataType {
  */
 export class SMALLINT extends BaseIntegerDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'SMALLINT';
+  static readonly [DataTypeIdentifier]: string = 'SMALLINT';
 
   protected getNumberSqlTypeName(): string {
     return 'SMALLINT';
@@ -916,7 +916,7 @@ export class SMALLINT extends BaseIntegerDataType {
  */
 export class MEDIUMINT extends BaseIntegerDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'MEDIUMINT';
+  static readonly [DataTypeIdentifier]: string = 'MEDIUMINT';
 
   protected getNumberSqlTypeName(): string {
     return 'MEDIUMINT';
@@ -941,7 +941,7 @@ export class MEDIUMINT extends BaseIntegerDataType {
  */
 export class INTEGER extends BaseIntegerDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'INTEGER';
+  static readonly [DataTypeIdentifier]: string = 'INTEGER';
 
   protected getNumberSqlTypeName(): string {
     return 'INTEGER';
@@ -965,7 +965,7 @@ export class INTEGER extends BaseIntegerDataType {
  */
 export class BIGINT extends BaseIntegerDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'BIGINT';
+  static readonly [DataTypeIdentifier]: string = 'BIGINT';
 
   protected getNumberSqlTypeName(): string {
     return 'BIGINT';
@@ -973,6 +973,10 @@ export class BIGINT extends BaseIntegerDataType {
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
+
+    if (!dialect.supports.dataTypes.BIGINT) {
+      throwUnsupportedDataType(dialect, 'BIGINT');
+    }
 
     if (this.options.unsigned && !this._supportsNativeUnsigned(dialect)) {
       throwUnsupportedDataType(dialect, `${this.getDataTypeId()}.UNSIGNED`);
@@ -1143,7 +1147,7 @@ export class BaseDecimalNumberDataType extends BaseNumberDataType<DecimalNumberO
  */
 export class FLOAT extends BaseDecimalNumberDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'FLOAT';
+  static readonly [DataTypeIdentifier]: string = 'FLOAT';
 
   protected getNumberSqlTypeName(): string {
     throw new Error(`getNumberSqlTypeName is not implemented by default in the FLOAT DataType because 'float' has very different meanings in different dialects.
@@ -1164,7 +1168,7 @@ If neither single precision nor double precision IEEE 754 floating point numbers
 // TODO (v8): remove this
 export class REAL extends BaseDecimalNumberDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'REAL';
+  static readonly [DataTypeIdentifier]: string = 'REAL';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -1199,7 +1203,7 @@ export class REAL extends BaseDecimalNumberDataType {
  */
 export class DOUBLE extends BaseDecimalNumberDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'DOUBLE';
+  static readonly [DataTypeIdentifier]: string = 'DOUBLE';
 
   protected _supportsNativeUnsigned(_dialect: AbstractDialect): boolean {
     return _dialect.supports.dataTypes.DOUBLE.unsigned;
@@ -1228,7 +1232,7 @@ export class DOUBLE extends BaseDecimalNumberDataType {
  */
 export class DECIMAL extends BaseDecimalNumberDataType {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'DECIMAL';
+  static readonly [DataTypeIdentifier]: string = 'DECIMAL';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -1299,7 +1303,7 @@ export class DECIMAL extends BaseDecimalNumberDataType {
  */
 export class BOOLEAN extends AbstractDataType<boolean> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'BOOLEAN';
+  static readonly [DataTypeIdentifier]: string = 'BOOLEAN';
 
   toSql() {
     // Note: This may vary depending on the dialect.
@@ -1342,11 +1346,11 @@ export class BOOLEAN extends AbstractDataType<boolean> {
     throw new Error(`Received invalid boolean value from DB: ${util.inspect(value)}`);
   }
 
-  escape(value: boolean | Falsy): string {
+  escape(value: boolean | unknown): string {
     return value ? 'true' : 'false';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     return Boolean(value);
   }
 }
@@ -1374,7 +1378,7 @@ export interface TimeOptions {
  */
 export class TIME extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'TIME';
+  static readonly [DataTypeIdentifier]: string = 'TIME';
   readonly options: TimeOptions;
 
   /**
@@ -1432,7 +1436,7 @@ export type AcceptedDate = RawDate | dayjs.Dayjs | number;
  */
 export class DATE extends AbstractDataType<AcceptedDate> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'DATE';
+  static readonly [DataTypeIdentifier]: string = 'DATE';
   readonly options: DateOptions;
 
   /**
@@ -1545,7 +1549,7 @@ export class DATE extends AbstractDataType<AcceptedDate> {
  */
 export class DATEONLY extends AbstractDataType<AcceptedDate> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'DATEONLY';
+  static readonly [DataTypeIdentifier]: string = 'DATEONLY';
 
   toSql() {
     return 'DATE';
@@ -1581,6 +1585,8 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 }
 
+export type HstoreRecord = Record<string, boolean | number | string | null>;
+
 /**
  * A key / value store column. Only available in Postgres.
  *
@@ -1596,7 +1602,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
  */
 export class HSTORE extends AbstractDataType<HstoreRecord> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'HSTORE';
+  static readonly [DataTypeIdentifier]: string = 'HSTORE';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -1649,7 +1655,7 @@ export class HSTORE extends AbstractDataType<HstoreRecord> {
  */
 export class JSON extends AbstractDataType<any> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'JSON';
+  static readonly [DataTypeIdentifier]: string = 'JSON';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -1702,7 +1708,7 @@ export class JSON extends AbstractDataType<any> {
  */
 export class JSONB extends JSON {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'JSONB';
+  static readonly [DataTypeIdentifier]: string = 'JSONB';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -1734,7 +1740,7 @@ export class JSONB extends JSON {
 // TODO: this should not be a DataType. Replace with a new version of `fn` that is dialect-aware, so we don't need to hardcode it in toDefaultValue().
 export class NOW extends AbstractDataType<never> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'NOW';
+  static readonly [DataTypeIdentifier]: string = 'NOW';
 
   toSql(): string {
     return 'NOW';
@@ -1770,7 +1776,7 @@ export interface BlobOptions {
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'BLOB';
+  static readonly [DataTypeIdentifier]: string = 'BLOB';
   readonly options: BlobOptions;
 
   /**
@@ -1843,8 +1849,6 @@ export interface RangeOptions {
   subtype?: DataTypeClassOrInstance;
 }
 
-const defaultRangeParser = buildRangeParser(identity);
-
 /**
  * Range types are data types representing a range of values of some element type (called the range's subtype).
  * Only available in Postgres. See [the Postgres documentation](http://www.postgresql.org/docs/9.4/static/rangetypes.html) for more details
@@ -1872,7 +1876,7 @@ export class RANGE<
   T extends BaseNumberDataType | DATE | DATEONLY = INTEGER,
 > extends AbstractDataType<Rangable<AcceptableTypeOf<T>> | AcceptableTypeOf<T>> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'RANGE';
+  static readonly [DataTypeIdentifier]: string = 'RANGE';
   readonly options: {
     subtype: AbstractDataType<any>;
   };
@@ -1914,24 +1918,8 @@ export class RANGE<
     return replacement;
   }
 
-  parseDatabaseValue(value: unknown): unknown {
-    // node-postgres workaround: The SQL Type-based parser is not called by node-postgres for values returned by Model.findOrCreate.
-    if (typeof value === 'string') {
-      value = defaultRangeParser(value);
-    }
-
-    if (!Array.isArray(value)) {
-      throw new Error(
-        `DataTypes.RANGE received a non-range value from the database: ${util.inspect(value)}`,
-      );
-    }
-
-    return value.map(part => {
-      return {
-        ...part,
-        value: this.options.subtype.parseDatabaseValue(part.value),
-      };
-    });
+  parseDatabaseValue(_value: unknown): unknown {
+    throw new Error(`DataTypes.RANGE is not supported in ${this._getDialect().name}.`);
   }
 
   sanitize(value: unknown): unknown {
@@ -2002,7 +1990,7 @@ export interface UuidOptions {
  */
 export class UUID extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'UUID';
+  static readonly [DataTypeIdentifier]: string = 'UUID';
 
   readonly options: UuidOptions;
 
@@ -2058,7 +2046,7 @@ export class UUID extends AbstractDataType<string> {
  */
 export class UUIDV1 extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'UUIDV1';
+  static readonly [DataTypeIdentifier]: string = 'UUIDV1';
 
   validate(value: any) {
     if (typeof value !== 'string' || !Validator.isUUID(value, 1)) {
@@ -2082,7 +2070,7 @@ export class UUIDV1 extends AbstractDataType<string> {
  */
 export class UUIDV4 extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'UUIDV4';
+  static readonly [DataTypeIdentifier]: string = 'UUIDV4';
 
   validate(value: unknown) {
     if (typeof value !== 'string' || !Validator.isUUID(value, 4)) {
@@ -2154,7 +2142,7 @@ export interface NormalizedVirtualOptions {
  */
 export class VIRTUAL<T> extends AbstractDataType<T> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'VIRTUAL';
+  static readonly [DataTypeIdentifier]: string = 'VIRTUAL';
 
   options: NormalizedVirtualOptions;
 
@@ -2246,7 +2234,7 @@ export interface NormalizedEnumOptions<Member extends string> {
  */
 export class ENUM<Member extends string> extends AbstractDataType<Member> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'ENUM';
+  static readonly [DataTypeIdentifier]: string = 'ENUM';
   readonly options: NormalizedEnumOptions<Member>;
 
   /**
@@ -2392,7 +2380,7 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
   Array<AcceptableTypeOf<T>>
 > {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'ARRAY';
+  static readonly [DataTypeIdentifier]: string = 'ARRAY';
   readonly options: NormalizedArrayOptions;
 
   /**
@@ -2574,7 +2562,7 @@ export interface GeometryOptions {
  */
 export class GEOMETRY extends AbstractDataType<GeoJson> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'GEOMETRY';
+  static readonly [DataTypeIdentifier]: string = 'GEOMETRY';
   readonly options: GeometryOptions;
 
   /**
@@ -2653,7 +2641,7 @@ export class GEOMETRY extends AbstractDataType<GeoJson> {
  */
 export class GEOGRAPHY extends GEOMETRY {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'GEOGRAPHY';
+  static readonly [DataTypeIdentifier]: string = 'GEOGRAPHY';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.GEOGRAPHY) {
@@ -2683,7 +2671,7 @@ export class GEOGRAPHY extends GEOMETRY {
  */
 export class CIDR extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'CIDR';
+  static readonly [DataTypeIdentifier]: string = 'CIDR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.CIDR) {
@@ -2721,7 +2709,7 @@ export class CIDR extends AbstractDataType<string> {
  */
 export class INET extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'INET';
+  static readonly [DataTypeIdentifier]: string = 'INET';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.INET) {
@@ -2759,7 +2747,7 @@ export class INET extends AbstractDataType<string> {
  */
 export class MACADDR extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'MACADDR';
+  static readonly [DataTypeIdentifier]: string = 'MACADDR';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.MACADDR) {
@@ -2797,7 +2785,7 @@ export class MACADDR extends AbstractDataType<string> {
  */
 export class MACADDR8 extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'MACADDR8';
+  static readonly [DataTypeIdentifier]: string = 'MACADDR8';
 
   protected _checkOptionSupport(dialect: AbstractDialect) {
     if (!dialect.supports.dataTypes.MACADDR8) {
@@ -2835,7 +2823,7 @@ export class MACADDR8 extends AbstractDataType<string> {
  */
 export class TSVECTOR extends AbstractDataType<string> {
   /** @hidden */
-  static readonly [kDataTypeIdentifier]: string = 'TSVECTOR';
+  static readonly [DataTypeIdentifier]: string = 'TSVECTOR';
 
   validate(value: any) {
     if (typeof value !== 'string') {

@@ -1,3 +1,4 @@
+import { isError, isPlainObject } from '@sequelize/utils';
 import type {
   Connection as TediousConnection,
   ConnectionConfiguration as TediousConnectionConfig,
@@ -11,13 +12,13 @@ import {
   InvalidConnectionError,
 } from '../../errors/index.js';
 import type { ConnectionOptions } from '../../sequelize.js';
-import { assertCaughtError, isErrorWithStringCode, isPlainObject } from '../../utils/check.js';
+import { isErrorWithStringCode } from '../../utils/check.js';
 import { logger } from '../../utils/logger';
 import { removeUndefined } from '../../utils/object.js';
 import type { Connection } from '../abstract/connection-manager';
 import { AbstractConnectionManager } from '../abstract/connection-manager';
 import { AsyncQueue } from './async-queue';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
@@ -33,10 +34,13 @@ export interface MsSqlConnection extends Connection, TediousConnection {
   lib: Lib;
 }
 
-export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConnection> {
+export class MsSqlConnectionManager extends AbstractConnectionManager<
+  MsSqlDialect,
+  MsSqlConnection
+> {
   lib: Lib;
 
-  constructor(dialect: MssqlDialect) {
+  constructor(dialect: MsSqlDialect) {
     super(dialect);
     this.lib = this._loadDialectModule('tedious') as Lib;
   }
@@ -140,7 +144,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<MsSqlConne
         }
       });
     } catch (error: unknown) {
-      assertCaughtError(error);
+      isError.assert(error);
 
       if (!isErrorWithStringCode(error)) {
         throw new ConnectionError(error);

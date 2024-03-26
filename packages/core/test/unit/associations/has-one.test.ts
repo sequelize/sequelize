@@ -102,6 +102,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     function originalFunction() {}
 
     each(methods, (alias, method) => {
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
       User.prototype[method] = originalFunction;
     });
 

@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         );
       }).to.throw(
         Error,
-        'The dialect some-fancy-dialect is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.',
+        'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.',
       );
     });
   });

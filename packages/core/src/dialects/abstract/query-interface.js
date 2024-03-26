@@ -1,20 +1,18 @@
 'use strict';
 
-import { map } from '../../utils/iterators';
-import { cloneDeep, getObjectFromMap } from '../../utils/object';
-import { assertNoReservedBind, combineBinds } from '../../utils/sql';
-import { AbstractDataType } from './data-types';
-import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-
+import { map } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import find from 'lodash/find';
 import intersection from 'lodash/intersection';
 import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
-
-const DataTypes = require('../../data-types');
-const { QueryTypes } = require('../../query-types');
+import * as DataTypes from '../../data-types';
+import { QueryTypes } from '../../query-types';
+import { cloneDeep, getObjectFromMap } from '../../utils/object';
+import { assertNoReservedBind, combineBinds } from '../../utils/sql';
+import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 /**
  * The interface that Sequelize uses to talk to all databases
@@ -394,6 +392,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
   //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
+    if (!this.dialect.name) {
+      throw new Error(`Upserts are not supported by the ${this.dialect.name} dialect.`);
+    }
+
     if (options?.bind) {
       assertNoReservedBind(options.bind);
     }

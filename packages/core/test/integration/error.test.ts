@@ -20,7 +20,7 @@ import {
   ValidationErrorItem,
   ValidationErrorItemOrigin,
 } from '@sequelize/core';
-import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error';
+import type { DatabaseErrorParent } from '@sequelize/core/_non-semver-use-at-your-own-risk_/errors/database-error.js';
 import { assert, expect } from 'chai';
 import { spy } from 'sinon';
 import {
@@ -562,6 +562,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           }
         }
 
+        assert(error.cause instanceof Error);
+
         switch (dialect) {
           case 'db2':
             expect(error.cause.message).to.contain(
@@ -639,6 +641,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.errors[0].value).to.equal('foo');
           }
         }
+
+        assert(error.cause instanceof Error);
 
         switch (dialect) {
           case 'db2':

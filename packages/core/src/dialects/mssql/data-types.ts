@@ -1,7 +1,6 @@
 import maxBy from 'lodash/maxBy';
 import NodeUtil from 'node:util';
 import { BaseError } from '../../errors/index.js';
-import type { Falsy } from '../../generic/falsy.js';
 import * as BaseTypes from '../abstract/data-types.js';
 import type { AbstractDialect } from '../abstract/index.js';
 
@@ -77,11 +76,11 @@ export class TEXT extends BaseTypes.TEXT {
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
-  escape(value: boolean | Falsy): string {
+  escape(value: boolean | unknown): string {
     return value ? '1' : '0';
   }
 
-  toBindableValue(value: boolean | Falsy): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     return value ? 1 : 0;
   }
 

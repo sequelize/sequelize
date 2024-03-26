@@ -1,0 +1,10 @@
+{
+  "require": "ts-node/register",
+  "loader": "ts-node/esm",
+  "extensions": ["js", "ts"],
+  "watch-files": ["src"],
+  "check-leaks": true,
+  "timeout": 30000,
+  "reporter": "spec",
+  "exit": true
+}

@@ -338,7 +338,7 @@ This option is only available in BelongsTo associations.`);
     if (associatedInstanceOrPk) {
       let associatedInstance: T;
       if (associatedInstanceOrPk instanceof this.target) {
-        associatedInstance = associatedInstanceOrPk as T;
+        associatedInstance = associatedInstanceOrPk;
       } else {
         const tmpInstance = Object.create(null);
         // @ts-expect-error -- TODO: what if the target has no primary key?

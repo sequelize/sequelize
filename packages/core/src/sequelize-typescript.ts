@@ -1,3 +1,5 @@
+import type { PartialBy } from '@sequelize/utils';
+import { isNullish, isString } from '@sequelize/utils';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import type {
   CreateSchemaOptions,
@@ -14,11 +16,7 @@ import type {
 } from '.';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import type {
-  AbstractConnectionManager,
-  Connection,
-  GetConnectionOptions,
-} from './dialects/abstract/connection-manager.js';
+import type { Connection, GetConnectionOptions } from './dialects/abstract/connection-manager.js';
 import { normalizeDataType, validateDataType } from './dialects/abstract/data-types-utils.js';
 import type { AbstractDataType } from './dialects/abstract/data-types.js';
 import type { AbstractDialect } from './dialects/abstract/index.js';
@@ -53,9 +51,7 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
-import { isNullish, isString } from './utils/check.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
-import type { PartialBy } from './utils/types.js';
 
 export interface SequelizeHooks extends ModelHooks {
   /**
@@ -115,7 +111,7 @@ export interface StaticSequelizeHooks {
   /**
    * A hook that is run at the beginning of the creation of a Sequelize instance.
    */
-  beforeInit(options: Options): void;
+  beforeInit(options: Options<AbstractDialect>): void;
 
   /**
    * A hook that is run at the end of the creation of a Sequelize instance.
@@ -188,10 +184,10 @@ export const SUPPORTED_DIALECTS = Object.freeze([
  * This is a temporary class used to progressively migrate the Sequelize class to TypeScript by slowly moving its functions here.
  * Always use {@link Sequelize} instead.
  */
-export abstract class SequelizeTypeScript {
+export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   // created by the Sequelize subclass. Will eventually be migrated here.
-  abstract readonly dialect: AbstractDialect;
-  declare readonly options: NormalizedOptions;
+  abstract readonly dialect: Dialect;
+  declare readonly options: NormalizedOptions<Dialect>;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
@@ -290,18 +286,18 @@ export abstract class SequelizeTypeScript {
   /**
    * The QueryInterface instance, dialect dependant.
    */
-  get queryInterface() {
+  get queryInterface(): Dialect['queryInterface'] {
     return this.dialect.queryInterface;
   }
 
   /**
    * The QueryGenerator instance, dialect dependant.
    */
-  get queryGenerator() {
+  get queryGenerator(): Dialect['queryGenerator'] {
     return this.dialect.queryGenerator;
   }
 
-  get connectionManager(): AbstractConnectionManager {
+  get connectionManager(): Dialect['connectionManager'] {
     return this.dialect.connectionManager;
   }
 
@@ -309,7 +305,7 @@ export abstract class SequelizeTypeScript {
     this.#transactionCls = new AsyncLocalStorage<Transaction>();
   }
 
-  #models = new Set<ModelStatic>();
+  readonly #models = new Set<ModelStatic>();
   readonly models = new ModelSetView(this, this.#models);
 
   get modelManager(): never {
@@ -377,7 +373,7 @@ export abstract class SequelizeTypeScript {
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
    * This method returns undefined if no transaction is active in the current asynchronous operation,
-   * or if {@link Options.disableClsTransactions} is true.
+   * or if {@link SequelizeCoreOptions.disableClsTransactions} is true.
    */
   getCurrentClsTransaction(): Transaction | undefined {
     return this.#transactionCls?.getStore();
@@ -401,7 +397,7 @@ export abstract class SequelizeTypeScript {
    * ```
    *
    * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
-   * This can be disabled by setting {@link Options.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
+   * This can be disabled by setting {@link SequelizeCoreOptions.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
    *
    * ```ts
    * const sequelize = new Sequelize({
@@ -515,7 +511,7 @@ export abstract class SequelizeTypeScript {
    * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
    *
    * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
-   * even if {@link Options.disableClsTransactions} is false.
+   * even if {@link SequelizeCoreOptions.disableClsTransactions} is false.
    *
    * @example
    * ```ts

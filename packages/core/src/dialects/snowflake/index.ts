@@ -5,7 +5,7 @@ import { SnowflakeConnectionManager } from './connection-manager';
 import * as DataTypes from './data-types.js';
 import { SnowflakeQuery } from './query';
 import { SnowflakeQueryGenerator } from './query-generator';
-import { SnowflakeQueryInterface } from './query-interface';
+import { SnowflakeQueryInterface } from './query-interface.js';
 
 export class SnowflakeDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({
@@ -36,6 +36,7 @@ export class SnowflakeDialect extends AbstractDialect {
     },
     indexViaAlter: true,
     indexHints: true,
+    upserts: false,
     schemas: true,
     multiDatabases: true,
     dataTypes: {
@@ -56,7 +57,7 @@ export class SnowflakeDialect extends AbstractDialect {
       ifExists: true,
     },
     delete: {
-      modelWithLimit: true,
+      limit: false,
     },
   });
 
@@ -93,5 +94,9 @@ export class SnowflakeDialect extends AbstractDialect {
 
   static getDefaultPort() {
     return 3306;
+  }
+
+  static getSupportedOptions() {
+    return [];
   }
 }

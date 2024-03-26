@@ -1,0 +1,49 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "MySQL Connector for Sequelize",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/mysql",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "../../build-packages.mjs mysql",
+    "test": "concurrently \"npm:test-*\"",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "commonjs",
+  "version": "0.0.0-development",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "@sequelize/utils": "workspace:*",
+    "dayjs": "^1.11.10",
+    "lodash": "4.17.21",
+    "mysql2": "3.9.3",
+    "wkx": "0.5.0"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.14",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "mocha": "10.3.0"
+  }
+}

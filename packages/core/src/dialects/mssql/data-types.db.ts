@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { MssqlDialect } from './index.js';
+import type { MsSqlDialect } from './index.js';
 
 /**
  * First pass of DB value parsing: Parses based on the MSSQL Type ID.
@@ -7,7 +7,7 @@ import type { MssqlDialect } from './index.js';
  *
  * @param dialect
  */
-export function registerMsSqlDbDataTypeParsers(dialect: MssqlDialect) {
+export function registerMsSqlDbDataTypeParsers(dialect: MsSqlDialect) {
   dialect.registerDataTypeParser(['GUIDN'], (value: unknown) => {
     if (typeof value !== 'string') {
       return value;

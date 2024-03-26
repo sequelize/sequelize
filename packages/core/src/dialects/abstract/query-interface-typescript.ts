@@ -7,6 +7,7 @@ import { setTransactionFromCls } from '../../model-internals.js';
 import { QueryTypes } from '../../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
 import { COMPLETES_TRANSACTION, Transaction } from '../../transaction';
+import { isErrorWithStringCode } from '../../utils/check.js';
 import {
   noSchemaDelimiterParameter,
   noSchemaParameter,
@@ -15,7 +16,7 @@ import {
 } from '../../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractDialect } from './index.js';
-import type { TableOrModel } from './query-generator-typescript.js';
+import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
@@ -400,7 +401,11 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
 
       return data;
     } catch (error: unknown) {
-      if (error instanceof BaseError && error.cause?.code === 'ER_NO_SUCH_TABLE') {
+      if (
+        error instanceof BaseError &&
+        isErrorWithStringCode(error.cause) &&
+        error.cause.code === 'ER_NO_SUCH_TABLE'
+      ) {
         throw new Error(
           `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
         );

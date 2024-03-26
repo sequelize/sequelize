@@ -30,7 +30,6 @@ console.info(`Compiling package ${packageName}`);
 const packageDir = `${rootDir}/packages/${packageName}`;
 const sourceDir = path.join(packageDir, 'src');
 const libDir = path.join(packageDir, 'lib');
-const typesDir = path.join(packageDir, 'types');
 
 const [sourceFiles] = await Promise.all([
   // Find all .js and .ts files from /src.
@@ -40,33 +39,22 @@ const [sourceFiles] = await Promise.all([
   }),
   // Delete /lib for a full rebuild.
   rmDir(libDir),
-  // Delete /types for a full rebuild.
-  rmDir(typesDir),
 ]);
 
 const filesToCompile = [];
 const filesToCopyToLib = [];
-const declarationFiles = [];
 
 for (const file of sourceFiles) {
   // mjs files cannot be built as they would be compiled to commonjs
-  if (file.endsWith('.mjs')) {
+  if (file.endsWith('.mjs') || file.endsWith('.d.ts')) {
     filesToCopyToLib.push(file);
-  } else if (file.endsWith('.d.ts')) {
-    declarationFiles.push(file);
   } else {
     filesToCompile.push(file);
   }
 }
 
-// copy .d.ts files prior to generating them from the .ts files
-// so the .ts files in lib/ will take priority..
 await Promise.all([
-  copyFiles(declarationFiles, sourceDir, typesDir),
   copyFiles(filesToCopyToLib, sourceDir, libDir),
-]);
-
-await Promise.all([
   build({
     // Adds source mapping
     sourcemap: true,
@@ -88,6 +76,18 @@ await Promise.all([
     cwd: packageDir,
   }),
 ]);
+
+const indexFiles = await glob(`${glob.convertPathToPattern(libDir)}/**/index.d.ts`, {
+  onlyFiles: true,
+  absolute: false,
+});
+
+// copy .d.ts files to .d.mts to provide typings for the ESM entrypoint
+await Promise.all(
+  indexFiles.map(async indexFile => {
+    await fs.copyFile(indexFile, indexFile.replace(/.d.ts$/, '.d.mts'));
+  }),
+);
 
 async function rmDir(dirName) {
   try {
