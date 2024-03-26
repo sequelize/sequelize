@@ -29,11 +29,11 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
   MsSqlDialect,
   MsSqlConnection
 > {
-  readonly #lib: typeof Tedious;
+  private readonly lib: typeof Tedious;
 
   constructor(dialect: MsSqlDialect) {
     super(dialect);
-    this.#lib = Tedious;
+    this.lib = Tedious;
   }
 
   async connect(config: ConnectionOptions): Promise<MsSqlConnection> {
@@ -75,7 +75,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
 
     try {
       return await new Promise((resolve, reject) => {
-        const connection: MsSqlConnection = new this.#lib.Connection(
+        const connection: MsSqlConnection = new this.lib.Connection(
           connectionConfig,
         ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {
