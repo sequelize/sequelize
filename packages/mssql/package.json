@@ -37,15 +37,15 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
-    "lodash": "4.17.21",
-    "tedious": "18.1.0"
+    "lodash": "^4.17.21",
+    "tedious": "^18.1.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",
     "@types/mocha": "10.0.6",
     "@types/sinon": "17.0.3",
     "chai": "4.4.1",
-    "mocha": "10.3.0",
+    "mocha": "10.4.0",
     "sinon": "17.0.1"
   }
 }

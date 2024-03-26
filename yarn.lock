@@ -2380,10 +2380,10 @@ __metadata:
     "@types/sinon": "npm:17.0.3"
     chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
-    lodash: "npm:4.17.21"
-    mocha: "npm:10.3.0"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
     sinon: "npm:17.0.1"
-    tedious: "npm:18.1.0"
+    tedious: "npm:^18.1.0"
   languageName: unknown
   linkType: soft
 
@@ -13332,7 +13332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:18.1.0":
+"tedious@npm:^18.1.0":
   version: 18.1.0
   resolution: "tedious@npm:18.1.0"
   dependencies:
