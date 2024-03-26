@@ -35,13 +35,7 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "lodash": "4.17.21",
-    "sqlite3": "5.1.7"
-  },
-  "devDependencies": {
-    "@types/chai": "4.3.14",
-    "@types/mocha": "10.0.6",
-    "chai": "4.4.1",
-    "mocha": "10.3.0"
+    "lodash": "^4.17.21",
+    "sqlite3": "^5.1.7"
   }
 }
