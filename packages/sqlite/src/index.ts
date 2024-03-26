@@ -6,4 +6,3 @@ export * from './query-generator.js';
 export * from './query-interface.js';
 export * from './query-interface.types.js';
 export * from './query.js';
-export * from './sqlite-utils.js';

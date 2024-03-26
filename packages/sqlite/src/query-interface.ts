@@ -23,11 +23,11 @@ import {
   noSchemaDelimiterParameter,
   noSchemaParameter,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/deprecations.js';
+import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import isEmpty from 'lodash/isEmpty';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
-import { withSqliteForeignKeysOff } from './sqlite-utils.js';
 
 export class SqliteQueryInterface<
   Dialect extends SqliteDialect = SqliteDialect,
