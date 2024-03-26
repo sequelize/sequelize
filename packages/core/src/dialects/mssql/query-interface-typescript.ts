@@ -53,7 +53,6 @@ export class MsSqlQueryInterfaceTypescript<
         new Promise<void>((resolve, reject) => {
           connection.saveTransaction(
             error => (error ? reject(error) : resolve()),
-            // @ts-expect-error -- TODO: remove this when tedious types are fixed
             options.savepointName,
           );
         }),
@@ -74,7 +73,6 @@ export class MsSqlQueryInterfaceTypescript<
         new Promise<void>((resolve, reject) => {
           connection.rollbackTransaction(
             error => (error ? reject(error) : resolve()),
-            // @ts-expect-error -- TODO: remove this when tedious types are fixed
             options.savepointName,
           );
         }),

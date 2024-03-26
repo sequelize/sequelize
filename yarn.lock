@@ -1678,7 +1678,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@js-joda/core@npm:^5.5.3":
+"@js-joda/core@npm:^5.6.1":
   version: 5.6.1
   resolution: "@js-joda/core@npm:5.6.1"
   checksum: 10c0/4d51c1418e426c78fbb43fa75a4de865c2ba496012f0a359604703908672a7a52dbe6602678449838cb11f995551d5afc141f1cd0343012b0d3309aaaa60054c
@@ -2236,7 +2236,6 @@ __metadata:
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/snowflake-sdk": "npm:1.6.20"
-    "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:^13.7.5"
     bnf-parser: "npm:3.1.6"
@@ -2268,7 +2267,7 @@ __metadata:
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
     snowflake-sdk: "npm:1.10.0"
-    tedious: "npm:16.7.0"
+    tedious: "npm:18.1.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.12.0"
     uuid: "npm:^9.0.0"
@@ -3425,7 +3424,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:^20.11.17":
+"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:>=18, @types/node@npm:^20.11.17":
   version: 20.11.30
   resolution: "@types/node@npm:20.11.30"
   dependencies:
@@ -3514,15 +3513,6 @@ __metadata:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
   checksum: 10c0/b49b4fd25a6d701228a9c2a0f1e0dd4d2405464606f90ff8085f5eb1d69ab811c0acde171cbe115f3a08055640c0538f968281fde848fc4e53ea5ceaa8beda58
-  languageName: node
-  linkType: hard
-
-"@types/tedious@npm:4.0.14":
-  version: 4.0.14
-  resolution: "@types/tedious@npm:4.0.14"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/d2914f8e9b5b998e4275ec5f0130cba1c2fb47e75616b5c125a65ef6c1db2f1dc3f978c7900693856a15d72bbb4f4e94f805537a4ecb6dc126c64415d31c0590
   languageName: node
   linkType: hard
 
@@ -4435,7 +4425,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bl@npm:^6.0.3":
+"bl@npm:^6.0.11":
   version: 6.0.11
   resolution: "bl@npm:6.0.11"
   dependencies:
@@ -5564,7 +5554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.1, define-data-property@npm:^1.1.2":
+"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.2":
   version: 1.1.4
   resolution: "define-data-property@npm:1.1.4"
   dependencies:
@@ -5956,22 +5946,6 @@ __metadata:
     unbox-primitive: "npm:^1.0.2"
     which-typed-array: "npm:^1.1.15"
   checksum: 10c0/45b7362dcb6e64db51784bf55c696ad0823b8dc4f01fa903faabf93bcf2e6e5551e86944d333b5ae0c06df41c3f35ab88290db15957bc980fab0e229d797f2f7
-  languageName: node
-  linkType: hard
-
-"es-aggregate-error@npm:^1.0.9":
-  version: 1.0.12
-  resolution: "es-aggregate-error@npm:1.0.12"
-  dependencies:
-    define-data-property: "npm:^1.1.1"
-    define-properties: "npm:^1.2.1"
-    es-abstract: "npm:^1.22.3"
-    es-errors: "npm:^1.1.0"
-    function-bind: "npm:^1.1.2"
-    globalthis: "npm:^1.0.3"
-    has-property-descriptors: "npm:^1.0.1"
-    set-function-name: "npm:^2.0.1"
-  checksum: 10c0/6d8e872f405843cc95ebd5e4e0784eb7a86228ba8c2c0161be483f1065c2146bb22ba22fccb5f42bb95bbe54f136ab00cb50d688b3fb1001bf21ef82e87993a8
   languageName: node
   linkType: hard
 
@@ -8723,13 +8697,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsbi@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "jsbi@npm:4.3.0"
-  checksum: 10c0/1817ac1b50ea3f4438bcd84cadc9aee7a8657829f65b55ea6f151f401dbbd3babedbfdd3e4f481bd7b5472abb7823efa640fd7e5eee7c30cea6431f7a8b74696
-  languageName: node
-  linkType: hard
-
 "jsbn@npm:1.1.0":
   version: 1.1.0
   resolution: "jsbn@npm:1.1.0"
@@ -10189,13 +10156,6 @@ __metadata:
   dependencies:
     semver: "npm:^7.3.5"
   checksum: 10c0/9ebbb21e6951aa51e831549ed62b68dc56bcc10f6b21ffd04195a16a6abf5ddfc48b6ae5e3334720fe4459cafde5ec8103025902efff5599d0539f8656fc694e
-  languageName: node
-  linkType: hard
-
-"node-abort-controller@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "node-abort-controller@npm:3.1.1"
-  checksum: 10c0/f7ad0e7a8e33809d4f3a0d1d65036a711c39e9d23e0319d80ebe076b9a3b4432b4d6b86a7fab65521de3f6872ffed36fc35d1327487c48eb88c517803403eda3
   languageName: node
   linkType: hard
 
@@ -11765,7 +11725,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.3.0":
+"punycode@npm:^2.1.0":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
@@ -12892,7 +12852,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sprintf-js@npm:^1.1.2, sprintf-js@npm:^1.1.3":
+"sprintf-js@npm:^1.1.3":
   version: 1.1.3
   resolution: "sprintf-js@npm:1.1.3"
   checksum: 10c0/09270dc4f30d479e666aee820eacd9e464215cdff53848b443964202bf4051490538e5dd1b42e1a65cf7296916ca17640aebf63dae9812749c7542ee5f288dec
@@ -13357,23 +13317,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.7.0":
-  version: 16.7.0
-  resolution: "tedious@npm:16.7.0"
+"tedious@npm:18.1.0":
+  version: 18.1.0
+  resolution: "tedious@npm:18.1.0"
   dependencies:
     "@azure/identity": "npm:^3.4.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
-    "@js-joda/core": "npm:^5.5.3"
-    bl: "npm:^6.0.3"
-    es-aggregate-error: "npm:^1.0.9"
+    "@js-joda/core": "npm:^5.6.1"
+    "@types/node": "npm:>=18"
+    bl: "npm:^6.0.11"
     iconv-lite: "npm:^0.6.3"
     js-md4: "npm:^0.3.2"
-    jsbi: "npm:^4.3.0"
     native-duplexpair: "npm:^1.0.0"
-    node-abort-controller: "npm:^3.1.1"
-    punycode: "npm:^2.3.0"
-    sprintf-js: "npm:^1.1.2"
-  checksum: 10c0/fc925c993e35f2e55abffc862a5ef47adc2ac998b7ca3ad3fb7235dbfb998ab0977c9bb48b09071bbcab12e02059518c9ed9edc9a308cb9d22a88a1335c833d0
+    sprintf-js: "npm:^1.1.3"
+  checksum: 10c0/f9bda17d5d394885a757cffcfb51ce9b35e29ca58a85a03e0e73e03392e84f4a8e665f4d33498725ef24b3a0c519d331b6ca18971c6a5dbaed471f937634f225
   languageName: node
   linkType: hard
 
