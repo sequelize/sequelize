@@ -3424,7 +3424,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:^20.11.17":
+"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:>=18, @types/node@npm:^20.11.17":
   version: 20.11.30
   resolution: "@types/node@npm:20.11.30"
   dependencies:
@@ -5554,7 +5554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.1, define-data-property@npm:^1.1.2":
+"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.2":
   version: 1.1.4
   resolution: "define-data-property@npm:1.1.4"
   dependencies:
