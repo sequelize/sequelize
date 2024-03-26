@@ -2271,7 +2271,6 @@ __metadata:
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
     snowflake-sdk: "npm:1.10.0"
-    sqlite3: "npm:5.1.7"
     tedious: "npm:16.7.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.12.0"
@@ -2284,8 +2283,6 @@ __metadata:
     odbc:
       optional: true
     snowflake-sdk:
-      optional: true
-    sqlite3:
       optional: true
     tedious:
       optional: true
@@ -2384,6 +2381,17 @@ __metadata:
     postgres-array: "npm:3.0.2"
     semver: "npm:7.6.0"
     wkx: "npm:0.5.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/sqlite@workspace:packages/sqlite":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/sqlite@workspace:packages/sqlite"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    lodash: "npm:^4.17.21"
+    sqlite3: "npm:^5.1.7"
   languageName: unknown
   linkType: soft
 
@@ -12872,7 +12880,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sqlite3@npm:5.1.7":
+"sqlite3@npm:^5.1.7":
   version: 5.1.7
   resolution: "sqlite3@npm:5.1.7"
   dependencies:

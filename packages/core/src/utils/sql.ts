@@ -4,7 +4,7 @@ import type { EscapeOptions } from '../dialects/abstract/query-generator-typescr
 import type { AddLimitOffsetOptions } from '../dialects/abstract/query-generator.internal-types.js';
 import type { AbstractQueryGenerator } from '../dialects/abstract/query-generator.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
-import type { BindOrReplacements } from '../sequelize.js';
+import type { BindOrReplacements, QueryRawOptions, Sequelize } from '../sequelize.js';
 
 type OnBind = (oldName: string) => string;
 
@@ -527,4 +527,18 @@ export function formatMySqlStyleLimitOffset(
   }
 
   return fragment;
+}
+
+export async function withSqliteForeignKeysOff<T>(
+  sequelize: Sequelize,
+  options: QueryRawOptions | undefined,
+  cb: () => Promise<T>,
+): Promise<T> {
+  try {
+    await sequelize.queryRaw('PRAGMA foreign_keys = OFF', options);
+
+    return await cb();
+  } finally {
+    await sequelize.queryRaw('PRAGMA foreign_keys = ON', options);
+  }
 }

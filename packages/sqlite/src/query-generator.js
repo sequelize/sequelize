@@ -1,19 +1,17 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils/check';
-import { removeNullishValuesFromHash } from '../../utils/format';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
-
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import isObject from 'lodash/isObject';
-
-const { SqliteQueryGeneratorTypeScript } = require('./query-generator-typescript');
+import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {

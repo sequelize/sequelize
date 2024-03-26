@@ -1,14 +1,13 @@
+import type { Connection, GetConnectionOptions } from '@sequelize/core';
+import { AbstractConnectionManager, ConnectionError } from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { map } from '@sequelize/utils';
 import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import type { Database } from 'sqlite3';
-import { ConnectionError } from '../../errors/index.js';
-import { logger } from '../../utils/logger';
-import type { Connection, GetConnectionOptions } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { SqliteDialect } from './index.js';
+import type { SqliteDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:sqlite');
 
