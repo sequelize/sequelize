@@ -1,17 +1,3 @@
-import { randomBytes } from 'node:crypto';
-import { IsolationLevel } from '../../transaction';
-import { rejectInvalidOptions } from '../../utils/check';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { extractModelDefinition } from '../../utils/model-utils';
-import { EMPTY_SET } from '../../utils/object.js';
-import { generateIndexName } from '../../utils/string';
-import { AbstractQueryGenerator } from '../abstract/query-generator';
-import {
-  LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator-typescript';
 import type {
   BulkDeleteQueryOptions,
   GetConstraintSnippetQueryOptions,
@@ -22,10 +8,23 @@ import type {
   StartTransactionQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
-} from '../abstract/query-generator.types';
-import type { SqliteDialect } from './index.js';
-import { SqliteQueryGeneratorInternal } from './query-generator-internal.js';
-import type { SqliteColumnsDescription } from './query-interface.types';
+} from '@sequelize/core';
+import { AbstractQueryGenerator, IsolationLevel } from '@sequelize/core';
+import {
+  LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { extractModelDefinition } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { randomBytes } from 'node:crypto';
+import type { SqliteDialect } from './dialect.js';
+import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
+import type { SqliteColumnsDescription } from './query-interface.types.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>([

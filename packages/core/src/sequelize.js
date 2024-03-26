@@ -19,7 +19,6 @@ import { AbstractDialect } from './dialects/abstract/index.js';
 import { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 import { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import { AbstractQuery } from './dialects/abstract/query.js';
-import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
@@ -63,6 +62,7 @@ import {
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
 import { validator as Validator } from './utils/validator-extras';

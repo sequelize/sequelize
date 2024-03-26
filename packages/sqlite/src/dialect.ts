@@ -1,11 +1,11 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createNamedParamBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
-import { SqliteConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types.js';
-import { SqliteQuery } from './query';
-import { SqliteQueryGenerator } from './query-generator';
-import { SqliteQueryInterface } from './query-interface';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import { SqliteConnectionManager } from './connection-manager.js';
+import { SqliteQueryGenerator } from './query-generator.js';
+import { SqliteQueryInterface } from './query-interface.js';
+import { SqliteQuery } from './query.js';
 
 export class SqliteDialect extends AbstractDialect {
   static supports = AbstractDialect.extendSupport({

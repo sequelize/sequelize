@@ -1,4 +1,4 @@
-import type { ColumnDescription } from '../abstract/query-interface.types';
+import type { ColumnDescription } from '@sequelize/core';
 
 // SQLite needs to validate unqiue columns and foreign keys due to limitations in its ALTER TABLE implementation.
 export interface SqliteColumnDescription extends ColumnDescription {
