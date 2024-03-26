@@ -2235,7 +2235,6 @@ __metadata:
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
-    "@types/snowflake-sdk": "npm:1.6.20"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:^13.7.5"
     bnf-parser: "npm:3.1.6"
@@ -2266,15 +2265,11 @@ __metadata:
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
-    snowflake-sdk: "npm:1.10.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.12.0"
     uuid: "npm:^9.0.0"
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"
-  peerDependenciesMeta:
-    snowflake-sdk:
-      optional: true
   languageName: unknown
   linkType: soft
 
@@ -2421,6 +2416,18 @@ __metadata:
     postgres-array: "npm:3.0.2"
     semver: "npm:7.6.0"
     wkx: "npm:0.5.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/snowflake@workspace:packages/snowflake":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/snowflake@workspace:packages/snowflake"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/snowflake-sdk": "npm:^1.6.20"
+    lodash: "npm:^4.17.21"
+    snowflake-sdk: "npm:^1.10.0"
   languageName: unknown
   linkType: soft
 
@@ -3521,7 +3528,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/snowflake-sdk@npm:1.6.20":
+"@types/snowflake-sdk@npm:^1.6.20":
   version: 1.6.20
   resolution: "@types/snowflake-sdk@npm:1.6.20"
   dependencies:
@@ -12666,7 +12673,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:1.10.0":
+"snowflake-sdk@npm:^1.10.0":
   version: 1.10.0
   resolution: "snowflake-sdk@npm:1.10.0"
   dependencies:

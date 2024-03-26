@@ -65,6 +65,7 @@ const ignoredCjsKeysMap = {
   '@sequelize/mssql': ['__esModule'],
   '@sequelize/mysql': ['__esModule'],
   '@sequelize/postgres': ['__esModule'],
+  '@sequelize/snowflake': ['__esModule'],
   '@sequelize/sqlite': ['__esModule'],
   '@sequelize/utils': ['__esModule'],
   '@sequelize/utils/node': ['__esModule'],

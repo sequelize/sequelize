@@ -27,7 +27,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/db2').Db2Dialect;
     case 'snowflake':
-      return require('./dialects/snowflake').SnowflakeDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/snowflake').SnowflakeDialect;
     default:
       throw new Error(
         `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,

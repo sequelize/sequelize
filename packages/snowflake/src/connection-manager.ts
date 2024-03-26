@@ -1,39 +1,31 @@
-import type {
-  Connection as SnowflakeSdkConnection,
-  ConnectionOptions as SnowflakeSdkConnectionOptions,
-} from 'snowflake-sdk';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors/index.js';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { isErrorWithStringCode } from '../../utils/check.js';
-import { logger } from '../../utils/logger';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import type { SnowflakeDialect } from './index.js';
+} from '@sequelize/core';
+import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import * as Snowflake from 'snowflake-sdk';
+import type { SnowflakeDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, SnowflakeSdkConnection {}
-
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('snowflake-sdk');
+export interface SnowflakeConnection extends Connection, Snowflake.Connection {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,
   SnowflakeConnection
 > {
-  private readonly lib: Lib;
+  readonly #lib: typeof Snowflake;
 
   constructor(dialect: SnowflakeDialect) {
     super(dialect);
-    this.lib = this._loadDialectModule('snowflake-sdk') as Lib;
+    this.#lib = Snowflake;
   }
 
   /**
@@ -46,7 +38,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @private
    */
   async connect(config: ConnectionOptions): Promise<SnowflakeConnection> {
-    const connectionConfig: SnowflakeSdkConnectionOptions = {
+    const connectionConfig: Snowflake.ConnectionOptions = {
       account: config.host!,
       username: config.username!,
       password: config.password!,
@@ -59,7 +51,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
     };
 
     try {
-      const connection = this.lib.createConnection(connectionConfig) as SnowflakeConnection;
+      const connection = this.#lib.createConnection(connectionConfig) as SnowflakeConnection;
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {
