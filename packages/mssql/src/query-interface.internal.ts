@@ -1,6 +1,6 @@
-import { IsolationLevel } from '../../transaction';
-import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
-import type { MsSqlDialect } from './index.js';
+import { IsolationLevel } from '@sequelize/core';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import type { MsSqlDialect } from './dialect.js';
 
 export class MsSqlQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: MsSqlDialect) {

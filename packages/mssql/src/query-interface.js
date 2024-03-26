@@ -1,13 +1,10 @@
 'use strict';
 
-import { isWhereEmpty } from '../../utils/query-builder-utils';
-import { assertNoReservedBind } from '../../utils/sql';
-import { MsSqlQueryInterfaceTypescript } from './query-interface-typescript.js';
-
+import { Op, QueryTypes } from '@sequelize/core';
+import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import intersection from 'lodash/intersection';
-
-const { QueryTypes } = require('../../query-types');
-const { Op } = require('../../operators');
+import { MsSqlQueryInterfaceTypescript } from './query-interface-typescript.internal.js';
 
 /**
  * The interface that Sequelize uses to talk with MSSQL database

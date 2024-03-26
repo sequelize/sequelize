@@ -62,6 +62,7 @@ const ignoredCjsKeysMap = {
   '@sequelize/db2': ['__esModule'],
   '@sequelize/ibmi': ['__esModule'],
   '@sequelize/mariadb': ['__esModule'],
+  '@sequelize/mssql': ['__esModule'],
   '@sequelize/mysql': ['__esModule'],
   '@sequelize/postgres': ['__esModule'],
   '@sequelize/sqlite': ['__esModule'],

@@ -1,15 +1,5 @@
-import { BaseError } from '../../errors/base-error';
-import { ConnectionError } from '../../errors/connection-error';
-
-/**
- * Thrown when a connection to a database is closed while an operation is in progress
- */
-export class AsyncQueueError extends BaseError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'SequelizeAsyncQueueError';
-  }
-}
+import { ConnectionError } from '@sequelize/core';
+import { AsyncQueueError } from '../async-queue-error';
 
 export class AsyncQueue {
   previous: Promise<unknown>;

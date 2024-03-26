@@ -1,58 +1,49 @@
-import { isError, isPlainObject } from '@sequelize/utils';
-import type {
-  Connection as TediousConnection,
-  ConnectionConfiguration as TediousConnectionConfig,
-} from 'tedious';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
   HostNotFoundError,
   HostNotReachableError,
   InvalidConnectionError,
-} from '../../errors/index.js';
-import type { ConnectionOptions } from '../../sequelize.js';
-import { isErrorWithStringCode } from '../../utils/check.js';
-import { logger } from '../../utils/logger';
-import { removeUndefined } from '../../utils/object.js';
-import type { Connection } from '../abstract/connection-manager';
-import { AbstractConnectionManager } from '../abstract/connection-manager';
-import { AsyncQueue } from './async-queue';
-import type { MsSqlDialect } from './index.js';
+} from '@sequelize/core';
+import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { isError, isPlainObject } from '@sequelize/utils';
+import * as Tedious from 'tedious';
+import { AsyncQueue } from './_internal/async-queue.js';
+import { ASYNC_QUEUE } from './_internal/symbols.js';
+import type { MsSqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
 
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('tedious');
-
-export interface MsSqlConnection extends Connection, TediousConnection {
+export interface MsSqlConnection extends Connection, Tedious.Connection {
   // custom properties we attach to the connection
-  // TODO: replace with Symbols.
-  queue: AsyncQueue;
-  lib: Lib;
+  [ASYNC_QUEUE]: AsyncQueue;
 }
 
 export class MsSqlConnectionManager extends AbstractConnectionManager<
   MsSqlDialect,
   MsSqlConnection
 > {
-  lib: Lib;
+  private readonly lib: typeof Tedious;
 
   constructor(dialect: MsSqlDialect) {
     super(dialect);
-    this.lib = this._loadDialectModule('tedious') as Lib;
+    this.lib = Tedious;
   }
 
   async connect(config: ConnectionOptions): Promise<MsSqlConnection> {
-    const options: TediousConnectionConfig['options'] = removeUndefined({
+    const options: Tedious.ConnectionConfiguration['options'] = removeUndefined({
       port: typeof config.port === 'string' ? Number.parseInt(config.port, 10) : config.port,
       database: config.database,
       trustServerCertificate: true,
     });
 
-    const authentication: TediousConnectionConfig['authentication'] = {
+    const authentication: Tedious.ConnectionConfiguration['authentication'] = {
       type: 'default',
       options: {
         userName: config.username || undefined,
@@ -76,7 +67,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
       Object.assign(options, config.dialectOptions.options);
     }
 
-    const connectionConfig: TediousConnectionConfig = removeUndefined({
+    const connectionConfig: Tedious.ConnectionConfiguration = removeUndefined({
       server: config.host,
       authentication,
       options,
@@ -91,8 +82,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
           connection.connect();
         }
 
-        connection.queue = new AsyncQueue();
-        connection.lib = this.lib;
+        connection[ASYNC_QUEUE] = new AsyncQueue();
 
         const connectHandler = (error: unknown) => {
           connection.removeListener('end', endHandler);
@@ -190,7 +180,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
       return;
     }
 
-    connection.queue.close();
+    connection[ASYNC_QUEUE].close();
 
     await new Promise<void>(resolve => {
       connection.on('end', resolve);
