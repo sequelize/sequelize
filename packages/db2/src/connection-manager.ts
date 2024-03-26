@@ -4,13 +4,13 @@ import {
   ConnectionError,
   ConnectionRefusedError,
 } from '@sequelize/core';
-import type { ConnStr, Database as Db2LibDatabase } from 'ibm_db';
+import type { ConnStr } from 'ibm_db';
 import * as Db2 from 'ibm_db';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
 import type { Db2Dialect } from './dialect.js';
 
-export interface Db2Connection extends Connection, Db2.Database {}
+export interface Db2Connection extends Connection, Db2.Database {
   // properties added by us
   // TODO: replace with Symbols.
   lib: typeof Db2;
