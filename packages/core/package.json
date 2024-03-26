@@ -90,7 +90,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.0",
-    "mocha": "10.3.0",
+    "mocha": "10.4.0",
     "moment": "2.30.1",
     "nyc": "15.1.0",
     "p-map": "4.0.0",
