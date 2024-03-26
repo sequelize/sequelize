@@ -36,13 +36,13 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/pg": "8.11.4",
-    "lodash": "4.17.21",
-    "pg": "8.11.3",
-    "pg-hstore": "2.3.4",
-    "postgres-array": "3.0.2",
-    "semver": "7.6.0",
-    "wkx": "0.5.0"
+    "@types/pg": "^8.11.4",
+    "lodash": "^4.17.21",
+    "pg": "^8.11.3",
+    "pg-hstore": "^2.3.4",
+    "postgres-array": "^3.0.2",
+    "semver": "^7.6.0",
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",
