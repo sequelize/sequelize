@@ -2362,7 +2362,7 @@ __metadata:
     dayjs: "npm:^1.11.10"
     lodash: "npm:4.17.21"
     mocha: "npm:10.3.0"
-    mysql2: "npm:3.9.2"
+    mysql2: "npm:3.9.3"
     wkx: "npm:0.5.0"
   languageName: unknown
   linkType: soft
@@ -10053,9 +10053,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.9.2":
-  version: 3.9.2
-  resolution: "mysql2@npm:3.9.2"
+"mysql2@npm:3.9.3":
+  version: 3.9.3
+  resolution: "mysql2@npm:3.9.3"
   dependencies:
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
@@ -10065,7 +10065,7 @@ __metadata:
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/244f7282c64886991823e23f4ef4140943692201789b174e0fed7d50aeed4fc7579b29e848f3b24869a2f2247ee5b3669090122508138a9413c73bd3ca54618f
+  checksum: 10c0/eb5e932dcecf4a970d6a737767cb6d50572016faa20d92a1a35b11344332c3d6b36f45eff4a7577b022668372338d9727344861fb345a1554f491905b70e9faf
   languageName: node
   linkType: hard
 
