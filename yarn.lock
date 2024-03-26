@@ -2230,7 +2230,6 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
-    "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
     "@types/semver": "npm:7.5.8"
@@ -2251,7 +2250,6 @@ __metadata:
     expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.2.12"
     fs-jetpack: "npm:5.1.0"
-    ibm_db: "npm:3.2.3"
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:5.0.0"
     lodash: "npm:^4.17.21"
@@ -2278,14 +2276,29 @@ __metadata:
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"
   peerDependenciesMeta:
-    ibm_db:
-      optional: true
     odbc:
       optional: true
     snowflake-sdk:
       optional: true
     tedious:
       optional: true
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/db2@workspace:packages/db2":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/db2@workspace:packages/db2"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/ibm_db": "npm:^2.0.16"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    ibm_db: "npm:^3.2.3"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.3.0"
   languageName: unknown
   linkType: soft
 
@@ -3333,7 +3346,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ibm_db@npm:2.0.16":
+"@types/ibm_db@npm:^2.0.16":
   version: 2.0.16
   resolution: "@types/ibm_db@npm:2.0.16"
   checksum: 10c0/a9f3b940b85af39d760601795d95086eee6d365b27e0e189458e33ef033c59557267b1053ca67d9e741921c525a262f54ea4bc2d97ba04add9a735a5fc2ba335
@@ -7826,7 +7839,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.3":
+"ibm_db@npm:^3.2.3":
   version: 3.2.3
   resolution: "ibm_db@npm:3.2.3"
   dependencies:

@@ -1,17 +1,5 @@
-import { randomBytes } from 'node:crypto';
-import { Op } from '../../operators.js';
-import { rejectInvalidOptions } from '../../utils/check';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_SET } from '../../utils/object.js';
-import { generateIndexName } from '../../utils/string';
-import { AbstractQueryGenerator } from '../abstract/query-generator';
-import {
-  DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator-typescript';
 import type {
+  ConstraintType,
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
@@ -20,10 +8,21 @@ import type {
   ShowConstraintsQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
-} from '../abstract/query-generator.types';
-import type { ConstraintType } from '../abstract/query-interface.types';
-import type { Db2Dialect } from './index.js';
-import { Db2QueryGeneratorInternal } from './query-generator-internal.js';
+} from '@sequelize/core';
+import { AbstractQueryGenerator, Op } from '@sequelize/core';
+import {
+  DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { randomBytes } from 'node:crypto';
+import type { Db2Dialect } from './dialect.js';
+import { Db2QueryGeneratorInternal } from './query-generator.internal.js';
 
 /**
  * Temporary class to ease the TypeScript migration

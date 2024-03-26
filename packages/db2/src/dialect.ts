@@ -1,14 +1,14 @@
-import type { Sequelize } from '../../sequelize.js';
-import { createUnspecifiedOrderedBindCollector } from '../../utils/sql';
-import { AbstractDialect } from '../abstract';
-import { Db2ConnectionManager } from './connection-manager';
-import * as DataTypes from './data-types.js';
-import { Db2Query } from './query';
-import { Db2QueryGenerator } from './query-generator';
-import { Db2QueryInterface } from './query-interface';
+import type { Sequelize } from '@sequelize/core';
+import { AbstractDialect } from '@sequelize/core';
+import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import { Db2ConnectionManager } from './connection-manager.js';
+import { Db2QueryGenerator } from './query-generator.js';
+import { Db2QueryInterface } from './query-interface.js';
+import { Db2Query } from './query.js';
 
 export class Db2Dialect extends AbstractDialect {
-  static supports = AbstractDialect.extendSupport({
+  static readonly supports = AbstractDialect.extendSupport({
     migrations: false,
     schemas: true,
     finalTable: true,

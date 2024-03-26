@@ -1,18 +1,16 @@
-import { QueryTypes } from '../../query-types';
-import { Transaction } from '../../transaction';
-import { rejectInvalidOptions } from '../../utils/check';
-import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '../abstract/query-generator-typescript';
-import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   CommitTransactionOptions,
   QiDropAllSchemasOptions,
   RollbackTransactionOptions,
   SetIsolationLevelOptions,
   StartTransactionOptions,
-} from '../abstract/query-interface.types';
-import type { Db2Connection } from './connection-manager';
-import type { Db2Dialect } from './index.js';
-import { Db2QueryInterfaceInternal } from './query-interface-internal';
+} from '@sequelize/core';
+import { AbstractQueryInterface, QueryTypes, Transaction } from '@sequelize/core';
+import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import type { Db2Connection } from './connection-manager.js';
+import type { Db2Dialect } from './dialect.js';
+import { Db2QueryInterfaceInternal } from './query-interface.internal.js';
 
 export class Db2QueryInterfaceTypeScript<
   Dialect extends Db2Dialect = Db2Dialect,

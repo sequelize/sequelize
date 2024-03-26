@@ -1,12 +1,16 @@
 'use strict';
 
-import assert from 'node:assert';
-import { logger } from '../../utils/logger';
-import { AbstractQuery } from '../abstract/query';
-
+import {
+  AbstractQuery,
+  DatabaseError,
+  ForeignKeyConstraintError,
+  UniqueConstraintError,
+  UnknownConstraintError,
+  ValidationErrorItem,
+} from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import forOwn from 'lodash/forOwn';
-
-const sequelizeErrors = require('../../errors');
+import assert from 'node:assert';
 
 const debug = logger.debugContext('sql:db2');
 
@@ -299,9 +303,9 @@ export class Db2Query extends AbstractQuery {
       const errors = [];
       forOwn(fields, (value, field) => {
         errors.push(
-          new sequelizeErrors.ValidationErrorItem(
+          new ValidationErrorItem(
             this.getUniqueConstraintErrorMessage(field),
-            'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+            'unique violation', // ValidationErrorItem.Origins.DB,
             field,
             value,
             this.instance,
@@ -310,7 +314,7 @@ export class Db2Query extends AbstractQuery {
         );
       });
 
-      return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+      return new UniqueConstraintError({ message, errors, cause: err, fields });
     }
 
     match =
@@ -324,7 +328,7 @@ export class Db2Query extends AbstractQuery {
       const constraintData = data && data.length > 0 ? data[1] : undefined;
       const [, table, constraint] = constraintData.split('.');
 
-      return new sequelizeErrors.ForeignKeyConstraintError({
+      return new ForeignKeyConstraintError({
         fields: null,
         index: constraint,
         cause: err,
@@ -338,7 +342,7 @@ export class Db2Query extends AbstractQuery {
       let table = err.sql.match(/table "(.+?)"/i);
       table = table ? table[1] : undefined;
 
-      return new sequelizeErrors.UnknownConstraintError({
+      return new UnknownConstraintError({
         message: match[0],
         constraint,
         table,
@@ -346,7 +350,7 @@ export class Db2Query extends AbstractQuery {
       });
     }
 
-    return new sequelizeErrors.DatabaseError(err);
+    return new DatabaseError(err);
   }
 
   isShowOrDescribeQuery() {
