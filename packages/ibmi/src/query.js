@@ -1,9 +1,15 @@
 'use strict';
 
+import {
+  AbstractQuery,
+  ConnectionRefusedError,
+  DatabaseError,
+  ForeignKeyConstraintError,
+  UniqueConstraintError,
+  UnknownConstraintError,
+} from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { find } from '@sequelize/utils';
-import * as SequelizeErrors from '../../errors';
-import { logger } from '../../utils/logger';
-import { AbstractQuery } from '../abstract/query';
 
 const debug = logger.debugContext('sql:ibmi');
 
@@ -206,7 +212,7 @@ export class IBMiQuery extends AbstractQuery {
 
     // some errors occur outside of ODBC (e.g. connection errors)
     if (err.toString().includes('Error connecting to the database')) {
-      return new SequelizeErrors.ConnectionRefusedError(err);
+      return new ConnectionRefusedError(err);
     }
 
     if (Object.hasOwn(err, 'odbcErrors') && err.odbcErrors.length > 0) {
@@ -225,11 +231,11 @@ export class IBMiQuery extends AbstractQuery {
        * on the IBM i to be detected and the connection to be re-established.
        */
       if (odbcError.state === '08S01') {
-        return new SequelizeErrors.ConnectionRefusedError(err);
+        return new ConnectionRefusedError(err);
       }
 
       if (foreignKeyConstraintCodes.includes(odbcError.code)) {
-        return new SequelizeErrors.ForeignKeyConstraintError({
+        return new ForeignKeyConstraintError({
           cause: err,
           sql: {},
           fields: {},
@@ -237,7 +243,7 @@ export class IBMiQuery extends AbstractQuery {
       }
 
       if (uniqueConstraintCodes.includes(odbcError.code)) {
-        return new SequelizeErrors.UniqueConstraintError({
+        return new UniqueConstraintError({
           errors: err.odbcErrors,
           cause: err,
           sql: {},
@@ -255,7 +261,7 @@ export class IBMiQuery extends AbstractQuery {
           type = constraintNameRegexMatches[2];
 
           if (type === '*N') {
-            return new SequelizeErrors.UnknownConstraintError({
+            return new UnknownConstraintError({
               cause: err,
               constraint: constraintName,
             });
@@ -263,7 +269,7 @@ export class IBMiQuery extends AbstractQuery {
         }
       }
 
-      return new SequelizeErrors.DatabaseError(odbcError);
+      return new DatabaseError(odbcError);
     }
 
     return err;

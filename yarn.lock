@@ -2256,7 +2256,6 @@ __metadata:
     mocha: "npm:10.3.0"
     moment: "npm:2.30.1"
     nyc: "npm:15.1.0"
-    odbc: "npm:2.4.8"
     p-map: "npm:4.0.0"
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
@@ -2276,8 +2275,6 @@ __metadata:
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"
   peerDependenciesMeta:
-    odbc:
-      optional: true
     snowflake-sdk:
       optional: true
     tedious:
@@ -2299,6 +2296,22 @@ __metadata:
     ibm_db: "npm:^3.2.3"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.3.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/ibmi@workspace:packages/ibmi":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/ibmi@workspace:packages/ibmi"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.3.0"
+    odbc: "npm:^2.4.8"
   languageName: unknown
   linkType: soft
 
@@ -10799,7 +10812,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"odbc@npm:2.4.8":
+"odbc@npm:^2.4.8":
   version: 2.4.8
   resolution: "odbc@npm:2.4.8"
   dependencies:
