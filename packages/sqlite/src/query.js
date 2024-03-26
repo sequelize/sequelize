@@ -1,13 +1,18 @@
 'use strict';
 
+import {
+  AbstractQuery,
+  DatabaseError,
+  ForeignKeyConstraintError,
+  QueryTypes,
+  TimeoutError,
+  UniqueConstraintError,
+  ValidationErrorItem,
+} from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
 import merge from 'lodash/merge';
-
-const { AbstractQuery } = require('../abstract/query');
-const { QueryTypes } = require('../../query-types');
-const sequelizeErrors = require('../../errors');
-const { logger } = require('../../utils/logger');
 
 const debug = logger.debugContext('sql:sqlite');
 
@@ -274,7 +279,7 @@ export class SqliteQuery extends AbstractQuery {
       case 'SQLITE_CONSTRAINT_FOREIGNKEY':
       case 'SQLITE_CONSTRAINT': {
         if (err.message.includes('FOREIGN KEY constraint failed')) {
-          return new sequelizeErrors.ForeignKeyConstraintError({
+          return new ForeignKeyConstraintError({
             cause: err,
           });
         }
@@ -298,9 +303,9 @@ export class SqliteQuery extends AbstractQuery {
 
         for (const field of fields) {
           errors.push(
-            new sequelizeErrors.ValidationErrorItem(
+            new ValidationErrorItem(
               this.getUniqueConstraintErrorMessage(field),
-              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+              'unique violation', // ValidationErrorItem.Origins.DB,
               field,
               this.instance && this.instance[field],
               this.instance,
@@ -318,14 +323,14 @@ export class SqliteQuery extends AbstractQuery {
           }
         }
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+        return new UniqueConstraintError({ message, errors, cause: err, fields });
       }
 
       case 'SQLITE_BUSY':
-        return new sequelizeErrors.TimeoutError(err);
+        return new TimeoutError(err);
 
       default:
-        return new sequelizeErrors.DatabaseError(err);
+        return new DatabaseError(err);
     }
   }
 

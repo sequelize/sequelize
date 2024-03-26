@@ -19,7 +19,6 @@ import { AbstractDialect } from './dialects/abstract/index.js';
 import { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 import { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import { AbstractQuery } from './dialects/abstract/query.js';
-import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
 import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
@@ -873,6 +872,8 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   async _syncModelsWithCyclicReferences(options) {
     if (this.dialect.name === 'sqlite') {
+      // eslint-disable-next-line import/no-extraneous-dependencies -- only import when needed
+      const { withSqliteForeignKeysOff } = await import('@sequelize/sqlite');
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
         for (const model of this.models) {
@@ -921,6 +922,8 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     if (this.dialect.name === 'sqlite') {
+      // eslint-disable-next-line import/no-extraneous-dependencies -- only import when needed
+      const { withSqliteForeignKeysOff } = await import('@sequelize/sqlite');
       // Optimisation: no need to do this in two passes in SQLite because we can temporarily disable foreign keys
       await withSqliteForeignKeysOff(this, options, async () => {
         for (const model of this.models) {

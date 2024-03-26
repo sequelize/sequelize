@@ -1,13 +1,10 @@
-import { ForeignKeyConstraintError } from '../../errors';
-import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions, Sequelize } from '../../sequelize';
-import { TransactionNestMode } from '../../transaction';
-import type { TableOrModel } from '../abstract/query-generator.types.js';
-import { AbstractQueryInterfaceInternal } from '../abstract/query-interface-internal';
-import type { SqliteDialect } from './index.js';
-import type { SqliteQueryGenerator } from './query-generator';
-import type { SqliteColumnsDescription } from './query-interface.types';
-import { withSqliteForeignKeysOff } from './sqlite-utils';
+import type { QueryRawOptions, Sequelize, TableOrModel } from '@sequelize/core';
+import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode } from '@sequelize/core';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import type { SqliteDialect } from './dialect.js';
+import type { SqliteQueryGenerator } from './query-generator.js';
+import type { SqliteColumnsDescription } from './query-interface.types.js';
+import { withSqliteForeignKeysOff } from './sqlite-utils.js';
 
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: SqliteDialect) {

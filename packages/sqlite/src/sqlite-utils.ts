@@ -1,4 +1,4 @@
-import type { QueryRawOptions, Sequelize } from '../../sequelize.js';
+import type { QueryRawOptions, Sequelize } from '@sequelize/core';
 
 export async function withSqliteForeignKeysOff<T>(
   sequelize: Sequelize,

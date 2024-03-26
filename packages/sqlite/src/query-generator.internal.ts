@@ -1,6 +1,6 @@
-import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
-import type { SqliteDialect } from './index.js';
+import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-internal.js';
+import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.internal-types.js';
+import type { SqliteDialect } from './dialect.js';
 
 export class SqliteQueryGeneratorInternal<
   Dialect extends SqliteDialect = SqliteDialect,

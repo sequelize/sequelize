@@ -1,27 +1,33 @@
-import isEmpty from 'lodash/isEmpty';
-import { BaseError, UnknownConstraintError } from '../../errors';
-import type { AttributeOptions } from '../../model';
-import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions } from '../../sequelize';
-import { isErrorWithStringCode } from '../../utils/check.js';
-import { noSchemaDelimiterParameter, noSchemaParameter } from '../../utils/deprecations';
-import type { DataType } from '../abstract/data-types';
-import type { TableOrModel } from '../abstract/query-generator.types.js';
-import { AbstractQueryInterface } from '../abstract/query-interface';
 import type {
   AddConstraintOptions,
+  AttributeOptions,
   ConstraintDescription,
   ConstraintType,
+  DataType,
   DescribeTableOptions,
   QiDropAllTablesOptions,
+  QueryRawOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
   ShowConstraintsOptions,
-} from '../abstract/query-interface.types';
-import type { SqliteDialect } from './index.js';
-import { SqliteQueryInterfaceInternal } from './query-interface-internal';
-import type { SqliteColumnsDescription } from './query-interface.types';
-import { withSqliteForeignKeysOff } from './sqlite-utils';
+  TableOrModel,
+} from '@sequelize/core';
+import {
+  AbstractQueryInterface,
+  BaseError,
+  QueryTypes,
+  UnknownConstraintError,
+} from '@sequelize/core';
+import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  noSchemaDelimiterParameter,
+  noSchemaParameter,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/deprecations.js';
+import isEmpty from 'lodash/isEmpty';
+import type { SqliteDialect } from './dialect.js';
+import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
+import type { SqliteColumnsDescription } from './query-interface.types.js';
+import { withSqliteForeignKeysOff } from './sqlite-utils.js';
 
 export class SqliteQueryInterface<
   Dialect extends SqliteDialect = SqliteDialect,

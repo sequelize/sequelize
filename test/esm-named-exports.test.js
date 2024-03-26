@@ -60,6 +60,7 @@ const ignoredCjsKeysMap = {
   ],
   '@sequelize/core/decorators-legacy': ['__esModule'],
   '@sequelize/postgres': ['__esModule'],
+  '@sequelize/sqlite': ['__esModule'],
   '@sequelize/utils': ['__esModule'],
   '@sequelize/utils/node': ['__esModule'],
   '@sequelize/validator.js': ['__esModule'],

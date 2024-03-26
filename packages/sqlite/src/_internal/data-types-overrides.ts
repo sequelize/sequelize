@@ -1,7 +1,7 @@
+import type { AbstractDialect } from '@sequelize/core';
+import { BaseError } from '@sequelize/core';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
 import NodeUtil from 'node:util';
-import { BaseError } from '../../errors/index.js';
-import * as BaseTypes from '../abstract/data-types.js';
-import type { AbstractDialect } from '../abstract/index.js';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -33,11 +33,11 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
   // still indicates that the column is a BOOLEAN column - which we may be able to exploit in the future to parse the value
   // in raw queries where the DataType is not available.
 
-  escape(value: boolean): string {
+  escape(value: boolean | unknown): string {
     return value ? '1' : '0';
   }
 
-  toBindableValue(value: boolean): unknown {
+  toBindableValue(value: boolean | unknown): unknown {
     return value ? 1 : 0;
   }
 
