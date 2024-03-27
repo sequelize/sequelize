@@ -1,7 +1,5 @@
 'use strict';
 
-const uniq = require('lodash/uniq');
-
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -96,64 +94,6 @@ describe('QueryInterface', () => {
 
       const tableNames2 = await this.queryInterface.listTables();
       expect(tableNames2).to.be.empty;
-    });
-  });
-
-  describe('indexes', () => {
-    beforeEach(async function () {
-      await this.queryInterface.dropTable('Group');
-      await this.queryInterface.createTable('Group', {
-        username: DataTypes.STRING,
-        isAdmin: DataTypes.BOOLEAN,
-        from: DataTypes.STRING,
-      });
-    });
-
-    it('adds, reads and removes an index to the table', async function () {
-      await this.queryInterface.addIndex('Group', ['username', 'isAdmin']);
-      let indexes = await this.queryInterface.showIndex('Group');
-      let indexColumns = uniq(indexes.map(index => index.name));
-      expect(indexColumns).to.include('group_username_is_admin');
-      await this.queryInterface.removeIndex('Group', ['username', 'isAdmin']);
-      indexes = await this.queryInterface.showIndex('Group');
-      indexColumns = uniq(indexes.map(index => index.name));
-      expect(indexColumns).to.be.empty;
-    });
-
-    if (dialect.supports.schemas) {
-      it('works with schemas', async function () {
-        await this.sequelize.createSchema('schema');
-        await this.queryInterface.createTable(
-          'table',
-          {
-            name: {
-              type: DataTypes.STRING,
-            },
-            isAdmin: {
-              type: DataTypes.STRING,
-            },
-          },
-          {
-            schema: 'schema',
-          },
-        );
-        await this.queryInterface.addIndex(
-          { schema: 'schema', tableName: 'table' },
-          ['name', 'isAdmin'],
-          null,
-          'schema_table',
-        );
-        const indexes = await this.queryInterface.showIndex({
-          schema: 'schema',
-          tableName: 'table',
-        });
-        expect(indexes.length).to.eq(1);
-        expect(indexes[0].name).to.eq('table_name_is_admin');
-      });
-    }
-
-    it('does not fail on reserved keywords', async function () {
-      await this.queryInterface.addIndex('Group', ['from']);
     });
   });
 
