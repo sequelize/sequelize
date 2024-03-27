@@ -46,7 +46,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           transaction: options?.transaction,
         },
         async transaction => {
-          const indexes = await this.#queryInterface.showIndex(tableName, {
+          const indexes = await this.#queryInterface.showIndexes(tableName, {
             ...options,
             transaction,
           });
