@@ -1,15 +1,3 @@
-import { Op } from '../../operators.js';
-import { rejectInvalidOptions } from '../../utils/check';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_SET } from '../../utils/object.js';
-import { AbstractQueryGenerator } from '../abstract/query-generator';
-import {
-  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
-  SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
-  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator-typescript';
 import type {
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
@@ -19,9 +7,20 @@ import type {
   StartTransactionQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
-} from '../abstract/query-generator.types';
-import type { SnowflakeDialect } from './index.js';
-import { SnowflakeQueryGeneratorInternal } from './query-generator-internal.js';
+} from '@sequelize/core';
+import { AbstractQueryGenerator, Op } from '@sequelize/core';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
+  SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+  START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import type { SnowflakeDialect } from './dialect.js';
+import { SnowflakeQueryGeneratorInternal } from './query-generator.internal.js';
 
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>([
   'constraintName',

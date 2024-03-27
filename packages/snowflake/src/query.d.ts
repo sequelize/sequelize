@@ -1,3 +1,3 @@
-import { AbstractQuery } from '../abstract/query.js';
+import { AbstractQuery } from '@sequelize/core';
 
 export class SnowflakeQuery extends AbstractQuery {}

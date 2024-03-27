@@ -1,14 +1,18 @@
 'use strict';
 
+import {
+  AbstractQuery,
+  DatabaseError,
+  ForeignKeyConstraintError,
+  UniqueConstraintError,
+  ValidationErrorItem,
+} from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import forOwn from 'lodash/forOwn';
 import map from 'lodash/map';
 import mapKeys from 'lodash/mapKeys';
 import reduce from 'lodash/reduce';
 import zipObject from 'lodash/zipObject';
-
-const { AbstractQuery } = require('../abstract/query');
-const sequelizeErrors = require('../../errors');
-const { logger } = require('../../utils/logger');
 
 const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
@@ -223,9 +227,9 @@ export class SnowflakeQuery extends AbstractQuery {
         const errors = [];
         forOwn(fields, (value, field) => {
           errors.push(
-            new sequelizeErrors.ValidationErrorItem(
+            new ValidationErrorItem(
               this.getUniqueConstraintErrorMessage(field),
-              'unique violation', // sequelizeErrors.ValidationErrorItem.Origins.DB,
+              'unique violation', // ValidationErrorItem.Origins.DB,
               field,
               value,
               this.instance,
@@ -234,7 +238,7 @@ export class SnowflakeQuery extends AbstractQuery {
           );
         });
 
-        return new sequelizeErrors.UniqueConstraintError({ message, errors, cause: err, fields });
+        return new UniqueConstraintError({ message, errors, cause: err, fields });
       }
 
       case ER_ROW_IS_REFERENCED:
@@ -248,7 +252,7 @@ export class SnowflakeQuery extends AbstractQuery {
           ? match[3].split(new RegExp(`${quoteChar}, *${quoteChar}`))
           : undefined;
 
-        return new sequelizeErrors.ForeignKeyConstraintError({
+        return new ForeignKeyConstraintError({
           reltype: String(errCode) === String(ER_ROW_IS_REFERENCED) ? 'parent' : 'child',
           table: match ? match[4] : undefined,
           fields,
@@ -260,7 +264,7 @@ export class SnowflakeQuery extends AbstractQuery {
       }
 
       default:
-        return new sequelizeErrors.DatabaseError(err);
+        return new DatabaseError(err);
     }
   }
 

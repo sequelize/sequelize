@@ -1,5 +1,5 @@
-import { AbstractQueryInterface } from '../abstract/query-interface.js';
-import type { SnowflakeDialect } from './index.js';
+import { AbstractQueryInterface } from '@sequelize/core';
+import type { SnowflakeDialect } from './dialect.js';
 
 export class SnowflakeQueryInterface<
   Dialect extends SnowflakeDialect = SnowflakeDialect,

@@ -1,19 +1,17 @@
 'use strict';
 
-import { rejectInvalidOptions } from '../../utils/check';
-import { quoteIdentifier } from '../../utils/dialect.js';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { EMPTY_SET } from '../../utils/object.js';
-import { defaultValueSchemable } from '../../utils/query-builder-utils';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '../abstract/query-generator';
-
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
-
-const { SnowflakeQueryGeneratorTypeScript } = require('./query-generator-typescript');
+import { SnowflakeQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 /**
  * list of reserved words in Snowflake

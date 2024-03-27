@@ -1,6 +1,6 @@
-import { AbstractQueryGeneratorInternal } from '../abstract/query-generator-internal.js';
-import type { AddLimitOffsetOptions } from '../abstract/query-generator.internal-types.js';
-import type { SnowflakeDialect } from './index.js';
+import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-internal.js';
+import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.internal-types.js';
+import type { SnowflakeDialect } from './dialect.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
   'INFORMATION_SCHEMA',
