@@ -33,13 +33,16 @@ import type {
   DescribeTableOptions,
   DropSchemaOptions,
   FetchDatabaseVersionOptions,
+  IndexDescription,
   ListDatabasesOptions,
+  QiAddIndexOptions,
   QiBulkDeleteOptions,
   QiDropAllSchemasOptions,
   QiDropAllTablesOptions,
   QiDropTableOptions,
   QiListSchemasOptions,
   QiListTablesOptions,
+  QiRemoveIndexOptions,
   QiTruncateTableOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
@@ -769,6 +772,54 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       this.queryGenerator.getToggleForeignKeyChecksQuery(enable),
       options,
     );
+  }
+
+  /**
+   * Add an index to a table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async addIndex(tableOrModel: TableOrModel, options: QiAddIndexOptions): Promise<void> {
+    const sql = this.queryGenerator.addIndexQuery(tableOrModel, options);
+
+    await this.sequelize.queryRaw(sql, {
+      ...options,
+      supportsSearchPath: false,
+      type: QueryTypes.RAW,
+    });
+  }
+
+  /**
+   * Remove an index from a table
+   *
+   * @param tableOrModel
+   * @param indexNameOrAttributes
+   * @param options
+   */
+  async removeIndex(
+    tableOrModel: TableOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: QiRemoveIndexOptions,
+  ): Promise<void> {
+    const sql = this.queryGenerator.removeIndexQuery(tableOrModel, indexNameOrAttributes, options);
+
+    await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.RAW });
+  }
+
+  /**
+   * Show indexes on a table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async showIndexes(
+    tableOrModel: TableOrModel,
+    options?: QueryRawOptions,
+  ): Promise<IndexDescription[]> {
+    const sql = this.queryGenerator.showIndexesQuery(tableOrModel);
+
+    return this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
   }
 
   /**

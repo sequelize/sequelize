@@ -286,13 +286,18 @@ export class Db2Query extends AbstractQuery {
     if (match && match.length > 0) {
       let uniqueIndexName = '';
       let uniqueKey = '';
-      const fields = {};
       let message = err.message;
-      const query = `SELECT INDNAME FROM SYSCAT.INDEXES  WHERE IID = ${match[1]} AND TABSCHEMA = '${match[2]}' AND TABNAME = '${match[3]}'`;
+      const fields = {};
+      /** @type {string[]} */
+      const columns = [];
+      const query = `SELECT i.INDNAME AS "name", c.COLNAME AS "columnName" FROM SYSCAT.INDEXES i
+INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA
+WHERE i.IID = '${match[1]}' AND i.TABNAME = '${match[3]}' AND i.TABSCHEMA = '${match[2]}' ORDER BY i.INDNAME, c.COLSEQ`;
 
       if (Boolean(conn) && match.length > 3) {
-        uniqueIndexName = conn.querySync(query);
-        uniqueIndexName = uniqueIndexName[0].INDNAME;
+        const results = conn.querySync(query);
+        uniqueIndexName = results[0]?.name;
+        columns.push(...results.map(result => result.columnName));
       }
 
       if (this.model && Boolean(uniqueIndexName)) {
@@ -306,17 +311,26 @@ export class Db2Query extends AbstractQuery {
       }
 
       if (uniqueKey) {
-        // TODO: DB2 uses a custom "column" property, but it should use "fields" instead, so column can be removed
-        if (this.options.where && this.options.where[uniqueKey.column] !== undefined) {
-          fields[uniqueKey.column] = this.options.where[uniqueKey.column];
-        } else if (
-          this.options.instance &&
-          this.options.instance.dataValues &&
-          this.options.instance.dataValues[uniqueKey.column]
-        ) {
-          fields[uniqueKey.column] = this.options.instance.dataValues[uniqueKey.column];
-        } else if (parameters) {
-          fields[uniqueKey.column] = parameters['0'];
+        if (this.options.where) {
+          const keys = Object.keys(this.options.where).filter(key => columns.includes(key));
+          for (const key of keys) {
+            fields[key] = this.options.where[key];
+          }
+        }
+
+        if (Object.keys(fields).length === 0 && this.options.instance?.dataValues) {
+          const keys = Object.keys(this.options.instance.dataValues).filter(key =>
+            columns.includes(key),
+          );
+          for (const key of keys) {
+            fields[key] = this.options.instance.dataValues[key];
+          }
+        }
+
+        if (Object.keys(fields).length === 0 && parameters) {
+          for (const [i, column] of columns.entries()) {
+            fields[column] = parameters[i];
+          }
         }
       }
 
