@@ -393,46 +393,42 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    // Group by index name, and collect all fields
-    const indexes = data.reduce((acc, curr) => {
-      if (acc.has(curr.index_name)) {
-        const index = acc.get(curr.index_name);
-        if (curr.is_included_column) {
-          index.includes.push(curr.column_name);
+    const indexes = new Map();
+    for (const item of data) {
+      const idx = indexes.get(item.index_name);
+      if (idx) {
+        if (item.is_included_column) {
+          idx.includes.push(item.column_name);
         } else {
-          index.fields.push({
-            attribute: curr.column_name,
+          idx.fields.push({
+            name: item.column_name,
             length: undefined,
-            order: curr.is_descending_key ? 'DESC' : 'ASC',
+            order: item.is_descending_key ? 'DESC' : 'ASC',
             collate: undefined,
           });
         }
-
-        return acc;
+      } else {
+        indexes.set(item.index_name, {
+          schema: item.schema_name,
+          tableName: item.table_name,
+          name: item.index_name,
+          fields: item.is_included_column
+            ? []
+            : [
+                {
+                  name: item.column_name,
+                  length: undefined,
+                  order: item.is_descending_key ? 'DESC' : 'ASC',
+                  collate: undefined,
+                },
+              ],
+          includes: item.is_included_column ? [item.column_name] : [],
+          primary: item.is_primary_key,
+          unique: item.is_unique,
+        });
       }
+    }
 
-      acc.set(curr.index_name, {
-        primary: curr.is_primary_key,
-        fields: curr.is_included_column
-          ? []
-          : [
-              {
-                attribute: curr.column_name,
-                length: undefined,
-                order: curr.is_descending_key ? 'DESC' : 'ASC',
-                collate: undefined,
-              },
-            ],
-        includes: curr.is_included_column ? [curr.column_name] : [],
-        name: curr.index_name,
-        tableName: undefined,
-        unique: curr.is_unique,
-        type: null,
-      });
-
-      return acc;
-    }, new Map());
-
-    return Array.from(indexes.values());
+    return [...indexes.values()];
   }
 }
