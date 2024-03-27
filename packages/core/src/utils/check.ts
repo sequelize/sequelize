@@ -1,6 +1,6 @@
 import { isIterable } from '@sequelize/utils';
 import pickBy from 'lodash/pickBy';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
+import type { AbstractDialect } from '../abstract-dialect/index.js';
 
 /**
  * Some dialects emit an Error with a string code, that are not ErrnoException.

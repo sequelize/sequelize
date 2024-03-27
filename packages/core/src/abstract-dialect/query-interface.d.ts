@@ -1,7 +1,7 @@
 import type { SetRequired } from 'type-fest';
-import type { Col } from '../../expression-builders/col.js';
-import type { Fn } from '../../expression-builders/fn.js';
-import type { Literal } from '../../expression-builders/literal.js';
+import type { Col } from '../expression-builders/col.js';
+import type { Fn } from '../expression-builders/fn.js';
+import type { Literal } from '../expression-builders/literal.js';
 import type {
   AttributeOptions,
   Attributes,
@@ -10,9 +10,9 @@ import type {
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
-} from '../../model';
-import type { QueryRawOptions, QueryRawOptionsWithModel } from '../../sequelize';
-import type { AllowLowercase } from '../../utils/types.js';
+} from '../model';
+import type { QueryRawOptions, QueryRawOptionsWithModel } from '../sequelize';
+import type { AllowLowercase } from '../utils/types.js';
 import type { DataType } from './data-types.js';
 import type { AbstractDialect } from './index.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';

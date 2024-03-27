@@ -4,7 +4,7 @@ import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
-import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
+import type { WhereOptions } from '../abstract-dialect/where-sql-builder-types.js';
 import { AssociationError } from '../errors';
 import { col } from '../expression-builders/col.js';
 import { fn } from '../expression-builders/fn.js';

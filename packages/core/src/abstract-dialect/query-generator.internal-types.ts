@@ -1,6 +1,6 @@
 import type { Nullish } from '@sequelize/utils';
-import type { Literal } from '../../expression-builders/literal.js';
-import type { BindOrReplacements } from '../../sequelize.js';
+import type { Literal } from '../expression-builders/literal.js';
+import type { BindOrReplacements } from '../sequelize.js';
 
 export interface AddLimitOffsetOptions {
   limit?: number | Literal | Nullish;

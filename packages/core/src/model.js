@@ -28,6 +28,7 @@ import uniq from 'lodash/uniq';
 import without from 'lodash/without';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
+import { AbstractDataType } from './abstract-dialect/data-types';
 import {
   Association,
   BelongsToAssociation,
@@ -37,7 +38,6 @@ import {
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
-import { AbstractDataType } from './dialects/abstract/data-types';
 import * as SequelizeErrors from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { InstanceValidator } from './instance-validator';

@@ -6,7 +6,7 @@ import type {
   StartTransactionOptions,
 } from '@sequelize/core';
 import { AbstractQueryInterface, Transaction } from '@sequelize/core';
-import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import { START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { ASYNC_QUEUE } from './_internal/symbols.js';
 import type { MsSqlConnection } from './connection-manager.js';

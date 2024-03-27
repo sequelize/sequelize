@@ -1,6 +1,6 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { BaseError } from '@sequelize/core';
-import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import maxBy from 'lodash/maxBy';
 import NodeUtil from 'node:util';
 

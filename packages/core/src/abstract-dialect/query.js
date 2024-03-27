@@ -8,9 +8,9 @@ import findKey from 'lodash/findKey';
 import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 
-const { QueryTypes } = require('../../query-types');
+const { QueryTypes } = require('../query-types');
 const Dot = require('dottie');
-const deprecations = require('../../utils/deprecations');
+const deprecations = require('../utils/deprecations');
 const crypto = require('node:crypto');
 
 export class AbstractQuery {

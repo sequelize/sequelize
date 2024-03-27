@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty.js';
+import type { AbstractDialect } from '../abstract-dialect/index.js';
 import * as DataTypes from '../data-types';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
 import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { getOperators } from './where.js';
 

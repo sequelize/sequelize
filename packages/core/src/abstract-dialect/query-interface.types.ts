@@ -1,6 +1,6 @@
-import type { Deferrable } from '../../deferrable';
-import type { QueryRawOptions } from '../../sequelize';
-import type { IsolationLevel } from '../../transaction';
+import type { Deferrable } from '../deferrable';
+import type { QueryRawOptions } from '../sequelize';
+import type { IsolationLevel } from '../transaction';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,

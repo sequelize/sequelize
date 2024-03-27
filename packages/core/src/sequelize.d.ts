@@ -9,12 +9,12 @@ import type {
   TransactionNestMode,
   TransactionType,
 } from '.';
-import type { AbstractDialect, DialectOptions } from './dialects/abstract';
-import type { DataType } from './dialects/abstract/data-types.js';
+import type { AbstractDialect, DialectOptions } from './abstract-dialect';
+import type { DataType } from './abstract-dialect/data-types.js';
 import type {
   ColumnsDescription,
   RawConstraintDescription,
-} from './dialects/abstract/query-interface.types';
+} from './abstract-dialect/query-interface.types';
 import type {
   BaseSqlExpression,
   DynamicSqlExpression,
