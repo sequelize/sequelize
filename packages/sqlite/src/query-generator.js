@@ -1,5 +1,6 @@
 'use strict';
 
+import { ParameterStyle } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -127,9 +128,15 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = Object.create(null);
+    const parameterStyle = options.parameterStyle ?? ParameterStyle.bind;
     const values = [];
-    const bind = Object.create(null);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bind;
+    let bindParam;
+
+    if (parameterStyle === ParameterStyle.bind) {
+      bind = Object.create(null);
+      bindParam = options.bindParam || this.bindParam(bind);
+    }
 
     if (attributes) {
       each(attributes, (attribute, key) => {
@@ -165,7 +172,8 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     const result = { query };
-    if (options.bindParam !== false) {
+
+    if (parameterStyle === ParameterStyle.bind) {
       result.bind = bind;
     }
 

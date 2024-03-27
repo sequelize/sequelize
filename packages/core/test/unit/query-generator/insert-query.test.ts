@@ -1,4 +1,4 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -85,7 +85,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
   });
 
-  it('parses bind parameters in literals even with bindParams: false', () => {
+  it('parses bind parameters in literals even with parameterStyle: "replacement"', () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.insertQuery(
@@ -97,7 +97,7 @@ describe('QueryGenerator#insertQuery', () => {
       },
       {},
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.replacement,
       },
     );
 

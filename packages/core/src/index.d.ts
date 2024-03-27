@@ -34,7 +34,7 @@ export type {
   TimeOptions,
   VirtualOptions,
 } from './dialects/abstract/data-types.js';
-export { AbstractDialect } from './dialects/abstract/index.js';
+export { AbstractDialect, ParameterStyle } from './dialects/abstract/index.js';
 export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 export * from './dialects/abstract/query-generator.types.js';
 export * from './dialects/abstract/query-interface.js';

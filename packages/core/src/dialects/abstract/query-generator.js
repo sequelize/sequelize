@@ -26,6 +26,7 @@ import { joinSQLFragments } from '../../utils/join-sql-fragments';
 import { isModelStatic } from '../../utils/model-utils';
 import { nameIndex, spliceStr } from '../../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
+import { ParameterStyle } from './index.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
@@ -77,12 +78,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bind;
+    let bindParam;
+    let parameterStyle = options.parameterStyle ?? ParameterStyle.bind;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -120,12 +122,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.searchPath
     ) {
       // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.replacement;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.replacement;
+    }
+
+    if (parameterStyle === ParameterStyle.bind) {
+      bind = Object.create(null);
+      bindParam = options.bindParam || this.bindParam(bind);
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -271,7 +278,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.bind) {
       result.bind = bind;
     }
 
@@ -292,10 +299,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
+    const parameterStyle = options.parameterStyle ?? ParameterStyle.bind;
     const tuples = [];
     const serials = {};
     const allAttributes = [];
+    let bind;
+    let bindParam;
     let onDuplicateKeyUpdate = '';
+
+    if (parameterStyle === ParameterStyle.bind) {
+      bind = Object.create(null);
+      bindParam = options.bindParam || this.bindParam(bind);
+    }
 
     for (const fieldValueHash of fieldValueHashes) {
       forOwn(fieldValueHash, (value, key) => {
@@ -318,7 +333,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
+          bindParam,
           type: fieldMappedAttributes[key]?.type,
           replacements: options.replacements,
         });
@@ -386,7 +401,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return joinSQLFragments([
+    const query = joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -399,6 +414,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
+
+    const result = { query };
+
+    if (parameterStyle === ParameterStyle.bind) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**
@@ -419,8 +442,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = Object.create(null);
     const modelAttributeMap = {};
+    let parameterStyle = options.parameterStyle ?? ParameterStyle.bind;
+    let bind;
+    let bindParam;
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
@@ -430,10 +455,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.searchPath
     ) {
       // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
+      parameterStyle = ParameterStyle.replacement;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    if (parameterStyle === ParameterStyle.bind) {
+      bind = Object.create(null);
+      bindParam = options.bindParam || this.bindParam(bind);
+    }
 
     if (
       this.dialect.supports['LIMIT ON UPDATE'] &&
@@ -501,7 +529,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+
+    if (parameterStyle === ParameterStyle.bind) {
       result.bind = bind;
     }
 

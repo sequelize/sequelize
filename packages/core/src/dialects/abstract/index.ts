@@ -694,3 +694,8 @@ export type BindCollector = {
    */
   getBindParameterOrder(): string[] | null;
 };
+
+export enum ParameterStyle {
+  bind = 'bind',
+  replacement = 'replacement',
+}

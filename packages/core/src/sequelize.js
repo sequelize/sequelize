@@ -15,7 +15,7 @@ import { Association } from './associations/index';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
 import { AbstractConnectionManager } from './dialects/abstract/connection-manager.js';
-import { AbstractDialect } from './dialects/abstract/index.js';
+import { AbstractDialect, ParameterStyle } from './dialects/abstract/index.js';
 import { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
 import { AbstractQueryInterface } from './dialects/abstract/query-interface';
 import { AbstractQuery } from './dialects/abstract/query.js';
@@ -1022,6 +1022,7 @@ Use Sequelize#query if you wish to use replacements.`);
   static TransactionType = TransactionType;
   static Lock = Lock;
   static IsolationLevel = IsolationLevel;
+  static ParameterStyle = ParameterStyle;
 
   log(...args) {
     let options;
