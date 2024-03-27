@@ -18,11 +18,11 @@ export class Db2Dialect extends AbstractDialect {
     alterColumn: {
       unique: false,
     },
-    index: {
-      collate: false,
-      using: false,
-      where: true,
+    addIndex: {
+      expression: true,
       include: true,
+      schemaQuoted: true,
+      where: true,
     },
     constraints: {
       onUpdate: false,
