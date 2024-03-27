@@ -1,6 +1,6 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,

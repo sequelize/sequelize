@@ -1,4 +1,4 @@
-import type { AbstractDialect } from './dialects/abstract/index.js';
+import type { AbstractDialect } from './abstract-dialect/index.js';
 import type { DialectName } from './sequelize.js';
 
 export function importDialect(dialect: DialectName): typeof AbstractDialect {

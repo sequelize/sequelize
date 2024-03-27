@@ -17,7 +17,6 @@ import { Config } from './config/config';
 
 const expect = chai.expect;
 
-const distDir = path.resolve(__dirname, '..', 'lib');
 const packagesDir = path.resolve(__dirname, '..', '..');
 
 const NON_DIALECT_PACKAGES = Object.freeze(['utils', 'validator-js', 'core']);
@@ -175,12 +174,7 @@ export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequel
 }
 
 export function getSupportedDialects() {
-  return [
-    ...fs
-      .readdirSync(path.join(distDir, 'dialects'))
-      .filter(file => !file.includes('.js') && !file.includes('abstract')),
-    ...fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file)),
-  ];
+  return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
 }
 
 export function getTestDialect(): DialectName {

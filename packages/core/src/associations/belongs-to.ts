@@ -2,7 +2,7 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
 import assert from 'node:assert';
-import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
+import { cloneDataType } from '../abstract-dialect/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
   AttributeNames,

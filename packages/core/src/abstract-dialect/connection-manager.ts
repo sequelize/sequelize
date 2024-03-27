@@ -2,10 +2,10 @@ import { isNodeError } from '@sequelize/utils/node';
 import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
-import { ConnectionAcquireTimeoutError } from '../../errors';
-import type { ConnectionOptions, Sequelize } from '../../sequelize.js';
-import * as deprecations from '../../utils/deprecations';
-import { logger } from '../../utils/logger';
+import { ConnectionAcquireTimeoutError } from '../errors';
+import type { ConnectionOptions, Sequelize } from '../sequelize.js';
+import * as deprecations from '../utils/deprecations';
+import { logger } from '../utils/logger';
 import type { AbstractDialect } from './index.js';
 import { ReplicationPool } from './replication-pool.js';
 

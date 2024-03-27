@@ -1,19 +1,19 @@
 import isEmpty from 'lodash/isEmpty';
 import assert from 'node:assert';
-import type { ConstraintChecking } from '../../deferrable';
-import { Deferrable } from '../../deferrable';
-import { BaseError } from '../../errors';
-import { setTransactionFromCls } from '../../model-internals.js';
-import { QueryTypes } from '../../query-types';
-import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../../sequelize';
-import { COMPLETES_TRANSACTION, Transaction } from '../../transaction';
-import { isErrorWithStringCode } from '../../utils/check.js';
+import type { ConstraintChecking } from '../deferrable';
+import { Deferrable } from '../deferrable';
+import { BaseError } from '../errors';
+import { setTransactionFromCls } from '../model-internals.js';
+import { QueryTypes } from '../query-types';
+import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../sequelize';
+import { COMPLETES_TRANSACTION, Transaction } from '../transaction';
+import { isErrorWithStringCode } from '../utils/check.js';
 import {
   noSchemaDelimiterParameter,
   noSchemaParameter,
   showAllToListSchemas,
   showAllToListTables,
-} from '../../utils/deprecations';
+} from '../utils/deprecations';
 import type { Connection } from './connection-manager.js';
 import type { AbstractDialect } from './index.js';
 import type { TableOrModel } from './query-generator.types.js';

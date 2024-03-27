@@ -1,6 +1,6 @@
 import type { Connection } from '@sequelize/core';
-import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/connection-manager.js';
-import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/replication-pool.js';
+import type { GetConnectionOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/connection-manager.js';
+import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/replication-pool.js';
 import chai from 'chai';
 import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';

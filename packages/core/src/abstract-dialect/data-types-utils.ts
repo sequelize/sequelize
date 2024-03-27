@@ -1,6 +1,6 @@
 import NodeUtils from 'node:util';
-import { BaseError, ValidationErrorItem } from '../../errors/index.js';
-import type { Model } from '../../model.js';
+import { BaseError, ValidationErrorItem } from '../errors/index.js';
+import type { Model } from '../model.js';
 import type {
   DataType,
   DataTypeClass,

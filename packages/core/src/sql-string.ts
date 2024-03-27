@@ -1,6 +1,6 @@
+import type { AbstractDataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect } from './abstract-dialect/index.js';
 import * as DataTypes from './data-types';
-import type { AbstractDataType } from './dialects/abstract/data-types.js';
-import type { AbstractDialect } from './dialects/abstract/index.js';
 import { logger } from './utils/logger';
 
 const textDataTypeMap = new Map<string, AbstractDataType<any>>();

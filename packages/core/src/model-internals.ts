@@ -1,6 +1,6 @@
 import NodeUtil from 'node:util';
-import type { IndexOptions } from './dialects/abstract/query-interface.js';
-import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
+import type { IndexOptions } from './abstract-dialect/query-interface.js';
+import type { WhereAttributeHash } from './abstract-dialect/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
 import type { Attributes, Model, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';

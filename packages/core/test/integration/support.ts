@@ -1,6 +1,6 @@
 import type { AbstractDialect, Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
-import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js';
 import uniq from 'lodash/uniq';
 import fs from 'node:fs';
 import pTimeout from 'p-timeout';

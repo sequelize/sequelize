@@ -2,7 +2,7 @@ import { isPlainObject, isString } from '@sequelize/utils';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import { v1 as uuidv1 } from 'uuid';
-import * as DataTypes from '../dialects/abstract/data-types.js';
+import * as DataTypes from '../abstract-dialect/data-types.js';
 import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { noDataTypesUuid } from './deprecations.js';
 
