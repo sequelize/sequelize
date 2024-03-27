@@ -1,8 +1,10 @@
 import type {
+  AddIndexQueryOptions,
   CreateDatabaseQueryOptions,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
@@ -161,9 +163,20 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery() {
-    // TODO [+snowflake-sdk]: check if this is the correct implementation
-    return `SELECT '' FROM DUAL`;
+  addIndexQuery(_tableOrModel: TableOrModel, _options: AddIndexQueryOptions): string {
+    throw new Error(`Indexes are not supported by the ${this.dialect.name} dialect.`);
+  }
+
+  removeIndexQuery(
+    _tableOrModel: TableOrModel,
+    _indexNameOrAttributes: string | string[],
+    _options?: RemoveIndexQueryOptions,
+  ): string {
+    throw new Error(`Indexes are not supported by the ${this.dialect.name} dialect.`);
+  }
+
+  showIndexesQuery(_tableName: TableOrModel): string {
+    throw new Error(`Indexes are not supported by the ${this.dialect.name} dialect.`);
   }
 
   versionQuery() {

@@ -60,17 +60,18 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
       ignoreDuplicates: ' IGNORE',
       updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
     },
-    index: {
-      collate: false,
+    addIndex: {
       length: true,
       parser: true,
+      using: true,
       type: true,
-      using: 1,
+    },
+    removeIndex: {
+      on: true,
     },
     constraints: {
       foreignKeyChecksDisableable: true,
     },
-    indexViaAlter: true,
     indexHints: true,
     dataTypes: {
       COLLATE_BINARY: true,
