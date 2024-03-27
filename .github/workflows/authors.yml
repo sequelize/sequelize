@@ -22,7 +22,7 @@ jobs:
           fetch-depth: '0' # This is required to actually get all the authors
           persist-credentials: false
       - run: 'dev/update-authors.js' # Run the AUTHORS tool
-      - uses: gr2m/create-or-update-pull-request-action@2fa38a89a3163b6ee8a76c110d3af2d7325ea9aa # Create a PR or update the Action's existing PR
+      - uses: gr2m/create-or-update-pull-request-action@v1 # Using the branch instead of latest commit on `master` due to https://github.com/gr2m/create-or-update-pull-request-action/issues/537
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
