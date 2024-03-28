@@ -5,12 +5,14 @@ import {
   ConnectionRefusedError,
 } from '@sequelize/core';
 import type { ConnStr } from 'ibm_db';
-import * as Db2 from 'ibm_db';
+import * as IbmDb from 'ibm_db';
 import assert from 'node:assert';
 import NodeUtil from 'node:util';
 import type { Db2Dialect } from './dialect.js';
 
-export interface Db2Connection extends Connection, Db2.Database {}
+export interface Db2Connection extends Connection, IbmDb.Database {}
+
+export type IbmDbModule = typeof IbmDb;
 
 /**
  * DB2 Connection Manager
@@ -22,16 +24,15 @@ export interface Db2Connection extends Connection, Db2.Database {}
  * @private
  */
 export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, Db2Connection> {
-  readonly #lib: typeof Db2;
+  readonly #lib: IbmDbModule;
 
   constructor(dialect: Db2Dialect) {
     super(dialect);
-    this.#lib = Db2;
+    this.#lib = this.dialect.options.ibmDbModule ?? IbmDb;
   }
 
   /**
-   * Connect with DB2 database based on config, Handle any errors in connection
-   * Set the pool handlers on connection.error
+   * Connects with DB2 databases based on config.
    *
    * @param config
    * @returns

@@ -2,10 +2,12 @@ import type { Connection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionRefusedError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
-import * as IBMi from 'odbc';
+import * as Odbc from 'odbc';
 import type { IBMiDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:ibmi');
+
+export type OdbcModule = typeof Odbc;
 
 export interface IBMiConnection extends Connection, OdbcConnection {
   // properties of ObdcConnection, but not declared in their typings
@@ -13,11 +15,11 @@ export interface IBMiConnection extends Connection, OdbcConnection {
 }
 
 export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect, IBMiConnection> {
-  readonly #lib: typeof IBMi;
+  readonly #lib: OdbcModule;
 
   constructor(dialect: IBMiDialect) {
     super(dialect);
-    this.#lib = IBMi;
+    this.#lib = this.dialect.options.odbcModule ?? Odbc;
   }
 
   async connect(config: ConnectionOptions): Promise<IBMiConnection> {

@@ -10,22 +10,24 @@ import {
 } from '@sequelize/core';
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import * as Snowflake from 'snowflake-sdk';
+import * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
+
+export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, Snowflake.Connection {}
+export interface SnowflakeConnection extends Connection, SnowflakeSdk.Connection {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,
   SnowflakeConnection
 > {
-  readonly #lib: typeof Snowflake;
+  readonly #lib: SnowflakeSdkModule;
 
   constructor(dialect: SnowflakeDialect) {
     super(dialect);
-    this.#lib = Snowflake;
+    this.#lib = this.dialect.options.snowflakeSdkModule ?? SnowflakeSdk;
   }
 
   /**
@@ -38,7 +40,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @private
    */
   async connect(config: ConnectionOptions): Promise<SnowflakeConnection> {
-    const connectionConfig: Snowflake.ConnectionOptions = {
+    const connectionConfig: SnowflakeSdk.ConnectionOptions = {
       account: config.host!,
       username: config.username!,
       password: config.password!,

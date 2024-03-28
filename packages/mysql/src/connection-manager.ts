@@ -12,14 +12,16 @@ import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import * as MySql from 'mysql2';
+import * as MySql2 from 'mysql2';
 import assert from 'node:assert';
 import { promisify } from 'node:util';
 import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
-export interface MySqlConnection extends MySql.Connection, AbstractConnection {}
+export type MySql2Module = typeof MySql2;
+
+export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
 
 /**
  * MySQL Connection Manager
@@ -34,14 +36,14 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlDialect,
   MySqlConnection
 > {
-  readonly #lib: typeof MySql;
+  readonly #lib: MySql2Module;
 
   constructor(dialect: MySqlDialect) {
     super(dialect);
-    this.#lib = MySql;
+    this.#lib = this.dialect.options.mysql2Module ?? MySql2;
   }
 
-  #typecast(field: MySql.TypeCastField, next: () => void): unknown {
+  #typecast(field: MySql2.TypeCastField, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);
@@ -66,7 +68,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
-    const connectionConfig: MySql.ConnectionOptions = {
+    const connectionConfig: MySql2.ConnectionOptions = {
       bigNumberStrings: false,
       supportBigNumbers: true,
       flags: ['-FOUND_ROWS'],
@@ -161,8 +163,8 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 }
 
 async function createConnection(
-  lib: typeof MySql,
-  config: MySql.ConnectionOptions,
+  lib: typeof MySql2,
+  config: MySql2.ConnectionOptions,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
     const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;

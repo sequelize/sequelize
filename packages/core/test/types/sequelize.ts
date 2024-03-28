@@ -16,7 +16,6 @@ export const sequelize = new Sequelize({
     report: (msg, options) => {},
     name: 'durr',
   },
-  dialectModule: {},
   keepDefaultTimezone: false,
   pool: {
     evict: 1000,

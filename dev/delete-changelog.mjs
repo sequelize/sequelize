@@ -1,3 +1,4 @@
+import { execFile } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +16,16 @@ await Promise.all(
   changelogPaths.map(async changelogPath => {
     if (await tryAccess(changelogPath)) {
       await fs.unlink(changelogPath);
+      const { stderr, stdout } = await execFileAsync(`git`, ['add', changelogPath]);
+
+      if (stdout) {
+        console.info(`stdout: ${stdout}`);
+      }
+
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+      }
+
       console.info(`Deleted ${changelogPath}`);
     }
   }),
@@ -28,4 +39,16 @@ async function tryAccess(filename) {
   } catch {
     return false;
   }
+}
+
+function execFileAsync(file, args) {
+  return new Promise((resolve, reject) => {
+    execFile(file, args, (error, stdout, stderr) => {
+      if (error) {
+        reject(error);
+      }
+
+      resolve({ stdout, stderr });
+    });
+  });
 }
