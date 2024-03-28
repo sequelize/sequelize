@@ -2233,7 +2233,7 @@ __metadata:
     "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
-    "@types/oracledb": "npm:^6.0.4"
+    "@types/oracledb": "npm:^6.3"
     "@types/pg": "npm:8.11.4"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
@@ -3367,12 +3367,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/oracledb@npm:^6.0.4":
-  version: 6.0.4
-  resolution: "@types/oracledb@npm:6.0.4"
+"@types/oracledb@npm:^6.3":
+  version: 6.3.0
+  resolution: "@types/oracledb@npm:6.3.0"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/7a195cff23de0f7e70c95726b4e26fbd462de8841ac1315fc7870d8eaf7b62e1525251b0e10f2522da90609e3a262666c785d41eb87a67ac60d846f6e5f86fce
+  checksum: 10c0/89571d13f8841c6bd0acb7f6db0433011b0ad7e3c994f77f3cc5ba3e2ade023ee2e0599549db5b6d0d1cc8812eda46deb5f7130aaa494b281573a8a72db4d3ea
   languageName: node
   linkType: hard
 
