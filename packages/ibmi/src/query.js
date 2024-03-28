@@ -4,12 +4,12 @@ import {
   AbstractQuery,
   ConnectionRefusedError,
   DatabaseError,
+  EmptyResultError,
   ForeignKeyConstraintError,
   UniqueConstraintError,
   UnknownConstraintError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { find } from '@sequelize/utils';
 
 const debug = logger.debugContext('sql:ibmi');
 
@@ -68,21 +68,25 @@ export class IBMiQuery extends AbstractQuery {
    * @private
    */
   formatResults(data) {
-    let result = this.instance;
-
     if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
       if (this.instance && this.instance.dataValues) {
-        for (const key in data[0]) {
-          if (Object.hasOwn(data[0], key)) {
-            const record = data[0][key];
+        if (this.isInsertQuery() && !this.isUpsertQuery() && data.length === 0) {
+          throw new EmptyResultError();
+        }
 
-            const attributes = this.model.modelDefinition.attributes;
-            const attr = find(
-              attributes.values(),
-              attribute => attribute.attributeName === key || attribute.columnName === key,
+        if (this.options.returning && Array.isArray(data) && data[0]) {
+          for (const attributeOrColumnName of Object.keys(data[0])) {
+            const modelDefinition = this.model.modelDefinition;
+            const attribute = modelDefinition.columns.get(attributeOrColumnName);
+            const updatedValue = this._parseDatabaseValue(
+              data[0][attributeOrColumnName],
+              attribute?.type,
             );
 
-            this.instance.dataValues[attr?.attributeName || key] = record;
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
           }
         }
       }
@@ -106,7 +110,7 @@ export class IBMiQuery extends AbstractQuery {
     }
 
     if (this.isDescribeQuery()) {
-      result = {};
+      const result = {};
 
       for (const _result of data) {
         const enumRegex = /^enum/i;
@@ -128,17 +132,12 @@ export class IBMiQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isDeleteQuery() || this.isUpsertQuery()) {
+    if (this.isDeleteQuery()) {
       return data.count;
     }
 
-    if (this.isInsertQuery(data)) {
-      // insert queries can't call count, because they are actually select queries wrapped around insert queries to get the inserted id. Need to count the number of results instead.
-      return [result, data.length];
-    }
-
-    if (this.isUpdateQuery()) {
-      return [result, data.count];
+    if (this.isBulkUpdateQuery()) {
+      return this.options.returning ? this.handleSelectQuery(data) : data.count;
     }
 
     if (this.isShowConstraintsQuery()) {
@@ -150,11 +149,7 @@ export class IBMiQuery extends AbstractQuery {
       return [data, data];
     }
 
-    if (this.isShowIndexesQuery()) {
-      return data;
-    }
-
-    return result;
+    return this.instance;
   }
 
   handleInsertQuery(results, metaData) {
