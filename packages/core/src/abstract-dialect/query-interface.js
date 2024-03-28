@@ -80,9 +80,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       switch (options.temporalTableType) {
         case TemporalTableType.APPLICATION_PERIOD:
           if (!this.dialect.supports.temporalTables.applicationPeriod) {
-            throw new Error(
-              `Application-period tables are not supported in ${this.dialect.name}.`,
-            );
+            throw new Error(`Application-period tables are not supported in ${this.dialect.name}.`);
           }
 
           options.applicationPeriodRowStart =
@@ -96,9 +94,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
           break;
         case TemporalTableType.BITEMPORAL:
           if (!this.dialect.supports.temporalTables.biTemporal) {
-            throw new Error(
-              `Bi-temporal tables are not supported in ${this.dialect.name}.`,
-            );
+            throw new Error(`Bi-temporal tables are not supported in ${this.dialect.name}.`);
           }
 
           options.applicationPeriodRowStart =
@@ -120,9 +116,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
           break;
         case TemporalTableType.SYSTEM_PERIOD:
           if (!this.dialect.supports.temporalTables.systemPeriod) {
-            throw new Error(
-              `System-period tables are not supported in ${this.dialect.name}.`,
-            );
+            throw new Error(`System-period tables are not supported in ${this.dialect.name}.`);
           }
 
           options.systemPeriodRowStart =
@@ -138,10 +132,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
           throw new Error(`Invalid temporal table type ${options.temporalTableType}`);
       }
 
-      if (
-        !options.historyTableName &&
-        this.dialect.supports.temporalTables.historyTable
-      ) {
+      if (!options.historyTableName && this.dialect.supports.temporalTables.historyTable) {
         const table = this.queryGenerator.extractTableDetails(tableName);
         options.historyTableName = `${table.tableName}_history`;
       }
