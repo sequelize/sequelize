@@ -12,7 +12,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
  * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
-  private declare readonly brand: 'where';
+  protected declare readonly brand: 'where';
 
   readonly where: PojoWhere | WhereOptions;
 
