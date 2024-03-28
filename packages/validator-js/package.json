@@ -36,6 +36,9 @@
     },
     "./package.json": "./package.json"
   },
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "type": "commonjs",
   "publishConfig": {
