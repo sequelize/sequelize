@@ -2214,10 +2214,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-patch@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@rushstack/eslint-patch@npm:1.8.0"
-  checksum: 10c0/b8cb64176fe6f0778fccb8294f98acd325625cf75968cf3537c4d51b5d9b7dc62e3cbb82165aa473830555070ff6cc0d01ca64da3d734a5d0ce1bd90b5f24d7e
+"@rushstack/eslint-patch@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@rushstack/eslint-patch@npm:1.9.0"
+  checksum: 10c0/ac88c2b1a41fbb11d8a8199b6666181991922171d9702629c879771d51af2ae674ddcc2ad5540dfd8c213492fb038c37d51249638611609e9ea2e0234404010e
   languageName: node
   linkType: hard
 
@@ -2329,7 +2329,7 @@ __metadata:
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.1.1"
-    "@rushstack/eslint-patch": "npm:1.8.0"
+    "@rushstack/eslint-patch": "npm:1.9.0"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
@@ -2340,7 +2340,7 @@ __metadata:
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
     eslint: "npm:8.57.0"
-    eslint-plugin-jsdoc: "npm:48.2.1"
+    eslint-plugin-jsdoc: "npm:48.2.2"
     eslint-plugin-mocha: "npm:10.4.1"
     fast-glob: "npm:3.3.2"
     husky: "npm:9.0.11"
@@ -6259,9 +6259,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:48.2.1":
-  version: 48.2.1
-  resolution: "eslint-plugin-jsdoc@npm:48.2.1"
+"eslint-plugin-jsdoc@npm:48.2.2":
+  version: 48.2.2
+  resolution: "eslint-plugin-jsdoc@npm:48.2.2"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.42.0"
     are-docs-informative: "npm:^0.0.2"
@@ -6274,7 +6274,7 @@ __metadata:
     spdx-expression-parse: "npm:^4.0.0"
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/92237f08b7dadb21f9eda50eda00bf69ac5e0bfcb9d179bf118e096178d7dc4a62b34fd01b3b7b0ba1142ff6e13814cfe2cf9a60c6cfcc879559b6b509d0d4e1
+  checksum: 10c0/d6911e73d36757de5aef127e795116fbbcdef504f7e91d9c0863faf0b1693271d96188f0f1d54c0d74c56652bfa3fb4f1aa1a2f0876b0c6a5e57a874bcb3ac2b
   languageName: node
   linkType: hard
 
