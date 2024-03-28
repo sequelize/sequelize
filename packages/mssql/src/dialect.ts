@@ -60,6 +60,14 @@ export class MsSqlDialect extends AbstractDialect {
     createSchema: {
       authorization: true,
     },
+    dropTable: {
+      dropHistoryTable: true,
+    },
+    temporalTables: {
+      systemPeriod: true,
+      historyRetentionPeriod: true,
+      historyTable: true,
+    },
     connectionTransactionMethods: true,
     settingIsolationLevelDuringTransaction: false,
     startTransaction: {
