@@ -37,18 +37,14 @@
         "default": "./lib/decorators/legacy/index.js"
       }
     },
-    "./_non-semver-use-at-your-own-risk_/*": {
-      "default": "./lib/*"
-    },
+    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
     "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
-    "lib",
-    "types",
-    "index.js"
+    "lib"
   ],
   "license": "MIT",
   "dependencies": {

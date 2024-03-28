@@ -32,6 +32,9 @@
       "types": "./lib/node/index.d.ts"
     }
   },
+  "files": [
+    "lib"
+  ],
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
