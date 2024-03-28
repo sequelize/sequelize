@@ -10,6 +10,7 @@ import type { Fn } from '../expression-builders/fn.js';
 import type { JsonPath } from '../expression-builders/json-path.js';
 import type { Literal } from '../expression-builders/literal.js';
 import type { Sequelize } from '../sequelize.js';
+import type { TemporalTimeFindOptions } from '../temporal-tables.js';
 import { extractModelDefinition } from '../utils/model-utils.js';
 import { injectReplacements } from '../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
@@ -350,5 +351,14 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
    */
   addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates the SQL for a BUSINESS_TIME or SYSTEM_TIME clause on temporal tables
+   *
+   * @param _options The options to use when generating the clause
+   */
+  formatTemporalTime(_options: TemporalTimeFindOptions): string {
+    throw new Error(`formatTemporalTime has not been implemented in ${this.dialect.name}.`);
   }
 }

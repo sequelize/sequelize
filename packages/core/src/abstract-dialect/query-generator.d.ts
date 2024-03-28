@@ -10,6 +10,7 @@ import type {
   NormalizedAttributeOptions,
   SearchPathable,
 } from '../model.js';
+import type { TemporalTableOptions, TemporalTableType } from '../temporal-tables.js';
 import type { DataType } from './data-types.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
@@ -56,13 +57,14 @@ type ArithmeticQueryOptions = ParameterOptions & {
 };
 
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface CreateTableQueryOptions {
+export interface CreateTableQueryOptions extends Omit<TemporalTableOptions, 'temporalTableType'> {
   collate?: string;
   charset?: string;
   engine?: string;
   rowFormat?: string;
   comment?: string;
   initialAutoIncrement?: number;
+  temporalTableType?: Exclude<TemporalTableType, TemporalTableType.NON_TEMPORAL>;
   /**
    * Used for compound unique keys.
    */

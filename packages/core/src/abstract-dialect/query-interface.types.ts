@@ -3,7 +3,9 @@ import type { QueryRawOptions } from '../sequelize';
 import type { IsolationLevel } from '../transaction';
 import type {
   AddConstraintQueryOptions,
+  AddTemporalTableQueryOptions,
   BulkDeleteQueryOptions,
+  ChangeTemporalTableQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
@@ -124,6 +126,21 @@ export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOpt
 
 /** Options accepted by {@link AbstractQueryInterface#truncate} */
 export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#addTemporalTable} */
+export interface AddTemporalTableOptions extends AddTemporalTableQueryOptions, QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#changeTemporalTable} */
+export interface ChangeTemporalTableOptions
+  extends Omit<ChangeTemporalTableQueryOptions, 'temporalPeriods'>,
+    QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#removeTemporalTable} */
+export interface RemoveTemporalTableOptions extends QueryRawOptions {
+  dropColumns?: boolean;
+  dropHistoryTable?: boolean;
+  historyTableName?: string | undefined;
+}
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 

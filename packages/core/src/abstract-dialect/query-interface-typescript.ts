@@ -6,6 +6,12 @@ import { BaseError } from '../errors';
 import { setTransactionFromCls } from '../model-internals.js';
 import { QueryTypes } from '../query-types';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../sequelize';
+import type { TemporalPeriodDefinition, TemporalTableDefinition } from '../temporal-tables.js';
+import {
+  HistoryRetentionPeriodUnit,
+  TemporalPeriodType,
+  TemporalTableType,
+} from '../temporal-tables.js';
 import { COMPLETES_TRANSACTION, Transaction } from '../transaction';
 import { isErrorWithStringCode } from '../utils/check.js';
 import {
@@ -21,6 +27,8 @@ import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
+  AddTemporalTableOptions,
+  ChangeTemporalTableOptions,
   ColumnsDescription,
   CommitTransactionOptions,
   ConstraintDescription,
@@ -42,6 +50,7 @@ import type {
   QiTruncateTableOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
+  RemoveTemporalTableOptions,
   RenameTableOptions,
   RollbackSavepointOptions,
   RollbackTransactionOptions,
@@ -236,6 +245,17 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param options   Query options
    */
   async dropTable(tableName: TableOrModel, options?: QiDropTableOptions): Promise<void> {
+    if (
+      this.dialect.supports.temporalTables.applicationPeriod ||
+      this.dialect.supports.temporalTables.biTemporal ||
+      this.dialect.supports.temporalTables.systemPeriod
+    ) {
+      const isTemporalTable = await this.isTemporalTable(tableName, options);
+      if (isTemporalTable) {
+        await this.removeTemporalTable(tableName, options);
+      }
+    }
+
     const sql = this.queryGenerator.dropTableQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, options);
@@ -429,6 +449,321 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     } else {
       await this.sequelize.queryRaw(sql, queryOptions);
     }
+  }
+
+  /**
+   * Add temporal table support for the specified table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async addTemporalTable(
+    tableOrModel: TableOrModel,
+    options: AddTemporalTableOptions,
+  ): Promise<void> {
+    const temporalSupport = this.sequelize.dialect.supports.temporalTables;
+    switch (options.temporalTableType) {
+      case TemporalTableType.APPLICATION_PERIOD:
+        if (!temporalSupport.applicationPeriod) {
+          throw new Error(
+            `Application-period tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+      case TemporalTableType.BITEMPORAL:
+        if (!temporalSupport.biTemporal) {
+          throw new Error(
+            `Bi-temporal tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+      case TemporalTableType.SYSTEM_PERIOD:
+        if (!temporalSupport.systemPeriod) {
+          throw new Error(
+            `System-period tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+      default:
+        throw new Error(`Invalid temporal table type ${options.temporalTableType}`);
+    }
+
+    const queryOptions = { ...options, raw: true };
+    const table = this.queryGenerator.extractTableDetails(tableOrModel);
+    const isTemporalTable = await this.isTemporalTable(tableOrModel, queryOptions);
+    if (isTemporalTable) {
+      throw new Error(`Table ${table.tableName} is already a temporal table`);
+    }
+
+    const temporalPeriods = await this.showTemporalPeriods(tableOrModel, queryOptions);
+    if (temporalPeriods.length > 0) {
+      throw new Error(
+        `Table ${table.tableName} already has temporal periods, use changeTemporalTable instead`,
+      );
+    }
+
+    if (temporalSupport.historyTable) {
+      queryOptions.historyTableName = options.historyTableName || `${table.tableName}_history`;
+      if (temporalSupport.historyRetentionPeriod) {
+        queryOptions.historyRetentionPeriod = {
+          length: options.historyRetentionPeriod?.length || null,
+          unit: options.historyRetentionPeriod?.unit || HistoryRetentionPeriodUnit.INFINITE,
+        };
+      }
+    }
+
+    const sql = this.queryGenerator.addTemporalTableQuery(tableOrModel, queryOptions);
+
+    await this.sequelize.queryRaw(sql, queryOptions);
+  }
+
+  /**
+   * Change a temporal table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async changeTemporalTable(
+    tableOrModel: TableOrModel,
+    options: ChangeTemporalTableOptions,
+  ): Promise<void> {
+    const temporalSupport = this.sequelize.dialect.supports.temporalTables;
+    switch (options.temporalTableType) {
+      case TemporalTableType.APPLICATION_PERIOD:
+        if (!temporalSupport.applicationPeriod) {
+          throw new Error(
+            `Application-period tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+      case TemporalTableType.BITEMPORAL:
+        if (!temporalSupport.biTemporal) {
+          throw new Error(
+            `Bi-temporal tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+
+      case TemporalTableType.SYSTEM_PERIOD:
+        if (!temporalSupport.systemPeriod) {
+          throw new Error(
+            `System-period tables are not supported in ${this.sequelize.dialect.name}.`,
+          );
+        }
+
+        break;
+
+      case TemporalTableType.NON_TEMPORAL:
+        break;
+
+      default:
+        throw new Error(`Invalid temporal table type ${options.temporalTableType}`);
+    }
+
+    const queryOptions = { ...options, raw: true };
+
+    if (temporalSupport.historyTable) {
+      const table = this.queryGenerator.extractTableDetails(tableOrModel);
+      const temporalTables = await this.showTemporalTables(tableOrModel, queryOptions);
+      const temporalTableData = temporalTables.find(
+        t => t.tableName === table.tableName && t.schema === table.schema,
+      );
+      queryOptions.historyTableName =
+        options.historyTableName ||
+        temporalTableData?.historyTableName ||
+        `${table.tableName}_history`;
+
+      if (temporalSupport.historyRetentionPeriod) {
+        const currentRetentionPeriod = temporalTableData?.historyRetentionPeriod;
+        queryOptions.historyRetentionPeriod = {
+          length: options.historyRetentionPeriod?.length || currentRetentionPeriod?.length || null,
+          unit:
+            options.historyRetentionPeriod?.unit ||
+            currentRetentionPeriod?.unit ||
+            HistoryRetentionPeriodUnit.INFINITE,
+        };
+      }
+    }
+
+    const sql = this.queryGenerator.changeTemporalTableQuery(tableOrModel, queryOptions);
+
+    await this.sequelize.queryRaw(sql, queryOptions);
+  }
+
+  /**
+   * Check if is the table is currently a temporal table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async isTemporalTable(tableOrModel: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
+    const sql = this.queryGenerator.isTemporalTableQuery(tableOrModel);
+    const out = await this.sequelize.queryRaw(sql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
+
+    return out.length === 1;
+  }
+
+  /**
+   * Remove temporal table support for the specified table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async removeTemporalTable(
+    tableOrModel: TableOrModel,
+    options?: RemoveTemporalTableOptions,
+  ): Promise<void> {
+    const queryOptions = { ...options, raw: true };
+    // Check if the table is a temporal table
+    const isTemporalTable = await this.isTemporalTable(tableOrModel, queryOptions);
+    const table = this.queryGenerator.extractTableDetails(tableOrModel);
+    if (!isTemporalTable) {
+      throw new Error(`Table ${table.tableName} is not a temporal table`);
+    }
+
+    // Get the temporal periods before removing they are removed
+    const temporalPeriods = await this.showTemporalPeriods(tableOrModel, queryOptions);
+
+    // Set the history table name if it is not provided
+    if (this.sequelize.dialect.supports.temporalTables.historyTable) {
+      const temporalTables = await this.showTemporalTables(tableOrModel, queryOptions);
+      const temporalTableData = temporalTables.find(
+        t => t.tableName === table.tableName && t.schema === table.schema,
+      );
+      queryOptions.historyTableName =
+        options?.historyTableName || temporalTableData?.historyTableName;
+    }
+
+    const sql = this.queryGenerator.removeTemporalTableQuery(tableOrModel);
+
+    await this.sequelize.queryRaw(sql, queryOptions);
+
+    // Remove the columns for the temporal periods
+    if (queryOptions.dropColumns) {
+      for (const period of temporalPeriods) {
+        // eslint-disable-next-line no-await-in-loop
+        await this.removeColumn(tableOrModel, period.rowStart, queryOptions);
+        // eslint-disable-next-line no-await-in-loop
+        await this.removeColumn(tableOrModel, period.rowEnd, queryOptions);
+      }
+    }
+
+    // Remove the history table
+    if (queryOptions.dropHistoryTable) {
+      if (!this.sequelize.dialect.supports.temporalTables.historyTable) {
+        throw new Error(
+          `Failed to remove temporal table. History tables are not supported by the ${this.sequelize.dialect.name} dialect`,
+        );
+      }
+
+      if (!queryOptions.historyTableName) {
+        throw new TypeError('Failed to disable temporal table. History table name is required.');
+      }
+
+      await this.dropTable(queryOptions.historyTableName, queryOptions);
+    }
+  }
+
+  /**
+   * Show the period information for a temporal table
+   *
+   * @param tableOrModel
+   * @param options
+   */
+  async showTemporalPeriods(
+    tableOrModel: TableOrModel,
+    options?: QueryRawOptions,
+  ): Promise<TemporalPeriodDefinition[]> {
+    const sql = this.queryGenerator.showTemporalPeriodsQuery(tableOrModel);
+
+    const periods = await this.sequelize.queryRaw<Record<string, string>>(sql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
+
+    const periodMap = new Map([
+      ['SYSTEM_TIME_PERIOD', TemporalPeriodType.SYSTEM],
+      ['APPLICATION_TIME_PERIOD', TemporalPeriodType.APPLICATION],
+    ]);
+
+    return periods.map(p => {
+      const periodType = periodMap.get(p.type);
+      if (!periodType) {
+        throw new Error(`Unknown period type ${p.type}`);
+      }
+
+      return {
+        name: p.name,
+        rowEnd: p.rowEnd,
+        rowStart: p.rowStart,
+        type: periodType,
+      };
+    });
+  }
+
+  /**
+   * Show the table information for a temporal table
+   *
+   * @param tableName
+   * @param options
+   */
+  async showTemporalTables(
+    tableName: TableOrModel,
+    options?: QueryRawOptions,
+  ): Promise<TemporalTableDefinition[]> {
+    const sql = this.queryGenerator.showTemporalTablesQuery(tableName);
+
+    const tables = await this.sequelize.queryRaw<Record<string, string>>(sql, {
+      ...options,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
+
+    const tableMap = new Map([
+      ['NON_TEMPORAL_TABLE', TemporalTableType.NON_TEMPORAL],
+      ['SYSTEM_VERSIONED_TEMPORAL_TABLE', TemporalTableType.SYSTEM_PERIOD],
+      ['APPLICATION_VERSIONED_TEMPORAL_TABLE', TemporalTableType.APPLICATION_PERIOD],
+      ['BI_TEMPORAL_TABLE', TemporalTableType.BITEMPORAL],
+    ]);
+
+    return tables.map(t => {
+      const tableType = tableMap.get(t.type);
+      if (!tableType) {
+        throw new Error(`Unknown table type ${t.type}`);
+      }
+
+      const data: TemporalTableDefinition = {
+        tableName: t.tableName,
+        schema: t.schema,
+        temporalTableType: tableType,
+      };
+
+      if (this.sequelize.dialect.supports.temporalTables.historyTable) {
+        data.historyTableName = t.historyTableName;
+      }
+
+      if (this.sequelize.dialect.supports.temporalTables.historyRetentionPeriod) {
+        const length = t.historyRetentionPeriodLength
+          ? Number.parseInt(t.historyRetentionPeriodLength, 10)
+          : null;
+        const unit =
+          (t.historyRetentionPeriodUnit as HistoryRetentionPeriodUnit) ||
+          HistoryRetentionPeriodUnit.INFINITE;
+        data.historyRetentionPeriod = { length, unit };
+      }
+
+      return data;
+    });
   }
 
   /**
