@@ -29,12 +29,14 @@ export class MsSqlDialect extends AbstractDialect {
       default: true,
       removeOptions: { ifExists: true },
     },
-    index: {
-      collate: false,
-      type: true,
-      using: false,
-      where: true,
+    addIndex: {
       include: true,
+      type: true,
+      where: true,
+    },
+    removeIndex: {
+      ifExists: true,
+      on: true,
     },
     tmpTableTrigger: true,
     dataTypes: {

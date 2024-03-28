@@ -987,7 +987,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
             'indexHints',
           ]),
-          'mariadb mysql snowflake':
+          'mariadb mysql':
             'SELECT [id] FROM [Users] AS [User] FORCE INDEX ([index_project_on_name]);',
         },
       );
@@ -1016,7 +1016,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
             'indexHints',
           ]),
-          'mariadb mysql snowflake':
+          'mariadb mysql':
             'SELECT [id] FROM [Users] AS [User] IGNORE INDEX ([index_project_on_name],[index_project_on_name_and_foo]);',
         },
       );
@@ -1041,7 +1041,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
             'indexHints',
           ]),
-          'mariadb mysql snowflake': new Error(
+          'mariadb mysql': new Error(
             `The index hint type "INVALID" is invalid or not supported by dialect "${sequelize.dialect.name}".`,
           ),
         },

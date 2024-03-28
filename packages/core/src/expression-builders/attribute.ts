@@ -9,7 +9,7 @@ import type { JsonPath } from './json-path.js';
  * Use {@link attribute} instead.
  */
 export class Attribute extends BaseSqlExpression {
-  private declare readonly brand: 'attribute';
+  protected declare readonly brand: 'attribute';
 
   constructor(readonly attributeName: string) {
     super();

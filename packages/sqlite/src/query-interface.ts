@@ -101,11 +101,11 @@ export class SqliteQueryInterface<
         column.unique = false;
       }
 
-      const indexes = await this.showIndex(tableName, options);
+      const indexes = await this.showIndexes(tableName, options);
       for (const index of indexes) {
         for (const field of index.fields) {
           if (index.unique !== undefined) {
-            data[field.attribute].unique = index.unique;
+            data[field.name].unique = index.unique;
           }
         }
       }

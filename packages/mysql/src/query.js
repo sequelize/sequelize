@@ -9,9 +9,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { inspect } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
-import map from 'lodash/map';
 import zipObject from 'lodash/zipObject';
 
 const ER_DUP_ENTRY = 1062;
@@ -272,43 +270,35 @@ export class MySqlQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    // Group by index name, and collect all fields
-    data = data.reduce((acc, item) => {
-      if (!(item.Key_name in acc)) {
-        acc[item.Key_name] = item;
-        item.fields = [];
+    const indexes = new Map();
+    for (const item of data) {
+      const idx = indexes.get(item.Key_name);
+      if (idx) {
+        idx.fields.push({
+          name: item.Column_name,
+          length: item.Sub_part || undefined,
+          order: item.Collation === 'A' ? 'ASC' : item.Collation === 'D' ? 'DESC' : undefined,
+          collate: undefined,
+        });
+      } else {
+        indexes.set(item.Key_name, {
+          tableName: item.Table,
+          name: item.Key_name,
+          using: item.Index_type,
+          fields: [
+            {
+              name: item.Column_name,
+              length: item.Sub_part || undefined,
+              order: item.Collation === 'A' ? 'ASC' : item.Collation === 'D' ? 'DESC' : undefined,
+              collate: undefined,
+            },
+          ],
+          primary: item.Key_name === 'PRIMARY',
+          unique: item.Non_unique !== '1' && item.Non_unique !== 1,
+        });
       }
+    }
 
-      acc[item.Key_name].fields[item.Seq_in_index - 1] = {
-        attribute: item.Column_name,
-        length: item.Sub_part || undefined,
-        order:
-          item.Collation === 'A'
-            ? 'ASC'
-            : item.Collation === 'D'
-              ? 'DESC'
-              : // Not sorted
-                item.Collation === null
-                ? null
-                : (() => {
-                    throw new Error(`Unknown index collation ${inspect(item.Collation)}`);
-                  })(),
-      };
-      delete item.column_name;
-
-      return acc;
-    }, {});
-
-    return map(data, item => {
-      return {
-        primary: item.Key_name === 'PRIMARY',
-        fields: item.fields,
-        name: item.Key_name,
-        tableName: item.Table,
-        // MySQL 8 returns this as a number (Integer), MySQL 5 returns it as a string (BigInt)
-        unique: item.Non_unique !== '1' && item.Non_unique !== 1,
-        type: item.Index_type,
-      };
-    });
+    return [...indexes.values()];
   }
 }

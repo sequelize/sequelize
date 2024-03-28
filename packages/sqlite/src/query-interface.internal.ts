@@ -41,7 +41,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           transaction: options?.transaction,
         },
         async () => {
-          const indexes = await this.#sequelize.queryInterface.showIndex(tableName, options);
+          const indexes = await this.#sequelize.queryInterface.showIndexes(tableName, options);
           for (const index of indexes) {
             // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
             if (!index.name.startsWith('sqlite_autoindex_')) {
@@ -53,8 +53,8 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             }
 
             for (const field of index.fields) {
-              if (columns[field.attribute]) {
-                columns[field.attribute].unique = true;
+              if (columns[field.name]) {
+                columns[field.name].unique = true;
               }
             }
           }
@@ -89,7 +89,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               return this.#sequelize.queryInterface.addIndex(tableName, {
                 ...index,
                 type: undefined,
-                fields: index.fields.map(field => field.attribute),
+                fields: index.fields.map(field => field.name),
               });
             }),
           );

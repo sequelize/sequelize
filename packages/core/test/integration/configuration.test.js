@@ -199,12 +199,11 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       Support.destroySequelizeAfterTest(sequelizeReadWrite);
 
       const createTableBar = 'CREATE TABLE bar (baz TEXT);';
-      await Promise.all([
-        sequelizeReadOnly
-          .query(createTableBar)
-          .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
-        sequelizeReadWrite.query(createTableBar),
-      ]);
+      await expect(sequelizeReadOnly.query(createTableBar)).to.be.rejectedWith(
+        Error,
+        'SQLITE_READONLY: attempt to write a readonly database',
+      );
+      await sequelizeReadWrite.query(createTableBar);
     });
   });
 });
