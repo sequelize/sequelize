@@ -1,4 +1,3 @@
-import { isNodeError } from '@sequelize/utils/node';
 import cloneDeep from 'lodash/cloneDeep';
 import semver from 'semver';
 import { TimeoutError } from 'sequelize-pool';
@@ -112,38 +111,6 @@ export class AbstractConnectionManager<
 
   async disconnect(_connection: TConnection): Promise<void> {
     throw new Error(`disconnect not implemented in ${this.constructor.name}`);
-  }
-
-  /**
-   * Try to load dialect module from various configured options.
-   * Priority goes like dialectModulePath > dialectModule > require(default)
-   *
-   * @param moduleName Name of dialect module to lookup
-   *
-   * @private
-   */
-  _loadDialectModule(moduleName: string): unknown {
-    try {
-      if (this.sequelize.config.dialectModulePath) {
-        return require(this.sequelize.config.dialectModulePath);
-      }
-
-      if (this.sequelize.config.dialectModule) {
-        return this.sequelize.config.dialectModule;
-      }
-
-      return require(moduleName);
-    } catch (error) {
-      if (isNodeError(error) && error.code === 'MODULE_NOT_FOUND') {
-        if (this.sequelize.config.dialectModulePath) {
-          throw new Error(`Unable to find dialect at ${this.sequelize.config.dialectModulePath}`);
-        }
-
-        throw new Error(`Please install ${moduleName} package manually`);
-      }
-
-      throw error;
-    }
   }
 
   /**

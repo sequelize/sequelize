@@ -2,12 +2,25 @@ import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { OdbcModule } from './connection-manager.js';
 import { IBMiConnectionManager } from './connection-manager.js';
 import { IBMiQueryGenerator } from './query-generator.js';
 import { IBMiQueryInterface } from './query-interface.js';
 import { IBMiQuery } from './query.js';
 
-export class IBMiDialect extends AbstractDialect {
+export interface IbmiDialectOptions {
+  /**
+   * The odbc library to use.
+   * If not provided, the odbc npm library will be used.
+   * Must be compatible with the odbc npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  odbcModule?: OdbcModule;
+}
+
+export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
   static readonly supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
@@ -48,21 +61,23 @@ export class IBMiDialect extends AbstractDialect {
   readonly connectionManager: IBMiConnectionManager;
   readonly queryGenerator: IBMiQueryGenerator;
   readonly queryInterface: IBMiQueryInterface;
-
-  readonly dataTypesDocumentationUrl =
-    'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm';
-
-  readonly defaultVersion = '7.3.0';
   readonly Query = IBMiQuery;
-  readonly TICK_CHAR_LEFT = '"';
-  readonly TICK_CHAR_RIGHT = '"';
 
-  constructor(sequelize: Sequelize) {
+  constructor(sequelize: Sequelize, options: IbmiDialectOptions) {
     console.warn(
       'The IBMi dialect is experimental and usage is at your own risk. Its development is exclusively community-driven and not officially supported by the maintainers.',
     );
 
-    super(sequelize, DataTypes, 'ibmi');
+    super({
+      dataTypesDocumentationUrl:
+        'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm',
+      identifierDelimiter: '"',
+      minimumDatabaseVersion: '7.3.0',
+      name: 'db2',
+      options,
+      sequelize,
+      dataTypeOverrides: DataTypes,
+    });
 
     this.connectionManager = new IBMiConnectionManager(this);
     this.queryGenerator = new IBMiQueryGenerator(this);
@@ -87,6 +102,6 @@ export class IBMiDialect extends AbstractDialect {
   }
 
   static getSupportedOptions() {
-    return [];
+    return ['odbcModule'];
   }
 }

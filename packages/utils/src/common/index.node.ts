@@ -4,6 +4,7 @@ export * from './array-from-async.js';
 export * from './clone-deep-plain-values.js';
 export * from './consts.js';
 export * from './freeze-deep.js';
+export * from './get-immutable-pojo.js';
 export * from './inspect.js';
 export * from './iterator-utils/combined-iterator.js';
 export * from './iterator-utils/count.js';
