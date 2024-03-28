@@ -6,7 +6,7 @@ import type {
   StrictRequiredBy,
 } from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
-import type { Connection } from './abstract-dialect/connection-manager.js';
+import type { AbstractConnection } from './abstract-dialect/connection-manager.js';
 import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
 import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
 import type {
@@ -40,7 +40,7 @@ export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
+  logging?: false | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
@@ -77,7 +77,7 @@ export interface Transactionable {
    * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
    * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
    */
-  connection?: Connection | null | undefined;
+  connection?: AbstractConnection | null | undefined;
 
   /**
    * Indicates if the query completes the transaction

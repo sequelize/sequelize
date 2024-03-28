@@ -8,7 +8,7 @@ import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { PgModule } from './connection-manager.js';
+import type { PgModule, PostgresConnectionOptions } from './connection-manager.js';
 import { PostgresConnectionManager } from './connection-manager.js';
 import { PostgresQueryGenerator } from './query-generator.js';
 import { PostgresQueryInterface } from './query-interface.js';
@@ -32,11 +32,54 @@ export interface PostgresDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   pgModule?: PgModule;
+
+  /**
+   * The PostgreSQL `standard_conforming_strings` session parameter.
+   * Set to `false` to not set the option.
+   * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
+   *
+   * @default true
+   */
+  standardConformingStrings?: boolean;
+
+  /**
+   * The PostgreSql `client_min_messages` session parameter.
+   * Set explicitly to `false` to not override the database's default.
+   * Redshift does not support this parameter, it is important to set this option
+   * to `false` when connecting to Redshift.
+   *
+   * @default 'warning'
+   */
+  clientMinMessages?: string | boolean;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<PostgresDialectOptions>({
+  clientMinMessages: undefined,
   native: undefined,
   pgModule: undefined,
+  standardConformingStrings: undefined,
+});
+
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<PostgresConnectionOptions>({
+  application_name: undefined,
+  binary: undefined,
+  client_encoding: undefined,
+  connectionString: undefined,
+  connectionTimeoutMillis: undefined,
+  database: undefined,
+  host: undefined,
+  idle_in_transaction_session_timeout: undefined,
+  keepAlive: undefined,
+  keepAliveInitialDelayMillis: undefined,
+  lock_timeout: undefined,
+  options: undefined,
+  password: undefined,
+  port: undefined,
+  query_timeout: undefined,
+  ssl: undefined,
+  statement_timeout: undefined,
+  stream: undefined,
+  user: undefined,
 });
 
 export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
@@ -186,18 +229,18 @@ export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
     // - standard_conforming_strings is off
     // - the string is prefixed with E (out of scope for this method)
 
-    return !this.sequelize.options.standardConformingStrings;
+    return !this.options.standardConformingStrings;
   }
 
   getDefaultSchema() {
     return 'public';
   }
 
-  static getDefaultPort() {
-    return 5432;
-  }
-
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

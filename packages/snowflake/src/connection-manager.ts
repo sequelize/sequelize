@@ -1,4 +1,4 @@
-import type { Connection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -17,7 +17,7 @@ export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, SnowflakeSdk.Connection {}
+export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,

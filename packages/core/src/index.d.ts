@@ -31,7 +31,11 @@ export type {
   TimeOptions,
   VirtualOptions,
 } from './abstract-dialect/data-types.js';
-export { AbstractDialect } from './abstract-dialect/index.js';
+export {
+  AbstractDialect,
+  type ConnectionOptions,
+  type DialectOptions,
+} from './abstract-dialect/index.js';
 export { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 export * from './abstract-dialect/query-generator.types.js';
 export * from './abstract-dialect/query-interface.js';
@@ -95,3 +99,4 @@ export { Fn, fn } from './expression-builders/fn.js';
 export { json } from './expression-builders/json.js';
 export { Literal, literal } from './expression-builders/literal.js';
 export { Where, where } from './expression-builders/where.js';
+export type { Options, PoolOptions } from './sequelize.types.js';

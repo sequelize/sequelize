@@ -8,7 +8,7 @@ import {
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMariaDbDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { MariaDbModule } from './connection-manager.js';
+import type { MariaDbConnectionOptions, MariaDbModule } from './connection-manager.js';
 import { MariaDbConnectionManager } from './connection-manager.js';
 import { MariaDbQueryGenerator } from './query-generator.js';
 import { MariaDbQueryInterface } from './query-interface.js';
@@ -30,12 +30,61 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbDialectOptions>({
   mariaDbModule: undefined,
 });
 
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbConnectionOptions>({
+  database: undefined,
+  host: undefined,
+  port: undefined,
+  socketPath: undefined,
+  connectTimeout: undefined,
+  socketTimeout: undefined,
+  debug: undefined,
+  debugCompress: undefined,
+  debugLen: undefined,
+  logParam: undefined,
+  trace: undefined,
+  multipleStatements: undefined,
+  ssl: undefined,
+  compress: undefined,
+  logPackets: undefined,
+  forceVersionCheck: undefined,
+  foundRows: undefined,
+  initSql: undefined,
+  sessionVariables: undefined,
+  maxAllowedPacket: undefined,
+  keepAliveDelay: undefined,
+  rsaPublicKey: undefined,
+  cachingRsaPublicKey: undefined,
+  allowPublicKeyRetrieval: undefined,
+  prepareCacheLength: undefined,
+  stream: undefined,
+  metaEnumerable: undefined,
+  infileStreamFactory: undefined,
+  connectAttributes: undefined,
+  charset: undefined,
+  collation: undefined,
+  user: undefined,
+  password: undefined,
+  permitSetMultiParamEntries: undefined,
+  bulk: undefined,
+  pipelining: undefined,
+  permitLocalInfile: undefined,
+  timeout: undefined,
+  autoJsonMap: undefined,
+  arrayParenthesis: undefined,
+  checkDuplicate: undefined,
+  checkNumberRange: undefined,
+  logger: undefined,
+});
+
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
 
-export class MariaDbDialect extends AbstractDialect<MariaDbDialectOptions> {
+export class MariaDbDialect extends AbstractDialect<
+  MariaDbDialectOptions,
+  MariaDbConnectionOptions
+> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -134,7 +183,7 @@ export class MariaDbDialect extends AbstractDialect<MariaDbDialectOptions> {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
+    return (this.sequelize as Sequelize<MariaDbDialect>).options.replication.write.database ?? '';
   }
 
   static getDefaultPort() {
@@ -143,5 +192,9 @@ export class MariaDbDialect extends AbstractDialect<MariaDbDialectOptions> {
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

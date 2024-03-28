@@ -1,11 +1,9 @@
 import type { Connection, GetConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { map } from '@sequelize/utils';
 import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { promisify } from 'node:util';
 import * as Sqlite3 from 'sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
@@ -35,16 +33,6 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
     }
 
     this.lib = this.dialect.options.sqlite3Module ?? Sqlite3;
-  }
-
-  async _onProcessExit() {
-    await Promise.all(
-      map(this.connections.values(), async connection => {
-        return promisify(connection.close.bind(connection))();
-      }),
-    );
-
-    return super._onProcessExit();
   }
 
   async getConnection(options: GetConnectionOptions): Promise<SqliteConnection> {
@@ -114,6 +102,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
   async disconnect(_connection: SqliteConnection): Promise<void> {}
 
+  // TODO: move
   async releaseConnection(connection: SqliteConnection, force?: boolean): Promise<void> {
     if (connection.filename === ':memory:' && force !== true) {
       return;

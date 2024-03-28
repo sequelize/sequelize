@@ -32,6 +32,7 @@ module.exports = {
     'unicorn/no-unsafe-regex': 'off',
     // conflicts with prettier
     'unicorn/number-literal-case': 'off',
+    'sort-import': 'off',
 
     // TODO: enable in follow-up PR. Requires the utils package.
     'no-restricted-syntax': 'off',

@@ -21,12 +21,25 @@ export interface SqliteDialectOptions {
   sqlite3Module?: Sqlite3Module;
 }
 
+export interface SqliteConnectionOptions {
+  /**
+   * Path to the SQLite database file, or ':memory:' to use an in-memory database.
+   *
+   * @default ':memory:'
+   */
+  storage?: string;
+}
+
 // This strange piece of code ensures that this array includes all keys of the above interface interface.
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SqliteDialectOptions>({
   sqlite3Module: undefined,
 });
 
-export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SqliteConnectionOptions>({
+  storage: undefined,
+});
+
+export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     DEFAULT: false,
     'DEFAULT VALUES': true,
@@ -114,5 +127,9 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions(): readonly string[] {
+    return CONNECTION_OPTION_NAMES;
   }
 }

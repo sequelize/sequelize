@@ -4,7 +4,8 @@ import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-a
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMsSqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { TediousModule } from './connection-manager.js';
+import { INLINED_OPTION_OBJ } from './connection-manager.internal.js';
+import type { MsSqlConnectionOptions, TediousModule } from './connection-manager.js';
 import { MsSqlConnectionManager } from './connection-manager.js';
 import { MsSqlQueryGenerator } from './query-generator.js';
 import { MsSqlQueryInterface } from './query-interface.js';
@@ -26,7 +27,13 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
   tediousModule: undefined,
 });
 
-export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlConnectionOptions>({
+  ...INLINED_OPTION_OBJ,
+  authentication: undefined,
+  server: undefined,
+});
+
+export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
@@ -143,11 +150,11 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
     return 'dbo';
   }
 
-  static getDefaultPort() {
-    return 1433;
-  }
-
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

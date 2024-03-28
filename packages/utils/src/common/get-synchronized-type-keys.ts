@@ -19,6 +19,6 @@
  */
 export function getSynchronizedTypeKeys<Interface>(
   input: Record<keyof Interface, undefined>,
-): readonly string[] {
-  return Object.freeze(Object.keys(input));
+): ReadonlyArray<keyof Interface> {
+  return Object.freeze(Object.keys(input) as Array<keyof Interface>);
 }

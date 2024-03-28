@@ -8,7 +8,7 @@ import {
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { MySql2Module } from './connection-manager.js';
+import type { MySql2Module, MySqlConnectionOptions } from './connection-manager.js';
 import { MySqlConnectionManager } from './connection-manager.js';
 import { MySqlQueryGenerator } from './query-generator.js';
 import { MySqlQueryInterface } from './query-interface.js';
@@ -30,12 +30,54 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
   mysql2Module: undefined,
 });
 
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MySqlConnectionOptions>({
+  authPlugins: undefined,
+  authSwitchHandler: undefined,
+  charset: undefined,
+  charsetNumber: undefined,
+  compress: undefined,
+  connectAttributes: undefined,
+  connectTimeout: undefined,
+  connectionLimit: undefined,
+  database: undefined,
+  debug: undefined,
+  enableKeepAlive: undefined,
+  flags: undefined,
+  host: undefined,
+  idleTimeout: undefined,
+  infileStreamFactory: undefined,
+  insecureAuth: undefined,
+  isServer: undefined,
+  keepAliveInitialDelay: undefined,
+  localAddress: undefined,
+  maxIdle: undefined,
+  maxPreparedStatements: undefined,
+  multipleStatements: undefined,
+  nestTables: undefined,
+  password: undefined,
+  password1: undefined,
+  password2: undefined,
+  password3: undefined,
+  passwordSha1: undefined,
+  port: undefined,
+  queryFormat: undefined,
+  queueLimit: undefined,
+  socketPath: undefined,
+  ssl: undefined,
+  stream: undefined,
+  stringifyObjects: undefined,
+  trace: undefined,
+  uri: undefined,
+  user: undefined,
+  waitForConnections: undefined,
+});
+
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
 
-export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
+export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -133,14 +175,14 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
-  }
-
-  static getDefaultPort() {
-    return 3306;
+    return (this.sequelize as Sequelize<MySqlDialect>).options.replication.write.database ?? '';
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

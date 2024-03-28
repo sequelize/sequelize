@@ -46,3 +46,4 @@ export const shallowClonePojo = Pkg.shallowClonePojo;
 export const upcast = Pkg.upcast;
 export const getImmutablePojo = Pkg.getImmutablePojo;
 export const getSynchronizedTypeKeys = Pkg.getSynchronizedTypeKeys;
+export const splitObject = Pkg.splitObject;
