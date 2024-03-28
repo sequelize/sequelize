@@ -504,14 +504,14 @@ export abstract class AbstractDialect<Options extends object = {}> {
   }
 
   /**
-   * @deprecated use {@link identifierDelimiter.start}
+   * @deprecated use {@link identifierDelimiter}.start
    */
   get TICK_CHAR_LEFT(): string {
     return this.identifierDelimiter.start;
   }
 
   /**
-   * @deprecated use {@link identifierDelimiter.end}
+   * @deprecated use {@link identifierDelimiter}.end
    */
   get TICK_CHAR_RIGHT(): string {
     return this.identifierDelimiter.end;

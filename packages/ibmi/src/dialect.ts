@@ -73,7 +73,7 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
         'https://www.ibm.com/support/knowledgecenter/en/ssw_ibm_i_73/db2/rbafzch2data.htm',
       identifierDelimiter: '"',
       minimumDatabaseVersion: '7.3.0',
-      name: 'db2',
+      name: 'ibmi',
       options,
       sequelize,
       dataTypeOverrides: DataTypes,
