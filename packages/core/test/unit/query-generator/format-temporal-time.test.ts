@@ -5,6 +5,7 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(
   `formatTemporalTime has not been implemented in ${dialectName}.`,
 );
+const businessTimeNotSupportedError = new Error(`Invalid temporal time type BUSINESS_TIME.`);
 
 describe('QueryGenerator#formatTemporalTime', () => {
   const internals = sequelize.queryGenerator.__TEST__getInternals();
@@ -18,6 +19,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: businessTimeNotSupportedError,
       },
     );
   });
@@ -33,6 +35,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: businessTimeNotSupportedError,
       },
     );
   });
@@ -50,6 +53,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: businessTimeNotSupportedError,
       },
     );
   });
@@ -67,6 +71,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: businessTimeNotSupportedError,
       },
     );
   });
@@ -84,6 +89,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: businessTimeNotSupportedError,
       },
     );
   });
@@ -97,12 +103,14 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: 'FOR SYSTEM_TIME ALL',
       },
     );
   });
 
   it('produces a SYSTEM_TIME query for AS_OF', () => {
     const now = new Date();
+    const nowString = new Date(now.getTime() + 1).toISOString();
     expectsql(
       () =>
         internals.formatTemporalTime({
@@ -112,6 +120,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: `FOR SYSTEM_TIME AS OF N'${nowString}'`,
       },
     );
   });
@@ -119,6 +128,8 @@ describe('QueryGenerator#formatTemporalTime', () => {
   it('produces a SYSTEM_TIME query for BEWTEEN', () => {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 3600);
+    const endDateString = new Date(endDate.getTime() + 1).toISOString();
+    const startDateString = new Date(startDate.getTime() - 1).toISOString();
     expectsql(
       () =>
         internals.formatTemporalTime({
@@ -129,6 +140,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: `FOR SYSTEM_TIME BETWEEN N'${startDateString}' AND N'${endDateString}'`,
       },
     );
   });
@@ -136,6 +148,8 @@ describe('QueryGenerator#formatTemporalTime', () => {
   it('produces a SYSTEM_TIME query for FROM_TO', () => {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 3600);
+    const endDateString = new Date(endDate.getTime() + 1).toISOString();
+    const startDateString = new Date(startDate.getTime() - 1).toISOString();
     expectsql(
       () =>
         internals.formatTemporalTime({
@@ -146,6 +160,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: `FOR SYSTEM_TIME FROM N'${startDateString}' TO N'${endDateString}'`,
       },
     );
   });
@@ -153,6 +168,8 @@ describe('QueryGenerator#formatTemporalTime', () => {
   it('produces a SYSTEM_TIME query for CONTAINED_IN', () => {
     const startDate = new Date();
     const endDate = new Date(startDate.getTime() + 3600);
+    const endDateString = new Date(endDate.getTime() + 1).toISOString();
+    const startDateString = new Date(startDate.getTime() - 1).toISOString();
     expectsql(
       () =>
         internals.formatTemporalTime({
@@ -163,6 +180,7 @@ describe('QueryGenerator#formatTemporalTime', () => {
         }),
       {
         default: notSupportedError,
+        mssql: `FOR SYSTEM_TIME CONTAINED IN (N'${startDateString}', N'${endDateString}')`,
       },
     );
   });
