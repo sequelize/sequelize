@@ -5,6 +5,7 @@ import type {
   DialectSupports,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { PgModule } from './connection-manager.js';
@@ -32,6 +33,11 @@ export interface PostgresDialectOptions {
    */
   pgModule?: PgModule;
 }
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<PostgresDialectOptions>({
+  native: undefined,
+  pgModule: undefined,
+});
 
 export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
   static readonly supports: DialectSupports = AbstractDialect.extendSupport({
@@ -191,7 +197,7 @@ export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
     return 5432;
   }
 
-  static getSupportedOptions(): ReadonlyArray<keyof PostgresDialectOptions> {
-    return ['native', 'pgModule'];
+  static getSupportedOptions() {
+    return DIALECT_OPTION_NAMES;
   }
 }

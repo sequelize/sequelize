@@ -5,6 +5,7 @@ import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { MySql2Module } from './connection-manager.js';
@@ -24,6 +25,10 @@ export interface MySqlDialectOptions {
    */
   mysql2Module?: MySql2Module;
 }
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
+  mysql2Module: undefined,
+});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
@@ -136,6 +141,6 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
   }
 
   static getSupportedOptions() {
-    return ['mysql2Module'];
+    return DIALECT_OPTION_NAMES;
   }
 }

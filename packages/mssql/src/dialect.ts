@@ -1,6 +1,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMsSqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { TediousModule } from './connection-manager.js';
@@ -20,6 +21,10 @@ export interface MsSqlDialectOptions {
    */
   tediousModule?: TediousModule;
 }
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
+  tediousModule: undefined,
+});
 
 export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
   static supports = AbstractDialect.extendSupport({
@@ -143,6 +148,6 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
   }
 
   static getSupportedOptions() {
-    return ['tediousModule'];
+    return DIALECT_OPTION_NAMES;
   }
 }

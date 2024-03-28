@@ -45,3 +45,4 @@ export const SetView = Pkg.SetView;
 export const shallowClonePojo = Pkg.shallowClonePojo;
 export const upcast = Pkg.upcast;
 export const getImmutablePojo = Pkg.getImmutablePojo;
+export const getSynchronizedTypeKeys = Pkg.getSynchronizedTypeKeys;

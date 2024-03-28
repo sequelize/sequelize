@@ -1,6 +1,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { IbmDbModule } from './connection-manager.js';
 import { Db2ConnectionManager } from './connection-manager.js';
@@ -19,6 +20,10 @@ export interface Db2DialectOptions {
    */
   ibmDbModule?: IbmDbModule;
 }
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<Db2DialectOptions>({
+  ibmDbModule: undefined,
+});
 
 export class Db2Dialect extends AbstractDialect<Db2DialectOptions> {
   static readonly supports = AbstractDialect.extendSupport({
@@ -111,6 +116,6 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions> {
   }
 
   static getSupportedOptions() {
-    return ['ibmDbModule'];
+    return DIALECT_OPTION_NAMES;
   }
 }

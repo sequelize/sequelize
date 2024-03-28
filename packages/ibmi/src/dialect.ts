@@ -1,6 +1,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { OdbcModule } from './connection-manager.js';
 import { IBMiConnectionManager } from './connection-manager.js';
@@ -19,6 +20,10 @@ export interface IbmiDialectOptions {
    */
   odbcModule?: OdbcModule;
 }
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<IbmiDialectOptions>({
+  odbcModule: undefined,
+});
 
 export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
   static readonly supports = AbstractDialect.extendSupport({
@@ -102,6 +107,6 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
   }
 
   static getSupportedOptions() {
-    return ['odbcModule'];
+    return DIALECT_OPTION_NAMES;
   }
 }

@@ -1,6 +1,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { Sqlite3Module } from './connection-manager.js';
 import { SqliteConnectionManager } from './connection-manager.js';
@@ -19,6 +20,11 @@ export interface SqliteDialectOptions {
    */
   sqlite3Module?: Sqlite3Module;
 }
+
+// This strange piece of code ensures that this array includes all keys of the above interface interface.
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SqliteDialectOptions>({
+  sqlite3Module: undefined,
+});
 
 export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
   static supports = AbstractDialect.extendSupport({
@@ -107,6 +113,6 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
   }
 
   static getSupportedOptions() {
-    return ['sqlite3Module'];
+    return DIALECT_OPTION_NAMES;
   }
 }
