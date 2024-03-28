@@ -9,6 +9,7 @@ import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
 import { QueryTypes } from '../query-types';
+import { TemporalTableType } from '../temporal-tables.js';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -64,10 +65,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * )
    * ```
    *
-   * @param {string} tableName  Name of table to create
-   * @param {object} attributes Object representing a list of table attributes to create
-   * @param {object} [options] create table and query options
-   * @param {Model}  [model] model class
+   * @param {string}      tableName  Name of table to create
+   * @param {object}      attributes Object representing a list of table attributes to create
+   * @param {object}      [options] create table and query options
+   * @param {ModelStatic} [model] model class
    *
    * @returns {Promise}
    */
@@ -75,8 +76,79 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async createTable(tableName, attributes, options, model) {
     options = { ...options };
 
+    if (options.temporalTableType) {
+      switch (options.temporalTableType) {
+        case TemporalTableType.APPLICATION_PERIOD:
+          if (!this.dialect.supports.temporalTables.applicationPeriod) {
+            throw new Error(
+              `Application-period tables are not supported in ${this.dialect.name}.`,
+            );
+          }
+
+          options.applicationPeriodRowStart =
+            typeof options.applicationPeriodRowStart === 'string'
+              ? options.applicationPeriodRowStart
+              : 'AppStartTime';
+          options.applicationPeriodRowEnd =
+            typeof options.applicationPeriodRowEnd === 'string'
+              ? options.applicationPeriodRowEnd
+              : 'AppEndTime';
+          break;
+        case TemporalTableType.BITEMPORAL:
+          if (!this.dialect.supports.temporalTables.biTemporal) {
+            throw new Error(
+              `Bi-temporal tables are not supported in ${this.dialect.name}.`,
+            );
+          }
+
+          options.applicationPeriodRowStart =
+            typeof options.applicationPeriodRowStart === 'string'
+              ? options.applicationPeriodRowStart
+              : 'AppStartTime';
+          options.applicationPeriodRowEnd =
+            typeof options.applicationPeriodRowEnd === 'string'
+              ? options.applicationPeriodRowEnd
+              : 'AppEndTime';
+          options.systemPeriodRowStart =
+            typeof options.systemPeriodRowStart === 'string'
+              ? options.systemPeriodRowStart
+              : 'SysStartTime';
+          options.systemPeriodRowEnd =
+            typeof options.systemPeriodRowEnd === 'string'
+              ? options.systemPeriodRowEnd
+              : 'SysEndTime';
+          break;
+        case TemporalTableType.SYSTEM_PERIOD:
+          if (!this.dialect.supports.temporalTables.systemPeriod) {
+            throw new Error(
+              `System-period tables are not supported in ${this.dialect.name}.`,
+            );
+          }
+
+          options.systemPeriodRowStart =
+            typeof options.systemPeriodRowStart === 'string'
+              ? options.systemPeriodRowStart
+              : 'SysStartTime';
+          options.systemPeriodRowEnd =
+            typeof options.systemPeriodRowEnd === 'string'
+              ? options.systemPeriodRowEnd
+              : 'SysEndTime';
+          break;
+        default:
+          throw new Error(`Invalid temporal table type ${options.temporalTableType}`);
+      }
+
+      if (
+        !options.historyTableName &&
+        this.dialect.supports.temporalTables.historyTable
+      ) {
+        const table = this.queryGenerator.extractTableDetails(tableName);
+        options.historyTableName = `${table.tableName}_history`;
+      }
+    }
+
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
-    if (model && this.sequelize.dialect.name !== 'sqlite3') {
+    if (model && this.dialect.name !== 'sqlite3') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 
