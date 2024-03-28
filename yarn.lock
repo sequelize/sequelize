@@ -2214,10 +2214,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-patch@npm:1.9.0":
-  version: 1.9.0
-  resolution: "@rushstack/eslint-patch@npm:1.9.0"
-  checksum: 10c0/ac88c2b1a41fbb11d8a8199b6666181991922171d9702629c879771d51af2ae674ddcc2ad5540dfd8c213492fb038c37d51249638611609e9ea2e0234404010e
+"@rushstack/eslint-patch@npm:1.10.0":
+  version: 1.10.0
+  resolution: "@rushstack/eslint-patch@npm:1.10.0"
+  checksum: 10c0/0a8aaab1993c6cd3aa5def113bc5997864534d03c5ac0fbae55be6f94d9c776c64c62ba5c97ddd8676459a0ee4ff0b2e415a8fd92645d24983d1b789cebf50bb
   languageName: node
   linkType: hard
 
@@ -2329,7 +2329,7 @@ __metadata:
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.1.1"
-    "@rushstack/eslint-patch": "npm:1.9.0"
+    "@rushstack/eslint-patch": "npm:1.10.0"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
