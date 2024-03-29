@@ -216,6 +216,16 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   readonly dialect: Dialect;
   readonly options: NormalizedOptions<Dialect>;
 
+  /**
+   * The options that were used to create this Sequelize instance.
+   * These are an unmodified copy of the options passed to the constructor.
+   * They are not normalized or validated.
+   *
+   * Mostly available for cloning the Sequelize instance.
+   * For other uses, we recommend using {@link options} instead.
+   */
+  readonly rawOptions: Options<Dialect>;
+
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
   }
@@ -480,6 +490,8 @@ new Sequelize({
     if (!options.dialect) {
       throw new Error('The "dialect" option must be explicitly supplied since Sequelize 4');
     }
+
+    this.rawOptions = cloneDeepPlainValues(options, true);
 
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {

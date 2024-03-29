@@ -97,7 +97,7 @@ export async function createMultiTransactionalTestSequelizeInstance(
   sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
 ): Promise<Sequelize> {
   const sequelizeOptions =
-    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
+    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.rawOptions : sequelizeOrOptions;
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
@@ -109,6 +109,8 @@ export async function createMultiTransactionalTestSequelizeInstance(
     const _sequelize = createSequelizeInstance<SqliteDialect>({
       ...(sequelizeOptions as Options<SqliteDialect>),
       storage: p,
+      // allow using multiple connections as we are connecting to a file
+      pool: { max: 5, idle: 30_000 },
     });
 
     await _sequelize.sync({ force: true });
@@ -116,7 +118,6 @@ export async function createMultiTransactionalTestSequelizeInstance(
     return _sequelize;
   }
 
-  // !TODO: use sequelize.rawOptions
   return createSequelizeInstance(sequelizeOptions);
 }
 

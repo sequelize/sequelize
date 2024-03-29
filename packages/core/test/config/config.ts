@@ -93,6 +93,7 @@ export const CONFIG: Config = {
       maxUses: Infinity,
       idle: Infinity,
       max: 1,
+      acquire: 1000,
     },
   },
 
