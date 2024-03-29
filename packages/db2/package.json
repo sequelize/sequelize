@@ -42,11 +42,5 @@
     "dayjs": "^1.11.10",
     "ibm_db": "^3.2.3",
     "lodash": "^4.17.21"
-  },
-  "devDependencies": {
-    "@types/chai": "4.3.14",
-    "@types/mocha": "10.0.6",
-    "chai": "4.4.1",
-    "mocha": "10.4.0"
   }
 }
