@@ -16,7 +16,7 @@ import {
   showAllToListTables,
 } from '../utils/deprecations';
 import type { AbstractConnection } from './connection-manager.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';

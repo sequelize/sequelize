@@ -28,7 +28,7 @@ import {
   isDataTypeClass,
   throwUnsupportedDataType,
 } from './data-types-utils.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import type { TableNameWithSchema } from './query-interface.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.

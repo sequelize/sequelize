@@ -1,4 +1,4 @@
-import type { AbstractDialect, ConnectionOptions } from './index.js';
+import type { AbstractDialect, ConnectionOptions } from './dialect.js';
 
 export interface GetConnectionOptions {
   /**

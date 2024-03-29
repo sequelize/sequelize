@@ -3,7 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import type {
   BindCollector,
   DialectSupports,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';

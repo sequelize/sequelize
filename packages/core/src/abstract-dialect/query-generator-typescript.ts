@@ -37,7 +37,7 @@ import {
 } from '../utils/model-utils.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,

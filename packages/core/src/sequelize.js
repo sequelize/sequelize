@@ -6,7 +6,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
 import retry from 'retry-as-promised';
 import { AbstractConnectionManager } from './abstract-dialect/connection-manager.js';
-import { AbstractDialect } from './abstract-dialect/index.js';
+import { AbstractDialect } from './abstract-dialect/dialect.js';
 import { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 import { AbstractQueryInterface } from './abstract-dialect/query-interface';
 import { AbstractQuery } from './abstract-dialect/query.js';

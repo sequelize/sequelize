@@ -35,7 +35,7 @@ export {
   AbstractDialect,
   type ConnectionOptions,
   type DialectOptions,
-} from './abstract-dialect/index.js';
+} from './abstract-dialect/dialect.js';
 export { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 export * from './abstract-dialect/query-generator.types.js';
 export * from './abstract-dialect/query-interface.js';

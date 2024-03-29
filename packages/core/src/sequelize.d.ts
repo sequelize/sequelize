@@ -1,7 +1,7 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { DataTypes, Op, QueryTypes } from '.';
-import type { AbstractDialect, ConnectionOptions } from './abstract-dialect';
 import type { DataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
   RawConstraintDescription,

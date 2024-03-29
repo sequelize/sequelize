@@ -1,5 +1,5 @@
 import isPlainObject from 'lodash/isPlainObject';
-import type { AbstractDialect, BindCollector } from '../abstract-dialect/index.js';
+import type { AbstractDialect, BindCollector } from '../abstract-dialect/dialect.js';
 import type { EscapeOptions } from '../abstract-dialect/query-generator-typescript.js';
 import type { AddLimitOffsetOptions } from '../abstract-dialect/query-generator.internal-types.js';
 import type { AbstractQueryGenerator } from '../abstract-dialect/query-generator.js';

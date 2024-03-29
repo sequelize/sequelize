@@ -23,7 +23,7 @@ import type {
 } from './abstract-dialect/connection-manager.js';
 import { normalizeDataType, validateDataType } from './abstract-dialect/data-types-utils.js';
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
-import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/index.js';
+import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
@@ -364,13 +364,13 @@ new Sequelize({
 
     if ('dialectModulePath' in options) {
       throw new Error(
-        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect to learn about the alternative.',
+        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
       );
     }
 
     if ('dialectModule' in options) {
       throw new Error(
-        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect to learn about the alternative.',
+        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
       );
     }
 

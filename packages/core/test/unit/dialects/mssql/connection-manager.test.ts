@@ -1,6 +1,6 @@
 import type { Options } from '@sequelize/core';
 import { ConnectionError, Sequelize } from '@sequelize/core';
-import type { MsSqlDialect } from '@sequelize/mssql';
+import { MsSqlDialect } from '@sequelize/mssql';
 import type { RequiredBy } from '@sequelize/utils';
 import { assert, expect } from 'chai';
 import sinon from 'sinon';
@@ -23,33 +23,31 @@ describe('[MSSQL Specific] Connection Manager', () => {
   let config: RequiredBy<Options<MsSqlDialect>, 'dialectOptions'>;
   let instance: Sequelize<MsSqlDialect>;
   let Connection: Partial<TestConnection>;
-  let connectionStub: sinon.SinonStub;
 
   beforeEach(() => {
-    config = {
-      dialect: 'mssql',
-      database: 'none',
-      username: 'none',
-      password: 'none',
-      host: 'localhost',
-      port: 2433,
-      pool: {},
-      dialectOptions: {
-        domain: 'TEST.COM',
-      },
-    };
-    instance = new Sequelize(config);
     Connection = {};
-    // @ts-expect-error -- lib is private
-    connectionStub = sinon.stub(instance.connectionManager, 'lib').value({
+
+    const tediousModule = {
       Connection: function fakeConnection() {
         return Connection;
       },
-    });
-  });
+    } as any;
 
-  afterEach(() => {
-    connectionStub.restore();
+    config = {
+      database: 'none',
+      dialect: MsSqlDialect,
+      dialectOptions: {
+        domain: 'TEST.COM',
+      },
+      host: 'localhost',
+      password: 'none',
+      pool: {},
+      port: 2433,
+      tediousModule,
+      username: 'none',
+    };
+
+    instance = new Sequelize(config);
   });
 
   it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async () => {

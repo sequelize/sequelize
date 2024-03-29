@@ -1,7 +1,7 @@
 import type { Nullish } from '@sequelize/utils';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import type { Class } from 'type-fest';
-import type { AbstractDialect } from './abstract-dialect/index.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { Logging, ModelOptions, ModelStatic } from './model.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type {
