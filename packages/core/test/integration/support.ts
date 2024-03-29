@@ -175,7 +175,7 @@ afterEach('database reset', async () => {
   const sequelizeInstances = uniq([sequelize, ...allSequelizeInstances]);
 
   for (const sequelizeInstance of sequelizeInstances) {
-    if (sequelizeInstance.connectionManager.isClosed) {
+    if (sequelizeInstance.isClosed()) {
       allSequelizeInstances.delete(sequelizeInstance);
       continue;
     }
@@ -206,14 +206,14 @@ afterEach('database reset', async () => {
     }
   }
 
-  if (sequelize.connectionManager.isClosed) {
+  if (sequelize.isClosed()) {
     throw new Error('The main sequelize instance was closed. This is not allowed.');
   }
 
   await Promise.all(
     [...singleTestInstances].map(async instance => {
       allSequelizeInstances.delete(instance);
-      if (!instance.connectionManager.isClosed) {
+      if (!instance.isClosed()) {
         await instance.close();
       }
     }),

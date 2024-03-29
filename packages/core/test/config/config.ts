@@ -88,6 +88,12 @@ export const CONFIG: Config = {
 
   sqlite: {
     dialect: SqliteDialect,
+    storage: ':memory:',
+    pool: {
+      maxUses: Infinity,
+      idle: Infinity,
+      max: 1,
+    },
   },
 
   postgres: {

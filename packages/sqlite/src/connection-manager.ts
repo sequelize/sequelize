@@ -24,7 +24,12 @@ export interface SqliteConnectionOptions {
    * - ':memory:': to use a temporary in-memory database.
    * - '': to create a temporary disk-based database.
    *
-   * @default ':memory:'
+   * Note: temporary databases require the pool to have the following configuration:
+   * - max size: 1
+   * - idle timeout: Infinity
+   * - max uses per resource: Infinity
+   *
+   * @default 'sequelize.sqlite' in your current working directory
    */
   storage?: string;
 
@@ -85,9 +90,31 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
   async connect(options: ConnectionOptions<SqliteDialect>): Promise<SqliteConnection> {
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
-    const storage = options.storage ?? ':memory:';
-
+    const storage = options.storage ?? path.join(process.cwd(), 'sequelize.sqlite');
     const inMemory = storage === ':memory:';
+
+    const isTemporaryStorage = inMemory || storage === '';
+    if (isTemporaryStorage) {
+      const writePool = this.sequelize.pool.write;
+
+      // @ts-expect-error -- PR sequelize-pool to expose `idleTimeoutMillis`
+      if (writePool.idleTimeoutMillis !== Infinity) {
+        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to close idle connections, which would lead to data loss while the application is running.
+To fix this, set the pool's idleTimeoutMillis to Infinity, or use a non-temporary database.`);
+      }
+
+      // @ts-expect-error -- PR sequelize-pool to expose `maxUsesPerResource`
+      if (writePool.maxUsesPerResource !== Infinity) {
+        // @ts-expect-error -- PR sequelize-pool to expose `maxUsesPerResource`
+        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to close connections after ${writePool.maxUsesPerResources}, which would lead to data loss while the application is running.
+To fix this, set the pool's maxUsesPerResource to Infinity, or use a non-temporary database.`);
+      }
+
+      if (writePool.maxSize !== 1) {
+        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to allow more than one connection, which would create separate temporary databases.
+To fix this, set the pool's maxSize to 1, or use a non-temporary database.`);
+      }
+    }
 
     const defaultReadWriteMode = this.#lib.OPEN_READWRITE | this.#lib.OPEN_CREATE;
     const readWriteMode = options.mode ?? defaultReadWriteMode;
@@ -95,7 +122,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
     const storageDir = path.dirname(storage);
 
     if (
-      !inMemory &&
+      !isTemporaryStorage &&
       (readWriteMode & this.#lib.OPEN_CREATE) !== 0 &&
       !(await checkFileExists(storageDir))
     ) {
