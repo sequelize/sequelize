@@ -1,6 +1,7 @@
 import type { AbstractDialect, Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js';
+import type { SqliteDialect } from '@sequelize/sqlite';
 import uniq from 'lodash/uniq';
 import fs from 'node:fs';
 import pTimeout from 'p-timeout';
@@ -105,18 +106,17 @@ export async function createMultiTransactionalTestSequelizeInstance(
       fs.unlinkSync(p);
     }
 
-    const options = { ...sequelizeOptions, storage: p };
-    if (sequelizeOrOptions instanceof Sequelize) {
-      options.database = sequelizeOrOptions.config.database;
-    }
-
-    const _sequelize = createSequelizeInstance(options);
+    const _sequelize = createSequelizeInstance<SqliteDialect>({
+      ...(sequelizeOptions as Options<SqliteDialect>),
+      storage: p,
+    });
 
     await _sequelize.sync({ force: true });
 
     return _sequelize;
   }
 
+  // !TODO: use sequelize.rawOptions
   return createSequelizeInstance(sequelizeOptions);
 }
 
@@ -142,10 +142,10 @@ before('first database reset', async () => {
   await clearDatabase();
 });
 
+// TODO: make "none" the default.
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
 let currentSuiteResetMode: ResetMode = 'drop';
 
-// TODO: make "none" the default.
 /**
  * Controls how the current test suite will reset the database between each test.
  * Note that this does not affect how the database is reset between each suite, only between each test.

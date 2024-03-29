@@ -124,8 +124,8 @@ export async function nextUnhandledRejection() {
   });
 }
 
-export function createSequelizeInstance(
-  options: Omit<Options<AbstractDialect>, 'dialect'> = {},
+export function createSequelizeInstance<Dialect extends AbstractDialect = AbstractDialect>(
+  options?: Omit<Options<Dialect>, 'dialect'>,
 ): Sequelize {
   const dialectName = getTestDialect();
   const config = CONFIG[dialectName];
