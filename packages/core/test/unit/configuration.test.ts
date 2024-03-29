@@ -43,6 +43,21 @@ describe('Sequelize constructor', () => {
       return;
     }
 
+    it('should correctly set the host and the port', () => {
+      // options are dialect-specific, but they're overwritten identically in every dialect
+      if (dialectName !== 'postgres') {
+        return;
+      }
+
+      const localSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        host: '127.0.0.1',
+        port: 1234,
+      });
+      expect(localSequelize.options.replication.write.port).to.equal(1234);
+      expect(localSequelize.options.replication.write.host).to.equal('127.0.0.1');
+    });
+
     it('accepts a single URI parameter', () => {
       const newSequelize = new Sequelize({
         dialect,
@@ -115,7 +130,6 @@ describe('Sequelize constructor', () => {
       expect(newSequelize.options.replication.write).to.deep.eq({
         database: 'dbname',
         host: 'example.com',
-        password: null,
         port: 9821,
         ssl: true,
         application_name: 'abc',
@@ -185,14 +199,11 @@ describe('Sequelize constructor', () => {
         },
       });
 
-      expect(newSequelize.dialect.name).to.eq(dialect);
-
       const options = {
-        dialect,
         host: 'host',
         database: 'database',
         port: 1234,
-        username: 'username',
+        user: 'username',
         password: 'password',
       };
 
@@ -225,7 +236,7 @@ describe('Sequelize constructor', () => {
         password: 'password2',
         port: 2000,
         ssl: false,
-        username: 'username2',
+        user: 'username2',
       });
       expect(replication.read).to.deep.eq([]);
     });

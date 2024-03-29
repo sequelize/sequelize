@@ -40,6 +40,8 @@ describe('Transaction', () => {
   });
 
   it('should run auto commit query only when needed', async () => {
+    sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
+
     const expectations: Record<string, string[]> = {
       all: ['START TRANSACTION'],
       snowflake: ['START TRANSACTION NAME "123"'],

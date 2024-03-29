@@ -46,7 +46,6 @@ export type Options<Dialect extends AbstractDialect> = SequelizeCoreOptions<Dial
 export type NormalizedOptions<Dialect extends AbstractDialect> = StrictRequiredBy<
   Omit<PersistedSequelizeOptions<Dialect>, 'replication'>,
   | 'transactionType'
-  | 'isolationLevel'
   | 'noTypeValidation'
   | 'timezone'
   | 'disableClsTransactions'

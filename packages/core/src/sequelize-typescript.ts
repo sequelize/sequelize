@@ -65,7 +65,6 @@ import { Sequelize } from './sequelize.js';
 import type { NormalizedOptions, Options } from './sequelize.types.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
-  IsolationLevel,
   Transaction,
   TransactionNestMode,
   TransactionType,
@@ -585,7 +584,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
       sync: {},
       timezone: '+00:00',
       keepDefaultTimezone: false,
-      standardConformingStrings: true,
       logging: false,
       omitNull: false,
       // TODO [>7]: remove this option
@@ -595,7 +593,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
         match: ['SQLITE_BUSY: database is locked'],
       },
       transactionType: TransactionType.DEFERRED,
-      isolationLevel: IsolationLevel.REPEATABLE_READ,
+      isolationLevel: undefined,
       noTypeValidation: false,
       benchmark: false,
       minifyAliases: false,

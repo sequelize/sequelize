@@ -231,8 +231,7 @@ export class PostgresDialect extends AbstractDialect<
     // postgres can use \ to escape if one of these is true:
     // - standard_conforming_strings is off
     // - the string is prefixed with E (out of scope for this method)
-
-    return !this.options.standardConformingStrings;
+    return this.options.standardConformingStrings === false;
   }
 
   getDefaultSchema() {

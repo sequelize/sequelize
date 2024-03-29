@@ -109,12 +109,10 @@ export interface PersistedSequelizeOptions<Dialect extends AbstractDialect> exte
   disableClsTransactions?: boolean;
 
   /**
-   * Set the default transaction isolation level. See `Sequelize.Transaction.ISOLATION_LEVELS` for possible
-   * options.
-   *
-   * @default 'REPEATABLE_READ'
+   * Set the default transaction isolation level.
+   * If not set, does not change the database's default transaction isolation level.
    */
-  isolationLevel?: IsolationLevel;
+  isolationLevel?: IsolationLevel | undefined;
 
   /**
    * A flag that defines if the default timezone is used to convert dates from the database.

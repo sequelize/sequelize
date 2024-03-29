@@ -2,17 +2,9 @@ import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { createSequelizeInstance, sequelize } from '../support';
+import { sequelize } from '../support';
 
 describe('Sequelize', () => {
-  describe('constructor', () => {
-    it('should correctly set the host and the port', () => {
-      const localSequelize = createSequelizeInstance({ host: '127.0.0.1', port: 1234 });
-      expect(localSequelize.config.port).to.equal(1234);
-      expect(localSequelize.config.host).to.equal('127.0.0.1');
-    });
-  });
-
   describe('version', () => {
     it('should be a string', () => {
       expect(typeof Sequelize.version).to.eq('string');

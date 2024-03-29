@@ -150,7 +150,7 @@ describe('Utils', () => {
       // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
       expect(options.database).to.equal('database ss');
       // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.username).to.equal('wpx ss');
+      expect(options.user).to.equal('wpx ss');
       // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
       expect(options.password).to.equal('wpx ss');
     });
