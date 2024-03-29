@@ -331,6 +331,96 @@ If you really need to access the connection manager, access it through \`sequeli
     throw new Error('Sequelize#modelManager was removed. Use Sequelize#models instead.');
   }
 
+  /**
+   * Instantiates sequelize.
+   *
+   * The options to connect to the database are specific to your dialect.
+   * Please refer to the documentation of your dialect on https://sequelize.org to learn about the options you can use.
+   *
+   * @param options The option bag.
+   * @example
+   * import { PostgresDialect } from '@sequelize/postgres';
+   *
+   * // with database, username, and password in the options object
+   * const sequelize = new Sequelize({ database, user, password, dialect: PostgresDialect });
+   *
+   * @example
+   * // with url
+   * import { MySqlDialect } from '@sequelize/mysql';
+   *
+   * const sequelize = new Sequelize({
+   *   dialect: MySqlDialect,
+   *   url: 'mysql://localhost:3306/database',
+   * })
+   *
+   * @example
+   * // option examples
+   * import { MsSqlDialect } from '@sequelize/mssql';
+   *
+   * const sequelize = new Sequelize('database', 'username', 'password', {
+   *   // the dialect of the database
+   *   // It is a Dialect class exported from the dialect package
+   *   dialect: MsSqlDialect,
+   *
+   *   // custom host;
+   *   host: 'my.server.tld',
+   *   // for postgres, you can also specify an absolute path to a directory
+   *   // containing a UNIX socket to connect over
+   *   // host: '/sockets/psql_sockets'.
+   *
+   *   // custom port;
+   *   port: 12345,
+   *
+   *   // disable logging or provide a custom logging function; default: console.log
+   *   logging: false,
+   *
+   *   // This option is specific to MySQL and MariaDB
+   *   socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
+   *
+   *   // the storage engine for sqlite
+   *   // - default ':memory:'
+   *   storage: 'path/to/database.sqlite',
+   *
+   *   // disable inserting undefined values as NULL
+   *   // - default: false
+   *   omitNull: true,
+   *
+   *   // A flag that defines if connection should be over ssl or not
+   *   // Dialect-dependent, check the dialect documentation
+   *   ssl: true,
+   *
+   *   // Specify options, which are used when sequelize.define is called.
+   *   // The following example:
+   *   //   define: { timestamps: false }
+   *   // is basically the same as:
+   *   //   Model.init(attributes, { timestamps: false });
+   *   //   sequelize.define(name, attributes, { timestamps: false });
+   *   // so defining the timestamps for each model will be not necessary
+   *   define: {
+   *     underscored: false,
+   *     freezeTableName: false,
+   *     charset: 'utf8',
+   *     dialectOptions: {
+   *       collate: 'utf8_general_ci'
+   *     },
+   *     timestamps: true
+   *   },
+   *
+   *   // similar for sync: you can define this to always force sync for models
+   *   sync: { force: true },
+   *
+   *   // pool configuration used to pool database connections
+   *   pool: {
+   *     max: 5,
+   *     idle: 30000,
+   *     acquire: 60000,
+   *   },
+   *
+   *   // isolation level of each transaction
+   *   // defaults to dialect default
+   *   isolationLevel: IsolationLevel.REPEATABLE_READ
+   * })
+   */
   constructor(options: Options<Dialect>) {
     if (isString(options)) {
       throw new Error(`The Sequelize constructor no longer accepts a string as the first argument. Please use the "url" option instead:
@@ -591,155 +681,6 @@ new Sequelize({
 
     await this.#databaseVersionPromise;
   }
-
-  // !TODO: migrate
-  /**
-   * Instantiate sequelize with name of database, username and password.
-   *
-   * @example
-   * // without password / with blank password
-   * const sequelize = new Sequelize('database', 'username', null, {
-   *   dialect: 'mysql'
-   * })
-   *
-   * // with password and options
-   * const sequelize = new Sequelize('my_database', 'john', 'doe', {
-   *   dialect: 'postgres'
-   * })
-   *
-   * // with database, username, and password in the options object
-   * const sequelize = new Sequelize({ database, username, password, dialect: 'mssql' });
-   *
-   * // with uri
-   * const sequelize = new Sequelize('mysql://localhost:3306/database', {})
-   *
-   * // option examples
-   * const sequelize = new Sequelize('database', 'username', 'password', {
-   *   // the sql dialect of the database
-   *   // currently supported: 'mysql', 'sqlite', 'postgres', 'mssql'
-   *   dialect: 'mysql',
-   *
-   *   // custom host; default: localhost
-   *   host: 'my.server.tld',
-   *   // for postgres, you can also specify an absolute path to a directory
-   *   // containing a UNIX socket to connect over
-   *   // host: '/sockets/psql_sockets'.
-   *
-   *   // custom port; default: dialect default
-   *   port: 12345,
-   *
-   *   // custom protocol; default: 'tcp'
-   *   // postgres only, useful for Heroku
-   *   protocol: null,
-   *
-   *   // disable logging or provide a custom logging function; default: console.log
-   *   logging: false,
-   *
-   *   // you can also pass any dialect options to the underlying dialect library
-   *   // - default is empty
-   *   // - currently supported: 'mysql', 'postgres', 'mssql'
-   *   dialectOptions: {
-   *     socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *   },
-   *
-   *   // the storage engine for sqlite
-   *   // - default ':memory:'
-   *   storage: 'path/to/database.sqlite',
-   *
-   *   // disable inserting undefined values as NULL
-   *   // - default: false
-   *   omitNull: true,
-   *
-   *   // A flag that defines if connection should be over ssl or not
-   *   // - default: undefined
-   *   ssl: true,
-   *
-   *   // Specify options, which are used when sequelize.define is called.
-   *   // The following example:
-   *   //   define: { timestamps: false }
-   *   // is basically the same as:
-   *   //   Model.init(attributes, { timestamps: false });
-   *   //   sequelize.define(name, attributes, { timestamps: false });
-   *   // so defining the timestamps for each model will be not necessary
-   *   define: {
-   *     underscored: false,
-   *     freezeTableName: false,
-   *     charset: 'utf8',
-   *     dialectOptions: {
-   *       collate: 'utf8_general_ci'
-   *     },
-   *     timestamps: true
-   *   },
-   *
-   *   // similar for sync: you can define this to always force sync for models
-   *   sync: { force: true },
-   *
-   *   // pool configuration used to pool database connections
-   *   pool: {
-   *     max: 5,
-   *     idle: 30000,
-   *     acquire: 60000,
-   *   },
-   *
-   *   // isolation level of each transaction
-   *   // defaults to dialect default
-   *   isolationLevel: Transaction.ISOLATION_LEVELS.REPEATABLE_READ
-   * })
-   *
-   * @param {string}   [database] The name of the database
-   * @param {string}   [username=null] The username which is used to authenticate against the database.
-   * @param {string}   [password=null] The password which is used to authenticate against the database. Supports SQLCipher encryption for SQLite.
-   * @param {object}   [options={}] An object with options.
-   * @param {string}   [options.host='localhost'] The host of the relational database.
-   * @param {number}   [options.port] The port of the relational database.
-   * @param {string}   [options.username=null] The username which is used to authenticate against the database.
-   * @param {string}   [options.password=null] The password which is used to authenticate against the database.
-   * @param {string}   [options.database=null] The name of the database.
-   * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, sqlite, db2, ibmi, snowflake, mariadb, mssql or a dialect class.
-   * @param {string}   [options.dialectModule=null] If specified, use this dialect library. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'require("pg.js")' here
-   * @param {string}   [options.dialectModulePath=null] If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify '/path/to/pg.js' here
-   * @param {object}   [options.dialectOptions] An object of additional options, which are passed directly to the connection library
-   * @param {string}   [options.storage] Only used by sqlite. Defaults to ':memory:'
-   * @param {string}   [options.protocol='tcp'] The protocol of the relational database.
-   * @param {object}   [options.define={}] Default options for model definitions. See {@link Model.init}.
-   * @param {object}   [options.query={}] Default options for sequelize.query
-   * @param {string}   [options.schema=null] A schema to use
-   * @param {object}   [options.set={}] Default options for sequelize.set
-   * @param {object}   [options.sync={}] Default options for sequelize.sync
-   * @param {string}   [options.timezone='+00:00'] The timezone used when converting a date from the database into a JavaScript date. The timezone is also used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP and other time related functions have in the right timezone. For best cross platform performance use the format +/-HH:MM. Will also accept string versions of timezones supported by Intl.Locale (e.g. 'America/Los_Angeles'); this is useful to capture daylight savings time changes.
-   * @param {boolean}  [options.keepDefaultTimezone=false] A flag that defines if the default timezone is used to convert dates from the database.
-   * @param {number|null} [options.defaultTimestampPrecision] The precision for the `createdAt`/`updatedAt`/`deletedAt` DATETIME columns that Sequelize adds to models. Can be a number between 0 and 6, or null to use the default precision of the database. Defaults to 6.
-   * @param {boolean}  [options.standardConformingStrings=true] The PostgreSQL `standard_conforming_strings` session parameter. Set to `false` to not set the option. WARNING: Setting this to false may expose vulnerabilities and is not recommended!
-   * @param {Function} [options.logging=console.log] A function that gets executed every time Sequelize would log something. Function may receive multiple parameters but only first one is printed by `console.log`. To print all values use `(...msg) => console.log(msg)`
-   * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
-   * @param {string}   [options.queryLabel] A label to annotate queries in log output.
-   * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
-   * @param {boolean}  [options.ssl=undefined] A flag that defines if connection should be over ssl or not
-   * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
-   * @param {object}   [options.pool] sequelize connection pool configuration
-   * @param {number}   [options.pool.max=5] Maximum number of connection in pool
-   * @param {number}   [options.pool.min=0] Minimum number of connection in pool
-   * @param {number}   [options.pool.idle=10000] The maximum time, in milliseconds, that a connection can be idle before being released.
-   * @param {number}   [options.pool.acquire=60000] The maximum time, in milliseconds, that pool will try to get connection before throwing error
-   * @param {number}   [options.pool.evict=1000] The time interval, in milliseconds, after which sequelize-pool will remove idle connections.
-   * @param {Function} [options.pool.validate] A function that validates a connection. Called with client. The default function checks that client is an object, and that its state is not disconnected
-   * @param {number}   [options.pool.maxUses=Infinity] The number of times a connection can be used before discarding it for a replacement, [`used for eventual cluster rebalancing`](https://github.com/sequelize/sequelize-pool).
-   * @param {boolean}  [options.quoteIdentifiers=true] Set to `false` to make table names and attributes case-insensitive on Postgres and skip double quoting of them.  WARNING: Setting this to false may expose vulnerabilities and is not recommended!
-   * @param {string}   [options.transactionType='DEFERRED'] Set the default transaction type. See `Sequelize.Transaction.TYPES` for possible options. Sqlite only.
-   * @param {string}   [options.isolationLevel] Set the default transaction isolation level. See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options.
-   * @param {object}   [options.retry] Set of flags that control when a query is automatically retried. Accepts all options for [`retry-as-promised`](https://github.com/mickhansen/retry-as-promised).
-   * @param {Array}    [options.retry.match] Only retry a query if the error matches one of these strings.
-   * @param {number}   [options.retry.max] How many times a failing query is automatically retried.  Set to 0 to disable retrying on SQL_BUSY error.
-   * @param {number}   [options.retry.timeout] Maximum duration, in milliseconds, to retry until an error is thrown.
-   * @param {number}   [options.retry.backoffBase=100] Initial backoff duration, in milliseconds.
-   * @param {number}   [options.retry.backoffExponent=1.1] Exponent to increase backoff duration after each retry.
-   * @param {Function} [options.retry.report] Function that is executed after each retry, called with a message and the current retry options.
-   * @param {string}   [options.retry.name='unknown'] Name used when composing error/reporting messages.
-   * @param {boolean}  [options.noTypeValidation=false] Run built-in type validators on insert and update, and select with where clause, e.g. validate that arguments passed to integer fields are integer-like.
-   * @param {object}   [options.hooks] An object of global hook functions that are called before and after certain lifecycle events. Global hooks will run after any model-specific hooks defined for the same event (See `Sequelize.Model.init()` for a list).  Additionally, `beforeConnect()`, `afterConnect()`, `beforeDisconnect()`, and `afterDisconnect()` hooks may be defined here.
-   * @param {boolean}  [options.minifyAliases=false] A flag that defines if query aliases should be minified, as identifier lengths are limited by dialects.
-   * @param {boolean}  [options.logQueryParameters=false] A flag that defines if show bind parameters in log.
-   */
 
   /**
    * Close all connections used by this sequelize instance, and free all references so the instance can be garbage collected.
