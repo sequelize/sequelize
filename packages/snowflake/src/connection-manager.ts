@@ -26,6 +26,8 @@ export interface SnowflakeConnectionOptions
     | 'region'
     // ensures that the dialect produces values that Sequelize expects
     | 'jsTreatIntegerAsBigInt'
+    // conflicts with Sequelize's schema option. That option will be taken from Sequelize's options instead.
+    | 'schema'
   > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
@@ -50,7 +52,10 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
     try {
-      const connection = this.#lib.createConnection(config) as SnowflakeConnection;
+      const connection = this.#lib.createConnection({
+        schema: this.sequelize.options.schema,
+        ...config,
+      }) as SnowflakeConnection;
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {

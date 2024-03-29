@@ -3,7 +3,13 @@ import type * as Tedious from 'tedious';
 
 export type InlinedTediousOptions = Omit<
   NonUndefined<Tedious.ConnectionConfiguration['options']>,
-  'camelCaseColumns' | 'columnNameReplacer' | 'enableQuotedIdentifier' | 'useUTC' | 'useColumnNames'
+  | 'camelCaseColumns'
+  | 'columnNameReplacer'
+  | 'enableQuotedIdentifier'
+  | 'useUTC'
+  | 'useColumnNames'
+  // Conflicts with our own isolationLevel option, which does the same thing
+  | 'isolationLevel'
 >;
 
 export const INLINED_OPTION_OBJ = {
@@ -32,7 +38,6 @@ export const INLINED_OPTION_OBJ = {
   encrypt: undefined,
   fallbackToDefaultDb: undefined,
   instanceName: undefined,
-  isolationLevel: undefined,
   language: undefined,
   localAddress: undefined,
   lowerCaseGuids: undefined,

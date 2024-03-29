@@ -18,7 +18,11 @@ export interface SqliteConnection extends AbstractConnection, Sqlite3.Database {
 
 export interface SqliteConnectionOptions {
   /**
-   * Path to the SQLite database file, or ':memory:' to use an in-memory database.
+   * Path to the SQLite database file
+   *
+   * Special values:
+   * - ':memory:': to use a temporary in-memory database.
+   * - '': to create a temporary disk-based database.
    *
    * @default ':memory:'
    */

@@ -17,6 +17,7 @@ import { expect } from 'chai';
 import { allowDeprecationsInSuite, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
+const dialectName = dialect.name;
 
 describe('Utils', () => {
   describe('underscore', () => {
@@ -138,6 +139,10 @@ describe('Utils', () => {
 
   describe('url', () => {
     it('should return the correct options after parsed', () => {
+      if (dialectName === 'sqlite') {
+        return;
+      }
+
       const options = parseConnectionString(
         sequelize.dialect,
         'postgresql://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss',

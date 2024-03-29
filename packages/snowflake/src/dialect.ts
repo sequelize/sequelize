@@ -30,7 +30,6 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   username: undefined,
   password: undefined,
   database: undefined,
-  schema: undefined,
   warehouse: undefined,
   role: undefined,
   timeout: undefined,
