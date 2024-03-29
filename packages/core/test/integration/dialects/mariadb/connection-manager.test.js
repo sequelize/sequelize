@@ -16,7 +16,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL', async () => {
     const sequelize = Support.createSingleTestSequelizeInstance({
-      dialectOptions: { initSql: `SET @myUserVariable='myValue'` },
+      initSql: `SET @myUserVariable='myValue'`,
     });
     const res = await sequelize.query('SELECT @myUserVariable');
     expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
@@ -25,9 +25,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL array', async () => {
     const sequelize = Support.createSingleTestSequelizeInstance({
-      dialectOptions: {
-        initSql: [`SET @myUserVariable1='myValue'`, `SET @myUserVariable2='myValue'`],
-      },
+      initSql: [`SET @myUserVariable1='myValue'`, `SET @myUserVariable2='myValue'`],
     });
     const res = await sequelize.query('SELECT @myUserVariable1, @myUserVariable2');
     expect(res[0]).to.deep.equal([
@@ -44,7 +42,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         host: testHost,
         port: 65_535,
-        dialectOptions: { connectTimeout: 500 },
+        connectTimeout: 500,
       });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
         Sequelize.SequelizeConnectionError,

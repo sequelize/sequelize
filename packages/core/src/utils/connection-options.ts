@@ -1,14 +1,10 @@
-import { EMPTY_ARRAY, isString } from '@sequelize/utils';
+import { EMPTY_ARRAY, isString, parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 import { URL } from 'node:url';
 import type { ConnectionOptions as PgConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
 import type { AbstractDialect, ConnectionOptions } from '../abstract-dialect/dialect.js';
-import type {
-  LegacyDialectOptions,
-  NormalizedReplicationOptions,
-  RawConnectionOptions,
-} from '../sequelize';
+import type { NormalizedReplicationOptions, RawConnectionOptions } from '../sequelize';
 import type { PersistedSequelizeOptions } from '../sequelize.internals.js';
 import { encodeHost } from './deprecations';
 
@@ -63,7 +59,7 @@ function normalizeRawConnectionOptions<Dialect extends AbstractDialect>(
  * @param dialect
  * @param connectionString string value in format schema://username:password@host:port/database
  */
-function parseConnectionString<Dialect extends AbstractDialect>(
+export function parseConnectionString<Dialect extends AbstractDialect>(
   dialect: Dialect,
   connectionString: string,
 ): ConnectionOptions<Dialect> {
@@ -93,12 +89,12 @@ function parseConnectionString<Dialect extends AbstractDialect>(
 
   if (urlObject.port) {
     // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.port = urlObject.port;
+    options.port = parseSafeInteger.orThrow(urlObject.port);
   }
 
   if (urlObject.username) {
     // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.username = decodeURIComponent(urlObject.username);
+    options.user = decodeURIComponent(urlObject.username);
   }
 
   if (urlObject.password) {
@@ -126,13 +122,16 @@ function parseConnectionString<Dialect extends AbstractDialect>(
       options.storage = path.resolve(options.storage || storagePath);
     }
 
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.dialectOptions = Object.fromEntries(urlObject.searchParams.entries());
+    for (const [key, value] of urlObject.searchParams.entries()) {
+      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
+      options[key] = value;
+    }
+
     if (urlObject.searchParams.has('options')) {
       try {
         const o = JSON.parse(urlObject.searchParams.get('options')!);
         // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-        options.dialectOptions.options = o;
+        options.options = o;
       } catch {
         // Nothing to do, string is not a valid JSON
         // and thus does not need any further processing
@@ -152,10 +151,7 @@ function parseConnectionString<Dialect extends AbstractDialect>(
     delete parseResult.port;
     delete parseResult.options; // we JSON.parse it
 
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.dialectOptions ||= Object.create(null) as LegacyDialectOptions;
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    Object.assign(options.dialectOptions, parseResult);
+    Object.assign(options, parseResult);
   }
 
   return options;

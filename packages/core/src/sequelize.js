@@ -84,7 +84,9 @@ export class Sequelize extends SequelizeTypeScript {
    * @returns {string} The database name.
    */
   getDatabaseName() {
-    return this.config.database;
+    throw new Error(
+      'getDatabaseName has been removed as it does not make sense in every dialect. Please use the values available in sequelize.options.replication.write for an equivalent option.',
+    );
   }
 
   /**
@@ -329,13 +331,12 @@ Use Sequelize#query if you wish to use replacements.`);
     // to prepend searchPath is not true delete the searchPath option
     if (
       !this.dialect.supports.searchPath ||
-      !this.options.dialectOptions ||
-      !this.options.dialectOptions.prependSearchPath ||
+      !this.options.prependSearchPath ||
       options.supportsSearchPath === false
     ) {
       delete options.searchPath;
     } else if (!options.searchPath) {
-      // if user wants to always prepend searchPath (dialectOptions.preprendSearchPath = true)
+      // if user wants to always prepend searchPath (preprendSearchPath = true)
       // then set to DEFAULT if none is provided
       options.searchPath = 'DEFAULT';
     }

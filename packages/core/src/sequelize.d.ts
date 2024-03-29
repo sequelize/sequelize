@@ -1,5 +1,5 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
-import type { DataTypes, Op, QueryTypes } from '.';
+import type { DataTypes, Op, Options, QueryTypes } from '.';
 import type { DataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type {
@@ -32,7 +32,6 @@ import type {
 } from './model';
 import type { SUPPORTED_DIALECTS } from './sequelize-typescript.js';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
-import type { Options } from './sequelize.types.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -401,45 +400,9 @@ export class Sequelize<
   readonly dialect: Dialect;
 
   /**
-   * Instantiate sequelize with name of database, username and password
-   *
-   * #### Example usage
-   *
-   * ```javascript
-   * // without password and options
-   * const sequelize = new Sequelize('database', 'username')
-   *
-   * // without options
-   * const sequelize = new Sequelize('database', 'username', 'password')
-   *
-   * // without password / with blank password
-   * const sequelize = new Sequelize('database', 'username', null, {})
-   *
-   * // with password and options
-   * const sequelize = new Sequelize('my_database', 'john', 'doe', {})
-   *
-   * // with uri (see below)
-   * const sequelize = new Sequelize('mysql://localhost:3306/database', {})
-   * ```
-   *
-   * @param database The name of the database
-   * @param username The username which is used to authenticate against the
-   *   database.
-   * @param password The password which is used to authenticate against the
-   *   database.
-   * @param options An object with options.
+   * @inheritDoc
    */
-  constructor(database: string, username: string, password?: string, options?: Options<Dialect>);
-  constructor(database: string, username: string, options?: Options<Dialect>);
-  constructor(options?: Options<Dialect>);
-
-  /**
-   * Instantiate sequelize with an URI
-   *
-   * @param uri A full database URI
-   * @param options See above for possible options
-   */
-  constructor(uri: string, options?: Options<Dialect>);
+  constructor(options: Options<Dialect>);
 
   /**
    * Returns the specified dialect.

@@ -274,7 +274,12 @@ export function untypedMultiSplitObject<T extends Record<string, any>>(
     outputGroups[groupName] = groupValues;
 
     for (const key of groupKeys) {
+      if (obj[key] === undefined) {
+        continue;
+      }
+
       groupValues[key] = obj[key];
+      unseenKeys.delete(key);
     }
   }
 

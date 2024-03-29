@@ -5,7 +5,7 @@ import chai from 'chai';
 import { Pool } from 'sequelize-pool';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
-import { Config } from '../../../config/config';
+import { CONFIG } from '../../../config/config';
 import {
   createSequelizeInstance,
   createSingleTestSequelizeInstance,
@@ -15,7 +15,7 @@ import {
 } from '../../support';
 
 const expect = chai.expect;
-const baseConf = Config[getTestDialect()];
+const baseConf = CONFIG[getTestDialect()];
 const poolEntry = {
   host: baseConf.host,
   port: baseConf.port,

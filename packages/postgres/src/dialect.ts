@@ -82,7 +82,10 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<PostgresConnectionOption
   user: undefined,
 });
 
-export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
+export class PostgresDialect extends AbstractDialect<
+  PostgresDialectOptions,
+  PostgresConnectionOptions
+> {
   static readonly supports: DialectSupports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     EXCEPTION: true,

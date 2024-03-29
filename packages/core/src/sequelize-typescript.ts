@@ -1,5 +1,14 @@
 import type { PartialBy } from '@sequelize/utils';
-import { freezeDeep, isNullish, isString, join, splitObject } from '@sequelize/utils';
+import {
+  cloneDeepPlainValues,
+  freezeDeep,
+  isNullish,
+  isString,
+  join,
+  map,
+  splitObject,
+} from '@sequelize/utils';
+import chalk from 'chalk';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import semver from 'semver';
 import type {
@@ -63,6 +72,7 @@ import {
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
+import { getIntersection } from './utils/array.js';
 import { normalizeReplicationConfig } from './utils/connection-options.js';
 import * as Deprecations from './utils/deprecations.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
@@ -400,9 +410,7 @@ If you really need to access the connection manager, access it through \`sequeli
    *     underscored: false,
    *     freezeTableName: false,
    *     charset: 'utf8',
-   *     dialectOptions: {
-   *       collate: 'utf8_general_ci'
-   *     },
+   *     collate: 'utf8_general_ci'
    *     timestamps: true
    *   },
    *
@@ -508,11 +516,33 @@ new Sequelize({
       PERSISTED_SEQUELIZE_OPTIONS,
     );
 
+    const dialectOptionNames = DialectClass.getSupportedOptions();
+    const connectionOptionNames = [...DialectClass.getSupportedConnectionOptions(), 'url'];
+    const allSequelizeOptionNames = [
+      ...PERSISTED_SEQUELIZE_OPTIONS,
+      // "url" is a special case. It's a connection option, but it's one that Sequelize accepts, instead of the dialect.
+      ...EPHEMERAL_SEQUELIZE_OPTIONS.filter(option => option !== 'url'),
+    ];
+
+    const allDialectOptionNames = [...dialectOptionNames, ...connectionOptionNames];
+
+    const conflictingOptions = getIntersection(allSequelizeOptionNames, allDialectOptionNames);
+    if (conflictingOptions.length > 0) {
+      throw new Error(
+        `The following options from ${DialectClass.name} conflict with built-in Sequelize options: ${join(
+          map(conflictingOptions, option => chalk.red(option)),
+          ', ',
+        )}.
+This is a bug in the dialect implementation itself, not in the user's code.
+Please rename these options to a name that is not already used by Sequelize.`,
+      );
+    }
+
     const [{ dialectOptions, connectionOptions }, unseenKeys] = untypedMultiSplitObject(
       remainingOptions,
       {
-        dialectOptions: DialectClass.getSupportedOptions(),
-        connectionOptions: [...DialectClass.getSupportedConnectionOptions(), 'url'],
+        dialectOptions: dialectOptionNames,
+        connectionOptions: connectionOptionNames,
       },
     );
 
@@ -522,7 +552,27 @@ new Sequelize({
 
     if (unseenKeys.size > 0) {
       throw new Error(
-        `The following options are not recognized by Sequelize nor the dialect: ${join(unseenKeys, ', ')}`,
+        `The following options are not recognized by Sequelize nor ${DialectClass.name}: ${join(
+          map(unseenKeys, option => chalk.red(option)),
+          ', ',
+        )}.
+
+Sequelize accepts the following options: ${allSequelizeOptionNames
+          .map(option => chalk.cyan(option))
+          .join(', ')}.
+
+${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${join(
+          dialectOptionNames.map(option => chalk.cyan(option)),
+          ', ',
+        )}.
+${DialectClass.name} options can be set at the root of the option bag, like Sequelize options.
+
+The following options can be used to configure the connection to the database: ${join(
+          connectionOptionNames.map(option => chalk.cyan(option)),
+          ', ',
+        )}.
+Connection options can be used at the root of the option bag, in the "replication" option, and can be modified by the "beforeConnect" hook.
+`,
       );
     }
 
@@ -602,9 +652,11 @@ new Sequelize({
           );
         }
 
-        await this.hooks.runAsync('beforeConnect', connectOptions);
-        const connection = await this.dialect.connectionManager.connect(options);
-        await this.hooks.runAsync('afterConnect', connection, connectOptions);
+        const clonedConnectOptions = cloneDeepPlainValues(connectOptions, true);
+        await this.hooks.runAsync('beforeConnect', clonedConnectOptions);
+
+        const connection = await this.dialect.connectionManager.connect(clonedConnectOptions);
+        await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
 
         if (!this.getDatabaseVersionIfExist()) {
           await this.#initializeDatabaseVersion(connection);

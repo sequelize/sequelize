@@ -1,7 +1,6 @@
 import type { Options } from '@sequelize/core';
 import { ConnectionError, Sequelize } from '@sequelize/core';
 import { MsSqlDialect } from '@sequelize/mssql';
-import type { RequiredBy } from '@sequelize/utils';
 import { assert, expect } from 'chai';
 import sinon from 'sinon';
 import { Connection as TediousConnection } from 'tedious';
@@ -20,7 +19,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     return;
   }
 
-  let config: RequiredBy<Options<MsSqlDialect>, 'dialectOptions'>;
+  let config: Options<MsSqlDialect>;
   let instance: Sequelize<MsSqlDialect>;
   let Connection: Partial<TestConnection>;
 
@@ -34,11 +33,8 @@ describe('[MSSQL Specific] Connection Manager', () => {
     } as any;
 
     config = {
-      database: 'none',
       dialect: MsSqlDialect,
-      dialectOptions: {
-        domain: 'TEST.COM',
-      },
+      domain: 'TEST.COM',
       host: 'localhost',
       password: 'none',
       pool: {},
@@ -50,7 +46,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     instance = new Sequelize(config);
   });
 
-  it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async () => {
+  it('connectionManager._connect() does not delete `domain` from config', async () => {
     Connection = {
       STATE: TediousConnection.prototype.STATE,
       state: undefined,
@@ -65,10 +61,10 @@ describe('[MSSQL Specific] Connection Manager', () => {
       on: () => {},
     };
 
-    expect(config.dialectOptions.domain).to.equal('TEST.COM');
+    expect(config.domain).to.equal('TEST.COM');
     // @ts-expect-error -- protected method
     await instance.dialect.connectionManager._connect(config);
-    expect(config.dialectOptions.domain).to.equal('TEST.COM');
+    expect(config.domain).to.equal('TEST.COM');
   });
 
   it('connectionManager._connect() should reject if end was called and connect was not', async () => {

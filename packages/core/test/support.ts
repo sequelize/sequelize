@@ -1,6 +1,7 @@
-import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, ConnectionOptions, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import { PostgresDialect } from '@sequelize/postgres';
+import type { PostgresDialect } from '@sequelize/postgres';
+import { isNotString } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -13,7 +14,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
-import { Config } from './config/config';
+import type { Class } from 'type-fest';
+import { CONFIG } from './config/config';
 
 const expect = chai.expect;
 
@@ -122,59 +124,47 @@ export async function nextUnhandledRejection() {
   });
 }
 
-export function createSequelizeInstance(options: Options<AbstractDialect> = {}): Sequelize {
-  const dialect = getTestDialect();
+export function createSequelizeInstance(
+  options: Omit<Options<AbstractDialect>, 'dialect'> = {},
+): Sequelize {
+  const dialectName = getTestDialect();
+  const config = CONFIG[dialectName];
 
-  const config = Config[dialect];
-
-  const sequelizeOptions = defaults(options, {
-    database: config.database,
-    username: config.username,
-    password: config.password,
-    host: options.host || config.host,
-    logging: process.env.SEQ_LOG ? console.debug : false,
-    port: options.port || process.env.SEQ_PORT || config.port,
-    pool: config.pool,
-    dialectOptions: options.dialectOptions || config.dialectOptions || {},
-    minifyAliases: options.minifyAliases || config.minifyAliases,
+  const sequelizeOptions = defaults(options, config, {
     // the test suite was written before CLS was turned on by default.
     disableClsTransactions: true,
   } as const);
 
-  if (config.storage || config.storage === '') {
-    sequelizeOptions.storage = config.storage;
-  }
-
-  if (dialect === 'postgres') {
+  if (dialectName === 'postgres') {
     const sequelizePostgresOptions: Options<PostgresDialect> = {
-      ...sequelizeOptions,
-      dialect: PostgresDialect,
+      ...(sequelizeOptions as Options<PostgresDialect>),
       native: process.env.DIALECT === 'postgres-native',
     };
 
-    return getSequelizeInstance(sequelizePostgresOptions);
+    return new Sequelize(sequelizePostgresOptions);
   }
 
-  return getSequelizeInstance(sequelizeOptions);
+  return new Sequelize<AbstractDialect>(sequelizeOptions);
 }
 
-export function getConnectionOptionsWithoutPool() {
+export function getConnectionOptionsWithoutPool(): ConnectionOptions<AbstractDialect> {
   // Do not break existing config object - shallow clone before `delete config.pool`
-  const config = { ...Config[getTestDialect()] };
+  const config = { ...CONFIG[getTestDialect()] };
   delete config.pool;
 
   return config;
 }
 
-export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequelize {
-  options ??= {};
-  options.dialect ||= getTestDialect();
-
-  return new Sequelize(options);
-}
-
 export function getSupportedDialects() {
   return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
+}
+
+export function getTestDialectClass(): Class<AbstractDialect> {
+  const dialectClass = CONFIG[getTestDialect()].dialect;
+
+  isNotString.assert(dialectClass);
+
+  return dialectClass;
 }
 
 export function getTestDialect(): DialectName {
@@ -206,7 +196,7 @@ export function getTestDialectTeaser(moduleName: string): string {
 }
 
 export function getPoolMax(): number {
-  return Config[getTestDialect()].pool?.max ?? 1;
+  return CONFIG[getTestDialect()].pool?.max ?? 1;
 }
 
 type ExpectationKey = 'default' | Permutations<DialectName, 4>;

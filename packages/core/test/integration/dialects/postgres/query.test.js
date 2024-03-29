@@ -251,10 +251,8 @@ if (dialect.startsWith('postgres')) {
 
       async function setUp(clientQueryTimeoutMs) {
         const sequelize = Support.createSingleTestSequelizeInstance({
-          dialectOptions: {
-            statement_timeout: 500, // ms
-            query_timeout: clientQueryTimeoutMs,
-          },
+          statement_timeout: 500, // ms
+          query_timeout: clientQueryTimeoutMs,
           pool: {
             max: 1, // having only one helps us know whether the connection was invalidated
             idle: 60_000,

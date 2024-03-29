@@ -15,11 +15,11 @@ describe('Transaction', () => {
   const vars = beforeAll2(() => {
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
-      stubConnection: sinon.stub(sequelize.connectionManager, 'getConnection').resolves({
+      stubConnection: sinon.stub(sequelize.dialect.connectionManager, 'connect').resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {},
       }),
-      stubRelease: sinon.stub(sequelize.connectionManager, 'releaseConnection'),
+      stubRelease: sinon.stub(sequelize.dialect.connectionManager, 'disconnect'),
       stubTransactionId: sinon
         .stub(sequelize.queryGenerator, 'generateTransactionId')
         .returns('123'),

@@ -37,7 +37,7 @@ describe('[POSTGRES] Sequelize', () => {
     expect(result[0].client_min_messages).to.equal('warning');
   });
 
-  it('should allow overriding client_min_messages (deprecated in v7)', async () => {
+  it('should allow overriding client_min_messages', async () => {
     const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: 'ERROR' });
     const result = await sequelize.query<{ client_min_messages: string }>(
       'SHOW client_min_messages',
@@ -46,31 +46,8 @@ describe('[POSTGRES] Sequelize', () => {
     expect(result[0].client_min_messages).to.equal('error');
   });
 
-  it('should not set client_min_messages if clientMinMessages is false (deprecated in v7)', async () => {
+  it('should not set client_min_messages if clientMinMessages is false', async () => {
     const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: false });
-    const result = await sequelize.query<{ client_min_messages: string }>(
-      'SHOW client_min_messages',
-      { type: QueryTypes.SELECT },
-    );
-    // `notice` is Postgres's default
-    expect(result[0].client_min_messages).to.equal('notice');
-  });
-
-  it('should allow overriding client_min_messages', async () => {
-    const sequelize = createSingleTestSequelizeInstance({
-      dialectOptions: { clientMinMessages: 'ERROR' },
-    });
-    const result = await sequelize.query<{ client_min_messages: string }>(
-      'SHOW client_min_messages',
-      { type: QueryTypes.SELECT },
-    );
-    expect(result[0].client_min_messages).to.equal('error');
-  });
-
-  it('should not set client_min_messages if clientMinMessages is ignore', async () => {
-    const sequelize = createSingleTestSequelizeInstance({
-      dialectOptions: { clientMinMessages: 'IGNORE' },
-    });
     const result = await sequelize.query<{ client_min_messages: string }>(
       'SHOW client_min_messages',
       { type: QueryTypes.SELECT },
@@ -81,7 +58,7 @@ describe('[POSTGRES] Sequelize', () => {
 
   it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
     const sequelize = createSingleTestSequelizeInstance({
-      dialectOptions: { query_timeout: 100 },
+      query_timeout: 100,
     });
 
     await expect(sequelize.query('select pg_sleep(2)')).to.be.rejectedWith('Query read timeout');
@@ -89,7 +66,7 @@ describe('[POSTGRES] Sequelize', () => {
 
   it('should allow overriding session variables through the `options` param', async () => {
     const sequelize = createSingleTestSequelizeInstance({
-      dialectOptions: { options: '-csearch_path=abc' },
+      options: '-csearch_path=abc',
     });
     const result = await sequelize.query<{ search_path: string }>('SHOW search_path', {
       type: QueryTypes.SELECT,

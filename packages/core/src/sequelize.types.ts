@@ -1,6 +1,10 @@
 import type { StrictRequiredBy } from '@sequelize/utils';
 import type { Connection } from './abstract-dialect/connection-manager.js';
-import type { AbstractDialect, DialectOptions } from './abstract-dialect/dialect.js';
+import type {
+  AbstractDialect,
+  ConnectionOptions,
+  DialectOptions,
+} from './abstract-dialect/dialect.js';
 import type { ReplicationPoolOptions } from './abstract-dialect/replication-pool.js';
 import type {
   EphemeralSequelizeOptions,
@@ -36,7 +40,8 @@ interface SequelizeCoreOptions<Dialect extends AbstractDialect>
  * Options for the constructor of the {@link Sequelize} main class.
  */
 export type Options<Dialect extends AbstractDialect> = SequelizeCoreOptions<Dialect> &
-  Omit<DialectOptions<Dialect>, keyof SequelizeCoreOptions<AbstractDialect>>;
+  Omit<DialectOptions<Dialect>, keyof SequelizeCoreOptions<AbstractDialect>> &
+  Omit<ConnectionOptions<Dialect>, keyof SequelizeCoreOptions<AbstractDialect>>;
 
 export type NormalizedOptions<Dialect extends AbstractDialect> = StrictRequiredBy<
   Omit<PersistedSequelizeOptions<Dialect>, 'replication'>,

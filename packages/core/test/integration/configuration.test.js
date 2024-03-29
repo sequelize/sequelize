@@ -9,6 +9,7 @@ const Support = require('./support');
 const dialect = Support.getTestDialect();
 const { Sequelize } = require('@sequelize/core');
 const { getSqliteDatabasePath, unlinkIfExists } = require('../support');
+const { SqliteDialect } = require('@sequelize/sqlite');
 
 let sqlite3;
 if (dialect === 'sqlite') {
@@ -41,7 +42,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
         if (dialect === 'sqlite') {
           options.storage = '/path/to/no/where/land';
-          options.dialectOptions = { mode: sqlite3.OPEN_READONLY };
+          options.mode = sqlite3.OPEN_READONLY;
           // SQLite doesn't have a breakdown of error codes, so we are unable to discern between the different types of errors.
           willBeRejectedWithArgs = [
             Sequelize.ConnectionError,
@@ -114,12 +115,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it("when we don't have a valid dialect.", () => {
       expect(() => {
-        new Sequelize(
-          config[dialect].database,
-          config[dialect].username,
-          config[dialect].password,
-          { host: '0.0.0.1', port: config[dialect].port, dialect: 'some-fancy-dialect' },
-        );
+        new Sequelize({ dialect: 'some-fancy-dialect' });
       }).to.throw(
         Error,
         'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.',
@@ -140,25 +136,21 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('should respect READONLY / READWRITE connection modes', async () => {
       const sequelizeReadOnly0 = new Sequelize({
-        dialect: 'sqlite',
+        dialect: SqliteDialect,
         storage: dbPath,
-        dialectOptions: {
-          mode: sqlite3.OPEN_READONLY,
-        },
+        mode: sqlite3.OPEN_READONLY,
       });
       Support.destroySequelizeAfterTest(sequelizeReadOnly0);
 
       const sequelizeReadWrite0 = new Sequelize({
-        dialect: 'sqlite',
+        dialect: SqliteDialect,
         storage: dbPath,
-        dialectOptions: {
-          mode: sqlite3.OPEN_READWRITE,
-        },
+        mode: sqlite3.OPEN_READWRITE,
       });
       Support.destroySequelizeAfterTest(sequelizeReadWrite0);
 
-      expect(sequelizeReadOnly0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
-      expect(sequelizeReadWrite0.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
+      expect(sequelizeReadOnly0.options.replication.write.mode).to.equal(sqlite3.OPEN_READONLY);
+      expect(sequelizeReadWrite0.options.replication.write.mode).to.equal(sqlite3.OPEN_READWRITE);
 
       const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
       await Promise.all([
@@ -173,7 +165,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       // By default, sqlite creates a connection that's READWRITE | CREATE
       // So this query will create a DB file
       const sequelize = new Sequelize({
-        dialect: 'sqlite',
+        dialect: SqliteDialect,
         storage: dbPath,
       });
 
@@ -181,20 +173,16 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       await sequelize.query(createTableFoo);
       // await testAccess(roPath);
       const sequelizeReadOnly = new Sequelize({
-        dialect: 'sqlite',
+        dialect: SqliteDialect,
         storage: dbPath,
-        dialectOptions: {
-          mode: sqlite3.OPEN_READONLY,
-        },
+        mode: sqlite3.OPEN_READONLY,
       });
       Support.destroySequelizeAfterTest(sequelizeReadOnly);
 
       const sequelizeReadWrite = new Sequelize({
-        dialect: 'sqlite',
+        dialect: SqliteDialect,
         storage: dbPath,
-        dialectOptions: {
-          mode: sqlite3.OPEN_READWRITE,
-        },
+        mode: sqlite3.OPEN_READWRITE,
       });
       Support.destroySequelizeAfterTest(sequelizeReadWrite);
 

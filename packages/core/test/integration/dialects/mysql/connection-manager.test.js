@@ -12,7 +12,7 @@ if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
-        dialectOptions: { flags: '' },
+        flags: '',
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
