@@ -77,62 +77,6 @@ export const PERSISTED_SEQUELIZE_OPTIONS = getSynchronizedTypeKeys<
   transactionType: undefined,
 });
 
-// !TODO: remove
-// host: 'localhost',
-// protocol: 'tcp',
-// port: isNotNullish(options.port)
-//   ? parseSafeInteger.orThrow(options.port)
-//   : DialectClass.getDefaultPort(),
-interface TomoveToDialect {
-  /**
-   * The name of the database
-   */
-  database?: string;
-
-  /**
-   * The username which is used to authenticate against the database.
-   */
-  username?: string;
-
-  /**
-   * The password which is used to authenticate against the database.
-   */
-  password?: string;
-
-  /**
-   * The host of the relational database.
-   *
-   * @default 'localhost'
-   */
-  host?: string;
-
-  /**
-   * The port of the relational database.
-   */
-  port?: number | string;
-
-  /**
-   * A flag that defines if is used SSL.
-   */
-  ssl?: boolean;
-
-  /**
-   * The protocol of the relational database.
-   *
-   * @default 'tcp'
-   */
-  protocol?: string;
-
-  /**
-   * SQLite only. If set to false, foreign keys will not be enforced by SQLite.
-   *
-   * @default true
-   */
-  // TODO: move to dialectOptions, rename to noForeignKeyEnforcement, and add integration tests with
-  //  query-interface methods that temporarily disable foreign keys.
-  foreignKeys?: boolean;
-}
-
 /**
  * The options that are accessible via {@link Sequelize#options}.
  */

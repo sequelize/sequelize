@@ -1,4 +1,4 @@
-import type { Connection, GetConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { checkFileExists } from '@sequelize/utils/node';
@@ -11,50 +11,82 @@ const debug = logger.debugContext('connection:sqlite');
 
 export type Sqlite3Module = typeof Sqlite3;
 
-export interface SqliteConnection extends Connection, Sqlite3.Database {
+export interface SqliteConnection extends AbstractConnection, Sqlite3.Database {
   // Not declared by sqlite3's typings
   filename: string;
 }
+
+export interface SqliteConnectionOptions {
+  /**
+   * Path to the SQLite database file, or ':memory:' to use an in-memory database.
+   *
+   * @default ':memory:'
+   */
+  storage?: string;
+
+  /**
+   * The mode to open the database connection with.
+   *
+   * An integer flag that can be a combination of the following values:
+   * - OPEN_CREATE
+   * - OPEN_READONLY
+   * - OPEN_READWRITE
+   * - OPEN_SHAREDCACHE
+   * - OPEN_PRIVATECACHE
+   * - OPEN_FULLMUTEX
+   * - OPEN_URI
+   *
+   * This package exports each of these values
+   *
+   * @example
+   * ```ts
+   * import { SqliteDialect, OPEN_CREATE, OPEN_READWRITE } from '@sequelize/sqlite';
+   *
+   * new Sequelize({
+   *   dialect: SqliteDialect,
+   *   storage: 'db.sqlite',
+   *   mode: OPEN_CREATE | OPEN_READWRITE,
+   * });
+   * ```
+   */
+  mode?: number;
+
+  /**
+   * The "PRAGMA KEY" password to use for the connection.
+   */
+  password?: string;
+}
+
+export {
+  OPEN_CREATE,
+  OPEN_FULLMUTEX,
+  OPEN_PRIVATECACHE,
+  OPEN_READONLY,
+  OPEN_READWRITE,
+  OPEN_SHAREDCACHE,
+  OPEN_URI,
+} from 'sqlite3';
 
 export class SqliteConnectionManager extends AbstractConnectionManager<
   SqliteDialect,
   SqliteConnection
 > {
   readonly #lib: Sqlite3Module;
-  private readonly connections = new Map<string, SqliteConnection>();
 
   constructor(dialect: SqliteDialect) {
     super(dialect);
 
-    // We attempt to parse file location from a connection uri
-    // but we shouldn't match sequelize default host.
-    if (this.sequelize.options.host === 'localhost') {
-      delete this.sequelize.options.host;
-    }
-
     this.#lib = this.dialect.options.sqlite3Module ?? Sqlite3;
   }
 
-  async getConnection(options: GetConnectionOptions): Promise<SqliteConnection> {
-    const connectionUuid = options.uuid || 'default';
-
-    if (this.sequelize.options.storage && this.sequelize.options.host) {
-      throw new Error('The host and storage options cannot be set at the same time');
-    }
-
+  async connect(options: ConnectionOptions<SqliteDialect>): Promise<SqliteConnection> {
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
-    const storage = this.sequelize.options.storage ?? this.sequelize.options.host ?? ':memory:';
+    const storage = options.storage ?? ':memory:';
 
     const inMemory = storage === ':memory:';
 
     const defaultReadWriteMode = this.#lib.OPEN_READWRITE | this.#lib.OPEN_CREATE;
-    const readWriteMode = this.sequelize.options.dialectOptions?.mode || defaultReadWriteMode;
-
-    const connectionCacheKey = inMemory ? ':memory:' : connectionUuid;
-
-    if (this.connections.has(connectionCacheKey)) {
-      return this.connections.get(connectionCacheKey)!;
-    }
+    const readWriteMode = options.mode ?? defaultReadWriteMode;
 
     const storageDir = path.dirname(storage);
 
@@ -76,22 +108,19 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
             return void reject(new ConnectionError(err));
           }
 
-          debug(`connection acquired ${connectionUuid}`);
-          this.connections.set(connectionCacheKey, connectionInstance);
+          debug(`sqlite connection acquired`);
 
           resolve(connectionInstance);
         },
       ) as SqliteConnection;
     });
 
-    await this._initDatabaseVersion(connection);
-
-    if (this.sequelize.config.password) {
+    if (options.password) {
       // Make it possible to define and use password for sqlite encryption plugin like sqlcipher
-      connection.run(`PRAGMA KEY=${this.sequelize.escape(this.sequelize.config.password)}`);
+      connection.run(`PRAGMA KEY=${this.sequelize.escape(options.password)}`);
     }
 
-    if (this.sequelize.options.foreignKeys !== false) {
+    if (this.dialect.options.foreignKeys !== false) {
       // Make it possible to define and use foreign key constraints unless
       // explicitly disallowed. It's still opt-in per relation
       connection.run('PRAGMA FOREIGN_KEYS=ON');
@@ -100,18 +129,21 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
     return connection;
   }
 
-  async disconnect(_connection: SqliteConnection): Promise<void> {}
-
-  // TODO: move
-  async releaseConnection(connection: SqliteConnection, force?: boolean): Promise<void> {
-    if (connection.filename === ':memory:' && force !== true) {
+  async disconnect(connection: SqliteConnection): Promise<void> {
+    if (connection.filename === ':memory:') {
       return;
     }
 
-    if (connection.uuid) {
-      connection.close();
-      debug(`connection released ${connection.uuid}`);
-      this.connections.delete(connection.uuid);
-    }
+    return new Promise((resolve, reject) => {
+      connection.close(err => {
+        if (err) {
+          return reject(err);
+        }
+
+        debug(`sqlite connection released`);
+
+        resolve();
+      });
+    });
   }
 }

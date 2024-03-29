@@ -3,7 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { SnowflakeSdkModule } from './connection-manager.js';
+import type { SnowflakeConnectionOptions, SnowflakeSdkModule } from './connection-manager.js';
 import { SnowflakeConnectionManager } from './connection-manager.js';
 import { SnowflakeQueryGenerator } from './query-generator.js';
 import { SnowflakeQueryInterface } from './query-interface.js';
@@ -25,7 +25,30 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeDialectOptions>({
   snowflakeSdkModule: undefined,
 });
 
-export class SnowflakeDialect extends AbstractDialect<SnowflakeDialectOptions> {
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptions>({
+  account: undefined,
+  username: undefined,
+  password: undefined,
+  database: undefined,
+  schema: undefined,
+  warehouse: undefined,
+  role: undefined,
+  timeout: undefined,
+  clientSessionKeepAlive: undefined,
+  clientSessionKeepAliveHeartbeatFrequency: undefined,
+  application: undefined,
+  authenticator: undefined,
+  token: undefined,
+  privateKey: undefined,
+  privateKeyPath: undefined,
+  privateKeyPass: undefined,
+  accessUrl: undefined,
+});
+
+export class SnowflakeDialect extends AbstractDialect<
+  SnowflakeDialectOptions,
+  SnowflakeConnectionOptions
+> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -119,5 +142,9 @@ export class SnowflakeDialect extends AbstractDialect<SnowflakeDialectOptions> {
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions(): readonly string[] {
+    return CONNECTION_OPTION_NAMES;
   }
 }

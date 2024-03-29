@@ -3,7 +3,7 @@ import path from 'node:path';
 import { URL } from 'node:url';
 import type { ConnectionOptions as PgConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
-import type { AbstractDialect, ConnectionOptions } from '../abstract-dialect/index.js';
+import type { AbstractDialect, ConnectionOptions } from '../abstract-dialect/dialect.js';
 import type {
   LegacyDialectOptions,
   NormalizedReplicationOptions,

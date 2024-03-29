@@ -1,6 +1,6 @@
 import type { StrictRequiredBy } from '@sequelize/utils';
 import type { Connection } from './abstract-dialect/connection-manager.js';
-import type { AbstractDialect, DialectOptions } from './abstract-dialect/index.js';
+import type { AbstractDialect, DialectOptions } from './abstract-dialect/dialect.js';
 import type { ReplicationPoolOptions } from './abstract-dialect/replication-pool.js';
 import type {
   EphemeralSequelizeOptions,
