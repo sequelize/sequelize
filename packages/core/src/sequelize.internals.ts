@@ -1,4 +1,4 @@
-import type { AbstractDialect } from './dialects/abstract/index.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { DialectName } from './sequelize.js';
 
 export function importDialect(dialect: DialectName): typeof AbstractDialect {
@@ -9,7 +9,8 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/mariadb').MariaDbDialect;
     case 'mssql':
-      return require('./dialects/mssql').MsSqlDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/mssql').MsSqlDialect;
     case 'mysql':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/mysql').MySqlDialect;
@@ -17,13 +18,17 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/postgres').PostgresDialect;
     case 'sqlite':
-      return require('./dialects/sqlite').SqliteDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/sqlite').SqliteDialect;
     case 'ibmi':
-      return require('./dialects/ibmi').IBMiDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/ibmi').IBMiDialect;
     case 'db2':
-      return require('./dialects/db2').Db2Dialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/db2').Db2Dialect;
     case 'snowflake':
-      return require('./dialects/snowflake').SnowflakeDialect;
+      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
+      return require('@sequelize/snowflake').SnowflakeDialect;
     default:
       throw new Error(
         `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,

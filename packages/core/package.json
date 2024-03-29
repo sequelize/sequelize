@@ -37,18 +37,14 @@
         "default": "./lib/decorators/legacy/index.js"
       }
     },
-    "./_non-semver-use-at-your-own-risk_/*": {
-      "default": "./lib/*"
-    },
+    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
     "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
-    "lib",
-    "types",
-    "index.js"
+    "lib"
   ],
   "license": "MIT",
   "dependencies": {
@@ -76,14 +72,11 @@
     "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
-    "@types/ibm_db": "2.0.16",
     "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
-    "@types/snowflake-sdk": "1.6.20",
-    "@types/tedious": "4.0.14",
     "@types/uuid": "9.0.8",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
@@ -91,39 +84,17 @@
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
-    "ibm_db": "3.2.3",
     "lcov-result-merger": "5.0.0",
-    "mocha": "10.3.0",
+    "mocha": "10.4.0",
     "moment": "2.30.1",
     "nyc": "15.1.0",
-    "odbc": "2.4.8",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
     "rimraf": "5.0.5",
     "sinon": "17.0.1",
-    "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.10.0",
-    "sqlite3": "5.1.7",
-    "tedious": "16.7.1"
-  },
-  "peerDependenciesMeta": {
-    "ibm_db": {
-      "optional": true
-    },
-    "odbc": {
-      "optional": true
-    },
-    "snowflake-sdk": {
-      "optional": true
-    },
-    "sqlite3": {
-      "optional": true
-    },
-    "tedious": {
-      "optional": true
-    }
+    "sinon-chai": "3.7.0"
   },
   "keywords": [
     "mysql",

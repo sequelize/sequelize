@@ -18,6 +18,8 @@ import type { MariaDbDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mariadb');
 
+export type MariaDbModule = typeof MariaDb;
+
 export interface MariaDbConnection extends Connection, MariaDb.Connection {}
 
 /**
@@ -33,11 +35,11 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbDialect,
   MariaDbConnection
 > {
-  readonly #lib: typeof MariaDb;
+  readonly #lib: MariaDbModule;
 
   constructor(dialect: MariaDbDialect) {
     super(dialect);
-    this.#lib = MariaDb;
+    this.#lib = dialect.options.mariaDbModule ?? MariaDb;
   }
 
   #typeCast(field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction): MariaDb.TypeCastResult {

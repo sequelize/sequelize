@@ -12,7 +12,6 @@ import {
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import pick from 'lodash/pick';
-import assert from 'node:assert';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
 import type { TypeId, TypeParser } from 'pg-types';
@@ -34,6 +33,8 @@ interface TypeOids {
   rangeOid?: number;
 }
 
+export type PgModule = typeof Pg;
+
 export interface PostgresConnection extends Connection, Pg.Client {
   // custom property we attach to the client
   // TODO: replace with Symbols.
@@ -49,17 +50,28 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
   PostgresDialect,
   PostgresConnection
 > {
-  readonly #lib: typeof Pg;
+  readonly #lib: PgModule;
   readonly #oidMap = new Map<number, TypeOids>();
   readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);
 
-    const pgLib = dialect.options.native ? Pg.native : Pg;
-    assert(pgLib != null, 'pg-native module not found, please install it');
+    const pgModule = dialect.options.pgModule ?? Pg;
 
-    this.#lib = pgLib;
+    if (dialect.options.native && dialect.options.pgModule) {
+      throw new Error(
+        'You cannot specify both the "pgModule" option and the "native" option at the same time, as the "native" option is only used to use "pg-native" as the "pgModule" instead of "pg"',
+      );
+    }
+
+    if (dialect.options.native && !pgModule.native) {
+      throw new Error(
+        'The "native" option was specified, but the "pg-native" module is not installed. You must install it to use the native bindings.',
+      );
+    }
+
+    this.#lib = dialect.options.native ? pgModule.native! : pgModule;
   }
 
   async connect(config: ConnectionOptions): Promise<PostgresConnection> {

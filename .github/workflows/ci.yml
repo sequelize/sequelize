@@ -90,16 +90,20 @@ jobs:
         run: yarn lerna run test-unit-postgres --scope=@sequelize/core
       - name: Unit tests (postgres package)
         run: yarn lerna run test-unit --scope=@sequelize/postgres
-      - name: Unit tests (sqlite)
+      - name: Unit tests (core - sqlite)
         run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
-      - name: Unit tests (mssql)
+      - name: Unit tests (core - mssql)
         run: yarn lerna run test-unit-mssql --scope=@sequelize/core
-      - name: Unit tests (db2)
+      - name: Unit tests (mssql package)
+        run: yarn lerna run test-unit --scope=@sequelize/mssql
+      - name: Unit tests (core - db2)
         run: yarn lerna run test-unit-db2 --scope=@sequelize/core
-      - name: Unit tests (ibmi)
+      - name: Unit tests (core - ibmi)
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
-      - name: Unit tests (snowflake)
+      - name: Unit tests (core - snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+      - name: SQLite SSCCE
+        run: yarn sscce-sqlite
   test-win:
     strategy:
       fail-fast: false
@@ -120,6 +124,8 @@ jobs:
         run: yarn build
       - name: Unit tests
         run: yarn lerna run test-unit
+      - name: SSCCE
+        run: yarn sscce-sqlite
       - name: Integration tests (sqlite)
         run: yarn lerna run test-integration-sqlite --scope=@sequelize/core
   docs:
