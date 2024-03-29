@@ -5,7 +5,7 @@ import { ConnectionAcquireTimeoutError } from '../errors';
 import type { ConnectionOptions, Sequelize } from '../sequelize.js';
 import * as deprecations from '../utils/deprecations';
 import { logger } from '../utils/logger';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import { ReplicationPool } from './replication-pool.js';
 
 const debug = logger.debugContext('connection-manager');

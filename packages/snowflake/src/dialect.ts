@@ -93,6 +93,7 @@ export class SnowflakeDialect extends AbstractDialect<SnowflakeDialectOptions> {
       dataTypeOverrides: DataTypes,
       dataTypesDocumentationUrl: 'https://docs.snowflake.com/en/sql-reference/data-types.html',
       identifierDelimiter: '"',
+      // TODO: fix the minimum supported version
       minimumDatabaseVersion: '5.7.0',
       name: 'snowflake',
       options,

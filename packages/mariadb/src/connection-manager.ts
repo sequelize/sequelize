@@ -39,7 +39,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
   constructor(dialect: MariaDbDialect) {
     super(dialect);
-    this.#lib = MariaDb;
+    this.#lib = dialect.options.mariaDbModule ?? MariaDb;
   }
 
   #typeCast(field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction): MariaDb.TypeCastResult {

@@ -22,7 +22,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
   SqliteDialect,
   SqliteConnection
 > {
-  private readonly lib: Sqlite3Module;
+  readonly #lib: Sqlite3Module;
   private readonly connections = new Map<string, SqliteConnection>();
 
   constructor(dialect: SqliteDialect) {
@@ -34,7 +34,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
       delete this.sequelize.options.host;
     }
 
-    this.lib = this.dialect.options.sqlite3Module ?? Sqlite3;
+    this.#lib = this.dialect.options.sqlite3Module ?? Sqlite3;
   }
 
   async _onProcessExit() {
@@ -59,7 +59,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
     const inMemory = storage === ':memory:';
 
-    const defaultReadWriteMode = this.lib.OPEN_READWRITE | this.lib.OPEN_CREATE;
+    const defaultReadWriteMode = this.#lib.OPEN_READWRITE | this.#lib.OPEN_CREATE;
     const readWriteMode = this.sequelize.options.dialectOptions?.mode || defaultReadWriteMode;
 
     const connectionCacheKey = inMemory ? ':memory:' : connectionUuid;
@@ -72,7 +72,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
     if (
       !inMemory &&
-      (readWriteMode & this.lib.OPEN_CREATE) !== 0 &&
+      (readWriteMode & this.#lib.OPEN_CREATE) !== 0 &&
       !(await checkFileExists(storageDir))
     ) {
       // automatic path provision for `options.storage`
@@ -80,7 +80,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {
-      const connectionInstance = new this.lib.Database(
+      const connectionInstance = new this.#lib.Database(
         storage,
         readWriteMode,
         (err: Error | null) => {

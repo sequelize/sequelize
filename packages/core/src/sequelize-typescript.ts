@@ -17,7 +17,7 @@ import type {
 import type { Connection, GetConnectionOptions } from './abstract-dialect/connection-manager.js';
 import { normalizeDataType, validateDataType } from './abstract-dialect/data-types-utils.js';
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
-import type { AbstractDialect } from './abstract-dialect/index.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';

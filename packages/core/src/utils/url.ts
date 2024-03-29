@@ -2,7 +2,7 @@ import path from 'node:path';
 import { URL } from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
-import type { AbstractDialect } from '../abstract-dialect/index.js';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import type { DialectName, LegacyDialectOptions, Options } from '../sequelize';
 import { SUPPORTED_DIALECTS } from '../sequelize-typescript';
 import { encodeHost } from './deprecations';

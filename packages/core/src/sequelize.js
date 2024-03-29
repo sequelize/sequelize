@@ -8,7 +8,7 @@ import map from 'lodash/map';
 import pick from 'lodash/pick';
 import retry from 'retry-as-promised';
 import { AbstractConnectionManager } from './abstract-dialect/connection-manager.js';
-import { AbstractDialect } from './abstract-dialect/index.js';
+import { AbstractDialect } from './abstract-dialect/dialect.js';
 import { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 import { AbstractQueryInterface } from './abstract-dialect/query-interface';
 import { AbstractQuery } from './abstract-dialect/query.js';
@@ -398,13 +398,13 @@ export class Sequelize extends SequelizeTypeScript {
 
     if ('dialectModulePath' in this.options) {
       throw new Error(
-        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect to learn about the alternative.',
+        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
       );
     }
 
     if ('dialectModule' in this.options) {
       throw new Error(
-        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect to learn about the alternative.',
+        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
       );
     }
 

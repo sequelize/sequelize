@@ -9,8 +9,8 @@ import type {
   TransactionNestMode,
   TransactionType,
 } from '.';
-import type { AbstractDialect, DialectOptions } from './abstract-dialect';
 import type { DataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect, DialectOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
   RawConstraintDescription,
