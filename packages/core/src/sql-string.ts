@@ -1,5 +1,5 @@
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
-import type { AbstractDialect } from './abstract-dialect/index.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import * as DataTypes from './data-types';
 import { logger } from './utils/logger';
 

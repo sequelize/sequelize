@@ -1,23 +1,41 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { MySql2Module } from './connection-manager.js';
 import { MySqlConnectionManager } from './connection-manager.js';
 import { MySqlQueryGenerator } from './query-generator.js';
 import { MySqlQueryInterface } from './query-interface.js';
 import { MySqlQuery } from './query.js';
+
+export interface MySqlDialectOptions {
+  /**
+   * The mysql2 library to use.
+   * If not provided, the mysql2 npm library will be used.
+   * Must be compatible with the mysql2 npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  mysql2Module?: MySql2Module;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
+  mysql2Module: undefined,
+});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
 
-export class MySqlDialect extends AbstractDialect {
+export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -79,15 +97,18 @@ export class MySqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
-  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html';
 
-  // minimum supported version
-  readonly defaultVersion = '8.0.19';
-  readonly TICK_CHAR_LEFT = '`';
-  readonly TICK_CHAR_RIGHT = '`';
+  constructor(sequelize: Sequelize, options: MySqlDialectOptions) {
+    super({
+      sequelize,
+      options,
+      dataTypeOverrides: DataTypes,
+      minimumDatabaseVersion: '8.0.19',
+      identifierDelimiter: '`',
+      dataTypesDocumentationUrl: 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html',
+      name: 'mysql',
+    });
 
-  constructor(sequelize: Sequelize) {
-    super(sequelize, DataTypes, 'mysql');
     this.connectionManager = new MySqlConnectionManager(this);
     this.queryGenerator = new MySqlQueryGenerator(this);
     this.queryInterface = new MySqlQueryInterface(this);
@@ -120,6 +141,6 @@ export class MySqlDialect extends AbstractDialect {
   }
 
   static getSupportedOptions() {
-    return [];
+    return DIALECT_OPTION_NAMES;
   }
 }

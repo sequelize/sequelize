@@ -9,8 +9,8 @@ import type {
   TransactionNestMode,
   TransactionType,
 } from '.';
-import type { AbstractDialect, DialectOptions } from './abstract-dialect';
 import type { DataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect, DialectOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
   RawConstraintDescription,
@@ -164,7 +164,6 @@ export interface NormalizedReplicationOptions {
  */
 export interface Config {
   readonly database: string;
-  readonly dialectModule?: object;
   readonly host?: string;
   readonly port: number;
   readonly username: string;
@@ -173,7 +172,6 @@ export interface Config {
   readonly protocol: 'tcp';
   readonly ssl: boolean;
   readonly replication: NormalizedReplicationOptions;
-  readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
   readonly dialectOptions: Readonly<LegacyDialectOptions>;
 }
@@ -189,20 +187,6 @@ interface SequelizeCoreOptions<Dialect extends AbstractDialect> extends Logging 
    * The dialect of the database you are connecting to. One of mysql, sqlite, mariadb, mssql, or a dialect class.
    */
   dialect?: DialectName | Class<Dialect>;
-
-  /**
-   * If specified, will use the provided module as the dialect.
-   *
-   * @example
-   * `dialectModule: require('@myorg/tedious'),`
-   */
-  dialectModule?: object;
-
-  /**
-   * If specified, load the dialect library from this path. For example, if you want to use pg.js instead of
-   * pg when connecting to a pg database, you should specify 'pg.js' here
-   */
-  dialectModulePath?: string;
 
   /**
    * An object of additional options, which are passed directly to the connection library

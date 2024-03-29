@@ -3,17 +3,18 @@ import { AbstractDialect } from '@sequelize/core';
 import type {
   BindCollector,
   DialectSupports,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import { EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { PgModule } from './connection-manager.js';
 import { PostgresConnectionManager } from './connection-manager.js';
 import { PostgresQueryGenerator } from './query-generator.js';
 import { PostgresQueryInterface } from './query-interface.js';
 import { PostgresQuery } from './query.js';
 
-export type PostgresDialectOptions = {
+export interface PostgresDialectOptions {
   /**
    * Defines whether the native library shall be used or not.
    * If true, you need to have `pg-native` installed.
@@ -21,7 +22,22 @@ export type PostgresDialectOptions = {
    * @default false
    */
   native?: boolean;
-};
+
+  /**
+   * The pg library to use.
+   * If not provided, the pg npm library will be used.
+   * Must be compatible with the pg npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  pgModule?: PgModule;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<PostgresDialectOptions>({
+  native: undefined,
+  pgModule: undefined,
+});
 
 export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
   static readonly supports: DialectSupports = AbstractDialect.extendSupport({
@@ -124,17 +140,18 @@ export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
   readonly queryGenerator: PostgresQueryGenerator;
   readonly queryInterface: PostgresQueryInterface;
   readonly Query = PostgresQuery;
-  readonly dataTypesDocumentationUrl = 'https://www.postgresql.org/docs/current/datatype.html';
 
-  // minimum supported version
-  readonly defaultVersion = '11.0.0';
-  readonly TICK_CHAR_LEFT = '"';
-  readonly TICK_CHAR_RIGHT = '"';
-  readonly options: PostgresDialectOptions;
+  constructor(sequelize: Sequelize, options: PostgresDialectOptions) {
+    super({
+      sequelize,
+      dataTypeOverrides: DataTypes,
+      options,
+      name: 'postgres',
+      minimumDatabaseVersion: '11.0.0',
+      identifierDelimiter: '"',
+      dataTypesDocumentationUrl: 'https://www.postgresql.org/docs/current/datatype.html',
+    });
 
-  constructor(sequelize: Sequelize, options?: PostgresDialectOptions | undefined) {
-    super(sequelize, DataTypes, 'postgres');
-    this.options = options ? Object.freeze(shallowClonePojo(options)) : EMPTY_OBJECT;
     this.connectionManager = new PostgresConnectionManager(this);
     this.queryGenerator = new PostgresQueryGenerator(this);
     this.queryInterface = new PostgresQueryInterface(this);
@@ -180,7 +197,7 @@ export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
     return 5432;
   }
 
-  static getSupportedOptions(): ReadonlyArray<keyof PostgresDialectOptions> {
-    return ['native'];
+  static getSupportedOptions() {
+    return DIALECT_OPTION_NAMES;
   }
 }

@@ -8,7 +8,7 @@ import map from 'lodash/map';
 import pick from 'lodash/pick';
 import retry from 'retry-as-promised';
 import { AbstractConnectionManager } from './abstract-dialect/connection-manager.js';
-import { AbstractDialect } from './abstract-dialect/index.js';
+import { AbstractDialect } from './abstract-dialect/dialect.js';
 import { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 import { AbstractQueryInterface } from './abstract-dialect/query-interface';
 import { AbstractQuery } from './abstract-dialect/query.js';
@@ -174,8 +174,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {string}   [options.password=null] The password which is used to authenticate against the database.
    * @param {string}   [options.database=null] The name of the database.
    * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, sqlite, db2, ibmi, snowflake, mariadb, mssql or a dialect class.
-   * @param {string}   [options.dialectModule=null] If specified, use this dialect library. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'require("pg.js")' here
-   * @param {string}   [options.dialectModulePath=null] If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify '/path/to/pg.js' here
    * @param {object}   [options.dialectOptions] An object of additional options, which are passed directly to the connection library
    * @param {string}   [options.storage] Only used by sqlite. Defaults to ':memory:'
    * @param {string}   [options.protocol='tcp'] The protocol of the relational database.
@@ -253,8 +251,6 @@ export class Sequelize extends SequelizeTypeScript {
 
     this.options = {
       dialect: null,
-      dialectModule: null,
-      dialectModulePath: null,
       dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
@@ -390,8 +386,6 @@ export class Sequelize extends SequelizeTypeScript {
       ...connectionConfig,
       pool: this.options.pool,
       replication: this.options.replication,
-      dialectModule: this.options.dialectModule,
-      dialectModulePath: this.options.dialectModulePath,
       keepDefaultTimezone: this.options.keepDefaultTimezone,
     };
 
@@ -402,15 +396,15 @@ export class Sequelize extends SequelizeTypeScript {
 
     this.dialect = new DialectClass(this, pickedDialectOptions);
 
-    // TODO: Once all packages are migrated, fully remove dialectModule and dialectModulePath
-    //  They require synchronous imports, which is not possible in ESM, and are not TypeScript-friendly.
-    //  Note: even if we end up keeping dialectModule for some dialects, dialectModulePath must be removed.
-    if (
-      this.dialect.name === 'postgres' &&
-      (this.options.dialectModule || this.options.dialectModulePath)
-    ) {
+    if ('dialectModulePath' in this.options) {
       throw new Error(
-        'Support for the "dialectModule" and "dialectModulePath" options have been removed. Please reach out to the maintainers of Sequelize if you need this feature so we can provide a better alternative that is compatible with the new dialect packages.',
+        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
+      );
+    }
+
+    if ('dialectModule' in this.options) {
+      throw new Error(
+        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
       );
     }
 
