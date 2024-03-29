@@ -2269,7 +2269,6 @@ __metadata:
     type-fest: "npm:^4.14.0"
     uuid: "npm:^9.0.1"
     validator: "npm:^13.11.0"
-    wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
 
