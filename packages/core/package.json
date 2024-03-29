@@ -66,8 +66,7 @@
     "type-fest": "^4.12.0",
     "uuid": "^9.0.0",
     "validator": "^13.7.0",
-    "wkx": "^0.5.0",
-    "zod": "^3.22.4"
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",
