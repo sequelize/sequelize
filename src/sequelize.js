@@ -1169,6 +1169,7 @@ class Sequelize {
    * @param {string}   [options.type='DEFERRED'] See `Sequelize.Transaction.TYPES` for possible options. Sqlite only.
    * @param {string}   [options.isolationLevel] See `Sequelize.Transaction.ISOLATION_LEVELS` for possible options
    * @param {string}   [options.deferrable] Sets the constraints to be deferred or immediately checked. See `Sequelize.Deferrable`. PostgreSQL Only
+   * @param {boolean}  [options.readOnly] Whether this transaction will only be used to read data. Used to determine whether sequelize is allowed to use a read replication server.
    * @param {Function} [options.logging=false] A function that gets executed while running the query to log the sql.
    * @param {Function} [autoCallback] The callback is called with the transaction object, and should return a promise. If the promise is resolved, the transaction commits; if the promise rejects, the transaction rolls back
    *
