@@ -11299,9 +11299,9 @@ __metadata:
   linkType: hard
 
 "pg-connection-string@npm:^2.5.0, pg-connection-string@npm:^2.6.2":
-  version: 2.6.2
-  resolution: "pg-connection-string@npm:2.6.2"
-  checksum: 10c0/e8fdea74fcc8bdc3d7c5c6eadd9425fdba7e67fb7fe836f9c0cecad94c8984e435256657d1d8ce0483d1fedef667e7a57e32449a63cb805cb0289fc34b62da35
+  version: 2.6.3
+  resolution: "pg-connection-string@npm:2.6.3"
+  checksum: 10c0/e7eab3a2bb8dec5067fab8a46c90d8f7920946d46ad771a410de3929490c676ee91950424d4405295dd0fde5acbd39ccd99afd603a15d616d0a4a6fa9bf80ad7
   languageName: node
   linkType: hard
 
