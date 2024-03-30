@@ -461,7 +461,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       testSql(
         { type: 'INTEGER', references: { table: 'myTable' } },
         {
-          default: 'INTEGER REFERENCES "myTable" ("id")',
+          default: 'INTEGER REFERENCES "otherSchema"."myTable" ("id")',
           'mariadb mysql':
             'INTEGER, ADD CONSTRAINT `otherTable_bar_foreign_idx` FOREIGN KEY (`bar`) REFERENCES `myTable` (`id`)',
           mssql: 'INTEGER NULL REFERENCES [myTable] ([id])',
