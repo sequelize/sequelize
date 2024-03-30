@@ -9,9 +9,7 @@ const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const { Op } = require('@sequelize/core');
-const {
-  SnowflakeQueryGenerator: QueryGenerator,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query-generator.js');
+const { SnowflakeQueryGenerator: QueryGenerator } = require('@sequelize/snowflake');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'snowflake') {

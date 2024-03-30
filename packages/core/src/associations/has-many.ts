@@ -2,7 +2,7 @@ import type { AllowIterable } from '@sequelize/utils';
 import { isPlainObject } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
-import type { WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
+import type { WhereOptions } from '../abstract-dialect/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
 import { fn } from '../expression-builders/fn.js';

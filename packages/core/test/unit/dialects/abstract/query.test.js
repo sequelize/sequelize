@@ -3,7 +3,7 @@
 const { DataTypes } = require('@sequelize/core');
 const {
   AbstractQuery: Query,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js');
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js');
 
 const Support = require('../../../support');
 const chai = require('chai');

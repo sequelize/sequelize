@@ -9,9 +9,7 @@ const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const { Op } = require('@sequelize/core');
-const {
-  MariaDbQueryGenerator: QueryGenerator,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/mariadb/query-generator.js');
+const { MariaDbQueryGenerator } = require('@sequelize/mariadb');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'mariadb') {
@@ -21,42 +19,42 @@ if (dialect === 'mariadb') {
         {
           arguments: ['myTable'],
           expectation: 'SELECT * FROM `myTable`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { attributes: ['id', 'name'] }],
           expectation: 'SELECT `id`, `name` FROM `myTable`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { where: { id: 2 } }],
           expectation: 'SELECT * FROM `myTable` WHERE `myTable`.`id` = 2;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { where: { name: 'foo' } }],
           expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo';",
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { order: ['id'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { order: ['id', 'DESC'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `id`, `DESC`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { order: ['myTable.id'] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { order: [['myTable.id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` ORDER BY `myTable`.`id` DESC;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: [
@@ -67,7 +65,7 @@ if (dialect === 'mariadb') {
             },
           ],
           expectation: 'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
         {
@@ -80,19 +78,19 @@ if (dialect === 'mariadb') {
           ],
           expectation:
             'SELECT * FROM `myTable` AS `myTable` ORDER BY `myTable`.`id` DESC, `myTable`.`name`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
         {
           title: 'single string argument should be quoted',
           arguments: ['myTable', { group: 'name' }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           arguments: ['myTable', { group: ['name'] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           title: 'functions work for group by',
@@ -105,7 +103,7 @@ if (dialect === 'mariadb') {
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
         {
@@ -119,13 +117,13 @@ if (dialect === 'mariadb') {
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
         {
           arguments: ['myTable', { group: 'name', order: [['id', 'DESC']] }],
           expectation: 'SELECT * FROM `myTable` GROUP BY `name` ORDER BY `id` DESC;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
         },
         {
           title: 'Empty having',
@@ -138,7 +136,7 @@ if (dialect === 'mariadb') {
             },
           ],
           expectation: 'SELECT * FROM `myTable`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
         {
@@ -155,7 +153,7 @@ if (dialect === 'mariadb') {
           ],
           expectation:
             'SELECT `test`.* FROM (SELECT * FROM `myTable` AS `test` HAVING `test`.`creationYear` > 2002) AS `test`;',
-          context: QueryGenerator,
+          context: MariaDbQueryGenerator,
           needsSequelize: true,
         },
       ],

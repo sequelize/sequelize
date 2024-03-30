@@ -21,7 +21,7 @@ export interface UniqueConstraintErrorOptions {
  * Thrown when a unique constraint is violated in the database
  */
 export class UniqueConstraintError extends ValidationError {
-  /** The database specific error which triggered this one */
+  /** The database-specific error which triggered this one */
   declare cause?: UniqueConstraintErrorParent;
 
   readonly fields: Record<string, unknown>;

@@ -1,5 +1,5 @@
 import { EMPTY_OBJECT } from '@sequelize/utils';
-import { cloneDataType } from '../../dialects/abstract/data-types-utils.js';
+import { cloneDataType } from '../../abstract-dialect/data-types-utils.js';
 import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';

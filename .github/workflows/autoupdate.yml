@@ -1,6 +1,6 @@
 name: auto-update PRs
 on:
-  pull_request:
+  pull_request_target:
     types: [auto_merge_enabled]
   push:
     branches:

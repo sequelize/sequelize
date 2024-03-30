@@ -2,7 +2,8 @@ import path from 'node:path';
 import { URL } from 'node:url';
 import type { ConnectionOptions } from 'pg-connection-string';
 import pgConnectionString from 'pg-connection-string';
-import type { Dialect, DialectOptions, Options } from '../sequelize';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
+import type { DialectName, LegacyDialectOptions, Options } from '../sequelize';
 import { SUPPORTED_DIALECTS } from '../sequelize-typescript';
 import { encodeHost } from './deprecations';
 
@@ -11,8 +12,8 @@ import { encodeHost } from './deprecations';
  *
  * @param connectionString string value in format schema://username:password@host:port/database
  */
-export function parseConnectionString(connectionString: string): Options {
-  const options: Options = {};
+export function parseConnectionString(connectionString: string): Options<AbstractDialect> {
+  const options: Options<AbstractDialect> = {};
 
   // The following connectionStrings are not valid URLs, but they are supported by sqlite.
   if (connectionString === 'sqlite://:memory:' || connectionString === 'sqlite::memory:') {
@@ -30,13 +31,13 @@ export function parseConnectionString(connectionString: string): Options {
       protocol = 'postgres';
     }
 
-    if (!SUPPORTED_DIALECTS.includes(protocol as Dialect)) {
+    if (!SUPPORTED_DIALECTS.includes(protocol as DialectName)) {
       throw new Error(
         `The protocol was set to ${JSON.stringify(protocol)}, which is not a supported dialect. Set it to one of ${SUPPORTED_DIALECTS.map(d => JSON.stringify(d)).join(', ')} instead.`,
       );
     }
 
-    options.dialect = protocol as Dialect;
+    options.dialect = protocol as DialectName;
   }
 
   if (urlObject.hostname != null) {
@@ -101,7 +102,7 @@ export function parseConnectionString(connectionString: string): Options {
     delete parseResult.port;
     delete parseResult.options; // we JSON.parse it
 
-    options.dialectOptions ||= Object.create(null) as DialectOptions;
+    options.dialectOptions ||= Object.create(null) as LegacyDialectOptions;
     Object.assign(options.dialectOptions, parseResult);
   }
 

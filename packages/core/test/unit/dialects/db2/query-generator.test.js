@@ -9,9 +9,7 @@ const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const { Op } = require('@sequelize/core');
-const {
-  Db2QueryGenerator: QueryGenerator,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/db2/query-generator.js');
+const { Db2QueryGenerator: QueryGenerator } = require('@sequelize/db2');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'db2') {

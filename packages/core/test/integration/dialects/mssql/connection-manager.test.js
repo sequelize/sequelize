@@ -30,7 +30,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
 
     it('ENOTFOUND', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
-        host: 'http://wowow.example.com',
+        host: 'wowow.example.com',
       });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
         Sequelize.HostNotFoundError,

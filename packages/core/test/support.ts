@@ -1,5 +1,6 @@
-import type { Dialect, Options } from '@sequelize/core';
+import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { PostgresDialect } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -16,7 +17,9 @@ import { Config } from './config/config';
 
 const expect = chai.expect;
 
-const distDir = path.resolve(__dirname, '../lib');
+const packagesDir = path.resolve(__dirname, '..', '..');
+
+const NON_DIALECT_PACKAGES = Object.freeze(['utils', 'validator-js', 'core']);
 
 chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
@@ -62,8 +65,6 @@ export function inlineErrorCause(error: unknown): string {
 
   let message = error.message;
 
-  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
   if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
@@ -121,37 +122,40 @@ export async function nextUnhandledRejection() {
   });
 }
 
-export function createSequelizeInstance(options: Options = {}): Sequelize {
-  options.dialect = getTestDialect();
+export function createSequelizeInstance(options: Options<AbstractDialect> = {}): Sequelize {
+  const dialect = getTestDialect();
 
-  const config = Config[options.dialect];
+  const config = Config[dialect];
 
   const sequelizeOptions = defaults(options, {
+    database: config.database,
+    username: config.username,
+    password: config.password,
     host: options.host || config.host,
     logging: process.env.SEQ_LOG ? console.debug : false,
-    dialect: options.dialect,
     port: options.port || process.env.SEQ_PORT || config.port,
     pool: config.pool,
     dialectOptions: options.dialectOptions || config.dialectOptions || {},
     minifyAliases: options.minifyAliases || config.minifyAliases,
     // the test suite was written before CLS was turned on by default.
     disableClsTransactions: true,
-  });
-
-  if (process.env.DIALECT === 'postgres-native') {
-    sequelizeOptions.native = true;
-  }
+  } as const);
 
   if (config.storage || config.storage === '') {
     sequelizeOptions.storage = config.storage;
   }
 
-  return getSequelizeInstance(
-    config.database!,
-    config.username!,
-    config.password!,
-    sequelizeOptions,
-  );
+  if (dialect === 'postgres') {
+    const sequelizePostgresOptions: Options<PostgresDialect> = {
+      ...sequelizeOptions,
+      dialect: PostgresDialect,
+      native: process.env.DIALECT === 'postgres-native',
+    };
+
+    return getSequelizeInstance(sequelizePostgresOptions);
+  }
+
+  return getSequelizeInstance(sequelizeOptions);
 }
 
 export function getConnectionOptionsWithoutPool() {
@@ -162,25 +166,18 @@ export function getConnectionOptionsWithoutPool() {
   return config;
 }
 
-export function getSequelizeInstance(
-  db: string,
-  user: string,
-  pass: string,
-  options?: Options,
-): Sequelize {
-  options ||= {};
-  options.dialect = options.dialect || getTestDialect();
+export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequelize {
+  options ??= {};
+  options.dialect ||= getTestDialect();
 
-  return new Sequelize(db, user, pass, options);
+  return new Sequelize(options);
 }
 
 export function getSupportedDialects() {
-  return fs
-    .readdirSync(path.join(distDir, 'dialects'))
-    .filter(file => !file.includes('.js') && !file.includes('abstract'));
+  return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
 }
 
-export function getTestDialect(): Dialect {
+export function getTestDialect(): DialectName {
   let envDialect = process.env.DIALECT || '';
 
   if (envDialect === 'postgres-native') {
@@ -195,7 +192,7 @@ export function getTestDialect(): Dialect {
     );
   }
 
-  return envDialect as Dialect;
+  return envDialect as DialectName;
 }
 
 export function getTestDialectTeaser(moduleName: string): string {
@@ -212,7 +209,7 @@ export function getPoolMax(): number {
   return Config[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect, 4>;
+type ExpectationKey = 'default' | Permutations<DialectName, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
@@ -227,11 +224,11 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
-  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> =
+  const expectations: PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>> =
     Object.create(null);
 
   for (const [key, value] of Object.entries(assertions)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
@@ -366,17 +363,17 @@ export function expectsql(
 ): void {
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
     'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+  const expectations: PartialRecord<'default' | DialectName, string | Error> = Object.create(null);
 
   /**
    * The list of expectations that are run against more than one dialect, which enables the transformation of
    * identifier quoting to match the dialect.
    */
-  const combinedExpectations = new Set<Dialect | 'default'>();
+  const combinedExpectations = new Set<DialectName | 'default'>();
   combinedExpectations.add('default');
 
   for (const [key, value] of Object.entries(rawExpectationMap)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     if (acceptedDialects.length > 1) {
       for (const dialect of acceptedDialects) {
