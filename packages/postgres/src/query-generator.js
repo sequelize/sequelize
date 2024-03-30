@@ -267,18 +267,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (attribute.references) {
-      let schema;
-
-      if (options?.schema) {
-        schema = options.schema;
-      } else if (
-        (!attribute.references.table || typeof attribute.references.table === 'string') &&
-        options?.table?.schema
-      ) {
-        schema = options.table.schema;
-      }
-
-      const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
+      const referencesTable = this.extractTableDetails(attribute.references.table);
 
       let referencesKey;
 
@@ -307,7 +296,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (attribute.comment && typeof attribute.comment === 'string') {
       if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        const quotedAttr = this.quoteIdentifier(options.key);
+        const quotedAttr = this.quoteIdentifier(attribute.key);
         const escapedCommentText = this.escape(attribute.comment);
         sql += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
       } else {
@@ -325,7 +314,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     for (const key in attributes) {
       const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+      result[attribute.field || key] = this.attributeToSQL(attribute, options);
     }
 
     return result;

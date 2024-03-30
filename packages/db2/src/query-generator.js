@@ -590,7 +590,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options?.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = `${options.tableName}_${attrName}_fidx`;
+        const fkName = `${this.extractTableDetails(options.table).tableName}_${attrName}_fidx`;
         template += `, CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
 

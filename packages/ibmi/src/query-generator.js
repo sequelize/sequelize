@@ -432,7 +432,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     if (attribute.references) {
       if (options?.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.table).tableName}_${attrName}_foreign_idx`,
+        );
 
         template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }

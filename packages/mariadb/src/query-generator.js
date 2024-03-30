@@ -112,7 +112,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
         context: 'addColumn',
-        tableName: table,
+        table,
         foreignKey: key,
       }),
       ';',
@@ -210,7 +210,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
       if (options?.context === 'addColumn' && options.foreignKey) {
         const fkName = this.quoteIdentifier(
-          `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+          `${this.extractTableDetails(options.table).tableName}_${options.foreignKey}_foreign_idx`,
         );
 
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
