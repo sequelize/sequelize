@@ -2386,6 +2386,7 @@ __metadata:
     mocha: "npm:10.4.0"
     pg: "npm:^8.11.3"
     pg-hstore: "npm:^2.3.4"
+    pg-types: "npm:^4.0.2"
     postgres-array: "npm:^3.0.2"
     semver: "npm:^7.6.0"
     wkx: "npm:^0.5.0"
@@ -11340,7 +11341,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-types@npm:^4.0.1":
+"pg-types@npm:^4.0.1, pg-types@npm:^4.0.2":
   version: 4.0.2
   resolution: "pg-types@npm:4.0.2"
   dependencies:
