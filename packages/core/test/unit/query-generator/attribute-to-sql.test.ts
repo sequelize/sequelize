@@ -461,9 +461,10 @@ describe('QueryGenerator#attributeToSQL', () => {
       testSql(
         { type: 'INTEGER', references: { table: 'myTable' } },
         {
-          default: 'INTEGER REFERENCES "otherSchema"."myTable" ("id")',
           'mariadb mysql':
             'INTEGER, ADD CONSTRAINT `otherTable_bar_foreign_idx` FOREIGN KEY (`bar`) REFERENCES `myTable` (`id`)',
+          // TODO: this likely should not infer the schema from options.table.schema but other tests currently fail if we don't
+          postgres: 'INTEGER REFERENCES "otherSchema"."myTable" ("id")',
           mssql: 'INTEGER NULL REFERENCES [myTable] ([id])',
           snowflake:
             'INTEGER, ADD CONSTRAINT "otherTable_""bar""_foreign_idx" FOREIGN KEY ("bar") REFERENCES "myTable" ("id")',
