@@ -1,6 +1,6 @@
 import { parseAttributeSyntax } from '../utils/attribute-syntax.js';
 import type { AssociationPath } from './association-path.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import type { Cast } from './cast.js';
 import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { JsonPath } from './json-path.js';
@@ -9,7 +9,7 @@ import type { JsonPath } from './json-path.js';
  * Use {@link attribute} instead.
  */
 export class Attribute extends BaseSqlExpression {
-  private declare readonly brand: 'attribute';
+  static readonly [SQL_IDENTIFIER]: string = 'attribute';
 
   constructor(readonly attributeName: string) {
     super();

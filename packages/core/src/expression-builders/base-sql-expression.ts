@@ -12,12 +12,19 @@ import type { Value } from './value.js';
 import type { Where } from './where.js';
 
 /**
+ * A symbol that can be used as the key for a static property on a BaseSqlExpression class to uniquely identify it.
+ */
+export const SQL_IDENTIFIER = Symbol('SQL_IDENTIFIER');
+
+/**
  * Utility functions for representing SQL functions, and columns that should be escaped.
  * Please do not use these functions directly, use Sequelize.fn and Sequelize.col instead.
  *
  * @private
  */
-export class BaseSqlExpression {}
+export class BaseSqlExpression {
+  declare static readonly [SQL_IDENTIFIER]: string;
+}
 
 export type DynamicSqlExpression =
   | List
