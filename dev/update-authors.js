@@ -35,6 +35,9 @@ const excludeEmails = new Set([
   '<bot@renovateapp.com>',
   '<support@greenkeeper.io>',
   '<mail@sequelizejs.com>',
+  '<bot@stepsecurity.io>',
+  '<support@r2c.dev>',
+  '<bot@sequelize.org>'
 ]);
 
 // Support regular git author metadata, as well as `Author:` and
