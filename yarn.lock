@@ -7840,8 +7840,8 @@ __metadata:
   linkType: hard
 
 "ibm_db@npm:^3.2.3":
-  version: 3.2.3
-  resolution: "ibm_db@npm:3.2.3"
+  version: 3.2.4
+  resolution: "ibm_db@npm:3.2.4"
   dependencies:
     adm-zip: "npm:^0.5.10"
     axios: "npm:^1.6.2"
@@ -7852,7 +7852,7 @@ __metadata:
     nan: "npm:^2.18.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/a01e6dcfff485d5c3953cce152fcfe75192a41e7cc3ed537167a7ac6564bfd67924150993ba45052ae4015fe4fb36d6b0202444213449da69e772ceb10525097
+  checksum: 10c0/0c7599ee02d6bb257b491fd72aa5ef3a0090f47321fd375d602fc6c0fa1420551db1a260835c715e77b29e265f3230c5e27987358f19e87a6dbc579c6460f2cf
   languageName: node
   linkType: hard
 
