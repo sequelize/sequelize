@@ -597,7 +597,11 @@ export class Sequelize extends SequelizeTypeScript {
       );
     }
 
-    sql = sql.trim();
+    try {
+      sql = sql.trim();
+    } catch (err) {
+      return null;
+    }
 
     if (options.replacements) {
       sql = injectReplacements(sql, this.dialect, options.replacements);
