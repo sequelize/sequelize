@@ -61,7 +61,7 @@ export class AbstractConnectionManager<
    * @param _connection
    */
   validate(_connection: TConnection): boolean {
-    return true;
+    throw new Error(`validate not implemented in ${this.constructor.name}`);
   }
 
   async connect(_config: ConnectionOptions<Dialect>): Promise<TConnection> {

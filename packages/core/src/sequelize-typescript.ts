@@ -442,6 +442,12 @@ If you really need to access the connection manager, access it through \`sequeli
    * })
    */
   constructor(options: Options<Dialect>) {
+    if (arguments.length > 2) {
+      throw new Error(
+        'The Sequelize constructor no longer accepts multiple arguments. Please use an options object instead.',
+      );
+    }
+
     if (isString(options)) {
       throw new Error(`The Sequelize constructor no longer accepts a string as the first argument. Please use the "url" option instead:
 
@@ -494,8 +500,6 @@ new Sequelize({
       throw new Error('The "dialect" option must be explicitly supplied since Sequelize 4');
     }
 
-    this.rawOptions = cloneDeepPlainValues(options, true);
-
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
       const modelName = model.modelDefinition.modelName;
@@ -514,6 +518,8 @@ new Sequelize({
     });
 
     Sequelize.hooks.runSync('beforeInit', options);
+
+    this.rawOptions = freezeDeep(cloneDeepPlainValues(options, true));
 
     const DialectClass: typeof AbstractDialect = isString(options.dialect)
       ? importDialect(options.dialect)

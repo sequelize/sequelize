@@ -11,9 +11,14 @@ const debug = logger.debugContext('connection:sqlite');
 
 export type Sqlite3Module = typeof Sqlite3;
 
+const CLOSED_SYMBOL = Symbol('closed');
+
 export interface SqliteConnection extends AbstractConnection, Sqlite3.Database {
   // Not declared by sqlite3's typings
   filename: string;
+
+  // Sequelize extension
+  [CLOSED_SYMBOL]?: boolean;
 }
 
 export interface SqliteConnectionOptions {
@@ -160,8 +165,12 @@ To fix this, set the pool's maxSize to 1, or use a non-temporary database.`);
     return connection;
   }
 
+  validate(connection: SqliteConnection): boolean {
+    return !connection[CLOSED_SYMBOL];
+  }
+
   async disconnect(connection: SqliteConnection): Promise<void> {
-    if (connection.filename === ':memory:') {
+    if (connection[CLOSED_SYMBOL]) {
       return;
     }
 
@@ -172,6 +181,8 @@ To fix this, set the pool's maxSize to 1, or use a non-temporary database.`);
         }
 
         debug(`sqlite connection released`);
+
+        connection[CLOSED_SYMBOL] = true;
 
         resolve();
       });

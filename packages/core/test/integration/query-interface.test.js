@@ -13,7 +13,6 @@ const dialect = Support.sequelize.dialect;
 
 describe('QueryInterface', () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
   });
 

@@ -38,7 +38,7 @@ describe('Sequelize', () => {
     });
   });
 
-  describe('cloe', () => {
+  describe('close', () => {
     it('clears the pool & closes Sequelize', async () => {
       const options = {
         replication: null,
@@ -52,6 +52,31 @@ describe('Sequelize', () => {
 
       expect(poolClearSpy.calledOnce).to.be.true;
       expect(sequelize2.isClosed()).to.be.true;
+    });
+  });
+
+  describe('init', () => {
+    afterEach(async () => {
+      Sequelize.hooks.removeAllListeners();
+    });
+
+    it('beforeInit hook can alter options', () => {
+      Sequelize.hooks.addListener('beforeInit', options => {
+        options.databaseVersion = sequelize.dialect.minimumDatabaseVersion;
+      });
+
+      const seq = createSequelizeInstance();
+
+      expect(seq.getDatabaseVersion()).to.equal(sequelize.dialect.minimumDatabaseVersion);
+    });
+
+    it('afterInit hook cannot alter options', () => {
+      Sequelize.hooks.addListener('afterInit', sequelize2 => {
+        // @ts-expect-error -- only exists in some dialects but the principle remains identical
+        sequelize2.options.protocol = 'udp';
+      });
+
+      expect(() => createSequelizeInstance()).to.throw();
     });
   });
 });

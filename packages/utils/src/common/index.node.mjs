@@ -47,3 +47,6 @@ export const upcast = Pkg.upcast;
 export const getImmutablePojo = Pkg.getImmutablePojo;
 export const getSynchronizedTypeKeys = Pkg.getSynchronizedTypeKeys;
 export const splitObject = Pkg.splitObject;
+export const basicComparator = Pkg.basicComparator;
+export const SortDirection = Pkg.SortDirection;
+export const localizedStringComparator = Pkg.localizedStringComparator;

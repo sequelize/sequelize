@@ -92,12 +92,17 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
  * If you're creating the instance within a test, consider using {@link createSingleTransactionalTestSequelizeInstance}.
  *
  * @param sequelizeOrOptions
+ * @param overrideOptions
  */
-export async function createMultiTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
+export async function createMultiTransactionalTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(
+  sequelizeOrOptions: Sequelize | Options<Dialect>,
+  overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
-  const sequelizeOptions =
+  const baseOptions =
     sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.rawOptions : sequelizeOrOptions;
+
   const dialect = getTestDialect();
 
   if (dialect === 'sqlite') {
@@ -107,10 +112,11 @@ export async function createMultiTransactionalTestSequelizeInstance(
     }
 
     const _sequelize = createSequelizeInstance<SqliteDialect>({
-      ...(sequelizeOptions as Options<SqliteDialect>),
+      ...(baseOptions as Options<SqliteDialect>),
       storage: p,
       // allow using multiple connections as we are connecting to a file
       pool: { max: 5, idle: 30_000 },
+      ...overrideOptions,
     });
 
     await _sequelize.sync({ force: true });
@@ -118,7 +124,10 @@ export async function createMultiTransactionalTestSequelizeInstance(
     return _sequelize;
   }
 
-  return createSequelizeInstance(sequelizeOptions);
+  return createSequelizeInstance({
+    ...baseOptions,
+    ...overrideOptions,
+  });
 }
 
 /**
@@ -128,11 +137,18 @@ export async function createMultiTransactionalTestSequelizeInstance(
  * Can only be used within a test. For before/after hooks, use {@link createMultiTransactionalTestSequelizeInstance}.
  *
  * @param sequelizeOrOptions
+ * @param overrideOptions
  */
-export async function createSingleTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
+export async function createSingleTransactionalTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(
+  sequelizeOrOptions: Sequelize | Options<Dialect>,
+  overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
-  const instance = await createMultiTransactionalTestSequelizeInstance(sequelizeOrOptions);
+  const instance = await createMultiTransactionalTestSequelizeInstance(
+    sequelizeOrOptions,
+    overrideOptions,
+  );
   destroySequelizeAfterTest(instance);
 
   return instance;
