@@ -11,9 +11,9 @@ import {
   setResetMode,
 } from './support';
 
-const dialect = getTestDialect();
+const dialectName = getTestDialect();
 describe(getTestDialectTeaser('Replication'), () => {
-  if (['sqlite', 'ibmi'].includes(dialect)) {
+  if (dialectName === 'ibmi') {
     return;
   }
 
@@ -31,8 +31,8 @@ describe(getTestDialectTeaser('Replication'), () => {
 
       destroySequelizeAfterTest(sequelize);
 
-      expect(sequelize.connectionManager.pool.write).to.be.ok;
-      expect(sequelize.connectionManager.pool.read).to.be.ok;
+      expect(sequelize.pool.write).to.be.ok;
+      expect(sequelize.pool.read).to.be.ok;
 
       const User = sequelize.define('User', {
         firstName: {
@@ -42,8 +42,8 @@ describe(getTestDialectTeaser('Replication'), () => {
       });
 
       await User.sync({ force: true });
-      const readSpy = sandbox.spy(sequelize.connectionManager.pool.read!, 'acquire');
-      const writeSpy = sandbox.spy(sequelize.connectionManager.pool.write, 'acquire');
+      const readSpy = sandbox.spy(sequelize.pool.read!, 'acquire');
+      const writeSpy = sandbox.spy(sequelize.pool.write, 'acquire');
 
       return {
         User,
