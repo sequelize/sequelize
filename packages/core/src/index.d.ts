@@ -86,8 +86,11 @@ export {
   type TransactionOptions,
 } from './transaction.js';
 // TODO [>=8]: remove this alias
+export { ModelRepository } from './model-repository.js';
+export * from './model-repository.types.js';
 // eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
 export { Sequelize as default } from './sequelize.js';
+export type { Options, PoolOptions } from './sequelize.types.js';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';
 export { useInflection } from './utils/string.js';
 export type { Validator } from './utils/validator-extras.js';
@@ -99,4 +102,3 @@ export { Fn, fn } from './expression-builders/fn.js';
 export { json } from './expression-builders/json.js';
 export { Literal, literal } from './expression-builders/literal.js';
 export { Where, where } from './expression-builders/where.js';
-export type { Options, PoolOptions } from './sequelize.types.js';

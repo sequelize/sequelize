@@ -10,11 +10,11 @@ import { AbstractDialect } from './abstract-dialect/dialect.js';
 import { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
 import { AbstractQueryInterface } from './abstract-dialect/query-interface';
 import { AbstractQuery } from './abstract-dialect/query.js';
+import { Association } from './associations/base.js';
 import { BelongsToAssociation } from './associations/belongs-to';
 import { BelongsToManyAssociation } from './associations/belongs-to-many';
 import { HasManyAssociation } from './associations/has-many';
 import { HasOneAssociation } from './associations/has-one';
-import { Association } from './associations/index';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
 import * as SequelizeErrors from './errors';
@@ -37,6 +37,7 @@ import { importModels } from './import-models.js';
 import { IndexHints } from './index-hints';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
+import { ManualOnDelete } from './model-repository.types.js';
 import { Op } from './operators';
 import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
@@ -852,6 +853,7 @@ Sequelize.useInflection = useInflection;
 
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
+Sequelize.ManualOnDelete = ManualOnDelete;
 
 Sequelize.AbstractConnectionManager = AbstractConnectionManager;
 Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
