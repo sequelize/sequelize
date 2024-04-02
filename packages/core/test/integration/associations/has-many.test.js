@@ -351,17 +351,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         });
 
         it('supports schemas', async function () {
-          const User = this.sequelize.define('User', {}).schema('work');
+          const User = this.sequelize.define('User', {}).withSchema('work');
           const Task = this.sequelize
             .define('Task', {
               title: DataTypes.STRING,
             })
-            .schema('work');
+            .withSchema('work');
           const SubTask = this.sequelize
             .define('SubTask', {
               title: DataTypes.STRING,
             })
-            .schema('work');
+            .withSchema('work');
 
           User.Tasks = User.hasMany(Task, { as: 'tasks' });
           Task.SubTasks = Task.hasMany(SubTask, { as: 'subtasks' });
@@ -1223,6 +1223,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
   });
 
   describe('Association options', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0005']);
+
     it('should setup underscored field with foreign keys when using underscored', function () {
       const User = this.sequelize.define(
         'User',
@@ -1261,8 +1263,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
     it('can specify data type for auto-generated relational keys', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const dataTypes = [DataTypes.INTEGER, DataTypes.BIGINT, DataTypes.STRING];
+      const dataTypes = [DataTypes.INTEGER, DataTypes.STRING];
       const Tasks = {};
+
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        dataTypes.push(DataTypes.BIGINT);
+      }
 
       for (const dataType of dataTypes) {
         const tableName = `TaskXYZ_${dataType.getDataTypeId()}`;

@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -13,8 +13,8 @@ describe('Model#update', () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },

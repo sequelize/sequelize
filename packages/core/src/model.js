@@ -1,48 +1,7 @@
 'use strict';
 
-import {
-  Association,
-  BelongsToAssociation,
-  BelongsToManyAssociation,
-  HasManyAssociation,
-  HasOneAssociation,
-} from './associations';
-import { AssociationSecret } from './associations/helpers';
-import { AbstractDataType } from './dialects/abstract/data-types';
-import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
-import {
-  _validateIncludedElements,
-  combineIncludes,
-  getModelPkWhere,
-  setTransactionFromCls,
-  throwInvalidInclude,
-} from './model-internals';
-import { ModelTypeScript } from './model-typescript';
-import { Op } from './operators';
-import { QueryTypes } from './query-types';
-import { intersects } from './utils/array';
-import {
-  noDoubleNestedGroup,
-  noModelDropSchema,
-  noNewModel,
-  schemaRenamedToWithSchema,
-  scopeRenamedToWithScope,
-} from './utils/deprecations';
-import { toDefaultValue } from './utils/dialect';
-import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
-import { every, find } from './utils/iterators';
-import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import {
-  EMPTY_OBJECT,
-  cloneDeep,
-  defaults,
-  flattenObjectDeep,
-  getObjectFromMap,
-  mergeDefaults,
-} from './utils/object';
-import { isWhereEmpty } from './utils/query-builder-utils';
-import { getComplexKeys } from './utils/where.js';
-
+import { EMPTY_OBJECT, every, find } from '@sequelize/utils';
+import Dottie from 'dottie';
 import assignWith from 'lodash/assignWith';
 import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
@@ -67,14 +26,52 @@ import union from 'lodash/union';
 import unionBy from 'lodash/unionBy';
 import uniq from 'lodash/uniq';
 import without from 'lodash/without';
-
-const assert = require('node:assert');
-const NodeUtil = require('node:util');
-const Dottie = require('dottie');
-const { logger } = require('./utils/logger');
-const { InstanceValidator } = require('./instance-validator');
-const sequelizeErrors = require('./errors');
-const DataTypes = require('./data-types');
+import assert from 'node:assert';
+import NodeUtil from 'node:util';
+import { AbstractDataType } from './abstract-dialect/data-types';
+import {
+  Association,
+  BelongsToAssociation,
+  BelongsToManyAssociation,
+  HasManyAssociation,
+  HasOneAssociation,
+} from './associations';
+import { AssociationSecret } from './associations/helpers';
+import * as DataTypes from './data-types';
+import * as SequelizeErrors from './errors';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { InstanceValidator } from './instance-validator';
+import {
+  _validateIncludedElements,
+  combineIncludes,
+  getModelPkWhere,
+  setTransactionFromCls,
+  throwInvalidInclude,
+} from './model-internals';
+import { ModelTypeScript } from './model-typescript';
+import { Op } from './operators';
+import { QueryTypes } from './query-types';
+import { intersects } from './utils/array';
+import {
+  noDoubleNestedGroup,
+  noModelDropSchema,
+  noNewModel,
+  schemaRenamedToWithSchema,
+  scopeRenamedToWithScope,
+} from './utils/deprecations';
+import { toDefaultValue } from './utils/dialect';
+import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
+import { logger } from './utils/logger';
+import { isModelStatic, isSameInitialModel } from './utils/model-utils';
+import {
+  cloneDeep,
+  defaults,
+  flattenObjectDeep,
+  getObjectFromMap,
+  mergeDefaults,
+} from './utils/object';
+import { isWhereEmpty } from './utils/query-builder-utils';
+import { getComplexKeys } from './utils/where.js';
 
 // This list will quickly become dated, but failing to maintain this list just means
 // we won't throw a warning when we should. At least most common cases will forever be covered
@@ -508,7 +505,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
         const types = validTypes[type];
         if (!types) {
-          throw new sequelizeErrors.EagerLoadingError(
+          throw new SequelizeErrors.EagerLoadingError(
             `include all '${type}' is not valid - must be BelongsTo, HasOne, HasMany, One, Has, Many or All`,
           );
         }
@@ -952,7 +949,7 @@ ${associationOwner._getAssociationDebugList()}`);
                     ? foreignKeyReference.referencedTableSchema === foreignReferenceSchema
                     : true) &&
                   !removedConstraints[constraintName]) ||
-                this.sequelize.options.dialect === 'ibmi'
+                this.sequelize.dialect.name === 'ibmi'
               ) {
                 // Remove constraint on foreign keys.
                 await this.queryInterface.removeConstraint(tableName, constraintName, options);
@@ -970,7 +967,7 @@ ${associationOwner._getAssociationDebugList()}`);
     const missingIndexes = this.getIndexes()
       .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
-        if (this.sequelize.options.dialect === 'postgres') {
+        if (this.sequelize.dialect.name === 'postgres') {
           // move concurrent indexes to the bottom to avoid weird deadlocks
           if (index1.concurrently === true) {
             return 1;
@@ -1040,7 +1037,7 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
-    const schemaOptions = typeof schema === 'string' ? { schema } : schema;
+    const schemaOptions = typeof schema === 'string' || schema === null ? { schema } : schema;
 
     schemaOptions.schema ||=
       this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
@@ -1128,7 +1125,7 @@ ${associationOwner._getAssociationDebugList()}`);
    *
    * @example To invoke scope functions you can do
    * ```ts
-   * Model.scope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
+   * Model.withScope({ method: ['complexFunction', 'dan@sequelize.com', 42]}).findAll()
    * // WHERE email like 'dan@sequelize.com%' AND access_level >= 42
    * ```
    *
@@ -1176,7 +1173,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (!scope) {
-        throw new sequelizeErrors.SequelizeScopeError(
+        throw new SequelizeErrors.SequelizeScopeError(
           `"${this.name}.withScope()" has been called with an invalid scope: "${scopeName}" does not exist.`,
         );
       }
@@ -1342,7 +1339,7 @@ ${associationOwner._getAssociationDebugList()}`);
    */
   static async findAll(options) {
     if (options !== undefined && !isPlainObject(options)) {
-      throw new sequelizeErrors.QueryError(
+      throw new SequelizeErrors.QueryError(
         'The argument passed to findAll must be an options object, use findByPk if you wish to pass a single primary key value',
       );
     }
@@ -1353,7 +1350,7 @@ ${associationOwner._getAssociationDebugList()}`);
       !Array.isArray(options.attributes) &&
       !isPlainObject(options.attributes)
     ) {
-      throw new sequelizeErrors.QueryError(
+      throw new SequelizeErrors.QueryError(
         'The attributes option must be an array of column names or an object',
       );
     }
@@ -1439,7 +1436,7 @@ ${associationOwner._getAssociationDebugList()}`);
         throw options.rejectOnEmpty;
       }
 
-      throw new sequelizeErrors.EmptyResultError();
+      throw new SequelizeErrors.EmptyResultError();
     }
 
     return await Model._findSeparate(results, options);
@@ -2032,12 +2029,12 @@ ${associationOwner._getAssociationDebugList()}`);
         const created = await this.create(values, options);
         if (created.get(this.primaryKeyAttribute, { raw: true }) === null) {
           // If the query returned an empty result for the primary key, we know that this was actually a unique constraint violation
-          throw new sequelizeErrors.UniqueConstraintError();
+          throw new SequelizeErrors.UniqueConstraintError();
         }
 
         return [created, true];
       } catch (error) {
-        if (!(error instanceof sequelizeErrors.UniqueConstraintError)) {
+        if (!(error instanceof SequelizeErrors.UniqueConstraintError)) {
           throw error;
         }
 
@@ -2124,7 +2121,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const createOptions = { ...options };
 
       // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.options.dialect === 'postgres' && options.transaction) {
+      if (this.sequelize.dialect.name === 'postgres' && options.transaction) {
         createOptions.ignoreDuplicates = true;
       }
 
@@ -2134,8 +2131,8 @@ ${associationOwner._getAssociationDebugList()}`);
     } catch (error) {
       if (
         !(
-          error instanceof sequelizeErrors.UniqueConstraintError ||
-          error instanceof sequelizeErrors.EmptyResultError
+          error instanceof SequelizeErrors.UniqueConstraintError ||
+          error instanceof SequelizeErrors.EmptyResultError
         )
       ) {
         throw error;
@@ -2223,7 +2220,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     // Db2 does not allow NULL values for unique columns.
     // Add dummy values if not provided by test case or user.
-    if (this.sequelize.options.dialect === 'db2') {
+    if (this.sequelize.dialect.name === 'db2') {
       // TODO: remove. This is fishy and is going to be a source of bugs (because it replaces null values with arbitrary values that could be actual data).
       //  If DB2 doesn't support NULL in unique columns, then it should error if the user tries to insert NULL in one.
       this.uniqno = this.sequelize.dialect.queryGenerator.addUniqueFields(
@@ -2292,7 +2289,7 @@ ${associationOwner._getAssociationDebugList()}`);
       return [];
     }
 
-    const dialect = this.sequelize.options.dialect;
+    const dialect = this.sequelize.dialect.name;
     const now = new Date();
     options = cloneDeep(options) ?? {};
 
@@ -2374,14 +2371,14 @@ ${associationOwner._getAssociationDebugList()}`);
             try {
               await instance.validate(validateOptions);
             } catch (error) {
-              errors.push(new sequelizeErrors.BulkRecordError(error, instance));
+              errors.push(new SequelizeErrors.BulkRecordError(error, instance));
             }
           }),
         );
 
         delete options.skip;
         if (errors.length > 0) {
-          throw new sequelizeErrors.AggregateError(errors);
+          throw new SequelizeErrors.AggregateError(errors);
         }
       }
 
@@ -3212,13 +3209,13 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const matchingAssociations = this._getAssociationsByModel(targetModel);
     if (matchingAssociations.length === 0) {
-      throw new sequelizeErrors.EagerLoadingError(
+      throw new SequelizeErrors.EagerLoadingError(
         `Invalid Include received: no associations exist between "${this.name}" and "${targetModel.name}"`,
       );
     }
 
     if (matchingAssociations.length > 1) {
-      throw new sequelizeErrors.EagerLoadingError(
+      throw new SequelizeErrors.EagerLoadingError(
         `
 Ambiguous Include received:
 You're trying to include the model "${targetModel.name}", but is associated to "${this.name}" multiple times.
@@ -3976,7 +3973,7 @@ Instead of specifying a Model, either:
 
     // Db2 does not allow NULL values for unique columns.
     // Add dummy values if not provided by test case or user.
-    if (this.sequelize.options.dialect === 'db2' && this.isNewRecord) {
+    if (this.sequelize.dialect.name === 'db2' && this.isNewRecord) {
       // TODO: remove. This is fishy and is going to be a source of bugs (because it replaces null values with arbitrary values that could be actual data).
       //  If DB2 doesn't support NULL in unique columns, then it should error if the user tries to insert NULL in one.
       this.uniqno = this.sequelize.dialect.queryGenerator.addUniqueFields(
@@ -4095,7 +4092,7 @@ Instead of specifying a Model, either:
     if (versionAttr) {
       // Check to see that a row was updated, otherwise it's an optimistic locking error.
       if (rowsUpdated < 1) {
-        throw new sequelizeErrors.OptimisticLockError({
+        throw new SequelizeErrors.OptimisticLockError({
           modelName: this.constructor.name,
           values,
           where,
@@ -4238,7 +4235,7 @@ Instead of specifying a Model, either:
 
     const reloaded = await this.constructor.findOne(options);
     if (!reloaded) {
-      throw new sequelizeErrors.InstanceError(
+      throw new SequelizeErrors.InstanceError(
         'Instance could not be reloaded because it does not exist anymore (find call returned null)',
       );
     }

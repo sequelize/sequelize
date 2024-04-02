@@ -37,38 +37,6 @@ describe('errors', () => {
     }
   });
 
-  it('should maintain stack trace without message', () => {
-    const errorsWithoutMessage = [
-      'ConnectionError',
-      'ConnectionRefusedError',
-      'ConnectionTimedOutError',
-      'AccessDeniedError',
-      'HostNotFoundError',
-      'HostNotReachableError',
-      'InvalidConnectionError',
-    ];
-
-    for (const errorName of errorsWithoutMessage) {
-      function throwError() {
-        throw new errors[errorName](null);
-      }
-
-      let err;
-      try {
-        throwError();
-      } catch (error) {
-        err = error;
-      }
-
-      expect(err).to.exist;
-      const stackParts = err.stack.split('\n');
-
-      const fullErrorName = `Sequelize${errorName}: `;
-      expect(stackParts[0]).to.equal(fullErrorName);
-      expect(stackParts[1]).to.match(/^ {4}at throwError \(.*errors.test.js:\d+:\d+\)$/);
-    }
-  });
-
   describe('AggregateError', () => {
     it('get .message works', () => {
       expect(

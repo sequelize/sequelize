@@ -1,12 +1,14 @@
-import type { Dialect } from '@sequelize/core';
+import type { DialectName } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import path from 'node:path';
-import { getSequelizeInstance, getTestDialect } from '../support';
+import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '../support';
 
 const dialect = getTestDialect();
 describe('Sequelize constructor', () => {
+  allowDeprecationsInSuite(['SEQUELIZE0027']);
+
   it('throws when no dialect is supplied', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test');
@@ -105,7 +107,7 @@ describe('Sequelize constructor', () => {
       const sequelize = new Sequelize(`${dialect}://example.com/dbname`);
       const config = sequelize.config;
 
-      const defaultPort: Record<Dialect, number> = {
+      const defaultPort: Record<DialectName, number> = {
         postgres: 5432,
         db2: 3306,
         ibmi: 25_000,
@@ -218,7 +220,7 @@ describe('Sequelize constructor', () => {
     it('supports connection strings in replication options', async () => {
       const uri = `${dialect}://username:password@host:1234/database`;
 
-      const sequelize = getSequelizeInstance('', '', '', {
+      const sequelize = getSequelizeInstance({
         replication: {
           write: uri,
           read: [uri],

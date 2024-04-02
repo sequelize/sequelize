@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { beforeEach2, sequelize } = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = sequelize.dialect.name;
 
@@ -120,7 +120,7 @@ describe('Model', () => {
             allowNull: false,
             unique: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
           },
           name: {
             type: DataTypes.STRING,

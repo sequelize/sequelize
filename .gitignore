@@ -19,6 +19,8 @@ node_modules
 /packages/core/test/sqlite-databases
 /.nx
 
+lib
+
 .pnp.*
 .yarn/*
 !.yarn/patches

@@ -1,4 +1,6 @@
+import type { StrictRequiredBy } from '@sequelize/utils';
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
+import type { Class } from 'type-fest';
 import type {
   DataTypes,
   IsolationLevel,
@@ -7,13 +9,12 @@ import type {
   TransactionNestMode,
   TransactionType,
 } from '.';
-import type { AbstractDialect } from './dialects/abstract';
-import type { DataType } from './dialects/abstract/data-types.js';
-import type { AbstractQueryInterface } from './dialects/abstract/query-interface';
+import type { DataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect, DialectOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
   RawConstraintDescription,
-} from './dialects/abstract/query-interface.types';
+} from './abstract-dialect/query-interface.types';
 import type {
   BaseSqlExpression,
   DynamicSqlExpression,
@@ -40,7 +41,6 @@ import type {
 } from './model';
 import type { SUPPORTED_DIALECTS, SequelizeHooks } from './sequelize-typescript.js';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
-import type { RequiredBy } from './utils/types.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
 
@@ -91,7 +91,7 @@ export interface DefaultSetOptions {}
 /**
  * Connection Pool options.
  *
- * Used in {@link Options.pool}
+ * Used in {@link SequelizeCoreOptions.pool}
  */
 export interface PoolOptions {
   /**
@@ -141,7 +141,7 @@ export interface ConnectionOptions {
   database?: string;
   protocol?: string;
   ssl?: boolean;
-  dialectOptions?: DialectOptions;
+  dialectOptions?: LegacyDialectOptions;
 }
 
 /**
@@ -164,50 +164,34 @@ export interface NormalizedReplicationOptions {
  */
 export interface Config {
   readonly database: string;
-  readonly dialectModule?: object;
   readonly host?: string;
   readonly port: number;
   readonly username: string;
   readonly password: string | null;
   readonly pool: NormalizedPoolOptions;
   readonly protocol: 'tcp';
-  readonly native: boolean;
   readonly ssl: boolean;
   readonly replication: NormalizedReplicationOptions;
-  readonly dialectModulePath: null | string;
   readonly keepDefaultTimezone?: boolean;
-  readonly dialectOptions: Readonly<DialectOptions>;
+  readonly dialectOptions: Readonly<LegacyDialectOptions>;
 }
-export type Dialect = (typeof SUPPORTED_DIALECTS)[number];
+export type DialectName = (typeof SUPPORTED_DIALECTS)[number];
+
 /**
- * Options for the constructor of the {@link Sequelize} main class.
+ * Options of the {@link Sequelize} constructor used by the core library.
+ *
+ * See {@link Options} for the full list of options, including those dialect-specific.
  */
-export interface Options extends Logging {
+interface SequelizeCoreOptions<Dialect extends AbstractDialect> extends Logging {
   /**
-   * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql.
-   *
-   * @default 'mysql'
+   * The dialect of the database you are connecting to. One of mysql, sqlite, mariadb, mssql, or a dialect class.
    */
-  dialect?: Dialect;
-
-  /**
-   * If specified, will use the provided module as the dialect.
-   *
-   * @example
-   * `dialectModule: require('@myorg/tedious'),`
-   */
-  dialectModule?: object;
-
-  /**
-   * If specified, load the dialect library from this path. For example, if you want to use pg.js instead of
-   * pg when connecting to a pg database, you should specify 'pg.js' here
-   */
-  dialectModulePath?: string;
+  dialect?: DialectName | Class<Dialect>;
 
   /**
    * An object of additional options, which are passed directly to the connection library
    */
-  dialectOptions?: DialectOptions;
+  dialectOptions?: LegacyDialectOptions;
 
   /**
    * Only used by sqlite.
@@ -347,14 +331,6 @@ export interface Options extends Logging {
   models?: ModelStatic[];
 
   /**
-   * A flag that defines if the native library shall be used or not.
-   * Currently only has an effect for postgres
-   *
-   * @default false
-   */
-  native?: boolean;
-
-  /**
    * When representing the JavaScript null primitive in a JSON column, Sequelize can
    * use either the SQL NULL value, or a JSON 'null'.
    *
@@ -490,23 +466,28 @@ export interface Options extends Logging {
   defaultTransactionNestMode?: TransactionNestMode;
 }
 
-export interface NormalizedOptions
-  extends RequiredBy<
-    Options,
-    | 'transactionType'
-    | 'isolationLevel'
-    | 'noTypeValidation'
-    | 'dialectOptions'
-    | 'dialect'
-    | 'timezone'
-    | 'disableClsTransactions'
-    | 'defaultTransactionNestMode'
-    | 'defaultTimestampPrecision'
-  > {
-  readonly replication: NormalizedReplicationOptions;
-}
+/**
+ * Options for the constructor of the {@link Sequelize} main class.
+ */
+export type Options<Dialect extends AbstractDialect> = SequelizeCoreOptions<Dialect> &
+  Omit<DialectOptions<Dialect>, keyof SequelizeCoreOptions<AbstractDialect>>;
 
-export interface DialectOptions {
+export type NormalizedOptions<Dialect extends AbstractDialect> = StrictRequiredBy<
+  Options<Dialect>,
+  | 'transactionType'
+  | 'isolationLevel'
+  | 'noTypeValidation'
+  | 'dialectOptions'
+  | 'dialect'
+  | 'timezone'
+  | 'disableClsTransactions'
+  | 'defaultTransactionNestMode'
+  | 'defaultTimestampPrecision'
+> & {
+  readonly replication: NormalizedReplicationOptions;
+};
+
+export interface LegacyDialectOptions {
   [key: string]: any;
   account?: string;
   role?: string;
@@ -629,7 +610,9 @@ export interface QueryOptionsWithModel<M extends Model> extends QueryOptions {
  * should also be installed in your project. You don't need to import it however, as
  * sequelize will take care of that.
  */
-export class Sequelize extends SequelizeTypeScript {
+export class Sequelize<
+  Dialect extends AbstractDialect = AbstractDialect,
+> extends SequelizeTypeScript<Dialect> {
   // -------------------- Utilities ------------------------------------------------------------------------
 
   /**
@@ -804,7 +787,7 @@ export class Sequelize extends SequelizeTypeScript {
    */
   readonly config: Config;
 
-  readonly dialect: AbstractDialect;
+  readonly dialect: Dialect;
 
   /**
    * Instantiate sequelize with name of database, username and password
@@ -835,9 +818,9 @@ export class Sequelize extends SequelizeTypeScript {
    *   database.
    * @param options An object with options.
    */
-  constructor(database: string, username: string, password?: string, options?: Options);
-  constructor(database: string, username: string, options?: Options);
-  constructor(options?: Options);
+  constructor(database: string, username: string, password?: string, options?: Options<Dialect>);
+  constructor(database: string, username: string, options?: Options<Dialect>);
+  constructor(options?: Options<Dialect>);
 
   /**
    * Instantiate sequelize with an URI
@@ -845,7 +828,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param uri A full database URI
    * @param options See above for possible options
    */
-  constructor(uri: string, options?: Options);
+  constructor(uri: string, options?: Options<Dialect>);
 
   /**
    * Returns the specified dialect.
@@ -861,7 +844,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the dialect-dependant QueryInterface instance.
    */
-  getQueryInterface(): AbstractQueryInterface;
+  getQueryInterface(): Dialect['queryInterface'];
 
   /**
    * Define a new model, representing a table in the DB.

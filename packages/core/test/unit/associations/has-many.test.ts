@@ -146,15 +146,42 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const as = Math.random().toString();
       const association = User.hasMany(Task, { as });
 
-      expect(User.prototype[association.accessors.get]).to.be.an('function');
-      expect(User.prototype[association.accessors.set]).to.be.an('function');
-      expect(User.prototype[association.accessors.addMultiple]).to.be.an('function');
-      expect(User.prototype[association.accessors.add]).to.be.an('function');
-      expect(User.prototype[association.accessors.remove]).to.be.an('function');
-      expect(User.prototype[association.accessors.removeMultiple]).to.be.an('function');
-      expect(User.prototype[association.accessors.hasSingle]).to.be.an('function');
-      expect(User.prototype[association.accessors.hasAll]).to.be.an('function');
-      expect(User.prototype[association.accessors.count]).to.be.an('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.get]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.set]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.addMultiple]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.add]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.remove]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.removeMultiple]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.hasSingle]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.hasAll]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.count]).to.be.a('function');
     });
 
     it('should not override custom methods', () => {
@@ -176,6 +203,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
       function originalMethod() {}
 
       each(methods, (alias, method) => {
+        // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+        // @ts-ignore -- This only became invalid starting with TS 5.4
         User.prototype[method] = originalMethod;
       });
 
@@ -346,7 +376,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {
@@ -380,8 +410,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
         expect(firstArg.association.constructor.name).to.equal('HasMany');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const { Task, Project } = getModels();

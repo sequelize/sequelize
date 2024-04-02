@@ -1,3 +1,4 @@
+import { pojo } from '@sequelize/utils';
 import type { SyntaxNode } from 'bnf-parser';
 import { BNF, Compile, ParseError } from 'bnf-parser';
 import memoize from 'lodash/memoize.js';
@@ -8,7 +9,6 @@ import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
-import { noPrototype } from './object.js';
 
 /**
  * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "BaseExpression" representation.
@@ -39,7 +39,7 @@ export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
  *
  * All names should be lowercase, as they are case-insensitive.
  */
-const builtInModifiers: Record<string, Class<DialectAwareFn>> = noPrototype({
+const builtInModifiers: Record<string, Class<DialectAwareFn>> = pojo({
   unquote: Unquote,
 });
 

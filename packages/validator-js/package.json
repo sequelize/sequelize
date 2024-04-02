@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/validator.js",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.39",
   "description": "Integration between validator.js and Sequelize",
   "funding": [
     {
@@ -22,15 +22,23 @@
     "build": "../../build-packages.mjs validator-js"
   },
   "main": "./lib/index.js",
-  "types": "./types/index.d.ts",
+  "types": "./lib/index.d.ts",
   "exports": {
     ".": {
-      "types": "./types/index.d.ts",
-      "import": "./lib/index.mjs",
-      "require": "./lib/index.js"
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
     },
     "./package.json": "./package.json"
   },
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "type": "commonjs",
   "publishConfig": {
@@ -41,10 +49,10 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@types/chai": "4.3.12",
+    "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
-    "mocha": "10.3.0"
+    "mocha": "10.4.0"
   }
 }

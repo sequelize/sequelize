@@ -11,7 +11,7 @@ import type {
   WhereOptions,
 } from '@sequelize/core';
 import { DataTypes, JSON_NULL, Model, Op, SQL_NULL, and, json, or, sql } from '@sequelize/core';
-import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';
@@ -31,6 +31,7 @@ type Expectations = {
   [dialectName: string]: string | Error;
 };
 
+const dialectSupportsBigInt = () => sequelize.dialect.supports.dataTypes.BIGINT;
 const dialectSupportsArray = () => sequelize.dialect.supports.dataTypes.ARRAY;
 const dialectSupportsRange = () => sequelize.dialect.supports.dataTypes.RANGE;
 const dialectSupportsJsonB = () => sequelize.dialect.supports.dataTypes.JSONB;
@@ -93,7 +94,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         binaryAttr: DataTypes.BLOB,
         dateAttr: DataTypes.DATE(3),
         booleanAttr: DataTypes.BOOLEAN,
-        bigIntAttr: DataTypes.BIGINT,
+        ...(dialectSupportsBigInt() && { bigIntAttr: DataTypes.BIGINT }),
 
         aliasedInt: { type: DataTypes.INTEGER, field: 'aliased_int' },
 

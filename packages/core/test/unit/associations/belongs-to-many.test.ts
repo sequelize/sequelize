@@ -1,4 +1,5 @@
 import type {
+  BelongsToGetAssociationMixin,
   BelongsToManyAssociation,
   BelongsToManySetAssociationsMixin,
   CreationOptional,
@@ -19,6 +20,7 @@ import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import {
+  beforeEach2,
   createSequelizeInstance,
   getTestDialectTeaser,
   resetSequelizeInstance,
@@ -120,6 +122,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     function originalMethod() {}
 
     each(methods, (alias, method) => {
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
       User.prototype[method] = originalMethod;
     });
 
@@ -970,23 +975,30 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
   });
 
   describe('associations on the join table', () => {
-    let UserProjects: ModelStatic<any>;
+    const vars = beforeEach2(() => {
+      class User extends Model {}
 
-    beforeEach(() => {
-      const User = sequelize.define('User', {});
-      const Project = sequelize.define('Project', {});
-      UserProjects = sequelize.define('UserProjects', {});
+      class Project extends Model {}
 
-      User.belongsToMany(Project, { through: UserProjects });
-      Project.belongsToMany(User, { through: UserProjects });
+      class UserProject extends Model {
+        declare getUser: BelongsToGetAssociationMixin<User>;
+        declare getProject: BelongsToGetAssociationMixin<Project>;
+      }
+
+      sequelize.addModels([User, Project, UserProject]);
+
+      User.belongsToMany(Project, { through: UserProject });
+      Project.belongsToMany(User, { through: UserProject });
+
+      return { User, Project, UserProject };
     });
 
     it('should work for belongsTo associations defined before belongsToMany', () => {
-      expect(UserProjects.prototype.getUser).to.be.ok;
+      expect(vars.UserProject.prototype.getUser).to.be.ok;
     });
 
     it('should work for belongsTo associations defined after belongsToMany', () => {
-      expect(UserProjects.prototype.getProject).to.be.ok;
+      expect(vars.UserProject.prototype.getProject).to.be.ok;
     });
   });
 
@@ -1325,8 +1337,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('BelongsToMany');
-
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
@@ -1355,8 +1366,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('BelongsToMany');
         expect(firstArg.association.constructor.name).to.equal('BelongsToMany');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {

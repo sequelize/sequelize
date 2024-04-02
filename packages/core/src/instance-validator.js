@@ -1,18 +1,16 @@
 'use strict';
 
-import { BelongsToAssociation } from './associations/belongs-to';
-import { AbstractDataType } from './dialects/abstract/data-types';
-import { validateDataType } from './dialects/abstract/data-types-utils';
-import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
-import { getAllOwnKeys } from './utils/object';
-
 import difference from 'lodash/difference';
 import forIn from 'lodash/forIn';
 import get from 'lodash/get';
-
-const sequelizeError = require('./errors');
-const validator = require('./utils/validator-extras').validator;
-const { promisify } = require('node:util');
+import { promisify } from 'node:util';
+import { AbstractDataType } from './abstract-dialect/data-types';
+import { validateDataType } from './abstract-dialect/data-types-utils';
+import { BelongsToAssociation } from './associations/belongs-to';
+import * as SequelizeError from './errors';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { getAllOwnKeys } from './utils/object';
+import { validator } from './utils/validator-extras';
 
 /**
  * Instance Validator.
@@ -83,7 +81,7 @@ export class InstanceValidator {
     await Promise.all([this._perAttributeValidators(), this._customValidators()]);
 
     if (this.errors.length > 0) {
-      throw new sequelizeError.ValidationError(null, this.errors);
+      throw new SequelizeError.ValidationError(null, this.errors);
     }
   }
 
@@ -406,13 +404,15 @@ export class InstanceValidator {
    */
   _validateSchema(attribute, attributeName, value) {
     if (attribute.allowNull === false && value == null) {
-      const association = Object.values(this.modelInstance.constructor.associations).find(
+      const modelDefinition = this.modelInstance.modelDefinition;
+
+      const association = Object.values(modelDefinition.associations).find(
         association =>
           association instanceof BelongsToAssociation &&
           association.foreignKey === attribute.fieldName,
       );
+
       if (!association || !this.modelInstance.get(association.as)) {
-        const modelDefinition = this.modelInstance.modelDefinition;
         const validators = modelDefinition.attributes.get(attributeName)?.validate;
         const errMsg = get(
           validators,
@@ -421,7 +421,7 @@ export class InstanceValidator {
         );
 
         this.errors.push(
-          new sequelizeError.ValidationErrorItem(
+          new SequelizeError.ValidationErrorItem(
             errMsg,
             'notNull violation', // sequelizeError.ValidationErrorItem.Origins.CORE,
             attributeName,
@@ -460,7 +460,7 @@ export class InstanceValidator {
    */
   _pushError(isBuiltin, errorKey, rawError, value, fnName, fnArgs) {
     const message = rawError.message || rawError || 'Validation error';
-    const error = new sequelizeError.ValidationErrorItem(
+    const error = new SequelizeError.ValidationErrorItem(
       message,
       'Validation error', // sequelizeError.ValidationErrorItem.Origins.FUNCTION,
       errorKey,

@@ -1,6 +1,7 @@
-import type { QiBulkDeleteOptions } from './dialects/abstract/query-interface.types.js';
+import type { StrictRequiredBy } from '@sequelize/utils';
+import type { QiBulkDeleteOptions } from './abstract-dialect/query-interface.types.js';
 import type { NewHookable } from './hooks.js';
-import type { StrictRequiredBy } from './utils/types.js';
+import type { Attributes, Model } from './model.js';
 
 export enum ManualOnDelete {
   /**
@@ -53,7 +54,7 @@ export interface DestroyManyOptions
 /**
  * Used by {@link ModelRepository#_UNSTABLE_bulkDestroy}
  */
-export interface BulkDestroyOptions
+export interface BulkDestroyOptions<TModel extends Model>
   extends NewHookable<'_UNSTABLE_beforeBulkDestroy' | '_UNSTABLE_afterBulkDestroy'>,
-    StrictRequiredBy<QiBulkDeleteOptions, 'where'>,
+    StrictRequiredBy<QiBulkDeleteOptions<Attributes<TModel>>, 'where'>,
     CommonDestroyOptions {}

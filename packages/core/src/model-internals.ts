@@ -1,14 +1,13 @@
+import { cloneDeepPlainValues, freezeDescendants } from '@sequelize/utils';
 import NodeUtil from 'node:util';
-import { BelongsToAssociation } from './associations/index.js';
-import type { IndexOptions } from './dialects/abstract/query-interface.js';
-import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
+import type { IndexOptions } from './abstract-dialect/query-interface.js';
+import type { WhereAttributeHash } from './abstract-dialect/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Attributes, Filterable, Model, ModelStatic, Transactionable } from './model';
+import type { Attributes, Filterable, Model, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
 import { isDevEnv } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
-import { cloneDeepPlainValues, freezeDescendants } from './utils/object.js';
 // TODO: strictly type this file during the TS migration of model.js
 
 // The goal of this file is to include the different private methods that are currently present on the Model class.
@@ -263,7 +262,7 @@ export function getModelPkWhere<M extends Model>(
   return where;
 }
 
-export function assertHasPrimaryKey(modelDefinition: ModelDefinition) {
+export function assertHasPrimaryKey(modelDefinition: ModelDefinition<any>) {
   if (modelDefinition.primaryKeysAttributeNames.size === 0) {
     throw new Error(
       `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition.
@@ -294,24 +293,4 @@ export function ensureOptionsAreImmutable<T extends object>(options: T): T {
   }
 
   return options;
-}
-
-/**
- * Returns all BelongsTo associations in the entire Sequelize instance that target the given model.
- *
- * @param target
- */
-export function getBelongsToAssociationsWithTarget(target: ModelStatic): BelongsToAssociation[] {
-  const sequelize = target.sequelize;
-
-  const associations: BelongsToAssociation[] = [];
-  for (const model of sequelize.models) {
-    for (const association of Object.values(model.associations)) {
-      if (association instanceof BelongsToAssociation && association.target === target) {
-        associations.push(association);
-      }
-    }
-  }
-
-  return associations;
 }

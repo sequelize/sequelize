@@ -1,4 +1,6 @@
+import { EMPTY_ARRAY, EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
 import assert from 'node:assert';
+import { getBelongsToAssociationsWithTarget } from './_model-internals/get-belongs-to-associations-with-target.js';
 import type { BelongsToAssociation } from './associations/index.js';
 import { mayRunHook } from './hooks.js';
 import type { ModelDefinition } from './model-definition.js';
@@ -6,7 +8,6 @@ import {
   assertHasPrimaryKey,
   assertHasWhereOptions,
   ensureOptionsAreImmutable,
-  getBelongsToAssociationsWithTarget,
   getModelPkWhere,
   getPrimaryKeyValueOrThrow,
   setTransactionFromCls,
@@ -19,7 +20,6 @@ import type {
 import { ManualOnDelete } from './model-repository.types.js';
 import type { Model, Transactionable } from './model.js';
 import { Op } from './operators.js';
-import { EMPTY_ARRAY, EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 
 /**
  * The goal of this class is to become the new home of all the static methods that are currently present on the Model class,
@@ -33,9 +33,9 @@ import { EMPTY_ARRAY, EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
  * Unlike {@link ModelDefinition}, it's possible to have multiple different repositories for the same model (as users can provide their own implementation).
  */
 export class ModelRepository<M extends Model = Model> {
-  readonly #modelDefinition: ModelDefinition;
+  readonly #modelDefinition: ModelDefinition<M>;
 
-  constructor(modelDefinition: ModelDefinition) {
+  constructor(modelDefinition: ModelDefinition<M>) {
     this.#modelDefinition = modelDefinition;
   }
 
@@ -145,7 +145,7 @@ export class ModelRepository<M extends Model = Model> {
     return this.#queryInterface.bulkDelete(this.#modelDefinition, bulkDeleteOptions);
   }
 
-  async _UNSTABLE_bulkDestroy(options: BulkDestroyOptions) {
+  async _UNSTABLE_bulkDestroy(options: BulkDestroyOptions<M>) {
     options = shallowClonePojo(options);
     options.manualOnDelete ??= ManualOnDelete.paranoid;
 
@@ -183,7 +183,7 @@ export class ModelRepository<M extends Model = Model> {
 
   async #bulkDestroyInternal(
     cascadingAssociations: readonly BelongsToAssociation[],
-    options: BulkDestroyOptions,
+    options: BulkDestroyOptions<M>,
   ): Promise<number> {
     const modelDefinition = this.#modelDefinition;
 
@@ -191,7 +191,7 @@ export class ModelRepository<M extends Model = Model> {
       // TODO: if we know this is the last cascade,
       //  we can avoid the fetch and call bulkDestroy directly instead of destroyMany.
       // TODO: only fetch the attributes that are referenced by a foreign key, not all attributes.
-      const instances = (await modelDefinition.model.findAll(options)) as M[];
+      const instances: M[] = await modelDefinition.model.findAll(options);
 
       await this.#manuallyCascadeDestroy(instances, cascadingAssociations, options);
     }

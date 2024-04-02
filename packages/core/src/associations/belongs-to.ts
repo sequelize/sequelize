@@ -2,7 +2,7 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
 import assert from 'node:assert';
-import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
+import { cloneDataType } from '../abstract-dialect/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
   AttributeNames,
@@ -123,7 +123,7 @@ export class BelongsToAssociation<
     // else, server throws SQL0573N error. Hence, setting it here explicitly
     // for non primary columns.
     if (
-      target.sequelize.options.dialect === 'db2' &&
+      target.sequelize.dialect.name === 'db2' &&
       targetAttributes.get(this.targetKey)!.primaryKey !== true
     ) {
       // TODO: throw instead
@@ -148,7 +148,7 @@ export class BelongsToAssociation<
 
     this.foreignKey = foreignKey as SourceKey;
 
-    this.targetKeyField = getColumnName(targetAttributes.get(this.targetKey)!);
+    this.targetKeyField = getColumnName(targetAttributes.getOrThrow(this.targetKey));
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
 
     const targetAttribute = targetAttributes.get(this.targetKey)!;
@@ -395,7 +395,7 @@ export class BelongsToAssociation<
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
-      value = (associatedInstance as T)[this.targetKey];
+      value = associatedInstance[this.targetKey];
     }
 
     sourceInstance.set(this.foreignKey, value);
