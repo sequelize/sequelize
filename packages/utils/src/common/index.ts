@@ -2,6 +2,9 @@
 
 export * from './array-from-async.js';
 export * from './clone-deep-plain-values.js';
+export * from './comparators/basic-comparator.js';
+export * from './comparators/comparator.js';
+export * from './comparators/localized-string-comparator.js';
 export * from './consts.js';
 export * from './freeze-deep.js';
 export * from './get-immutable-pojo.js';

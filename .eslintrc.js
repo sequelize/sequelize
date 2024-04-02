@@ -28,12 +28,6 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
-    // enable this as an error, or keep disabled (not warning)
-    'unicorn/no-unsafe-regex': 'off',
-    // conflicts with prettier
-    'unicorn/number-literal-case': 'off',
-    'sort-import': 'off',
-
     // TODO: enable in follow-up PR. Requires the utils package.
     'no-restricted-syntax': 'off',
     'no-restricted-imports': 'off',

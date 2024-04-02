@@ -1,5 +1,6 @@
 import type { CreateSchemaQueryOptions } from '@sequelize/core';
 import { DataTypes, QueryTypes, sql } from '@sequelize/core';
+import { basicComparator } from '@sequelize/utils';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { sequelize } from '../support';
@@ -186,8 +187,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
     const allSchemas = await queryInterface.listSchemas();
 
     const expected = dialectsWithEqualDBsSchemas.includes(dialect.name)
-      ? [sequelize.config.database, testSchema]
+      ? [sequelize.dialect.getDefaultSchema(), testSchema]
       : [testSchema];
-    expect(allSchemas.sort()).to.deep.eq(expected.sort());
+
+    expect(allSchemas.sort()).to.deep.eq(expected.sort(basicComparator()));
   });
 });
