@@ -1,13 +1,14 @@
 import type { PartialBy } from '@sequelize/utils';
 import {
+  SortDirection,
   cloneDeepPlainValues,
   freezeDeep,
+  inspect,
   isNullish,
   isString,
   join,
   localizedStringComparator,
   map,
-  SortDirection,
   splitObject,
 } from '@sequelize/utils';
 import chalk from 'chalk';
@@ -59,19 +60,19 @@ import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
 import {
   EPHEMERAL_SEQUELIZE_OPTIONS,
-  importDialect,
   PERSISTED_SEQUELIZE_OPTIONS,
+  importDialect,
 } from './sequelize.internals.js';
 import type { QueryRawOptions } from './sequelize.js';
 import { Sequelize } from './sequelize.js';
 import type { NormalizedOptions, Options } from './sequelize.types.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
-  assertTransactionIsCompatibleWithOptions,
-  normalizeTransactionOptions,
   Transaction,
   TransactionNestMode,
   TransactionType,
+  assertTransactionIsCompatibleWithOptions,
+  normalizeTransactionOptions,
 } from './transaction.js';
 import { getIntersection } from './utils/array.js';
 import { normalizeReplicationConfig } from './utils/connection-options.js';
@@ -629,7 +630,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
     });
 
     if (options.databaseVersion) {
-      this.#databaseVersion = options.databaseVersion;
+      this.setDatabaseVersion(options.databaseVersion);
     }
 
     if (!this.options.disableClsTransactions) {
@@ -735,13 +736,9 @@ Connection options can be used at the root of the option bag, in the "replicatio
 
         const parsedVersion = semver.coerce(version)?.version || version;
 
-        this.#databaseVersion = semver.valid(parsedVersion)
-          ? parsedVersion
-          : this.dialect.minimumDatabaseVersion;
-
-        if (semver.lt(this.getDatabaseVersion(), this.dialect.minimumDatabaseVersion)) {
-          Deprecations.unsupportedEngine();
-        }
+        this.setDatabaseVersion(
+          semver.valid(parsedVersion) ? parsedVersion : this.dialect.minimumDatabaseVersion,
+        );
       } finally {
         this.#databaseVersionPromise = null;
       }
@@ -1146,6 +1143,22 @@ Connection options can be used at the root of the option bag, in the "replicatio
   }
 
   setDatabaseVersion(version: string) {
+    try {
+      if (semver.lt(version, this.dialect.minimumDatabaseVersion)) {
+        console.warn(
+          `Database ${this.dialect.name} version ${inspect(version)} is not supported. The minimum supported version is ${this.dialect.minimumDatabaseVersion}.`,
+        );
+
+        Deprecations.unsupportedEngine();
+      }
+    } catch (error) {
+      console.warn(
+        `Could not validate the database version, as it is not a valid semver version: ${version}.`,
+      );
+
+      console.warn(error);
+    }
+
     this.#databaseVersion = version;
   }
 

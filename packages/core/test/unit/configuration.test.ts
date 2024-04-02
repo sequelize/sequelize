@@ -3,7 +3,13 @@ import { PostgresDialect } from '@sequelize/postgres';
 import { SqliteDialect } from '@sequelize/sqlite';
 import { expect } from 'chai';
 import path from 'node:path';
-import { allowDeprecationsInSuite, getTestDialectClass, sequelize } from '../support';
+import sinon from 'sinon';
+import {
+  allowDeprecationsInSuite,
+  createSequelizeInstance,
+  getTestDialectClass,
+  sequelize,
+} from '../support';
 
 const dialect = getTestDialectClass();
 const dialectName = sequelize.dialect.name;
@@ -46,6 +52,18 @@ describe('Sequelize constructor', () => {
     }).to.throw(
       'Setting the "pool" option to "false" is not supported since Sequelize 4. To disable the pool, set the "pool"."max" option to 1.',
     );
+  });
+
+  it('warns if the database version is not supported', () => {
+    const stub = sinon.stub(process, 'emitWarning');
+    try {
+      createSequelizeInstance({ databaseVersion: '0.0.1' });
+      expect(stub.getCalls()[0].args[0]).to.contain(
+        'This database engine version is not supported, please update your database server.',
+      );
+    } finally {
+      stub.restore();
+    }
   });
 
   describe('Network Connections (non-sqlite)', () => {

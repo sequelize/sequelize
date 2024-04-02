@@ -2,7 +2,7 @@ import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { sequelize } from '../support';
+import { createSequelizeInstance, sequelize } from '../support';
 
 describe('Sequelize', () => {
   describe('version', () => {
@@ -35,6 +35,23 @@ describe('Sequelize', () => {
       expect(sequelize.queryRaw).to.have.been.calledWith(
         'SELECT * FROM "users" WHERE id = 1 AND id2 = 2',
       );
+    });
+  });
+
+  describe('cloe', () => {
+    it('clears the pool & closes Sequelize', async () => {
+      const options = {
+        replication: null,
+      };
+
+      const sequelize2 = createSequelizeInstance(options);
+
+      const poolClearSpy = sinon.spy(sequelize2.pool, 'destroyAllNow');
+
+      await sequelize2.close();
+
+      expect(poolClearSpy.calledOnce).to.be.true;
+      expect(sequelize2.isClosed()).to.be.true;
     });
   });
 });

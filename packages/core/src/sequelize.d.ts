@@ -651,15 +651,6 @@ export class Sequelize<
   authenticate(options?: QueryOptions): Promise<void>;
   validate(options?: QueryOptions): Promise<void>;
 
-  /**
-   * Close all connections used by this sequelize instance, and free all references so the instance can be
-   * garbage collected.
-   *
-   * Normally this is done on process exit, so you only need to call this method if you are creating multiple
-   * instances, and want to garbage collect some of them.
-   */
-  close(): Promise<void>;
-
   normalizeAttribute<M extends Model = Model>(
     attribute: AttributeOptions<M> | DataType,
   ): AttributeOptions<M>;

@@ -10,18 +10,9 @@ export interface GetConnectionOptions {
    * Force master or write replica to get connection from
    */
   useMaster?: boolean;
-
-  /**
-   * ID of the connection.
-   */
-  uuid?: string | 'default';
 }
 
-export interface AbstractConnection {
-  /** custom property we attach to different dialect connections */
-  // TODO: replace with Symbols.
-  uuid?: string | undefined;
-}
+export interface AbstractConnection {}
 
 declare const ConnectionType: unique symbol;
 export type Connection<
