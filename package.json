@@ -68,12 +68,12 @@
   ],
   "devDependencies": {
     "@ephys/eslint-config-typescript": "20.1.1",
-    "@rushstack/eslint-patch": "1.10.0",
+    "@rushstack/eslint-patch": "1.10.1",
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.14",
     "@types/lodash": "4.17.0",
     "@types/mocha": "10.0.6",
-    "@types/node": "20.11.30",
+    "@types/node": "20.12.2",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -97,7 +97,7 @@
     "ts-node": "10.9.2",
     "typedoc": "0.25.12",
     "typedoc-plugin-carbon-ads": "1.6.0",
-    "typedoc-plugin-mdn-links": "3.1.18",
+    "typedoc-plugin-mdn-links": "3.1.19",
     "typedoc-plugin-missing-exports": "2.2.0",
     "typescript": "5.4.3"
   },
