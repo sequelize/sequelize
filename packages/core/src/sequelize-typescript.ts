@@ -5,7 +5,9 @@ import {
   isNullish,
   isString,
   join,
+  localizedStringComparator,
   map,
+  SortDirection,
   splitObject,
 } from '@sequelize/utils';
 import chalk from 'chalk';
@@ -57,19 +59,19 @@ import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
 import {
   EPHEMERAL_SEQUELIZE_OPTIONS,
-  PERSISTED_SEQUELIZE_OPTIONS,
   importDialect,
+  PERSISTED_SEQUELIZE_OPTIONS,
 } from './sequelize.internals.js';
 import type { QueryRawOptions } from './sequelize.js';
 import { Sequelize } from './sequelize.js';
 import type { NormalizedOptions, Options } from './sequelize.types.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
+  assertTransactionIsCompatibleWithOptions,
+  normalizeTransactionOptions,
   Transaction,
   TransactionNestMode,
   TransactionType,
-  assertTransactionIsCompatibleWithOptions,
-  normalizeTransactionOptions,
 } from './transaction.js';
 import { getIntersection } from './utils/array.js';
 import { normalizeReplicationConfig } from './utils/connection-options.js';
@@ -562,6 +564,10 @@ Please rename these options to a name that is not already used by Sequelize.`,
     }
 
     if (unseenKeys.size > 0) {
+      const caseInsensitiveEnComparator = localizedStringComparator('en', SortDirection.ASC, {
+        sensitivity: 'base',
+      });
+
       throw new Error(
         `The following options are not recognized by Sequelize nor ${DialectClass.name}: ${join(
           map(unseenKeys, option => chalk.red(option)),
@@ -569,19 +575,19 @@ Please rename these options to a name that is not already used by Sequelize.`,
         )}.
 
 Sequelize accepts the following options: ${allSequelizeOptionNames
+          .sort(caseInsensitiveEnComparator)
           .map(option => chalk.cyan(option))
           .join(', ')}.
 
-${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${join(
-          dialectOptionNames.map(option => chalk.cyan(option)),
-          ', ',
-        )}.
+${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${dialectOptionNames
+          .toSorted(caseInsensitiveEnComparator)
+          .map(option => chalk.cyan(option))
+          .join(', ')}.
 ${DialectClass.name} options can be set at the root of the option bag, like Sequelize options.
 
-The following options can be used to configure the connection to the database: ${join(
-          connectionOptionNames.map(option => chalk.cyan(option)),
-          ', ',
-        )}.
+The following options can be used to configure the connection to the database: ${connectionOptionNames
+          .sort(caseInsensitiveEnComparator)
+          .map(option => chalk.cyan(option))}.
 Connection options can be used at the root of the option bag, in the "replication" option, and can be modified by the "beforeConnect" hook.
 `,
       );

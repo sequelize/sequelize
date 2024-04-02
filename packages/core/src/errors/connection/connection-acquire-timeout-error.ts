@@ -1,7 +1,7 @@
 import { ConnectionError } from '../connection-error';
 
 /**
- * Thrown when connection is not acquired due to timeout
+ * Thrown when acquiring a connection from the Sequelize Pool times out.
  */
 export class ConnectionAcquireTimeoutError extends ConnectionError {
   constructor(_message: string, cause: Error) {

@@ -1,34 +1,38 @@
-import type { Connection } from '@sequelize/core';
+import type { AbstractConnection, Connection } from '@sequelize/core';
 import { ConnectionAcquireTimeoutError, Sequelize } from '@sequelize/core';
+import type { MsSqlDialect } from '@sequelize/mssql';
 import { expect } from 'chai';
 import delay from 'delay';
 import type { SinonSandbox } from 'sinon';
 import sinon from 'sinon';
-import { createSingleTestSequelizeInstance, getTestDialect, getTestDialectTeaser } from './support';
+import { createSingleTestSequelizeInstance, getTestDialect, setResetMode } from './support';
 
-const dialect = getTestDialect();
+const dialectName = getTestDialect();
 
-function assertSameConnection(newConnection: Connection, oldConnection: Connection) {
-  switch (dialect) {
+function assertSameConnection(
+  newConnection: AbstractConnection,
+  oldConnection: AbstractConnection,
+) {
+  switch (dialectName) {
     case 'postgres':
-      // @ts-expect-error -- processID not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.processID).to.equal(newConnection.processID).and.to.be.ok;
       break;
 
     case 'mariadb':
     case 'mysql':
-      // @ts-expect-error -- threadId not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.threadId).to.equal(newConnection.threadId).and.to.be.ok;
       break;
 
     case 'db2':
-      // @ts-expect-error -- connected not declared yet
+      // @ts-expect-error -- untyped
       expect(newConnection.connected).to.equal(oldConnection.connected).and.to.be.ok;
       break;
 
     case 'mssql':
     case 'ibmi':
-      // @ts-expect-error -- dummyId not declared yet
+      // @ts-expect-error -- untyped
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
@@ -37,31 +41,31 @@ function assertSameConnection(newConnection: Connection, oldConnection: Connecti
   }
 }
 
-function assertNewConnection(newConnection: Connection, oldConnection: Connection) {
-  switch (dialect) {
+function assertNewConnection(newConnection: AbstractConnection, oldConnection: AbstractConnection) {
+  switch (dialectName) {
     case 'postgres':
-      // @ts-expect-error -- processID not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.processID).to.not.be.equal(newConnection.processID);
       break;
 
     case 'mariadb':
     case 'mysql':
-      // @ts-expect-error -- threadId not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.threadId).to.not.be.equal(newConnection.threadId);
       break;
 
     case 'db2':
-      // @ts-expect-error -- connected not declared yet
+      // @ts-expect-error -- untyped
       expect(newConnection.connected).to.be.ok;
-      // @ts-expect-error -- connected not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.connected).to.not.be.ok;
       break;
 
     case 'mssql':
     case 'ibmi':
-      // @ts-expect-error -- dummyId not declared yet
+      // @ts-expect-error -- untyped
       expect(newConnection.dummyId).to.not.be.ok;
-      // @ts-expect-error -- dummyId not declared yet
+      // @ts-expect-error -- untyped
       expect(oldConnection.dummyId).to.be.ok;
       break;
 
@@ -70,8 +74,8 @@ function assertNewConnection(newConnection: Connection, oldConnection: Connectio
   }
 }
 
-function attachMSSQLUniqueId(connection: Connection) {
-  if (['mssql', 'ibmi'].includes(dialect)) {
+function attachMSSQLUniqueId(connection: Connection<MsSqlDialect>) {
+  if (['mssql', 'ibmi'].includes(dialectName)) {
     // @ts-expect-error -- dummyId not declared yet
     connection.dummyId = Math.random();
   }
@@ -79,31 +83,123 @@ function attachMSSQLUniqueId(connection: Connection) {
   return connection;
 }
 
-let sandbox: SinonSandbox;
-
-beforeEach(() => {
-  sandbox = sinon.createSandbox();
-});
-
-afterEach(() => {
-  sandbox.restore();
-});
-
-describe(getTestDialectTeaser('Pooling'), () => {
-  if (dialect === 'sqlite' || process.env.DIALECT === 'postgres-native') {
+describe('Pool', () => {
+  if (process.env.DIALECT === 'postgres-native') {
     return;
   }
+
+  setResetMode('none');
+
+  let sandbox: SinonSandbox;
+
+  beforeEach(() => {
+    sandbox = sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  describe('init', () => {
+    it('should trigger deprecation for non supported engine version', async () => {
+      // sqlite does not have different database versions since it's bundled
+      if (dialectName === 'sqlite') {
+        return;
+      }
+
+      const stub = sandbox.stub(process, 'emitWarning');
+      const sequelize = createSequelizeInstance();
+      const connectionManager = sequelize.connectionManager;
+
+      sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves('0.0.1');
+
+      const res: Connection = {};
+
+      // @ts-expect-error -- internal method, no typings
+      sandbox.stub(connectionManager, '_connect').resolves(res);
+      // @ts-expect-error -- internal method, no typings
+      sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox.stub(connectionManager, '_onProcessExit');
+
+      const queryOptions: GetConnectionOptions = {
+        type: 'read',
+        useMaster: true,
+      };
+
+      await connectionManager.getConnection(queryOptions);
+      chai.expect(stub).to.have.been.calledOnce;
+      chai
+        .expect(stub.getCalls()[0].args[0])
+        .to.contain(
+          'This database engine version is not supported, please update your database server.',
+        );
+      stub.restore();
+
+      await sequelize.close();
+    });
+
+    it('should allow forced reads from the write pool', async () => {
+      const options = {
+        replication: {
+          write: { ...poolEntry, host: 'the-boss' },
+          read: [{ ...poolEntry }],
+        },
+      };
+      const sequelize = createSequelizeInstance(options);
+      const connectionManager = sequelize.connectionManager;
+
+      const res: Connection = {};
+
+      const connectStub = sandbox
+        // @ts-expect-error -- internal method, no typings
+        .stub(connectionManager, '_connect')
+        .resolves(res);
+
+      // @ts-expect-error -- internal method, no typings
+      sandbox.stub(connectionManager, '_disconnect').resolves();
+      sandbox.stub(connectionManager, '_onProcessExit');
+
+      sandbox.stub(sequelize, 'fetchDatabaseVersion').resolves(sequelize.dialect.defaultVersion);
+
+      const queryOptions: GetConnectionOptions = {
+        type: 'read',
+        useMaster: true,
+      };
+
+      await connectionManager.getConnection(queryOptions);
+      chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
+      const calls = connectStub.getCalls();
+      chai.expect(calls[1].args[0].host).to.eql('the-boss');
+
+      await sequelize.close();
+    });
+
+    it('should clear the pool after draining it', async () => {
+      const options = {
+        replication: null,
+      };
+
+      const sequelize = createSingleTestSequelizeInstance(options);
+
+      const poolDrainSpy = sandbox.spy(sequelize.pool, 'drain');
+      const poolClearSpy = sandbox.spy(sequelize.pool, 'destroyAllNow');
+
+      await sequelize.close();
+      expect(poolDrainSpy.calledOnce).to.be.true;
+      expect(poolClearSpy.calledOnce).to.be.true;
+    });
+  });
 
   describe('network / connection errors', () => {
     it('should obtain new connection when old connection is abruptly closed', async () => {
       async function simulateUnexpectedError(connection: Connection) {
         // should never be returned again
-        if (['mssql', 'ibmi'].includes(dialect)) {
+        if (['mssql', 'ibmi'].includes(dialectName)) {
           connection = attachMSSQLUniqueId(connection);
         }
 
-        if (dialect === 'db2' || dialect === 'mariadb') {
-          await sequelize.connectionManager.pool.destroy(connection);
+        if (dialectName === 'db2' || dialectName === 'mariadb') {
+          await sequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
           error.code = 'ECONNRESET';
@@ -137,7 +233,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
     it('should obtain new connection when released connection dies inside pool', async () => {
       function simulateUnexpectedError(connection: Connection) {
         // should never be returned again
-        switch (dialect) {
+        switch (dialectName) {
           case 'mssql': {
             // @ts-expect-error -- close not declared yet
             attachMSSQLUniqueId(connection).close();
@@ -241,7 +337,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
   describe('acquire', () => {
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
       const testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
-        dialect,
+        dialect: dialectName,
         databaseVersion: '1.2.3',
         pool: {
           acquire: 10,
@@ -261,7 +357,7 @@ describe(getTestDialectTeaser('Pooling'), () => {
 
     it('should reject with ConnectionAcquireTimeoutError when unable to acquire connection for transaction', async () => {
       const testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
-        dialect,
+        dialect: dialectName,
         databaseVersion: '1.2.3',
         pool: {
           acquire: 10,

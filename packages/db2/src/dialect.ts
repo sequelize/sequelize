@@ -119,7 +119,9 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
   }
 
   getDefaultSchema(): string {
-    return (this.sequelize as Sequelize<this>).options.replication.write.username.toUpperCase();
+    return (
+      (this.sequelize as Sequelize<this>).options.replication.write.username?.toUpperCase() ?? ''
+    );
   }
 
   static getSupportedOptions() {

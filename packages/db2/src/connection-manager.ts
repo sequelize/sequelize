@@ -53,7 +53,7 @@ export interface Db2ConnectionOptions {
   /**
    * ODBC "UID" parameter
    */
-  username: string;
+  username?: string;
 }
 
 export type IbmDbModule = typeof IbmDb;

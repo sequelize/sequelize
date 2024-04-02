@@ -88,7 +88,7 @@ export interface ReplicationOptions<Dialect extends AbstractDialect> {
 }
 
 export type RawConnectionOptions<Dialect extends AbstractDialect> =
-  | (ConnectionOptions<Dialect> & { url: string })
+  | (ConnectionOptions<Dialect> & { url?: string })
   | string;
 
 export interface NormalizedReplicationOptions<Dialect extends AbstractDialect> {

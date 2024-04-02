@@ -1,4 +1,4 @@
-import type { Options } from '@sequelize/core';
+import type { ConnectionOptions, Options } from '@sequelize/core';
 import { Db2Dialect } from '@sequelize/db2';
 import { IBMiDialect } from '@sequelize/ibmi';
 import { MariaDbDialect } from '@sequelize/mariadb';
@@ -11,7 +11,7 @@ import { parseSafeInteger } from '@sequelize/utils';
 
 const { env } = process;
 
-type Config = {
+export interface DialectConfigs {
   mssql: Options<MsSqlDialect>;
   mysql: Options<MySqlDialect>;
   snowflake: Options<SnowflakeDialect>;
@@ -20,11 +20,22 @@ type Config = {
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
-};
+}
+
+export interface DialectConnectionConfigs {
+  mssql: ConnectionOptions<MsSqlDialect>;
+  mysql: ConnectionOptions<MySqlDialect>;
+  snowflake: ConnectionOptions<SnowflakeDialect>;
+  mariadb: ConnectionOptions<MariaDbDialect>;
+  sqlite: ConnectionOptions<SqliteDialect>;
+  postgres: ConnectionOptions<PostgresDialect>;
+  db2: ConnectionOptions<Db2Dialect>;
+  ibmi: ConnectionOptions<IBMiDialect>;
+}
 
 const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
 
-export const CONFIG: Config = {
+export const CONFIG: DialectConfigs = {
   mssql: {
     dialect: MsSqlDialect,
     authentication: {

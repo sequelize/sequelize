@@ -507,7 +507,7 @@ export function minifySql(sql: string): string {
   );
 }
 
-export const sequelize = createSequelizeInstance();
+export const sequelize = createSequelizeInstance<AbstractDialect>();
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
   sequelizeInstance.removeAllModels();

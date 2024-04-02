@@ -18,6 +18,16 @@ describe('Sequelize constructor', () => {
     }).to.throw(Error);
   });
 
+  it('throws when an invalid dialect is supplied', () => {
+    expect(() => {
+      // @ts-expect-error -- testing that this throws
+      new Sequelize({ dialect: 'some-fancy-dialect' });
+    }).to.throw(
+      Error,
+      'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.',
+    );
+  });
+
   it('works when dialect is supplied', () => {
     expect(() => {
       new Sequelize({

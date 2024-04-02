@@ -72,9 +72,9 @@ const singleTestInstances = new Set<Sequelize>();
  *
  * @param options
  */
-export function createSingleTestSequelizeInstance(
-  options: Options<AbstractDialect> = {},
-): Sequelize {
+export function createSingleTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(options: Omit<Options<Dialect>, 'dialect'>): Sequelize {
   const instance = createSequelizeInstance(options);
   destroySequelizeAfterTest(instance);
 
@@ -282,7 +282,10 @@ export async function dropTestDatabases(customSequelize: Sequelize = sequelize) 
   }
 
   const qi = customSequelize.queryInterface;
-  const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
+  const databases = await qi.listDatabases({
+    skip: [customSequelize.dialect.getDefaultSchema(), 'sequelize_test'],
+  });
+
   if (getTestDialect() === 'db2') {
     for (const db of databases) {
       // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
@@ -301,7 +304,9 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  await customSequelize.queryInterface.dropAllSchemas({ skip: [customSequelize.config.database] });
+  await customSequelize.queryInterface.dropAllSchemas({
+    skip: [customSequelize.dialect.getDefaultSchema(), 'sequelize_test'],
+  });
 }
 
 export * from '../support';
