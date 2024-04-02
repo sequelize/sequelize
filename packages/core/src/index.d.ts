@@ -95,3 +95,6 @@ export { Fn, fn } from './expression-builders/fn.js';
 export { json } from './expression-builders/json.js';
 export { Literal, literal } from './expression-builders/literal.js';
 export { Where, where } from './expression-builders/where.js';
+
+export { ModelRepository } from './model-repository.js';
+export * from './model-repository.types.js';
