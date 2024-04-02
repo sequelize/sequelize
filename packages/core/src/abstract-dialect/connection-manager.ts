@@ -12,7 +12,11 @@ export interface GetConnectionOptions {
   useMaster?: boolean;
 }
 
-export interface AbstractConnection {}
+export interface AbstractConnection {
+  /** The UUID of the transaction that is using this connection */
+  // TODO: replace with the transaction object itself.
+  uuid?: string | undefined;
+}
 
 declare const ConnectionType: unique symbol;
 export type Connection<

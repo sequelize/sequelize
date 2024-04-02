@@ -178,6 +178,8 @@ export class Transaction {
 
     assert(connection != null, 'Transaction failed to acquire Connection.');
 
+    connection.uuid = this.id;
+
     this.#connection = connection;
 
     try {
@@ -237,11 +239,12 @@ export class Transaction {
   #cleanup(): void {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || !this.#connection) {
+    if (this.parent || this.#connection?.uuid === undefined) {
       return;
     }
 
     this.sequelize.pool.release(this.#connection);
+    this.#connection.uuid = undefined;
     this.#connection = undefined;
   }
 
@@ -254,9 +257,11 @@ export class Transaction {
   async #forceCleanup(): Promise<void> {
     // Don't release the connection if there's a parent transaction or
     // if we've already cleaned up
-    if (this.parent || !this.#connection) {
+    if (this.parent || this.#connection?.uuid === undefined) {
       return;
     }
+
+    this.#connection.uuid = undefined;
 
     const connection = this.#connection;
     this.#connection = undefined;
