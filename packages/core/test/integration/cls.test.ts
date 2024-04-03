@@ -19,7 +19,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   setResetMode('none');
 
   const vars = beforeAll2(async () => {
-    const clsSequelize = await createMultiTransactionalTestSequelizeInstance({
+    const clsSequelize = await createMultiTransactionalTestSequelizeInstance(sequelize, {
       disableClsTransactions: false,
     });
 

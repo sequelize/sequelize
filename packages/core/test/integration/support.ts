@@ -74,7 +74,7 @@ const singleTestInstances = new Set<Sequelize>();
  */
 export function createSingleTestSequelizeInstance<
   Dialect extends AbstractDialect = AbstractDialect,
->(options: Omit<Options<Dialect>, 'dialect'>): Sequelize {
+>(options?: Omit<Options<Dialect>, 'dialect'>): Sequelize {
   const instance = createSequelizeInstance(options);
   destroySequelizeAfterTest(instance);
 
@@ -116,7 +116,7 @@ export async function createMultiTransactionalTestSequelizeInstance<
       storage: p,
       // allow using multiple connections as we are connecting to a file
       pool: { max: 5, idle: 30_000 },
-      ...overrideOptions,
+      ...(overrideOptions as Options<SqliteDialect>),
     });
 
     await _sequelize.sync({ force: true });

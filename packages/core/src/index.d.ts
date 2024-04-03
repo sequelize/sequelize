@@ -41,6 +41,7 @@ export * from './abstract-dialect/query-generator.types.js';
 export * from './abstract-dialect/query-interface.js';
 export * from './abstract-dialect/query-interface.types.js';
 export * from './abstract-dialect/query.js';
+export type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
 export type { WhereOptions } from './abstract-dialect/where-sql-builder-types.js';
 export * from './associations/index.js';
 export * as DataTypes from './data-types.js';

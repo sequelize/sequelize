@@ -38,7 +38,9 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should allow overriding client_min_messages', async () => {
-    const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: 'ERROR' });
+    const sequelize = createSingleTestSequelizeInstance<PostgresDialect>({
+      clientMinMessages: 'ERROR',
+    });
     const result = await sequelize.query<{ client_min_messages: string }>(
       'SHOW client_min_messages',
       { type: QueryTypes.SELECT },
@@ -47,7 +49,9 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should not set client_min_messages if clientMinMessages is false', async () => {
-    const sequelize = createSingleTestSequelizeInstance({ clientMinMessages: false });
+    const sequelize = createSingleTestSequelizeInstance<PostgresDialect>({
+      clientMinMessages: false,
+    });
     const result = await sequelize.query<{ client_min_messages: string }>(
       'SHOW client_min_messages',
       { type: QueryTypes.SELECT },
@@ -57,7 +61,7 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should time out the query request when the query runs beyond the configured query_timeout', async () => {
-    const sequelize = createSingleTestSequelizeInstance({
+    const sequelize = createSingleTestSequelizeInstance<PostgresDialect>({
       query_timeout: 100,
     });
 
@@ -65,7 +69,7 @@ describe('[POSTGRES] Sequelize', () => {
   });
 
   it('should allow overriding session variables through the `options` param', async () => {
-    const sequelize = createSingleTestSequelizeInstance({
+    const sequelize = createSingleTestSequelizeInstance<PostgresDialect>({
       options: '-csearch_path=abc',
     });
     const result = await sequelize.query<{ search_path: string }>('SHOW search_path', {

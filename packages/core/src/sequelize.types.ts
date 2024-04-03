@@ -1,4 +1,4 @@
-import type { StrictRequiredBy } from '@sequelize/utils';
+import type { PartialOrUndefined, StrictRequiredBy } from '@sequelize/utils';
 import type { Connection } from './abstract-dialect/connection-manager.js';
 import type {
   AbstractDialect,
@@ -18,7 +18,7 @@ import type { NormalizedReplicationOptions } from './sequelize.js';
  * Used in {@link SequelizeCoreOptions.pool}
  */
 export interface PoolOptions<Dialect extends AbstractDialect>
-  extends Partial<ReplicationPoolOptions> {
+  extends PartialOrUndefined<ReplicationPoolOptions> {
   /**
    * A function that validates a connection.
    *

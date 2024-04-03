@@ -291,7 +291,7 @@ export interface EphemeralSequelizeOptions<Dialect extends AbstractDialect> {
   /**
    * Connection pool options
    */
-  pool?: PoolOptions<Dialect>;
+  pool?: PoolOptions<Dialect> | undefined;
 
   /**
    * The connection URL.
