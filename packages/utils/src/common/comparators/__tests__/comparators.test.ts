@@ -1,7 +1,5 @@
+import { SortDirection, basicComparator, localizedStringComparator } from '@sequelize/utils';
 import { expect } from 'chai';
-import { basicComparator } from '../basic-comparator.js';
-import { SortDirection } from '../comparator.js';
-import { localizedStringComparator } from '../localized-string-comparator.js';
 
 describe('localizedStringComparator', () => {
   it('sorts strings', () => {

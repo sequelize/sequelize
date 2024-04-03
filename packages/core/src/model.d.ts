@@ -62,7 +62,7 @@ export interface Transactionable {
    * The transaction in which this query must be run.
    * Mutually exclusive with {@link Transactionable.connection}.
    *
-   * If {@link SequelizeCoreOptions.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
+   * If the Sequelize disableClsTransactions option has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
    * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;

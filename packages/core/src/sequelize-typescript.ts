@@ -588,8 +588,10 @@ Sequelize accepts the following options: ${allSequelizeOptionNames
           .map(option => chalk.cyan(option))
           .join(', ')}.
 
-${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${dialectOptionNames
-          .toSorted(caseInsensitiveEnComparator)
+${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${[
+          ...dialectOptionNames,
+        ]
+          .sort(caseInsensitiveEnComparator)
           .map(option => chalk.cyan(option))
           .join(', ')}.
 ${DialectClass.name} options can be set at the root of the option bag, like Sequelize options.
@@ -815,7 +817,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
    * This method returns undefined if no transaction is active in the current asynchronous operation,
-   * or if {@link SequelizeCoreOptions.disableClsTransactions} is true.
+   * or if the Sequelize "disableClsTransactions" option is true.
    */
   getCurrentClsTransaction(): Transaction | undefined {
     return this.#transactionCls?.getStore();
@@ -839,7 +841,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * ```
    *
    * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
-   * This can be disabled by setting {@link SequelizeCoreOptions.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
+   * This can be disabled by setting the Sequelize "disableClsTransactions" option to true. You will then need to pass transactions to your queries manually.
    *
    * ```ts
    * const sequelize = new Sequelize({
@@ -953,7 +955,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
    *
    * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
-   * even if {@link SequelizeCoreOptions.disableClsTransactions} is false.
+   * even if the Sequelize "disableClsTransactions" option is false.
    *
    * @example
    * ```ts

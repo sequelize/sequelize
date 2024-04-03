@@ -2422,7 +2422,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/sqlite@workspace:packages/sqlite":
+"@sequelize/sqlite@workspace:*, @sequelize/sqlite@workspace:packages/sqlite":
   version: 0.0.0-use.local
   resolution: "@sequelize/sqlite@workspace:packages/sqlite"
   dependencies:
@@ -2453,6 +2453,7 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
+    "@sequelize/sqlite": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
