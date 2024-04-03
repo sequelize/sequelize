@@ -10,6 +10,7 @@ const {
   allowDeprecationsInSuite,
   createSequelizeInstance,
   createSingleTransactionalTestSequelizeInstance,
+  destroySequelizeAfterTest,
   getTestDialect,
   sequelize: current,
 } = require('../support');
@@ -803,6 +804,8 @@ describe('HasMany', () => {
       const sequelize = createSequelizeInstance({
         omitNull: true,
       });
+
+      destroySequelizeAfterTest(sequelize);
 
       const User = sequelize.define('User', { username: DataTypes.STRING });
       const Task = sequelize.define('Task', { title: DataTypes.STRING });

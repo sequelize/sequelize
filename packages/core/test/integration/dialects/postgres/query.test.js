@@ -263,9 +263,9 @@ if (dialect.startsWith('postgres')) {
       }
 
       async function getConnectionPid(sequelize) {
-        const connection = await sequelize.connectionManager.getConnection();
+        const connection = await sequelize.pool.acquire();
         const pid = connection.processID;
-        sequelize.connectionManager.releaseConnection(connection);
+        sequelize.pool.release(connection);
 
         return pid;
       }

@@ -91,7 +91,7 @@ export { ModelRepository } from './model-repository.js';
 export * from './model-repository.types.js';
 // eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
 export { Sequelize as default } from './sequelize.js';
-export type { Options, PoolOptions } from './sequelize.types.js';
+export type { NormalizedOptions, Options, PoolOptions } from './sequelize.types.js';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';
 export { useInflection } from './utils/string.js';
 export type { Validator } from './utils/validator-extras.js';

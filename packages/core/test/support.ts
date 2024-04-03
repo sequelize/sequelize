@@ -15,7 +15,9 @@ import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
 import type { Class } from 'type-fest';
-import { CONFIG } from './config/config';
+import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
+
+export { getSqliteDatabasePath } from './config/config';
 
 const expect = chai.expect;
 
@@ -591,12 +593,6 @@ export async function unlinkIfExists(filePath: string): Promise<void> {
       throw error;
     }
   }
-}
-
-const SQLITE_DATABASES_DIR = path.join(__dirname, 'sqlite-databases');
-
-export function getSqliteDatabasePath(name: string): string {
-  return path.join(SQLITE_DATABASES_DIR, name);
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context

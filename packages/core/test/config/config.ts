@@ -8,6 +8,13 @@ import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
 import { SqliteDialect } from '@sequelize/sqlite';
 import { parseSafeInteger } from '@sequelize/utils';
+import path from 'node:path';
+
+export const SQLITE_DATABASES_DIR = path.join(__dirname, '..', 'sqlite-databases');
+
+export function getSqliteDatabasePath(name: string): string {
+  return path.join(SQLITE_DATABASES_DIR, name);
+}
 
 const { env } = process;
 
@@ -99,13 +106,7 @@ export const CONFIG: DialectConfigs = {
 
   sqlite: {
     dialect: SqliteDialect,
-    storage: ':memory:',
-    pool: {
-      maxUses: Infinity,
-      idle: Infinity,
-      max: 1,
-      acquire: 1000,
-    },
+    storage: getSqliteDatabasePath('default.sqlite'),
   },
 
   postgres: {

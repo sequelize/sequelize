@@ -9,6 +9,7 @@ import {
   sequelize as baseSequelize,
   beforeEach2,
   createSequelizeInstance,
+  destroySequelizeAfterTest,
   getSqliteDatabasePath,
   getTestDialect,
   getTestDialectTeaser,
@@ -46,13 +47,15 @@ describe(getTestDialectTeaser('Replication'), () => {
         },
       });
 
+      destroySequelizeAfterTest(sequelize);
+
       expect(sequelize.pool.write).to.be.ok;
       expect(sequelize.pool.read).to.be.ok;
 
       const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
-          field: 'first_name',
+          columnName: 'first_name',
         },
       });
 

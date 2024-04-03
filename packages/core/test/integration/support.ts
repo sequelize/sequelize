@@ -60,8 +60,13 @@ before(async () => {
 
 /** used to run reset on all used sequelize instances for a given suite */
 const allSequelizeInstances = new Set<Sequelize>();
+const sequelizeInstanceSources = new WeakMap<Sequelize, string>();
 Sequelize.hooks.addListener('afterInit', sequelizeInstance => {
   allSequelizeInstances.add(sequelizeInstance);
+  sequelizeInstanceSources.set(
+    sequelizeInstance,
+    new Error('A Sequelize instance was created here').stack!,
+  );
 });
 
 const singleTestInstances = new Set<Sequelize>();
@@ -201,29 +206,40 @@ afterEach('database reset', async () => {
       continue;
     }
 
-    /* eslint-disable no-await-in-loop */
-    switch (currentSuiteResetMode) {
-      case 'drop':
-        await clearDatabase(sequelizeInstance);
-        // unregister all models
-        resetSequelizeInstance(sequelizeInstance);
-        break;
+    let hasValidCredentials;
+    try {
+      /* eslint-disable no-await-in-loop */
+      await sequelizeInstance.authenticate();
+      hasValidCredentials = true;
+    } catch {
+      hasValidCredentials = false;
+    }
 
-      case 'truncate':
-        await sequelizeInstance.truncate({
-          ...sequelizeInstance.dialect.supports.truncate,
-          withoutForeignKeyChecks:
-            sequelizeInstance.dialect.supports.constraints.foreignKeyChecksDisableable,
-        });
-        break;
+    if (hasValidCredentials) {
+      /* eslint-disable no-await-in-loop */
+      switch (currentSuiteResetMode) {
+        case 'drop':
+          await clearDatabase(sequelizeInstance);
+          // unregister all models
+          resetSequelizeInstance(sequelizeInstance);
+          break;
 
-      case 'destroy':
-        await sequelizeInstance.destroyAll({ force: true });
-        break;
+        case 'truncate':
+          await sequelizeInstance.truncate({
+            ...sequelizeInstance.dialect.supports.truncate,
+            withoutForeignKeyChecks:
+              sequelizeInstance.dialect.supports.constraints.foreignKeyChecksDisableable,
+          });
+          break;
 
-      default:
-        break;
-      /* eslint-enable no-await-in-loop */
+        case 'destroy':
+          await sequelizeInstance.destroyAll({ force: true });
+          break;
+
+        default:
+          break;
+        /* eslint-enable no-await-in-loop */
+      }
     }
   }
 
@@ -252,6 +268,15 @@ The following methods can be used to mark a sequelize instance for automatic dis
 - createSingleTransactionalTestSequelizeInstance
 - createSingleTestSequelizeInstance
 - sequelize.close()
+
+The sequelize instances were created in the following locations:
+${[...allSequelizeInstances]
+  .map(instance => {
+    const source = sequelizeInstanceSources.get(instance);
+
+    return source ? `  - ${source}` : '  - unknown';
+  })
+  .join('\n')}
 `);
   }
 });

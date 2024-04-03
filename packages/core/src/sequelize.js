@@ -445,7 +445,6 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   async sync(options) {
     options = {
-      ...this.options,
       ...this.options.sync,
       ...options,
       hooks: options ? options.hooks !== false : true,

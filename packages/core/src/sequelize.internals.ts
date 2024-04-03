@@ -66,6 +66,7 @@ export const PERSISTED_SEQUELIZE_OPTIONS = getSynchronizedTypeKeys<
   noTypeValidation: undefined,
   nullJsonStringification: undefined,
   omitNull: undefined,
+  prependSearchPath: undefined,
   query: undefined,
   quoteIdentifiers: undefined,
   replication: undefined,
@@ -163,13 +164,15 @@ export interface PersistedSequelizeOptions<Dialect extends AbstractDialect> exte
    */
   nullJsonStringification?: 'explicit' | 'json' | 'sql';
 
-  // TODO [>7]: remove this option
   /**
    * A flag that defines if null values should be passed to SQL queries or not.
    *
    * @default false
    */
   omitNull?: boolean;
+
+  // TODO [>7]: remove this option
+  prependSearchPath?: boolean | undefined;
 
   /**
    * Default options for sequelize.query

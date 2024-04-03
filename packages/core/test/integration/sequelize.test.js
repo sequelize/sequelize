@@ -2,7 +2,7 @@
 
 const cloneDeep = require('lodash/cloneDeep');
 const { assert, expect } = require('chai');
-const { DataTypes, literal, Sequelize, Transaction } = require('@sequelize/core');
+const { ConnectionError, DataTypes, literal, Transaction } = require('@sequelize/core');
 const {
   allowDeprecationsInSuite,
   beforeAll2,
@@ -10,15 +10,14 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   createSequelizeInstance,
   createSingleTestSequelizeInstance,
-  destroySequelizeAfterTest,
   getTestDialect,
   getTestDialectTeaser,
   rand,
   sequelize: current,
 } = require('./support');
+const sinon = require('sinon');
 
 const dialect = getTestDialect();
-const sinon = require('sinon');
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
@@ -32,6 +31,87 @@ const qq = str => {
   return str;
 };
 
+const badUsernameConfig = {
+  postgres: {
+    user: 'bad_user',
+  },
+  db2: {
+    username: 'bad_user',
+  },
+  ibmi: {
+    username: 'bad_user',
+  },
+  mariadb: {
+    user: 'bad_user',
+  },
+  mysql: {
+    user: 'bad_user',
+  },
+  mssql: {
+    authentication: {
+      options: {
+        userName: 'bad_user',
+      },
+    },
+  },
+  snowflake: {
+    account: 'bad_account',
+  },
+};
+
+const noPasswordConfig = {
+  postgres: {
+    password: null,
+  },
+  db2: {
+    password: null,
+  },
+  ibmi: {
+    password: null,
+  },
+  mariadb: {
+    password: null,
+  },
+  mysql: {
+    password: null,
+  },
+  mssql: {
+    authentication: {
+      options: {
+        password: null,
+      },
+    },
+  },
+  snowflake: {
+    password: null,
+  },
+};
+
+const badAddressConfig = {
+  postgres: {
+    port: 9999,
+  },
+  mysql: {
+    port: 9999,
+  },
+  mssql: {
+    port: 9999,
+  },
+  mariadb: {
+    port: 9999,
+  },
+  sqlite: {},
+  snowflake: {
+    accessUrl: 'https://bad-address',
+  },
+  db2: {
+    port: 9999,
+  },
+  ibmi: {
+    system: 'bad-address',
+  },
+};
+
 describe(getTestDialectTeaser('Sequelize'), () => {
   if (dialect !== 'sqlite') {
     describe('authenticate', () => {
@@ -43,82 +123,52 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
       describe('with an invalid connection', () => {
         beforeEach(function () {
-          const options = { ...this.sequelize.options, port: '99999' };
-          this.sequelizeWithInvalidConnection = new Sequelize('wat', 'trololo', 'wow', options);
-          destroySequelizeAfterTest(this.sequelizeWithInvalidConnection);
+          this.sequelizeWithInvalidConnection = createSingleTestSequelizeInstance(
+            badAddressConfig[dialect],
+          );
         });
 
-        it('triggers the error event', async function () {
-          try {
-            await this.sequelizeWithInvalidConnection.authenticate();
-          } catch (error) {
-            expect(error).to.not.be.null;
-          }
-        });
-
-        it('triggers an actual RangeError or ConnectionError', async function () {
-          try {
-            await this.sequelizeWithInvalidConnection.authenticate();
-          } catch (error) {
-            expect(error instanceof RangeError || error instanceof Sequelize.ConnectionError).to.be
-              .ok;
-          }
+        it('rejects', async function () {
+          await expect(this.sequelizeWithInvalidConnection.authenticate()).to.be.rejectedWith(
+            ConnectionError,
+          );
         });
 
         it('triggers the actual adapter error', async function () {
-          try {
-            await this.sequelizeWithInvalidConnection.authenticate();
-          } catch (error) {
-            expect(
-              error.message.includes('connect ECONNREFUSED') ||
-                error.message.includes('invalid port number') ||
-                error.message.match(/should be >=? 0 and < 65536/) ||
-                error.message.includes('Login failed for user') ||
-                error.message.includes('A communication error has been detected') ||
-                error.message.includes('must be > 0 and < 65536') ||
-                error.message.includes('Error connecting to the database'),
-            ).to.be.ok;
-          }
+          const error = await expect(this.sequelizeWithInvalidConnection.authenticate()).to.be
+            .rejected;
+
+          expect(
+            error.message.includes('connect ECONNREFUSED') ||
+              error.message.includes('invalid port number') ||
+              error.message.match(/should be >=? 0 and < 65536/) ||
+              error.message.includes('Login failed for user') ||
+              error.message.includes('A communication error has been detected') ||
+              error.message.includes('must be > 0 and < 65536') ||
+              error.message.includes('Error connecting to the database'),
+          ).to.be.ok;
         });
       });
 
       describe('with invalid credentials', () => {
         beforeEach(function () {
-          this.sequelizeWithInvalidCredentials = new Sequelize(
-            'localhost',
-            'wtf',
-            'lol',
-            this.sequelize.options,
+          this.sequelizeWithInvalidCredentials = createSingleTestSequelizeInstance(
+            badUsernameConfig[dialect],
           );
-          destroySequelizeAfterTest(this.sequelizeWithInvalidCredentials);
         });
 
-        it('triggers the error event', async function () {
-          try {
-            await this.sequelizeWithInvalidCredentials.authenticate();
-          } catch (error) {
-            expect(error).to.not.be.null;
-          }
-        });
-
-        it('triggers an actual sequlize error', async function () {
-          try {
-            await this.sequelizeWithInvalidCredentials.authenticate();
-          } catch (error) {
-            expect(error).to.be.instanceof(Sequelize.Error);
-          }
+        it('rejects', async function () {
+          await expect(this.sequelizeWithInvalidCredentials.authenticate()).to.be.rejectedWith(
+            ConnectionError,
+          );
         });
 
         if (dialect !== 'db2') {
           it('triggers the error event when using replication', async () => {
-            const sequelize = new Sequelize('sequelize', null, null, {
+            const sequelize = createSequelizeInstance({
               dialect,
               replication: {
-                read: {
-                  host: 'localhost',
-                  username: 'omg',
-                  password: 'lol',
-                },
+                read: [badUsernameConfig[dialect]],
               },
             });
 
@@ -278,23 +328,18 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     });
 
     if (dialect !== 'sqlite' && dialect !== 'db2') {
-      it('fails for incorrect connection even when no models are defined', async function () {
-        const sequelize = new Sequelize('cyber_bird', 'user', 'pass', {
-          dialect: this.sequelize.options.dialect,
-        });
+      it('fails for incorrect connection even when no models are defined', async () => {
+        const sequelize = createSingleTestSequelizeInstance(badUsernameConfig[dialect]);
 
         await expect(sequelize.sync({ force: true })).to.be.rejected;
-        await sequelize.close();
       });
 
-      it('fails with incorrect database credentials (1)', async function () {
-        this.sequelizeWithInvalidCredentials = createSingleTestSequelizeInstance({
-          database: 'omg',
-          username: 'bar',
-          password: null,
-        });
+      it('fails when no password is provided', async () => {
+        const sequelizeWithInvalidCredentials = createSingleTestSequelizeInstance(
+          noPasswordConfig[dialect],
+        );
 
-        const User2 = this.sequelizeWithInvalidCredentials.define('User', {
+        const User2 = sequelizeWithInvalidCredentials.define('User', {
           name: DataTypes.STRING,
           bio: DataTypes.TEXT,
         });
@@ -343,48 +388,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               expect(error.message.toString()).to.match(/.*Access denied.*/);
             }
           }
-        } finally {
-          await this.sequelizeWithInvalidCredentials.close();
         }
-      });
-
-      it('fails with incorrect database credentials (2)', async function () {
-        const sequelize = new Sequelize('db', 'user', 'pass', {
-          dialect: this.sequelize.options.dialect,
-        });
-
-        sequelize.define('Project', { title: DataTypes.STRING });
-        sequelize.define('Task', { title: DataTypes.STRING });
-
-        await expect(sequelize.sync({ force: true })).to.be.rejected;
-        await sequelize.close();
-      });
-
-      it('fails with incorrect database credentials (3)', async function () {
-        const sequelize = new Sequelize('db', 'user', 'pass', {
-          dialect: this.sequelize.options.dialect,
-          port: 99_999,
-        });
-
-        sequelize.define('Project', { title: DataTypes.STRING });
-        sequelize.define('Task', { title: DataTypes.STRING });
-
-        await expect(sequelize.sync({ force: true })).to.be.rejected;
-        await sequelize.close();
-      });
-
-      it('fails with incorrect database credentials (4)', async function () {
-        const sequelize = new Sequelize('db', 'user', 'pass', {
-          dialect: this.sequelize.options.dialect,
-          port: 99_999,
-          pool: {},
-        });
-
-        sequelize.define('Project', { title: DataTypes.STRING });
-        sequelize.define('Task', { title: DataTypes.STRING });
-
-        await expect(sequelize.sync({ force: true })).to.be.rejected;
-        await sequelize.close();
       });
 
       it('returns an error correctly if unable to sync a foreign key referenced model', async function () {

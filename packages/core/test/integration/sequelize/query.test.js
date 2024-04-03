@@ -12,9 +12,11 @@ const {
 const sinon = require('sinon');
 const dayjs = require('dayjs');
 const {
+  allowDeprecationsInSuite,
   beforeEach2,
   createSequelizeInstance,
   createSingleTestSequelizeInstance,
+  destroySequelizeAfterTest,
   getTestDialect,
   getTestDialectTeaser,
   sequelize,
@@ -36,6 +38,8 @@ const qq = str => {
 };
 
 describe(getTestDialectTeaser('Sequelize'), () => {
+  allowDeprecationsInSuite(['SEQUELIZE0023']);
+
   describe('query', () => {
     afterEach(() => {
       console.log.restore && console.log.restore();
@@ -333,6 +337,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       const sequelize = createSequelizeInstance({
         quoteIdentifiers: false,
       });
+
+      destroySequelizeAfterTest(sequelize);
 
       await sequelize.query(this.insertQuery);
       const [users] = await sequelize.query(`select * from ${qq(this.User.tableName)}`);

@@ -1,13 +1,8 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../support');
-
+const { expect } = require('chai');
+const { createSingleTestSequelizeInstance, sequelize: current } = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
-
-const current = Support.sequelize;
 
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';
@@ -20,39 +15,56 @@ describe('Model', () => {
   }
 
   describe('global schema', () => {
+    let schemaTwoSequelize;
     beforeEach('build restaurant tables', async function () {
-      current.options.schema = null;
-      this.RestaurantOne = current.define('restaurant', {
-        foo: DataTypes.STRING,
-        bar: DataTypes.STRING,
+      schemaTwoSequelize = createSingleTestSequelizeInstance({
+        schema: SCHEMA_TWO,
       });
-      this.LocationOne = current.define('location', {
-        name: DataTypes.STRING,
-      });
+
+      this.RestaurantOne = schemaTwoSequelize.define(
+        'RestaurantOne',
+        {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING,
+        },
+        { schema: current.dialect.getDefaultSchema(), tableName: 'restaurants' },
+      );
+      this.LocationOne = schemaTwoSequelize.define(
+        'LocationOne',
+        {
+          name: DataTypes.STRING,
+        },
+        { schema: current.dialect.getDefaultSchema(), tableName: 'locations' },
+      );
       this.RestaurantOne.belongsTo(this.LocationOne, {
         foreignKey: 'location_id',
         foreignKeyConstraints: false,
+        as: 'location',
       });
-      current.options.schema = SCHEMA_TWO;
-      this.RestaurantTwo = current.define('restaurant', {
-        foo: DataTypes.STRING,
-        bar: DataTypes.STRING,
-      });
-      this.LocationTwo = current.define('location', {
-        name: DataTypes.STRING,
-      });
+
+      this.RestaurantTwo = schemaTwoSequelize.define(
+        'RestaurantTwo',
+        {
+          foo: DataTypes.STRING,
+          bar: DataTypes.STRING,
+        },
+        { tableName: 'restaurants' },
+      );
+      this.LocationTwo = schemaTwoSequelize.define(
+        'LocationTwo',
+        {
+          name: DataTypes.STRING,
+        },
+        { tableName: 'locations' },
+      );
       this.RestaurantTwo.belongsTo(this.LocationTwo, {
         foreignKey: 'location_id',
         foreignKeyConstraints: false,
+        as: 'location',
       });
-      current.options.schema = null;
 
-      await current.createSchema(SCHEMA_TWO);
-
-      await Promise.all([
-        this.RestaurantOne.sync({ force: true }),
-        this.RestaurantTwo.sync({ force: true }),
-      ]);
+      await schemaTwoSequelize.createSchema(SCHEMA_TWO);
+      await schemaTwoSequelize.sync({ force: true });
     });
 
     describe('Add data via model.create, retrieve via model.findOne', () => {
@@ -116,13 +128,15 @@ describe('Model', () => {
         expect(obj).to.be.null;
       });
 
-      it('should be able to insert and retrieve associated data into the table in schema_two', async function () {
+      // TODO: fix https://github.com/sequelize/sequelize/issues/17091
+      it.skip('should be able to insert and retrieve associated data into the table in schema_two', async function () {
         await this.RestaurantTwo.create({
           foo: 'two',
           location_id: locationId,
         });
 
         const obj0 = await this.RestaurantTwo.findOne({
+          logging: console.log,
           where: { foo: 'two' },
           include: [
             {

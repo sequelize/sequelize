@@ -199,6 +199,7 @@ export class ModelDefinition<M extends Model = Model> {
 
     const globalOptions = this.#sequelize.options;
 
+    // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
     this.options = mergeModelOptions(
       // default options

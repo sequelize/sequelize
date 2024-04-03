@@ -598,7 +598,8 @@ ${DialectClass.name} options can be set at the root of the option bag, like Sequ
 
 The following options can be used to configure the connection to the database: ${connectionOptionNames
           .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))}.
+          .map(option => chalk.cyan(option))
+          .join(', ')}.
 Connection options can be used at the root of the option bag, in the "replication" option, and can be modified by the "beforeConnect" hook.
 `,
       );
