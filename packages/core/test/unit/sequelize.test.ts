@@ -2,8 +2,7 @@ import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { beforeEach2, setResetMode } from '../integration/support.js';
-import { createSequelizeInstance, sequelize } from '../support';
+import { beforeEach2, createSequelizeInstance, sequelize } from '../support';
 
 describe('Sequelize', () => {
   describe('version', () => {
@@ -82,8 +81,6 @@ describe('Sequelize', () => {
   });
 
   describe('log', () => {
-    setResetMode('none');
-
     it('is disabled by default', () => {
       expect(sequelize.options.logging).to.equal(false);
     });
