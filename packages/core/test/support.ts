@@ -1,4 +1,4 @@
-import type { AbstractDialect, ConnectionOptions, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString } from '@sequelize/utils';
@@ -126,7 +126,7 @@ export async function nextUnhandledRejection() {
 
 export function createSequelizeInstance<Dialect extends AbstractDialect = AbstractDialect>(
   options?: Omit<Options<Dialect>, 'dialect'>,
-): Sequelize {
+): Sequelize<Dialect> {
   const dialectName = getTestDialect();
   const config = CONFIG[dialectName];
 
@@ -141,18 +141,10 @@ export function createSequelizeInstance<Dialect extends AbstractDialect = Abstra
       native: process.env.DIALECT === 'postgres-native',
     };
 
-    return new Sequelize(sequelizePostgresOptions);
+    return new Sequelize(sequelizePostgresOptions) as unknown as Sequelize<Dialect>;
   }
 
-  return new Sequelize<AbstractDialect>(sequelizeOptions);
-}
-
-export function getConnectionOptionsWithoutPool(): ConnectionOptions<AbstractDialect> {
-  // Do not break existing config object - shallow clone before `delete config.pool`
-  const config = { ...CONFIG[getTestDialect()] };
-  delete config.pool;
-
-  return config;
+  return new Sequelize<Dialect>(sequelizeOptions as Options<Dialect>);
 }
 
 export function getSupportedDialects() {

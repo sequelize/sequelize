@@ -118,13 +118,14 @@ describe('Sequelize constructor', () => {
         host: 'example.com',
       });
     });
+  });
+
+  describe('Postgres URL parsing', () => {
+    if (dialectName !== 'postgres') {
+      return;
+    }
 
     it('supports not providing username, password, or port in URI, but providing them in the option bag', () => {
-      // options are dialect-specific, but they're overwritten identically in every dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
       const options = {
         port: 10,
         user: 'root',
@@ -145,11 +146,6 @@ describe('Sequelize constructor', () => {
     });
 
     it('merges querystring parameters with connection options', () => {
-      // TODO: when implementing the different url parser per dialect, add separate test per dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
       const newSequelize = new Sequelize<PostgresDialect>({
         dialect: PostgresDialect,
         url: `${dialectName}://example.com:9821/dbname?ssl=true&application_name=abc`,
@@ -164,13 +160,10 @@ describe('Sequelize constructor', () => {
       });
     });
 
-    it('[postgres] handles the "options" parameter as JSON', () => {
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
-      const newSequelize = new Sequelize<PostgresDialect>({
+    it('handles the "options" parameter as JSON', () => {
+      const newSequelize = new Sequelize({
         dialect: PostgresDialect,
+        // TODO: why does it accept a JSON string? The pg documentation & source code indicates that "options" is a string
         url: `${dialectName}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&ssl=true`,
       });
 
@@ -183,12 +176,16 @@ describe('Sequelize constructor', () => {
       });
     });
 
-    it('prioritizes the ?host querystring parameter over the rest of the URI', () => {
-      // TODO: when implementing the different url parser per dialect, add separate test per dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
+    it('accepts options as a non-json value', () => {
+      const newSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        url: `${dialectName}://example.com:9821/dbname?options=${encodeURIComponent('-c search_path=test_schema')}`,
+      });
 
+      expect(newSequelize.options.replication.write.options).to.equal('-c search_path=test_schema');
+    });
+
+    it('prioritizes the ?host querystring parameter over the rest of the URI', () => {
       const newSequelize = new Sequelize<PostgresDialect>({
         dialect: PostgresDialect,
         url: `${dialectName}://localhost:9821/dbname?host=/tmp/mysocket`,
@@ -198,11 +195,6 @@ describe('Sequelize constructor', () => {
     });
 
     it('supports using a socket path as an encoded domain', () => {
-      // TODO: when implementing the different url parser per dialect, add separate test per dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
       const newSequelize = new Sequelize<PostgresDialect>({
         dialect: PostgresDialect,
         url: `${dialectName}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`,
@@ -212,11 +204,6 @@ describe('Sequelize constructor', () => {
     });
 
     it('supports connection strings in replication options', async () => {
-      // TODO: when implementing the different url parser per dialect, add separate test per dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
       const url = `${dialectName}://username:password@host:1234/database`;
 
       const newSequelize = new Sequelize<PostgresDialect>({
@@ -240,11 +227,6 @@ describe('Sequelize constructor', () => {
     });
 
     it('prioritizes the option bag over the URI', () => {
-      // TODO: when implementing the different url parser per dialect, add separate test per dialect
-      if (dialectName !== 'postgres') {
-        return;
-      }
-
       const newSequelize = new Sequelize<PostgresDialect>({
         dialect: PostgresDialect,
         url: `${dialectName}://localhost:9821/dbname?ssl=true`,
@@ -268,9 +250,17 @@ describe('Sequelize constructor', () => {
       });
       expect(replication.read).to.deep.eq([]);
     });
+
+    it('accepts the postgresql protocol', () => {
+      // should not throw
+      new Sequelize({
+        dialect: PostgresDialect,
+        url: `postgresql://localhost:9821/dbname?ssl=true`,
+      });
+    });
   });
 
-  describe('Filesystem connections (sqlite)', () => {
+  describe('SQLite URL parsing', () => {
     if (dialectName !== 'sqlite') {
       return;
     }
@@ -325,5 +315,17 @@ describe('Sequelize constructor', () => {
       const options = newSequelize.options;
       expect(options.replication.write.storage).to.equal(':memory:');
     });
+  });
+
+  it('supports properly formatted URLs', () => {
+    const newSequelize = new Sequelize({
+      dialect: SqliteDialect,
+      url: 'sqlite://test/sqlite-databases/connection-string-test1.sqlite',
+    });
+
+    const options = newSequelize.options;
+    expect(options.replication.write.storage).to.equal(
+      path.resolve('test/sqlite-databases/connection-string-test1.sqlite'),
+    );
   });
 });

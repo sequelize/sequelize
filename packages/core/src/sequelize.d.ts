@@ -61,12 +61,6 @@ export interface SyncOptions extends Logging, Hookable {
   alter?: boolean | SyncAlterOptions;
 
   /**
-   * Match a regex against the database name before syncing, a safety check for cases where force: true is
-   * used in tests but not live code
-   */
-  match?: RegExp;
-
-  /**
    * The schema that the tables should be created in. This can be overridden for each table in sequelize.define
    */
   schema?: string;
@@ -612,6 +606,8 @@ export class Sequelize<
     sql: string,
     options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>,
   ): Promise<[unknown[], unknown]>;
+
+  log(...values: unknown[]): void;
 
   /**
    * Get the fn for random based on the dialect

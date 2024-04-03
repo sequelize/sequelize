@@ -1,11 +1,13 @@
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, type AbstractDialect, type ConnectionOptions } from '@sequelize/core';
 import { expect } from 'chai';
+import pick from 'lodash/pick';
 import sinon from 'sinon';
+import { CONFIG } from '../config/config';
 import {
+  sequelize as baseSequelize,
   beforeEach2,
   createSequelizeInstance,
-  destroySequelizeAfterTest,
-  getConnectionOptionsWithoutPool,
+  getSqliteDatabasePath,
   getTestDialect,
   getTestDialectTeaser,
   setResetMode,
@@ -21,15 +23,26 @@ describe(getTestDialectTeaser('Replication'), () => {
 
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
+      function getConnectionOptions(): ConnectionOptions<AbstractDialect> {
+        const out = pick(
+          CONFIG[getTestDialect()],
+          baseSequelize.dialect.getSupportedConnectionOptions(),
+        );
+
+        if (dialectName === 'sqlite') {
+          out.storage = getSqliteDatabasePath('replication.db');
+        }
+
+        return out;
+      }
+
       const sandbox = sinon.createSandbox();
       const sequelize = createSequelizeInstance({
         replication: {
-          write: getConnectionOptionsWithoutPool(),
-          read: [getConnectionOptionsWithoutPool()],
+          write: getConnectionOptions(),
+          read: [getConnectionOptions()],
         },
       });
-
-      destroySequelizeAfterTest(sequelize);
 
       expect(sequelize.pool.write).to.be.ok;
       expect(sequelize.pool.read).to.be.ok;

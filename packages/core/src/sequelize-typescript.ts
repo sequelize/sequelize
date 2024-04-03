@@ -449,7 +449,9 @@ If you really need to access the connection manager, access it through \`sequeli
     }
 
     if (isString(options)) {
-      throw new Error(`The Sequelize constructor no longer accepts a string as the first argument. Please use the "url" option instead:
+      throw new Error(`The Sequelize constructor no longer accepts a string as the first argument. Please use the "url" option instead.
+
+Example for Postgres:
 
 new Sequelize({
   dialect: PostgresDialect,

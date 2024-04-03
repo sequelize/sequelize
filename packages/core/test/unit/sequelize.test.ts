@@ -2,6 +2,7 @@ import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
+import { beforeEach2, setResetMode } from '../integration/support.js';
 import { createSequelizeInstance, sequelize } from '../support';
 
 describe('Sequelize', () => {
@@ -77,6 +78,35 @@ describe('Sequelize', () => {
       });
 
       expect(() => createSequelizeInstance()).to.throw();
+    });
+  });
+
+  describe('log', () => {
+    setResetMode('none');
+
+    it('is disabled by default', () => {
+      expect(sequelize.options.logging).to.equal(false);
+    });
+
+    describe('with a custom function for logging', () => {
+      const vars = beforeEach2(() => {
+        const spy = sinon.spy();
+
+        return { spy, sequelize: createSequelizeInstance({ logging: spy }) };
+      });
+
+      it('calls the custom logger method', () => {
+        vars.sequelize.log('om nom');
+        expect(vars.spy.calledOnce).to.be.true;
+      });
+
+      it('calls the custom logger method with options', () => {
+        const message = 'om nom';
+        const timeTaken = 5;
+        const options = { correlationId: 'ABC001' };
+        vars.sequelize.log(message, timeTaken, options);
+        expect(vars.spy.withArgs(message, timeTaken, options).calledOnce).to.be.true;
+      });
     });
   });
 });

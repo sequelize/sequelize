@@ -724,6 +724,14 @@ It must return the list of option names that can be passed to the dialect constr
 It must return the list of connection option names that will be passed to its ConnectionManager's getConnection.`,
     );
   }
+
+  getSupportedOptions(): readonly string[] {
+    return (this.constructor as typeof AbstractDialect).getSupportedOptions();
+  }
+
+  getSupportedConnectionOptions(): readonly string[] {
+    return (this.constructor as typeof AbstractDialect).getSupportedConnectionOptions();
+  }
 }
 
 export type BindCollector = {

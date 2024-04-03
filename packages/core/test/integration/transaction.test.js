@@ -303,7 +303,9 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   });
 
   it('should not rollback if connection was not acquired', async function () {
-    this.sinon.stub(this.sequelize.connectionManager, '_connect').returns(new Promise(() => {}));
+    this.sinon
+      .stub(this.sequelize.dialect.connectionManager, 'connect')
+      .returns(new Promise(() => {}));
 
     const transaction = new Transaction(this.sequelize);
 

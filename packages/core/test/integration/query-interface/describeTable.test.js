@@ -8,7 +8,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
-describe.only(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
     this.queryInterface = this.sequelize.queryInterface;
   });

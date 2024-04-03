@@ -1,8 +1,6 @@
 'use strict';
 
 const { expect } = require('chai');
-const Support = require('../support');
-
 const {
   DatabaseError,
   DataTypes,
@@ -11,12 +9,19 @@ const {
   sql,
   UniqueConstraintError,
 } = require('@sequelize/core');
-
-const dialectName = Support.getTestDialect();
-const sequelize = Support.sequelize;
-const queryGenerator = sequelize.queryGenerator;
 const sinon = require('sinon');
 const dayjs = require('dayjs');
+const {
+  beforeEach2,
+  createSequelizeInstance,
+  createSingleTestSequelizeInstance,
+  getTestDialect,
+  getTestDialectTeaser,
+  sequelize,
+} = require('../support');
+
+const dialectName = getTestDialect();
+const queryGenerator = sequelize.queryGenerator;
 
 const qq = str => {
   if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
@@ -30,10 +35,9 @@ const qq = str => {
   return str;
 };
 
-describe(Support.getTestDialectTeaser('Sequelize'), () => {
+describe(getTestDialectTeaser('Sequelize'), () => {
   describe('query', () => {
-    afterEach(function () {
-      this.sequelize.options.quoteIdentifiers = true;
+    afterEach(() => {
       console.log.restore && console.log.restore();
     });
 
@@ -122,7 +126,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     describe('logging', () => {
       it('executes a query with global benchmarking option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSingleTestSequelizeInstance({
+        const sequelize = createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: true,
         });
@@ -151,7 +155,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSingleTestSequelizeInstance({
+        const sequelize = createSingleTestSequelizeInstance({
           logging: logger,
         });
 
@@ -169,7 +173,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with empty string, queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSingleTestSequelizeInstance({
+        const sequelize = createSingleTestSequelizeInstance({
           logging: logger,
         });
 
@@ -185,7 +189,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('executes a query with benchmarking option, queryLabel option and custom logger', async () => {
         const logger = sinon.spy();
-        const sequelize = Support.createSingleTestSequelizeInstance({
+        const sequelize = createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: true,
         });
@@ -203,8 +207,8 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
 
       describe('with logQueryParameters', () => {
-        const vars = Support.beforeEach2(async () => {
-          const sequelize = Support.createSequelizeInstance({
+        const vars = beforeEach2(async () => {
+          const sequelize = createSequelizeInstance({
             benchmark: true,
             logQueryParameters: true,
           });
@@ -326,9 +330,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('executes select queries correctly when quoteIdentifiers is false', async function () {
-      this.sequelize.options.quoteIdentifiers = false;
-      await this.sequelize.query(this.insertQuery);
-      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
+      const sequelize = createSequelizeInstance({
+        quoteIdentifiers: false,
+      });
+
+      await sequelize.query(this.insertQuery);
+      const [users] = await sequelize.query(`select * from ${qq(this.User.tableName)}`);
       expect(
         users.map(u => {
           return u.username;
@@ -966,7 +973,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(dayjs(result[0].t).isValid()).to.be.true;
     });
 
-    if (Support.getTestDialect() === 'postgres') {
+    if (getTestDialect() === 'postgres') {
       it('replaces named parameters with the passed object and ignores casts', async function () {
         await expect(
           this.sequelize

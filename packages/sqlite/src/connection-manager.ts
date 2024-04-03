@@ -100,24 +100,30 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
     const isTemporaryStorage = inMemory || storage === '';
     if (isTemporaryStorage) {
-      const writePool = this.sequelize.pool.write;
+      const pool = this.sequelize.pool;
+      const writePool = pool.write;
 
       // @ts-expect-error -- PR sequelize-pool to expose `idleTimeoutMillis`
       if (writePool.idleTimeoutMillis !== Infinity) {
-        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to close idle connections, which would lead to data loss while the application is running.
+        throw new Error(`SQLite is configured to use a temporary database, but the pool is configured to close idle connections, which would lead to data loss while the application is running.
 To fix this, set the pool's idleTimeoutMillis to Infinity, or use a non-temporary database.`);
       }
 
       // @ts-expect-error -- PR sequelize-pool to expose `maxUsesPerResource`
       if (writePool.maxUsesPerResource !== Infinity) {
         // @ts-expect-error -- PR sequelize-pool to expose `maxUsesPerResource`
-        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to close connections after ${writePool.maxUsesPerResources}, which would lead to data loss while the application is running.
+        throw new Error(`SQLite is configured to use a temporary database, but the pool is configured to close connections after ${writePool.maxUsesPerResources}, which would lead to data loss while the application is running.
 To fix this, set the pool's maxUsesPerResource to Infinity, or use a non-temporary database.`);
       }
 
       if (writePool.maxSize !== 1) {
-        throw new Error(`SQLite was configured to use a temporary database, but the pool is configured to allow more than one connection, which would create separate temporary databases.
+        throw new Error(`SQLite is configured to use a temporary database, but the pool is configured to allow more than one connection, which would create separate temporary databases.
 To fix this, set the pool's maxSize to 1, or use a non-temporary database.`);
+      }
+
+      if (pool.read) {
+        throw new Error(`SQLite is configured to use a temporary database, but read-replication is enabled, which would read a different temporary database.
+To fix this, disable read replication, or use a non-temporary database.`);
       }
     }
 
