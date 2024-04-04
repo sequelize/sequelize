@@ -597,7 +597,10 @@ export async function unlinkIfExists(filePath: string): Promise<void> {
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof after !== 'undefined') {
-  after(async () => {
+  after('delete SQLite databases', async () => {
+    // all Sequelize instances must be closed to be able to delete the database files, including the default one.
+    await sequelize.close();
+
     return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
   });
 }
