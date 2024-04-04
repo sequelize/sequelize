@@ -44,7 +44,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
         port: 65_535,
         connectTimeout: 500,
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.SequelizeConnectionError,
       );
 
@@ -53,7 +53,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
     it('ECONNREFUSED', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: testHost, port: 65_535 });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.ConnectionRefusedError,
       );
 
@@ -64,16 +64,14 @@ describe('[MARIADB Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         host: 'http://wowow.example.com',
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.HostNotFoundError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
 
       await sequelize.close();
     });
 
     it('EHOSTUNREACH', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: '255.255.255.255' });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.HostNotReachableError,
       );
 
@@ -83,13 +81,11 @@ describe('[MARIADB Specific] Connection Manager', () => {
     it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         database: 'db',
-        username: 'was',
+        user: 'was',
         password: 'ddsd',
       });
 
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.AccessDeniedError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
 
       await sequelize.close();
     });
