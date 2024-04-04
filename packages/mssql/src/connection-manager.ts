@@ -25,15 +25,17 @@ export interface MsSqlConnection extends Connection, Tedious.Connection {
   [ASYNC_QUEUE]: AsyncQueue;
 }
 
+export type TediousModule = typeof Tedious;
+
 export class MsSqlConnectionManager extends AbstractConnectionManager<
   MsSqlDialect,
   MsSqlConnection
 > {
-  private readonly lib: typeof Tedious;
+  readonly #lib: TediousModule;
 
   constructor(dialect: MsSqlDialect) {
     super(dialect);
-    this.lib = Tedious;
+    this.#lib = dialect.options.tediousModule ?? Tedious;
   }
 
   async connect(config: ConnectionOptions): Promise<MsSqlConnection> {
@@ -75,7 +77,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
 
     try {
       return await new Promise((resolve, reject) => {
-        const connection: MsSqlConnection = new this.lib.Connection(
+        const connection: MsSqlConnection = new this.#lib.Connection(
           connectionConfig,
         ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {

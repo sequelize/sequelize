@@ -1,7 +1,7 @@
 'use strict';
 
 import { DataTypes } from '@sequelize/core';
-import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
+import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';

@@ -12,19 +12,19 @@ import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
 import NodeUtil from 'node:util';
-import { Association } from '../../associations/base';
-import { BelongsToAssociation } from '../../associations/belongs-to';
-import { BelongsToManyAssociation } from '../../associations/belongs-to-many';
-import { HasManyAssociation } from '../../associations/has-many';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { Col } from '../../expression-builders/col.js';
-import { Literal } from '../../expression-builders/literal.js';
-import { conformIndex } from '../../model-internals';
-import { and } from '../../sequelize';
-import { mapFinderOptions, removeNullishValuesFromHash } from '../../utils/format';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { isModelStatic } from '../../utils/model-utils';
-import { nameIndex, spliceStr } from '../../utils/string';
+import { Association } from '../associations/base';
+import { BelongsToAssociation } from '../associations/belongs-to';
+import { BelongsToManyAssociation } from '../associations/belongs-to-many';
+import { HasManyAssociation } from '../associations/has-many';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+import { Col } from '../expression-builders/col.js';
+import { Literal } from '../expression-builders/literal.js';
+import { conformIndex } from '../model-internals';
+import { and } from '../sequelize';
+import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
+import { joinSQLFragments } from '../utils/join-sql-fragments';
+import { isModelStatic } from '../utils/model-utils';
+import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
@@ -33,10 +33,10 @@ import { joinWithLogicalOperator } from './where-sql-builder';
 const util = require('node:util');
 const crypto = require('node:crypto');
 
-const DataTypes = require('../../data-types');
-const { Op } = require('../../operators');
-const sequelizeError = require('../../errors');
-const { _validateIncludedElements } = require('../../model-internals');
+const DataTypes = require('../data-types');
+const { Op } = require('../operators');
+const sequelizeError = require('../errors');
+const { _validateIncludedElements } = require('../model-internals');
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',

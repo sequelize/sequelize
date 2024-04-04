@@ -13,6 +13,9 @@
       }
     }
   },
+  "files": [
+    "lib"
+  ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "sideEffects": false,
@@ -38,7 +41,7 @@
     "@sequelize/utils": "workspace:*",
     "@types/pg": "8.11.4",
     "lodash": "4.17.21",
-    "pg": "8.11.3",
+    "pg": "8.11.5",
     "pg-hstore": "2.3.4",
     "postgres-array": "3.0.2",
     "semver": "7.6.0",

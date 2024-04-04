@@ -1,6 +1,6 @@
 import crypto from 'node:crypto';
 import { v1 as generateUuidV1 } from 'uuid';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import { DialectAwareFn } from './dialect-aware-fn.js';
 
 export class SqlUuidV4 extends DialectAwareFn {

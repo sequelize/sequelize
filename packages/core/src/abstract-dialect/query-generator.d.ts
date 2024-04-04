@@ -1,7 +1,7 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import type { Col } from '../../expression-builders/col.js';
-import type { Literal } from '../../expression-builders/literal.js';
+import type { Col } from '../expression-builders/col.js';
+import type { Literal } from '../expression-builders/literal.js';
 import type {
   AttributeOptions,
   FindOptions,
@@ -9,7 +9,7 @@ import type {
   ModelStatic,
   NormalizedAttributeOptions,
   SearchPathable,
-} from '../../model.js';
+} from '../model.js';
 import type { DataType } from './data-types.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';

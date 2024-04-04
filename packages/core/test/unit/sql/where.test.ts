@@ -11,7 +11,7 @@ import type {
   WhereOptions,
 } from '@sequelize/core';
 import { DataTypes, JSON_NULL, Model, Op, SQL_NULL, and, json, or, sql } from '@sequelize/core';
-import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import type { FormatWhereOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { expect } from 'chai';
 import { expectTypeOf } from 'expect-type';
 import attempt from 'lodash/attempt';

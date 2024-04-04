@@ -11,10 +11,10 @@
  * @module DataTypes
  */
 
-import * as DataTypes from './dialects/abstract/data-types.js';
+import * as DataTypes from './abstract-dialect/data-types.js';
 import { classToInvokable } from './utils/class-to-invokable.js';
 
-export { AbstractDataType as ABSTRACT } from './dialects/abstract/data-types.js';
+export { AbstractDataType as ABSTRACT } from './abstract-dialect/data-types.js';
 
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const STRING = classToInvokable(DataTypes.STRING);

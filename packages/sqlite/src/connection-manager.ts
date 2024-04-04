@@ -6,16 +6,14 @@ import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
-import type { Database } from 'sqlite3';
+import * as Sqlite3 from 'sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:sqlite');
 
-// TODO: once the code has been split into packages, we won't need to lazy load this anymore
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('sqlite3');
+export type Sqlite3Module = typeof Sqlite3;
 
-interface SqliteConnection extends Connection, Database {
+export interface SqliteConnection extends Connection, Sqlite3.Database {
   // Not declared by sqlite3's typings
   filename: string;
 }
@@ -24,7 +22,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
   SqliteDialect,
   SqliteConnection
 > {
-  private readonly lib: Lib;
+  readonly #lib: Sqlite3Module;
   private readonly connections = new Map<string, SqliteConnection>();
 
   constructor(dialect: SqliteDialect) {
@@ -36,7 +34,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
       delete this.sequelize.options.host;
     }
 
-    this.lib = this._loadDialectModule('sqlite3') as Lib;
+    this.#lib = this.dialect.options.sqlite3Module ?? Sqlite3;
   }
 
   async _onProcessExit() {
@@ -61,7 +59,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
     const inMemory = storage === ':memory:';
 
-    const defaultReadWriteMode = this.lib.OPEN_READWRITE | this.lib.OPEN_CREATE;
+    const defaultReadWriteMode = this.#lib.OPEN_READWRITE | this.#lib.OPEN_CREATE;
     const readWriteMode = this.sequelize.options.dialectOptions?.mode || defaultReadWriteMode;
 
     const connectionCacheKey = inMemory ? ':memory:' : connectionUuid;
@@ -74,7 +72,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
 
     if (
       !inMemory &&
-      (readWriteMode & this.lib.OPEN_CREATE) !== 0 &&
+      (readWriteMode & this.#lib.OPEN_CREATE) !== 0 &&
       !(await checkFileExists(storageDir))
     ) {
       // automatic path provision for `options.storage`
@@ -82,7 +80,7 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {
-      const connectionInstance = new this.lib.Database(
+      const connectionInstance = new this.#lib.Database(
         storage,
         readWriteMode,
         (err: Error | null) => {

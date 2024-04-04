@@ -1,6 +1,6 @@
-import type { Deferrable } from '../../deferrable';
-import type { QueryRawOptions } from '../../sequelize';
-import type { IsolationLevel } from '../../transaction';
+import type { Deferrable } from '../deferrable';
+import type { QueryRawOptions } from '../sequelize';
+import type { IsolationLevel } from '../transaction';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
@@ -176,6 +176,6 @@ export interface StartTransactionOptions
 }
 
 /** Options accepted by {@link AbstractQueryInterface#bulkDelete} */
-export interface QiBulkDeleteOptions
-  extends BulkDeleteQueryOptions,
+export interface QiBulkDeleteOptions<TAttributes = any>
+  extends BulkDeleteQueryOptions<TAttributes>,
     Omit<QueryRawOptions, 'raw' | 'type'> {}

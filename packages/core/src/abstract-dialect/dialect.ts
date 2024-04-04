@@ -1,10 +1,10 @@
-import { freezeDeep, isFunction } from '@sequelize/utils';
+import { EMPTY_OBJECT, freezeDeep, getImmutablePojo, isFunction, isString } from '@sequelize/utils';
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
-import type { DialectName, Sequelize } from '../../sequelize.js';
-import { logger } from '../../utils/logger.js';
-import type { DeepPartial } from '../../utils/types.js';
+import type { DialectName, Sequelize } from '../sequelize.js';
+import { logger } from '../utils/logger.js';
+import type { DeepPartial } from '../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
 import type { AbstractDataType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
@@ -274,6 +274,22 @@ declare const OptionType: unique symbol;
 
 export type DialectOptions<Dialect extends AbstractDialect> = Dialect[typeof OptionType];
 
+export type AbstractDialectParams<Options> = {
+  dataTypeOverrides: Record<string, Class<AbstractDataType<any>>>;
+  dataTypesDocumentationUrl: string;
+  /**
+   * The character used to delimit identifiers in SQL queries.
+   *
+   * This can be a string, in which case the character will be used for both the start & end of the identifier,
+   * or an object with `start` and `end` properties.
+   */
+  identifierDelimiter: string | { start: string; end: string };
+  minimumDatabaseVersion: string;
+  name: DialectName;
+  options: Options | undefined;
+  sequelize: Sequelize;
+};
+
 export abstract class AbstractDialect<Options extends object = {}> {
   declare [OptionType]: Options;
 
@@ -475,17 +491,37 @@ export abstract class AbstractDialect<Options extends object = {}> {
 
   readonly sequelize: Sequelize;
 
-  abstract readonly defaultVersion: string;
   abstract readonly Query: typeof AbstractQuery;
-  abstract readonly TICK_CHAR_LEFT: string;
-  abstract readonly TICK_CHAR_RIGHT: string;
   abstract readonly queryGenerator: AbstractQueryGenerator;
   abstract readonly queryInterface: AbstractQueryInterface;
   abstract readonly connectionManager: AbstractConnectionManager<any, any>;
-  abstract readonly dataTypesDocumentationUrl: string;
 
+  /**
+   * @deprecated use {@link minimumDatabaseVersion}
+   */
+  get defaultVersion(): string {
+    return this.minimumDatabaseVersion;
+  }
+
+  /**
+   * @deprecated use {@link identifierDelimiter}.start
+   */
+  get TICK_CHAR_LEFT(): string {
+    return this.identifierDelimiter.start;
+  }
+
+  /**
+   * @deprecated use {@link identifierDelimiter}.end
+   */
+  get TICK_CHAR_RIGHT(): string {
+    return this.identifierDelimiter.end;
+  }
+
+  readonly identifierDelimiter: { readonly start: string; readonly end: string };
+  readonly minimumDatabaseVersion: string;
+  readonly dataTypesDocumentationUrl: string;
+  readonly options: Options;
   readonly name: DialectName;
-  readonly DataTypes: Record<string, Class<AbstractDataType<any>>>;
 
   /** dialect-specific implementation of shared data types */
   readonly #dataTypeOverrides: Map<string, Class<AbstractDataType<any>>>;
@@ -499,14 +535,20 @@ export abstract class AbstractDialect<Options extends object = {}> {
     return Dialect.supports;
   }
 
-  constructor(
-    sequelize: Sequelize,
-    dialectDataTypes: Record<string, Class<AbstractDataType<any>>>,
-    dialectName: DialectName,
-  ) {
-    this.sequelize = sequelize;
-    this.DataTypes = dialectDataTypes;
-    this.name = dialectName;
+  constructor(params: AbstractDialectParams<Options>) {
+    this.sequelize = params.sequelize;
+    this.name = params.name;
+    this.dataTypesDocumentationUrl = params.dataTypesDocumentationUrl;
+    this.options = params.options ? getImmutablePojo(params.options) : EMPTY_OBJECT;
+
+    this.identifierDelimiter = isString(params.identifierDelimiter)
+      ? Object.freeze({
+          start: params.identifierDelimiter,
+          end: params.identifierDelimiter,
+        })
+      : getImmutablePojo(params.identifierDelimiter);
+
+    this.minimumDatabaseVersion = params.minimumDatabaseVersion;
 
     const baseDataTypes = new Map<string, Class<AbstractDataType<any>>>();
     for (const dataType of Object.values(BaseDataTypes) as Array<Class<AbstractDataType<any>>>) {
@@ -532,7 +574,7 @@ export abstract class AbstractDialect<Options extends object = {}> {
     }
 
     const dataTypeOverrides = new Map<string, Class<AbstractDataType<any>>>();
-    for (const dataType of Object.values(this.DataTypes)) {
+    for (const dataType of Object.values(params.dataTypeOverrides)) {
       const replacedDataTypeId: string = (
         dataType as unknown as typeof AbstractDataType
       ).getDataTypeId();

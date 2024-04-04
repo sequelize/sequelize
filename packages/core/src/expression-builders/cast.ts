@@ -1,5 +1,5 @@
 import { isPlainObject } from '@sequelize/utils';
-import type { DataType } from '../dialects/abstract/data-types.js';
+import type { DataType } from '../abstract-dialect/data-types.js';
 import { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';

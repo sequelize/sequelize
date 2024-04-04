@@ -6,6 +6,9 @@ import type {
   StrictRequiredBy,
 } from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
+import type { Connection } from './abstract-dialect/connection-manager.js';
+import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
+import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
 import type {
   Association,
   BelongsToAssociation,
@@ -18,9 +21,6 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { Connection } from './dialects/abstract/connection-manager.js';
-import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type { IndexField, IndexOptions, TableName } from './dialects/abstract/query-interface';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
@@ -2651,7 +2651,7 @@ export abstract class Model<
   ): Promise<[entity: M, built: boolean]>;
 
   /**
-   * Find an entity that matches the query, or {@link Model.create} the entity if none is found
+   * Find an entity that matches the query, or {@link Model.create} the entity if none is found.
    * The successful result of the promise will be the tuple [instance, initialized].
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to

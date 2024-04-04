@@ -11,16 +11,16 @@ import isObject from 'lodash/isObject';
 import { Blob } from 'node:buffer';
 import util from 'node:util';
 import type { Class } from 'type-fest';
-import { ValidationErrorItem } from '../../errors';
-import type { GeoJson, GeoJsonType } from '../../geo-json.js';
-import { assertIsGeoJson } from '../../geo-json.js';
-import type { ModelStatic, Rangable, RangePart } from '../../model.js';
-import type { Sequelize } from '../../sequelize.js';
-import { makeBufferFromTypedArray } from '../../utils/buffer.js';
-import { isValidTimeZone } from '../../utils/dayjs.js';
-import { doNotUseRealDataType } from '../../utils/deprecations.js';
-import { joinSQLFragments } from '../../utils/join-sql-fragments';
-import { validator as Validator } from '../../utils/validator-extras';
+import { ValidationErrorItem } from '../errors';
+import type { GeoJson, GeoJsonType } from '../geo-json.js';
+import { assertIsGeoJson } from '../geo-json.js';
+import type { ModelStatic, Rangable, RangePart } from '../model.js';
+import type { Sequelize } from '../sequelize.js';
+import { makeBufferFromTypedArray } from '../utils/buffer.js';
+import { isValidTimeZone } from '../utils/dayjs.js';
+import { doNotUseRealDataType } from '../utils/deprecations.js';
+import { joinSQLFragments } from '../utils/join-sql-fragments';
+import { validator as Validator } from '../utils/validator-extras';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
@@ -28,7 +28,7 @@ import {
   isDataTypeClass,
   throwUnsupportedDataType,
 } from './data-types-utils.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import type { TableNameWithSchema } from './query-interface.js';
 
 // TODO: try merging "validate" & "sanitize" by making sanitize coerces the type, and if it cannot, throw a ValidationError.

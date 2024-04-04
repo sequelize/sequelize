@@ -1,6 +1,6 @@
 import type { QueryRawOptions, Sequelize, TableOrModel } from '@sequelize/core';
 import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode } from '@sequelize/core';
-import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { SqliteDialect } from './dialect.js';
 import type { SqliteQueryGenerator } from './query-generator.js';

@@ -1,6 +1,6 @@
 import NodeUtils from 'node:util';
-import { BaseError, ValidationErrorItem } from '../../errors/index.js';
-import type { Model } from '../../model.js';
+import { BaseError, ValidationErrorItem } from '../errors/index.js';
+import type { Model } from '../model.js';
 import type {
   DataType,
   DataTypeClass,
@@ -8,7 +8,7 @@ import type {
   DataTypeInstance,
 } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 
 export function isDataType(value: any): value is DataType {
   return isDataTypeClass(value) || value instanceof AbstractDataType;

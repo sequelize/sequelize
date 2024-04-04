@@ -17,7 +17,6 @@ import { Config } from './config/config';
 
 const expect = chai.expect;
 
-const distDir = path.resolve(__dirname, '..', 'lib');
 const packagesDir = path.resolve(__dirname, '..', '..');
 
 const NON_DIALECT_PACKAGES = Object.freeze(['utils', 'validator-js', 'core']);
@@ -175,12 +174,7 @@ export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequel
 }
 
 export function getSupportedDialects() {
-  return [
-    ...fs
-      .readdirSync(path.join(distDir, 'dialects'))
-      .filter(file => !file.includes('.js') && !file.includes('abstract')),
-    ...fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file)),
-  ];
+  return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
 }
 
 export function getTestDialect(): DialectName {
@@ -279,34 +273,63 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
       `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
     );
 
-    assertMatchesExpectation(result, expectation);
+    const isDefault = expectations[sequelize.dialect.name] === undefined;
+    assertMatchesExpectation(result, expectation, isDefault);
   }
 }
 
-function assertMatchesExpectation<V>(result: V, expectation: V | Expectation<V>): void {
+function assertMatchesExpectation<V>(
+  result: V,
+  expectation: V | Expectation<V>,
+  isDefault: boolean,
+): void {
   if (expectation instanceof Expectation) {
-    expectation.assert(result);
+    expectation.assert(result, isDefault);
   } else {
     expect(result).to.deep.equal(expectation);
   }
 }
 
 abstract class Expectation<Value> {
-  abstract assert(value: Value): void;
+  abstract assert(value: Value, isDefault: boolean): void;
 }
 
-class SqlExpectation extends Expectation<string> {
-  constructor(private readonly sql: string) {
+interface SqlExpectationOptions {
+  genericQuotes?: boolean;
+}
+
+class SqlExpectation extends Expectation<string | string[]> {
+  readonly #sql: string | readonly string[];
+  readonly #options: SqlExpectationOptions | undefined;
+
+  constructor(sql: string | readonly string[], options?: SqlExpectationOptions) {
     super();
+
+    this.#sql = sql;
+    this.#options = options;
   }
 
-  assert(value: string) {
-    expect(minifySql(value)).to.equal(minifySql(this.sql));
+  #prepareSql(sql: string | readonly string[], isDefault: boolean): string | string[] {
+    if (Array.isArray(sql)) {
+      return sql.map(part => this.#prepareSql(part, isDefault)) as string[];
+    }
+
+    if (isDefault) {
+      sql = replaceGenericIdentifierQuotes(sql as string, sequelize.dialect);
+    }
+
+    return minifySql(sql as string);
+  }
+
+  assert(value: string | readonly string[], isDefault: boolean) {
+    expect(this.#prepareSql(value, false)).to.deep.equal(
+      this.#prepareSql(this.#sql, isDefault || this.#options?.genericQuotes === true),
+    );
   }
 }
 
-export function toMatchSql(sql: string) {
-  return new SqlExpectation(sql);
+export function toMatchSql(sql: string | string[], options?: SqlExpectationOptions) {
+  return new SqlExpectation(sql, options);
 }
 
 class RegexExpectation extends Expectation<string> {
@@ -332,9 +355,9 @@ class HasPropertiesExpectation<Obj extends Record<string, unknown>> extends Expe
     super();
   }
 
-  assert(value: Obj) {
+  assert(value: Obj, isDefault: boolean) {
     for (const key of Object.keys(this.properties) as Array<keyof Obj>) {
-      assertMatchesExpectation(value[key], this.properties[key]);
+      assertMatchesExpectation(value[key], this.properties[key], isDefault);
     }
   }
 }
@@ -413,10 +436,7 @@ export function expectsql(
   if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
     // replace [...] with the proper quote character for the dialect
     // except for ARRAY[...]
-    expectation = expectation.replaceAll(
-      /(?<!ARRAY)\[([^\]]+)]/g,
-      `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`,
-    );
+    expectation = replaceGenericIdentifierQuotes(expectation, dialect);
     if (dialect.name === 'ibmi') {
       expectation = expectation.trim().replace(/;$/, '');
     }
@@ -458,6 +478,13 @@ export function expectsql(
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
+}
+
+function replaceGenericIdentifierQuotes(sql: string, dialect: AbstractDialect): string {
+  return sql.replaceAll(
+    /(?<!ARRAY)\[([^\]]+)]/g,
+    `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`,
+  );
 }
 
 export function rand() {

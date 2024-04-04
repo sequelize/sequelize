@@ -4,40 +4,40 @@ import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import type { Class } from 'type-fest';
-import { ConstraintChecking } from '../../deferrable.js';
-import { AssociationPath } from '../../expression-builders/association-path.js';
-import { Attribute } from '../../expression-builders/attribute.js';
-import { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
-import { Cast } from '../../expression-builders/cast.js';
-import { Col } from '../../expression-builders/col.js';
-import { DialectAwareFn } from '../../expression-builders/dialect-aware-fn.js';
-import { Fn } from '../../expression-builders/fn.js';
-import { Identifier } from '../../expression-builders/identifier.js';
-import { JsonPath } from '../../expression-builders/json-path.js';
-import { List } from '../../expression-builders/list.js';
-import { Literal } from '../../expression-builders/literal.js';
-import { Value } from '../../expression-builders/value.js';
-import { Where } from '../../expression-builders/where.js';
-import { IndexHints } from '../../index-hints.js';
-import type { ModelDefinition } from '../../model-definition.js';
-import type { Attributes, Model, ModelStatic } from '../../model.js';
-import { Op } from '../../operators.js';
-import type { BindOrReplacements, Expression } from '../../sequelize.js';
-import { bestGuessDataTypeOfVal } from '../../sql-string.js';
-import { TableHints } from '../../table-hints.js';
-import type { IsolationLevel } from '../../transaction.js';
-import { rejectInvalidOptions } from '../../utils/check.js';
-import { noOpCol } from '../../utils/deprecations.js';
-import { quoteIdentifier } from '../../utils/dialect.js';
-import { joinSQLFragments } from '../../utils/join-sql-fragments.js';
+import { ConstraintChecking } from '../deferrable.js';
+import { AssociationPath } from '../expression-builders/association-path.js';
+import { Attribute } from '../expression-builders/attribute.js';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+import { Cast } from '../expression-builders/cast.js';
+import { Col } from '../expression-builders/col.js';
+import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
+import { Fn } from '../expression-builders/fn.js';
+import { Identifier } from '../expression-builders/identifier.js';
+import { JsonPath } from '../expression-builders/json-path.js';
+import { List } from '../expression-builders/list.js';
+import { Literal } from '../expression-builders/literal.js';
+import { Value } from '../expression-builders/value.js';
+import { Where } from '../expression-builders/where.js';
+import { IndexHints } from '../index-hints.js';
+import type { ModelDefinition } from '../model-definition.js';
+import type { Attributes, Model, ModelStatic } from '../model.js';
+import { Op } from '../operators.js';
+import type { BindOrReplacements, Expression } from '../sequelize.js';
+import { bestGuessDataTypeOfVal } from '../sql-string.js';
+import { TableHints } from '../table-hints.js';
+import type { IsolationLevel } from '../transaction.js';
+import { rejectInvalidOptions } from '../utils/check.js';
+import { noOpCol } from '../utils/deprecations.js';
+import { quoteIdentifier } from '../utils/dialect.js';
+import { joinSQLFragments } from '../utils/join-sql-fragments.js';
 import {
   extractModelDefinition,
   extractTableIdentifier,
   isModelStatic,
-} from '../../utils/model-utils.js';
+} from '../utils/model-utils.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
