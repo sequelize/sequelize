@@ -1,4 +1,4 @@
-import type { Connection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -11,19 +11,25 @@ import {
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { isError, isPlainObject } from '@sequelize/utils';
+import { isError, splitObject } from '@sequelize/utils';
 import * as Tedious from 'tedious';
 import { AsyncQueue } from './_internal/async-queue.js';
 import { ASYNC_QUEUE } from './_internal/symbols.js';
+import type { InlinedTediousOptions } from './connection-manager.internal.js';
+import { INLINED_OPTION_NAMES } from './connection-manager.internal.js';
 import type { MsSqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
 
-export interface MsSqlConnection extends Connection, Tedious.Connection {
+export interface MsSqlConnection extends AbstractConnection, Tedious.Connection {
   // custom properties we attach to the connection
   [ASYNC_QUEUE]: AsyncQueue;
 }
+
+export type MsSqlConnectionOptions = Omit<Tedious.ConnectionConfiguration, 'options'> &
+  // We inline "options" with the other options, so we can allowlist them.
+  InlinedTediousOptions;
 
 export type TediousModule = typeof Tedious;
 
@@ -38,47 +44,22 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
     this.#lib = dialect.options.tediousModule ?? Tedious;
   }
 
-  async connect(config: ConnectionOptions): Promise<MsSqlConnection> {
-    const options: Tedious.ConnectionConfiguration['options'] = removeUndefined({
-      port: typeof config.port === 'string' ? Number.parseInt(config.port, 10) : config.port,
-      database: config.database,
-      trustServerCertificate: true,
-    });
+  async connect(connectionOptions: ConnectionOptions<MsSqlDialect>): Promise<MsSqlConnection> {
+    const [inlinedOptions, regularOptions] = splitObject(connectionOptions, INLINED_OPTION_NAMES);
 
-    const authentication: Tedious.ConnectionConfiguration['authentication'] = {
-      type: 'default',
-      options: {
-        userName: config.username || undefined,
-        password: config.password || undefined,
-      },
+    const tediousConfig: Tedious.ConnectionConfiguration = {
+      ...regularOptions,
+      options: removeUndefined(inlinedOptions),
     };
 
-    if (config.dialectOptions) {
-      // only set port if no instance name was provided
-      if (
-        isPlainObject(config.dialectOptions.options) &&
-        config.dialectOptions.options.instanceName
-      ) {
-        delete options.port;
-      }
-
-      if (config.dialectOptions.authentication) {
-        Object.assign(authentication, config.dialectOptions.authentication);
-      }
-
-      Object.assign(options, config.dialectOptions.options);
+    if (!tediousConfig.options!.port) {
+      tediousConfig.options!.port = 1433;
     }
-
-    const connectionConfig: Tedious.ConnectionConfiguration = removeUndefined({
-      server: config.host,
-      authentication,
-      options,
-    });
 
     try {
       return await new Promise((resolve, reject) => {
         const connection: MsSqlConnection = new this.#lib.Connection(
-          connectionConfig,
+          tediousConfig,
         ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {
           connection.connect();
@@ -127,11 +108,11 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
             isErrorWithStringCode(error) &&
             (error.code === 'ESOCKET' || error.code === 'ECONNRESET')
           ) {
-            void this.pool.destroy(connection);
+            void this.sequelize.pool.destroy(connection);
           }
         });
 
-        if (config.dialectOptions && config.dialectOptions.debug) {
+        if (tediousConfig.options?.debug) {
           connection.on('debug', debugTedious.log.bind(debugTedious));
         }
       });

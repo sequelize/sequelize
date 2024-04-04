@@ -2,6 +2,9 @@
 
 export * from './array-from-async.js';
 export * from './clone-deep-plain-values.js';
+export * from './comparators/basic-comparator.js';
+export * from './comparators/comparator.js';
+export * from './comparators/localized-string-comparator.js';
 export * from './consts.js';
 export * from './freeze-deep.js';
 export * from './get-immutable-pojo.js';
@@ -34,5 +37,6 @@ export * from './predicates/is-valid-integer-syntax.js';
 export * from './predicates/is-valid-number-syntax.js';
 export * from './set/set-view.node.js';
 export * from './shallow-clone-pojo.js';
+export * from './split-object.js';
 export * from './types.js';
 export * from './upcast.js';
