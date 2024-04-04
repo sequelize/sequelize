@@ -18,7 +18,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     // TODO [>=7.0.0-beta]: Refactor so this is the only connection it tries to connect with
     it.skip('ECONNREFUSED', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
-        host: '127.0.0.1',
+        server: '127.0.0.1',
         port: 34_237,
       });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
@@ -30,7 +30,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
 
     it('ENOTFOUND', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
-        host: 'wowow.example.com',
+        server: 'wowow.example.com',
       });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
         Sequelize.HostNotFoundError,
@@ -41,7 +41,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
 
     // TODO [>=7.0.0-beta]: Refactor so this is the only connection it tries to connect with
     it.skip('EHOSTUNREACH', async () => {
-      const sequelize = Support.createSingleTestSequelizeInstance({ host: '255.255.255.255' });
+      const sequelize = Support.createSingleTestSequelizeInstance({ server: '255.255.255.255' });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
         Sequelize.HostNotReachableError,
       );
@@ -52,8 +52,13 @@ describe('[MSSQL Specific] Connection Manager', () => {
     it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         database: 'db',
-        username: 'was',
-        password: 'ddsd',
+        authentication: {
+          type: 'default',
+          options: {
+            userName: 'was',
+            password: 'ddsd',
+          },
+        },
       });
       await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
         Sequelize.AccessDeniedError,
