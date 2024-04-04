@@ -595,11 +595,21 @@ export async function unlinkIfExists(filePath: string): Promise<void> {
   }
 }
 
+let isIntegrationTestSuite = false;
+
+export function setIsIntegrationTestSuite(value: boolean): void {
+  isIntegrationTestSuite = value;
+}
+
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof after !== 'undefined') {
   after('delete SQLite databases', async () => {
-    // all Sequelize instances must be closed to be able to delete the database files, including the default one.
-    await sequelize.close();
+    if (isIntegrationTestSuite) {
+      // all Sequelize instances must be closed to be able to delete the database files, including the default one.
+      // Closing is not possible in non-integration test suites,
+      // as _all_ connections must be mocked (even for sqlite, even though it's a file-based database).
+      await sequelize.close();
+    }
 
     return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
   });

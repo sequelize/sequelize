@@ -12,7 +12,10 @@ import {
   rand,
   resetSequelizeInstance,
   sequelize,
+  setIsIntegrationTestSuite,
 } from '../support';
+
+setIsIntegrationTestSuite(true);
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
