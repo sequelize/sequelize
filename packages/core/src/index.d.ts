@@ -71,6 +71,8 @@ export type {
 export { importModels } from './import-models.js';
 export { IndexHints } from './index-hints.js';
 export { ModelDefinition } from './model-definition.js';
+export { ModelRepository } from './model-repository.js';
+export * from './model-repository.types.js';
 export * from './model.js';
 export { Op, type OpTypes } from './operators.js';
 export { QueryTypes } from './query-types.js';
@@ -86,10 +88,7 @@ export {
   type NormalizedTransactionOptions,
   type TransactionOptions,
 } from './transaction.js';
-// TODO [>=8]: remove this alias
-export { ModelRepository } from './model-repository.js';
-export * from './model-repository.types.js';
-// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
+// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future | TODO [>=8]: remove this alias
 export { Sequelize as default } from './sequelize.js';
 export type { NormalizedOptions, Options, PoolOptions } from './sequelize.types.js';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';

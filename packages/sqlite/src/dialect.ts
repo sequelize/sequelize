@@ -11,7 +11,6 @@ import { SqliteQuery } from './query.js';
 
 export interface SqliteDialectOptions {
   /**
-   * SQLite only.
    * If set to false, SQLite will not enforce foreign keys.
    *
    * @default true

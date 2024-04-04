@@ -22,7 +22,7 @@ export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Co
 export interface SnowflakeConnectionOptions
   extends Omit<
     SnowflakeSdk.ConnectionOptions,
-    // "region" is unused in the Snowflake SDK anymore (deprecated option)
+    // "region" is not used by the Snowflake SDK anymore (deprecated option)
     | 'region'
     // ensures that the dialect produces values that Sequelize expects
     | 'jsTreatIntegerAsBigInt'

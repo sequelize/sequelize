@@ -256,7 +256,7 @@ export interface EphemeralSequelizeOptions<Dialect extends AbstractDialect> {
   databaseVersion?: string;
 
   /**
-   * The dialect of the database you are connecting to. One of mysql, sqlite, mariadb, mssql, or a dialect class.
+   * The dialect of the database you are connecting to. Either the name of the dialect, or a dialect class.
    */
   dialect: DialectName | Class<Dialect>;
 
