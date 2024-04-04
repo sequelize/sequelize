@@ -25,7 +25,7 @@ Learn to use [GitHub flavored markdown](https://help.github.com/articles/github-
 
 ### Opening an issue to report a bug
 
-It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [papb/sequelize-sscce](https://github.com/papb/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
+It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [sequelize-sscce](https://github.com/sequelize/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
 
 If you can even provide a Pull Request with a failing test (unit test or integration test), that is great! The bug will likely be fixed much faster in this case.
 
@@ -67,7 +67,7 @@ A Pull Request is a request for maintainers to "pull" a specific change in code 
 
 Anyone can open a Pull Request, there is no need to ask for permission. Maintainers will look at your pull request and tell you if anything else must be done before it can be merged.
 
-The target of the Pull Request should be the `main` branch (or in rare cases the `v5` branch, if previously agreed with a maintainer).
+The target of the Pull Request should be the `main` branch (or in rare cases the `v6` branch, if previously agreed with a maintainer).
 
 Please check the _allow edits from maintainers_ box when opening it. Thank you in advance for any pull requests that you open!
 
@@ -120,7 +120,7 @@ Once installed, run the `yarn build` command to build the project.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+[Yarn v4](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
 
 #### 2.2 Running commands
 
@@ -158,11 +158,11 @@ If you're happy to run tests only against an SQLite database, you can skip this 
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.0)
+- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.3)
 - `yarn start-mysql-oldest` (for MySQL 8.0) or `yarn start-mysql-latest` (for MySQL 8.3)
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
-- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.8.0)
+- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.9.0)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
