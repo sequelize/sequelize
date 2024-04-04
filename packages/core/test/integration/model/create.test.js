@@ -1206,8 +1206,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         smth: { type: DataTypes.STRING, allowNull: false },
       });
 
-      this.customSequelize.options.omitNull = false;
-
       await UserNull.sync({ force: true });
 
       try {
@@ -1228,8 +1226,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         smth: { type: DataTypes.STRING, allowNull: false },
       });
 
-      this.customSequelize.options.omitNull = false;
-
       await UserNull.sync({ force: true });
       await UserNull.create({ username: 'foo', smth: 'foo' });
 
@@ -1248,8 +1244,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const StringIsNullOrUrl = this.customSequelize.define('StringIsNullOrUrl', {
         str: { type: DataTypes.STRING, allowNull: true, validate: { isURL: true } },
       });
-
-      this.customSequelize.options.omitNull = false;
 
       await StringIsNullOrUrl.sync({ force: true });
       const str1 = await StringIsNullOrUrl.create({ str: null });
