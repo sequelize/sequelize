@@ -2651,7 +2651,7 @@ export abstract class Model<
   ): Promise<[entity: M, built: boolean]>;
 
   /**
-   * Find an entity that matches the query, or {@link Model.create} the entity if none is found
+   * Find an entity that matches the query, or {@link Model.create} the entity if none is found.
    * The successful result of the promise will be the tuple [instance, initialized].
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
