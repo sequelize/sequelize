@@ -1,10 +1,7 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('../../support');
-
 const { Sequelize } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
@@ -21,7 +18,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
         server: '127.0.0.1',
         port: 34_237,
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.ConnectionRefusedError,
       );
 
@@ -32,9 +29,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         server: 'wowow.example.com',
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.HostNotFoundError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
 
       await sequelize.close();
     });
@@ -42,7 +37,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     // TODO [>=7.0.0-beta]: Refactor so this is the only connection it tries to connect with
     it.skip('EHOSTUNREACH', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ server: '255.255.255.255' });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.HostNotReachableError,
       );
 
@@ -60,9 +55,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
           },
         },
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.AccessDeniedError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
 
       await sequelize.close();
     });

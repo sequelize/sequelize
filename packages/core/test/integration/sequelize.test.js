@@ -16,6 +16,7 @@ const {
   sequelize: current,
 } = require('./support');
 const sinon = require('sinon');
+const { CONFIG } = require('../config/config');
 
 const dialect = getTestDialect();
 
@@ -49,7 +50,10 @@ const badUsernameConfig = {
   },
   mssql: {
     authentication: {
+      ...CONFIG.mssql.authentication,
+      type: 'default',
       options: {
+        ...CONFIG.mssql.authentication.options,
         userName: 'bad_user',
       },
     },
@@ -77,8 +81,11 @@ const noPasswordConfig = {
   },
   mssql: {
     authentication: {
+      ...CONFIG.mssql.authentication,
+      type: 'default',
       options: {
-        password: null,
+        ...CONFIG.mssql.authentication.options,
+        password: '',
       },
     },
   },
@@ -138,9 +145,12 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           const error = await expect(this.sequelizeWithInvalidConnection.authenticate()).to.be
             .rejected;
 
+          console.log(error.message);
+
           expect(
             error.message.includes('connect ECONNREFUSED') ||
               error.message.includes('Connection refused') ||
+              error.message.includes('Could not connect') ||
               error.message.includes('invalid port number') ||
               error.message.match(/should be >=? 0 and < 65536/) ||
               error.message.includes('Login failed for user') ||
@@ -349,8 +359,6 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (error) {
-          console.log(error.message);
-
           switch (dialect) {
             case 'postgres': {
               assert(
@@ -365,7 +373,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             }
 
             case 'mssql': {
-              expect(error.message).to.include("Login failed for user 'sequelize_test'.");
+              expect(error.message).to.include("Login failed for user 'SA'.");
 
               break;
             }

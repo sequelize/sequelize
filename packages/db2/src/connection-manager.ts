@@ -8,8 +8,6 @@ import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import { inspect } from '@sequelize/utils';
 import type { ConnStr } from 'ibm_db';
 import * as IbmDb from 'ibm_db';
-import assert from 'node:assert';
-import NodeUtil from 'node:util';
 import type { Db2Dialect } from './dialect.js';
 
 export interface Db2Connection extends AbstractConnection, IbmDb.Database {}
@@ -82,7 +80,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
     const connectionConfig: Record<string, string> = removeUndefined({
       DATABASE: config.database,
       HOSTNAME: config.hostname,
-      PORT: config.port ? String(config.port) : '3306',
+      PORT: config.port ? String(config.port) : '50000',
       UID: config.username,
       PWD: config.password,
       SSLServerCertificate: config.sslServerCertificate,
@@ -104,29 +102,23 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
       }
     }
 
-    try {
-      return await new Promise((resolve, reject) => {
-        // TODO: add relevant Database options to the connection options of this dialect
-        const connection = new this.#lib.Database() as Db2Connection;
+    // TODO: add relevant Database options to the connection options of this dialect
+    const connection: Db2Connection = new this.#lib.Database();
 
-        // ibm_db's typings for the OBDC connection string are missing many properties
-        connection.open(connectionConfig as unknown as ConnStr, error => {
-          if (error) {
-            if (error.message && error.message.includes('SQL30081N')) {
-              return void reject(new ConnectionRefusedError(error));
-            }
-
-            return void reject(new ConnectionError(error));
+    return new Promise((resolve, reject) => {
+      // ibm_db's typings for the OBDC connection string are missing many properties
+      connection.open(connectionConfig as unknown as ConnStr, error => {
+        if (error) {
+          if (error.message && error.message.includes('SQL30081N')) {
+            return void reject(new ConnectionRefusedError(error));
           }
 
-          return void resolve(connection);
-        });
-      });
-    } catch (error) {
-      assert(error instanceof Error, `DB2 threw a non-error value: ${NodeUtil.inspect(error)}`);
+          return void reject(new ConnectionError(error));
+        }
 
-      throw new ConnectionError(error);
-    }
+        return void resolve(connection);
+      });
+    });
   }
 
   async disconnect(connection: Db2Connection) {
