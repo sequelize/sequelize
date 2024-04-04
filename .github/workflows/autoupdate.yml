@@ -1,6 +1,6 @@
 name: auto-update PRs
 on:
-  pull_request:
+  pull_request_target:
     types: [auto_merge_enabled]
   push:
     branches:
@@ -9,9 +9,16 @@ jobs:
   autoupdate:
     runs-on: ubuntu-latest
     steps:
+      - name: Generate Sequelize Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - uses: docker://chinthakagodawita/autoupdate-action:v1
         env:
-          GITHUB_TOKEN: '${{ secrets.AUTOMERGE_PAT }}'
+          GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
           PR_FILTER: 'auto_merge'
           PR_READY_STATE: 'ready_for_review'
-          MERGE_CONFLICT_ACTION: 'fail'
+          MERGE_CONFLICT_ACTION: 'ignore'
+          EXCLUDED_LABELS: 'no-autoupdate'

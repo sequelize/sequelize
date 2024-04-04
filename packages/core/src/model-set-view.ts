@@ -1,14 +1,15 @@
+import { SetView } from '@sequelize/utils';
 import { inspect } from 'node:util';
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { Model, ModelStatic } from './model';
 import type { SequelizeTypeScript } from './sequelize-typescript.js';
-import { SetView } from './utils/immutability.js';
 
-export class ModelSetView extends SetView<ModelStatic> {
-  readonly #sequelize: SequelizeTypeScript;
+export class ModelSetView<Dialect extends AbstractDialect> extends SetView<ModelStatic> {
+  readonly #sequelize: SequelizeTypeScript<Dialect>;
 
-  constructor(sequelize: SequelizeTypeScript, set: Set<ModelStatic>) {
+  constructor(sequelize: SequelizeTypeScript<Dialect>, set: Set<ModelStatic>) {
     super(set);
 
     this.#sequelize = sequelize;

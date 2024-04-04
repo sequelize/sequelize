@@ -17,7 +17,7 @@ export interface DatabaseErrorSubclassOptions {
 }
 
 /**
- * A base class for all database related errors.
+ * A base class for all database-related errors.
  */
 export class DatabaseError extends BaseError implements DatabaseErrorParent, CommonErrorProperties {
   sql: string;
@@ -26,7 +26,7 @@ export class DatabaseError extends BaseError implements DatabaseErrorParent, Com
   declare cause: DatabaseErrorParent;
 
   /**
-   * @param parent The database specific error which triggered this one
+   * @param parent The database-specific error which triggered this one
    */
   constructor(parent: DatabaseErrorParent) {
     super(parent.message, { cause: parent });

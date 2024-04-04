@@ -1,10 +1,12 @@
+import { cloneDeepPlainValues, freezeDescendants } from '@sequelize/utils';
 import NodeUtil from 'node:util';
-import type { IndexOptions } from './dialects/abstract/query-interface.js';
-import type { WhereAttributeHash } from './dialects/abstract/where-sql-builder-types.js';
+import type { IndexOptions } from './abstract-dialect/query-interface.js';
+import type { WhereAttributeHash } from './abstract-dialect/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Attributes, Model, Transactionable } from './model';
+import type { Attributes, Filterable, Model, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
+import { isDevEnv } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
 // TODO: strictly type this file during the TS migration of model.js
 
@@ -260,7 +262,7 @@ export function getModelPkWhere<M extends Model>(
   return where;
 }
 
-export function assertHasPrimaryKey(modelDefinition: ModelDefinition) {
+export function assertHasPrimaryKey(modelDefinition: ModelDefinition<any>) {
   if (modelDefinition.primaryKeysAttributeNames.size === 0) {
     throw new Error(
       `This model instance method needs to be able to identify the entity in a stable way, but the model does not have a primary key attribute definition.
@@ -272,4 +274,23 @@ Either add a primary key to this model, or use one of the following alternatives
         `.trim(),
     );
   }
+}
+
+export function assertHasWhereOptions(options: Filterable | undefined): void {
+  if (options?.where == null) {
+    throw new Error(
+      'As a safeguard, this method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.',
+    );
+  }
+}
+
+export function ensureOptionsAreImmutable<T extends object>(options: T): T {
+  if (isDevEnv()) {
+    // Users should not mutate any mutable value inside `options`, and instead mutate the `options` object directly
+    // This ensures `options` remains immutable while limiting ourselves to a shallow clone in production,
+    // improving performance.
+    return freezeDescendants(cloneDeepPlainValues(options, true));
+  }
+
+  return options;
 }

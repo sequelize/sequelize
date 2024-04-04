@@ -2,10 +2,10 @@ name: CI
 on:
   push:
     branches:
-      - v7
       - renovate/**
   pull_request:
   merge_group:
+  workflow_dispatch:
 
 # This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
 # This does not affect pushes to the v7 branch itself, only PRs.
@@ -35,7 +35,7 @@ jobs:
       - name: Reset NX cache
         run: yarn nx reset
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/core/lib ./packages/core/types ./packages/validator-js/lib ./packages/validator-js/types ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/*/lib ./node_modules
       - uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -51,7 +51,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -71,7 +71,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -80,22 +80,30 @@ jobs:
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
-      - name: Unit tests (mariadb)
+      - name: Unit tests (utils)
+        run: yarn lerna run test-unit --scope=@sequelize/utils
+      - name: Unit tests (core - mariadb)
         run: yarn lerna run test-unit-mariadb --scope=@sequelize/core
-      - name: Unit tests (mysql)
+      - name: Unit tests (core - mysql)
         run: yarn lerna run test-unit-mysql --scope=@sequelize/core
-      - name: Unit tests (postgres)
+      - name: Unit tests (core - postgres)
         run: yarn lerna run test-unit-postgres --scope=@sequelize/core
-      - name: Unit tests (sqlite)
+      - name: Unit tests (postgres package)
+        run: yarn lerna run test-unit --scope=@sequelize/postgres
+      - name: Unit tests (core - sqlite)
         run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
-      - name: Unit tests (mssql)
+      - name: Unit tests (core - mssql)
         run: yarn lerna run test-unit-mssql --scope=@sequelize/core
-      - name: Unit tests (db2)
+      - name: Unit tests (mssql package)
+        run: yarn lerna run test-unit --scope=@sequelize/mssql
+      - name: Unit tests (core - db2)
         run: yarn lerna run test-unit-db2 --scope=@sequelize/core
-      - name: Unit tests (ibmi)
+      - name: Unit tests (core - ibmi)
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
-      - name: Unit tests (snowflake)
+      - name: Unit tests (core - snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+      - name: SQLite SSCCE
+        run: yarn sscce-sqlite
   test-win:
     strategy:
       fail-fast: false
@@ -112,10 +120,12 @@ jobs:
           cache: yarn
       - name: Install dependencies
         run: yarn install --immutable
-      - name: Unit tests (validator.js)
-        run: yarn lerna run test-unit --scope=@sequelize/validator.js
-      - name: Unit tests (sqlite)
-        run: yarn lerna run test-unit-sqlite --scope=@sequelize/core
+      - name: Build sequelize
+        run: yarn build
+      - name: Unit tests
+        run: yarn lerna run test-unit
+      - name: SSCCE
+        run: yarn sscce-sqlite
       - name: Integration tests (sqlite)
         run: yarn lerna run test-integration-sqlite --scope=@sequelize/core
   docs:
@@ -128,7 +138,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -138,7 +148,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ts-version: ['5.0', '5.1', '5.2', '5.3']
+        ts-version: ['5.1', '5.2', '5.3', '5.4']
     name: TS Typings (${{ matrix.ts-version }})
     runs-on: ubuntu-latest
     needs: lint
@@ -148,7 +158,7 @@ jobs:
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -173,7 +183,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -200,7 +210,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -229,7 +239,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -241,22 +251,30 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: [docs, test-sqlite, test-postgres, test-oldest-latest]
-    if: github.ref == 'refs/heads/v7'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      NPM_TOKEN: '${{ secrets.NPM_TOKEN }}'
     steps:
+      - name: Generate Sequelize Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           # Number of commits to fetch. 0 indicates all history for all branches and tags.
           # We need the entire history to generate the changelog properly
           fetch-depth: 0
+          # The credentials used for checkout are persisted
+          # Lerna will use the same credentials later for "git push".
+          # This must be done using the Sequelize bot.
+          token: '${{ steps.generate-token.outputs.token }}'
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: 20.x
           cache: yarn
-      - uses: actions/download-artifact@87c55149d96e628cc2ef7e6fc2aab372015aec85 # v4.1.3
+      - uses: actions/download-artifact@c850b930e6ba138125429b7e5c93fc707a7f8427 # v4.1.4
         with:
           name: install-build-artifact-node-20
       - name: Extract artifact
@@ -268,6 +286,9 @@ jobs:
       - name: Set npm auth token
         run: npm config set '//registry.npmjs.org/:_authToken' "${NPM_TOKEN}"
       - run: yarn publish-all
+        env:
+          GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
+          GH_TOKEN: '${{ steps.generate-token.outputs.token }}'
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@aa12fcb2943e8899cbcc29ff6f73409b32b48fa1 # master
         with:

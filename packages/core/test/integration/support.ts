@@ -1,6 +1,6 @@
-import type { Options } from '@sequelize/core';
+import type { AbstractDialect, Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
-import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js';
+import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js';
 import uniq from 'lodash/uniq';
 import fs from 'node:fs';
 import pTimeout from 'p-timeout';
@@ -71,7 +71,9 @@ const singleTestInstances = new Set<Sequelize>();
  *
  * @param options
  */
-export function createSingleTestSequelizeInstance(options: Options = {}): Sequelize {
+export function createSingleTestSequelizeInstance(
+  options: Options<AbstractDialect> = {},
+): Sequelize {
   const instance = createSequelizeInstance(options);
   destroySequelizeAfterTest(instance);
 
@@ -91,7 +93,7 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
  * @param sequelizeOrOptions
  */
 export async function createMultiTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options,
+  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
 ): Promise<Sequelize> {
   const sequelizeOptions =
     sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
@@ -127,7 +129,7 @@ export async function createMultiTransactionalTestSequelizeInstance(
  * @param sequelizeOrOptions
  */
 export async function createSingleTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options,
+  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
 ): Promise<Sequelize> {
   const instance = await createMultiTransactionalTestSequelizeInstance(sequelizeOrOptions);
   destroySequelizeAfterTest(instance);
@@ -191,7 +193,11 @@ afterEach('database reset', async () => {
         break;
 
       case 'truncate':
-        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
+        await sequelizeInstance.truncate({
+          ...sequelizeInstance.dialect.supports.truncate,
+          withoutForeignKeyChecks:
+            sequelizeInstance.dialect.supports.constraints.foreignKeyChecksDisableable,
+        });
         break;
 
       case 'destroy':

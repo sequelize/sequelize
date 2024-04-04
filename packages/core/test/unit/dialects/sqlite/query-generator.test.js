@@ -9,9 +9,7 @@ const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
-const {
-  SqliteQueryGenerator: QueryGenerator,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/sqlite/query-generator.js');
+const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/sqlite');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'sqlite') {

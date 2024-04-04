@@ -1,15 +1,15 @@
+import { isPlainObject } from '@sequelize/utils';
 import glob from 'fast-glob';
 import uniq from 'lodash/uniq';
 import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
-import { isPlainObject } from './utils/check.js';
 import { isModelStatic } from './utils/model-utils.js';
 
 type ModelMatch = (path: string, exportName: string, exportValue: ModelStatic) => boolean;
 
 /**
  * Imports all model classes exported in the file matching the specified globs.
- * Useful when setting the {@link Options.models} option in the Sequelize constructor.
+ * Useful when setting the {@link SequelizeCoreOptions.models} option in the Sequelize constructor.
  *
  * @param globPaths
  * @param modelMatch

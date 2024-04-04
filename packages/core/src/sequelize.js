@@ -1,15 +1,25 @@
 'use strict';
 
+import { EMPTY_OBJECT, isString, shallowClonePojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import defaultsDeep from 'lodash/defaultsDeep';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import pick from 'lodash/pick';
 import retry from 'retry-as-promised';
+import { AbstractConnectionManager } from './abstract-dialect/connection-manager.js';
+import { AbstractDialect } from './abstract-dialect/dialect.js';
+import { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
+import { AbstractQueryInterface } from './abstract-dialect/query-interface';
+import { AbstractQuery } from './abstract-dialect/query.js';
+import { Association } from './associations/base.js';
 import { BelongsToAssociation } from './associations/belongs-to';
 import { BelongsToManyAssociation } from './associations/belongs-to-many';
 import { HasManyAssociation } from './associations/has-many';
 import { HasOneAssociation } from './associations/has-one';
-import { withSqliteForeignKeysOff } from './dialects/sqlite/sqlite-utils';
+import * as DataTypes from './data-types';
+import { ConstraintChecking, Deferrable } from './deferrable';
+import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
@@ -26,9 +36,15 @@ import { sql } from './expression-builders/sql';
 import { Value } from './expression-builders/value';
 import { Where, where } from './expression-builders/where.js';
 import { importModels } from './import-models.js';
+import { IndexHints } from './index-hints';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
+import { ManualOnDelete } from './model-repository.types.js';
+import { Op } from './operators';
+import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
+import { importDialect } from './sequelize.internals.js';
+import { TableHints } from './table-hints';
 import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
@@ -37,7 +53,7 @@ import {
   TransactionNestMode,
   TransactionType,
 } from './transaction.js';
-import { isString } from './utils/check.js';
+import * as Deprecations from './utils/deprecations';
 import {
   noGetDialect,
   noGetQueryInterface,
@@ -46,23 +62,11 @@ import {
   noSequelizeModel,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
-import { EMPTY_OBJECT, shallowClonePojo } from './utils/object.js';
 import { injectReplacements, mapBindParameters } from './utils/sql';
+import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
 import { parseConnectionString } from './utils/url';
-
-const DataTypes = require('./data-types');
-const { ConstraintChecking, Deferrable } = require('./deferrable');
-const { QueryTypes } = require('./query-types');
-const { TableHints } = require('./table-hints');
-const { IndexHints } = require('./index-hints');
-const sequelizeErrors = require('./errors');
-const { Association } = require('./associations/index');
-const Validator = require('./utils/validator-extras').validator;
-const { Op } = require('./operators');
-const deprecations = require('./utils/deprecations');
-const { AbstractQueryInterface } = require('./dialects/abstract/query-interface');
-require('./utils/dayjs');
+import { validator as Validator } from './utils/validator-extras';
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -125,11 +129,6 @@ export class Sequelize extends SequelizeTypeScript {
    *   // - default: false
    *   omitNull: true,
    *
-   *   // a flag for using a native library or not.
-   *   // in the case of 'pg' -- set this to true will allow SSL support
-   *   // - default: false
-   *   native: true,
-   *
    *   // A flag that defines if connection should be over ssl or not
    *   // - default: undefined
    *   ssl: true,
@@ -175,9 +174,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {string}   [options.username=null] The username which is used to authenticate against the database.
    * @param {string}   [options.password=null] The password which is used to authenticate against the database.
    * @param {string}   [options.database=null] The name of the database.
-   * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, postgres, sqlite, db2, mariadb and mssql.
-   * @param {string}   [options.dialectModule=null] If specified, use this dialect library. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify 'require("pg.js")' here
-   * @param {string}   [options.dialectModulePath=null] If specified, load the dialect library from this path. For example, if you want to use pg.js instead of pg when connecting to a pg database, you should specify '/path/to/pg.js' here
+   * @param {string}   [options.dialect] The dialect of the database you are connecting to. One of mysql, sqlite, db2, ibmi, snowflake, mariadb, mssql or a dialect class.
    * @param {object}   [options.dialectOptions] An object of additional options, which are passed directly to the connection library
    * @param {string}   [options.storage] Only used by sqlite. Defaults to ':memory:'
    * @param {string}   [options.protocol='tcp'] The protocol of the relational database.
@@ -195,7 +192,6 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {boolean}  [options.benchmark=false] Pass query execution time in milliseconds as second argument to logging function (options.logging).
    * @param {string}   [options.queryLabel] A label to annotate queries in log output.
    * @param {boolean}  [options.omitNull=false] A flag that defines if null values should be passed as values to CREATE/UPDATE SQL queries or not.
-   * @param {boolean}  [options.native=false] A flag that defines if native library shall be used or not. Currently only has an effect for postgres
    * @param {boolean}  [options.ssl=undefined] A flag that defines if connection should be over ssl or not
    * @param {boolean}  [options.replication=false] Use read / write replication. To enable replication, pass an object, with two properties, read and write. Write should be an object (a single server for handling writes), and read an array of object (several servers to handle reads). Each read/write server can have the following properties: `host`, `port`, `username`, `password`, `database`.  Connection strings can be used instead of objects.
    * @param {object}   [options.pool] sequelize connection pool configuration
@@ -256,8 +252,6 @@ export class Sequelize extends SequelizeTypeScript {
 
     this.options = {
       dialect: null,
-      dialectModule: null,
-      dialectModulePath: null,
       dialectOptions: Object.create(null),
       host: 'localhost',
       protocol: 'tcp',
@@ -269,7 +263,6 @@ export class Sequelize extends SequelizeTypeScript {
       standardConformingStrings: true,
       logging: console.debug,
       omitNull: false,
-      native: false,
       replication: false,
       ssl: undefined,
       // TODO [>7]: remove this option
@@ -305,26 +298,18 @@ export class Sequelize extends SequelizeTypeScript {
       this._setupTransactionCls();
     }
 
-    if (!this.options.dialect) {
-      throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
-    }
-
-    if (this.options.dialect === 'postgresql') {
-      this.options.dialect = 'postgres';
-    }
-
     //     if (this.options.define.hooks) {
     //       throw new Error(`The "define" Sequelize option cannot be used to add hooks to all models. Please remove the "hooks" property from the "define" option you passed to the Sequelize constructor.
     // Instead of using this option, you can listen to the same event on all models by adding the listener to the Sequelize instance itself, since all model hooks are forwarded to the Sequelize instance.`);
     //     }
 
     if (this.options.logging === true) {
-      deprecations.noTrueLogging();
+      Deprecations.noTrueLogging();
       this.options.logging = console.debug;
     }
 
     if (this.options.quoteIdentifiers === false) {
-      deprecations.alwaysQuoteIdentifiers();
+      Deprecations.alwaysQuoteIdentifiers();
     }
 
     if (options.hooks) {
@@ -335,42 +320,17 @@ export class Sequelize extends SequelizeTypeScript {
     //  REPLICATION CONFIG NORMALIZATION
     // ==========================================
 
-    let Dialect;
-    // Requiring the dialect in a switch-case to keep the
-    // require calls static. (Browserify fix)
-    switch (this.options.dialect) {
-      case 'mariadb':
-        Dialect = require('./dialects/mariadb').MariaDbDialect;
-        break;
-      case 'mssql':
-        Dialect = require('./dialects/mssql').MssqlDialect;
-        break;
-      case 'mysql':
-        Dialect = require('./dialects/mysql').MysqlDialect;
-        break;
-      case 'postgres':
-        Dialect = require('./dialects/postgres').PostgresDialect;
-        break;
-      case 'sqlite':
-        Dialect = require('./dialects/sqlite').SqliteDialect;
-        break;
-      case 'ibmi':
-        Dialect = require('./dialects/ibmi').IBMiDialect;
-        break;
-      case 'db2':
-        Dialect = require('./dialects/db2').Db2Dialect;
-        break;
-      case 'snowflake':
-        Dialect = require('./dialects/snowflake').SnowflakeDialect;
-        break;
-      default:
-        throw new Error(
-          `The dialect ${this.options.dialect} is not supported. Supported dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,
-        );
+    if (!this.options.dialect) {
+      throw new Error('Dialect needs to be explicitly supplied as of v4.0.0');
     }
 
+    const DialectClass = isString(this.options.dialect)
+      ? importDialect(this.options.dialect)
+      : this.options.dialect;
+
+    // TODO: credential resolution should be done in the dialect itself
     if (!this.options.port) {
-      this.options.port = Dialect.getDefaultPort();
+      this.options.port = DialectClass.getDefaultPort();
     } else {
       this.options.port = Number(this.options.port);
     }
@@ -426,14 +386,29 @@ export class Sequelize extends SequelizeTypeScript {
     this.config = {
       ...connectionConfig,
       pool: this.options.pool,
-      native: this.options.native,
       replication: this.options.replication,
-      dialectModule: this.options.dialectModule,
-      dialectModulePath: this.options.dialectModulePath,
       keepDefaultTimezone: this.options.keepDefaultTimezone,
     };
 
-    this.dialect = new Dialect(this);
+    // TODO: remove dialect options from this.options
+    // TODO: throw if any provided option is neither a dialect option nor a sequelize option
+    const dialectOptionNames = DialectClass.getSupportedOptions();
+    const pickedDialectOptions = pick(this.options, dialectOptionNames);
+
+    this.dialect = new DialectClass(this, pickedDialectOptions);
+
+    if ('dialectModulePath' in this.options) {
+      throw new Error(
+        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
+      );
+    }
+
+    if ('dialectModule' in this.options) {
+      throw new Error(
+        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
+      );
+    }
+
     if ('typeValidation' in options) {
       throw new Error(
         'The typeValidation has been renamed to noTypeValidation, and is false by default',
@@ -467,7 +442,7 @@ export class Sequelize extends SequelizeTypeScript {
   getDialect() {
     noGetDialect();
 
-    return this.options.dialect;
+    return this.dialect.name;
   }
 
   /**
@@ -757,7 +732,7 @@ Use Sequelize#query if you wish to use replacements.`);
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
-      if (this.options.dialect === 'db2' && options.alter && options.alter.drop === false) {
+      if (this.dialect.name === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
       }
 
@@ -790,7 +765,7 @@ Use Sequelize#query if you wish to use replacements.`);
     // Prepare options
     options = { ...this.options.setSessionVariables, ...options };
 
-    if (!['mysql', 'mariadb'].includes(this.options.dialect)) {
+    if (!['mysql', 'mariadb'].includes(this.dialect.name)) {
       throw new Error('sequelize.setSessionVariables is only supported for mysql or mariadb');
     }
 
@@ -986,7 +961,7 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     await this.query(
-      `SELECT 1+1 AS result${this.options.dialect === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
       options,
     );
   }
@@ -996,8 +971,9 @@ Use Sequelize#query if you wish to use replacements.`);
    *
    * @returns {Fn}
    */
+  // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite', 'snowflake'].includes(this.options.dialect)) {
+    if (['postgres', 'sqlite', 'snowflake'].includes(this.dialect.name)) {
       return fn('RANDOM');
     }
 
@@ -1061,7 +1037,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
     if (options.logging) {
       if (options.logging === true) {
-        deprecations.noTrueLogging();
+        Deprecations.noTrueLogging();
         options.logging = console.debug;
       }
 
@@ -1254,13 +1230,19 @@ Sequelize.useInflection = useInflection;
 
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
+Sequelize.ManualOnDelete = ManualOnDelete;
+
+Sequelize.AbstractConnectionManager = AbstractConnectionManager;
+Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
+Sequelize.AbstractQuery = AbstractQuery;
+Sequelize.AbstractDialect = AbstractDialect;
 
 /**
  * Expose various errors available
  */
 
-for (const error of Object.keys(sequelizeErrors)) {
-  Sequelize[error] = sequelizeErrors[error];
+for (const error of Object.keys(SequelizeErrors)) {
+  Sequelize[error] = SequelizeErrors[error];
 }
 
 /**

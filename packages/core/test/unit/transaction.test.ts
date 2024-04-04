@@ -17,7 +17,6 @@ describe('Transaction', () => {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
       stubConnection: sinon.stub(sequelize.connectionManager, 'getConnection').resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
-        // @ts-expect-error -- stub
         close() {},
       }),
       stubRelease: sinon.stub(sequelize.connectionManager, 'releaseConnection'),

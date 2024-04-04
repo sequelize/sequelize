@@ -1,6 +1,7 @@
 module.exports = {
   entryPointStrategy: 'packages',
-  entryPoints: ['packages/*'],
+  // Note: packages/postgres cannot be included until https://github.com/TypeStrong/typedoc/issues/2467 is fixed
+  entryPoints: ['packages/core', 'packages/utils', 'packages/validator-js'],
   out: './.typedoc-build',
   readme: 'none',
   plugin: [

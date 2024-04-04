@@ -8,11 +8,11 @@ describe('Model.increment', () => {
   const vars = beforeAll2(() => {
     const User = sequelize.define('User', {
       id: {
-        type: DataTypes.BIGINT,
+        type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
       },
-      count: DataTypes.BIGINT,
+      count: DataTypes.INTEGER,
     });
 
     return { User };
