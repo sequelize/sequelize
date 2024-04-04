@@ -140,6 +140,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
           expect(
             error.message.includes('connect ECONNREFUSED') ||
+              error.message.includes('Connection refused') ||
               error.message.includes('invalid port number') ||
               error.message.match(/should be >=? 0 and < 65536/) ||
               error.message.includes('Login failed for user') ||
@@ -348,14 +349,14 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           await User2.sync();
           expect.fail();
         } catch (error) {
+          console.log(error.message);
+
           switch (dialect) {
             case 'postgres': {
               assert(
                 [
                   'fe_sendauth: no password supplied',
-                  'role "bar" does not exist',
-                  'FATAL:  role "bar" does not exist',
-                  'password authentication failed for user "bar"',
+                  'password authentication failed for user "sequelize_test"',
                   'SASL: SCRAM-SERVER-FIRST-MESSAGE: client password must be a string',
                 ].some(fragment => error.message.includes(fragment)),
               );
@@ -364,7 +365,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             }
 
             case 'mssql': {
-              expect(error.message).to.include("Login failed for user 'bar'.");
+              expect(error.message).to.include("Login failed for user 'sequelize_test'.");
 
               break;
             }

@@ -11,6 +11,11 @@ import { SnowflakeQuery } from './query.js';
 
 export interface SnowflakeDialectOptions {
   /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
+
+  /**
    * The snowflake-sdk library to use.
    * If not provided, the snowflake-sdk npm library will be used.
    * Must be compatible with the snowflake-sdk npm library API.
@@ -22,26 +27,27 @@ export interface SnowflakeDialectOptions {
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeDialectOptions>({
+  showWarnings: undefined,
   snowflakeSdkModule: undefined,
 });
 
 const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptions>({
+  accessUrl: undefined,
   account: undefined,
-  username: undefined,
-  password: undefined,
-  database: undefined,
-  warehouse: undefined,
-  role: undefined,
-  timeout: undefined,
-  clientSessionKeepAlive: undefined,
-  clientSessionKeepAliveHeartbeatFrequency: undefined,
   application: undefined,
   authenticator: undefined,
-  token: undefined,
+  clientSessionKeepAlive: undefined,
+  clientSessionKeepAliveHeartbeatFrequency: undefined,
+  database: undefined,
+  password: undefined,
   privateKey: undefined,
-  privateKeyPath: undefined,
   privateKeyPass: undefined,
-  accessUrl: undefined,
+  privateKeyPath: undefined,
+  role: undefined,
+  timeout: undefined,
+  token: undefined,
+  username: undefined,
+  warehouse: undefined,
 });
 
 export class SnowflakeDialect extends AbstractDialect<

@@ -24,10 +24,16 @@ export interface MySqlDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   mysql2Module?: MySql2Module;
+
+  /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
   mysql2Module: undefined,
+  showWarnings: undefined,
 });
 
 const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MySqlConnectionOptions>({

@@ -136,7 +136,6 @@ describe('Model', () => {
         });
 
         const obj0 = await this.RestaurantTwo.findOne({
-          logging: console.log,
           where: { foo: 'two' },
           include: [
             {

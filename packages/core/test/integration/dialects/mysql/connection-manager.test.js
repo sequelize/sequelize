@@ -37,13 +37,13 @@ if (dialect === 'mysql') {
         keepDefaultTimezone: true,
         pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 },
       });
-      const cm = sequelize.connectionManager;
+      const pool = sequelize.pool;
 
       await sequelize.sync();
 
-      const connection = await cm.getConnection();
-      expect(cm.validate(connection)).to.be.ok;
-      await cm.releaseConnection(connection);
+      const connection = await pool.acquire();
+      expect(sequelize.dialect.connectionManager.validate(connection)).to.be.ok;
+      pool.release(connection);
     });
   });
 }
