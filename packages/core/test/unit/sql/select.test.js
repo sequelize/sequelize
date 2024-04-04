@@ -6,11 +6,11 @@ const util = require('node:util');
 const {
   _validateIncludedElements,
 } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
-const { beforeAll2 } = require('../../support');
+const { beforeAll2, createSequelizeInstance } = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const sql = current.queryGenerator;
 
 const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
 const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
@@ -1271,11 +1271,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   });
 
   describe('quoteIdentifiers: false', () => {
+    let sql;
+
     beforeEach(() => {
-      sql.options.quoteIdentifiers = false;
-    });
-    afterEach(() => {
-      sql.options.quoteIdentifiers = true;
+      sql = createSequelizeInstance({
+        quoteIdentifiers: false,
+      }).queryGenerator;
     });
 
     it('*', () => {

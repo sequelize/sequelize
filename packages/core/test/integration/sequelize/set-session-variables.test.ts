@@ -24,7 +24,7 @@ describe('sequelize.setSessionVariables', () => {
   });
 
   it('supports CLS transactions', async () => {
-    const clsSequelize = await createSingleTransactionalTestSequelizeInstance({
+    const clsSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize, {
       disableClsTransactions: false,
     });
 
