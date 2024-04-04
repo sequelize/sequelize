@@ -2250,7 +2250,6 @@ __metadata:
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
     pg-connection-string: "npm:^2.5.0"
-    pg-native: "npm:3.0.1"
     retry-as-promised: "npm:^7.0.3"
     rimraf: "npm:5.0.5"
     semver: "npm:^7.3.7"
@@ -4424,7 +4423,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bindings@npm:1.5.0, bindings@npm:^1.5.0":
+"bindings@npm:^1.5.0":
   version: 1.5.0
   resolution: "bindings@npm:1.5.0"
   dependencies:
@@ -7977,7 +7976,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"inherits@npm:2, inherits@npm:^2.0.1, inherits@npm:^2.0.3, inherits@npm:^2.0.4, inherits@npm:~2.0.1, inherits@npm:~2.0.3":
+"inherits@npm:2, inherits@npm:^2.0.1, inherits@npm:^2.0.3, inherits@npm:^2.0.4, inherits@npm:~2.0.3":
   version: 2.0.4
   resolution: "inherits@npm:2.0.4"
   checksum: 10c0/4e531f648b29039fb7426fb94075e6545faa1eb9fe83c29f0b6d9e7263aceb4289d2d4557db0d428188eeb449cc7c5e77b0a0b2c4e248ff2a65933a0dee49ef2
@@ -8506,13 +8505,6 @@ __metadata:
   dependencies:
     is-docker: "npm:^2.0.0"
   checksum: 10c0/a6fa2d370d21be487c0165c7a440d567274fbba1a817f2f0bfa41cc5e3af25041d84267baa22df66696956038a43973e72fca117918c91431920bdef490fa25e
-  languageName: node
-  linkType: hard
-
-"isarray@npm:0.0.1":
-  version: 0.0.1
-  resolution: "isarray@npm:0.0.1"
-  checksum: 10c0/ed1e62da617f71fe348907c71743b5ed550448b455f8d269f89a7c7ddb8ae6e962de3dab6a74a237b06f5eb7f6ece7a45ada8ce96d87fe972926530f91ae3311
   languageName: node
   linkType: hard
 
@@ -9131,17 +9123,6 @@ __metadata:
     sigstore: "npm:^1.4.0"
     ssri: "npm:^10.0.1"
   checksum: 10c0/4f93a2c7bd0722afc9bd875a4153e6fc7b92e48a49b8d287f869529c8eaa9caa4107d289fe5786f506ce612b72c8809974b4e62b393b8449df401f8bba992b66
-  languageName: node
-  linkType: hard
-
-"libpq@npm:^1.8.10":
-  version: 1.8.12
-  resolution: "libpq@npm:1.8.12"
-  dependencies:
-    bindings: "npm:1.5.0"
-    nan: "npm:^2.14.0"
-    node-gyp: "npm:latest"
-  checksum: 10c0/7e25beb0929063f4f714de1fb6be75fa339bd1081775bff6c98a0dd022a7f244012d488e9440b3e2ffcd7029e96a2933ef33f892f5f7f41ae6b4ceff713c48de
   languageName: node
   linkType: hard
 
@@ -10123,7 +10104,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.14.0, nan@npm:^2.18.0":
+"nan@npm:^2.18.0":
   version: 2.19.0
   resolution: "nan@npm:2.19.0"
   dependencies:
@@ -11329,17 +11310,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-native@npm:3.0.1":
-  version: 3.0.1
-  resolution: "pg-native@npm:3.0.1"
-  dependencies:
-    libpq: "npm:^1.8.10"
-    pg-types: "npm:^1.12.1"
-    readable-stream: "npm:1.0.31"
-  checksum: 10c0/1641945705a634d9cc8c066863a03ed21dd614c75eb92fd72ded490c03f575273d146cea39c85f1cea8128f4d0335b27e750a834ebee1b92bc82dd312c22cb23
-  languageName: node
-  linkType: hard
-
 "pg-numeric@npm:1.0.2":
   version: 1.0.2
   resolution: "pg-numeric@npm:1.0.2"
@@ -11360,19 +11330,6 @@ __metadata:
   version: 1.6.1
   resolution: "pg-protocol@npm:1.6.1"
   checksum: 10c0/7eadef4010ac0a3925c460be7332ca4098a5c6d5181725a62193fcfa800000ae6632d98d814f3989b42cf5fdc3b45e34c714a1959d29174e81e30730e140ae5f
-  languageName: node
-  linkType: hard
-
-"pg-types@npm:^1.12.1":
-  version: 1.13.0
-  resolution: "pg-types@npm:1.13.0"
-  dependencies:
-    pg-int8: "npm:1.0.1"
-    postgres-array: "npm:~1.0.0"
-    postgres-bytea: "npm:~1.0.0"
-    postgres-date: "npm:~1.0.0"
-    postgres-interval: "npm:^1.1.0"
-  checksum: 10c0/4de84afd02d2032dd5bd35f406ff0df01beb23af003a1086c70df1ebb6bd7e2695f9ea32fdbb4ba199e39cd767cf18f01a7a14d0e24acc33d11693c21e7a0cef
   languageName: node
   linkType: hard
 
@@ -11516,13 +11473,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres-array@npm:~1.0.0":
-  version: 1.0.3
-  resolution: "postgres-array@npm:1.0.3"
-  checksum: 10c0/03f509bd22a42f6e7c20ac7e5e77a0e22da0f3a8b369fc08afbe67522afadec91351bc20329eb385bb148c56be950e5153baf81da6a3c50cb592c7d4bfbaad34
-  languageName: node
-  linkType: hard
-
 "postgres-array@npm:~2.0.0":
   version: 2.0.0
   resolution: "postgres-array@npm:2.0.0"
@@ -11546,7 +11496,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"postgres-date@npm:~1.0.0, postgres-date@npm:~1.0.4":
+"postgres-date@npm:~1.0.4":
   version: 1.0.7
   resolution: "postgres-date@npm:1.0.7"
   checksum: 10c0/0ff91fccc64003e10b767fcfeefb5eaffbc522c93aa65d5051c49b3c4ce6cb93ab091a7d22877a90ad60b8874202c6f1d0f935f38a7235ed3b258efd54b97ca9
@@ -11943,18 +11893,6 @@ __metadata:
   dependencies:
     mute-stream: "npm:~1.0.0"
   checksum: 10c0/9139804be064ba4a4ac97a4f9ad75ea22fc7b92f15737b21e99cdc3beaea0bc29db8e234a57a57bd52f17ad09d659fec114fd64dc34ac979a53892366b83dddc
-  languageName: node
-  linkType: hard
-
-"readable-stream@npm:1.0.31":
-  version: 1.0.31
-  resolution: "readable-stream@npm:1.0.31"
-  dependencies:
-    core-util-is: "npm:~1.0.0"
-    inherits: "npm:~2.0.1"
-    isarray: "npm:0.0.1"
-    string_decoder: "npm:~0.10.x"
-  checksum: 10c0/ed1891292053a2d658e02130c11ed8d66cdca0547a3691f791eaeb9ed38aaa4dbe201d7d4b4ae2ecad6e2d718d10da08caf68b575b07c7ce5354d32ea50fb0da
   languageName: node
   linkType: hard
 
@@ -13121,13 +13059,6 @@ __metadata:
   dependencies:
     safe-buffer: "npm:~5.2.0"
   checksum: 10c0/810614ddb030e271cd591935dcd5956b2410dd079d64ff92a1844d6b7588bf992b3e1b69b0f4d34a3e06e0bd73046ac646b5264c1987b20d0601f81ef35d731d
-  languageName: node
-  linkType: hard
-
-"string_decoder@npm:~0.10.x":
-  version: 0.10.31
-  resolution: "string_decoder@npm:0.10.31"
-  checksum: 10c0/1c628d78f974aa7539c496029f48e7019acc32487fc695464f9d6bdfec98edd7d933a06b3216bc2016918f6e75074c611d84430a53cb0e43071597d6c1ac5e25
   languageName: node
   linkType: hard
 
