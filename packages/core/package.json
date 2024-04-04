@@ -52,7 +52,7 @@
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
-    "chalk": "^4.1.2",
+    "chalk": "^5.0.0",
     "dayjs": "^1.11.10",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
