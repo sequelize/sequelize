@@ -1,21 +1,14 @@
 'use strict';
 
-const { DataTypes } = require('@sequelize/core');
-const {
-  AbstractQuery: Query,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js');
+const { AbstractQuery, DataTypes } = require('@sequelize/core');
+const { sequelize } = require('../support');
+const { expect } = require('chai');
+const { match, spy, stub } = require('sinon');
 
-const Support = require('../../../support');
-const chai = require('chai');
-const { match, stub } = require('sinon');
-
-const current = Support.sequelize;
-const expect = chai.expect;
-
-describe('[ABSTRACT]', () => {
+describe('AbstractQuery', () => {
   describe('_groupJoinData', () => {
     it('should hash second nested set correctly, when has multiple primary keys and one is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
@@ -25,14 +18,14 @@ describe('[ABSTRACT]', () => {
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
         },
       });
 
-      const Agent = current.define('agent', {
+      const Agent = sequelize.define('agent', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
@@ -86,7 +79,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(1);
 
@@ -107,21 +100,21 @@ describe('[ABSTRACT]', () => {
     });
 
     it('should hash second nested set correctly, when primary is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
         },
       });
 
-      const Agent = current.define('agent', {
+      const Agent = sequelize.define('agent', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
@@ -167,7 +160,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(1);
 
@@ -185,7 +178,7 @@ describe('[ABSTRACT]', () => {
     });
 
     it('should hash parents correctly, when has multiple primary keys and one is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
@@ -196,7 +189,7 @@ describe('[ABSTRACT]', () => {
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
@@ -242,7 +235,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(2);
 
@@ -271,14 +264,14 @@ describe('[ABSTRACT]', () => {
     });
 
     it('should hash parents correctly, when primary key is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
@@ -321,7 +314,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(2);
 
@@ -350,14 +343,14 @@ describe('[ABSTRACT]', () => {
     });
 
     it('should hash nested correctly, when primary key is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
@@ -394,7 +387,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(1);
 
@@ -414,14 +407,14 @@ describe('[ABSTRACT]', () => {
     });
 
     it('should hash nested correctly, when has multiple primary keys and one is a Buffer', () => {
-      const Team = current.define('team', {
+      const Team = sequelize.define('team', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
         },
       });
 
-      const Player = current.define('player', {
+      const Player = sequelize.define('player', {
         uuid: {
           primaryKey: true,
           type: 'BINARY(16)',
@@ -464,7 +457,7 @@ describe('[ABSTRACT]', () => {
         },
       ];
 
-      const result = Query._groupJoinData(data, includeOptions, { checkExisting: true });
+      const result = AbstractQuery._groupJoinData(data, includeOptions, { checkExisting: true });
 
       expect(result.length).to.equal(1);
 
@@ -488,7 +481,7 @@ describe('[ABSTRACT]', () => {
 
   describe('_logQuery', () => {
     beforeEach(function () {
-      this.cls = class MyQuery extends Query {};
+      this.cls = class MyQuery extends AbstractQuery {};
       this.sequelizeStub = {
         log: stub(),
         options: {},
@@ -556,6 +549,30 @@ describe('[ABSTRACT]', () => {
       expect(debugStub).to.have.been.calledWith(
         'Executed (test): SELECT 1; with parameters [ 1n ]',
       );
+    });
+  });
+
+  describe('logWarnings', () => {
+    beforeEach(() => {
+      spy(console, 'debug');
+    });
+
+    afterEach(() => {
+      console.debug.restore();
+    });
+
+    it('check iterable', async () => {
+      const validWarning = [];
+      const invalidWarning = {};
+      const warnings = [validWarning, undefined, invalidWarning];
+
+      const query = new AbstractQuery({}, sequelize, {});
+      const queryRunStub = stub(query, 'run');
+      queryRunStub.onFirstCall().resolves(warnings);
+
+      const results = await query.logWarnings('dummy-results');
+      expect('dummy-results').to.equal(results);
+      expect(true).to.equal(console.debug.calledOnce);
     });
   });
 });

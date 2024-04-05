@@ -1,20 +1,8 @@
-'use strict';
+import { expect } from 'chai';
+import { Sequelize } from '@sequelize/core';
+import { SqliteDialect } from '@sequelize/sqlite';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../../../support');
-
-const { Sequelize } = require('@sequelize/core');
-const { SqliteDialect } = require('@sequelize/sqlite');
-
-const dialect = Support.getTestDialect();
-
-describe('[SQLITE Specific] ConnectionManager', () => {
-  if (dialect !== 'sqlite') {
-    return;
-  }
-
+describe('ConnectionManager', () => {
   describe('getConnection', () => {
     it('should forward empty string storage to SQLite connector to create temporary disk-based database', async () => {
       // storage='' means anonymous disk-based database
