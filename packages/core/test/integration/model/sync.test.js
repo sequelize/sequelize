@@ -11,7 +11,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,
       age: DataTypes.INTEGER,
-      badgeNumber: { type: DataTypes.INTEGER, field: 'badge_number' },
+      badgeNumber: { type: DataTypes.INTEGER, columnName: 'badge_number' },
     });
 
     await sequelize.sync();
@@ -46,7 +46,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.define('testSync', {
       name: DataTypes.STRING,
       age: DataTypes.INTEGER,
-      height: { type: DataTypes.INTEGER, field: 'height_cm' },
+      height: { type: DataTypes.INTEGER, columnName: 'height_cm' },
     });
 
     await sequelize.sync({ alter: true });
@@ -100,7 +100,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
     await sequelize.define('testSync', {
       name: DataTypes.STRING,
-      badgeNumber: { type: DataTypes.INTEGER, field: 'badge_number' },
+      badgeNumber: { type: DataTypes.INTEGER, columnName: 'badge_number' },
     });
 
     await sequelize.sync({ alter: true });
@@ -540,35 +540,37 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
-  // TODO: this should work with MSSQL / MariaDB too
-  if (dialect.startsWith('postgres')) {
-    it('defaults to schema provided to sync() for references #11276', async function () {
-      await Promise.all([sequelize.createSchema(SCHEMA_ONE), sequelize.createSchema(SCHEMA_TWO)]);
+  it('defaults to schema provided to sync() for references #11276', async function () {
+    // TODO: this should work with MSSQL / MariaDB too
+    if (!dialect !== 'postgres') {
+      return;
+    }
 
-      const User = this.sequelize.define('UserXYZ', {
-        uid: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-          allowNull: false,
-        },
-      });
-      const Task = this.sequelize.define('TaskXYZ', {});
+    await Promise.all([sequelize.createSchema(SCHEMA_ONE), sequelize.createSchema(SCHEMA_TWO)]);
 
-      Task.belongsTo(User);
-
-      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
-      await User.sync({ force: true, schema: SCHEMA_ONE });
-      await Task.sync({ force: true, schema: SCHEMA_ONE });
-      const user0 = await User.withSchema(SCHEMA_ONE).create({});
-      const task = await Task.withSchema(SCHEMA_ONE).create({});
-      await task.setUserXYZ(user0);
-
-      // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
-      const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
-      expect(user).to.be.ok;
+    const User = this.sequelize.define('UserXYZ', {
+      uid: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+        allowNull: false,
+      },
     });
-  }
+    const Task = this.sequelize.define('TaskXYZ', {});
+
+    Task.belongsTo(User);
+
+    // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
+    await User.sync({ force: true, schema: SCHEMA_ONE });
+    await Task.sync({ force: true, schema: SCHEMA_ONE });
+    const user0 = await User.withSchema(SCHEMA_ONE).create({});
+    const task = await Task.withSchema(SCHEMA_ONE).create({});
+    await task.setUserXYZ(user0);
+
+    // TODO: do we really want to keep this? Shouldn't model schemas be defined and fixed?
+    const user = await task.getUserXYZ({ schema: SCHEMA_ONE });
+    expect(user).to.be.ok;
+  });
 
   it('supports creating tables with cyclic associations', async () => {
     const A = sequelize.define('A', {}, { timestamps: false });

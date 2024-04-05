@@ -1,13 +1,45 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { Sqlite3Module, SqliteConnectionOptions } from './connection-manager.js';
 import { SqliteConnectionManager } from './connection-manager.js';
 import { SqliteQueryGenerator } from './query-generator.js';
 import { SqliteQueryInterface } from './query-interface.js';
 import { SqliteQuery } from './query.js';
 
-export class SqliteDialect extends AbstractDialect {
+export interface SqliteDialectOptions {
+  /**
+   * If set to false, SQLite will not enforce foreign keys.
+   *
+   * @default true
+   */
+  foreignKeys?: boolean;
+
+  /**
+   * The sqlite3 library to use.
+   * If not provided, the sqlite3 npm library will be used.
+   * Must be compatible with the sqlite3 npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  sqlite3Module?: Sqlite3Module;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SqliteDialectOptions>({
+  foreignKeys: undefined,
+  sqlite3Module: undefined,
+});
+
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SqliteConnectionOptions>({
+  storage: undefined,
+  password: undefined,
+  mode: undefined,
+});
+
+export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     DEFAULT: false,
     'DEFAULT VALUES': true,
@@ -59,17 +91,22 @@ export class SqliteDialect extends AbstractDialect {
     },
   });
 
-  readonly defaultVersion = '3.8.0';
   readonly Query = SqliteQuery;
-  readonly TICK_CHAR_LEFT = '`';
-  readonly TICK_CHAR_RIGHT = '`';
   readonly connectionManager: SqliteConnectionManager;
   readonly queryGenerator: SqliteQueryGenerator;
   readonly queryInterface: SqliteQueryInterface;
-  readonly dataTypesDocumentationUrl = 'https://www.sqlite.org/datatype3.html';
 
-  constructor(sequelize: Sequelize) {
-    super(sequelize, DataTypes, 'sqlite');
+  constructor(sequelize: Sequelize, options: SqliteDialectOptions) {
+    super({
+      identifierDelimiter: '`',
+      options,
+      dataTypeOverrides: DataTypes,
+      sequelize,
+      minimumDatabaseVersion: '3.8.0',
+      dataTypesDocumentationUrl: 'https://www.sqlite.org/datatype3.html',
+      name: 'sqlite',
+    });
+
     this.connectionManager = new SqliteConnectionManager(this);
     this.queryGenerator = new SqliteQueryGenerator(this);
     this.queryInterface = new SqliteQueryInterface(this);
@@ -89,6 +126,10 @@ export class SqliteDialect extends AbstractDialect {
   }
 
   static getSupportedOptions() {
-    return [];
+    return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions(): readonly string[] {
+    return CONNECTION_OPTION_NAMES;
   }
 }

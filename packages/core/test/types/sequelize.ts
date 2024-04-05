@@ -1,9 +1,11 @@
 import type { ConnectionOptions, Fn, ModelStatic } from '@sequelize/core';
 import { Model, Op, QueryTypes, Sequelize } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 
 export const sequelize = new Sequelize({
+  dialect: MySqlDialect,
   hooks: {
-    afterConnect: (connection: unknown, config: ConnectionOptions) => {
+    afterConnect: (connection: unknown, config: ConnectionOptions<MySqlDialect>) => {
       // noop
     },
   },
@@ -16,7 +18,6 @@ export const sequelize = new Sequelize({
     report: (msg, options) => {},
     name: 'durr',
   },
-  dialectModule: {},
   keepDefaultTimezone: false,
   pool: {
     evict: 1000,
@@ -52,7 +53,7 @@ sequelize.beforeCreate('test', () => {
 });
 
 sequelize
-  .addHook('beforeConnect', (config: ConnectionOptions) => {
+  .addHook('beforeConnect', (config: ConnectionOptions<MySqlDialect>) => {
     // noop
   })
   .addHook('beforeBulkSync', () => {

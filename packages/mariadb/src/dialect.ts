@@ -1,23 +1,96 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/index.js';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { registerMariaDbDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { MariaDbConnectionOptions, MariaDbModule } from './connection-manager.js';
 import { MariaDbConnectionManager } from './connection-manager.js';
 import { MariaDbQueryGenerator } from './query-generator.js';
 import { MariaDbQueryInterface } from './query-interface.js';
 import { MariaDbQuery } from './query.js';
+
+export interface MariaDbDialectOptions {
+  /**
+   * The mariadb library to use.
+   * If not provided, the mariadb npm library will be used.
+   * Must be compatible with the mariadb npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  mariaDbModule?: MariaDbModule;
+
+  /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbDialectOptions>({
+  mariaDbModule: undefined,
+  showWarnings: undefined,
+});
+
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbConnectionOptions>({
+  allowPublicKeyRetrieval: undefined,
+  arrayParenthesis: undefined,
+  autoJsonMap: undefined,
+  bulk: undefined,
+  cachingRsaPublicKey: undefined,
+  charset: undefined,
+  checkDuplicate: undefined,
+  checkNumberRange: undefined,
+  collation: undefined,
+  compress: undefined,
+  connectAttributes: undefined,
+  connectTimeout: undefined,
+  database: undefined,
+  debug: undefined,
+  debugCompress: undefined,
+  debugLen: undefined,
+  forceVersionCheck: undefined,
+  foundRows: undefined,
+  host: undefined,
+  infileStreamFactory: undefined,
+  initSql: undefined,
+  keepAliveDelay: undefined,
+  logPackets: undefined,
+  logParam: undefined,
+  logger: undefined,
+  maxAllowedPacket: undefined,
+  metaEnumerable: undefined,
+  multipleStatements: undefined,
+  password: undefined,
+  permitLocalInfile: undefined,
+  permitSetMultiParamEntries: undefined,
+  pipelining: undefined,
+  port: undefined,
+  prepareCacheLength: undefined,
+  rsaPublicKey: undefined,
+  sessionVariables: undefined,
+  socketPath: undefined,
+  socketTimeout: undefined,
+  ssl: undefined,
+  stream: undefined,
+  timeout: undefined,
+  trace: undefined,
+  user: undefined,
+});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
 
-export class MariaDbDialect extends AbstractDialect {
+export class MariaDbDialect extends AbstractDialect<
+  MariaDbDialectOptions,
+  MariaDbConnectionOptions
+> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -79,19 +152,23 @@ export class MariaDbDialect extends AbstractDialect {
     },
   });
 
-  readonly TICK_CHAR_LEFT = '`';
-  readonly TICK_CHAR_RIGHT = '`';
-  readonly defaultVersion = '10.4.30'; // minimum supported version
-  readonly dataTypesDocumentationUrl = 'https://mariadb.com/kb/en/library/resultset/#field-types';
-
   readonly queryGenerator: MariaDbQueryGenerator;
   readonly connectionManager: MariaDbConnectionManager;
   readonly queryInterface: MariaDbQueryInterface;
 
   readonly Query = MariaDbQuery;
 
-  constructor(sequelize: Sequelize) {
-    super(sequelize, DataTypes, 'mariadb');
+  constructor(sequelize: Sequelize, options: MariaDbDialectOptions) {
+    super({
+      dataTypesDocumentationUrl: 'https://mariadb.com/kb/en/library/resultset/#field-types',
+      identifierDelimiter: '`',
+      minimumDatabaseVersion: '10.4.30',
+      name: 'mariadb',
+      options,
+      sequelize,
+      dataTypeOverrides: DataTypes,
+    });
+
     this.connectionManager = new MariaDbConnectionManager(this);
     this.queryGenerator = new MariaDbQueryGenerator(this);
     this.queryInterface = new MariaDbQueryInterface(this);
@@ -112,7 +189,7 @@ export class MariaDbDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
+    return (this.sequelize as Sequelize<MariaDbDialect>).options.replication.write.database ?? '';
   }
 
   static getDefaultPort() {
@@ -120,6 +197,10 @@ export class MariaDbDialect extends AbstractDialect {
   }
 
   static getSupportedOptions() {
-    return [];
+    return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

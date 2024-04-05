@@ -36,6 +36,9 @@
     },
     "./package.json": "./package.json"
   },
+  "files": [
+    "lib"
+  ],
   "license": "MIT",
   "type": "commonjs",
   "publishConfig": {
@@ -46,10 +49,11 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
+    "@sequelize/sqlite": "workspace:*",
     "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
-    "mocha": "10.3.0"
+    "mocha": "10.4.0"
   }
 }

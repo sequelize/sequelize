@@ -1,6 +1,6 @@
 import type { NonUndefined } from '@sequelize/utils';
-import { isDataType } from '../../dialects/abstract/data-types-utils.js';
-import type { DataType } from '../../dialects/abstract/data-types.js';
+import { isDataType } from '../../abstract-dialect/data-types-utils.js';
+import type { DataType } from '../../abstract-dialect/data-types.js';
 import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { underscore } from '../../utils/string.js';

@@ -37,18 +37,14 @@
         "default": "./lib/decorators/legacy/index.js"
       }
     },
-    "./_non-semver-use-at-your-own-risk_/*": {
-      "default": "./lib/*"
-    },
+    "./_non-semver-use-at-your-own-risk_/*": "./lib/*",
     "./package.json": "./package.json"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
-    "lib",
-    "types",
-    "index.js"
+    "lib"
   ],
   "license": "MIT",
   "dependencies": {
@@ -56,6 +52,7 @@
     "@types/debug": "^4.1.7",
     "@types/validator": "^13.7.5",
     "bnf-parser": "3.1.6",
+    "chalk": "^4.1.2",
     "dayjs": "^1.11.10",
     "debug": "^4.3.4",
     "dottie": "^2.0.2",
@@ -81,8 +78,6 @@
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
-    "@types/snowflake-sdk": "1.6.20",
-    "@types/tedious": "4.0.14",
     "@types/uuid": "9.0.8",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
@@ -91,7 +86,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.0",
-    "mocha": "10.3.0",
+    "mocha": "10.4.0",
     "moment": "2.30.1",
     "nyc": "15.1.0",
     "p-map": "4.0.0",
@@ -100,17 +95,7 @@
     "p-timeout": "4.1.0",
     "rimraf": "5.0.5",
     "sinon": "17.0.1",
-    "sinon-chai": "3.7.0",
-    "snowflake-sdk": "1.10.0",
-    "tedious": "16.7.0"
-  },
-  "peerDependenciesMeta": {
-    "snowflake-sdk": {
-      "optional": true
-    },
-    "tedious": {
-      "optional": true
-    }
+    "sinon-chai": "3.7.0"
   },
   "keywords": [
     "mysql",

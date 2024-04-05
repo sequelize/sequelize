@@ -13,6 +13,9 @@
       }
     }
   },
+  "files": [
+    "lib"
+  ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "sideEffects": false,
@@ -43,6 +46,6 @@
     "@types/chai": "4.3.14",
     "@types/mocha": "10.0.6",
     "chai": "4.4.1",
-    "mocha": "10.3.0"
+    "mocha": "10.4.0"
   }
 }

@@ -32,6 +32,9 @@
       "types": "./lib/node/index.d.ts"
     }
   },
+  "files": [
+    "lib"
+  ],
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
@@ -60,6 +63,6 @@
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "expect-type": "0.19.0",
-    "mocha": "10.3.0"
+    "mocha": "10.4.0"
   }
 }

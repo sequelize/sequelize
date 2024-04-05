@@ -1,9 +1,10 @@
 import type { QueryRawOptions, Sequelize, TableOrModel } from '@sequelize/core';
 import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode } from '@sequelize/core';
-import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { SqliteDialect } from './dialect.js';
 import type { SqliteQueryGenerator } from './query-generator.js';
+import type { SqliteQueryInterface } from './query-interface.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
@@ -17,6 +18,10 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
   get #queryGenerator(): SqliteQueryGenerator {
     return this.dialect.queryGenerator;
+  }
+
+  get #queryInterface(): SqliteQueryInterface {
+    return this.dialect.queryInterface;
   }
 
   /**
@@ -40,8 +45,12 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           nestMode: TransactionNestMode.savepoint,
           transaction: options?.transaction,
         },
-        async () => {
-          const indexes = await this.#sequelize.queryInterface.showIndex(tableName, options);
+        async transaction => {
+          const indexes = await this.#queryInterface.showIndex(tableName, {
+            ...options,
+            transaction,
+          });
+
           for (const index of indexes) {
             // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
             if (!index.name.startsWith('sqlite_autoindex_')) {
@@ -60,13 +69,14 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           }
 
           const sql = this.#queryGenerator._replaceTableQuery(tableName, columns);
-          await this.executeQueriesSequentially(sql, { ...options, raw: true });
+          await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
 
           // Run a foreign keys integrity check
           const foreignKeyCheckResult = await this.#sequelize.queryRaw(
             this.#queryGenerator.foreignKeyCheckQuery(tableName),
             {
               ...options,
+              transaction,
               type: QueryTypes.SELECT,
             },
           );
@@ -89,6 +99,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               return this.#sequelize.queryInterface.addIndex(tableName, {
                 ...index,
                 type: undefined,
+                transaction,
                 fields: index.fields.map(field => field.attribute),
               });
             }),

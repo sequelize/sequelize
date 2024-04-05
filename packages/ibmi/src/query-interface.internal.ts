@@ -1,5 +1,5 @@
 import { IsolationLevel } from '@sequelize/core';
-import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { IBMiDialect } from './dialect.js';
 
 export class IBMiQueryInterfaceInternal extends AbstractQueryInterfaceInternal {

@@ -1,12 +1,12 @@
-import { MapView, SetView, pojo, some } from '@sequelize/utils';
+import { MapView, SetView, cloneDeepPlainValues, pojo, some } from '@sequelize/utils';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import NodeUtil from 'node:util';
+import { isDataTypeClass } from './abstract-dialect/data-types-utils.js';
+import { AbstractDataType } from './abstract-dialect/data-types.js';
+import type { IndexOptions, TableNameWithSchema } from './abstract-dialect/query-interface.js';
 import type { Association } from './associations/index.js';
 import * as DataTypes from './data-types.js';
-import { isDataTypeClass } from './dialects/abstract/data-types-utils.js';
-import { AbstractDataType } from './dialects/abstract/data-types.js';
-import type { IndexOptions, TableNameWithSchema } from './dialects/abstract/query-interface.js';
 import { BaseError } from './errors/index.js';
 import type { HookHandler } from './hooks.js';
 import type { ModelHooks } from './model-hooks.js';
@@ -199,26 +199,25 @@ export class ModelDefinition<M extends Model = Model> {
 
     const globalOptions = this.#sequelize.options;
 
+    // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
     this.options = mergeModelOptions(
-      Object.assign(
-        // default options
-        {
-          noPrimaryKey: false,
-          timestamps: true,
-          validate: {},
-          freezeTableName: false,
-          underscored: false,
-          paranoid: false,
-          schema: '',
-          schemaDelimiter: '',
-          defaultScope: {},
-          scopes: {},
-          name: {},
-          indexes: [],
-        },
-        globalOptions.define as ModelOptions,
-      ),
+      // default options
+      {
+        noPrimaryKey: false,
+        timestamps: true,
+        validate: {},
+        freezeTableName: false,
+        underscored: false,
+        paranoid: false,
+        schema: '',
+        schemaDelimiter: '',
+        defaultScope: {},
+        scopes: {},
+        name: {},
+        indexes: [],
+        ...cloneDeepPlainValues(globalOptions.define, true),
+      },
       removeUndefined(modelOptions),
       true,
     ) as BuiltModelOptions;
