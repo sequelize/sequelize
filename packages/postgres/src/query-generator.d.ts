@@ -14,8 +14,8 @@ interface PgEnumOptions extends PgEnumNameOptions {
 }
 
 interface PgEnumAddOptions {
-  before: string;
-  after: string;
+  before?: string;
+  after?: string;
 }
 
 export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
