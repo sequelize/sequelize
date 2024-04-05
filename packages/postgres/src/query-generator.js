@@ -516,16 +516,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return escapedEnumName;
   }
 
-  pgListEnums(tableName, attrName, options) {
+  pgListEnums(tableName, columnName, options) {
     let enumName = '';
     const tableDetails =
       tableName != null
         ? this.extractTableDetails(tableName, options)
         : { schema: this.options.schema || this.dialect.getDefaultSchema() };
 
-    if (tableDetails.tableName && attrName) {
+    if (tableDetails.tableName && columnName) {
       // pgEnumName escapes as an identifier, we want to escape it as a string
-      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, attrName, { noEscape: true }))}`;
+      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, columnName, { noEscape: true }))}`;
     }
 
     return (
@@ -536,8 +536,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     );
   }
 
-  pgEnum(tableName, attr, dataType, options) {
-    const enumName = this.pgEnumName(tableName, attr, options);
+  pgEnum(tableName, columnName, dataType, options) {
+    const enumName = this.pgEnumName(tableName, columnName, options);
     let values;
 
     if (dataType instanceof ENUM && dataType.options.values) {
@@ -548,14 +548,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
     if (Boolean(options) && options.force === true) {
-      sql = this.pgEnumDrop(tableName, attr) + sql;
+      sql = this.pgEnumDrop(tableName, columnName) + sql;
     }
 
     return sql;
   }
 
-  pgEnumAdd(tableName, attr, value, options) {
-    const enumName = this.pgEnumName(tableName, attr);
+  pgEnumAdd(tableName, columnName, value, options) {
+    const enumName = this.pgEnumName(tableName, columnName);
     let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
 
     sql += this.escape(value);
@@ -569,8 +569,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return sql;
   }
 
-  pgEnumDrop(tableName, attr, enumName) {
-    enumName ||= this.pgEnumName(tableName, attr);
+  pgEnumDrop(tableName, columnName, enumName) {
+    enumName ||= this.pgEnumName(tableName, columnName);
 
     return `DROP TYPE IF EXISTS ${enumName}; `;
   }
