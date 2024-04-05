@@ -1,23 +1,42 @@
-import type { DialectName } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { PostgresDialect } from '@sequelize/postgres';
+import { SqliteDialect } from '@sequelize/sqlite';
 import { expect } from 'chai';
-import assert from 'node:assert';
 import path from 'node:path';
-import { allowDeprecationsInSuite, getSequelizeInstance, getTestDialect } from '../support';
+import sinon from 'sinon';
+import {
+  allowDeprecationsInSuite,
+  createSequelizeInstance,
+  getTestDialectClass,
+  sequelize,
+} from '../support';
 
-const dialect = getTestDialect();
+const dialect = getTestDialectClass();
+const dialectName = sequelize.dialect.name;
+
 describe('Sequelize constructor', () => {
   allowDeprecationsInSuite(['SEQUELIZE0027']);
 
   it('throws when no dialect is supplied', () => {
     expect(() => {
-      new Sequelize('localhost', 'test', 'test');
+      // @ts-expect-error -- testing that this throws when the "dialect" option is missing
+      new Sequelize({});
     }).to.throw(Error);
+  });
+
+  it('throws when an invalid dialect is supplied', () => {
+    expect(() => {
+      // @ts-expect-error -- testing that this throws
+      new Sequelize({ dialect: 'some-fancy-dialect' });
+    }).to.throw(
+      Error,
+      'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.',
+    );
   });
 
   it('works when dialect is supplied', () => {
     expect(() => {
-      new Sequelize('localhost', 'test', 'test', {
+      new Sequelize({
         dialect,
       });
     }).not.to.throw();
@@ -25,344 +44,288 @@ describe('Sequelize constructor', () => {
 
   it('throws if pool:false', () => {
     expect(() => {
-      new Sequelize('localhost', 'test', 'test', {
+      new Sequelize({
         dialect,
         // @ts-expect-error -- we're testing that this throws an error
         pool: false,
       });
-    }).to.throw('Support for pool:false was removed in v4.0');
+    }).to.throw(
+      'Setting the "pool" option to "false" is not supported since Sequelize 4. To disable the pool, set the "pool"."max" option to 1.',
+    );
+  });
+
+  it('warns if the database version is not supported', () => {
+    const stub = sinon.stub(process, 'emitWarning');
+    try {
+      createSequelizeInstance({ databaseVersion: '0.0.1' });
+      expect(stub.getCalls()[0].args[0]).to.contain(
+        'This database engine version is not supported, please update your database server.',
+      );
+    } finally {
+      stub.restore();
+    }
   });
 
   describe('Network Connections (non-sqlite)', () => {
-    if (dialect === 'sqlite') {
+    if (dialectName === 'sqlite') {
       return;
     }
 
-    it('accepts four parameters (database, username, password, options)', () => {
-      const sequelize = new Sequelize('dbname', 'root', 'pass', {
-        port: 999,
-        dialect,
-        dialectOptions: {
-          supportBigNumbers: true,
-          bigNumberStrings: true,
-        },
+    it('should correctly set the host and the port', () => {
+      // options are dialect-specific, but they're overwritten identically in every dialect
+      if (dialectName !== 'postgres') {
+        return;
+      }
+
+      const localSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        host: '127.0.0.1',
+        port: 1234,
       });
-
-      const options = sequelize.options;
-      expect(options.dialect).to.equal(dialect);
-      expect(options.database).to.equal('dbname');
-      expect(options.username).to.equal('root');
-      expect(options.password).to.equal('pass');
-      expect(options.port).to.equal(999);
-
-      const config = sequelize.config;
-      expect(config.database).to.equal('dbname');
-      expect(config.username).to.equal('root');
-      expect(config.password).to.equal('pass');
-      expect(config.port).to.equal(999);
-      expect(config.dialectOptions.supportBigNumbers).to.be.true;
-      expect(config.dialectOptions.bigNumberStrings).to.be.true;
-
-      expect(config.replication.write).to.deep.eq({
-        database: 'dbname',
-        host: 'localhost',
-        password: 'pass',
-        port: 999,
-        protocol: 'tcp',
-        ssl: undefined,
-        username: 'root',
-        dialectOptions: {
-          bigNumberStrings: true,
-          supportBigNumbers: true,
-        },
-      });
+      expect(localSequelize.options.replication.write.port).to.equal(1234);
+      expect(localSequelize.options.replication.write.host).to.equal('127.0.0.1');
     });
 
     it('accepts a single URI parameter', () => {
-      const sequelize = new Sequelize(`${dialect}://user:pass@example.com:9821/dbname`);
-      const config = sequelize.config;
-      const options = sequelize.options;
+      const newSequelize = new Sequelize({
+        dialect,
+        url: `${dialectName}://user:pass@example.com:9821/dbname`,
+      });
 
-      expect(options.dialect).to.equal(dialect);
+      const replication = newSequelize.options.replication;
 
-      expect(config.database).to.equal('dbname');
-      expect(config.host).to.equal('example.com');
-      expect(config.username).to.equal('user');
-      expect(config.password).to.equal('pass');
-      expect(config.port).to.equal(9821);
-      expect(config.replication.write).to.deep.eq({
+      expect(replication.write).to.deep.eq({
         database: 'dbname',
-        username: 'user',
+        user: 'user',
         password: 'pass',
         host: 'example.com',
         port: 9821,
-        protocol: 'tcp',
-        ssl: undefined,
-        dialectOptions: {},
       });
-      expect(config.replication.read).to.deep.eq([]);
+
+      expect(replication.read).to.deep.eq([]);
     });
 
     it('supports not providing username, password, or port', () => {
-      const sequelize = new Sequelize(`${dialect}://example.com/dbname`);
-      const config = sequelize.config;
+      const newSequelize = new Sequelize({
+        dialect,
+        url: `${dialectName}://example.com/dbname`,
+      });
 
-      const defaultPort: Record<DialectName, number> = {
-        postgres: 5432,
-        db2: 3306,
-        ibmi: 25_000,
-        mariadb: 3306,
-        mssql: 1433,
-        mysql: 3306,
-        snowflake: 3306,
-        sqlite: 0,
-      };
+      const replication = newSequelize.options.replication;
 
-      expect(config.replication.write).to.deep.eq({
+      expect(replication.write).to.deep.eq({
         database: 'dbname',
         host: 'example.com',
-        port: defaultPort[dialect],
-        protocol: 'tcp',
-        ssl: undefined,
-        username: undefined,
-        password: null,
-        dialectOptions: {},
       });
     });
+  });
+
+  describe('Postgres URL parsing', () => {
+    if (dialectName !== 'postgres') {
+      return;
+    }
 
     it('supports not providing username, password, or port in URI, but providing them in the option bag', () => {
       const options = {
         port: 10,
-        username: 'root',
+        user: 'root',
         password: 'pass',
         database: 'dbname',
       };
-      const sequelize = new Sequelize(`${dialect}://example.com/dbname`, options);
 
-      expect(sequelize.config.replication.write).to.deep.eq({
+      const newSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        url: `${dialectName}://example.com/dbname`,
+        ...options,
+      });
+
+      expect(newSequelize.options.replication.write).to.deep.eq({
         host: 'example.com',
-        protocol: 'tcp',
-        ssl: undefined,
-        dialectOptions: {},
         ...options,
       });
     });
 
-    it('merges querystring parameters with dialectOptions', () => {
-      const sequelize = new Sequelize(
-        `${dialect}://example.com:9821/dbname?an_option=123&other_option=abc`,
-        {
-          dialectOptions: {
-            thirdOption: 3,
-          },
-        },
-      );
+    it('merges querystring parameters with connection options', () => {
+      const newSequelize = new Sequelize<PostgresDialect>({
+        dialect: PostgresDialect,
+        url: `${dialectName}://example.com:9821/dbname?ssl=true&application_name=abc`,
+      });
 
-      expect(sequelize.config.replication.write).to.deep.eq({
+      expect(newSequelize.options.replication.write).to.deep.eq({
         database: 'dbname',
         host: 'example.com',
-        password: null,
         port: 9821,
-        ssl: undefined,
-        username: undefined,
-        protocol: 'tcp',
-        dialectOptions: {
-          an_option: '123',
-          other_option: 'abc',
-          thirdOption: 3,
-        },
+        ssl: true,
+        application_name: 'abc',
       });
     });
 
-    it('handle JSON dialectOptions in querystring parameters', () => {
-      const sequelize = new Sequelize(
-        `${dialect}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&anotherOption=1`,
-      );
+    it('handles the "options" parameter as JSON', () => {
+      const newSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        // TODO: why does it accept a JSON string? The pg documentation & source code indicates that "options" is a string
+        url: `${dialectName}://example.com:9821/dbname?options=${encodeURIComponent(`{"encrypt":true}`)}&ssl=true`,
+      });
 
-      const dialectOptionsOptions = sequelize.config.replication.write.dialectOptions?.options;
-      assert(dialectOptionsOptions !== null && typeof dialectOptionsOptions === 'object');
-      expect(dialectOptionsOptions.encrypt).to.be.true;
-      expect(sequelize.options.dialectOptions.anotherOption).to.equal('1');
-
-      expect(sequelize.config.replication.write).to.deep.eq({
+      expect(newSequelize.options.replication.write).to.deep.eq({
         database: 'dbname',
         host: 'example.com',
-        password: null,
         port: 9821,
-        ssl: undefined,
-        username: undefined,
-        protocol: 'tcp',
-        dialectOptions: {
-          options: { encrypt: true },
-          anotherOption: '1',
-        },
+        ssl: true,
+        options: { encrypt: true },
       });
     });
 
-    it('priorises the ?host querystring parameter over the rest of the URI', () => {
-      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?host=/tmp/mysocket`);
+    it('accepts options as a non-json value', () => {
+      const newSequelize = new Sequelize({
+        dialect: PostgresDialect,
+        url: `${dialectName}://example.com:9821/dbname?options=${encodeURIComponent('-c search_path=test_schema')}`,
+      });
 
-      const options = sequelize.options;
-      expect(options.host).to.equal('/tmp/mysocket');
-      expect(options.replication.write.host).to.equal('/tmp/mysocket');
+      expect(newSequelize.options.replication.write.options).to.equal('-c search_path=test_schema');
+    });
+
+    it('prioritizes the ?host querystring parameter over the rest of the URI', () => {
+      const newSequelize = new Sequelize<PostgresDialect>({
+        dialect: PostgresDialect,
+        url: `${dialectName}://localhost:9821/dbname?host=/tmp/mysocket`,
+      });
+
+      expect(newSequelize.options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
     it('supports using a socket path as an encoded domain', () => {
-      const sequelize = new Sequelize(
-        `${dialect}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`,
-      );
+      const newSequelize = new Sequelize<PostgresDialect>({
+        dialect: PostgresDialect,
+        url: `${dialectName}://${encodeURIComponent('/tmp/mysocket')}:9821/dbname`,
+      });
 
-      const options = sequelize.options;
-      expect(options.host).to.equal('/tmp/mysocket');
-      expect(options.replication.write.host).to.equal('/tmp/mysocket');
+      expect(newSequelize.options.replication.write.host).to.equal('/tmp/mysocket');
     });
 
     it('supports connection strings in replication options', async () => {
-      const uri = `${dialect}://username:password@host:1234/database`;
+      const url = `${dialectName}://username:password@host:1234/database`;
 
-      const sequelize = getSequelizeInstance({
+      const newSequelize = new Sequelize<PostgresDialect>({
+        dialect: PostgresDialect,
         replication: {
-          write: uri,
-          read: [uri],
+          write: url,
+          read: [url],
         },
       });
 
-      expect(sequelize.dialect.name).to.eq(dialect);
-
       const options = {
-        dialect,
         host: 'host',
         database: 'database',
         port: 1234,
-        username: 'username',
+        user: 'username',
         password: 'password',
-        dialectOptions: {},
-        protocol: 'tcp',
-        ssl: undefined,
       };
 
-      expect(sequelize.options.replication.write).to.deep.eq(options);
-      expect(sequelize.options.replication.read).to.deep.eq([options]);
+      expect(newSequelize.options.replication.write).to.deep.eq(options);
+      expect(newSequelize.options.replication.read).to.deep.eq([options]);
     });
 
-    it('priorises the option bag over the URI', () => {
-      const sequelize = new Sequelize(`${dialect}://localhost:9821/dbname?anOption=1`, {
+    it('prioritizes the option bag over the URI', () => {
+      const newSequelize = new Sequelize<PostgresDialect>({
+        dialect: PostgresDialect,
+        url: `${dialectName}://localhost:9821/dbname?ssl=true`,
         host: 'localhost2',
-        username: 'username2',
+        user: 'username2',
         password: 'password2',
-        port: '2000',
-        database: 'dbname2',
-        dialectOptions: {
-          anOption: 2,
-        },
-      });
-
-      const options = sequelize.options;
-      expect(options.host).to.equal('localhost2');
-      expect(options.username).to.equal('username2');
-      expect(options.password).to.equal('password2');
-      expect(options.port).to.equal(2000);
-      expect(options.database).to.equal('dbname2');
-
-      const config = sequelize.options;
-      expect(config.host).to.equal('localhost2');
-      expect(config.username).to.equal('username2');
-      expect(config.password).to.equal('password2');
-      expect(config.port).to.equal(2000);
-      expect(config.database).to.equal('dbname2');
-
-      expect(options.replication.write).to.deep.eq({
-        host: 'localhost2',
-        username: 'username2',
-        password: 'password2',
+        ssl: false,
         port: 2000,
         database: 'dbname2',
-        dialectOptions: {
-          anOption: 2,
-        },
-        protocol: 'tcp',
-        ssl: undefined,
       });
-      expect(config.replication.read).to.deep.eq([]);
+
+      const replication = newSequelize.options.replication;
+
+      expect(replication.write).to.deep.eq({
+        database: 'dbname2',
+        host: 'localhost2',
+        password: 'password2',
+        port: 2000,
+        ssl: false,
+        user: 'username2',
+      });
+      expect(replication.read).to.deep.eq([]);
     });
 
-    it('priorises the option bad over the individual parameters', () => {
-      const sequelize = new Sequelize('database1', 'username1', 'password1', {
-        dialect,
-        port: 1000,
-        database: 'database2',
-        username: 'username2',
-        password: 'password2',
+    it('accepts the postgresql protocol', () => {
+      // should not throw
+      new Sequelize({
+        dialect: PostgresDialect,
+        url: `postgresql://localhost:9821/dbname?ssl=true`,
       });
-
-      const options = sequelize.options;
-      expect(options.database).to.equal('database2');
-      expect(options.username).to.equal('username2');
-      expect(options.password).to.equal('password2');
-
-      const config = sequelize.config;
-      expect(config.database).to.equal('database2');
-      expect(config.username).to.equal('username2');
-      expect(config.password).to.equal('password2');
-
-      expect(options.replication.write).to.deep.eq(config.replication.write);
-      expect(options.replication.write).to.deep.eq({
-        username: 'username2',
-        password: 'password2',
-        database: 'database2',
-        host: 'localhost',
-        port: 1000,
-        dialectOptions: {},
-        protocol: 'tcp',
-        ssl: undefined,
-      });
-      expect(config.replication.read).to.deep.eq([]);
     });
   });
 
-  describe('Filesystem connections (sqlite)', () => {
-    if (dialect !== 'sqlite') {
+  describe('SQLite URL parsing', () => {
+    if (dialectName !== 'sqlite') {
       return;
     }
 
     it('should accept relative paths for sqlite', () => {
-      const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
-      const options = sequelize.options;
-      expect(options.dialect).to.equal('sqlite');
-      expect(options.storage).to.equal(path.resolve('subfolder', 'dbname.db'));
+      const newSequelize = new Sequelize<SqliteDialect>({
+        dialect: SqliteDialect,
+        url: 'sqlite:subfolder/dbname.db',
+      });
+
+      const options = newSequelize.options;
+      expect(options.replication.write.storage).to.equal(path.resolve('subfolder', 'dbname.db'));
     });
 
     it('should accept absolute paths for sqlite', () => {
-      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db');
-      const options = sequelize.options;
-      expect(options.dialect).to.equal('sqlite');
-      expect(options.storage).to.equal(path.resolve('/home/abs/dbname.db'));
+      const newSequelize = new Sequelize<SqliteDialect>({
+        dialect: SqliteDialect,
+        url: 'sqlite:/home/abs/dbname.db',
+      });
+
+      const options = newSequelize.options;
+      expect(options.replication.write.storage).to.equal(path.resolve('/home/abs/dbname.db'));
     });
 
     it('should prefer storage in options object', () => {
-      const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {
+      const newSequelize = new Sequelize<SqliteDialect>({
+        dialect: SqliteDialect,
+        url: 'sqlite:/home/abs/dbname.db',
         storage: '/completely/different/path.db',
       });
-      const options = sequelize.options;
-      expect(options.dialect).to.equal('sqlite');
-      // TODO: Potential issue with storage param not resolving properly on windows
-      //       Hence the difference between the other tests
-      //       See https://github.com/sequelize/sequelize/pull/16283#discussion_r1268796636
-      expect(options.storage).to.equal('/completely/different/path.db');
+
+      const options = newSequelize.options;
+      expect(options.replication.write.storage).to.equal('/completely/different/path.db');
     });
 
-    it('should be able to use :memory: (1)', () => {
-      const sequelize = new Sequelize('sqlite://:memory:');
-      const options = sequelize.options;
-      expect(options.dialect).to.equal('sqlite');
-      expect(options.storage).to.equal(':memory:');
+    it('supports sqlite://:memory:', () => {
+      const newSequelize = new Sequelize<SqliteDialect>({
+        dialect: SqliteDialect,
+        url: 'sqlite://:memory:',
+      });
+
+      const options = newSequelize.options;
+      expect(options.replication.write.storage).to.equal(':memory:');
     });
 
-    it('should be able to use :memory: (2)', () => {
-      const sequelize = new Sequelize('sqlite::memory:');
-      const options = sequelize.options;
-      expect(options.dialect).to.equal('sqlite');
-      expect(options.storage).to.equal(':memory:');
+    it('supports sqlite::memory:', () => {
+      const newSequelize = new Sequelize<SqliteDialect>({
+        dialect: SqliteDialect,
+        url: 'sqlite::memory:',
+      });
+
+      const options = newSequelize.options;
+      expect(options.replication.write.storage).to.equal(':memory:');
     });
+  });
+
+  it('supports properly formatted URLs', () => {
+    const newSequelize = new Sequelize({
+      dialect: SqliteDialect,
+      url: 'sqlite://test/sqlite-databases/connection-string-test1.sqlite',
+    });
+
+    const options = newSequelize.options;
+    expect(options.replication.write.storage).to.equal(
+      path.resolve('test/sqlite-databases/connection-string-test1.sqlite'),
+    );
   });
 });

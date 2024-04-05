@@ -16,9 +16,7 @@ describe('SearchPath in Model Methods', () => {
 
   const vars = Support.beforeAll2(() => {
     const sequelize = Support.createSequelizeInstance({
-      dialectOptions: {
-        prependSearchPath: true,
-      },
+      prependSearchPath: true,
     });
 
     return { sequelize };
