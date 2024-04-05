@@ -210,6 +210,7 @@ module.exports = {
     'packages/*/types/**/*',
     'packages/**/skeletons/**/*',
     '.typedoc-build',
+    'packages/cli/migrations/**/*',
   ],
   env: {
     node: true,

@@ -1,12 +1,14 @@
 import { expect, test } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 
 const __dirname = fileUrlToDirname(import.meta.url);
+const packageRoot = path.join(__dirname, '..', '..', '..');
 
 function oclifTest() {
   return test.loadConfig({
-    root: __dirname,
+    root: packageRoot,
   });
 }
 

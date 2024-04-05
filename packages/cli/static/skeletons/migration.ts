@@ -1,4 +1,4 @@
-import { AbstractQueryInterface, Sequelize } from "@sequelize/core";
+import { AbstractQueryInterface, Sequelize } from '@sequelize/core';
 
 export async function up(
   queryInterface: AbstractQueryInterface,

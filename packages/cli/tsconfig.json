@@ -6,5 +6,5 @@
     // https://github.com/oclif/core/issues/960
     "exactOptionalPropertyTypes": false
   },
-  "include": ["./**/*.ts"]
+  "include": ["./src/**/*.ts"]
 }

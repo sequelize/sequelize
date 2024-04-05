@@ -80,6 +80,8 @@ jobs:
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
+      - name: Unit tests (cli)
+        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: Unit tests (utils)
         run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (core - mariadb)
