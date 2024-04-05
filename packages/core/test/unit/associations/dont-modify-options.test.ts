@@ -1,9 +1,6 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import {
-  beforeEach2,
-  sequelize,
-} from '../../support';
+import { beforeEach2, sequelize } from '../../support';
 
 describe('associations', () => {
   describe('Test options.foreignKey', () => {
@@ -25,7 +22,7 @@ describe('associations', () => {
       return { A, B, C };
     });
 
-    it('should not be overwritten for belongsTo', function () {
+    it('should not be overwritten for belongsTo', () => {
       const reqValidForeignKey = { foreignKey: { allowNull: false } };
       vars.A.belongsTo(vars.B, reqValidForeignKey);
       vars.A.belongsTo(vars.C, reqValidForeignKey);
@@ -33,7 +30,7 @@ describe('associations', () => {
       expect(vars.A.getAttributes().cId.type instanceof vars.C.getAttributes().id.type.constructor);
     });
 
-    it('should not be overwritten for belongsToMany', function () {
+    it('should not be overwritten for belongsToMany', () => {
       const reqValidForeignKey = { foreignKey: { allowNull: false }, through: 'ABBridge' };
       vars.B.belongsToMany(vars.A, reqValidForeignKey);
       vars.A.belongsTo(vars.C, reqValidForeignKey);
@@ -41,7 +38,7 @@ describe('associations', () => {
       expect(vars.A.getAttributes().cId.type instanceof vars.C.getAttributes().id.type.constructor);
     });
 
-    it('should not be overwritten for hasOne', function () {
+    it('should not be overwritten for hasOne', () => {
       const reqValidForeignKey = { foreignKey: { allowNull: false } };
       vars.B.hasOne(vars.A, reqValidForeignKey);
       vars.A.belongsTo(vars.C, reqValidForeignKey);
@@ -49,7 +46,7 @@ describe('associations', () => {
       expect(vars.A.getAttributes().cId.type instanceof vars.C.getAttributes().id.type.constructor);
     });
 
-    it('should not be overwritten for hasMany', function () {
+    it('should not be overwritten for hasMany', () => {
       const reqValidForeignKey = { foreignKey: { allowNull: false } };
       vars.B.hasMany(vars.A, reqValidForeignKey);
       vars.A.belongsTo(vars.C, reqValidForeignKey);

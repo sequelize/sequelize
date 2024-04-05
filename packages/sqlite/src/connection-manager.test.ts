@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import { Sequelize } from '@sequelize/core';
 import { SqliteDialect } from '@sequelize/sqlite';
+import { expect } from 'chai';
 
 describe('ConnectionManager', () => {
   describe('getConnection', () => {

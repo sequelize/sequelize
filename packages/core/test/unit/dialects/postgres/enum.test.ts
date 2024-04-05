@@ -46,23 +46,19 @@ describe('PostgresQueryGenerator', () => {
     it('properly quotes both the schema and the enum name', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(
-        sql.pgEnumName(PublicUser.table, 'mood'),
-      ).to.equal('"public"."enum_users_mood"');
-      expect(
-        sql.pgEnumName(FooUser.table, 'theirMood'),
-      ).to.equal('"foo"."enum_users_theirMood"');
+      expect(sql.pgEnumName(PublicUser.table, 'mood')).to.equal('"public"."enum_users_mood"');
+      expect(sql.pgEnumName(FooUser.table, 'theirMood')).to.equal('"foo"."enum_users_theirMood"');
     });
 
     it('does not quote the enum name when options: { noEscape: true }', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(
-        sql.pgEnumName(PublicUser.table, 'mood', { noEscape: true }),
-      ).to.equal('enum_users_mood');
-      expect(
-        sql.pgEnumName(FooUser.table, 'theirMood', { noEscape: true }),
-      ).to.equal('enum_users_theirMood');
+      expect(sql.pgEnumName(PublicUser.table, 'mood', { noEscape: true })).to.equal(
+        'enum_users_mood',
+      );
+      expect(sql.pgEnumName(FooUser.table, 'theirMood', { noEscape: true })).to.equal(
+        'enum_users_theirMood',
+      );
     });
   });
 

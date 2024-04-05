@@ -41,7 +41,7 @@ describe('Sequelize Errors', () => {
         throw new errorName('this is a message');
       }
 
-      let err;
+      let err: Error;
       try {
         throwError();
       } catch (error) {
