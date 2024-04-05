@@ -16,7 +16,6 @@ import { expect } from 'chai';
 import { allowDeprecationsInSuite, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-const dialectName = dialect.name;
 
 describe('Utils', () => {
   describe('underscore', () => {
