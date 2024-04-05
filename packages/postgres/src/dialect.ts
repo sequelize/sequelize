@@ -226,7 +226,7 @@ export class PostgresDialect extends AbstractDialect<
   parseConnectionUrl(url: string): PostgresConnectionOptions {
     return parseCommonConnectionUrlOptions<PostgresConnectionOptions>({
       url,
-      allowedProtocols: ['postgres:', 'postgresql:'],
+      allowedProtocols: ['postgres', 'postgresql'],
       hostname: 'host',
       port: 'port',
       pathname: 'database',

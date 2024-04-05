@@ -156,7 +156,7 @@ export class MariaDbDialect extends AbstractDialect<
   parseConnectionUrl(url: string): MariaDbConnectionOptions {
     return parseCommonConnectionUrlOptions<MariaDbConnectionOptions>({
       url: new URL(url),
-      allowedProtocols: ['mariadb:'],
+      allowedProtocols: ['mariadb'],
       hostname: 'host',
       port: 'port',
       pathname: 'database',

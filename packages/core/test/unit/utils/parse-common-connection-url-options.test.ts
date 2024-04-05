@@ -7,7 +7,7 @@ describe('parseCommonConnectionUrlOptions', () => {
       stringSearchParams: ['search1', 'search2'],
       booleanSearchParams: ['search3'],
       numberSearchParams: ['search4'],
-      allowedProtocols: ['mariadb:'],
+      allowedProtocols: ['mariadb'],
       hostname: 'theHost',
       password: 'thePassword',
       pathname: 'theDb',
@@ -33,7 +33,7 @@ describe('parseCommonConnectionUrlOptions', () => {
     expect(() =>
       parseCommonConnectionUrlOptions<any>({
         url: 'mariadb://localhost?connectTimeout=1000',
-        allowedProtocols: ['mariadb:'],
+        allowedProtocols: ['mariadb'],
         hostname: 'host',
         port: 'port',
         pathname: 'database',
@@ -46,7 +46,7 @@ describe('parseCommonConnectionUrlOptions', () => {
       parseCommonConnectionUrlOptions<any>({
         booleanSearchParams: ['search'],
         url: 'mariadb://localhost?search=invalid',
-        allowedProtocols: ['mariadb:'],
+        allowedProtocols: ['mariadb'],
         hostname: 'host',
         port: 'port',
         pathname: 'database',
@@ -61,7 +61,7 @@ describe('parseCommonConnectionUrlOptions', () => {
       parseCommonConnectionUrlOptions<any>({
         numberSearchParams: ['search'],
         url: 'mariadb://localhost?search=invalid',
-        allowedProtocols: ['mariadb:'],
+        allowedProtocols: ['mariadb'],
         hostname: 'host',
         port: 'port',
         pathname: 'database',
@@ -73,19 +73,19 @@ describe('parseCommonConnectionUrlOptions', () => {
     expect(() =>
       parseCommonConnectionUrlOptions<any>({
         url: 'mysql://localhost',
-        allowedProtocols: ['mariadb:'],
+        allowedProtocols: ['mariadb'],
         hostname: 'host',
         port: 'port',
         pathname: 'database',
       }),
     ).to.throw(
-      'URL "mysql://localhost" is not a valid connection URL. Expected the protocol to be one of "mariadb:", but it\'s "mysql:"',
+      `URL "mysql://localhost" is not a valid connection URL. Expected the protocol to be one of "mariadb", but it's "mysql"`,
     );
   });
 
   it('supports not providing username, password, port, or database name', () => {
     const options = parseCommonConnectionUrlOptions<any>({
-      allowedProtocols: ['mariadb:'],
+      allowedProtocols: ['mariadb'],
       hostname: 'host',
       pathname: 'database',
       url: 'mariadb://localhost',
@@ -100,7 +100,7 @@ describe('parseCommonConnectionUrlOptions', () => {
   it('supports URL-encoded username, password, hostname, pathname, and search parameters keys and values', () => {
     const options = parseCommonConnectionUrlOptions<any>({
       stringSearchParams: ['search1', 'search2', '1', '2'],
-      allowedProtocols: ['mariadb:'],
+      allowedProtocols: ['mariadb'],
       hostname: 'theHost',
       password: 'thePassword',
       pathname: 'theDb',
@@ -124,7 +124,7 @@ describe('parseCommonConnectionUrlOptions', () => {
 
   it('supports using a socket path as an encoded hostname', () => {
     const options = parseCommonConnectionUrlOptions<any>({
-      allowedProtocols: ['postgres:'],
+      allowedProtocols: ['postgres'],
       hostname: 'host',
       pathname: 'database',
       url: 'postgres://%2Ftmp%2Fmysocket:9821/dbname',

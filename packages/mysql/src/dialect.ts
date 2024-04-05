@@ -152,7 +152,7 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
   parseConnectionUrl(url: string): MySqlConnectionOptions {
     return parseCommonConnectionUrlOptions<MySqlConnectionOptions>({
       url,
-      allowedProtocols: ['mysql:'],
+      allowedProtocols: ['mysql'],
       hostname: 'host',
       port: 'port',
       pathname: 'database',

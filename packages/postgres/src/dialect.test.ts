@@ -20,4 +20,13 @@ describe('PostgresDialect#parseConnectionUrl', () => {
       client_encoding: 'utf8mb4',
     });
   });
+
+  it('accepts the postgresql:// scheme', () => {
+    const options: PostgresConnectionOptions =
+      dialect.parseConnectionUrl('postgresql://@localhost');
+
+    expect(options).to.deep.eq({
+      host: 'localhost',
+    });
+  });
 });

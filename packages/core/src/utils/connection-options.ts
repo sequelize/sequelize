@@ -117,9 +117,10 @@ export function parseCommonConnectionUrlOptions<TConnectionOptions extends objec
 
   const assignTo = pojo<TConnectionOptions>();
 
-  if (!options.allowedProtocols.includes(url.protocol)) {
+  const scheme = url.protocol.slice(0, -1);
+  if (!options.allowedProtocols.includes(scheme)) {
     throw new Error(
-      `URL ${inspect(url.toString())} is not a valid connection URL. Expected the protocol to be one of ${options.allowedProtocols.map(inspect).join(', ')}, but it's ${inspect(url.protocol)}.`,
+      `URL ${inspect(url.toString())} is not a valid connection URL. Expected the protocol to be one of ${options.allowedProtocols.map(inspect).join(', ')}, but it's ${inspect(scheme)}.`,
     );
   }
 

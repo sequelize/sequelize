@@ -154,7 +154,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     const urlObject = new URL(url);
 
     const options: MsSqlConnectionOptions = parseCommonConnectionUrlOptions({
-      allowedProtocols: ['sqlserver:'],
+      allowedProtocols: ['sqlserver'],
       url: urlObject,
       hostname: 'server',
       port: 'port',
