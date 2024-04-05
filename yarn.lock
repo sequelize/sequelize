@@ -1678,7 +1678,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@js-joda/core@npm:^5.5.3":
+"@js-joda/core@npm:^5.6.1":
   version: 5.6.1
   resolution: "@js-joda/core@npm:5.6.1"
   checksum: 10c0/4d51c1418e426c78fbb43fa75a4de865c2ba496012f0a359604703908672a7a52dbe6602678449838cb11f995551d5afc141f1cd0343012b0d3309aaaa60054c
@@ -1948,15 +1948,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nrwl/tao@npm:18.1.2"
+"@nrwl/tao@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nrwl/tao@npm:18.1.3"
   dependencies:
-    nx: "npm:18.1.2"
+    nx: "npm:18.1.3"
     tslib: "npm:^2.3.0"
   bin:
     tao: index.js
-  checksum: 10c0/e2244ae60490a987d4154f74fcb9f138fe53283f6fa4417e4e854e620ffa315d873cdaa871b497be444c909a37cd5c7ebc7a236b7693898b969ac4747f1bc57f
+  checksum: 10c0/9f7a0816c2c8f687fd127a0acc34757428bfba1dc999f4918d6c8b256f3af860835102cff403dfb6e1ec0fb715a0294e844b2299827ff2d544b8553a92001f30
   languageName: node
   linkType: hard
 
@@ -1978,72 +1978,72 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-darwin-arm64@npm:18.1.2"
+"@nx/nx-darwin-arm64@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-darwin-arm64@npm:18.1.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-darwin-x64@npm:18.1.2"
+"@nx/nx-darwin-x64@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-darwin-x64@npm:18.1.3"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-freebsd-x64@npm:18.1.2"
+"@nx/nx-freebsd-x64@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-freebsd-x64@npm:18.1.3"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:18.1.2"
+"@nx/nx-linux-arm-gnueabihf@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:18.1.3"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-linux-arm64-gnu@npm:18.1.2"
+"@nx/nx-linux-arm64-gnu@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-linux-arm64-gnu@npm:18.1.3"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-linux-arm64-musl@npm:18.1.2"
+"@nx/nx-linux-arm64-musl@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-linux-arm64-musl@npm:18.1.3"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-linux-x64-gnu@npm:18.1.2"
+"@nx/nx-linux-x64-gnu@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-linux-x64-gnu@npm:18.1.3"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-linux-x64-musl@npm:18.1.2"
+"@nx/nx-linux-x64-musl@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-linux-x64-musl@npm:18.1.3"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-win32-arm64-msvc@npm:18.1.2"
+"@nx/nx-win32-arm64-msvc@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-win32-arm64-msvc@npm:18.1.3"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:18.1.2":
-  version: 18.1.2
-  resolution: "@nx/nx-win32-x64-msvc@npm:18.1.2"
+"@nx/nx-win32-x64-msvc@npm:18.1.3":
+  version: 18.1.3
+  resolution: "@nx/nx-win32-x64-msvc@npm:18.1.3"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2214,10 +2214,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/eslint-patch@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@rushstack/eslint-patch@npm:1.8.0"
-  checksum: 10c0/b8cb64176fe6f0778fccb8294f98acd325625cf75968cf3537c4d51b5d9b7dc62e3cbb82165aa473830555070ff6cc0d01ca64da3d734a5d0ce1bd90b5f24d7e
+"@rushstack/eslint-patch@npm:1.9.0":
+  version: 1.9.0
+  resolution: "@rushstack/eslint-patch@npm:1.9.0"
+  checksum: 10c0/ac88c2b1a41fbb11d8a8199b6666181991922171d9702629c879771d51af2ae674ddcc2ad5540dfd8c213492fb038c37d51249638611609e9ea2e0234404010e
   languageName: node
   linkType: hard
 
@@ -2230,80 +2230,97 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.7"
-    "@types/ibm_db": "npm:2.0.16"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
-    "@types/oracledb": "npm:^6.3"
-    "@types/pg": "npm:8.11.4"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
-    "@types/snowflake-sdk": "npm:1.6.20"
-    "@types/tedious": "npm:4.0.14"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:^13.7.5"
     bnf-parser: "npm:3.1.6"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
-    dayjs: "npm:^1.11.5"
+    dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.2"
     expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.2.12"
     fs-jetpack: "npm:5.1.0"
-    ibm_db: "npm:3.2.3"
     inflection: "npm:^3.0.0"
     lcov-result-merger: "npm:5.0.0"
     lodash: "npm:^4.17.21"
-    mariadb: "npm:3.3.0"
-    mocha: "npm:10.3.0"
+    mocha: "npm:10.4.0"
     moment: "npm:2.30.1"
-    mysql2: "npm:3.9.2"
     nyc: "npm:15.1.0"
-    odbc: "npm:2.4.8"
-    oracledb: "npm:6.0"
     p-map: "npm:4.0.0"
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
-    pg: "npm:8.11.3"
     pg-connection-string: "npm:^2.5.0"
-    pg-hstore: "npm:^2.3.4"
     retry-as-promised: "npm:^7.0.3"
     rimraf: "npm:5.0.5"
     semver: "npm:^7.3.7"
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:17.0.1"
     sinon-chai: "npm:3.7.0"
-    snowflake-sdk: "npm:1.10.0"
-    sqlite3: "npm:5.1.7"
-    tedious: "npm:16.7.0"
     toposort-class: "npm:^1.0.1"
-    type-fest: "npm:^3.0.0"
+    type-fest: "npm:^4.12.0"
     uuid: "npm:^9.0.0"
     validator: "npm:^13.7.0"
     wkx: "npm:^0.5.0"
-  peerDependenciesMeta:
-    ibm_db:
-      optional: true
-    mariadb:
-      optional: true
-    mysql2:
-      optional: true
-    odbc:
-      optional: true
-    oracledb:
-      optional: true
-    pg:
-      optional: true
-    snowflake-sdk:
-      optional: true
-    sqlite3:
-      optional: true
-    tedious:
-      optional: true
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/db2@workspace:packages/db2":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/db2@workspace:packages/db2"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/ibm_db": "npm:^2.0.16"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    ibm_db: "npm:^3.2.3"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/ibmi@workspace:packages/ibmi":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/ibmi@workspace:packages/ibmi"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
+    odbc: "npm:^2.4.8"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/mariadb@workspace:packages/mariadb":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/mariadb@workspace:packages/mariadb"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:4.17.21"
+    mariadb: "npm:3.3.0"
+    mocha: "npm:10.4.0"
+    semver: "npm:7.6.0"
+    wkx: "npm:0.5.0"
   languageName: unknown
   linkType: soft
 
@@ -2312,7 +2329,7 @@ __metadata:
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
     "@ephys/eslint-config-typescript": "npm:20.1.1"
-    "@rushstack/eslint-patch": "npm:1.8.0"
+    "@rushstack/eslint-patch": "npm:1.9.0"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
@@ -2331,10 +2348,10 @@ __metadata:
     lint-staged: "npm:15.2.2"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.39.0"
-    mocha: "npm:10.3.0"
-    node-gyp: "npm:10.0.1"
+    mocha: "npm:10.4.0"
+    node-gyp: "npm:10.1.0"
     node-hook: "npm:1.0.0"
-    nx: "npm:18.1.2"
+    nx: "npm:18.1.3"
     prettier: "npm:3.2.5"
     prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
@@ -2343,7 +2360,105 @@ __metadata:
     typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.18"
     typedoc-plugin-missing-exports: "npm:2.2.0"
-    typescript: "npm:5.3.3"
+    typescript: "npm:5.4.3"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/mssql@workspace:packages/mssql":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/mssql@workspace:packages/mssql"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    "@types/sinon": "npm:17.0.3"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
+    sinon: "npm:17.0.1"
+    tedious: "npm:^18.1.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/mysql@workspace:packages/mysql":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/mysql@workspace:packages/mysql"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:4.17.21"
+    mocha: "npm:10.4.0"
+    mysql2: "npm:3.9.3"
+    wkx: "npm:0.5.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/oracle@workspace:packages/oracle":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/oracle@workspace:packages/oracle"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    "@types/oracledb": "npm:^6.3"
+    "@types/sinon": "npm:17.0.3"
+    chai: "npm:4.4.1"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:4.17.21"
+    mocha: "npm:10.4.0"
+    oracledb: "npm:6.0"
+    semver: "npm:7.6.0"
+    sinon: "npm:17.0.1"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/postgres@workspace:packages/postgres":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/postgres@workspace:packages/postgres"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    "@types/pg": "npm:8.11.4"
+    chai: "npm:4.4.1"
+    lodash: "npm:4.17.21"
+    mocha: "npm:10.4.0"
+    pg: "npm:8.11.3"
+    pg-hstore: "npm:2.3.4"
+    postgres-array: "npm:3.0.2"
+    semver: "npm:7.6.0"
+    wkx: "npm:0.5.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/snowflake@workspace:packages/snowflake":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/snowflake@workspace:packages/snowflake"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/snowflake-sdk": "npm:^1.6.20"
+    lodash: "npm:^4.17.21"
+    snowflake-sdk: "npm:^1.10.0"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/sqlite@workspace:packages/sqlite":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/sqlite@workspace:packages/sqlite"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    lodash: "npm:^4.17.21"
+    sqlite3: "npm:^5.1.7"
   languageName: unknown
   linkType: soft
 
@@ -2356,9 +2471,9 @@ __metadata:
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
-    expect-type: "npm:0.18.0"
+    expect-type: "npm:0.19.0"
     lodash: "npm:4.17.21"
-    mocha: "npm:10.3.0"
+    mocha: "npm:10.4.0"
   languageName: unknown
   linkType: soft
 
@@ -2372,7 +2487,7 @@ __metadata:
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     lodash: "npm:^4.17.21"
-    mocha: "npm:10.3.0"
+    mocha: "npm:10.4.0"
   languageName: unknown
   linkType: soft
 
@@ -3285,7 +3400,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ibm_db@npm:2.0.16":
+"@types/ibm_db@npm:^2.0.16":
   version: 2.0.16
   resolution: "@types/ibm_db@npm:2.0.16"
   checksum: 10c0/a9f3b940b85af39d760601795d95086eee6d365b27e0e189458e33ef033c59557267b1053ca67d9e741921c525a262f54ea4bc2d97ba04add9a735a5fc2ba335
@@ -3351,7 +3466,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:^20.11.17":
+"@types/node@npm:*, @types/node@npm:20.11.30, @types/node@npm:>=18, @types/node@npm:^20.11.17":
   version: 20.11.30
   resolution: "@types/node@npm:20.11.30"
   dependencies:
@@ -3442,22 +3557,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/snowflake-sdk@npm:1.6.20":
+"@types/snowflake-sdk@npm:^1.6.20":
   version: 1.6.20
   resolution: "@types/snowflake-sdk@npm:1.6.20"
   dependencies:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
   checksum: 10c0/b49b4fd25a6d701228a9c2a0f1e0dd4d2405464606f90ff8085f5eb1d69ab811c0acde171cbe115f3a08055640c0538f968281fde848fc4e53ea5ceaa8beda58
-  languageName: node
-  linkType: hard
-
-"@types/tedious@npm:4.0.14":
-  version: 4.0.14
-  resolution: "@types/tedious@npm:4.0.14"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/d2914f8e9b5b998e4275ec5f0130cba1c2fb47e75616b5c125a65ef6c1db2f1dc3f978c7900693856a15d72bbb4f4e94f805537a4ecb6dc126c64415d31c0590
   languageName: node
   linkType: hard
 
@@ -4370,7 +4476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bl@npm:^6.0.3":
+"bl@npm:^6.0.11":
   version: 6.0.11
   resolution: "bl@npm:6.0.11"
   dependencies:
@@ -5383,7 +5489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.5":
+"dayjs@npm:^1.11.10":
   version: 1.11.10
   resolution: "dayjs@npm:1.11.10"
   checksum: 10c0/4de9af50639d47df87f2e15fa36bb07e0f9ed1e9c52c6caa1482788ee9a384d668f1dbd00c54f82aaab163db07d61d2899384b8254da3a9184fc6deca080e2fe
@@ -5499,7 +5605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.1, define-data-property@npm:^1.1.2":
+"define-data-property@npm:^1.0.1, define-data-property@npm:^1.1.2":
   version: 1.1.4
   resolution: "define-data-property@npm:1.1.4"
   dependencies:
@@ -5891,22 +5997,6 @@ __metadata:
     unbox-primitive: "npm:^1.0.2"
     which-typed-array: "npm:^1.1.15"
   checksum: 10c0/45b7362dcb6e64db51784bf55c696ad0823b8dc4f01fa903faabf93bcf2e6e5551e86944d333b5ae0c06df41c3f35ab88290db15957bc980fab0e229d797f2f7
-  languageName: node
-  linkType: hard
-
-"es-aggregate-error@npm:^1.0.9":
-  version: 1.0.12
-  resolution: "es-aggregate-error@npm:1.0.12"
-  dependencies:
-    define-data-property: "npm:^1.1.1"
-    define-properties: "npm:^1.2.1"
-    es-abstract: "npm:^1.22.3"
-    es-errors: "npm:^1.1.0"
-    function-bind: "npm:^1.1.2"
-    globalthis: "npm:^1.0.3"
-    has-property-descriptors: "npm:^1.0.1"
-    set-function-name: "npm:^2.0.1"
-  checksum: 10c0/6d8e872f405843cc95ebd5e4e0784eb7a86228ba8c2c0161be483f1065c2146bb22ba22fccb5f42bb95bbe54f136ab00cb50d688b3fb1001bf21ef82e87993a8
   languageName: node
   linkType: hard
 
@@ -6672,10 +6762,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expect-type@npm:0.18.0":
-  version: 0.18.0
-  resolution: "expect-type@npm:0.18.0"
-  checksum: 10c0/c0bd8a894de57da9e6a8fde7df5b9f363a6232c2e2df375b72cf01d4318cc4161d30d1ae82fa575cad3fd96276e0642f7065cd6b44c08f270d660fab78db6d8a
+"expect-type@npm:0.19.0":
+  version: 0.19.0
+  resolution: "expect-type@npm:0.19.0"
+  checksum: 10c0/0a7305021c3e37bf024ce01f0a141de109435ac4225457c35fbd649a0d8cdc19b9078185fd9aaa9ebb136a88c5065d27a60883ab0f961ddc281c11851ed18097
   languageName: node
   linkType: hard
 
@@ -7787,7 +7877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:3.2.3":
+"ibm_db@npm:^3.2.3":
   version: 3.2.3
   resolution: "ibm_db@npm:3.2.3"
   dependencies:
@@ -8655,13 +8745,6 @@ __metadata:
   bin:
     js-yaml: bin/js-yaml.js
   checksum: 10c0/6746baaaeac312c4db8e75fa22331d9a04cccb7792d126ed8ce6a0bbcfef0cedaddd0c5098fade53db067c09fe00aa1c957674b4765610a8b06a5a189e46433b
-  languageName: node
-  linkType: hard
-
-"jsbi@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "jsbi@npm:4.3.0"
-  checksum: 10c0/1817ac1b50ea3f4438bcd84cadc9aee7a8657829f65b55ea6f151f401dbbd3babedbfdd3e4f481bd7b5472abb7823efa640fd7e5eee7c30cea6431f7a8b74696
   languageName: node
   linkType: hard
 
@@ -9927,9 +10010,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mocha@npm:10.3.0":
-  version: 10.3.0
-  resolution: "mocha@npm:10.3.0"
+"mocha@npm:10.4.0":
+  version: 10.4.0
+  resolution: "mocha@npm:10.4.0"
   dependencies:
     ansi-colors: "npm:4.1.1"
     browser-stdout: "npm:1.3.1"
@@ -9954,7 +10037,7 @@ __metadata:
   bin:
     _mocha: bin/_mocha
     mocha: bin/mocha.js
-  checksum: 10c0/8dc93842468b2be5f820e5eb64208fb68ba3e5ee90cfe21a9f1d439f9ec031e8a8dc97f4d3206a376c9e05141cf689a812aedcf4545f71f69b3e9a51f312ec4a
+  checksum: 10c0/e572e9d8c164e98f64de7e9498608de042fd841c6a7441f456a5e216e9aed2299e2c568d9dc27f2be2de06521e6b2d1dd774ab58a243b1c7697d14aec2f0f7f7
   languageName: node
   linkType: hard
 
@@ -10022,9 +10105,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:3.9.2":
-  version: 3.9.2
-  resolution: "mysql2@npm:3.9.2"
+"mysql2@npm:3.9.3":
+  version: 3.9.3
+  resolution: "mysql2@npm:3.9.3"
   dependencies:
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
@@ -10034,7 +10117,7 @@ __metadata:
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/244f7282c64886991823e23f4ef4140943692201789b174e0fed7d50aeed4fc7579b29e848f3b24869a2f2247ee5b3669090122508138a9413c73bd3ca54618f
+  checksum: 10c0/eb5e932dcecf4a970d6a737767cb6d50572016faa20d92a1a35b11344332c3d6b36f45eff4a7577b022668372338d9727344861fb345a1554f491905b70e9faf
   languageName: node
   linkType: hard
 
@@ -10127,13 +10210,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-abort-controller@npm:^3.1.1":
-  version: 3.1.1
-  resolution: "node-abort-controller@npm:3.1.1"
-  checksum: 10c0/f7ad0e7a8e33809d4f3a0d1d65036a711c39e9d23e0319d80ebe076b9a3b4432b4d6b86a7fab65521de3f6872ffed36fc35d1327487c48eb88c517803403eda3
-  languageName: node
-  linkType: hard
-
 "node-addon-api@npm:^3.0.2":
   version: 3.2.1
   resolution: "node-addon-api@npm:3.2.1"
@@ -10180,9 +10256,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:10.0.1, node-gyp@npm:^10.0.0, node-gyp@npm:latest":
-  version: 10.0.1
-  resolution: "node-gyp@npm:10.0.1"
+"node-gyp@npm:10.1.0, node-gyp@npm:^10.0.0":
+  version: 10.1.0
+  resolution: "node-gyp@npm:10.1.0"
   dependencies:
     env-paths: "npm:^2.2.0"
     exponential-backoff: "npm:^3.1.1"
@@ -10196,7 +10272,7 @@ __metadata:
     which: "npm:^4.0.0"
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 10c0/abddfff7d873312e4ed4a5fb75ce893a5c4fb69e7fcb1dfa71c28a6b92a7f1ef6b62790dffb39181b5a82728ba8f2f32d229cf8cbe66769fe02cea7db4a555aa
+  checksum: 10c0/9cc821111ca244a01fb7f054db7523ab0a0cd837f665267eb962eb87695d71fb1e681f9e21464cc2fd7c05530dc4c81b810bca1a88f7d7186909b74477491a3c
   languageName: node
   linkType: hard
 
@@ -10217,6 +10293,26 @@ __metadata:
   bin:
     node-gyp: bin/node-gyp.js
   checksum: 10c0/80ef333b3a882eb6a2695a8e08f31d618f4533eff192864e4a3a16b67ff0abc9d8c1d5fac0395550ec699326b9248c5e2b3be178492f7f4d1ccf97d2cf948021
+  languageName: node
+  linkType: hard
+
+"node-gyp@npm:latest":
+  version: 10.0.1
+  resolution: "node-gyp@npm:10.0.1"
+  dependencies:
+    env-paths: "npm:^2.2.0"
+    exponential-backoff: "npm:^3.1.1"
+    glob: "npm:^10.3.10"
+    graceful-fs: "npm:^4.2.6"
+    make-fetch-happen: "npm:^13.0.0"
+    nopt: "npm:^7.0.0"
+    proc-log: "npm:^3.0.0"
+    semver: "npm:^7.3.5"
+    tar: "npm:^6.1.2"
+    which: "npm:^4.0.0"
+  bin:
+    node-gyp: bin/node-gyp.js
+  checksum: 10c0/abddfff7d873312e4ed4a5fb75ce893a5c4fb69e7fcb1dfa71c28a6b92a7f1ef6b62790dffb39181b5a82728ba8f2f32d229cf8cbe66769fe02cea7db4a555aa
   languageName: node
   linkType: hard
 
@@ -10510,21 +10606,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:18.1.2, nx@npm:>=17.1.2 < 19":
-  version: 18.1.2
-  resolution: "nx@npm:18.1.2"
+"nx@npm:18.1.3, nx@npm:>=17.1.2 < 19":
+  version: 18.1.3
+  resolution: "nx@npm:18.1.3"
   dependencies:
-    "@nrwl/tao": "npm:18.1.2"
-    "@nx/nx-darwin-arm64": "npm:18.1.2"
-    "@nx/nx-darwin-x64": "npm:18.1.2"
-    "@nx/nx-freebsd-x64": "npm:18.1.2"
-    "@nx/nx-linux-arm-gnueabihf": "npm:18.1.2"
-    "@nx/nx-linux-arm64-gnu": "npm:18.1.2"
-    "@nx/nx-linux-arm64-musl": "npm:18.1.2"
-    "@nx/nx-linux-x64-gnu": "npm:18.1.2"
-    "@nx/nx-linux-x64-musl": "npm:18.1.2"
-    "@nx/nx-win32-arm64-msvc": "npm:18.1.2"
-    "@nx/nx-win32-x64-msvc": "npm:18.1.2"
+    "@nrwl/tao": "npm:18.1.3"
+    "@nx/nx-darwin-arm64": "npm:18.1.3"
+    "@nx/nx-darwin-x64": "npm:18.1.3"
+    "@nx/nx-freebsd-x64": "npm:18.1.3"
+    "@nx/nx-linux-arm-gnueabihf": "npm:18.1.3"
+    "@nx/nx-linux-arm64-gnu": "npm:18.1.3"
+    "@nx/nx-linux-arm64-musl": "npm:18.1.3"
+    "@nx/nx-linux-x64-gnu": "npm:18.1.3"
+    "@nx/nx-linux-x64-musl": "npm:18.1.3"
+    "@nx/nx-win32-arm64-msvc": "npm:18.1.3"
+    "@nx/nx-win32-x64-msvc": "npm:18.1.3"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.0-rc.46"
     "@zkochan/js-yaml": "npm:0.0.6"
@@ -10590,7 +10686,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 10c0/e5137c0439dd42ce83d9085f66051de5cc62f2e7808dc491a0c85f25f6863ab77cc7091709b5c9b8a9f0a454c3c969881dca9474b29726a2e1b5cc7a5b7cf1c1
+  checksum: 10c0/ee16b3e346a6f270895c372a568375eba0499df491bbd098c578c6ef61b561fa479425aebe414c7569c1e0c3a9d6f4a3f281069a6990f9b1a6c6ed47baa833ed
   languageName: node
   linkType: hard
 
@@ -10727,7 +10823,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"odbc@npm:2.4.8":
+"odbc@npm:^2.4.8":
   version: 2.4.8
   resolution: "odbc@npm:2.4.8"
   dependencies:
@@ -11258,7 +11354,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-hstore@npm:^2.3.4":
+"pg-hstore@npm:2.3.4":
   version: 2.3.4
   resolution: "pg-hstore@npm:2.3.4"
   dependencies:
@@ -11432,17 +11528,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"postgres-array@npm:3.0.2, postgres-array@npm:~3.0.1":
+  version: 3.0.2
+  resolution: "postgres-array@npm:3.0.2"
+  checksum: 10c0/644aa071f67a66a59f641f8e623887d2b915bc102a32643e2aa8b54c11acd343c5ad97831ea444dd37bd4b921ba35add4aa2cb0c6b76700a8252c2324aeba5b4
+  languageName: node
+  linkType: hard
+
 "postgres-array@npm:~2.0.0":
   version: 2.0.0
   resolution: "postgres-array@npm:2.0.0"
   checksum: 10c0/cbd56207e4141d7fbf08c86f2aebf21fa7064943d3f808ec85f442ff94b48d891e7a144cc02665fb2de5dbcb9b8e3183a2ac749959e794b4a4cfd379d7a21d08
-  languageName: node
-  linkType: hard
-
-"postgres-array@npm:~3.0.1":
-  version: 3.0.2
-  resolution: "postgres-array@npm:3.0.2"
-  checksum: 10c0/644aa071f67a66a59f641f8e623887d2b915bc102a32643e2aa8b54c11acd343c5ad97831ea444dd37bd4b921ba35add4aa2cb0c6b76700a8252c2324aeba5b4
   languageName: node
   linkType: hard
 
@@ -11687,7 +11783,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.1.0, punycode@npm:^2.3.0":
+"punycode@npm:^2.1.0":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
@@ -12320,16 +12416,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:^6.0.0, semver@npm:^6.1.2, semver@npm:^6.3.0, semver@npm:^6.3.1":
-  version: 6.3.1
-  resolution: "semver@npm:6.3.1"
-  bin:
-    semver: bin/semver.js
-  checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
-  languageName: node
-  linkType: hard
-
-"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
+"semver@npm:7.6.0, semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
   version: 7.6.0
   resolution: "semver@npm:7.6.0"
   dependencies:
@@ -12337,6 +12424,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/fbfe717094ace0aa8d6332d7ef5ce727259815bd8d8815700853f4faf23aacbd7192522f0dc5af6df52ef4fa85a355ebd2f5d39f554bd028200d6cf481ab9b53
+  languageName: node
+  linkType: hard
+
+"semver@npm:^6.0.0, semver@npm:^6.1.2, semver@npm:^6.3.0, semver@npm:^6.3.1":
+  version: 6.3.1
+  resolution: "semver@npm:6.3.1"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
   languageName: node
   linkType: hard
 
@@ -12613,7 +12709,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:1.10.0":
+"snowflake-sdk@npm:^1.10.0":
   version: 1.10.0
   resolution: "snowflake-sdk@npm:1.10.0"
   dependencies:
@@ -12814,7 +12910,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sprintf-js@npm:^1.1.2, sprintf-js@npm:^1.1.3":
+"sprintf-js@npm:^1.1.3":
   version: 1.1.3
   resolution: "sprintf-js@npm:1.1.3"
   checksum: 10c0/09270dc4f30d479e666aee820eacd9e464215cdff53848b443964202bf4051490538e5dd1b42e1a65cf7296916ca17640aebf63dae9812749c7542ee5f288dec
@@ -12828,7 +12924,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sqlite3@npm:5.1.7":
+"sqlite3@npm:^5.1.7":
   version: 5.1.7
   resolution: "sqlite3@npm:5.1.7"
   dependencies:
@@ -13279,23 +13375,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:16.7.0":
-  version: 16.7.0
-  resolution: "tedious@npm:16.7.0"
+"tedious@npm:^18.1.0":
+  version: 18.1.0
+  resolution: "tedious@npm:18.1.0"
   dependencies:
     "@azure/identity": "npm:^3.4.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
-    "@js-joda/core": "npm:^5.5.3"
-    bl: "npm:^6.0.3"
-    es-aggregate-error: "npm:^1.0.9"
+    "@js-joda/core": "npm:^5.6.1"
+    "@types/node": "npm:>=18"
+    bl: "npm:^6.0.11"
     iconv-lite: "npm:^0.6.3"
     js-md4: "npm:^0.3.2"
-    jsbi: "npm:^4.3.0"
     native-duplexpair: "npm:^1.0.0"
-    node-abort-controller: "npm:^3.1.1"
-    punycode: "npm:^2.3.0"
-    sprintf-js: "npm:^1.1.2"
-  checksum: 10c0/fc925c993e35f2e55abffc862a5ef47adc2ac998b7ca3ad3fb7235dbfb998ab0977c9bb48b09071bbcab12e02059518c9ed9edc9a308cb9d22a88a1335c833d0
+    sprintf-js: "npm:^1.1.3"
+  checksum: 10c0/f9bda17d5d394885a757cffcfb51ce9b35e29ca58a85a03e0e73e03392e84f4a8e665f4d33498725ef24b3a0c519d331b6ca18971c6a5dbaed471f937634f225
   languageName: node
   linkType: hard
 
@@ -13653,6 +13746,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"type-fest@npm:^4.12.0":
+  version: 4.14.0
+  resolution: "type-fest@npm:4.14.0"
+  checksum: 10c0/97d03f8af58bf50b83016eb8178f19698ef930479e21fd4d4555ad4e3617d4aff0e4400f6ab2a350975f18fa6439e7248172f92dea9229cd5e9942a2daa48806
+  languageName: node
+  linkType: hard
+
 "typed-array-buffer@npm:^1.0.2":
   version: 1.0.2
   resolution: "typed-array-buffer@npm:1.0.2"
@@ -13766,43 +13866,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:5.3.3":
-  version: 5.3.3
-  resolution: "typescript@npm:5.3.3"
+"typescript@npm:5.4.3, typescript@npm:>=3 < 6, typescript@npm:^5.3.2":
+  version: 5.4.3
+  resolution: "typescript@npm:5.4.3"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/e33cef99d82573624fc0f854a2980322714986bc35b9cb4d1ce736ed182aeab78e2cb32b385efa493b2a976ef52c53e20d6c6918312353a91850e2b76f1ea44f
+  checksum: 10c0/22443a8760c3668e256c0b34b6b45c359ef6cecc10c42558806177a7d500ab1a7d7aac1f976d712e26989ddf6731d2fbdd3212b7c73290a45127c1c43ba2005a
   languageName: node
   linkType: hard
 
-"typescript@npm:>=3 < 6, typescript@npm:^5.3.2":
-  version: 5.4.2
-  resolution: "typescript@npm:5.4.2"
+"typescript@patch:typescript@npm%3A5.4.3#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>":
+  version: 5.4.3
+  resolution: "typescript@patch:typescript@npm%3A5.4.3#optional!builtin<compat/typescript>::version=5.4.3&hash=5adc0c"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 10c0/583ff68cafb0c076695f72d61df6feee71689568179fb0d3a4834dac343df6b6ed7cf7b6f6c801fa52d43cd1d324e2f2d8ae4497b09f9e6cfe3d80a6d6c9ca52
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>":
-  version: 5.3.3
-  resolution: "typescript@patch:typescript@npm%3A5.3.3#optional!builtin<compat/typescript>::version=5.3.3&hash=e012d7"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/1d0a5f4ce496c42caa9a30e659c467c5686eae15d54b027ee7866744952547f1be1262f2d40de911618c242b510029d51d43ff605dba8fb740ec85ca2d3f9500
-  languageName: node
-  linkType: hard
-
-"typescript@patch:typescript@npm%3A>=3 < 6#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^5.3.2#optional!builtin<compat/typescript>":
-  version: 5.4.2
-  resolution: "typescript@patch:typescript@npm%3A5.4.2#optional!builtin<compat/typescript>::version=5.4.2&hash=5adc0c"
-  bin:
-    tsc: bin/tsc
-    tsserver: bin/tsserver
-  checksum: 10c0/fcf6658073d07283910d9a0e04b1d5d0ebc822c04dbb7abdd74c3151c7aa92fcddbac7d799404e358197222006ccdc4c0db219d223d2ee4ccd9e2b01333b49be
+  checksum: 10c0/6e51f8b7e6ec55b897b9e56b67e864fe8f44e30f4a14357aad5dc0f7432db2f01efc0522df0b6c36d361c51f2dc3dcac5c832efd96a404cfabf884e915d38828
   languageName: node
   linkType: hard
 
@@ -14220,7 +14300,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wkx@npm:^0.5.0":
+"wkx@npm:0.5.0, wkx@npm:^0.5.0":
   version: 0.5.0
   resolution: "wkx@npm:0.5.0"
   dependencies:

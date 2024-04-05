@@ -562,6 +562,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           }
         }
 
+        assert(error.cause instanceof Error);
+
         switch (dialect) {
           case 'db2':
             expect(error.cause.message).to.contain(
@@ -643,6 +645,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.errors[0].value).to.equal('foo');
           }
         }
+
+        assert(error.cause instanceof Error);
 
         switch (dialect) {
           case 'db2':

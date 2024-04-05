@@ -1,4 +1,4 @@
-import type { QiBulkDeleteOptions } from './dialects/abstract/query-interface.types.js';
+import type { QiBulkDeleteOptions } from './abstract-dialect/query-interface.types.js';
 import type { NewHookable } from './hooks.js';
 
 /**

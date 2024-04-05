@@ -1,8 +1,8 @@
-import type { Dialect, Options } from '@sequelize/core';
+import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 
 const { env } = process;
 
-export const Config: Record<Dialect, Options> = {
+export const Config: Record<DialectName, Options<AbstractDialect>> = {
   mssql: {
     host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
     username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',

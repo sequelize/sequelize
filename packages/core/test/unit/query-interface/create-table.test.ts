@@ -71,15 +71,8 @@ describe('QueryInterface#createTable', () => {
   }
 
   it('supports sql.uuidV1 default values', async () => {
-    const localSequelize =
-      dialect.name === 'mysql'
-        ? createSequelizeInstance({
-            databaseVersion: '8.0.13',
-          })
-        : sequelize;
-    const stub = sinon.stub(localSequelize, 'queryRaw');
-
-    await localSequelize.queryInterface.createTable('table', {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    await sequelize.queryInterface.createTable('table', {
       id: {
         type: DataTypes.UUID,
         primaryKey: true,

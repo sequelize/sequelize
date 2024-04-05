@@ -1,6 +1,6 @@
 import type { Class } from 'type-fest';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
-import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import type { AbstractDialect } from '../abstract-dialect/index.js';
+import type { EscapeOptions } from '../abstract-dialect/query-generator-typescript.js';
 import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 import { JsonPath } from './json-path.js';

@@ -1,8 +1,8 @@
 import type {
   WhereAttributeHashValue,
   WhereOptions,
-} from '../dialects/abstract/where-sql-builder-types.js';
-import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
+} from '../abstract-dialect/where-sql-builder-types.js';
+import { PojoWhere } from '../abstract-dialect/where-sql-builder.js';
 import type { WhereOperators } from '../model.js';
 import type { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';

@@ -1,0 +1,53 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "Oracle Database Connector for Sequelize",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/oracle",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "../../build-packages.mjs oracle",
+    "test": "concurrently \"npm:test-*\"",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "commonjs",
+  "version": "0.0.0-development",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "@sequelize/utils": "workspace:*",
+    "@types/oracledb": "^6.3",
+    "dayjs": "^1.11.10",
+    "lodash": "4.17.21",
+    "oracledb": "6.0",
+    "semver": "7.6.0"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.14",
+    "@types/mocha": "10.0.6",
+    "@types/sinon": "17.0.3",
+    "chai": "4.4.1",
+    "mocha": "10.4.0",
+    "sinon": "17.0.1"
+  }
+}

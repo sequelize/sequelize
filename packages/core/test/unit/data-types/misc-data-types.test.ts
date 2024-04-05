@@ -1,6 +1,6 @@
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, JSON_NULL, SQL_NULL, ValidationErrorItem } from '@sequelize/core';
-import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import { createSequelizeInstance, expectsql, sequelize, typeTest } from '../../support';

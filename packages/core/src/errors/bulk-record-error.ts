@@ -1,9 +1,8 @@
 import type { Model } from '..';
-import type { ErrorOptions } from './base-error';
 import { BaseError } from './base-error';
 
 /**
- * Thrown when bulk operation fails, it represent per record level error.
+ * Thrown when bulk operation fails, it represents per record level error.
  * Used with AggregateError
  *
  * @param error Error for a given record/instance

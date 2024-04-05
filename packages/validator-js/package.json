@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/validator.js",
-  "version": "7.0.0-alpha.38",
+  "version": "7.0.0-alpha.39",
   "description": "Integration between validator.js and Sequelize",
   "funding": [
     {
@@ -50,6 +50,6 @@
     "@types/chai-as-promised": "7.1.8",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.1",
-    "mocha": "10.3.0"
+    "mocha": "10.4.0"
   }
 }

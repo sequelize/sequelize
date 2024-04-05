@@ -1,12 +1,11 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../../../tsconfig-preset.json",
   "compilerOptions": {
     "rootDir": ".",
-    "baseUrl": ".",
     "types": ["node", "mocha", "sinon", "chai", "sinon-chai", "chai-as-promised", "chai-datetime"],
     "noEmit": true,
     "exactOptionalPropertyTypes": false,
     "experimentalDecorators": true
   },
-  "include": ["./types/**/*", "./**/**/*.ts"]
+  "include": ["./**/*.ts"]
 }
