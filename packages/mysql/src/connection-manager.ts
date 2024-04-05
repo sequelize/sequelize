@@ -42,6 +42,8 @@ export interface MySqlConnectionOptions
     | 'decimalNumbers'
     | 'rowsAsArray'
     | 'Promise'
+    // We provide our own "url" implementation
+    | 'uri'
   > {}
 
 /**

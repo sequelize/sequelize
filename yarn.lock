@@ -2249,7 +2249,6 @@ __metadata:
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
-    pg-connection-string: "npm:^2.5.0"
     retry-as-promised: "npm:^7.0.3"
     rimraf: "npm:5.0.5"
     semver: "npm:^7.3.7"
@@ -11287,7 +11286,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-connection-string@npm:^2.5.0, pg-connection-string@npm:^2.6.4":
+"pg-connection-string@npm:^2.6.4":
   version: 2.6.4
   resolution: "pg-connection-string@npm:2.6.4"
   checksum: 10c0/0d0b617df0fc6507bf6a94bdcd56c7a305788a1402d69bff9773350947c8f525d6d8136128065370749a3325e99658ae40fbdcce620fb8e60126181f0591a6a6

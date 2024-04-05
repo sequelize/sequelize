@@ -4,8 +4,15 @@ import type {
   BindCollector,
   DialectSupports,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { PgModule, PostgresConnectionOptions } from './connection-manager.js';
@@ -58,28 +65,6 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<PostgresDialectOptions>({
   native: undefined,
   pgModule: undefined,
   standardConformingStrings: undefined,
-});
-
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<PostgresConnectionOptions>({
-  application_name: undefined,
-  binary: undefined,
-  client_encoding: undefined,
-  connectionString: undefined,
-  connectionTimeoutMillis: undefined,
-  database: undefined,
-  host: undefined,
-  idle_in_transaction_session_timeout: undefined,
-  keepAlive: undefined,
-  keepAliveInitialDelayMillis: undefined,
-  lock_timeout: undefined,
-  options: undefined,
-  password: undefined,
-  port: undefined,
-  query_timeout: undefined,
-  ssl: undefined,
-  statement_timeout: undefined,
-  stream: undefined,
-  user: undefined,
 });
 
 export class PostgresDialect extends AbstractDialect<
@@ -236,6 +221,21 @@ export class PostgresDialect extends AbstractDialect<
 
   getDefaultSchema() {
     return 'public';
+  }
+
+  parseConnectionUrl(url: string): PostgresConnectionOptions {
+    return parseCommonConnectionUrlOptions<PostgresConnectionOptions>({
+      url,
+      allowedProtocols: ['postgres', 'postgresql'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {

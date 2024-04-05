@@ -45,13 +45,14 @@ export interface PostgresConnection extends AbstractConnection, Pg.Client {
   _ending?: boolean;
 }
 
-export interface PostgresConnectionOptions extends Omit<ClientConfig, 'types'> {
+export interface PostgresConnectionOptions
+  extends Omit<ClientConfig, 'types' | 'connectionString'> {
   /**
    * !! DO NOT SET THIS TO TRUE !!
    * (unless you know what you're doing)
    * see [http://www.postgresql.org/message-id/flat/bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com#bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com]
    */
-  binary?: unknown;
+  binary?: boolean;
 
   /**
    * see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]
@@ -62,7 +63,7 @@ export interface PostgresConnectionOptions extends Omit<ClientConfig, 'types'> {
    * you can use "auto" to determine the right encoding from the
    * current locale in the client (LC_CTYPE environment variable on Unix systems)
    */
-  client_encoding?: unknown;
+  client_encoding?: string;
 
   /**
    * This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
@@ -73,7 +74,7 @@ export interface PostgresConnectionOptions extends Omit<ClientConfig, 'types'> {
    * Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
    * Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
    */
-  lock_timeout?: unknown;
+  lock_timeout?: number;
 }
 
 export class PostgresConnectionManager extends AbstractConnectionManager<

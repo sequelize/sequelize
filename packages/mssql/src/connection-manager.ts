@@ -14,9 +14,9 @@ import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import { isError, splitObject } from '@sequelize/utils';
 import * as Tedious from 'tedious';
 import { AsyncQueue } from './_internal/async-queue.js';
+import type { InlinedTediousOptions } from './_internal/connection-options.js';
+import { INLINED_OPTION_NAMES } from './_internal/connection-options.js';
 import { ASYNC_QUEUE } from './_internal/symbols.js';
-import type { InlinedTediousOptions } from './connection-manager.internal.js';
-import { INLINED_OPTION_NAMES } from './connection-manager.internal.js';
 import type { MsSqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mssql');
@@ -27,7 +27,7 @@ export interface MsSqlConnection extends AbstractConnection, Tedious.Connection 
   [ASYNC_QUEUE]: AsyncQueue;
 }
 
-export type MsSqlConnectionOptions = Omit<Tedious.ConnectionConfiguration, 'options'> &
+export type MsSqlConnectionOptions = Partial<Omit<Tedious.ConnectionConfiguration, 'options'>> &
   // We inline "options" with the other options, so we can allowlist them.
   InlinedTediousOptions;
 
@@ -47,7 +47,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
   async connect(connectionOptions: ConnectionOptions<MsSqlDialect>): Promise<MsSqlConnection> {
     const [inlinedOptions, regularOptions] = splitObject(connectionOptions, INLINED_OPTION_NAMES);
 
-    const tediousConfig: Tedious.ConnectionConfiguration = {
+    const tediousConfig: Partial<Tedious.ConnectionConfiguration> = {
       ...regularOptions,
       options: removeUndefined(inlinedOptions),
     };
@@ -59,7 +59,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
     try {
       return await new Promise((resolve, reject) => {
         const connection: MsSqlConnection = new this.#lib.Connection(
-          tediousConfig,
+          tediousConfig as Tedious.ConnectionConfiguration,
         ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {
           connection.connect();
