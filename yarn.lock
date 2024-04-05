@@ -2428,7 +2428,11 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
     lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
     sqlite3: "npm:^5.1.7"
   languageName: unknown
   linkType: soft
