@@ -112,6 +112,12 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
     this.queryInterface = new SqliteQueryInterface(this);
   }
 
+  parseConnectionUrl(): SqliteConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported in SQLite. Please use the "storage" option instead.',
+    );
+  }
+
   createBindCollector() {
     return createNamedParamBindCollector('$');
   }
@@ -119,10 +125,6 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
   getDefaultSchema(): string {
     // Our SQLite implementation doesn't support schemas
     return '';
-  }
-
-  static getDefaultPort() {
-    return 0;
   }
 
   static getSupportedOptions() {

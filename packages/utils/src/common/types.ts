@@ -82,6 +82,8 @@ export type JsonObject = { [key: string]: JsonValue };
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 
+export type PickByType<T, U> = { [K in keyof T as U extends T[K] ? K : never]: T[K] };
+
 export interface ReadonlyMapLike<K, V> {
   entries(): IterableIterator<Entry<K, V>>;
   get(key: K): V | undefined;

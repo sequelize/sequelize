@@ -1,11 +1,18 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { MySql2Module, MySqlConnectionOptions } from './connection-manager.js';
@@ -34,48 +41,6 @@ export interface MySqlDialectOptions {
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
   mysql2Module: undefined,
   showWarnings: undefined,
-});
-
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MySqlConnectionOptions>({
-  authPlugins: undefined,
-  authSwitchHandler: undefined,
-  charset: undefined,
-  charsetNumber: undefined,
-  compress: undefined,
-  connectAttributes: undefined,
-  connectTimeout: undefined,
-  connectionLimit: undefined,
-  database: undefined,
-  debug: undefined,
-  enableKeepAlive: undefined,
-  flags: undefined,
-  host: undefined,
-  idleTimeout: undefined,
-  infileStreamFactory: undefined,
-  insecureAuth: undefined,
-  isServer: undefined,
-  keepAliveInitialDelay: undefined,
-  localAddress: undefined,
-  maxIdle: undefined,
-  maxPreparedStatements: undefined,
-  multipleStatements: undefined,
-  nestTables: undefined,
-  password: undefined,
-  password1: undefined,
-  password2: undefined,
-  password3: undefined,
-  passwordSha1: undefined,
-  port: undefined,
-  queryFormat: undefined,
-  queueLimit: undefined,
-  socketPath: undefined,
-  ssl: undefined,
-  stream: undefined,
-  stringifyObjects: undefined,
-  trace: undefined,
-  uri: undefined,
-  user: undefined,
-  waitForConnections: undefined,
 });
 
 const numericOptions: SupportableNumericOptions = {
@@ -182,6 +147,21 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
 
   getDefaultSchema(): string {
     return (this.sequelize as Sequelize<MySqlDialect>).options.replication.write.database ?? '';
+  }
+
+  parseConnectionUrl(url: string): MySqlConnectionOptions {
+    return parseCommonConnectionUrlOptions<MySqlConnectionOptions>({
+      url,
+      allowedProtocols: ['mysql:'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {

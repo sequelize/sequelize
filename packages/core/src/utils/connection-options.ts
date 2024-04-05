@@ -1,12 +1,17 @@
-import { EMPTY_ARRAY, isString, parseSafeInteger } from '@sequelize/utils';
-import path from 'node:path';
-import { URL } from 'node:url';
-import type { ConnectionOptions as PgConnectionOptions } from 'pg-connection-string';
-import pgConnectionString from 'pg-connection-string';
+import type { PickByType } from '@sequelize/utils';
+import {
+  EMPTY_ARRAY,
+  inspect,
+  isString,
+  join,
+  parseBoolean,
+  parseFiniteNumber,
+  parseSafeInteger,
+  pojo,
+} from '@sequelize/utils';
 import type { AbstractDialect, ConnectionOptions } from '../abstract-dialect/dialect.js';
 import type { NormalizedReplicationOptions, RawConnectionOptions } from '../sequelize';
 import type { PersistedSequelizeOptions } from '../sequelize.internals.js';
-import { encodeHost } from './deprecations';
 
 export function normalizeReplicationConfig<Dialect extends AbstractDialect>(
   dialect: Dialect,
@@ -38,14 +43,14 @@ function normalizeRawConnectionOptions<Dialect extends AbstractDialect>(
   options: RawConnectionOptions<Dialect>,
 ): ConnectionOptions<Dialect> {
   if (isString(options)) {
-    return parseConnectionString(dialect, options);
+    return dialect.parseConnectionUrl(options);
   }
 
   const { url, ...remainingOptions } = options;
 
   if (url) {
     return {
-      ...parseConnectionString(dialect, url),
+      ...dialect.parseConnectionUrl(url),
       ...remainingOptions,
     };
   }
@@ -53,106 +58,129 @@ function normalizeRawConnectionOptions<Dialect extends AbstractDialect>(
   return remainingOptions;
 }
 
-/**
- * Parses a connection string into an Options object with connection properties
- *
- * @param dialect
- * @param connectionString string value in format schema://username:password@host:port/database
- */
-export function parseConnectionString<Dialect extends AbstractDialect>(
-  dialect: Dialect,
-  connectionString: string,
-): ConnectionOptions<Dialect> {
-  const options: ConnectionOptions<Dialect> = {};
+export function parseCommonConnectionUrlOptions<TConnectionOptions extends object>(options: {
+  url: URL | string;
 
-  // The following connectionStrings are not valid URLs, but they are supported by sqlite.
-  if (connectionString === 'sqlite://:memory:' || connectionString === 'sqlite::memory:') {
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.storage = ':memory:';
+  /**
+   * The list of protocols that the URL can use
+   */
+  allowedProtocols: readonly string[];
 
-    return options;
+  /**
+   * The name of the dialect-specific connection option to use for the hostname
+   */
+  hostname: keyof PickByType<TConnectionOptions, string>;
+
+  /**
+   * The name of the dialect-specific connection option to use for the port
+   */
+  port: keyof PickByType<TConnectionOptions, number>;
+
+  /**
+   * The name of the dialect-specific connection option to use for the database name
+   */
+  pathname: keyof PickByType<TConnectionOptions, string>;
+
+  /**
+   * The name of the dialect-specific connection option to use for the username
+   *
+   * If not provided, the username will be ignored
+   */
+  username?: keyof PickByType<TConnectionOptions, string>;
+
+  /**
+   * The name of the dialect-specific connection option to use for the password
+   *
+   * If not provided, the password will be ignored
+   */
+  password?: keyof PickByType<TConnectionOptions, string>;
+
+  /**
+   * The string options that can be set via the search parameters in the URL
+   */
+  stringSearchParams?: ReadonlyArray<keyof PickByType<TConnectionOptions, string>>;
+
+  /**
+   * The boolean options that can be set via the search parameters in the URL.
+   * Will be parsed as a boolean.
+   */
+  booleanSearchParams?: ReadonlyArray<keyof PickByType<TConnectionOptions, boolean>>;
+
+  /**
+   * The number options that can be set via the search parameters in the URL.
+   * Will be parsed as a JS number.
+   */
+  numberSearchParams?: ReadonlyArray<keyof PickByType<TConnectionOptions, number>>;
+}): TConnectionOptions {
+  const url: URL = isString(options.url) ? new URL(options.url) : options.url;
+
+  const assignTo = pojo<TConnectionOptions>();
+
+  if (!options.allowedProtocols.includes(url.protocol)) {
+    throw new Error(
+      `URL ${inspect(url.toString())} is not a valid connection URL. Expected the protocol to be one of ${options.allowedProtocols.map(inspect).join(', ')}, but it's ${inspect(url.protocol)}.`,
+    );
   }
 
-  const urlObject = new URL(connectionString);
-
-  if (urlObject.hostname != null) {
-    // TODO: rename options.host to options.hostname, as host can accept a port while hostname can't
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.host = decodeURIComponent(urlObject.hostname);
+  if (url.hostname) {
+    // @ts-expect-error -- the above typings ensure this is a string
+    assignTo[options.hostname] = decodeURIComponent(url.hostname);
   }
 
-  if (urlObject.pathname) {
-    // decode the URI component from urlObject.pathname value
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.database = decodeURIComponent(urlObject.pathname.replace(/^\//, ''));
+  if (url.port) {
+    // @ts-expect-error -- the above typings ensure this is a number
+    assignTo[options.port] = parseSafeInteger.orThrow(url.port);
   }
 
-  if (urlObject.port) {
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.port = parseSafeInteger.orThrow(urlObject.port);
+  if (url.pathname) {
+    // @ts-expect-error -- the above typings ensure this is a string
+    assignTo[options.pathname] = decodeURIComponent(url.pathname.replace(/^\//, ''));
   }
 
-  if (urlObject.username) {
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.user = decodeURIComponent(urlObject.username);
+  if (options.username && url.username) {
+    // @ts-expect-error -- the above typings ensure this is a string
+    assignTo[options.username] = decodeURIComponent(url.username);
   }
 
-  if (urlObject.password) {
-    // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-    options.password = decodeURIComponent(urlObject.password);
+  if (options.password && url.password) {
+    // @ts-expect-error -- the above typings ensure this is a string
+    assignTo[options.password] = decodeURIComponent(url.password);
   }
 
-  if (urlObject.searchParams) {
-    // Allow host query argument to override the url host.
-    // Enables specifying domain socket hosts which cannot be specified via the typical
-    // host part of a url.
-    // TODO: remove this workaround in Sequelize 8
-    if (urlObject.searchParams.has('host')) {
-      encodeHost();
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      options.host = decodeURIComponent(urlObject.searchParams.get('host')!);
-    }
+  const allSearchParams = new Set<string>([
+    ...(options.stringSearchParams ?? EMPTY_ARRAY),
+    ...(options.booleanSearchParams ?? EMPTY_ARRAY),
+    ...(options.numberSearchParams ?? EMPTY_ARRAY),
+  ]);
 
-    if (dialect.name === 'sqlite' && urlObject.pathname) {
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      const storagePath = path.join(options.host, urlObject.pathname);
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      delete options.host;
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      options.storage = path.resolve(options.storage || storagePath);
-    }
+  if (url.searchParams) {
+    for (const key of url.searchParams.keys()) {
+      if (!allSearchParams.has(key)) {
+        throw new Error(
+          `Option ${inspect(key)} cannot be set as a connection URL search parameter. Only the following options can be set: ${join(allSearchParams, ', ')}`,
+        );
+      }
 
-    for (const [key, value] of urlObject.searchParams.entries()) {
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      options[key] = value;
-    }
+      if (options.stringSearchParams?.includes(key as any)) {
+        // @ts-expect-error -- the above typings ensure this is a string
+        assignTo[key] = url.searchParams.get(key)!;
+      }
 
-    if (urlObject.searchParams.has('options')) {
       try {
-        const o = JSON.parse(urlObject.searchParams.get('options')!);
-        // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-        options.options = o;
-      } catch {
-        // Nothing to do, string is not a valid JSON
-        // and thus does not need any further processing
+        if (options.booleanSearchParams?.includes(key as any)) {
+          // @ts-expect-error -- the above typings ensure this is a boolean
+          assignTo[key] = parseBoolean.orThrow(url.searchParams.get(key));
+        }
+
+        if (options.numberSearchParams?.includes(key as any)) {
+          // @ts-expect-error -- the above typings ensure this is a number
+          assignTo[key] = parseFiniteNumber.orThrow(url.searchParams.get(key));
+        }
+      } catch (error) {
+        throw new Error(`Could not parse URL search parameter ${key}`, { cause: error });
       }
     }
   }
 
-  // For postgres, we can use this helper to load certs directly from the
-  // connection string.
-  if (dialect.name === 'postgres') {
-    const parseResult: Partial<PgConnectionOptions> = pgConnectionString.parse(connectionString);
-
-    delete parseResult.database;
-    delete parseResult.password;
-    delete parseResult.user;
-    delete parseResult.host;
-    delete parseResult.port;
-    delete parseResult.options; // we JSON.parse it
-
-    Object.assign(options, parseResult);
-  }
-
-  return options;
+  return assignTo;
 }

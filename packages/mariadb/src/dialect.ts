@@ -1,11 +1,18 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMariaDbDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { MariaDbConnectionOptions, MariaDbModule } from './connection-manager.js';
@@ -34,52 +41,6 @@ export interface MariaDbDialectOptions {
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbDialectOptions>({
   mariaDbModule: undefined,
   showWarnings: undefined,
-});
-
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbConnectionOptions>({
-  allowPublicKeyRetrieval: undefined,
-  arrayParenthesis: undefined,
-  autoJsonMap: undefined,
-  bulk: undefined,
-  cachingRsaPublicKey: undefined,
-  charset: undefined,
-  checkDuplicate: undefined,
-  checkNumberRange: undefined,
-  collation: undefined,
-  compress: undefined,
-  connectAttributes: undefined,
-  connectTimeout: undefined,
-  database: undefined,
-  debug: undefined,
-  debugCompress: undefined,
-  debugLen: undefined,
-  forceVersionCheck: undefined,
-  foundRows: undefined,
-  host: undefined,
-  infileStreamFactory: undefined,
-  initSql: undefined,
-  keepAliveDelay: undefined,
-  logPackets: undefined,
-  logParam: undefined,
-  logger: undefined,
-  maxAllowedPacket: undefined,
-  metaEnumerable: undefined,
-  multipleStatements: undefined,
-  password: undefined,
-  permitLocalInfile: undefined,
-  permitSetMultiParamEntries: undefined,
-  pipelining: undefined,
-  port: undefined,
-  prepareCacheLength: undefined,
-  rsaPublicKey: undefined,
-  sessionVariables: undefined,
-  socketPath: undefined,
-  socketTimeout: undefined,
-  ssl: undefined,
-  stream: undefined,
-  timeout: undefined,
-  trace: undefined,
-  user: undefined,
 });
 
 const numericOptions: SupportableNumericOptions = {
@@ -192,8 +153,19 @@ export class MariaDbDialect extends AbstractDialect<
     return (this.sequelize as Sequelize<MariaDbDialect>).options.replication.write.database ?? '';
   }
 
-  static getDefaultPort() {
-    return 3306;
+  parseConnectionUrl(url: string): MariaDbConnectionOptions {
+    return parseCommonConnectionUrlOptions<MariaDbConnectionOptions>({
+      url: new URL(url),
+      allowedProtocols: ['mariadb:'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {

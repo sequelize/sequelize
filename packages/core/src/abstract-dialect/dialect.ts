@@ -711,6 +711,8 @@ export abstract class AbstractDialect<
 
   abstract getDefaultSchema(): string;
 
+  abstract parseConnectionUrl(url: string): TConnectionOptions;
+
   static getSupportedOptions(): readonly string[] {
     throw new Error(
       `Dialect ${this.name} does not implement the static method getSupportedOptions.

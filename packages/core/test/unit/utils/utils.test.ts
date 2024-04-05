@@ -1,5 +1,4 @@
 import { DataTypes, sql } from '@sequelize/core';
-import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import {
@@ -135,42 +134,6 @@ describe('Utils', () => {
         'address.coordinates.latitude': 12.596_431_3,
       });
     });
-  });
-
-  describe('url', () => {
-    it('should return the correct options after parsed', () => {
-      if (dialectName === 'sqlite') {
-        return;
-      }
-
-      const options = parseConnectionString(
-        sequelize.dialect,
-        'postgresql://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss',
-      );
-
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.host).to.equal('104.129.90.48');
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.port).to.equal(4001);
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.database).to.equal('database ss');
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.user).to.equal('wpx ss');
-      // @ts-expect-error -- TODO: move url parsing to a dialect-specific function.
-      expect(options.password).to.equal('wpx ss');
-    });
-
-    // TODO: move url parsing to a dialect-specific function.
-    // Disabled for now: the strict validation will be handled by each dialect individually,
-    // as some of them use a URL like postgres://localhost/dbname,
-    // while other use odbc connection strings like
-    // DRIVER={iSeries Access ODBC Driver};SYSTEM=system;UID=user;PWD=password
-    //
-    // it('should throw when given an incorrect dialect', () => {
-    //   expect(() => {
-    //     parseConnectionString('test://localhost');
-    //   }).to.throw(Error, 'The protocol was set to "test", which is not a supported dialect.');
-    // });
   });
 
   describe('merge', () => {
