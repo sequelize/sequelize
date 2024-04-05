@@ -56,4 +56,14 @@ describe('migration:generate', () => {
       expect(asJson.path).to.match(/migrations\/[\d\-t]{19}-test-migration\.mjs/);
       await fs.access(asJson.path);
     });
+
+  oclifTest()
+    .stdout()
+    .command(['migration:generate', '--format=sql', '--no-interactive', '--json'])
+    .it('supports not specifying a name', async ctx => {
+      const asJson = JSON.parse(ctx.stdout);
+
+      expect(Object.keys(asJson)).to.deep.eq(['path']);
+      expect(asJson.path).to.match(/migrations\/[\d\-t]{19}-unnamed/);
+    });
 });
