@@ -21,6 +21,7 @@ export * from './map/map-view.js';
 export * from './map/multi-map.js';
 export * from './parallel-for-each.js';
 export * from './parsers/parse-bigint.js';
+export * from './parsers/parse-boolean.js';
 export * from './parsers/parse-finite-number.js';
 export * from './parsers/parse-safe-integer.js';
 export * from './pojo.js';

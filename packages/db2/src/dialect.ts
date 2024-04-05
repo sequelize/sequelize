@@ -124,6 +124,12 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     );
   }
 
+  parseConnectionUrl(): Db2ConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported by the Db2 dialect. Instead, please use the "odbcOptions" option.',
+    );
+  }
+
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
   }

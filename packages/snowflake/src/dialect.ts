@@ -133,16 +133,18 @@ export class SnowflakeDialect extends AbstractDialect<
     this.queryInterface = new SnowflakeQueryInterface(this);
   }
 
+  parseConnectionUrl(): SnowflakeConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported in Snowflake. Please use one of the other available connection options.',
+    );
+  }
+
   createBindCollector() {
     return createUnspecifiedOrderedBindCollector();
   }
 
   getDefaultSchema(): string {
     return 'PUBLIC';
-  }
-
-  static getDefaultPort() {
-    return 3306;
   }
 
   static getSupportedOptions() {
