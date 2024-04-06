@@ -112,6 +112,12 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     return '';
   }
 
+  parseConnectionUrl(): IBMiConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported by the Db2 dialect. Instead, please use the "odbcConnectionString" option.',
+    );
+  }
+
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
   }

@@ -50,3 +50,4 @@ export const splitObject = Pkg.splitObject;
 export const basicComparator = Pkg.basicComparator;
 export const SortDirection = Pkg.SortDirection;
 export const localizedStringComparator = Pkg.localizedStringComparator;
+export const parseBoolean = Pkg.parseBoolean;
