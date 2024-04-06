@@ -214,8 +214,14 @@ export function defaults(
 
 type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
+type NoNullishField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
+
 export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
+}
+
+export function removeNullish<T extends {}>(val: T): NoNullishField<T> {
+  return omitBy(val, v => v == null) as NoNullishField<T>;
 }
 
 export function getObjectFromMap<K extends PropertyKey, V>(

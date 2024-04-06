@@ -27,5 +27,16 @@ describe('[SQLITE Specific] ConnectionManager', () => {
       const connection = await sequelize.pool.acquire();
       expect(connection.filename).to.equal('');
     });
+
+    it('supports :memory: database', async () => {
+      const sequelize = new Sequelize({
+        dialect: SqliteDialect,
+        storage: ':memory:',
+        pool: { max: 1, idle: Infinity },
+      });
+
+      const connection = await sequelize.pool.acquire();
+      expect(connection.filename).to.equal(':memory:');
+    });
   });
 });
