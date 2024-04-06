@@ -46,5 +46,5 @@ function parseFiniteNumberInternal(value: string | bigint): number | null {
  */
 export const parseFiniteNumber: Parser<[value: string | bigint], number> = buildNullBasedParser(
   parseFiniteNumberInternal,
-  value => `Value ${inspect(value)} is not a valid finite number.`,
+  value => `Cannot convert ${inspect(value)} to a finite number.`,
 );
