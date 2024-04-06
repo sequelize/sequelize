@@ -43,5 +43,11 @@
     "lodash": "^4.17.21",
     "mysql2": "^3.9.3",
     "wkx": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.14",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "mocha": "10.4.0"
   }
 }

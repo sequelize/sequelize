@@ -2527,9 +2527,13 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mariadb: "npm:^3.3.0"
+    mocha: "npm:10.4.0"
     semver: "npm:^7.6.0"
     wkx: "npm:^0.5.0"
   languageName: unknown
@@ -2599,8 +2603,12 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.14"
+    "@types/mocha": "npm:10.0.6"
+    chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
+    mocha: "npm:10.4.0"
     mysql2: "npm:^3.9.3"
     wkx: "npm:^0.5.0"
   languageName: unknown
