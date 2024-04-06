@@ -21,7 +21,8 @@
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "mocha": "10.3.0",
-    "oclif": "4.6.3"
+    "oclif": "4.6.3",
+    "rimraf": "5.0.5"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -54,8 +55,8 @@
   },
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "rm -rf lib && tsc --project tsconfig.build.json",
-    "postpack": "rm -f oclif.manifest.json",
+    "build": "rimraf lib && tsc --project tsconfig.build.json",
+    "postpack": "rimraf oclif.manifest.json",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",
     "test": "concurrently \"npm:test-*\"",
