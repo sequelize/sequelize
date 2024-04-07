@@ -1,14 +1,21 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMariaDbDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { MariaDbModule } from './connection-manager.js';
+import type { MariaDbConnectionOptions, MariaDbModule } from './connection-manager.js';
 import { MariaDbConnectionManager } from './connection-manager.js';
 import { MariaDbQueryGenerator } from './query-generator.js';
 import { MariaDbQueryInterface } from './query-interface.js';
@@ -24,10 +31,16 @@ export interface MariaDbDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   mariaDbModule?: MariaDbModule;
+
+  /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MariaDbDialectOptions>({
   mariaDbModule: undefined,
+  showWarnings: undefined,
 });
 
 const numericOptions: SupportableNumericOptions = {
@@ -35,7 +48,10 @@ const numericOptions: SupportableNumericOptions = {
   unsigned: true,
 };
 
-export class MariaDbDialect extends AbstractDialect<MariaDbDialectOptions> {
+export class MariaDbDialect extends AbstractDialect<
+  MariaDbDialectOptions,
+  MariaDbConnectionOptions
+> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -134,14 +150,29 @@ export class MariaDbDialect extends AbstractDialect<MariaDbDialectOptions> {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
+    return (this.sequelize as Sequelize<MariaDbDialect>).options.replication.write.database ?? '';
   }
 
-  static getDefaultPort() {
-    return 3306;
+  parseConnectionUrl(url: string): MariaDbConnectionOptions {
+    return parseCommonConnectionUrlOptions<MariaDbConnectionOptions>({
+      url: new URL(url),
+      allowedProtocols: ['mariadb'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

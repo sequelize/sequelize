@@ -3,13 +3,20 @@ import { AbstractDialect } from '@sequelize/core';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { Sqlite3Module } from './connection-manager.js';
+import type { Sqlite3Module, SqliteConnectionOptions } from './connection-manager.js';
 import { SqliteConnectionManager } from './connection-manager.js';
 import { SqliteQueryGenerator } from './query-generator.js';
 import { SqliteQueryInterface } from './query-interface.js';
 import { SqliteQuery } from './query.js';
 
 export interface SqliteDialectOptions {
+  /**
+   * If set to false, SQLite will not enforce foreign keys.
+   *
+   * @default true
+   */
+  foreignKeys?: boolean;
+
   /**
    * The sqlite3 library to use.
    * If not provided, the sqlite3 npm library will be used.
@@ -21,12 +28,18 @@ export interface SqliteDialectOptions {
   sqlite3Module?: Sqlite3Module;
 }
 
-// This strange piece of code ensures that this array includes all keys of the above interface interface.
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SqliteDialectOptions>({
+  foreignKeys: undefined,
   sqlite3Module: undefined,
 });
 
-export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SqliteConnectionOptions>({
+  storage: undefined,
+  password: undefined,
+  mode: undefined,
+});
+
+export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     DEFAULT: false,
     'DEFAULT VALUES': true,
@@ -99,6 +112,12 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
     this.queryInterface = new SqliteQueryInterface(this);
   }
 
+  parseConnectionUrl(): SqliteConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported in SQLite. Please use the "storage" option instead.',
+    );
+  }
+
   createBindCollector() {
     return createNamedParamBindCollector('$');
   }
@@ -108,11 +127,11 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions> {
     return '';
   }
 
-  static getDefaultPort() {
-    return 0;
-  }
-
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions(): readonly string[] {
+    return CONNECTION_OPTION_NAMES;
   }
 }

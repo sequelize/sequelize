@@ -48,6 +48,14 @@ export type AllowReadonlyArray<T> = T | readonly T[];
 export type AllowPromise<T> = T | Promise<T>;
 
 /**
+ * Like {@link Partial}, but also allows undefined.
+ * Useful when "exactOptionalPropertyTypes" is enabled.
+ */
+export type PartialOrUndefined<T> = {
+  [P in keyof T]?: T[P] | undefined;
+};
+
+/**
  * Type helper for making certain fields of an object optional.
  */
 export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
@@ -73,6 +81,8 @@ export type JsonArray = JsonValue[];
 export type JsonObject = { [key: string]: JsonValue };
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
+export type PickByType<T, U> = { [K in keyof T as U extends T[K] ? K : never]: T[K] };
 
 export interface ReadonlyMapLike<K, V> {
   entries(): IterableIterator<Entry<K, V>>;

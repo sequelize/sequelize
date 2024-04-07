@@ -8,6 +8,7 @@ import type {
   ModelDefined,
 } from '@sequelize/core';
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 import { expectTypeOf } from 'expect-type';
 import type { SetOptional } from 'type-fest';
 
@@ -125,7 +126,7 @@ MyModel.update({}, { where: { str: 'bar' }, returning: ['str'] }).then(result =>
   expectTypeOf(result).toEqualTypeOf<[affectedCount: number, affectedRows: MyModel[]]>();
 });
 
-const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
+const sequelize = new Sequelize({ dialect: MySqlDialect });
 
 MyModel.init(
   {

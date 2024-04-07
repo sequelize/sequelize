@@ -1,14 +1,21 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { MySql2Module } from './connection-manager.js';
+import type { MySql2Module, MySqlConnectionOptions } from './connection-manager.js';
 import { MySqlConnectionManager } from './connection-manager.js';
 import { MySqlQueryGenerator } from './query-generator.js';
 import { MySqlQueryInterface } from './query-interface.js';
@@ -24,10 +31,16 @@ export interface MySqlDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   mysql2Module?: MySql2Module;
+
+  /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
   mysql2Module: undefined,
+  showWarnings: undefined,
 });
 
 const numericOptions: SupportableNumericOptions = {
@@ -35,7 +48,7 @@ const numericOptions: SupportableNumericOptions = {
   unsigned: true,
 };
 
-export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
+export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -133,14 +146,29 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions> {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
+    return (this.sequelize as Sequelize<MySqlDialect>).options.replication.write.database ?? '';
   }
 
-  static getDefaultPort() {
-    return 3306;
+  parseConnectionUrl(url: string): MySqlConnectionOptions {
+    return parseCommonConnectionUrlOptions<MySqlConnectionOptions>({
+      url,
+      allowedProtocols: ['mysql'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

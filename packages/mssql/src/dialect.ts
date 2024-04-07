@@ -1,10 +1,17 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMsSqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { TediousModule } from './connection-manager.js';
+import type { MsSqlConnectionOptions, TediousModule } from './connection-manager.js';
 import { MsSqlConnectionManager } from './connection-manager.js';
 import { MsSqlQueryGenerator } from './query-generator.js';
 import { MsSqlQueryInterface } from './query-interface.js';
@@ -26,7 +33,7 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
   tediousModule: undefined,
 });
 
-export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
+export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
@@ -143,11 +150,43 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions> {
     return 'dbo';
   }
 
-  static getDefaultPort() {
-    return 1433;
+  parseConnectionUrl(url: string): MsSqlConnectionOptions {
+    const urlObject = new URL(url);
+
+    const options: MsSqlConnectionOptions = parseCommonConnectionUrlOptions({
+      allowedProtocols: ['sqlserver'],
+      url: urlObject,
+      hostname: 'server',
+      port: 'port',
+      pathname: 'database',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
+
+    if (urlObject.username || urlObject.password) {
+      options.authentication = {
+        type: 'default',
+        options: {},
+      };
+
+      if (urlObject.username) {
+        options.authentication.options.userName = decodeURIComponent(urlObject.username);
+      }
+
+      if (urlObject.password) {
+        options.authentication.options.password = decodeURIComponent(urlObject.password);
+      }
+    }
+
+    return options;
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }
