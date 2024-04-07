@@ -1655,7 +1655,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/input@npm:^2.1.0":
+"@inquirer/input@npm:^2.1.1":
   version: 2.1.2
   resolution: "@inquirer/input@npm:2.1.2"
   dependencies:
@@ -1665,7 +1665,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^2.0.0":
+"@inquirer/select@npm:^2.2.1":
   version: 2.2.2
   resolution: "@inquirer/select@npm:2.2.2"
   dependencies:
@@ -2166,7 +2166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^3.21.0, @oclif/core@npm:^3.26.0":
+"@oclif/core@npm:^3.26.0":
   version: 3.26.0
   resolution: "@oclif/core@npm:3.26.0"
   dependencies:
@@ -2437,7 +2437,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.6.3"
+    oclif: "npm:4.7.6"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -11555,16 +11555,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.6.3":
-  version: 4.6.3
-  resolution: "oclif@npm:4.6.3"
+"oclif@npm:4.7.6":
+  version: 4.7.6
+  resolution: "oclif@npm:4.7.6"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.535.0"
     "@aws-sdk/client-s3": "npm:^3.535.0"
     "@inquirer/confirm": "npm:^3.0.0"
-    "@inquirer/input": "npm:^2.1.0"
-    "@inquirer/select": "npm:^2.0.0"
-    "@oclif/core": "npm:^3.21.0"
+    "@inquirer/input": "npm:^2.1.1"
+    "@inquirer/select": "npm:^2.2.1"
+    "@oclif/core": "npm:^3.26.0"
     "@oclif/plugin-help": "npm:^6.0.18"
     "@oclif/plugin-not-found": "npm:^3.0.14"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.14"
@@ -11580,11 +11580,11 @@ __metadata:
     lodash.template: "npm:^4.5.0"
     normalize-package-data: "npm:^3.0.3"
     semver: "npm:^7.6.0"
-    sort-package-json: "npm:^2.8.0"
+    sort-package-json: "npm:^2.10.0"
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/456a16128b7cbf805419931b1466b7209e6cb7dcad01ae57fe91f98444a81f8a07dfc125291646cefeab6b7c268c9dd57d4ce510d900a899d6faedb3dcf12d9c
+  checksum: 10c0/dd5931c50419d82186bad827ecae119ece180e677c5ab1b33bbfbfd85a89e5e5e49f5f42a94c81f323ffa7c3eecde03c2eefc3bd7eeef2deb0f0406fc47d8214
   languageName: node
   linkType: hard
 
@@ -13715,7 +13715,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sort-package-json@npm:^2.8.0":
+"sort-package-json@npm:^2.10.0":
   version: 2.10.0
   resolution: "sort-package-json@npm:2.10.0"
   dependencies:
