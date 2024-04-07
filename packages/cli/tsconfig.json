@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig-preset.json",
+  "compilerOptions": {
+    "outDir": "./lib",
+    "rootDir": "./src",
+    // https://github.com/oclif/core/issues/960
+    "exactOptionalPropertyTypes": false
+  },
+  "include": ["./src/**/*.ts"]
+}

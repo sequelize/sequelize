@@ -12,7 +12,6 @@ import {
   singularize,
   underscoredIf,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
 import { expect } from 'chai';
 import { allowDeprecationsInSuite, sequelize } from '../../support';
 
@@ -133,26 +132,6 @@ describe('Utils', () => {
         'address.coordinates.longitude': 55.677_962_7,
         'address.coordinates.latitude': 12.596_431_3,
       });
-    });
-  });
-
-  describe('url', () => {
-    it('should return the correct options after parsed', () => {
-      const options = parseConnectionString(
-        'postgresql://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss',
-      );
-      expect(options.dialect).to.equal('postgres');
-      expect(options.host).to.equal('104.129.90.48');
-      expect(options.port).to.equal('4001');
-      expect(options.database).to.equal('database ss');
-      expect(options.username).to.equal('wpx ss');
-      expect(options.password).to.equal('wpx ss');
-    });
-
-    it('should throw when given an incorrect dialect', () => {
-      expect(() => {
-        parseConnectionString('test://localhost');
-      }).to.throw(Error, 'The protocol was set to "test", which is not a supported dialect.');
     });
   });
 

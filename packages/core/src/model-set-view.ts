@@ -1,4 +1,4 @@
-import { SetView } from '@sequelize/utils';
+import { map, SetView } from '@sequelize/utils';
 import { inspect } from 'node:util';
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
@@ -29,6 +29,13 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
     }
 
     return model;
+  }
+
+  /**
+   * Returns the list of registered model names.
+   */
+  getNames(): Iterable<string> {
+    return map(this, model => model.modelDefinition.modelName);
   }
 
   hasByName(modelName: string): boolean {

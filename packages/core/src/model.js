@@ -860,6 +860,8 @@ ${associationOwner._getAssociationDebugList()}`);
       tableName.schema = options.schema;
     }
 
+    delete options.schema;
+
     let tableExists;
     if (options.force) {
       await this.drop({
@@ -930,7 +932,7 @@ ${associationOwner._getAssociationDebugList()}`);
           const references = currentAttribute.references;
           if (currentAttribute.references) {
             const schema = tableName.schema;
-            const database = this.sequelize.config.database;
+            const database = this.sequelize.options.replication.write.database;
             const foreignReferenceSchema = currentAttribute.references.table.schema;
             const foreignReferenceTableName =
               typeof references.table === 'object' ? references.table.tableName : references.table;
@@ -1956,7 +1958,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
-   * Find an entity that matches the query, or {@link Model.create} the entity if none is found
+   * Find an entity that matches the query, or {@link Model.create} the entity if none is found.
    * The successful result of the promise will be the tuple [instance, initialized].
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to

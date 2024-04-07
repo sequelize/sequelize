@@ -3,7 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { OdbcModule } from './connection-manager.js';
+import type { IBMiConnectionOptions, OdbcModule } from './connection-manager.js';
 import { IBMiConnectionManager } from './connection-manager.js';
 import { IBMiQueryGenerator } from './query-generator.js';
 import { IBMiQueryInterface } from './query-interface.js';
@@ -25,7 +25,17 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<IbmiDialectOptions>({
   odbcModule: undefined,
 });
 
-export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
+const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
+  connectionTimeout: undefined,
+  loginTimeout: undefined,
+  username: undefined,
+  system: undefined,
+  odbcConnectionString: undefined,
+  dataSourceName: undefined,
+  password: undefined,
+});
+
+export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
@@ -102,11 +112,17 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
     return '';
   }
 
-  static getDefaultPort() {
-    return 25_000;
+  parseConnectionUrl(): IBMiConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported by the Db2 dialect. Instead, please use the "odbcConnectionString" option.',
+    );
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

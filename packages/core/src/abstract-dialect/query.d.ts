@@ -1,7 +1,7 @@
 import type { IncludeOptions, Model, ModelStatic } from '../model';
 import type { QueryTypes } from '../query-types';
 import type { Sequelize } from '../sequelize';
-import type { Connection } from './connection-manager';
+import type { AbstractConnection } from './connection-manager';
 
 export interface AbstractQueryGroupJoinDataOptions {
   checkExisting: boolean;
@@ -63,7 +63,7 @@ export class AbstractQuery {
   /**
    * A Sequelize connection instance.
    */
-  connection: Connection;
+  connection: AbstractConnection;
 
   /**
    * If provided, returns the model instance.
@@ -82,7 +82,7 @@ export class AbstractQuery {
 
   options: AbstractQueryOptions;
 
-  constructor(connection: Connection, sequelize: Sequelize, options?: AbstractQueryOptions);
+  constructor(connection: AbstractConnection, sequelize: Sequelize, options?: AbstractQueryOptions);
 
   /**
    * Execute the passed sql query.

@@ -28,11 +28,6 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
-    // enable this as an error, or keep disabled (not warning)
-    'unicorn/no-unsafe-regex': 'off',
-    // conflicts with prettier
-    'unicorn/number-literal-case': 'off',
-
     // TODO: enable in follow-up PR. Requires the utils package.
     'no-restricted-syntax': 'off',
     'no-restricted-imports': 'off',
@@ -210,7 +205,13 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-  ignorePatterns: ['packages/*/lib/**/*', 'packages/*/types/**/*', '.typedoc-build'],
+  ignorePatterns: [
+    'packages/*/lib/**/*',
+    'packages/*/types/**/*',
+    'packages/**/skeletons/**/*',
+    '.typedoc-build',
+    'packages/cli/migrations/**/*',
+  ],
   env: {
     node: true,
     mocha: true,

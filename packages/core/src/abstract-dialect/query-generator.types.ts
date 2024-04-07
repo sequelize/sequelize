@@ -10,7 +10,7 @@ import type { TableName } from './query-interface.js';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
-export type TableOrModel = TableName | ModelStatic | ModelDefinition;
+export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateDatabaseQueryOptions {
@@ -181,7 +181,9 @@ export interface QuoteTableOptions extends IndexHintable {
   tableHints?: TableHints[] | undefined;
 }
 
-export interface BulkDeleteQueryOptions extends AddLimitOffsetOptions, Filterable {}
+export interface BulkDeleteQueryOptions<TAttributes = any>
+  extends AddLimitOffsetOptions,
+    Filterable<TAttributes> {}
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {
