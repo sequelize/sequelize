@@ -25,7 +25,7 @@ export class GenerateSeed extends SequelizeCommand<(typeof GenerateSeed)['flags'
   static examples = [
     `<%= config.bin %> <%= command.id %>`,
     `<%= config.bin %> <%= command.id %> --format=sql`,
-    `<%= config.bin %> <%= command.id %> --name="create users table"`,
+    `<%= config.bin %> <%= command.id %> --name="users table test data"`,
   ];
 
   async run(): Promise<{ path: string }> {
