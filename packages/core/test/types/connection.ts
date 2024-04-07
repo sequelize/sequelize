@@ -1,10 +1,9 @@
 import type { SyncOptions } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
-import { MySqlDialect } from '@sequelize/mysql';
 import { expectTypeOf } from 'expect-type';
 import { User } from './models/user';
 
-export const sequelize = new Sequelize({ dialect: MySqlDialect });
+export const sequelize = new Sequelize('uri');
 
 sequelize.afterBulkSync((options: SyncOptions) => {
   console.info('synced!');

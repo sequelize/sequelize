@@ -1,6 +1,7 @@
 import type { Options } from '@sequelize/core';
 import { ConnectionError, Sequelize } from '@sequelize/core';
 import { MsSqlDialect } from '@sequelize/mssql';
+import type { RequiredBy } from '@sequelize/utils';
 import { assert, expect } from 'chai';
 import sinon from 'sinon';
 import { Connection as TediousConnection } from 'tedious';
@@ -19,7 +20,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     return;
   }
 
-  let config: Options<MsSqlDialect>;
+  let config: RequiredBy<Options<MsSqlDialect>, 'dialectOptions'>;
   let instance: Sequelize<MsSqlDialect>;
   let Connection: Partial<TestConnection>;
 
@@ -33,25 +34,44 @@ describe('[MSSQL Specific] Connection Manager', () => {
     } as any;
 
     config = {
+      database: 'none',
       dialect: MsSqlDialect,
-      server: 'localhost',
-      authentication: {
-        type: 'default',
-        options: {
-          domain: 'TEST.COM',
-          userName: 'none',
-          password: 'none',
-        },
+      dialectOptions: {
+        domain: 'TEST.COM',
       },
+      host: 'localhost',
+      password: 'none',
       pool: {},
       port: 2433,
       tediousModule,
+      username: 'none',
     };
 
-    instance = new Sequelize<MsSqlDialect>(config);
+    instance = new Sequelize(config);
   });
 
-  it('connectionManager.connect() should reject if end was called and connect was not', async () => {
+  it('connectionManager._connect() does not delete `domain` from config.dialectOptions', async () => {
+    Connection = {
+      STATE: TediousConnection.prototype.STATE,
+      state: undefined,
+      once: (event, cb) => {
+        if (event === 'connect') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      },
+      removeListener: () => {},
+      on: () => {},
+    };
+
+    expect(config.dialectOptions.domain).to.equal('TEST.COM');
+    // @ts-expect-error -- protected method
+    await instance.dialect.connectionManager._connect(config);
+    expect(config.dialectOptions.domain).to.equal('TEST.COM');
+  });
+
+  it('connectionManager._connect() should reject if end was called and connect was not', async () => {
     Connection = {
       STATE: TediousConnection.prototype.STATE,
       state: undefined,
@@ -66,15 +86,19 @@ describe('[MSSQL Specific] Connection Manager', () => {
       on: () => {},
     };
 
-    const error = await expect(instance.dialect.connectionManager.connect(config)).to.be.rejected;
-
-    assert(error instanceof ConnectionError);
-    expect(error.name).to.equal('SequelizeConnectionError');
-    assert(error.cause instanceof Error);
-    expect(error.cause.message).to.equal('Connection was closed by remote server');
+    try {
+      // @ts-expect-error -- protected method
+      await instance.dialect.connectionManager._connect(config);
+      assert.fail('Expected an error to be thrown');
+    } catch (error) {
+      assert(error instanceof ConnectionError);
+      expect(error.name).to.equal('SequelizeConnectionError');
+      assert(error.cause instanceof Error);
+      expect(error.cause.message).to.equal('Connection was closed by remote server');
+    }
   });
 
-  it('connectionManager.connect() should call connect if state is initialized', async () => {
+  it('connectionManager._connect() should call connect if state is initialized', async () => {
     const connectStub = sinon.stub();
     Connection = {
       STATE: TediousConnection.prototype.STATE,
@@ -91,7 +115,8 @@ describe('[MSSQL Specific] Connection Manager', () => {
       on: () => {},
     };
 
-    await instance.dialect.connectionManager.connect(config);
+    // @ts-expect-error -- protected method
+    await instance.dialect.connectionManager._connect(config);
     expect(connectStub.called).to.equal(true);
   });
 });

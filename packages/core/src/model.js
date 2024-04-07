@@ -860,8 +860,6 @@ ${associationOwner._getAssociationDebugList()}`);
       tableName.schema = options.schema;
     }
 
-    delete options.schema;
-
     let tableExists;
     if (options.force) {
       await this.drop({
@@ -932,7 +930,7 @@ ${associationOwner._getAssociationDebugList()}`);
           const references = currentAttribute.references;
           if (currentAttribute.references) {
             const schema = tableName.schema;
-            const database = this.sequelize.options.replication.write.database;
+            const database = this.sequelize.config.database;
             const foreignReferenceSchema = currentAttribute.references.table.schema;
             const foreignReferenceTableName =
               typeof references.table === 'object' ? references.table.tableName : references.table;

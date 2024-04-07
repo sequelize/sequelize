@@ -3,7 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { IBMiConnectionOptions, OdbcModule } from './connection-manager.js';
+import type { OdbcModule } from './connection-manager.js';
 import { IBMiConnectionManager } from './connection-manager.js';
 import { IBMiQueryGenerator } from './query-generator.js';
 import { IBMiQueryInterface } from './query-interface.js';
@@ -25,17 +25,7 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<IbmiDialectOptions>({
   odbcModule: undefined,
 });
 
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
-  connectionTimeout: undefined,
-  loginTimeout: undefined,
-  username: undefined,
-  system: undefined,
-  odbcConnectionString: undefined,
-  dataSourceName: undefined,
-  password: undefined,
-});
-
-export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnectionOptions> {
+export class IBMiDialect extends AbstractDialect<IbmiDialectOptions> {
   static readonly supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
@@ -112,11 +102,11 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     return '';
   }
 
-  static getSupportedOptions() {
-    return DIALECT_OPTION_NAMES;
+  static getDefaultPort() {
+    return 25_000;
   }
 
-  static getSupportedConnectionOptions() {
-    return CONNECTION_OPTION_NAMES;
+  static getSupportedOptions() {
+    return DIALECT_OPTION_NAMES;
   }
 }

@@ -1,23 +1,21 @@
 'use strict';
 
 const range = require('lodash/range');
-const { expect } = require('chai');
+
+const chai = require('chai');
+
+const expect = chai.expect;
+const Support = require('../support');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const dayjs = require('dayjs');
 const sinon = require('sinon');
+
+const current = Support.sequelize;
 const assert = require('node:assert');
-const {
-  allowDeprecationsInSuite,
-  createSequelizeInstance,
-  createSingleTransactionalTestSequelizeInstance,
-  destroySequelizeAfterTest,
-  getTestDialect,
-  sequelize: current,
-} = require('../support');
 
-const dialectName = getTestDialect();
+const dialect = Support.getTestDialect();
 
-describe('HasMany', () => {
+describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Model.associations', () => {
     it('should store all assocations when associting to the same table multiple times', function () {
       const User = this.sequelize.define('User', {});
@@ -521,7 +519,9 @@ describe('HasMany', () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -626,7 +626,9 @@ describe('HasMany', () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -717,7 +719,9 @@ describe('HasMany', () => {
     describe('addAssociations', () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
           Article.hasMany(Label);
@@ -799,27 +803,26 @@ describe('HasMany', () => {
         expect(users).to.have.length(1000);
       });
     });
+    it('clears associations when passing null to the set-method with omitNull set to true', async function () {
+      this.sequelize.options.omitNull = true;
 
-    it('clears associations when passing null to the set-method with omitNull set to true', async () => {
-      const sequelize = createSequelizeInstance({
-        omitNull: true,
-      });
-
-      destroySequelizeAfterTest(sequelize);
-
-      const User = sequelize.define('User', { username: DataTypes.STRING });
-      const Task = sequelize.define('Task', { title: DataTypes.STRING });
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
       Task.hasMany(User);
 
-      await sequelize.sync({ force: true });
-      const user = await User.create({ username: 'foo' });
-      const task = await Task.create({ title: 'task' });
-      await task.setUsers([user]);
-      expect(await task.getUsers()).to.have.length(1);
+      try {
+        await this.sequelize.sync({ force: true });
+        const user = await User.create({ username: 'foo' });
+        const task = await Task.create({ title: 'task' });
+        await task.setUsers([user]);
+        expect(await task.getUsers()).to.have.length(1);
 
-      await task.setUsers(null);
-      expect(await task.getUsers()).to.have.length(0);
+        await task.setUsers(null);
+        expect(await task.getUsers()).to.have.length(0);
+      } finally {
+        this.sequelize.options.omitNull = false;
+      }
     });
 
     describe('createAssociations', () => {
@@ -858,7 +861,9 @@ describe('HasMany', () => {
 
       if (current.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
           const Article = sequelize.define('Article', { title: DataTypes.STRING });
           const Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -1114,7 +1119,7 @@ describe('HasMany', () => {
       });
 
       // NOTE: mssql does not support changing an autoincrement primary key
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+      if (!['mssql', 'db2', 'ibmi'].includes(dialect)) {
         it('can cascade updates', async function () {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });
@@ -1218,7 +1223,7 @@ describe('HasMany', () => {
   });
 
   describe('Association options', () => {
-    allowDeprecationsInSuite(['SEQUELIZE0005']);
+    Support.allowDeprecationsInSuite(['SEQUELIZE0005']);
 
     it('should setup underscored field with foreign keys when using underscored', function () {
       const User = this.sequelize.define(

@@ -1,7 +1,7 @@
-import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionRefusedError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import type { ConnectionParameters, NodeOdbcError, Connection as OdbcConnection } from 'odbc';
+import type { NodeOdbcError, Connection as OdbcConnection } from 'odbc';
 import * as Odbc from 'odbc';
 import type { IBMiDialect } from './dialect.js';
 
@@ -9,38 +9,9 @@ const debug = logger.debugContext('connection:ibmi');
 
 export type OdbcModule = typeof Odbc;
 
-export interface IBMiConnection extends AbstractConnection, OdbcConnection {
+export interface IBMiConnection extends Connection, OdbcConnection {
   // properties of ObdcConnection, but not declared in their typings
   connected: boolean;
-}
-
-export interface IBMiConnectionOptions extends Omit<ConnectionParameters, 'connectionString'> {
-  /**
-   * Any extra ODBC connection string parts to use.
-   *
-   * Will be prepended to the connection string parts produced by the other options.
-   */
-  odbcConnectionString?: string;
-
-  /**
-   * The ODBC "DSN" part of the connection string.
-   */
-  dataSourceName?: string;
-
-  /**
-   * The ODBC "UID" part of the connection string.
-   */
-  username?: string;
-
-  /**
-   * The ODBC "PWD" part of the connection string.
-   */
-  password?: string;
-
-  /**
-   * The ODBC "SYSTEM" part of the connection string.
-   */
-  system?: string;
 }
 
 export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect, IBMiConnection> {
@@ -51,14 +22,18 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
     this.#lib = this.dialect.options.odbcModule ?? Odbc;
   }
 
-  async connect(config: ConnectionOptions<IBMiDialect>): Promise<IBMiConnection> {
+  async connect(config: ConnectionOptions): Promise<IBMiConnection> {
+    // Combine passed connection options into a connection string
+    // config.port has no real meaning for this ODBC Driver
     const connectionKeywords = [];
-    if (config.odbcConnectionString) {
-      connectionKeywords.push(config.odbcConnectionString);
+    if (config.dialectOptions && config.dialectOptions.odbcConnectionString) {
+      connectionKeywords.push(config.dialectOptions.odbcConnectionString);
     }
 
-    if (config.dataSourceName) {
-      connectionKeywords.push(`DSN=${config.dataSourceName}`);
+    // 'database' doesn't make sense in this context, but it is mapped here to
+    // DSN, which is a close fit
+    if (config.database) {
+      connectionKeywords.push(`DSN=${config.database}`);
     }
 
     if (config.username) {
@@ -69,12 +44,8 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
       connectionKeywords.push(`PWD=${config.password}`);
     }
 
-    if (config.system) {
-      connectionKeywords.push(`SYSTEM=${config.system}`);
-    }
-
-    if (connectionKeywords.length === 0) {
-      throw new Error('No connection information provided.');
+    if (config.host) {
+      connectionKeywords.push(`SYSTEM=${config.host}`);
     }
 
     let connectionString: string = connectionKeywords.join(';');

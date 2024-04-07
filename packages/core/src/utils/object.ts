@@ -1,5 +1,5 @@
 import type { ReadonlyMapLike } from '@sequelize/utils';
-import { SetView, combinedIterator, map, pojo } from '@sequelize/utils';
+import { SetView, combinedIterator, map } from '@sequelize/utils';
 // @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
 import baseIsNative from 'lodash/_baseIsNative';
 import cloneDeepWith from 'lodash/cloneDeepWith';
@@ -258,30 +258,4 @@ export function getAllOwnEntries(
 ): IterableIterator<[key: string | symbol, value: unknown]> {
   // @ts-expect-error -- obj[key] is implicitly any
   return map(getAllOwnKeys(obj), key => [key, obj[key]]);
-}
-
-export function untypedMultiSplitObject<T extends Record<string, any>>(
-  obj: T,
-  groups: Record<string, readonly string[]>,
-): [groups: Record<string, Record<string, unknown>>, unseenKeys: Set<string>] {
-  const outputGroups: Record<string, Record<string, unknown>> = pojo();
-  const unseenKeys = new Set<string>(Object.keys(obj));
-
-  for (const groupName of Object.keys(groups)) {
-    const groupKeys = groups[groupName];
-
-    const groupValues: any = pojo();
-    outputGroups[groupName] = groupValues;
-
-    for (const key of groupKeys) {
-      if (obj[key] === undefined) {
-        continue;
-      }
-
-      groupValues[key] = obj[key];
-      unseenKeys.delete(key);
-    }
-  }
-
-  return [outputGroups, unseenKeys];
 }

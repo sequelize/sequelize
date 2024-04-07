@@ -115,7 +115,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       outputFragment = returnValues.outputFragment || '';
     }
 
-    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
+    if (
+      get(this, ['sequelize', 'options', 'dialectOptions', 'prependSearchPath']) ||
+      options.searchPath
+    ) {
       // Not currently supported with search path (requires output of multiple queries)
       bindParam = undefined;
     }
@@ -422,7 +425,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
 
-    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
+    if (
+      get(this, ['sequelize', 'options', 'dialectOptions', 'prependSearchPath']) ||
+      options.searchPath
+    ) {
       // Not currently supported with search path (requires output of multiple queries)
       options.bindParam = false;
     }

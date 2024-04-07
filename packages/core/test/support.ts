@@ -1,7 +1,6 @@
 import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
-import type { PostgresDialect } from '@sequelize/postgres';
-import { isNotString } from '@sequelize/utils';
+import { PostgresDialect } from '@sequelize/postgres';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -14,10 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
-import type { Class } from 'type-fest';
-import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
-
-export { getSqliteDatabasePath } from './config/config';
+import { Config } from './config/config';
 
 const expect = chai.expect;
 
@@ -126,39 +122,59 @@ export async function nextUnhandledRejection() {
   });
 }
 
-export function createSequelizeInstance<Dialect extends AbstractDialect = AbstractDialect>(
-  options?: Omit<Options<Dialect>, 'dialect'>,
-): Sequelize<Dialect> {
-  const dialectName = getTestDialect();
-  const config = CONFIG[dialectName];
+export function createSequelizeInstance(options: Options<AbstractDialect> = {}): Sequelize {
+  const dialect = getTestDialect();
 
-  const sequelizeOptions = defaults(options, config, {
+  const config = Config[dialect];
+
+  const sequelizeOptions = defaults(options, {
+    database: config.database,
+    username: config.username,
+    password: config.password,
+    host: options.host || config.host,
+    logging: process.env.SEQ_LOG ? console.debug : false,
+    port: options.port || process.env.SEQ_PORT || config.port,
+    pool: config.pool,
+    dialectOptions: options.dialectOptions || config.dialectOptions || {},
+    minifyAliases: options.minifyAliases || config.minifyAliases,
     // the test suite was written before CLS was turned on by default.
     disableClsTransactions: true,
   } as const);
 
-  if (dialectName === 'postgres') {
+  if (config.storage || config.storage === '') {
+    sequelizeOptions.storage = config.storage;
+  }
+
+  if (dialect === 'postgres') {
     const sequelizePostgresOptions: Options<PostgresDialect> = {
-      ...(sequelizeOptions as Options<PostgresDialect>),
+      ...sequelizeOptions,
+      dialect: PostgresDialect,
       native: process.env.DIALECT === 'postgres-native',
     };
 
-    return new Sequelize(sequelizePostgresOptions) as unknown as Sequelize<Dialect>;
+    return getSequelizeInstance(sequelizePostgresOptions);
   }
 
-  return new Sequelize<Dialect>(sequelizeOptions as Options<Dialect>);
+  return getSequelizeInstance(sequelizeOptions);
+}
+
+export function getConnectionOptionsWithoutPool() {
+  // Do not break existing config object - shallow clone before `delete config.pool`
+  const config = { ...Config[getTestDialect()] };
+  delete config.pool;
+
+  return config;
+}
+
+export function getSequelizeInstance(options?: Options<AbstractDialect>): Sequelize {
+  options ??= {};
+  options.dialect ||= getTestDialect();
+
+  return new Sequelize(options);
 }
 
 export function getSupportedDialects() {
   return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
-}
-
-export function getTestDialectClass(): Class<AbstractDialect> {
-  const dialectClass = CONFIG[getTestDialect()].dialect;
-
-  isNotString.assert(dialectClass);
-
-  return dialectClass;
 }
 
 export function getTestDialect(): DialectName {
@@ -190,7 +206,7 @@ export function getTestDialectTeaser(moduleName: string): string {
 }
 
 export function getPoolMax(): number {
-  return CONFIG[getTestDialect()].pool?.max ?? 1;
+  return Config[getTestDialect()].pool?.max ?? 1;
 }
 
 type ExpectationKey = 'default' | Permutations<DialectName, 4>;
@@ -501,7 +517,7 @@ export function minifySql(sql: string): string {
   );
 }
 
-export const sequelize = createSequelizeInstance<AbstractDialect>();
+export const sequelize = createSequelizeInstance();
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
   sequelizeInstance.removeAllModels();
@@ -595,22 +611,15 @@ export async function unlinkIfExists(filePath: string): Promise<void> {
   }
 }
 
-let isIntegrationTestSuite = false;
+const SQLITE_DATABASES_DIR = path.join(__dirname, 'sqlite-databases');
 
-export function setIsIntegrationTestSuite(value: boolean): void {
-  isIntegrationTestSuite = value;
+export function getSqliteDatabasePath(name: string): string {
+  return path.join(SQLITE_DATABASES_DIR, name);
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
 if (typeof after !== 'undefined') {
-  after('delete SQLite databases', async () => {
-    if (isIntegrationTestSuite) {
-      // all Sequelize instances must be closed to be able to delete the database files, including the default one.
-      // Closing is not possible in non-integration test suites,
-      // as _all_ connections must be mocked (even for sqlite, even though it's a file-based database).
-      await sequelize.close();
-    }
-
+  after(async () => {
     return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
   });
 }

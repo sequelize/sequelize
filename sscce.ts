@@ -1,6 +1,5 @@
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute } from '@sequelize/core/decorators-legacy';
-import { SqliteDialect } from '@sequelize/sqlite';
 import { expect } from 'chai';
 import { createSequelizeInstance } from './dev/sscce-helpers';
 
@@ -18,11 +17,7 @@ class User extends Model {
   declare birthday: Date;
 }
 
-const sequelize = createSequelizeInstance({
-  dialect: SqliteDialect,
-  benchmark: true,
-  models: [User],
-});
+const sequelize = createSequelizeInstance({ benchmark: true, models: [User] });
 
 (async () => {
   await sequelize.sync({ force: true });

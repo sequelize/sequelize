@@ -26,7 +26,7 @@ export class SnowflakeQuery extends AbstractQuery {
     this.sql = sql;
     const { connection, options } = this;
 
-    const showWarnings = this.sequelize.dialect.options.showWarnings || options.showWarnings;
+    const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
 
     const complete = this._logQuery(sql, debug, parameters);
 

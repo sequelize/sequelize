@@ -479,6 +479,7 @@ function addAttributeGetterAndSetters(model: ModelStatic) {
     const attributeName = attribute.attributeName;
 
     if (attributeName in TmpModel.prototype) {
+      // @ts-expect-error -- TODO: type sequelize.log
       model.sequelize.log(
         `Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
       );

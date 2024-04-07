@@ -1,21 +1,7 @@
 import type { PartialBy } from '@sequelize/utils';
-import {
-  SortDirection,
-  cloneDeepPlainValues,
-  freezeDeep,
-  inspect,
-  isNullish,
-  isString,
-  join,
-  localizedStringComparator,
-  map,
-  splitObject,
-} from '@sequelize/utils';
-import chalk from 'chalk';
+import { isNullish, isString } from '@sequelize/utils';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import semver from 'semver';
 import type {
-  Connection,
   CreateSchemaOptions,
   DataType,
   DataTypeClassOrInstance,
@@ -25,25 +11,18 @@ import type {
   ModelStatic,
   QiListSchemasOptions,
   QueryOptions,
-  RawConnectionOptions,
   SyncOptions,
   TruncateOptions,
 } from '.';
-import type {
-  AbstractConnection,
-  GetConnectionOptions,
-} from './abstract-dialect/connection-manager.js';
+import type { Connection, GetConnectionOptions } from './abstract-dialect/connection-manager.js';
 import { normalizeDataType, validateDataType } from './abstract-dialect/data-types-utils.js';
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
-import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
-import type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
-import { ReplicationPool } from './abstract-dialect/replication-pool.js';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
-import { ConnectionAcquireTimeoutError } from './errors/connection/connection-acquire-timeout-error.js';
 import {
   legacyBuildAddAnyHook,
   legacyBuildAddHook,
@@ -58,29 +37,23 @@ import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
-import {
-  EPHEMERAL_SEQUELIZE_OPTIONS,
-  PERSISTED_SEQUELIZE_OPTIONS,
-  importDialect,
-} from './sequelize.internals.js';
-import type { QueryRawOptions } from './sequelize.js';
-import { Sequelize } from './sequelize.js';
-import type { NormalizedOptions, Options } from './sequelize.types.js';
+import type {
+  ConnectionOptions,
+  NormalizedOptions,
+  Options,
+  QueryRawOptions,
+  Sequelize,
+} from './sequelize.js';
 import type { ManagedTransactionOptions, TransactionOptions } from './transaction.js';
 import {
   Transaction,
   TransactionNestMode,
-  TransactionType,
   assertTransactionIsCompatibleWithOptions,
   normalizeTransactionOptions,
 } from './transaction.js';
-import { getIntersection } from './utils/array.js';
-import { normalizeReplicationConfig } from './utils/connection-options.js';
-import * as Deprecations from './utils/deprecations.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
-import { removeUndefined, untypedMultiSplitObject } from './utils/object.js';
 
-export interface SequelizeHooks<Dialect extends AbstractDialect> extends ModelHooks {
+export interface SequelizeHooks extends ModelHooks {
   /**
    * A hook that is run at the start of {@link Sequelize#define} and {@link Model.init}
    */
@@ -94,17 +67,17 @@ export interface SequelizeHooks<Dialect extends AbstractDialect> extends ModelHo
   /**
    * A hook that is run before a connection is created
    */
-  beforeConnect(config: ConnectionOptions<Dialect>): AsyncHookReturn;
+  beforeConnect(config: ConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection is created
    */
-  afterConnect(connection: AbstractConnection, config: ConnectionOptions<Dialect>): AsyncHookReturn;
+  afterConnect(connection: Connection, config: ConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run before a connection is disconnected
    */
-  beforeDisconnect(connection: AbstractConnection): AsyncHookReturn;
+  beforeDisconnect(connection: Connection): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection is disconnected
@@ -126,15 +99,12 @@ export interface SequelizeHooks<Dialect extends AbstractDialect> extends ModelHo
   /**
    * A hook that is run before a connection to the pool
    */
-  beforePoolAcquire(options?: AcquireConnectionOptions): AsyncHookReturn;
+  beforePoolAcquire(options?: GetConnectionOptions): AsyncHookReturn;
 
   /**
    * A hook that is run after a connection to the pool
    */
-  afterPoolAcquire(
-    connection: AbstractConnection,
-    options?: AcquireConnectionOptions,
-  ): AsyncHookReturn;
+  afterPoolAcquire(connection: Connection, options?: GetConnectionOptions): AsyncHookReturn;
 }
 
 export interface StaticSequelizeHooks {
@@ -177,7 +147,7 @@ const staticSequelizeHooks = new HookHandlerBuilder<StaticSequelizeHooks>([
   'afterInit',
 ]);
 
-const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks<AbstractDialect>>([
+const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks>([
   'beforeQuery',
   'afterQuery',
   'beforeBulkSync',
@@ -194,7 +164,7 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks<AbstractDia
 ]);
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
-type SessionCallback<T> = (connection: AbstractConnection) => PromiseLike<T> | T;
+type SessionCallback<T> = (connection: Connection) => PromiseLike<T> | T;
 
 export const SUPPORTED_DIALECTS = Object.freeze([
   'mysql',
@@ -216,18 +186,8 @@ export const SUPPORTED_DIALECTS = Object.freeze([
  */
 export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   // created by the Sequelize subclass. Will eventually be migrated here.
-  readonly dialect: Dialect;
-  readonly options: NormalizedOptions<Dialect>;
-
-  /**
-   * The options that were used to create this Sequelize instance.
-   * These are an unmodified copy of the options passed to the constructor.
-   * They are not normalized or validated.
-   *
-   * Mostly available for cloning the Sequelize instance.
-   * For other uses, we recommend using {@link options} instead.
-   */
-  readonly rawOptions: Options<Dialect>;
+  abstract readonly dialect: Dialect;
+  declare readonly options: NormalizedOptions<Dialect>;
 
   static get hooks(): HookHandler<StaticSequelizeHooks> {
     return staticSequelizeHooks.getFor(this);
@@ -242,7 +202,7 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   static beforeInit = legacyBuildAddHook(staticSequelizeHooks, 'beforeInit');
   static afterInit = legacyBuildAddHook(staticSequelizeHooks, 'afterInit');
 
-  get hooks(): HookHandler<SequelizeHooks<Dialect>> {
+  get hooks(): HookHandler<SequelizeHooks> {
     return instanceSequelizeHooks.getFor(this);
   }
 
@@ -321,8 +281,7 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   beforeAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'beforeAssociate');
   afterAssociate = legacyBuildAddHook(instanceSequelizeHooks, 'afterAssociate');
 
-  readonly #transactionCls: AsyncLocalStorage<Transaction> | undefined;
-  #databaseVersion: string | undefined;
+  #transactionCls: AsyncLocalStorage<Transaction> | undefined;
 
   /**
    * The QueryInterface instance, dialect dependant.
@@ -338,170 +297,22 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
     return this.dialect.queryGenerator;
   }
 
-  get connectionManager(): never {
-    throw new Error(`Accessing the connection manager is unlikely to be necessary anymore.
-If you need to access the pool, you can access it directly through \`sequelize.pool\`.
-If you really need to access the connection manager, access it through \`sequelize.dialect.connectionManager\`.`);
+  get connectionManager(): Dialect['connectionManager'] {
+    return this.dialect.connectionManager;
+  }
+
+  private _setupTransactionCls() {
+    this.#transactionCls = new AsyncLocalStorage<Transaction>();
   }
 
   readonly #models = new Set<ModelStatic>();
   readonly models = new ModelSetView(this, this.#models);
-  #isClosed: boolean = false;
-  readonly pool: ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>;
 
   get modelManager(): never {
     throw new Error('Sequelize#modelManager was removed. Use Sequelize#models instead.');
   }
 
-  /**
-   * Instantiates sequelize.
-   *
-   * The options to connect to the database are specific to your dialect.
-   * Please refer to the documentation of your dialect on https://sequelize.org to learn about the options you can use.
-   *
-   * @param options The option bag.
-   * @example
-   * import { PostgresDialect } from '@sequelize/postgres';
-   *
-   * // with database, username, and password in the options object
-   * const sequelize = new Sequelize({ database, user, password, dialect: PostgresDialect });
-   *
-   * @example
-   * // with url
-   * import { MySqlDialect } from '@sequelize/mysql';
-   *
-   * const sequelize = new Sequelize({
-   *   dialect: MySqlDialect,
-   *   url: 'mysql://localhost:3306/database',
-   * })
-   *
-   * @example
-   * // option examples
-   * import { MsSqlDialect } from '@sequelize/mssql';
-   *
-   * const sequelize = new Sequelize('database', 'username', 'password', {
-   *   // the dialect of the database
-   *   // It is a Dialect class exported from the dialect package
-   *   dialect: MsSqlDialect,
-   *
-   *   // custom host;
-   *   host: 'my.server.tld',
-   *   // for postgres, you can also specify an absolute path to a directory
-   *   // containing a UNIX socket to connect over
-   *   // host: '/sockets/psql_sockets'.
-   *
-   *   // custom port;
-   *   port: 12345,
-   *
-   *   // disable logging or provide a custom logging function; default: console.log
-   *   logging: false,
-   *
-   *   // This option is specific to MySQL and MariaDB
-   *   socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *
-   *   // the storage engine for sqlite
-   *   // - default ':memory:'
-   *   storage: 'path/to/database.sqlite',
-   *
-   *   // disable inserting undefined values as NULL
-   *   // - default: false
-   *   omitNull: true,
-   *
-   *   // A flag that defines if connection should be over ssl or not
-   *   // Dialect-dependent, check the dialect documentation
-   *   ssl: true,
-   *
-   *   // Specify options, which are used when sequelize.define is called.
-   *   // The following example:
-   *   //   define: { timestamps: false }
-   *   // is basically the same as:
-   *   //   Model.init(attributes, { timestamps: false });
-   *   //   sequelize.define(name, attributes, { timestamps: false });
-   *   // so defining the timestamps for each model will be not necessary
-   *   define: {
-   *     underscored: false,
-   *     freezeTableName: false,
-   *     charset: 'utf8',
-   *     collate: 'utf8_general_ci'
-   *     timestamps: true
-   *   },
-   *
-   *   // similar for sync: you can define this to always force sync for models
-   *   sync: { force: true },
-   *
-   *   // pool configuration used to pool database connections
-   *   pool: {
-   *     max: 5,
-   *     idle: 30000,
-   *     acquire: 60000,
-   *   },
-   *
-   *   // isolation level of each transaction
-   *   // defaults to dialect default
-   *   isolationLevel: IsolationLevel.REPEATABLE_READ
-   * })
-   */
-  constructor(options: Options<Dialect>) {
-    if (arguments.length > 2) {
-      throw new Error(
-        'The Sequelize constructor no longer accepts multiple arguments. Please use an options object instead.',
-      );
-    }
-
-    if (isString(options)) {
-      throw new Error(`The Sequelize constructor no longer accepts a string as the first argument. Please use the "url" option instead.
-
-Example for Postgres:
-
-new Sequelize({
-  dialect: PostgresDialect,
-  url: 'postgres://user:pass@localhost/dbname',
-});`);
-    }
-
-    // @ts-expect-error -- sanity check
-    if (options.pool === false) {
-      throw new Error(
-        'Setting the "pool" option to "false" is not supported since Sequelize 4. To disable the pool, set the "pool"."max" option to 1.',
-      );
-    }
-
-    // @ts-expect-error -- sanity check
-    if (options.logging === true) {
-      throw new Error(
-        'The "logging" option must be set to a function or false, not true. If you want to log all queries, set it to `console.log`.',
-      );
-    }
-
-    // @ts-expect-error -- sanity check
-    if (options.operatorsAliases) {
-      throw new Error(
-        'String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases',
-      );
-    }
-
-    if ('dialectModulePath' in options) {
-      throw new Error(
-        'The "dialectModulePath" option has been removed, as it is not compatible with bundlers. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
-      );
-    }
-
-    if ('dialectModule' in options) {
-      throw new Error(
-        'The "dialectModule" option has been replaced with an equivalent option specific to your dialect. Please refer to the documentation of your dialect at https://sequelize.org to learn about the alternative.',
-      );
-    }
-
-    if ('typeValidation' in options) {
-      throw new Error(
-        'The typeValidation has been renamed to noTypeValidation, and is false by default',
-      );
-    }
-
-    if (!options.dialect) {
-      throw new Error('The "dialect" option must be explicitly supplied since Sequelize 4');
-    }
-
+  constructor() {
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
       const modelName = model.modelDefinition.modelName;
@@ -518,262 +329,6 @@ new Sequelize({
         this.#models.add(model);
       }
     });
-
-    Sequelize.hooks.runSync('beforeInit', options);
-
-    this.rawOptions = freezeDeep(cloneDeepPlainValues(options, true));
-
-    const DialectClass: typeof AbstractDialect = isString(options.dialect)
-      ? importDialect(options.dialect)
-      : (options.dialect as unknown as typeof AbstractDialect);
-
-    const nonUndefinedOptions = removeUndefined(options);
-
-    if (options.hooks) {
-      this.hooks.addListeners(options.hooks);
-    }
-
-    const [persistedSequelizeOptions, remainingOptions] = splitObject(
-      nonUndefinedOptions,
-      PERSISTED_SEQUELIZE_OPTIONS,
-    );
-
-    const dialectOptionNames = DialectClass.getSupportedOptions();
-    const connectionOptionNames = [...DialectClass.getSupportedConnectionOptions(), 'url'];
-    const allSequelizeOptionNames = [
-      ...PERSISTED_SEQUELIZE_OPTIONS,
-      // "url" is a special case. It's a connection option, but it's one that Sequelize accepts, instead of the dialect.
-      ...EPHEMERAL_SEQUELIZE_OPTIONS.filter(option => option !== 'url'),
-    ];
-
-    const allDialectOptionNames = [...dialectOptionNames, ...connectionOptionNames];
-
-    const conflictingOptions = getIntersection(allSequelizeOptionNames, allDialectOptionNames);
-    if (conflictingOptions.length > 0) {
-      throw new Error(
-        `The following options from ${DialectClass.name} conflict with built-in Sequelize options: ${join(
-          map(conflictingOptions, option => chalk.red(option)),
-          ', ',
-        )}.
-This is a bug in the dialect implementation itself, not in the user's code.
-Please rename these options to a name that is not already used by Sequelize.`,
-      );
-    }
-
-    const [{ dialectOptions, connectionOptions }, unseenKeys] = untypedMultiSplitObject(
-      remainingOptions,
-      {
-        dialectOptions: dialectOptionNames,
-        connectionOptions: connectionOptionNames,
-      },
-    );
-
-    for (const key of EPHEMERAL_SEQUELIZE_OPTIONS) {
-      unseenKeys.delete(key);
-    }
-
-    if (unseenKeys.size > 0) {
-      const caseInsensitiveEnComparator = localizedStringComparator('en', SortDirection.ASC, {
-        sensitivity: 'base',
-      });
-
-      throw new Error(
-        `The following options are not recognized by Sequelize nor ${DialectClass.name}: ${join(
-          map(unseenKeys, option => chalk.red(option)),
-          ', ',
-        )}.
-
-Sequelize accepts the following options: ${allSequelizeOptionNames
-          .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
-          .join(', ')}.
-
-${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${[
-          ...dialectOptionNames,
-        ]
-          .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
-          .join(', ')}.
-${DialectClass.name} options can be set at the root of the option bag, like Sequelize options.
-
-The following options can be used to configure the connection to the database: ${connectionOptionNames
-          .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
-          .join(', ')}.
-Connection options can be used at the root of the option bag, in the "replication" option, and can be modified by the "beforeConnect" hook.
-`,
-      );
-    }
-
-    // @ts-expect-error -- The Dialect class must respect this interface
-    this.dialect = new DialectClass(this, dialectOptions);
-
-    this.options = freezeDeep({
-      define: {},
-      query: {},
-      sync: {},
-      timezone: '+00:00',
-      keepDefaultTimezone: false,
-      logging: false,
-      omitNull: false,
-      // TODO [>7]: remove this option
-      quoteIdentifiers: true,
-      retry: {
-        max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
-      },
-      transactionType: TransactionType.DEFERRED,
-      isolationLevel: undefined,
-      noTypeValidation: false,
-      benchmark: false,
-      minifyAliases: false,
-      logQueryParameters: false,
-      disableClsTransactions: false,
-      defaultTransactionNestMode: TransactionNestMode.reuse,
-      defaultTimestampPrecision: 6,
-      nullJsonStringification: 'json',
-      ...persistedSequelizeOptions,
-      replication: normalizeReplicationConfig(
-        this.dialect,
-        connectionOptions as RawConnectionOptions<Dialect>,
-        options.replication,
-      ),
-    });
-
-    if (options.databaseVersion) {
-      this.setDatabaseVersion(options.databaseVersion);
-    }
-
-    if (!this.options.disableClsTransactions) {
-      this.#transactionCls = new AsyncLocalStorage<Transaction>();
-    }
-
-    //     if (this.options.define.hooks) {
-    //       throw new Error(`The "define" Sequelize option cannot be used to add hooks to all models. Please remove the "hooks" property from the "define" option you passed to the Sequelize constructor.
-    // Instead of using this option, you can listen to the same event on all models by adding the listener to the Sequelize instance itself, since all model hooks are forwarded to the Sequelize instance.`);
-    //     }
-
-    if (this.options.quoteIdentifiers === false) {
-      Deprecations.alwaysQuoteIdentifiers();
-    }
-
-    if (!this.dialect.supports.globalTimeZoneConfig && this.options.timezone !== '+00:00') {
-      throw new Error(
-        `Setting a custom timezone is not supported by ${this.dialect.name}, dates are always returned as UTC. Please remove the custom timezone option.`,
-      );
-    }
-
-    this.pool = new ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>({
-      pool: {
-        max: 5,
-        min: 0,
-        idle: 10_000,
-        acquire: 60_000,
-        evict: 1000,
-        maxUses: Infinity,
-        ...(options.pool ? removeUndefined(options.pool) : undefined),
-      },
-      connect: async (connectOptions: ConnectionOptions<Dialect>): Promise<Connection<Dialect>> => {
-        if (this.isClosed()) {
-          throw new Error(
-            'sequelize.close was called, new connections cannot be established. If you did not mean for the Sequelize instance to be closed permanently, prefer using sequelize.pool.destroyAllNow instead.',
-          );
-        }
-
-        const clonedConnectOptions = cloneDeepPlainValues(connectOptions, true);
-        await this.hooks.runAsync('beforeConnect', clonedConnectOptions);
-
-        const connection = await this.dialect.connectionManager.connect(clonedConnectOptions);
-        await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
-
-        if (!this.getDatabaseVersionIfExist()) {
-          await this.#initializeDatabaseVersion(connection);
-        }
-
-        return connection;
-      },
-      disconnect: async (connection: Connection<Dialect>): Promise<void> => {
-        await this.hooks.runAsync('beforeDisconnect', connection);
-        await this.dialect.connectionManager.disconnect(connection);
-        await this.hooks.runAsync('afterDisconnect', connection);
-      },
-      validate: (connection: Connection<Dialect>): boolean => {
-        if (options.pool?.validate) {
-          return options.pool.validate(connection);
-        }
-
-        return this.dialect.connectionManager.validate(connection);
-      },
-      beforeAcquire: async (acquireOptions: AcquireConnectionOptions): Promise<void> => {
-        return this.hooks.runAsync('beforePoolAcquire', acquireOptions);
-      },
-      afterAcquire: async (
-        connection: Connection<Dialect>,
-        acquireOptions: AcquireConnectionOptions,
-      ) => {
-        return this.hooks.runAsync('afterPoolAcquire', connection, acquireOptions);
-      },
-      timeoutErrorClass: ConnectionAcquireTimeoutError,
-      readConfig: this.options.replication.read,
-      writeConfig: this.options.replication.write,
-    });
-
-    if (options.models) {
-      this.addModels(options.models);
-    }
-
-    // TODO: remove this cast once sequelize-typescript and sequelize have been fully merged
-    Sequelize.hooks.runSync('afterInit', this as unknown as Sequelize);
-  }
-
-  #databaseVersionPromise: Promise<void> | null = null;
-  async #initializeDatabaseVersion(connection: Connection<Dialect>) {
-    if (this.#databaseVersion) {
-      return;
-    }
-
-    if (this.#databaseVersionPromise) {
-      await this.#databaseVersionPromise;
-
-      return;
-    }
-
-    this.#databaseVersionPromise = (async () => {
-      try {
-        const version = await this.fetchDatabaseVersion({
-          logging: false,
-          connection,
-        });
-
-        const parsedVersion = semver.coerce(version)?.version || version;
-
-        this.setDatabaseVersion(
-          semver.valid(parsedVersion) ? parsedVersion : this.dialect.minimumDatabaseVersion,
-        );
-      } finally {
-        this.#databaseVersionPromise = null;
-      }
-    })();
-
-    await this.#databaseVersionPromise;
-  }
-
-  /**
-   * Close all connections used by this sequelize instance, and free all references so the instance can be garbage collected.
-   *
-   * Normally this is done on process exit, so you only need to call this method if you are creating multiple instances, and want
-   * to garbage collect some of them.
-   *
-   * @returns
-   */
-  async close() {
-    this.#isClosed = true;
-
-    await this.pool.destroyAllNow();
-  }
-
-  isClosed() {
-    return this.#isClosed;
   }
 
   addModels(models: ModelStatic[]) {
@@ -818,7 +373,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Returns the transaction that is associated to the current asynchronous operation.
    * This method returns undefined if no transaction is active in the current asynchronous operation,
-   * or if the Sequelize "disableClsTransactions" option is true.
+   * or if {@link SequelizeCoreOptions.disableClsTransactions} is true.
    */
   getCurrentClsTransaction(): Transaction | undefined {
     return this.#transactionCls?.getStore();
@@ -842,7 +397,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * ```
    *
    * By default, Sequelize uses AsyncLocalStorage to automatically pass the transaction to all queries executed inside the callback (unless you already pass one or set the `transaction` option to null).
-   * This can be disabled by setting the Sequelize "disableClsTransactions" option to true. You will then need to pass transactions to your queries manually.
+   * This can be disabled by setting {@link SequelizeCoreOptions.disableClsTransactions} to true. You will then need to pass transactions to your queries manually.
    *
    * ```ts
    * const sequelize = new Sequelize({
@@ -956,7 +511,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * If you really want to use the manual solution, don't forget to commit or rollback your transaction once you are done with it.
    *
    * Transactions started by this method are not automatically passed to queries. You must pass the transaction object manually,
-   * even if the Sequelize "disableClsTransactions" option is false.
+   * even if {@link SequelizeCoreOptions.disableClsTransactions} is false.
    *
    * @example
    * ```ts
@@ -1075,15 +630,15 @@ Connection options can be used at the root of the option bag, in the "replicatio
       options = { type: 'write', ...optionsOrCallback };
     }
 
-    const connection = await this.pool.acquire(options as GetConnectionOptions);
+    const connection = await this.connectionManager.getConnection(options as GetConnectionOptions);
 
     try {
       return await callback(connection);
     } finally {
       if (options.destroyConnection) {
-        await this.pool.destroy(connection);
+        await this.connectionManager.destroyConnection(connection);
       } else {
-        this.pool.release(connection);
+        this.connectionManager.releaseConnection(connection);
       }
     }
   }
@@ -1138,39 +693,13 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * @returns current version of the dialect that is internally loaded
    */
   getDatabaseVersion(): string {
-    const databaseVersion = this.getDatabaseVersionIfExist();
-
-    if (databaseVersion == null) {
+    if (this.options.databaseVersion == null) {
       throw new Error(
         'The current database version is unknown. Please call `sequelize.authenticate()` first to fetch it, or manually configure it through options.',
       );
     }
 
-    return databaseVersion;
-  }
-
-  getDatabaseVersionIfExist(): string | null {
-    return this.#databaseVersion || null;
-  }
-
-  setDatabaseVersion(version: string) {
-    try {
-      if (semver.lt(version, this.dialect.minimumDatabaseVersion)) {
-        console.warn(
-          `Database ${this.dialect.name} version ${inspect(version)} is not supported. The minimum supported version is ${this.dialect.minimumDatabaseVersion}.`,
-        );
-
-        Deprecations.unsupportedEngine();
-      }
-    } catch (error) {
-      console.warn(
-        `Could not validate the database version, as it is not a valid semver version: ${version}.`,
-      );
-
-      console.warn(error);
-    }
-
-    this.#databaseVersion = version;
+    return this.options.databaseVersion;
   }
 
   /**

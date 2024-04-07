@@ -997,6 +997,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.UserSpecial.drop();
       });
 
+      it('should be able to list schemas', async function () {
+        const schemas = await this.sequelize.queryInterface.listSchemas();
+
+        const expectedSchemas = {
+          // "sequelize_test" is the default schema, which some dialects will not delete
+          mysql: ['sequelize_test', 'schema_test', 'special'],
+          mariadb: ['sequelize_test', 'schema_test', 'special'],
+          ibmi: ['sequelize_test', 'schema_test', 'special'],
+          mssql: ['schema_test', 'special'],
+          postgres: ['schema_test', 'special'],
+          db2: ['schema_test', 'special '],
+        };
+
+        expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
+      });
+
       it('should describeTable using the default schema settings', async function () {
         const UserPublic = this.sequelize.define('Public', {
           username: DataTypes.STRING,

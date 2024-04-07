@@ -569,7 +569,7 @@ describe('Model#update', () => {
     const title1 = 'title 1';
     const title2 = 'title 2';
 
-    const book1 = await Book.create({ id: 0, title: title1 });
+    const book1 = await Book.create({ id: 0, title: title1 }, { logging: console.log });
     expect(book1.id).to.equal(0);
     expect(book1.title).to.equal(title1);
 

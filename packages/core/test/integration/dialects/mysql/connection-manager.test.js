@@ -12,7 +12,7 @@ if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
-        flags: '',
+        dialectOptions: { flags: '' },
       });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
@@ -37,13 +37,13 @@ if (dialect === 'mysql') {
         keepDefaultTimezone: true,
         pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 },
       });
-      const pool = sequelize.pool;
+      const cm = sequelize.connectionManager;
 
       await sequelize.sync();
 
-      const connection = await pool.acquire();
-      expect(sequelize.dialect.connectionManager.validate(connection)).to.be.ok;
-      pool.release(connection);
+      const connection = await cm.getConnection();
+      expect(cm.validate(connection)).to.be.ok;
+      await cm.releaseConnection(connection);
     });
   });
 }

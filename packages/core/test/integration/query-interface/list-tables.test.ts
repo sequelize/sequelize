@@ -1,7 +1,4 @@
 import { DataTypes } from '@sequelize/core';
-import type { MsSqlDialect } from '@sequelize/mssql';
-import type { PostgresDialect } from '@sequelize/postgres';
-import type { SnowflakeDialect } from '@sequelize/snowflake';
 import { expect } from 'chai';
 import { createSequelizeInstance, sequelize } from '../support';
 
@@ -54,9 +51,7 @@ describe('QueryInterface#listTables', () => {
         await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await queryInterface.createDatabase('dummy_db');
 
-        const testSequelize = createSequelizeInstance<
-          PostgresDialect | MsSqlDialect | SnowflakeDialect
-        >({ database: 'dummy_db' });
+        const testSequelize = createSequelizeInstance({ database: 'dummy_db' });
         await testSequelize.queryInterface.createTable('my_test_table2', { id: DataTypes.INTEGER });
         await testSequelize.close();
 

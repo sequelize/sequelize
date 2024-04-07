@@ -1,24 +1,19 @@
-import type { AbstractDialect, ConnectionOptions, Options } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import type { SqliteDialect } from '@sequelize/sqlite';
 import { expect } from 'chai';
-import pick from 'lodash/pick';
 import sinon from 'sinon';
-import { CONFIG } from '../config/config';
 import {
-  sequelize as baseSequelize,
   beforeEach2,
   createSequelizeInstance,
   destroySequelizeAfterTest,
-  getSqliteDatabasePath,
+  getConnectionOptionsWithoutPool,
   getTestDialect,
   getTestDialectTeaser,
   setResetMode,
 } from './support';
 
-const dialectName = getTestDialect();
+const dialect = getTestDialect();
 describe(getTestDialectTeaser('Replication'), () => {
-  if (dialectName === 'ibmi') {
+  if (['sqlite', 'ibmi'].includes(dialect)) {
     return;
   }
 
@@ -26,42 +21,29 @@ describe(getTestDialectTeaser('Replication'), () => {
 
   describe('connection objects', () => {
     const deps = beforeEach2(async () => {
-      function getConnectionOptions(): ConnectionOptions<AbstractDialect> {
-        const out = pick(
-          CONFIG[getTestDialect()],
-          baseSequelize.dialect.getSupportedConnectionOptions(),
-        );
-
-        if (dialectName === 'sqlite') {
-          (out as Options<SqliteDialect>).storage = getSqliteDatabasePath('replication.db');
-        }
-
-        return out;
-      }
-
       const sandbox = sinon.createSandbox();
       const sequelize = createSequelizeInstance({
         replication: {
-          write: getConnectionOptions(),
-          read: [getConnectionOptions()],
+          write: getConnectionOptionsWithoutPool(),
+          read: [getConnectionOptionsWithoutPool()],
         },
       });
 
       destroySequelizeAfterTest(sequelize);
 
-      expect(sequelize.pool.write).to.be.ok;
-      expect(sequelize.pool.read).to.be.ok;
+      expect(sequelize.connectionManager.pool.write).to.be.ok;
+      expect(sequelize.connectionManager.pool.read).to.be.ok;
 
       const User = sequelize.define('User', {
         firstName: {
           type: DataTypes.STRING,
-          columnName: 'first_name',
+          field: 'first_name',
         },
       });
 
       await User.sync({ force: true });
-      const readSpy = sandbox.spy(sequelize.pool.read!, 'acquire');
-      const writeSpy = sandbox.spy(sequelize.pool.write, 'acquire');
+      const readSpy = sandbox.spy(sequelize.connectionManager.pool.read!, 'acquire');
+      const writeSpy = sandbox.spy(sequelize.connectionManager.pool.write, 'acquire');
 
       return {
         User,

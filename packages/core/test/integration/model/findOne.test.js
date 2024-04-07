@@ -53,67 +53,65 @@ describe('Model.findOne', () => {
         await t.rollback();
       });
 
-      it('supports concurrent transactions', async function () {
-        // Disabled in sqlite because it only supports one write transaction at a time
-        if (dialectName === 'sqlite') {
-          return;
-        }
+      // Disabled in sqlite because it only supports one connection at a time
+      if (dialectName !== 'sqlite') {
+        it('supports concurrent transactions', async function () {
+          this.timeout(90_000);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
+          const User = sequelize.define('User', { username: DataTypes.STRING });
+          const testAsync = async function () {
+            const t0 = await sequelize.startUnmanagedTransaction();
 
-        this.timeout(90_000);
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
-          this.sequelize,
-        );
-        const User = sequelize.define('User', { username: DataTypes.STRING });
-        const testAsync = async function () {
-          const t0 = await sequelize.startUnmanagedTransaction();
+            await User.create(
+              {
+                username: 'foo',
+              },
+              {
+                transaction: t0,
+              },
+            );
 
-          await User.create(
-            {
-              username: 'foo',
+            const users0 = await User.findAll({
+              where: {
+                username: 'foo',
+              },
+            });
+
+            expect(users0).to.have.length(0);
+
+            const users = await User.findAll({
+              where: {
+                username: 'foo',
+              },
+              transaction: t0,
+            });
+
+            expect(users).to.have.length(1);
+            const t = t0;
+
+            return t.rollback();
+          };
+
+          await User.sync({ force: true });
+          const tasks = [];
+          for (let i = 0; i < 1000; i++) {
+            tasks.push(testAsync);
+          }
+
+          await pMap(
+            tasks,
+            entry => {
+              return entry();
             },
             {
-              transaction: t0,
+              // Needs to be one less than ??? else the non transaction query won't ever get a connection
+              concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1,
             },
           );
-
-          const users0 = await User.findAll({
-            where: {
-              username: 'foo',
-            },
-          });
-
-          expect(users0).to.have.length(0);
-
-          const users = await User.findAll({
-            where: {
-              username: 'foo',
-            },
-            transaction: t0,
-          });
-
-          expect(users).to.have.length(1);
-          const t = t0;
-
-          return t.rollback();
-        };
-
-        await User.sync({ force: true });
-        const tasks = [];
-        for (let i = 0; i < 1000; i++) {
-          tasks.push(testAsync);
-        }
-
-        await pMap(
-          tasks,
-          entry => {
-            return entry();
-          },
-          {
-            // Needs to be one less than ??? else the non transaction query won't ever get a connection
-            concurrency: (sequelize.rawOptions.pool?.max || 5) - 1,
-          },
-        );
-      });
+        });
+      }
     }
 
     describe('general / basic function', () => {

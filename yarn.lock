@@ -2231,7 +2231,6 @@ __metadata:
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
     chai-datetime: "npm:1.8.0"
-    chalk: "npm:^4.1.2"
     dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
@@ -2404,7 +2403,6 @@ __metadata:
     mocha: "npm:10.4.0"
     pg: "npm:8.11.5"
     pg-hstore: "npm:2.3.4"
-    pg-types: "npm:^4.0.2"
     postgres-array: "npm:3.0.2"
     semver: "npm:7.6.0"
     wkx: "npm:0.5.0"
@@ -2423,7 +2421,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/sqlite@workspace:*, @sequelize/sqlite@workspace:packages/sqlite":
+"@sequelize/sqlite@workspace:packages/sqlite":
   version: 0.0.0-use.local
   resolution: "@sequelize/sqlite@workspace:packages/sqlite"
   dependencies:
@@ -2454,7 +2452,6 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
-    "@sequelize/sqlite": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
@@ -11346,7 +11343,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-types@npm:^4.0.1, pg-types@npm:^4.0.2":
+"pg-types@npm:^4.0.1":
   version: 4.0.2
   resolution: "pg-types@npm:4.0.2"
   dependencies:

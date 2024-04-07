@@ -1,4 +1,4 @@
-import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -20,24 +20,7 @@ const debug = logger.debugContext('connection:mariadb');
 
 export type MariaDbModule = typeof MariaDb;
 
-export interface MariaDbConnection extends AbstractConnection, MariaDb.Connection {}
-
-export interface MariaDbConnectionOptions
-  extends Omit<
-    MariaDb.ConnectionConfig,
-    | 'typeCast'
-    | 'timezone'
-    | 'insertIdAsNumber'
-    | 'metaAsArray'
-    | 'rowsAsArray'
-    | 'nestTables'
-    | 'dateStrings'
-    | 'namedPlaceholders'
-    | 'decimalAsNumber'
-    | 'bigIntAsNumber'
-    | 'supportBigNumbers'
-    | 'bigNumberStrings'
-  > {}
+export interface MariaDbConnection extends Connection, MariaDb.Connection {}
 
 /**
  * MariaDB Connection Manager
@@ -45,6 +28,8 @@ export interface MariaDbConnectionOptions
  * Get connections, validate and disconnect them.
  * AbstractConnectionManager pooling use it to handle MariaDB specific connections
  * Use https://github.com/MariaDB/mariadb-connector-nodejs to connect with MariaDB server
+ *
+ * @private
  */
 export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbDialect,
@@ -73,21 +58,28 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
    * Also set proper timezone once connection is connected.
    *
    * @param config
+   * @returns
+   * @private
    */
-  async connect(config: ConnectionOptions<MariaDbDialect>): Promise<MariaDbConnection> {
+  async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
     tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
 
     const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
-      foundRows: false,
-      ...config,
+      host: config.host,
+      port: config.port ? Number(config.port) : undefined,
+      user: config.username,
+      password: config.password,
+      database: config.database,
       timezone: tzOffset,
+      foundRows: false,
+      ...config.dialectOptions,
       typeCast: (field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction) =>
         this.#typeCast(field, next),
     });
 
-    if (!this.sequelize.options.keepDefaultTimezone) {
+    if (!this.sequelize.config.keepDefaultTimezone) {
       // set timezone for this connection
       if (connectionConfig.initSql) {
         if (!Array.isArray(connectionConfig.initSql)) {
@@ -102,7 +94,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
     try {
       const connection = await this.#lib.createConnection(connectionConfig);
-      this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
+      this.sequelize.options.databaseVersion = semver.coerce(connection.serverVersion())!.version;
 
       debug('connection acquired');
       connection.on('error', error => {
@@ -111,7 +103,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
           case 'ECONNRESET':
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
+            void this.pool.destroy(connection);
             break;
           default:
         }

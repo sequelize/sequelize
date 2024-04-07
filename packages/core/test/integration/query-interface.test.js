@@ -13,25 +13,24 @@ const dialect = Support.sequelize.dialect;
 
 describe('QueryInterface', () => {
   beforeEach(function () {
+    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  describe('dropAllSchema', () => {
-    if (!dialect.supports.schemas) {
-      return;
-    }
+  if (dialect.supports.schemas) {
+    describe('dropAllSchema', () => {
+      it('should drop all schema', async function () {
+        await this.queryInterface.dropAllSchemas({
+          skip: [this.sequelize.config.database],
+        });
+        const schemaNames = await this.queryInterface.listSchemas();
+        await this.queryInterface.createSchema('newSchema');
+        const newSchemaNames = await this.queryInterface.listSchemas();
 
-    it('should drop all schema', async function () {
-      await this.queryInterface.dropAllSchemas({
-        skip: [this.sequelize.options.replication.write.database],
+        expect(newSchemaNames).to.have.length(schemaNames.length + 1);
       });
-      const schemaNames = await this.queryInterface.listSchemas();
-      await this.queryInterface.createSchema('newSchema');
-      const newSchemaNames = await this.queryInterface.listSchemas();
-
-      expect(newSchemaNames).to.have.length(schemaNames.length + 1);
     });
-  });
+  }
 
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {

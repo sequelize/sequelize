@@ -271,11 +271,8 @@ export type DialectSupports = {
 type TypeParser = (...params: any[]) => unknown;
 
 declare const OptionType: unique symbol;
-declare const ConnectionOptionType: unique symbol;
 
 export type DialectOptions<Dialect extends AbstractDialect> = Dialect[typeof OptionType];
-export type ConnectionOptions<Dialect extends AbstractDialect> =
-  Dialect[typeof ConnectionOptionType];
 
 export type AbstractDialectParams<Options> = {
   dataTypeOverrides: Record<string, Class<AbstractDataType<any>>>;
@@ -293,12 +290,8 @@ export type AbstractDialectParams<Options> = {
   sequelize: Sequelize;
 };
 
-export abstract class AbstractDialect<
-  Options extends object = object,
-  TConnectionOptions extends object = object,
-> {
+export abstract class AbstractDialect<Options extends object = {}> {
   declare [OptionType]: Options;
-  declare [ConnectionOptionType]: TConnectionOptions;
 
   /**
    * List of features this dialect supports.
@@ -674,6 +667,11 @@ export abstract class AbstractDialect<
     return false;
   }
 
+  getDefaultPort(): number {
+    // @ts-expect-error -- untyped constructor
+    return this.constructor.getDefaultPort();
+  }
+
   /**
    * Used to register a base parser for a Database type.
    * Parsers are based on the Database Type, not the JS type.
@@ -711,26 +709,15 @@ export abstract class AbstractDialect<
 
   abstract getDefaultSchema(): string;
 
+  static getDefaultPort(): number {
+    throw new Error(`getDefaultPort not implemented in ${this.name}`);
+  }
+
   static getSupportedOptions(): readonly string[] {
     throw new Error(
       `Dialect ${this.name} does not implement the static method getSupportedOptions.
 It must return the list of option names that can be passed to the dialect constructor.`,
     );
-  }
-
-  static getSupportedConnectionOptions(): readonly string[] {
-    throw new Error(
-      `Dialect ${this.name} does not implement the static method getSupportedConnectionOptions.
-It must return the list of connection option names that will be passed to its ConnectionManager's getConnection.`,
-    );
-  }
-
-  getSupportedOptions(): readonly string[] {
-    return (this.constructor as typeof AbstractDialect).getSupportedOptions();
-  }
-
-  getSupportedConnectionOptions(): readonly string[] {
-    return (this.constructor as typeof AbstractDialect).getSupportedConnectionOptions();
   }
 }
 

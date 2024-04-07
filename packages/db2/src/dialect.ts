@@ -3,7 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { Db2ConnectionOptions, IbmDbModule } from './connection-manager.js';
+import type { IbmDbModule } from './connection-manager.js';
 import { Db2ConnectionManager } from './connection-manager.js';
 import { Db2QueryGenerator } from './query-generator.js';
 import { Db2QueryInterface } from './query-interface.js';
@@ -25,18 +25,7 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<Db2DialectOptions>({
   ibmDbModule: undefined,
 });
 
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<Db2ConnectionOptions>({
-  database: undefined,
-  hostname: undefined,
-  odbcOptions: undefined,
-  password: undefined,
-  port: undefined,
-  ssl: undefined,
-  sslServerCertificate: undefined,
-  username: undefined,
-});
-
-export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2ConnectionOptions> {
+export class Db2Dialect extends AbstractDialect<Db2DialectOptions> {
   static readonly supports = AbstractDialect.extendSupport({
     migrations: false,
     schemas: true,
@@ -119,16 +108,14 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
   }
 
   getDefaultSchema(): string {
-    return (
-      (this.sequelize as Sequelize<this>).options.replication.write.username?.toUpperCase() ?? ''
-    );
+    return this.sequelize.config.username.toUpperCase();
+  }
+
+  static getDefaultPort() {
+    return 3306;
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
-  }
-
-  static getSupportedConnectionOptions() {
-    return CONNECTION_OPTION_NAMES;
   }
 }

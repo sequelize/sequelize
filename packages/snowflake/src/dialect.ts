@@ -3,18 +3,13 @@ import { AbstractDialect } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { SnowflakeConnectionOptions, SnowflakeSdkModule } from './connection-manager.js';
+import type { SnowflakeSdkModule } from './connection-manager.js';
 import { SnowflakeConnectionManager } from './connection-manager.js';
 import { SnowflakeQueryGenerator } from './query-generator.js';
 import { SnowflakeQueryInterface } from './query-interface.js';
 import { SnowflakeQuery } from './query.js';
 
 export interface SnowflakeDialectOptions {
-  /**
-   * Show warnings if there are any when executing a query
-   */
-  showWarnings?: boolean | undefined;
-
   /**
    * The snowflake-sdk library to use.
    * If not provided, the snowflake-sdk npm library will be used.
@@ -27,33 +22,10 @@ export interface SnowflakeDialectOptions {
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeDialectOptions>({
-  showWarnings: undefined,
   snowflakeSdkModule: undefined,
 });
 
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptions>({
-  accessUrl: undefined,
-  account: undefined,
-  application: undefined,
-  authenticator: undefined,
-  clientSessionKeepAlive: undefined,
-  clientSessionKeepAliveHeartbeatFrequency: undefined,
-  database: undefined,
-  password: undefined,
-  privateKey: undefined,
-  privateKeyPass: undefined,
-  privateKeyPath: undefined,
-  role: undefined,
-  timeout: undefined,
-  token: undefined,
-  username: undefined,
-  warehouse: undefined,
-});
-
-export class SnowflakeDialect extends AbstractDialect<
-  SnowflakeDialectOptions,
-  SnowflakeConnectionOptions
-> {
+export class SnowflakeDialect extends AbstractDialect<SnowflakeDialectOptions> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -147,9 +119,5 @@ export class SnowflakeDialect extends AbstractDialect<
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
-  }
-
-  static getSupportedConnectionOptions(): readonly string[] {
-    return CONNECTION_OPTION_NAMES;
   }
 }

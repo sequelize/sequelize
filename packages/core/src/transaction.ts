@@ -2,7 +2,7 @@ import type { StrictRequiredBy } from '@sequelize/utils';
 import { EMPTY_OBJECT } from '@sequelize/utils';
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
-import type { AbstractConnection, ConstraintChecking, Logging, Sequelize } from './index.js';
+import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -34,7 +34,7 @@ export class Transaction {
   readonly parent: Transaction | null;
   readonly id: string;
   #finished: 'commit' | 'rollback' | undefined;
-  #connection: AbstractConnection | undefined;
+  #connection: Connection | undefined;
 
   /**
    * Creates a new transaction instance
@@ -69,7 +69,7 @@ export class Transaction {
     return this.#finished;
   }
 
-  getConnection(): AbstractConnection {
+  getConnection(): Connection {
     if (!this.#connection) {
       throw new Error('This transaction is not bound to a connection.');
     }
@@ -77,7 +77,7 @@ export class Transaction {
     return this.#connection;
   }
 
-  getConnectionIfExists(): AbstractConnection | undefined {
+  getConnectionIfExists(): Connection | undefined {
     return this.#connection;
   }
 
@@ -171,8 +171,9 @@ export class Transaction {
     if (this.parent) {
       connection = this.parent.#connection;
     } else {
-      connection = await this.sequelize.pool.acquire({
+      connection = await this.sequelize.connectionManager.getConnection({
         type: this.options.readOnly ? 'read' : 'write',
+        uuid: this.id,
       });
     }
 
@@ -243,7 +244,7 @@ export class Transaction {
       return;
     }
 
-    this.sequelize.pool.release(this.#connection);
+    this.sequelize.connectionManager.releaseConnection(this.#connection);
     this.#connection.uuid = undefined;
     this.#connection = undefined;
   }
@@ -266,7 +267,7 @@ export class Transaction {
     const connection = this.#connection;
     this.#connection = undefined;
 
-    await this.sequelize.pool.destroy(connection);
+    await this.sequelize.connectionManager.destroyConnection(connection);
   }
 
   /**

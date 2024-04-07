@@ -1,7 +1,6 @@
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
-import { MySqlDialect } from '@sequelize/mysql';
 
-const sequelize = new Sequelize({ dialect: MySqlDialect });
+const sequelize = new Sequelize('mysql://user:user@localhost:3306/mydb');
 
 /**
  * Test for isIn/notIn validation - should accept any[]

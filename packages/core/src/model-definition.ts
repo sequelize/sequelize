@@ -1,4 +1,4 @@
-import { MapView, SetView, cloneDeepPlainValues, pojo, some } from '@sequelize/utils';
+import { MapView, SetView, pojo, some } from '@sequelize/utils';
 import isPlainObject from 'lodash/isPlainObject';
 import omit from 'lodash/omit';
 import NodeUtil from 'node:util';
@@ -199,25 +199,26 @@ export class ModelDefinition<M extends Model = Model> {
 
     const globalOptions = this.#sequelize.options;
 
-    // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
     this.options = mergeModelOptions(
-      // default options
-      {
-        noPrimaryKey: false,
-        timestamps: true,
-        validate: {},
-        freezeTableName: false,
-        underscored: false,
-        paranoid: false,
-        schema: '',
-        schemaDelimiter: '',
-        defaultScope: {},
-        scopes: {},
-        name: {},
-        indexes: [],
-        ...cloneDeepPlainValues(globalOptions.define, true),
-      },
+      Object.assign(
+        // default options
+        {
+          noPrimaryKey: false,
+          timestamps: true,
+          validate: {},
+          freezeTableName: false,
+          underscored: false,
+          paranoid: false,
+          schema: '',
+          schemaDelimiter: '',
+          defaultScope: {},
+          scopes: {},
+          name: {},
+          indexes: [],
+        },
+        globalOptions.define as ModelOptions,
+      ),
       removeUndefined(modelOptions),
       true,
     ) as BuiltModelOptions;

@@ -1,11 +1,9 @@
 import type { ConnectionOptions, Fn, ModelStatic } from '@sequelize/core';
 import { Model, Op, QueryTypes, Sequelize } from '@sequelize/core';
-import { MySqlDialect } from '@sequelize/mysql';
 
 export const sequelize = new Sequelize({
-  dialect: MySqlDialect,
   hooks: {
-    afterConnect: (connection: unknown, config: ConnectionOptions<MySqlDialect>) => {
+    afterConnect: (connection: unknown, config: ConnectionOptions) => {
       // noop
     },
   },
@@ -53,7 +51,7 @@ sequelize.beforeCreate('test', () => {
 });
 
 sequelize
-  .addHook('beforeConnect', (config: ConnectionOptions<MySqlDialect>) => {
+  .addHook('beforeConnect', (config: ConnectionOptions) => {
     // noop
   })
   .addHook('beforeBulkSync', () => {

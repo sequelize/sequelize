@@ -8,7 +8,6 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
-import { MySqlDialect } from '@sequelize/mysql';
 import { expectTypeOf } from 'expect-type';
 
 class Project extends Model<InferAttributes<Project>> {
@@ -52,7 +51,7 @@ User.init(
     optionalArrayAttribute: DataTypes.ARRAY(DataTypes.STRING),
     optionalAttribute: DataTypes.INTEGER,
   },
-  { sequelize: new Sequelize({ dialect: MySqlDialect }) },
+  { sequelize: new Sequelize() },
 );
 
 type UserAttributes = Attributes<User>;

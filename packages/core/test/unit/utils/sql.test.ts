@@ -1,4 +1,3 @@
-import type { AbstractDialect } from '@sequelize/core';
 import { sql as sqlTag } from '@sequelize/core';
 import {
   injectReplacements,
@@ -241,10 +240,6 @@ SELECT * FROM users WHERE id = '\\' $id' OR id = $id`),
   });
 
   it('does not consider the token to be a bind parameter if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
-    if (!supportsNonStandardConformingStrings()) {
-      return;
-    }
-
     expectPerDialect(
       () =>
         mapBindParameters(
@@ -592,10 +587,6 @@ SELECT * FROM users WHERE id = '\\' :id' OR id = :id`),
   });
 
   it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
-    if (!supportsNonStandardConformingStrings()) {
-      return;
-    }
-
     const test = () =>
       injectReplacements(
         `SELECT * FROM users WHERE id = '\\' :id' OR id = :id`,
@@ -844,10 +835,6 @@ SELECT * FROM users WHERE id = '\\' ?' OR id = ?`),
   });
 
   it('does not consider the token to be a replacement if it is part of a string with a backslash escaped quote, in dialects that support standardConformingStrings = false', () => {
-    if (!supportsNonStandardConformingStrings()) {
-      return;
-    }
-
     const test = () =>
       injectReplacements(
         `SELECT * FROM users WHERE id = '\\' ?' OR id = ?`,
@@ -1005,15 +992,8 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
   });
 });
 
-function supportsNonStandardConformingStrings() {
-  return (sequelize.dialect.constructor as typeof AbstractDialect)
-    .getSupportedOptions()
-    .includes('standardConformingStrings');
-}
-
 function getNonStandardConfirmingStringDialect() {
   return createSequelizeInstance({
-    // @ts-expect-error -- postgres-specific option
     standardConformingStrings: false,
   }).dialect;
 }

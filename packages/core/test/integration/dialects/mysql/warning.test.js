@@ -1,18 +1,21 @@
 'use strict';
 
-const { expect } = require('chai');
+const chai = require('chai');
+
+const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
+
+const { Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
+const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Warning'), () => {
   // We can only test MySQL warnings when using MySQL.
   if (dialect === 'mysql') {
     describe('logging', () => {
       it('logs warnings when there are warnings', async () => {
-        const logger = sinon.fake();
+        const logger = sinon.spy(console, 'log');
         const sequelize = Support.createSingleTestSequelizeInstance({
           logging: logger,
           benchmark: false,
@@ -20,7 +23,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
         });
 
         const Model = sequelize.define('model', {
-          name: DataTypes.STRING(1),
+          name: Sequelize.DataTypes.STRING(1, true),
         });
 
         await sequelize.sync({ force: true });
@@ -33,6 +36,7 @@ describe(Support.getTestDialectTeaser('Warning'), () => {
 
         // last log is warning message
         expect(logger.args.at(-1)[0]).to.be.match(/^mysql warnings \(default\):.*/m);
+        logger.restore();
       });
     });
   }

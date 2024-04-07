@@ -1,6 +1,5 @@
 import type { CreateSchemaQueryOptions } from '@sequelize/core';
 import { DataTypes, QueryTypes, sql } from '@sequelize/core';
-import { basicComparator } from '@sequelize/utils';
 import { expect } from 'chai';
 import { spy } from 'sinon';
 import { sequelize } from '../support';
@@ -8,6 +7,9 @@ import { sequelize } from '../support';
 const { dialect } = sequelize;
 const testSchema = 'testSchema';
 const queryInterface = sequelize.queryInterface;
+
+// MySQL and MariaDB view databases and schemas as identical. Other databases consider them separate entities.
+const dialectsWithEqualDBsSchemas = ['mysql', 'mariadb'];
 
 describe('QueryInterface#{create,drop,list}Schema', () => {
   if (!dialect.supports.schemas) {
@@ -183,10 +185,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.listSchemas();
 
-    const expected = !dialect.supports.multiDatabases
-      ? [sequelize.dialect.getDefaultSchema(), testSchema]
+    const expected = dialectsWithEqualDBsSchemas.includes(dialect.name)
+      ? [sequelize.config.database, testSchema]
       : [testSchema];
-
-    expect(allSchemas.sort()).to.deep.eq(expected.sort(basicComparator()));
+    expect(allSchemas.sort()).to.deep.eq(expected.sort());
   });
 });

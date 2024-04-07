@@ -239,7 +239,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     it(`defaults nestMode to sequelize's defaultTransactionNestMode option`, async () => {
-      const customSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize, {
+      const customSequelize = await createSingleTransactionalTestSequelizeInstance({
         defaultTransactionNestMode: TransactionNestMode.savepoint,
       });
 
@@ -514,7 +514,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     // so this test is not necessary for that dialect.
     if (dialectName !== 'sqlite') {
       it('does not pollute the pool with broken connections if commit fails', async () => {
-        const initialPoolSize = sequelize.pool.size;
+        const initialPoolSize = sequelize.connectionManager.pool.size;
 
         stubs.push(
           sinon
@@ -527,7 +527,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(t.commit()).to.be.rejectedWith('Oh no, an error!');
 
         // connection should have been destroyed
-        expect(sequelize.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+        expect(sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
       });
     }
   });
@@ -543,7 +543,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     // so this test is not necessary for that dialect.
     if (dialectName !== 'sqlite') {
       it('does not pollute the pool with broken connections if the rollback fails', async () => {
-        const initialPoolSize = sequelize.pool.size;
+        const initialPoolSize = sequelize.connectionManager.pool.size;
 
         stubs.push(
           sinon
@@ -556,7 +556,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(t.rollback()).to.be.rejectedWith('Oh no, an error!');
 
         // connection should have been destroyed
-        expect(sequelize.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+        expect(sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
       });
     }
   });

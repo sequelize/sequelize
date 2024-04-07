@@ -1,58 +1,16 @@
-import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { Connection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   ConnectionError,
   ConnectionRefusedError,
 } from '@sequelize/core';
-import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { inspect } from '@sequelize/utils';
 import type { ConnStr } from 'ibm_db';
 import * as IbmDb from 'ibm_db';
+import assert from 'node:assert';
+import NodeUtil from 'node:util';
 import type { Db2Dialect } from './dialect.js';
 
-export interface Db2Connection extends AbstractConnection, IbmDb.Database {}
-
-export interface Db2ConnectionOptions {
-  /**
-   * ODBC "DATABASE" parameter
-   */
-  database?: string;
-
-  /**
-   * ODBC "HOSTNAME" parameter
-   */
-  hostname?: string;
-
-  /**
-   * Additional ODBC parameters. Used to build the connection string.
-   */
-  odbcOptions?: Record<string, string>;
-
-  /**
-   * ODBC "PWD" parameter
-   */
-  password?: string;
-
-  /**
-   * ODBC "PORT" parameter
-   */
-  port?: number | string;
-
-  /**
-   * Sets ODBC "Security" parameter to SSL
-   */
-  ssl?: boolean;
-
-  /**
-   * ODBC "SSLServerCertificate" parameter
-   */
-  sslServerCertificate?: string;
-
-  /**
-   * ODBC "UID" parameter
-   */
-  username?: string;
-}
+export interface Db2Connection extends Connection, IbmDb.Database {}
 
 export type IbmDbModule = typeof IbmDb;
 
@@ -62,6 +20,8 @@ export type IbmDbModule = typeof IbmDb;
  * Get connections, validate and disconnect them.
  * AbstractConnectionManager pooling use it to handle DB2 specific connections
  * Use https://github.com/ibmdb/node-ibm_db to connect with DB2 server
+ *
+ * @private
  */
 export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, Db2Connection> {
   readonly #lib: IbmDbModule;
@@ -72,53 +32,51 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
   }
 
   /**
-   * Connects to DB2 databases based on config.
+   * Connects with DB2 databases based on config.
    *
    * @param config
+   * @returns
+   * @private
    */
-  async connect(config: ConnectionOptions<Db2Dialect>): Promise<Db2Connection> {
-    const connectionConfig: Record<string, string> = removeUndefined({
+  async connect(config: ConnectionOptions): Promise<Db2Connection> {
+    const connectionConfig: ConnStr = {
+      // @ts-expect-error -- Bad typings
       DATABASE: config.database,
-      HOSTNAME: config.hostname,
-      PORT: config.port ? String(config.port) : '50000',
+      // @ts-expect-error -- Bad typings
+      HOSTNAME: config.host,
+      // @ts-expect-error -- Bad typings
+      PORT: config.port,
+      // @ts-expect-error -- Bad typings
       UID: config.username,
+      // @ts-expect-error -- Bad typings
       PWD: config.password,
-      SSLServerCertificate: config.sslServerCertificate,
-    });
+      ...(config.ssl ? { Security: 'SSL' } : undefined),
+      // TODO: pass this property through dialectOptions
+      // @ts-expect-error -- DB2 specific option that should not be at the top level
+      ...(config.sslcertificate ? { SSLServerCertificate: config.ssl } : undefined),
+      ...config.dialectOptions,
+    };
 
-    if (config.ssl) {
-      connectionConfig.Security = 'SSL';
-    }
+    try {
+      return await new Promise((resolve, reject) => {
+        const connection = new this.#lib.Database() as Db2Connection;
+        connection.open(connectionConfig, error => {
+          if (error) {
+            if (error.message && error.message.includes('SQL30081N')) {
+              return void reject(new ConnectionRefusedError(error));
+            }
 
-    if (config.odbcOptions) {
-      for (const optionName of Object.keys(config.odbcOptions)) {
-        if (connectionConfig[optionName]) {
-          throw new Error(
-            `Key ${inspect(optionName)} in "odbcOptions" was already set by a built-in option`,
-          );
-        }
-
-        connectionConfig[optionName] = config.odbcOptions[optionName];
-      }
-    }
-
-    // TODO: add relevant Database options to the connection options of this dialect
-    const connection: Db2Connection = new this.#lib.Database();
-
-    return new Promise((resolve, reject) => {
-      // ibm_db's typings for the OBDC connection string are missing many properties
-      connection.open(connectionConfig as unknown as ConnStr, error => {
-        if (error) {
-          if (error.message && error.message.includes('SQL30081N')) {
-            return void reject(new ConnectionRefusedError(error));
+            return void reject(new ConnectionError(error));
           }
 
-          return void reject(new ConnectionError(error));
-        }
-
-        return void resolve(connection);
+          return void resolve(connection);
+        });
       });
-    });
+    } catch (error) {
+      assert(error instanceof Error, `DB2 threw a non-error value: ${NodeUtil.inspect(error)}`);
+
+      throw new ConnectionError(error);
+    }
   }
 
   async disconnect(connection: Db2Connection) {

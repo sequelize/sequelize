@@ -6,7 +6,7 @@ import type {
   StrictRequiredBy,
 } from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
-import type { AbstractConnection } from './abstract-dialect/connection-manager.js';
+import type { Connection } from './abstract-dialect/connection-manager.js';
 import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
 import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
 import type {
@@ -40,7 +40,7 @@ export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: false | ((sql: string, timing?: number) => void) | undefined;
+  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
@@ -62,7 +62,7 @@ export interface Transactionable {
    * The transaction in which this query must be run.
    * Mutually exclusive with {@link Transactionable.connection}.
    *
-   * If the Sequelize disableClsTransactions option has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
+   * If {@link SequelizeCoreOptions.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
    * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
@@ -77,7 +77,7 @@ export interface Transactionable {
    * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
    * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
    */
-  connection?: AbstractConnection | null | undefined;
+  connection?: Connection | null | undefined;
 
   /**
    * Indicates if the query completes the transaction
