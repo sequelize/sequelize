@@ -2436,7 +2436,7 @@ __metadata:
     concurrently: "npm:8.2.2"
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
-    mocha: "npm:10.3.0"
+    mocha: "npm:10.4.0"
     oclif: "npm:4.6.3"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
@@ -10709,37 +10709,6 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: 10c0/46ea0f3ffa8bc6a5bc0c7081ffc3907777f0ed6516888d40a518c5111f8366d97d2678911ad1a6882bf592fa9de6c784fea32e1687bb94e1f4944170af48a5cf
-  languageName: node
-  linkType: hard
-
-"mocha@npm:10.3.0":
-  version: 10.3.0
-  resolution: "mocha@npm:10.3.0"
-  dependencies:
-    ansi-colors: "npm:4.1.1"
-    browser-stdout: "npm:1.3.1"
-    chokidar: "npm:3.5.3"
-    debug: "npm:4.3.4"
-    diff: "npm:5.0.0"
-    escape-string-regexp: "npm:4.0.0"
-    find-up: "npm:5.0.0"
-    glob: "npm:8.1.0"
-    he: "npm:1.2.0"
-    js-yaml: "npm:4.1.0"
-    log-symbols: "npm:4.1.0"
-    minimatch: "npm:5.0.1"
-    ms: "npm:2.1.3"
-    serialize-javascript: "npm:6.0.0"
-    strip-json-comments: "npm:3.1.1"
-    supports-color: "npm:8.1.1"
-    workerpool: "npm:6.2.1"
-    yargs: "npm:16.2.0"
-    yargs-parser: "npm:20.2.4"
-    yargs-unparser: "npm:2.0.0"
-  bin:
-    _mocha: bin/_mocha
-    mocha: bin/mocha.js
-  checksum: 10c0/8dc93842468b2be5f820e5eb64208fb68ba3e5ee90cfe21a9f1d439f9ec031e8a8dc97f4d3206a376c9e05141cf689a812aedcf4545f71f69b3e9a51f312ec4a
   languageName: node
   linkType: hard
 
