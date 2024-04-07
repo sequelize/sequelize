@@ -40,9 +40,9 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
-    "lodash": "4.17.21",
-    "mysql2": "3.9.3",
-    "wkx": "0.5.0"
+    "lodash": "^4.17.21",
+    "mysql2": "^3.9.3",
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",

@@ -41,11 +41,5 @@
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
     "odbc": "^2.4.8"
-  },
-  "devDependencies": {
-    "@types/chai": "4.3.14",
-    "@types/mocha": "10.0.6",
-    "chai": "4.4.1",
-    "mocha": "10.4.0"
   }
 }
