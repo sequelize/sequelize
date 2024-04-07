@@ -1,4 +1,4 @@
-/** @type {import('@sequelize/cli').MigrationFunction} */
+/** @type {import('@sequelize/cli').SeedFunction} */
 export async function up(queryInterface, sequelize) {
   /**
    * Add seed commands here.
@@ -11,7 +11,7 @@ export async function up(queryInterface, sequelize) {
    */
 }
 
-/** @type {import('@sequelize/cli').MigrationFunction} */
+/** @type {import('@sequelize/cli').SeedFunction} */
 export async function down(queryInterface, sequelize) {
   /**
    * Add commands to revert seed here.
