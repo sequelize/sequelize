@@ -12,6 +12,10 @@ const configSchema = z.object({
     .string()
     .default('/migrations')
     .transform(val => path.join(projectRoot, val)),
+  seedFolder: z
+    .string()
+    .default('/seeds')
+    .transform(val => path.join(projectRoot, val)),
 });
 
 export const config = configSchema.parse(result?.config || {});

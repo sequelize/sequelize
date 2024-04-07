@@ -246,7 +246,11 @@ We will then use the title of your PR as the message of the Squash Commit. It wi
 We use a simple conventional commits convention:
 
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
-- We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
+- We allow the following commit scopes (they're the list of packages and `types` for TypeScript-only changes):
+  - `core`
+  - `utils`
+  - `cli`
+  - `validator.js`
   - `postgres`
   - `mysql`
   - `mariadb`

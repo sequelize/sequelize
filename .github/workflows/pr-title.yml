@@ -28,6 +28,8 @@ jobs:
             docs
             meta
           scopes: |
+            cli
+            core
             db2
             ibmi
             mariadb
@@ -38,5 +40,7 @@ jobs:
             snowflake
             sqlite
             types
+            utils
+            validator.js
           ignoreLabels: |
             ignore-semantic-pull-request
