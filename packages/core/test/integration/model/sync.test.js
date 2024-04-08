@@ -126,8 +126,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
       const data = await testSync.describe();
       expect(data).to.have.ownProperty('age');
-      if (dialect === 'sqlite') {
-        // sqlite does not have a text type with a configurable max width. It uses TEXT which is unlimited.
+      if (dialect === 'sqlite3') {
+        // sqlite3 does not have a text type with a configurable max width. It uses TEXT which is unlimited.
         expect(data.age.type).to.have.string('TEXT');
       } else {
         expect(data.age.type).to.have.string('VAR'); // CHARACTER VARYING, VARCHAR(n)
@@ -603,9 +603,9 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(bFks[0].columnNames).to.deep.eq(['aId']);
   });
 
-  // TODO: sqlite's foreign_key_list pragma does not return the DEFERRABLE status of the column
+  // TODO: sqlite3's foreign_key_list pragma does not return the DEFERRABLE status of the column
   //  so sync({ alter: true }) cannot know whether the column must be updated.
-  //  so for now, deferrable constraints is disabled for sqlite (as it's only used in tests)
+  //  so for now, deferrable constraints is disabled for sqlite3 (as it's only used in tests)
   if (sequelize.dialect.supports.constraints.deferrable) {
     it('updates the deferrable property of a foreign key', async () => {
       const A = sequelize.define('A', {

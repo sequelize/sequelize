@@ -113,7 +113,7 @@ export async function createMultiTransactionalTestSequelizeInstance<
 
   const dialect = getTestDialect();
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);

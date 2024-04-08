@@ -11,7 +11,7 @@ const { SqliteDialect } = require('@sequelize/sqlite3');
 const dialect = Support.getTestDialect();
 
 describe('[SQLITE Specific] ConnectionManager', () => {
-  if (dialect !== 'sqlite') {
+  if (dialect !== 'sqlite3') {
     return;
   }
 

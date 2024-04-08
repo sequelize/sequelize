@@ -15,7 +15,7 @@ import type {
 import type { PoolOptions } from './sequelize.types.js';
 import type { IsolationLevel, TransactionNestMode, TransactionType } from './transaction.js';
 
-export function importDialect(dialect: DialectName): typeof AbstractDialect {
+export function importDialect(dialect: string): typeof AbstractDialect {
   // Requiring the dialect in a switch-case to keep the
   // require calls static. (Browserify fix)
   switch (dialect) {
@@ -32,6 +32,7 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/postgres').PostgresDialect;
     case 'sqlite':
+    case 'sqlite3':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/sqlite3').SqliteDialect;
     case 'ibmi':
@@ -45,7 +46,7 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       return require('@sequelize/snowflake').SnowflakeDialect;
     default:
       throw new Error(
-        `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2 and snowflake.`,
+        `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2 and snowflake.`,
       );
   }
 }

@@ -32,7 +32,7 @@ describe(getTestDialectTeaser('Replication'), () => {
           baseSequelize.dialect.getSupportedConnectionOptions(),
         );
 
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           (out as Options<SqliteDialect>).storage = getSqliteDatabasePath('replication.db');
         }
 

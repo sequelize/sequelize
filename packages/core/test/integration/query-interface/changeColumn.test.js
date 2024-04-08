@@ -87,7 +87,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         tableName: 'users',
       });
 
-      if (['postgres', 'postgres-native', 'mssql', 'sqlite', 'db2'].includes(dialect)) {
+      if (['postgres', 'postgres-native', 'mssql', 'sqlite3', 'db2'].includes(dialect)) {
         expect(table.currency.type).to.equal('REAL');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
@@ -251,7 +251,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(describedTable.level_id.allowNull).to.equal(true);
       });
 
-      if (!['db2', 'ibmi', 'sqlite'].includes(dialect)) {
+      if (!['db2', 'ibmi', 'sqlite3'].includes(dialect)) {
         it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
@@ -274,7 +274,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // This leads to issues with losing data or losing foreign key references.
     // The tests below address these problems
     // TODO: run in all dialects
-    if (dialect === 'sqlite') {
+    if (dialect === 'sqlite3') {
       it('should not loose indexes & unique constraints when adding or modifying columns', async function () {
         await this.queryInterface.createTable('foos', {
           id: {

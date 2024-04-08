@@ -58,7 +58,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite') {
+    if (dialect.name !== 'sqlite3') {
       it('throws if the string is too long', async () => {
         await expect(
           vars.User.create({
@@ -164,7 +164,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite') {
+    if (dialect.name !== 'sqlite3') {
       it('throws if the string is too long', async () => {
         await expect(
           vars.User.create({
@@ -539,7 +539,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
-    if (dialect.name === 'mysql' || dialect.name === 'sqlite' || dialect.name === 'mariadb') {
+    if (dialect.name === 'mysql' || dialect.name === 'sqlite3' || dialect.name === 'mariadb') {
       // MySQL uses TINYINT(1). We can't know if the value is a boolean if the DataType is not specified.
       // SQLite: sqlite3 does not tell us which type a column is, so we can't know if the value is a boolean.
       it('is deserialized as a number when DataType is not specified', async () => {
@@ -980,7 +980,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (dialect.name === 'sqlite3') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
@@ -1191,7 +1191,7 @@ describe('DataTypes', () => {
         dialect.name === 'mssql'
           ? '2022-01-01 00:00:00.000+00'
           : // sqlite decided to have a weird format that is not ISO 8601 compliant
-            dialect.name === 'sqlite'
+            dialect.name === 'sqlite3'
             ? '2022-01-01 00:00:00.000 +00:00'
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
@@ -1233,7 +1233,7 @@ describe('DataTypes', () => {
 
     it('clamps to specified precision', async () => {
       // sqlite does not support restricting the precision
-      if (dialect.name !== 'sqlite') {
+      if (dialect.name !== 'sqlite3') {
         await testSimpleInOut(
           vars.User,
           'dateMinPrecisionAttr',
@@ -1380,7 +1380,7 @@ describe('DataTypes', () => {
         dialect.name === 'mssql'
           ? '04:05:06.000'
           : // sqlite3 does not support restricting the precision of TIME
-            dialect.name === 'sqlite'
+            dialect.name === 'sqlite3'
             ? '04:05:06.123456'
             : '04:05:06',
       );
@@ -1392,7 +1392,7 @@ describe('DataTypes', () => {
         dialect.name === 'mssql'
           ? '04:05:06.120'
           : // sqlite3 does not support restricting the precision of TIME
-            dialect.name === 'sqlite'
+            dialect.name === 'sqlite3'
             ? '04:05:06.123456'
             : '04:05:06.12',
       );
@@ -1694,7 +1694,7 @@ describe('DataTypes', () => {
           case 'mssql':
             expect(table.jsonStr.type).to.equal('NVARCHAR(MAX)');
             break;
-          case 'sqlite':
+          case 'sqlite3':
             expect(table.jsonStr.type).to.equal('TEXT');
             break;
           case 'mariadb':
@@ -1735,7 +1735,7 @@ describe('DataTypes', () => {
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
       if (dialect.name !== 'mariadb') {
-        if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
           it(`is deserialized as a JSON string value when DataType is not specified`, async () => {

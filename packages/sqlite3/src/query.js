@@ -14,7 +14,7 @@ import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
 import merge from 'lodash/merge';
 
-const debug = logger.debugContext('sql:sqlite');
+const debug = logger.debugContext('sql:sqlite3');
 
 // sqlite3 currently ignores bigint values, so we have to translate to string for now
 // There's a WIP here: https://github.com/TryGhost/node-sqlite3/pull/1501

@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('Sequelize hooks', () => {
     it('should run before/afterPoolAcquire hooks', async function () {
-      if (dialect === 'sqlite') {
+      if (dialect === 'sqlite3') {
         return this.skip();
       }
 

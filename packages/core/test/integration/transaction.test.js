@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     });
   }
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     it('provides persistent transactions', async () => {
       const sequelize = await Support.createMultiTransactionalTestSequelizeInstance();
       Support.destroySequelizeAfterTest(sequelize);
@@ -839,7 +839,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     });
   }
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     it('automatically retries on SQLITE_BUSY failure', async function () {
       const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
         this.sequelize,

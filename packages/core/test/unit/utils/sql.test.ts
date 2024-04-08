@@ -18,7 +18,7 @@ const { list } = sqlTag;
 
 const dialect = sequelize.dialect;
 
-const supportsNamedParameters = dialect.name === 'sqlite' || dialect.name === 'mssql';
+const supportsNamedParameters = dialect.name === 'sqlite3' || dialect.name === 'mssql';
 
 describe('mapBindParameters', () => {
   it('parses named bind parameters', () => {
@@ -30,7 +30,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT [$id] FROM users WHERE id = '$id' OR id = ? OR id = '''$id'''`,
       postgres: `SELECT "$id" FROM users WHERE id = '$id' OR id = $1 OR id = '''$id'''`,
-      sqlite: `SELECT \`$id\` FROM users WHERE id = '$id' OR id = $id OR id = '''$id'''`,
+      sqlite3: `SELECT \`$id\` FROM users WHERE id = '$id' OR id = $id OR id = '''$id'''`,
       mssql: `SELECT [$id] FROM users WHERE id = '$id' OR id = @id OR id = '''$id'''`,
     });
 
@@ -50,7 +50,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?`,
       postgres: `SELECT * FROM users WHERE id = $1`,
-      sqlite: `SELECT * FROM users WHERE id = $1`,
+      sqlite3: `SELECT * FROM users WHERE id = $1`,
       mssql: `SELECT * FROM users WHERE id = @1`,
     });
 
@@ -69,7 +69,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?::string`,
       postgres: `SELECT * FROM users WHERE id = $1::string`,
-      sqlite: `SELECT * FROM users WHERE id = $param::string`,
+      sqlite3: `SELECT * FROM users WHERE id = $param::string`,
       mssql: `SELECT * FROM users WHERE id = @param::string`,
     });
   });
@@ -80,7 +80,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>?`,
       postgres: `SELECT * FROM users WHERE json_col->>$1`,
-      sqlite: `SELECT * FROM users WHERE json_col->>$key`,
+      sqlite3: `SELECT * FROM users WHERE json_col->>$key`,
       mssql: `SELECT * FROM users WHERE json_col->>@key`,
     });
   });
@@ -91,7 +91,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?;`,
       postgres: `SELECT * FROM users WHERE id = $1;`,
-      sqlite: `SELECT * FROM users WHERE id = $id;`,
+      sqlite3: `SELECT * FROM users WHERE id = $id;`,
       mssql: `SELECT * FROM users WHERE id = @id;`,
       ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
     });
@@ -119,7 +119,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = ?`,
       postgres: `SELECT * FROM users WHERE id = $1`,
-      sqlite: `SELECT * FROM users WHERE id = $a`,
+      sqlite3: `SELECT * FROM users WHERE id = $a`,
       mssql: `SELECT * FROM users WHERE id = @a`,
     });
 
@@ -141,7 +141,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = fn(?) OR id = fn('a',?) OR id=? OR id$id = 1 OR id = ?`,
       postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
-      sqlite: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
+      sqlite3: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id`,
     });
 
@@ -194,7 +194,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT z$$ ? x$$ * FROM users`,
       postgres: `SELECT z$$ $1 x$$ * FROM users`,
-      sqlite: `SELECT z$$ $id x$$ * FROM users`,
+      sqlite3: `SELECT z$$ $id x$$ * FROM users`,
       mssql: `SELECT z$$ @id x$$ * FROM users`,
     });
 
@@ -214,7 +214,7 @@ describe('mapBindParameters', () => {
     expectsql(sql, {
       default: `SELECT $$ abc $$ AS string FROM users WHERE id = ?`,
       postgres: `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
-      sqlite: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
+      sqlite3: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
       mssql: `SELECT $$ abc $$ AS string FROM users WHERE id = @id`,
     });
 
@@ -314,7 +314,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
     expectsql(sql, {
       default: `SELECT * FROM users WHERE id = '\\\\' OR id = ?`,
       postgres: `SELECT * FROM users WHERE id = '\\\\' OR id = $1`,
-      sqlite: `SELECT * FROM users WHERE id = '\\\\' OR id = $id`,
+      sqlite3: `SELECT * FROM users WHERE id = '\\\\' OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = '\\\\' OR id = @id`,
     });
 
@@ -358,7 +358,7 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         SELECT * FROM users -- WHERE id = $id
         WHERE id = $1
       `,
-      sqlite: `
+      sqlite3: `
         SELECT * FROM users -- WHERE id = $id
         WHERE id = $id
       `,
@@ -410,7 +410,7 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         */
         WHERE id = $1
       `,
-      sqlite: `
+      sqlite3: `
         SELECT * FROM users /*
         WHERE id = $id
         */

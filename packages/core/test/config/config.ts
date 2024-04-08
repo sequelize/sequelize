@@ -23,7 +23,7 @@ export interface DialectConfigs {
   mysql: Options<MySqlDialect>;
   snowflake: Options<SnowflakeDialect>;
   mariadb: Options<MariaDbDialect>;
-  sqlite: Options<SqliteDialect>;
+  sqlite3: Options<SqliteDialect>;
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
@@ -34,7 +34,7 @@ export interface DialectConnectionConfigs {
   mysql: ConnectionOptions<MySqlDialect>;
   snowflake: ConnectionOptions<SnowflakeDialect>;
   mariadb: ConnectionOptions<MariaDbDialect>;
-  sqlite: ConnectionOptions<SqliteDialect>;
+  sqlite3: ConnectionOptions<SqliteDialect>;
   postgres: ConnectionOptions<PostgresDialect>;
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
@@ -104,7 +104,7 @@ export const CONFIG: DialectConfigs = {
     },
   },
 
-  sqlite: {
+  sqlite3: {
     dialect: SqliteDialect,
     storage: getSqliteDatabasePath('default.sqlite'),
   },
@@ -143,7 +143,7 @@ export const CONFIG: DialectConfigs = {
     },
   },
 
-  ibmi: {
+  'db2-ibmi': {
     dialect: IBMiDialect,
     dataSourceName: env.SEQ_IBMI_DB || env.SEQ_DB,
     username: env.SEQ_IBMI_USER || env.SEQ_USER,
