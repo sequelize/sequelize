@@ -166,7 +166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.388.0, @aws-sdk/client-s3@npm:^3.535.0":
+"@aws-sdk/client-s3@npm:^3.388.0, @aws-sdk/client-s3@npm:^3.550.0":
   version: 3.550.0
   resolution: "@aws-sdk/client-s3@npm:3.550.0"
   dependencies:
@@ -2437,7 +2437,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.7.6"
+    oclif: "npm:4.7.7"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -2571,7 +2571,7 @@ __metadata:
     prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
-    typedoc: "npm:0.25.12"
+    typedoc: "npm:0.25.13"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
     typedoc-plugin-mdn-links: "npm:3.1.19"
     typedoc-plugin-missing-exports: "npm:2.2.0"
@@ -11555,12 +11555,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.7.6":
-  version: 4.7.6
-  resolution: "oclif@npm:4.7.6"
+"oclif@npm:4.7.7":
+  version: 4.7.7
+  resolution: "oclif@npm:4.7.7"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.535.0"
-    "@aws-sdk/client-s3": "npm:^3.535.0"
+    "@aws-sdk/client-s3": "npm:^3.550.0"
     "@inquirer/confirm": "npm:^3.0.0"
     "@inquirer/input": "npm:^2.1.1"
     "@inquirer/select": "npm:^2.2.1"
@@ -11584,7 +11584,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/dd5931c50419d82186bad827ecae119ece180e677c5ab1b33bbfbfd85a89e5e5e49f5f42a94c81f323ffa7c3eecde03c2eefc3bd7eeef2deb0f0406fc47d8214
+  checksum: 10c0/e11a013fb66215aa8a0a1bd36d81001347643f82abcfd7bcf4f3feb142a3dd86eb05c9dc6db39cd169754e89333e2acd0e06fa094acd498b44688cde24223918
   languageName: node
   linkType: hard
 
@@ -14795,9 +14795,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc@npm:0.25.12":
-  version: 0.25.12
-  resolution: "typedoc@npm:0.25.12"
+"typedoc@npm:0.25.13":
+  version: 0.25.13
+  resolution: "typedoc@npm:0.25.13"
   dependencies:
     lunr: "npm:^2.3.9"
     marked: "npm:^4.3.0"
@@ -14807,7 +14807,7 @@ __metadata:
     typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x
   bin:
     typedoc: bin/typedoc
-  checksum: 10c0/35157a90954ed67243bc1ad430781de381431959c62e24f8a8688c4ebae62c2ee11d404002dfd43a0df3bf96721d94fce928423fe1f91f1ed40c99f29c5276aa
+  checksum: 10c0/13878e6a9fc2b65d65e3b514efa11b43bdfd57149861cefc4a969ec213f4bc4b36ee9239d0b654ae18bcbbd5174206d409383f9000b7bdea22da1945f7ac91de
   languageName: node
   linkType: hard
 
