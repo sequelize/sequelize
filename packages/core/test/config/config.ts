@@ -143,7 +143,7 @@ export const CONFIG: DialectConfigs = {
     },
   },
 
-  'db2-ibmi': {
+  ibmi: {
     dialect: IBMiDialect,
     dataSourceName: env.SEQ_IBMI_DB || env.SEQ_DB,
     username: env.SEQ_IBMI_USER || env.SEQ_USER,

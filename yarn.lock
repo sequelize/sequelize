@@ -2496,9 +2496,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/db2-ibmi@workspace:packages/db2-ibmi":
+"@sequelize/db2-ibmi@workspace:packages/ibmi":
   version: 0.0.0-use.local
-  resolution: "@sequelize/db2-ibmi@workspace:packages/db2-ibmi"
+  resolution: "@sequelize/db2-ibmi@workspace:packages/ibmi"
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"

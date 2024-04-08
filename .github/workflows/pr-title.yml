@@ -36,7 +36,6 @@ jobs:
             oracle
             postgres
             snowflake
-            sqlite
-            types
+            sqlite3
           ignoreLabels: |
             ignore-semantic-pull-request

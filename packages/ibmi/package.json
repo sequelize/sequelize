@@ -24,7 +24,7 @@
   "name": "@sequelize/db2-ibmi",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "../../build-packages.mjs db2-ibmi",
+    "build": "../../build-packages.mjs ibmi",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",

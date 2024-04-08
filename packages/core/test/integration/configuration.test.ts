@@ -12,15 +12,15 @@ import { expect } from 'chai';
 import type { Class } from 'type-fest';
 import type { DialectConfigs } from '../config/config';
 import { CONFIG } from '../config/config';
-import { sequelize } from '../support';
 import {
   destroySequelizeAfterTest,
   getSqliteDatabasePath,
+  getTestDialect,
   setResetMode,
   unlinkIfExists,
 } from './support';
 
-const dialectName = sequelize.dialect.name;
+const dialectName = getTestDialect();
 
 describe('Configuration', () => {
   setResetMode('none');
