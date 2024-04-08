@@ -17,18 +17,17 @@ export type InlinedTediousOptions = Omit<
 >;
 
 export const INLINED_OPTION_OBJ = {
-  port: undefined,
   abortTransactionOnError: undefined,
   appName: undefined,
   cancelTimeout: undefined,
-  connectionRetryInterval: undefined,
-  connector: undefined,
   connectTimeout: undefined,
   connectionIsolationLevel: undefined,
+  connectionRetryInterval: undefined,
+  connector: undefined,
   cryptoCredentialsDetails: undefined,
   database: undefined,
-  datefirst: undefined,
   dateFormat: undefined,
+  datefirst: undefined,
   debug: undefined,
   enableAnsiNull: undefined,
   enableAnsiPadding: undefined,
@@ -47,13 +46,15 @@ export const INLINED_OPTION_OBJ = {
   maxRetriesOnTransientErrors: undefined,
   multiSubnetFailover: undefined,
   packetSize: undefined,
+  port: undefined,
   readOnlyIntent: undefined,
   requestTimeout: undefined,
+  rowCollectionOnDone: undefined,
   rowCollectionOnRequestCompletion: undefined,
+  serverName: undefined,
   tdsVersion: undefined,
   textsize: undefined,
   trustServerCertificate: undefined,
-  serverName: undefined,
   workstationId: undefined,
 } as const satisfies Record<keyof InlinedTediousOptions, undefined>;
 
@@ -88,7 +89,6 @@ type BooleanConnectionOptions = PickByType<MsSqlConnectionOptions, boolean>;
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>({
   abortTransactionOnError: undefined,
   enableAnsiNull: undefined,
-  enableAnsiNullDefault: undefined,
   enableAnsiPadding: undefined,
   enableAnsiWarnings: undefined,
   enableArithAbort: undefined,
