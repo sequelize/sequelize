@@ -35,7 +35,7 @@ jobs:
       - name: Reset NX cache
         run: yarn nx reset
       - name: Compress artifact
-        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/*/lib ./node_modules
+        run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/*/lib ./node_modules ./packages/*/node_modules
       - uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
@@ -80,6 +80,8 @@ jobs:
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
+      - name: Unit tests (cli)
+        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: Unit tests (utils)
         run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (core - mariadb)
