@@ -211,6 +211,7 @@ module.exports = {
     'packages/**/skeletons/**/*',
     '.typedoc-build',
     'packages/cli/migrations/**/*',
+    'packages/cli/seeds/**/*',
   ],
   env: {
     node: true,
