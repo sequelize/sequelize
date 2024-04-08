@@ -7,7 +7,7 @@ import {
   InvalidConnectionError,
   Sequelize,
 } from '@sequelize/core';
-import { OPEN_READONLY, OPEN_READWRITE, SqliteDialect } from '@sequelize/sqlite';
+import { OPEN_READONLY, OPEN_READWRITE, SqliteDialect } from '@sequelize/sqlite3';
 import { expect } from 'chai';
 import type { Class } from 'type-fest';
 import type { DialectConfigs } from '../config/config';

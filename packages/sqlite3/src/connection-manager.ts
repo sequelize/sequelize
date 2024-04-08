@@ -54,7 +54,7 @@ export interface SqliteConnectionOptions {
    *
    * @example
    * ```ts
-   * import { SqliteDialect, OPEN_CREATE, OPEN_READWRITE } from '@sequelize/sqlite';
+   * import { SqliteDialect, OPEN_CREATE, OPEN_READWRITE } from '@sequelize/sqlite3';
    *
    * new Sequelize({
    *   dialect: SqliteDialect,

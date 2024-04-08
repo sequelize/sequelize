@@ -1,12 +1,12 @@
 import type { ConnectionOptions, Options } from '@sequelize/core';
 import { Db2Dialect } from '@sequelize/db2';
-import { IBMiDialect } from '@sequelize/ibmi';
+import { IBMiDialect } from '@sequelize/db2-ibmi';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { MsSqlDialect } from '@sequelize/mssql';
 import { MySqlDialect } from '@sequelize/mysql';
 import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
-import { SqliteDialect } from '@sequelize/sqlite';
+import { SqliteDialect } from '@sequelize/sqlite3';
 import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 

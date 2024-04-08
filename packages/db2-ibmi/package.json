@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "SQLite Connector for Sequelize",
+  "description": "DB2 for IBM i Connector for Sequelize",
   "exports": {
     ".": {
       "import": {
@@ -21,10 +21,10 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "@sequelize/sqlite",
+  "name": "@sequelize/db2-ibmi",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "../../build-packages.mjs sqlite",
+    "build": "../../build-packages.mjs ibmi",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
@@ -38,7 +38,8 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
+    "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
-    "sqlite3": "^5.1.7"
+    "odbc": "^2.4.8"
   }
 }

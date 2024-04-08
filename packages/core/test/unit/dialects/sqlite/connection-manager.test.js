@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const { Sequelize } = require('@sequelize/core');
-const { SqliteDialect } = require('@sequelize/sqlite');
+const { SqliteDialect } = require('@sequelize/sqlite3');
 
 const dialect = Support.getTestDialect();
 

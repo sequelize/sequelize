@@ -33,10 +33,10 @@ export function importDialect(dialect: DialectName): typeof AbstractDialect {
       return require('@sequelize/postgres').PostgresDialect;
     case 'sqlite':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/sqlite').SqliteDialect;
+      return require('@sequelize/sqlite3').SqliteDialect;
     case 'ibmi':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/ibmi').IBMiDialect;
+      return require('@sequelize/db2-ibmi').IBMiDialect;
     case 'db2':
       // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
       return require('@sequelize/db2').Db2Dialect;

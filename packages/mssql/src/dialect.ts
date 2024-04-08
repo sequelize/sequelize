@@ -17,6 +17,8 @@ import { MsSqlQueryGenerator } from './query-generator.js';
 import { MsSqlQueryInterface } from './query-interface.js';
 import { MsSqlQuery } from './query.js';
 
+export { TDS_VERSION, ISOLATION_LEVEL as TEDIOUS_ISOLATION_LEVEL } from 'tedious';
+
 export interface MsSqlDialectOptions {
   /**
    * The tedious library to use.

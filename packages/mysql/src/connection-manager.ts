@@ -29,6 +29,8 @@ export interface MySqlConnectionOptions
     // The user cannot modify these options:
     // This option is currently a global Sequelize option
     | 'timezone'
+    // Conflicts with our own features
+    | 'nestTables'
     // We provide our own placeholders.
     // TODO: should we use named placeholders for mysql?
     | 'namedPlaceholders'
@@ -41,6 +43,8 @@ export interface MySqlConnectionOptions
     | 'dateStrings'
     | 'decimalNumbers'
     | 'rowsAsArray'
+    | 'stringifyObjects'
+    | 'queryFormat'
     | 'Promise'
     // We provide our own "url" implementation
     | 'uri'

@@ -25,18 +25,33 @@ export interface MariaDbConnection extends AbstractConnection, MariaDb.Connectio
 export interface MariaDbConnectionOptions
   extends Omit<
     MariaDb.ConnectionConfig,
+    // Can only be set by Sequelize to prevent users from making it return a format
+    // that is incompatible with Sequelize
     | 'typeCast'
+    // Replaced by Sequelize's global option
     | 'timezone'
+    // Users cannot use MariaDB's placeholders, they use Sequelize's syntax instead
+    | 'namedPlaceholders'
+    | 'arrayParenthesis'
+
+    // The following options will conflict with the format expected by Sequelize
     | 'insertIdAsNumber'
     | 'metaAsArray'
     | 'rowsAsArray'
     | 'nestTables'
     | 'dateStrings'
-    | 'namedPlaceholders'
     | 'decimalAsNumber'
     | 'bigIntAsNumber'
     | 'supportBigNumbers'
     | 'bigNumberStrings'
+    | 'autoJsonMap'
+    // This option is not necessary because we do not allow using decimalAsNumber,
+    // insertIdAsNumber, nor bigIntAsNumber.
+    // If someone requests to enable this option, do not accept it.
+    // Instead, the same feature should be added to Sequelize as a cross-dialect feature.
+    | 'checkNumberRange'
+    // unsafe compatibility option
+    | 'permitSetMultiParamEntries'
   > {}
 
 /**

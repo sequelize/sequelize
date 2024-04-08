@@ -4,6 +4,9 @@ import type { MsSqlConnectionOptions } from '../connection-manager.js';
 
 export type InlinedTediousOptions = Omit<
   NonUndefined<Tedious.ConnectionConfiguration['options']>,
+  // Default nullability of columns is not needed as Sequelize explicitly sets it,
+  // and this option will be confusing with Sequelize's option about default nullability.
+  | 'enableAnsiNullDefault'
   | 'camelCaseColumns'
   | 'columnNameReplacer'
   | 'enableQuotedIdentifier'
@@ -28,7 +31,6 @@ export const INLINED_OPTION_OBJ = {
   dateFormat: undefined,
   debug: undefined,
   enableAnsiNull: undefined,
-  enableAnsiNullDefault: undefined,
   enableAnsiPadding: undefined,
   enableAnsiWarnings: undefined,
   enableArithAbort: undefined,
@@ -47,7 +49,6 @@ export const INLINED_OPTION_OBJ = {
   packetSize: undefined,
   readOnlyIntent: undefined,
   requestTimeout: undefined,
-  rowCollectionOnDone: undefined,
   rowCollectionOnRequestCompletion: undefined,
   tdsVersion: undefined,
   textsize: undefined,
