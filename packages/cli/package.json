@@ -50,6 +50,9 @@
     "topics": {
       "migration": {
         "description": "Commands for managing database migrations"
+      },
+      "seed": {
+        "description": "Commands for managing database seeding"
       }
     }
   },
