@@ -4667,7 +4667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.0, axios@npm:^1.6.2, axios@npm:^1.6.5":
+"axios@npm:^1.6.0, axios@npm:^1.6.2, axios@npm:^1.6.8":
   version: 1.6.8
   resolution: "axios@npm:1.6.8"
   dependencies:
@@ -13615,8 +13615,8 @@ __metadata:
   linkType: hard
 
 "snowflake-sdk@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "snowflake-sdk@npm:1.10.0"
+  version: 1.10.1
+  resolution: "snowflake-sdk@npm:1.10.1"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.388.0"
     "@aws-sdk/node-http-handler": "npm:^3.374.0"
@@ -13626,7 +13626,7 @@ __metadata:
     agent-base: "npm:^6.0.2"
     asn1.js-rfc2560: "npm:^5.0.0"
     asn1.js-rfc5280: "npm:^3.0.0"
-    axios: "npm:^1.6.5"
+    axios: "npm:^1.6.8"
     big-integer: "npm:^1.6.43"
     bignumber.js: "npm:^9.1.2"
     binascii: "npm:0.0.2"
@@ -13652,7 +13652,7 @@ __metadata:
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/d4bdd678464671dbe45217376d15f765cf2fdb92a84c7271b058ed15549e7d63a5c0bcd7c2e3417daf22dc00c6d69c43dbf63d6f40e31221d92f89dcb067d1c5
+  checksum: 10c0/95e407d3f6c1b556cf06f46f6d8f078531389a83008c53d19dba8ac907c07df7a4edf060277aaa935fed933685c40c8d353486a5a136bbfe23e8e4590bba6000
   languageName: node
   linkType: hard
 
