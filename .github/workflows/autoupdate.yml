@@ -1,8 +1,21 @@
-name: auto-update PRs
+name: auto-update PRs & label conflicts
 on:
   push:
     branches:
       - main
+  # can also be used with the pull_request event
+  pull_request_target:
+    types:
+      - synchronize
+      # allow the workflow to correct any label incorrectly added or removed by a user.
+      - labeled
+      - unlabeled
+      # update the PR as soon as the auto-merge is enabled.
+      - auto_merge_enabled
+      # process the PR once they appear in the search filters
+      - ready_for_review
+      - opened
+      - reopened
 jobs:
   autoupdate:
     runs-on: ubuntu-latest
@@ -13,10 +26,15 @@ jobs:
         with:
           app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
-      - uses: docker://chinthakagodawita/autoupdate-action:v1
+      - uses: sequelize/pr-auto-update-and-handle-conflicts@3ff4c1ae3b521ccd0a6bed0de19911d555b7da8d # 1.0.0
+        with:
+          conflict-label: 'conflicted'
+          conflict-requires-ready-state: 'ready_for_review'
+          conflict-excluded-authors: 'bot/renovate'
+          update-pr-branches: true
+          update-requires-auto-merge: true
+          update-requires-ready-state: 'ready_for_review'
+          update-excluded-authors: 'bot/renovate'
+          update-excluded-labels: 'no-autoupdate'
         env:
           GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
-          PR_FILTER: 'auto_merge'
-          PR_READY_STATE: 'ready_for_review'
-          MERGE_CONFLICT_ACTION: 'ignore'
-          EXCLUDED_LABELS: 'no-autoupdate'
