@@ -2167,8 +2167,8 @@ __metadata:
   linkType: hard
 
 "@oclif/core@npm:^3.26.0":
-  version: 3.26.0
-  resolution: "@oclif/core@npm:3.26.0"
+  version: 3.26.2
+  resolution: "@oclif/core@npm:3.26.2"
   dependencies:
     "@types/cli-progress": "npm:^3.11.5"
     ansi-escapes: "npm:^4.3.2"
@@ -2186,7 +2186,7 @@ __metadata:
     indent-string: "npm:^4.0.0"
     is-wsl: "npm:^2.2.0"
     js-yaml: "npm:^3.14.1"
-    minimatch: "npm:^9.0.3"
+    minimatch: "npm:^9.0.4"
     natural-orderby: "npm:^2.0.3"
     object-treeify: "npm:^1.1.33"
     password-prompt: "npm:^1.1.3"
@@ -2198,7 +2198,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/e2a066b85b7cd6996e0bc261f53399f06dcbb888caf0b31ba935068abaa69e9e6497d759e25a105f83a2bee3c23ba10fee51b0575417324a8e174827d95714e3
+  checksum: 10c0/c2e05a6c40ad18cf4d3851e637ef04cbfd778ec655e828aa21830b0c65cb5d097168135dda8de2881456ee02376337c6c10d74e15fa8e38ccd47e5c005d40ea6
   languageName: node
   linkType: hard
 
@@ -2437,7 +2437,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.7.7"
+    oclif: "npm:4.7.8"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -2549,7 +2549,7 @@ __metadata:
     "@types/chai": "npm:4.3.14"
     "@types/lodash": "npm:4.17.0"
     "@types/mocha": "npm:10.0.6"
-    "@types/node": "npm:20.12.5"
+    "@types/node": "npm:20.12.6"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
@@ -3722,12 +3722,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.5, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4":
-  version: 20.12.5
-  resolution: "@types/node@npm:20.12.5"
+"@types/node@npm:*, @types/node@npm:20.12.6, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4":
+  version: 20.12.6
+  resolution: "@types/node@npm:20.12.6"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/2da65516fba98f0417620e42bddbe53e144d4782d69cd37f99df2537c6850b9cfbdb8a017f02c61e9a074bcac84f9f3f221b250474ac8c6b95d507a47e8d53f9
+  checksum: 10c0/48ce732162cd6c02656aa5f996f0e695b57fdeb1ae762fbaa966afac2dcdcf52cb56be5ce1efb4babf8f97c2de545889aebc7f43c2e86f033487245c41fa1e6b
   languageName: node
   linkType: hard
 
@@ -3739,13 +3739,13 @@ __metadata:
   linkType: hard
 
 "@types/pg@npm:^8.11.4":
-  version: 8.11.4
-  resolution: "@types/pg@npm:8.11.4"
+  version: 8.11.5
+  resolution: "@types/pg@npm:8.11.5"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/81158ffa9d2f9b2b299a1650756b90fc418e0040e654d7d9ee46734a3c874d07b638af86d765e22e9c8246054c30a0274ee4dea58a0a7ed5c0c4aa01964a09ef
+  checksum: 10c0/d64d183bee2df96cd0558231190ff629558e8c0fd3203b880f48a7d34b1eaea528d20c09b57b19c0939f369136e6c6941533592eadd71174be78d1ec0ca5e60e
   languageName: node
   linkType: hard
 
@@ -4667,7 +4667,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.0, axios@npm:^1.6.2, axios@npm:^1.6.5":
+"axios@npm:^1.6.0, axios@npm:^1.6.2, axios@npm:^1.6.8":
   version: 1.6.8
   resolution: "axios@npm:1.6.8"
   dependencies:
@@ -10533,7 +10533,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.3, minimatch@npm:~9.0.3":
+"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.3, minimatch@npm:^9.0.4, minimatch@npm:~9.0.3":
   version: 9.0.4
   resolution: "minimatch@npm:9.0.4"
   dependencies:
@@ -10815,8 +10815,8 @@ __metadata:
   linkType: hard
 
 "mysql2@npm:^3.9.3":
-  version: 3.9.3
-  resolution: "mysql2@npm:3.9.3"
+  version: 3.9.4
+  resolution: "mysql2@npm:3.9.4"
   dependencies:
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
@@ -10826,7 +10826,7 @@ __metadata:
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/eb5e932dcecf4a970d6a737767cb6d50572016faa20d92a1a35b11344332c3d6b36f45eff4a7577b022668372338d9727344861fb345a1554f491905b70e9faf
+  checksum: 10c0/bdb3c3da705b7e7a20fbdfe982a38acff133dda571d05b35bcc8a2b39e0535f91e448d6afd4cda24aa87fda2dbe5ff1b6165186c4b6c2f1037b73ca1b0af09fb
   languageName: node
   linkType: hard
 
@@ -11555,9 +11555,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.7.7":
-  version: 4.7.7
-  resolution: "oclif@npm:4.7.7"
+"oclif@npm:4.7.8":
+  version: 4.7.8
+  resolution: "oclif@npm:4.7.8"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.535.0"
     "@aws-sdk/client-s3": "npm:^3.550.0"
@@ -11584,7 +11584,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/e11a013fb66215aa8a0a1bd36d81001347643f82abcfd7bcf4f3feb142a3dd86eb05c9dc6db39cd169754e89333e2acd0e06fa094acd498b44688cde24223918
+  checksum: 10c0/6ea71d45dbcbb286977f7940e959c7bab45605051252af2be19b43f46f04b3cd1e18a68e27de6a327a32de404f78c3548ed54b6022187c032275d5f37d7487ef
   languageName: node
   linkType: hard
 
@@ -13615,8 +13615,8 @@ __metadata:
   linkType: hard
 
 "snowflake-sdk@npm:^1.10.0":
-  version: 1.10.0
-  resolution: "snowflake-sdk@npm:1.10.0"
+  version: 1.10.1
+  resolution: "snowflake-sdk@npm:1.10.1"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.388.0"
     "@aws-sdk/node-http-handler": "npm:^3.374.0"
@@ -13626,7 +13626,7 @@ __metadata:
     agent-base: "npm:^6.0.2"
     asn1.js-rfc2560: "npm:^5.0.0"
     asn1.js-rfc5280: "npm:^3.0.0"
-    axios: "npm:^1.6.5"
+    axios: "npm:^1.6.8"
     big-integer: "npm:^1.6.43"
     bignumber.js: "npm:^9.1.2"
     binascii: "npm:0.0.2"
@@ -13652,7 +13652,7 @@ __metadata:
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/d4bdd678464671dbe45217376d15f765cf2fdb92a84c7271b058ed15549e7d63a5c0bcd7c2e3417daf22dc00c6d69c43dbf63d6f40e31221d92f89dcb067d1c5
+  checksum: 10c0/95e407d3f6c1b556cf06f46f6d8f078531389a83008c53d19dba8ac907c07df7a4edf060277aaa935fed933685c40c8d353486a5a136bbfe23e8e4590bba6000
   languageName: node
   linkType: hard
 
