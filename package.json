@@ -18,7 +18,7 @@
     "test-integration-mysql": "yarn lerna run test-integration-mysql",
     "test-integration-postgres": "yarn lerna run test-integration-postgres",
     "test-integration-postgres-native": "yarn lerna run test-integration-postgres-native",
-    "test-integration-sqlite": "yarn lerna run test-integration-sqlite",
+    "test-integration-sqlite3": "yarn lerna run test-integration-sqlite3",
     "test-integration-mssql": "yarn lerna run test-integration-mssql",
     "test-integration-db2": "yarn lerna run test-integration-db2",
     "test-integration-ibmi": "yarn lerna run test-integration-ibmi",
