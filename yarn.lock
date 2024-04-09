@@ -3739,13 +3739,13 @@ __metadata:
   linkType: hard
 
 "@types/pg@npm:^8.11.4":
-  version: 8.11.4
-  resolution: "@types/pg@npm:8.11.4"
+  version: 8.11.5
+  resolution: "@types/pg@npm:8.11.5"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/81158ffa9d2f9b2b299a1650756b90fc418e0040e654d7d9ee46734a3c874d07b638af86d765e22e9c8246054c30a0274ee4dea58a0a7ed5c0c4aa01964a09ef
+  checksum: 10c0/d64d183bee2df96cd0558231190ff629558e8c0fd3203b880f48a7d34b1eaea528d20c09b57b19c0939f369136e6c6941533592eadd71174be78d1ec0ca5e60e
   languageName: node
   linkType: hard
 
