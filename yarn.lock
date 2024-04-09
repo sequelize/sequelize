@@ -2167,8 +2167,8 @@ __metadata:
   linkType: hard
 
 "@oclif/core@npm:^3.26.0":
-  version: 3.26.0
-  resolution: "@oclif/core@npm:3.26.0"
+  version: 3.26.2
+  resolution: "@oclif/core@npm:3.26.2"
   dependencies:
     "@types/cli-progress": "npm:^3.11.5"
     ansi-escapes: "npm:^4.3.2"
@@ -2186,7 +2186,7 @@ __metadata:
     indent-string: "npm:^4.0.0"
     is-wsl: "npm:^2.2.0"
     js-yaml: "npm:^3.14.1"
-    minimatch: "npm:^9.0.3"
+    minimatch: "npm:^9.0.4"
     natural-orderby: "npm:^2.0.3"
     object-treeify: "npm:^1.1.33"
     password-prompt: "npm:^1.1.3"
@@ -2198,7 +2198,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/e2a066b85b7cd6996e0bc261f53399f06dcbb888caf0b31ba935068abaa69e9e6497d759e25a105f83a2bee3c23ba10fee51b0575417324a8e174827d95714e3
+  checksum: 10c0/c2e05a6c40ad18cf4d3851e637ef04cbfd778ec655e828aa21830b0c65cb5d097168135dda8de2881456ee02376337c6c10d74e15fa8e38ccd47e5c005d40ea6
   languageName: node
   linkType: hard
 
@@ -10533,7 +10533,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.3, minimatch@npm:~9.0.3":
+"minimatch@npm:^9.0.0, minimatch@npm:^9.0.1, minimatch@npm:^9.0.3, minimatch@npm:^9.0.4, minimatch@npm:~9.0.3":
   version: 9.0.4
   resolution: "minimatch@npm:9.0.4"
   dependencies:
