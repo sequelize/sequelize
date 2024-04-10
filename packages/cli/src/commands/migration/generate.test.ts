@@ -78,7 +78,13 @@ describe('migration:generate', () => {
 
   oclifTest()
     .stdout()
-    .command(['migration:generate', '--format=sql', '--name=test-migration', '--legacyTimestamp', '--json'])
+    .command([
+      'migration:generate',
+      '--format=sql',
+      '--name=test-migration',
+      '--legacyTimestamp',
+      '--json',
+    ])
     .it('supports specifying the legacyTimestamp option', async ctx => {
       const asJson = JSON.parse(ctx.stdout);
 

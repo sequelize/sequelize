@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { SKELETONS_FOLDER } from '../_internal/skeletons.js';
-import { LEGACY_getCurrentYYYYMMDDHHmms, getCurrentYYYYMMDDHHmms, slugify } from '../_internal/utils.js';
+import {
+  LEGACY_getCurrentYYYYMMDDHHmms,
+  getCurrentYYYYMMDDHHmms,
+  slugify,
+} from '../_internal/utils.js';
 
 export const SUPPORTED_SEED_FORMATS = ['sql', 'typescript', 'cjs', 'esm'] as const;
 export type SupportedSeedFormat = (typeof SUPPORTED_SEED_FORMATS)[number];
