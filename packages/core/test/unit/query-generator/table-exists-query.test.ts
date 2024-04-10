@@ -12,7 +12,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'myTable' AND TABSCHEMA = '${defaultSchema}'`,
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
-      sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
+      sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
     });
   });
 
@@ -24,7 +24,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'MyModels' AND TABSCHEMA = '${defaultSchema}'`,
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'MyModels' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
-      sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
+      sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
     });
   });
 
@@ -37,7 +37,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'MyModels' AND TABSCHEMA = '${defaultSchema}'`,
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'MyModels' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
-      sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
+      sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
     });
   });
 
@@ -47,7 +47,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema'`,
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = 'mySchema'`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
-      sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
+      sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
     });
   });
 
@@ -63,7 +63,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
         db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'myTable' AND TABSCHEMA = '${defaultSchema}'`,
         ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = CURRENT SCHEMA`,
         mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
-        sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
+        sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
       },
     );
   });
@@ -77,7 +77,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       db2: `SELECT TABNAME FROM SYSCAT.TABLES WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema'`,
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = 'mySchema'`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
-      sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
+      sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
     });
   });
 
@@ -95,7 +95,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchemacustommyTable'`,
+        sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchemacustommyTable'`,
       },
     );
   });

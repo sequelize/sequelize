@@ -72,7 +72,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       {
         default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[oldTable]',
         mssql: `ALTER SCHEMA [newSchema] TRANSFER [oldSchema].[oldTable]`,
-        sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.oldTable`',
+        sqlite3: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.oldTable`',
         postgres: `ALTER TABLE "oldSchema"."oldTable" SET SCHEMA "newSchema"`,
         'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, [
           'changeSchema',
@@ -91,7 +91,7 @@ describe('QueryGenerator#renameTableQuery', () => {
         ),
       {
         default: 'ALTER TABLE [oldSchema].[oldTable] RENAME TO [newSchema].[newTable]',
-        sqlite: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.newTable`',
+        sqlite3: 'ALTER TABLE `oldSchema.oldTable` RENAME TO `newSchema.newTable`',
         'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, [
           'changeSchema',
         ]),
@@ -122,7 +122,7 @@ describe('QueryGenerator#renameTableQuery', () => {
     expectsql(() => queryGeneratorSchema.renameTableQuery('oldTable', 'newTable'), {
       default: 'ALTER TABLE [mySchema].[oldTable] RENAME TO [mySchema].[newTable]',
       mssql: `EXEC sp_rename '[mySchema].[oldTable]', N'newTable'`,
-      sqlite: 'ALTER TABLE `mySchema.oldTable` RENAME TO `mySchema.newTable`',
+      sqlite3: 'ALTER TABLE `mySchema.oldTable` RENAME TO `mySchema.newTable`',
       postgres: `ALTER TABLE "mySchema"."oldTable" RENAME TO "newTable"`,
       'db2 ibmi': 'RENAME TABLE "mySchema"."oldTable" TO "newTable"',
     });
@@ -142,7 +142,7 @@ describe('QueryGenerator#renameTableQuery', () => {
           { changeSchema: true },
         ),
       {
-        sqlite: 'ALTER TABLE `oldSchemacustomoldTable` RENAME TO `newSchemacustomnewTable`',
+        sqlite3: 'ALTER TABLE `oldSchemacustomoldTable` RENAME TO `newSchemacustomnewTable`',
       },
     );
   });

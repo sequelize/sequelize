@@ -19,7 +19,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
-      sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
+      sqlite3: 'PRAGMA INDEX_LIST(`myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -48,7 +48,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'dbo.MyModels') ORDER BY I.[name];`,
-      sqlite: 'PRAGMA INDEX_LIST(`MyModels`)',
+      sqlite3: 'PRAGMA INDEX_LIST(`MyModels`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'MyModels' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -78,7 +78,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'dbo.MyModels') ORDER BY I.[name];`,
-      sqlite: 'PRAGMA INDEX_LIST(`MyModels`)',
+      sqlite3: 'PRAGMA INDEX_LIST(`MyModels`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'MyModels' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -105,7 +105,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'mySchema.myTable') ORDER BY I.[name];`,
-      sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
+      sqlite3: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -138,7 +138,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'dbo.myTable') ORDER BY I.[name];`,
-        sqlite: 'PRAGMA INDEX_LIST(`myTable`)',
+        sqlite3: 'PRAGMA INDEX_LIST(`myTable`)',
         snowflake: `SELECT '' FROM DUAL`,
         db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'DB2INST1' ORDER BY i.INDNAME, c.COLSEQ;`,
         ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -169,7 +169,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id
         INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id
         WHERE I.[object_id] = OBJECT_ID(N'mySchema.myTable') ORDER BY I.[name];`,
-      sqlite: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
+      sqlite3: 'PRAGMA INDEX_LIST(`mySchema.myTable`)',
       snowflake: `SELECT '' FROM DUAL`,
       db2: `SELECT i.INDNAME AS "name", i.TABNAME AS "tableName", i.UNIQUERULE AS "keyType", i.INDEXTYPE AS "type", c.COLNAME AS "columnName", c.COLORDER AS "columnOrder" FROM SYSCAT.INDEXES i INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA WHERE TABNAME = 'myTable' AND TABSCHEMA = 'mySchema' ORDER BY i.INDNAME, c.COLSEQ;`,
       ibmi: `select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,
@@ -196,7 +196,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: 'PRAGMA INDEX_LIST(`mySchemacustommyTable`)',
+        sqlite3: 'PRAGMA INDEX_LIST(`mySchemacustommyTable`)',
       },
     );
   });

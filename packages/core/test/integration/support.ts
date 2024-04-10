@@ -1,7 +1,7 @@
 import type { AbstractDialect, Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js';
-import type { SqliteDialect } from '@sequelize/sqlite';
+import type { SqliteDialect } from '@sequelize/sqlite3';
 import uniq from 'lodash/uniq';
 import fs from 'node:fs';
 import pTimeout from 'p-timeout';
@@ -113,7 +113,7 @@ export async function createMultiTransactionalTestSequelizeInstance<
 
   const dialect = getTestDialect();
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);

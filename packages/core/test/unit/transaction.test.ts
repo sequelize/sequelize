@@ -50,7 +50,7 @@ describe('Transaction', () => {
     const expectations: Record<string, string[]> = {
       all: ['START TRANSACTION'],
       snowflake: ['START TRANSACTION NAME "123"'],
-      sqlite: ['BEGIN DEFERRED TRANSACTION'],
+      sqlite3: ['BEGIN DEFERRED TRANSACTION'],
     };
 
     await sequelize.transaction(async () => {
@@ -64,7 +64,7 @@ describe('Transaction', () => {
     const expectations: Record<string, string[]> = {
       all: ['SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED', 'START TRANSACTION'],
       postgres: ['START TRANSACTION', 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED'],
-      sqlite: ['BEGIN DEFERRED TRANSACTION', 'PRAGMA read_uncommitted = 1'],
+      sqlite3: ['BEGIN DEFERRED TRANSACTION', 'PRAGMA read_uncommitted = 1'],
     };
 
     try {

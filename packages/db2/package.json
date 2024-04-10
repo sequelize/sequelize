@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "DB2 Connector for Sequelize",
+  "description": "DB2 for Linux, Unix and Windows Connector for Sequelize",
   "exports": {
     ".": {
       "import": {

@@ -1,6 +1,6 @@
 import type { AbstractDialect, ConnectionOptions, Options } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
-import type { SqliteDialect } from '@sequelize/sqlite';
+import type { SqliteDialect } from '@sequelize/sqlite3';
 import { expect } from 'chai';
 import pick from 'lodash/pick';
 import sinon from 'sinon';
@@ -32,7 +32,7 @@ describe(getTestDialectTeaser('Replication'), () => {
           baseSequelize.dialect.getSupportedConnectionOptions(),
         );
 
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           (out as Options<SqliteDialect>).storage = getSqliteDatabasePath('replication.db');
         }
 

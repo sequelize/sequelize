@@ -14,7 +14,7 @@ describe('DataTypes.UUID', () => {
       mssql: 'UNIQUEIDENTIFIER',
       'mariadb mysql': 'CHAR(36) BINARY',
       snowflake: 'VARCHAR(36)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
     });
   });
 

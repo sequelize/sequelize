@@ -84,7 +84,7 @@ describe('QueryGenerator#selectQuery', () => {
       );
 
       expectsql(sql, {
-        sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
+        sqlite3: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
         postgres: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
         snowflake: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
         'mariadb mysql':
@@ -336,7 +336,7 @@ describe('QueryGenerator#selectQuery', () => {
       expectsql(sql, {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
-        'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        'sqlite3 mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
       });
     });
   }

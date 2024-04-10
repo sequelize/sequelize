@@ -7,15 +7,15 @@ import {
   InvalidConnectionError,
   Sequelize,
 } from '@sequelize/core';
-import { OPEN_READONLY, OPEN_READWRITE, SqliteDialect } from '@sequelize/sqlite';
+import { OPEN_READONLY, OPEN_READWRITE, SqliteDialect } from '@sequelize/sqlite3';
 import { expect } from 'chai';
 import type { Class } from 'type-fest';
 import type { DialectConfigs } from '../config/config';
 import { CONFIG } from '../config/config';
-import { getTestDialect } from '../support';
 import {
   destroySequelizeAfterTest,
   getSqliteDatabasePath,
+  getTestDialect,
   setResetMode,
   unlinkIfExists,
 } from './support';
@@ -57,8 +57,8 @@ describe('Configuration', () => {
         ...CONFIG.db2,
         port: 19_999,
       },
-      sqlite: {
-        ...CONFIG.sqlite,
+      sqlite3: {
+        ...CONFIG.sqlite3,
         storage: '/path/to/no/where/land',
         mode: OPEN_READONLY,
       },
@@ -72,7 +72,7 @@ describe('Configuration', () => {
       postgres: ConnectionRefusedError,
       snowflake: HostNotReachableError,
       db2: ConnectionRefusedError,
-      sqlite: InvalidConnectionError,
+      sqlite3: InvalidConnectionError,
     };
 
     const seq = new Sequelize<AbstractDialect>(badHostConfigs[dialectName]);
@@ -84,11 +84,11 @@ describe('Configuration', () => {
   // See https://github.com/sequelize/sequelize/issues/17240
   it.skip('throws ConnectionRefusedError when we have the wrong credentials', async () => {
     // The following dialects do not have credentials
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 
-    const config: Omit<DialectConfigs, 'sqlite'> = {
+    const config: Omit<DialectConfigs, 'sqlite3'> = {
       mssql: {
         ...CONFIG.mssql,
         authentication: {
@@ -136,7 +136,7 @@ describe('Configuration', () => {
   });
 
   it('[sqlite] respects READONLY / READWRITE connection modes', async () => {
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       return;
     }
 

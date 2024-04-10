@@ -2496,6 +2496,18 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@sequelize/db2-ibmi@workspace:packages/ibmi":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/db2-ibmi@workspace:packages/ibmi"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:^4.17.21"
+    odbc: "npm:^2.4.8"
+  languageName: unknown
+  linkType: soft
+
 "@sequelize/db2@workspace:packages/db2":
   version: 0.0.0-use.local
   resolution: "@sequelize/db2@workspace:packages/db2"
@@ -2506,18 +2518,6 @@ __metadata:
     dayjs: "npm:^1.11.10"
     ibm_db: "npm:^3.2.3"
     lodash: "npm:^4.17.21"
-  languageName: unknown
-  linkType: soft
-
-"@sequelize/ibmi@workspace:packages/ibmi":
-  version: 0.0.0-use.local
-  resolution: "@sequelize/ibmi@workspace:packages/ibmi"
-  dependencies:
-    "@sequelize/core": "workspace:*"
-    "@sequelize/utils": "workspace:*"
-    dayjs: "npm:^1.11.10"
-    lodash: "npm:^4.17.21"
-    odbc: "npm:^2.4.8"
   languageName: unknown
   linkType: soft
 
@@ -2647,9 +2647,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/sqlite@workspace:*, @sequelize/sqlite@workspace:packages/sqlite":
+"@sequelize/sqlite3@workspace:*, @sequelize/sqlite3@workspace:packages/sqlite3":
   version: 0.0.0-use.local
-  resolution: "@sequelize/sqlite@workspace:packages/sqlite"
+  resolution: "@sequelize/sqlite3@workspace:packages/sqlite3"
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
@@ -2678,7 +2678,7 @@ __metadata:
   resolution: "@sequelize/validator.js@workspace:packages/validator-js"
   dependencies:
     "@sequelize/core": "workspace:*"
-    "@sequelize/sqlite": "workspace:*"
+    "@sequelize/sqlite3": "workspace:*"
     "@types/chai": "npm:4.3.14"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"

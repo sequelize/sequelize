@@ -38,7 +38,7 @@ jobs:
             oracle
             postgres
             snowflake
-            sqlite
+            sqlite3
             utils
             validator.js
           ignoreLabels: |

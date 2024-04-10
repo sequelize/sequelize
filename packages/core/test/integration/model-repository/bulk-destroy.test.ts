@@ -103,7 +103,7 @@ describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
           ],
           { genericQuotes: true },
         ),
-        sqlite: toMatchSql(
+        sqlite3: toMatchSql(
           [
             'BEGIN DEFERRED TRANSACTION',
             'SELECT [id], [createdAt], [updatedAt] FROM [Users] AS [User] WHERE [User].[id] = 1;',

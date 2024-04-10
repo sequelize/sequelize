@@ -11,7 +11,6 @@ const STRING_CONNECTION_OPTION_MAP: Record<keyof StringConnectionOptions, undefi
   database: undefined,
   host: undefined,
   localAddress: undefined,
-  nestTables: undefined,
   password: undefined,
   password1: undefined,
   password2: undefined,
@@ -34,10 +33,8 @@ const BOOLEAN_CONNECTION_OPTION_MAP = {
   enableKeepAlive: undefined,
   isServer: undefined,
   insecureAuth: undefined,
-  nestTables: undefined,
   multipleStatements: undefined,
   waitForConnections: undefined,
-  stringifyObjects: undefined,
 } as const satisfies Record<keyof BooleanConnectionOptions, undefined>;
 
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>(
@@ -67,7 +64,6 @@ export const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<MySqlConnectionOp
   ...BOOLEAN_CONNECTION_OPTION_MAP,
   ...NUMBER_CONNECTION_OPTION_MAP,
   infileStreamFactory: undefined,
-  queryFormat: undefined,
   flags: undefined,
   authSwitchHandler: undefined,
   connectAttributes: undefined,

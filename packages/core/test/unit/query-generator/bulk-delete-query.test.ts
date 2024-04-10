@@ -21,7 +21,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
       () => queryGenerator.bulkDeleteQuery('myTable', { where: { name: 'barry' }, limit: 10 }),
       {
         default: `DELETE FROM [myTable] WHERE [name] = 'barry' LIMIT 10`,
-        sqlite:
+        sqlite3:
           "DELETE FROM `myTable` WHERE rowid IN (SELECT rowid FROM `myTable` WHERE `name` = 'barry' LIMIT 10)",
         'db2 ibmi': `DELETE FROM "myTable" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
         'mssql postgres snowflake': limitNotSupportedError,
@@ -35,7 +35,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
     expectsql(queryGenerator.bulkDeleteQuery(MyModel, { where: { name: 'barry' }, limit: 10 }), {
       default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
       mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-      sqlite:
+      sqlite3:
         "DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = 'barry' LIMIT 10)",
       'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
       'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
@@ -51,7 +51,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
       {
         default: `DELETE FROM [MyModels] WHERE [name] = 'barry' LIMIT 10`,
         mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE [name] = N'barry' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-        sqlite:
+        sqlite3:
           "DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = 'barry' LIMIT 10)",
         'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
         'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
@@ -75,7 +75,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
     expectsql(query, {
       default: `DELETE FROM [MyModels] WHERE name = 'Zoe' LIMIT 1`,
       mssql: `DELETE FROM [MyModels] WHERE [id] IN (SELECT [id] FROM [MyModels] WHERE name = N'Zoe' ORDER BY [id] OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY); SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-      sqlite: `DELETE FROM \`MyModels\` WHERE rowid IN (SELECT rowid FROM \`MyModels\` WHERE name = 'Zoe' LIMIT 1)`,
+      sqlite3: `DELETE FROM \`MyModels\` WHERE rowid IN (SELECT rowid FROM \`MyModels\` WHERE name = 'Zoe' LIMIT 1)`,
       'db2 ibmi': `DELETE FROM "MyModels" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY`,
       'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE name = 'Zoe' ORDER BY "id" LIMIT 1)`,
     });
@@ -115,7 +115,7 @@ Caused by: "undefined" cannot be escaped`),
       {
         default: `DELETE FROM [mySchema].[myTable] WHERE [name] = 'barry'`,
         mssql: `DELETE FROM [mySchema].[myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-        sqlite: "DELETE FROM `mySchema.myTable` WHERE `name` = 'barry'",
+        sqlite3: "DELETE FROM `mySchema.myTable` WHERE `name` = 'barry'",
       },
     );
   });
@@ -129,7 +129,7 @@ Caused by: "undefined" cannot be escaped`),
       {
         default: `DELETE FROM [myTable] WHERE [name] = 'barry'`,
         mssql: `DELETE FROM [myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-        sqlite: "DELETE FROM `myTable` WHERE `name` = 'barry'",
+        sqlite3: "DELETE FROM `myTable` WHERE `name` = 'barry'",
       },
     );
   });
@@ -141,7 +141,7 @@ Caused by: "undefined" cannot be escaped`),
     expectsql(queryGeneratorSchema.bulkDeleteQuery('myTable', { where: { name: 'barry' } }), {
       default: `DELETE FROM [mySchema].[myTable] WHERE [name] = 'barry'`,
       mssql: `DELETE FROM [mySchema].[myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
-      sqlite: "DELETE FROM `mySchema.myTable` WHERE `name` = 'barry'",
+      sqlite3: "DELETE FROM `mySchema.myTable` WHERE `name` = 'barry'",
     });
   });
 
@@ -157,7 +157,7 @@ Caused by: "undefined" cannot be escaped`),
         { where: { name: 'barry' } },
       ),
       {
-        sqlite: "DELETE FROM `mySchemacustommyTable` WHERE `name` = 'barry'",
+        sqlite3: "DELETE FROM `mySchemacustommyTable` WHERE `name` = 'barry'",
       },
     );
   });

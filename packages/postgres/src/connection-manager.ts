@@ -216,6 +216,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       query += 'SET standard_conforming_strings=on;';
     }
 
+    // TODO: make this a connection option
     const clientMinMessages = this.dialect.options.clientMinMessages ?? 'warning';
     if (clientMinMessages) {
       query += `SET client_min_messages TO ${clientMinMessages};`;

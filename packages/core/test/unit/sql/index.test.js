@@ -83,7 +83,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }),
         {
           ibmi: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
-          sqlite: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
+          sqlite3: 'CREATE INDEX `user_field_c` ON `User` (`fieldC`)',
           db2: 'CREATE INDEX "user_field_c" ON "User" ("fieldC")',
           mssql: 'CREATE FULLTEXT INDEX [user_field_c] ON [User] ([fieldC])',
           postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
@@ -104,7 +104,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         ),
         {
-          sqlite:
+          sqlite3:
             'CREATE UNIQUE INDEX `a_b_uniq` ON `User` (`fieldB`, `fieldA` COLLATE `en_US` DESC)',
           mssql: 'CREATE UNIQUE INDEX [a_b_uniq] ON [User] ([fieldB], [fieldA] DESC)',
           db2: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
@@ -178,7 +178,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }),
           {
             ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-            sqlite: "CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = 'public'",
+            sqlite3: "CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = 'public'",
             db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
             postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
             mssql: "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'public'",
@@ -196,7 +196,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }),
           {
             ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
-            sqlite:
+            sqlite3:
               "CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = 'group' OR `type` = 'private'",
             db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
             postgres:
@@ -217,7 +217,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }),
           {
             ibmi: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
-            sqlite: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
+            sqlite3: 'CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` IS NOT NULL',
             db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
             postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" IS NOT NULL',
             mssql: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',

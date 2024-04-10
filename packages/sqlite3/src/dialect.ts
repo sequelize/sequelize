@@ -104,7 +104,7 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
       sequelize,
       minimumDatabaseVersion: '3.8.0',
       dataTypesDocumentationUrl: 'https://www.sqlite.org/datatype3.html',
-      name: 'sqlite',
+      name: 'sqlite3',
     });
 
     this.connectionManager = new SqliteConnectionManager(this);
