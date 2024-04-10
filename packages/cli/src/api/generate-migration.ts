@@ -1,7 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { SKELETONS_FOLDER } from '../_internal/skeletons.js';
-import { getCurrentYYYYMMDDHHmms, slugify } from '../_internal/utils.js';
+import {
+  LEGACY_getCurrentYYYYMMDDHHmms,
+  getCurrentYYYYMMDDHHmms,
+  slugify,
+} from '../_internal/utils.js';
 
 export const SUPPORTED_MIGRATION_FORMATS = ['sql', 'typescript', 'cjs', 'esm'] as const;
 export type SupportedMigrationFormat = (typeof SUPPORTED_MIGRATION_FORMATS)[number];
@@ -17,12 +21,22 @@ export interface GenerateMigrationOptions {
   format: SupportedMigrationFormat;
   migrationName: string;
   migrationFolder: string;
+  legacyTimestamp?: boolean;
 }
 
 export async function generateMigration(options: GenerateMigrationOptions): Promise<string> {
-  const { format, migrationName, migrationFolder } = options;
+  const { format, migrationName, migrationFolder, legacyTimestamp } = options;
 
-  const migrationFilename = `${getCurrentYYYYMMDDHHmms()}-${slugify(migrationName)}`;
+  let migrationFilename = '';
+
+  if (legacyTimestamp) {
+    migrationFilename += `${LEGACY_getCurrentYYYYMMDDHHmms()}`;
+  } else {
+    migrationFilename += `${getCurrentYYYYMMDDHHmms()}`;
+  }
+
+  migrationFilename += `-${slugify(migrationName)}`;
+
   const migrationPath = path.join(migrationFolder, migrationFilename);
 
   if (format === 'sql') {

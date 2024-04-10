@@ -75,4 +75,15 @@ describe('migration:generate', () => {
       expect(Object.keys(asJson)).to.deep.eq(['path']);
       expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d\-t]{19}-unnamed/);
     });
+
+  oclifTest()
+    .stdout()
+    .command(['migration:generate', '--format=sql', '--name=test-migration', '--legacyTimestamp', '--json'])
+    .it('supports specifying the legacyTimestamp option', async ctx => {
+      const asJson = JSON.parse(ctx.stdout);
+
+      expect(Object.keys(asJson)).to.deep.eq(['path']);
+      expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d]{14}-test-migration/);
+      expect(await fs.readdir(asJson.path)).to.have.members(['up.sql', 'down.sql']);
+    });
 });

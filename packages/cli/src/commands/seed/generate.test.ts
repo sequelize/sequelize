@@ -67,4 +67,15 @@ describe('seed:generate', () => {
       expect(Object.keys(asJson)).to.deep.eq(['path']);
       expect(pathToFileURL(asJson.path).pathname).to.match(/seeds\/[\d\-t]{19}-unnamed/);
     });
+
+  oclifTest()
+    .stdout()
+    .command(['seed:generate', '--format=sql', '--name=test-seed', '--legacyTimestamp', '--json'])
+    .it('supports specifying the legacyTimestamp option', async ctx => {
+      const asJson = JSON.parse(ctx.stdout);
+
+      expect(Object.keys(asJson)).to.deep.eq(['path']);
+      expect(pathToFileURL(asJson.path).pathname).to.match(/seeds\/[\d]{14}-test-seed/);
+      expect(await fs.readdir(asJson.path)).to.have.members(['up.sql', 'down.sql']);
+    });
 });

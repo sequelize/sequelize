@@ -18,6 +18,9 @@ export class GenerateSeed extends SequelizeCommand<(typeof GenerateSeed)['flags'
       summary: 'A short name for the seed file',
       default: 'unnamed',
     }),
+    legacyTimestamp: Flags.boolean({
+      summary: 'When enabled, use the legacy timestamp format from earlier versions of the CLI',
+    }),
   };
 
   static summary = 'Generates a new seed file';
@@ -26,16 +29,18 @@ export class GenerateSeed extends SequelizeCommand<(typeof GenerateSeed)['flags'
     `<%= config.bin %> <%= command.id %>`,
     `<%= config.bin %> <%= command.id %> --format=sql`,
     `<%= config.bin %> <%= command.id %> --name="users table test data"`,
+    `<%= config.bin %> <%= command.id %> --legacyTimestamp`,
   ];
 
   async run(): Promise<{ path: string }> {
-    const { format, name: seedName } = this.flags;
+    const { format, name: seedName, legacyTimestamp } = this.flags;
     const { seedFolder } = config;
 
     const seedPath = await generateSeed({
       format: format as SupportedSeedFormat,
       seedName,
       seedFolder,
+      legacyTimestamp,
     });
 
     if (format === 'sql') {
