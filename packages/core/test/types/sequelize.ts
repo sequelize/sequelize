@@ -81,6 +81,11 @@ MyModel.hasOne(Model2);
 MyModel.findAll();
 
 async function test() {
+  // @ts-expect-error -- this should fail
+  await sequelize.query(1234);
+  // @ts-expect-error -- this should fail
+  await sequelize.query(/test/);
+
   const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', {
     type: QueryTypes.RAW,
   });
