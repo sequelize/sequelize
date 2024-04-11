@@ -5,7 +5,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
  * Do not use me directly. Use {@link jsonPath}.
  */
 export class JsonPath extends BaseSqlExpression {
-  protected readonly [SQL_IDENTIFIER]: string = 'jsonPath';
+  protected declare readonly [SQL_IDENTIFIER]: 'jsonPath';
 
   constructor(
     readonly expression: Expression,

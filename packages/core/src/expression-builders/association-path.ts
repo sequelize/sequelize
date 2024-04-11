@@ -1,7 +1,7 @@
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 export class AssociationPath extends BaseSqlExpression {
-  protected readonly [SQL_IDENTIFIER]: string = 'associationPath';
+  protected declare readonly [SQL_IDENTIFIER]: 'associationPath';
 
   constructor(
     readonly associationPath: readonly string[],

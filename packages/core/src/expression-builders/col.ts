@@ -4,7 +4,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
  * Do not use me directly. Use {@link col}
  */
 export class Col extends BaseSqlExpression {
-  protected readonly [SQL_IDENTIFIER]: string = 'col';
+  protected declare readonly [SQL_IDENTIFIER]: 'col';
 
   readonly identifiers: string[];
 
