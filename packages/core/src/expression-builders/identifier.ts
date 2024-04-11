@@ -4,7 +4,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
  * Use {@link identifier} instead.
  */
 export class Identifier extends BaseSqlExpression {
-  static readonly [SQL_IDENTIFIER]: string = 'identifier';
+  protected readonly [SQL_IDENTIFIER]: string = 'identifier';
 
   constructor(readonly value: string) {
     super();

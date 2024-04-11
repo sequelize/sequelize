@@ -6,7 +6,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
  * in a template string tagged with {@link sql}.
  */
 export class Value extends BaseSqlExpression {
-  static readonly [SQL_IDENTIFIER]: string = 'value';
+  protected readonly [SQL_IDENTIFIER]: string = 'value';
 
   constructor(readonly value: unknown) {
     super();

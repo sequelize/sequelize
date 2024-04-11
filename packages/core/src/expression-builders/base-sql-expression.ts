@@ -14,7 +14,7 @@ import type { Where } from './where.js';
 /**
  * A symbol that can be used as the key for a static property on a BaseSqlExpression class to uniquely identify it.
  */
-export const SQL_IDENTIFIER = Symbol('SQL_IDENTIFIER');
+export declare const SQL_IDENTIFIER: unique symbol;
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
@@ -23,7 +23,7 @@ export const SQL_IDENTIFIER = Symbol('SQL_IDENTIFIER');
  * @private
  */
 export class BaseSqlExpression {
-  declare static readonly [SQL_IDENTIFIER]: string;
+  protected declare readonly [SQL_IDENTIFIER]: string;
 }
 
 export type DynamicSqlExpression =
