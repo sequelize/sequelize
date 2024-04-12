@@ -181,7 +181,8 @@ describe('QueryGenerator#addIndexQuery', () => {
         default: buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['ifNotExists']),
         mariadb: 'CREATE INDEX IF NOT EXISTS `index_1` ON `table` (`column1`, `column2`)',
         snowflake: notSupportedError,
-        'postgres sqlite3': 'CREATE INDEX IF NOT EXISTS [index_1] ON [table] ([column1], [column2])',
+        'postgres sqlite3':
+          'CREATE INDEX IF NOT EXISTS [index_1] ON [table] ([column1], [column2])',
       },
     );
   });
