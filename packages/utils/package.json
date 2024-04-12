@@ -49,7 +49,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src --multi-entry-points"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.39",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   },

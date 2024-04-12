@@ -15,13 +15,13 @@
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
-    "@oclif/test": "3.2.8",
+    "@oclif/test": "3.2.9",
     "@types/chai": "4.3.14",
     "@types/mocha": "10.0.6",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "mocha": "10.4.0",
-    "oclif": "4.7.7",
+    "oclif": "4.8.0",
     "rimraf": "5.0.5"
   },
   "engines": {
@@ -50,6 +50,9 @@
     "topics": {
       "migration": {
         "description": "Commands for managing database migrations"
+      },
+      "seed": {
+        "description": "Commands for managing database seeding"
       }
     }
   },
@@ -67,7 +70,7 @@
   },
   "type": "module",
   "types": "lib/index.d.ts",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   }

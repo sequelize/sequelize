@@ -16,7 +16,7 @@ const dialect = Support.getTestDialect();
 const dbFile = getSqliteDatabasePath('dao.sqlite');
 
 describe('[SQLITE Specific] DAOFactory', () => {
-  if (dialect !== 'sqlite') {
+  if (dialect !== 'sqlite3') {
     return;
   }
 

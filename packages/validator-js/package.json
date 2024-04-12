@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/validator.js",
-  "version": "7.0.0-alpha.39",
+  "version": "7.0.0-alpha.40",
   "description": "Integration between validator.js and Sequelize",
   "funding": [
     {
@@ -49,7 +49,7 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@sequelize/sqlite": "workspace:*",
+    "@sequelize/sqlite3": "workspace:*",
     "@types/chai": "4.3.14",
     "@types/chai-as-promised": "7.1.8",
     "chai": "4.4.1",

@@ -117,7 +117,7 @@ describe('sequelize.pool', () => {
         mysql: {
           host: 'replica1',
         },
-        sqlite: {
+        sqlite3: {
           storage: getSqliteDatabasePath('replica1.db'),
         },
         db2: {
@@ -144,7 +144,7 @@ describe('sequelize.pool', () => {
         mysql: {
           host: 'replica2',
         },
-        sqlite: {
+        sqlite3: {
           storage: getSqliteDatabasePath('replica2.db'),
         },
         db2: {
@@ -215,7 +215,7 @@ describe('sequelize.pool', () => {
         mysql: {
           host: 'write',
         },
-        sqlite: {
+        sqlite3: {
           storage: getSqliteDatabasePath('write.db'),
         },
         db2: {

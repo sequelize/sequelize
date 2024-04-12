@@ -30,7 +30,7 @@ const qq = str => {
     return `"${str}"`;
   }
 
-  if (['mysql', 'mariadb', 'sqlite'].includes(dialectName)) {
+  if (['mysql', 'mariadb', 'sqlite3'].includes(dialectName)) {
     return `\`${str}\``;
   }
 
@@ -838,7 +838,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           },
         );
         expect(result).to.deep.equal(expected);
-        if (['postgres', 'sqlite'].includes(dialectName)) {
+        if (['postgres', 'sqlite3'].includes(dialectName)) {
           expect(logSql).to.include('$1');
         }
       });
@@ -863,7 +863,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           expect(logSql).to.include('$1');
         }
 
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           expect(logSql).to.include('$one');
         }
       });
@@ -926,7 +926,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           ? [{ FOO: 1, BAR: '$$ / $$1' }]
           : [{ foo: 1, bar: '$$ / $$1' }];
         expect(result[0]).to.deep.equal(expected);
-        if (['postgres', 'sqlite', 'db2', 'ibmi'].includes(dialectName)) {
+        if (['postgres', 'sqlite3', 'db2', 'ibmi'].includes(dialectName)) {
           expect(logSql).to.include('$1');
         }
       });
@@ -957,7 +957,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (['postgres', 'sqlite', 'mssql'].includes(dialectName)) {
+    if (['postgres', 'sqlite3', 'mssql'].includes(dialectName)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
         const result = await this.sequelize.query('select :stringArray as foo', {
           raw: true,
@@ -968,7 +968,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     }
 
     it('handles AS in conjunction with functions just fine', async function () {
-      let datetime = dialectName === 'sqlite' ? "date('now')" : 'NOW()';
+      let datetime = dialectName === 'sqlite3' ? "date('now')" : 'NOW()';
       if (dialectName === 'mssql') {
         datetime = 'GETDATE()';
       }

@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
             mysql:
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
-            sqlite:
+            sqlite3:
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $sequelize_2 LIMIT 1)',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE (SELECT * FROM "Users" WHERE "username" = $sequelize_2 FETCH NEXT 1 ROWS ONLY) SET "username"=$sequelize_1);',
             snowflake:

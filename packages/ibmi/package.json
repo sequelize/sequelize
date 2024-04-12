@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "DB2 for i Connector for Sequelize",
+  "description": "DB2 for IBM i Connector for Sequelize",
   "exports": {
     ".": {
       "import": {
@@ -21,7 +21,7 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "@sequelize/ibmi",
+  "name": "@sequelize/db2-ibmi",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
     "build": "../../build-packages.mjs ibmi",
@@ -31,7 +31,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   },

@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "DB2 Connector for Sequelize",
+  "description": "DB2 for Linux, Unix and Windows Connector for Sequelize",
   "exports": {
     ".": {
       "import": {
@@ -31,7 +31,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   },

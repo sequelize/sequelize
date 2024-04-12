@@ -97,7 +97,7 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           ],
           { genericQuotes: true },
         ),
-        sqlite: toMatchSql(
+        sqlite3: toMatchSql(
           [
             'BEGIN DEFERRED TRANSACTION',
             'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',

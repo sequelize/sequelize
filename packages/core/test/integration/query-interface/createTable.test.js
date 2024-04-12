@@ -38,7 +38,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
     // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
     // as that query *does* respect the index name.
-    if (dialect !== 'sqlite') {
+    if (dialect !== 'sqlite3') {
       it('should create unique constraint with uniqueKeys', async function () {
         await this.queryInterface.createTable(
           'MyTable',

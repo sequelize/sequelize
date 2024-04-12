@@ -54,7 +54,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
       },
     );
@@ -84,7 +84,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql':
         'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
     });
   });
@@ -101,7 +101,7 @@ describe('QueryGenerator#createTableQuery', () => {
         { myColumn: 'DATE' },
       ),
       {
-        sqlite: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable` (`myColumn` DATE);',
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable` (`myColumn` DATE);',
       },
     );
   });
@@ -125,7 +125,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql':
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
     });
   });
@@ -142,7 +142,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
-        sqlite:
+        sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
       },
@@ -176,7 +176,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`), FOREIGN KEY (`myColumn`) REFERENCES "Bar" ("id")) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]), FOREIGN KEY ([myColumn]) REFERENCES "Bar" ("id"));`,
-        sqlite:
+        sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY REFERENCES "Bar" ("id"));',
         'snowflake db2':
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
@@ -233,7 +233,7 @@ describe('QueryGenerator#createTableQuery', () => {
         mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo', @level0type = N'Schema', @level0name = N'mySchema',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
         db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
       },
@@ -293,7 +293,7 @@ describe('QueryGenerator#createTableQuery', () => {
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
         EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo PRIMARY KEY', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
       },
@@ -397,7 +397,7 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql':
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn")); END`,
     });
   });
@@ -414,7 +414,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
-        sqlite:
+        sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
       },
@@ -434,7 +434,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT, PRIMARY KEY (`secondColumn`, `thirdColumn`)) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER NOT NULL, [secondColumn] INTEGER NOT NULL, [thirdColumn] TEXT, PRIMARY KEY ([secondColumn], [thirdColumn]));`,
-        sqlite:
+        sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT NOT NULL, PRIMARY KEY (`secondColumn`, `thirdColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn")); END`,
       },
@@ -450,7 +450,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT, PRIMARY KEY ([myColumn]));`,
-        sqlite:
+        sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
       },
@@ -466,7 +466,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER(5) UNSIGNED, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));`,
-        sqlite: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn")); END`,
       },
     );

@@ -1,11 +1,11 @@
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
  * Do not use me directly. Use {@link jsonPath}.
  */
 export class JsonPath extends BaseSqlExpression {
-  private declare readonly brand: 'jsonPath';
+  protected declare readonly [SQL_IDENTIFIER]: 'jsonPath';
 
   constructor(
     readonly expression: Expression,

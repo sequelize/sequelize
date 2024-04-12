@@ -54,8 +54,8 @@ describe('Model.findOne', () => {
       });
 
       it('supports concurrent transactions', async function () {
-        // Disabled in sqlite because it only supports one write transaction at a time
-        if (dialectName === 'sqlite') {
+        // Disabled in sqlite3 because it only supports one write transaction at a time
+        if (dialectName === 'sqlite3') {
           return;
         }
 
