@@ -114,6 +114,7 @@ export class SnowflakeDialect extends AbstractDialect<
     multiDatabases: true,
     dataTypes: {
       COLLATE_BINARY: true,
+      DATETIME: { offset: true },
     },
     REGEXP: true,
     globalTimeZoneConfig: true,
