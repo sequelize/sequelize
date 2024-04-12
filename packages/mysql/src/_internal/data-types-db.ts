@@ -1,8 +1,11 @@
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone.js';
 import type { TypeCastField } from 'mysql2';
 import wkx from 'wkx';
 import type { MySqlDialect } from '../dialect.js';
+
+dayjs.extend(timezone);
 
 /**
  * First pass of DB value parsing: Parses based on the MySQL Type ID.

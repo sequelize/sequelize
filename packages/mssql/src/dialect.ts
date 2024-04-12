@@ -65,6 +65,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     },
     tmpTableTrigger: true,
     dataTypes: {
+      DATETIME: { offset: true },
       JSON: true,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
       GEOGRAPHY: false,

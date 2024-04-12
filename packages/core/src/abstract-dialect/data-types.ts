@@ -8,6 +8,7 @@ import {
 import dayjs from 'dayjs';
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject';
+import type MomentType from 'moment';
 import { Blob } from 'node:buffer';
 import util from 'node:util';
 import type { Class } from 'type-fest';
@@ -35,14 +36,14 @@ import type { TableNameWithSchema } from './query-interface.js';
 //       right now, they share a lot of the same logic.
 
 // legacy support
-let Moment: any;
+let Moment: typeof MomentType | undefined;
 try {
   Moment = require('moment');
 } catch {
   /* ignore */
 }
 
-function isMoment(value: any): boolean {
+function isMoment(value: any): value is MomentType.Moment {
   return Moment?.isMoment(value) ?? false;
 }
 
@@ -1415,6 +1416,10 @@ export interface DateOptions {
    * The precision of the date.
    */
   precision?: number | undefined;
+  /**
+   * Use non-timezone-aware dates.
+   */
+  plain?: boolean | undefined;
 }
 
 type RawDate = Date | string | number;
@@ -1439,16 +1444,28 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   static readonly [DataTypeIdentifier]: string = 'DATE';
   readonly options: DateOptions;
 
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
+  protected readonly HAS_TIMEZONE = /(?:Z|[+-]\d{2}(?::\d{2}){0,1}){0,1}$/;
+
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
+  protected readonly IS_ISO8601 =
+    /^\d{4}(?:-\d{2}){0,2}(?:(?:T| )\d{2}(?::\d{2}){1,2}){0,1}(?:\.\d{1,}){0,1}(?:Z|[+-]\d{2}(?::\d{2}){0,1}){0,1}$/;
+
+  // Expression based off https://www.w3.org/TR/NOTE-datetime.
+  protected readonly IS_PLAIN_DATE =
+    /^\d{4}(?:-\d{2}){0,2}(?:(?:T| )\d{2}(?::\d{2}){1,2}){0,1}(?:\.\d{1,}){0,1}$/;
+
   /**
    * @param precisionOrOptions precision to allow storing milliseconds
    */
   constructor(precisionOrOptions?: number | DateOptions) {
     super();
 
-    this.options = {
-      precision:
-        typeof precisionOrOptions === 'object' ? precisionOrOptions.precision : precisionOrOptions,
-    };
+    if (isPlainObject(precisionOrOptions)) {
+      this.options = { ...precisionOrOptions };
+    } else {
+      this.options = { precision: precisionOrOptions };
+    }
 
     if (
       this.options.precision != null &&
@@ -1458,13 +1475,18 @@ export class DATE extends AbstractDataType<AcceptedDate> {
     }
   }
 
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+    // TODO: Forbid the use of DATE without the plain option if the dialect does not support timezone-aware dates.
+  }
+
   toSql() {
     // TODO [>=8]: Consider making precision default to 3 instead of being dialect-dependent.
     if (this.options.precision != null) {
-      return `DATETIME(${this.options.precision})`;
+      return `TIMESTAMP(${this.options.precision})`;
     }
 
-    return 'DATETIME';
+    return 'TIMESTAMP';
   }
 
   validate(value: any) {
@@ -1476,11 +1498,31 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 
   sanitize(value: unknown): unknown {
-    if (value instanceof Date || dayjs.isDayjs(value) || isMoment(value)) {
+    if (value instanceof Date) {
       return value;
     }
 
-    if (typeof value === 'string' || typeof value === 'number') {
+    if (dayjs.isDayjs(value) || isMoment(value)) {
+      return value.toDate();
+    }
+
+    if (typeof value === 'number') {
+      return new Date(value);
+    }
+
+    if (typeof value === 'string') {
+      if (!this.IS_ISO8601.test(value)) {
+        throw new TypeError(
+          `${util.inspect(value)} cannot be converted to a Date object. Use a string in ISO 8601 format instead.`,
+        );
+      }
+
+      if (this.options.plain && !this.IS_PLAIN_DATE.test(value)) {
+        throw new TypeError(
+          `${util.inspect(value)} cannot be converted to a Plain Date object. Use a string in ISO 8601 format without a timezone instead.`,
+        );
+      }
+
       return new Date(value);
     }
 
@@ -1490,6 +1532,22 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 
   parseDatabaseValue(value: unknown): unknown {
+    if (typeof value === 'string') {
+      if (!this.IS_ISO8601.test(value)) {
+        throw new TypeError(
+          `${util.inspect(value)} cannot be converted to a Date object. Use a string in ISO 8601 format instead.`,
+        );
+      }
+
+      // If the Database returns a timezone, we need to remove it before parsing the date.
+      // Otherwise the plain date will be interpreted as a timezone-aware date.
+      if (this.options.plain) {
+        return new Date(value.replace(this.HAS_TIMEZONE, ''));
+      }
+
+      return new Date(value);
+    }
+
     return this.sanitize(value);
   }
 
@@ -1515,21 +1573,42 @@ export class DATE extends AbstractDataType<AcceptedDate> {
 
   protected _applyTimezone(date: AcceptedDate) {
     const timezone = this._getDialect().sequelize.options.timezone;
+    const supportsGlobalTimezone = this._getDialect().supports.globalTimeZoneConfig;
 
-    if (timezone) {
+    if (timezone && supportsGlobalTimezone) {
       if (isValidTimeZone(timezone)) {
-        return dayjs(date).tz(timezone);
+        return dayjs.tz(date, timezone);
       }
 
       return dayjs(date).utcOffset(timezone);
     }
 
-    return dayjs(date);
+    return dayjs.utc(date);
   }
 
   toBindableValue(date: AcceptedDate) {
+    // Default precision is 6
+    const precision = this.options.precision ?? 6;
+    let format = 'YYYY-MM-DD HH:mm:ss';
+    // TODO: We should normally use `S`, `SS` or `SSS` based on the precision, but
+    //  dayjs has a bug which causes `S` and `SS` to be ignored:
+    //  https://github.com/iamkun/dayjs/issues/1734
+    if (precision > 0) {
+      format += `.SSS`;
+    }
+
     // Z here means current timezone, _not_ UTC
-    return this._applyTimezone(date).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+    return this.options.plain
+      ? dayjs(date).format(format)
+      : this._applyTimezone(date).format(`${format}Z`);
+  }
+
+  get PLAIN(): this {
+    return this._construct<typeof DATE>({ ...this.options, plain: true });
+  }
+
+  static get PLAIN() {
+    return new this({ plain: true });
   }
 }
 
