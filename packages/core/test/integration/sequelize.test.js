@@ -25,7 +25,7 @@ const qq = str => {
     return `"${str}"`;
   }
 
-  if (['mysql', 'mariadb', 'sqlite'].includes(dialect)) {
+  if (['mysql', 'mariadb', 'sqlite3'].includes(dialect)) {
     return `\`${str}\``;
   }
 
@@ -107,7 +107,7 @@ const badAddressConfig = {
   mariadb: {
     port: 9999,
   },
-  sqlite: {},
+  sqlite3: {},
   snowflake: {
     accessUrl: 'https://bad-address',
   },
@@ -120,7 +120,7 @@ const badAddressConfig = {
 };
 
 describe(getTestDialectTeaser('Sequelize'), () => {
-  if (dialect !== 'sqlite') {
+  if (dialect !== 'sqlite3') {
     describe('authenticate', () => {
       describe('with valid credentials', () => {
         it('triggers the success event', async function () {
@@ -338,7 +338,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       expect(true).to.be.true;
     });
 
-    if (dialect !== 'sqlite' && dialect !== 'db2') {
+    if (dialect !== 'sqlite3' && dialect !== 'db2') {
       it('fails for incorrect connection even when no models are defined', async () => {
         const sequelize = createSingleTestSequelizeInstance(badUsernameConfig[dialect]);
 
@@ -553,7 +553,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           await t.commit();
         });
 
-        if (dialect === 'sqlite') {
+        if (dialect === 'sqlite3') {
           it('correctly scopes transaction from other connections', async function () {
             const TransactionTest = vars.sequelizeWithTransaction.define(
               'TransactionTest',

@@ -259,7 +259,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         } else {
           expect(error.errors).to.have.length(1);
           expect(error.errors[0].type).to.equal('unique violation');
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite3') {
             expect(error.errors[0].value).to.be.null;
           } else {
             expect(error.errors[0].value).to.equal('foo');
@@ -299,7 +299,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
-          case 'sqlite':
+          case 'sqlite3':
             expect(error.cause.message).to.equal(
               'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
             );
@@ -339,7 +339,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           );
           expect(error.errors[0].type).to.equal('unique violation');
           expect(error.errors[0].path).to.match(/(?:users_username_unique|username)/);
-          if (dialect === 'sqlite') {
+          if (dialect === 'sqlite3') {
             expect(error.errors[0].value).to.be.null;
           } else {
             expect(error.errors[0].value).to.equal('foo');
@@ -373,7 +373,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             );
             break;
 
-          case 'sqlite':
+          case 'sqlite3':
             expect(error.cause.message).to.equal(
               'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
             );
@@ -415,7 +415,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite') {
+        if (dialect === 'sqlite3') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -446,7 +446,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             );
             break;
 
-          case 'sqlite':
+          case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal(
@@ -490,7 +490,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite') {
+        if (dialect === 'sqlite3') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -521,7 +521,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             );
             break;
 
-          case 'sqlite':
+          case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal(
@@ -558,7 +558,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           name: 'unique_constraint',
         });
       } catch (error) {
-        if (['mariadb', 'mssql', 'mysql', 'sqlite'].includes(dialect)) {
+        if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
           expect(error).to.be.instanceOf(AggregateError);
           assert(error instanceof AggregateError);
           expect(error.errors).to.have.length(3);

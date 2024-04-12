@@ -7,7 +7,7 @@ import path from 'node:path';
 import * as Sqlite3 from 'sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
-const debug = logger.debugContext('connection:sqlite');
+const debug = logger.debugContext('connection:sqlite3');
 
 export type Sqlite3Module = typeof Sqlite3;
 
@@ -54,7 +54,7 @@ export interface SqliteConnectionOptions {
    *
    * @example
    * ```ts
-   * import { SqliteDialect, OPEN_CREATE, OPEN_READWRITE } from '@sequelize/sqlite';
+   * import { SqliteDialect, OPEN_CREATE, OPEN_READWRITE } from '@sequelize/sqlite3';
    *
    * new Sequelize({
    *   dialect: SqliteDialect,

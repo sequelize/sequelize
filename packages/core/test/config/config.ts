@@ -1,12 +1,12 @@
 import type { ConnectionOptions, Options } from '@sequelize/core';
 import { Db2Dialect } from '@sequelize/db2';
-import { IBMiDialect } from '@sequelize/ibmi';
+import { IBMiDialect } from '@sequelize/db2-ibmi';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { MsSqlDialect } from '@sequelize/mssql';
 import { MySqlDialect } from '@sequelize/mysql';
 import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
-import { SqliteDialect } from '@sequelize/sqlite';
+import { SqliteDialect } from '@sequelize/sqlite3';
 import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 
@@ -23,7 +23,7 @@ export interface DialectConfigs {
   mysql: Options<MySqlDialect>;
   snowflake: Options<SnowflakeDialect>;
   mariadb: Options<MariaDbDialect>;
-  sqlite: Options<SqliteDialect>;
+  sqlite3: Options<SqliteDialect>;
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
@@ -34,7 +34,7 @@ export interface DialectConnectionConfigs {
   mysql: ConnectionOptions<MySqlDialect>;
   snowflake: ConnectionOptions<SnowflakeDialect>;
   mariadb: ConnectionOptions<MariaDbDialect>;
-  sqlite: ConnectionOptions<SqliteDialect>;
+  sqlite3: ConnectionOptions<SqliteDialect>;
   postgres: ConnectionOptions<PostgresDialect>;
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
@@ -104,7 +104,7 @@ export const CONFIG: DialectConfigs = {
     },
   },
 
-  sqlite: {
+  sqlite3: {
     dialect: SqliteDialect,
     storage: getSqliteDatabasePath('default.sqlite'),
   },

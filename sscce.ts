@@ -1,6 +1,6 @@
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute } from '@sequelize/core/decorators-legacy';
-import { SqliteDialect } from '@sequelize/sqlite';
+import { SqliteDialect } from '@sequelize/sqlite3';
 import { expect } from 'chai';
 import { createSequelizeInstance } from './dev/sscce-helpers';
 

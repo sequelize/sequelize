@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "SQLite Connector for Sequelize",
+  "description": "SQLite Connector for Sequelize, based on the sqlite3 npm package",
   "exports": {
     ".": {
       "import": {
@@ -21,10 +21,10 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "@sequelize/sqlite",
+  "name": "@sequelize/sqlite3",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "../../build-packages.mjs sqlite",
+    "build": "../../build-packages.mjs sqlite3",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha src/**/*.test.ts",
@@ -32,7 +32,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   },

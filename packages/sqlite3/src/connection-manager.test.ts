@@ -1,5 +1,5 @@
 import { Sequelize } from '@sequelize/core';
-import { SqliteDialect } from '@sequelize/sqlite';
+import { SqliteDialect } from '@sequelize/sqlite3';
 import { expect } from 'chai';
 
 describe('ConnectionManager', () => {

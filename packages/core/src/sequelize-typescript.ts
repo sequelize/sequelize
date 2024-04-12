@@ -199,7 +199,7 @@ type SessionCallback<T> = (connection: AbstractConnection) => PromiseLike<T> | T
 export const SUPPORTED_DIALECTS = Object.freeze([
   'mysql',
   'postgres',
-  'sqlite',
+  'sqlite3',
   'mariadb',
   'mssql',
   'mariadb',

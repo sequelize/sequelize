@@ -205,7 +205,14 @@ module.exports = {
     ecmaVersion: 2020,
     sourceType: 'module',
   },
-  ignorePatterns: ['packages/*/lib/**/*', 'packages/*/types/**/*', '.typedoc-build'],
+  ignorePatterns: [
+    'packages/*/lib/**/*',
+    'packages/*/types/**/*',
+    'packages/**/skeletons/**/*',
+    '.typedoc-build',
+    'packages/cli/migrations/**/*',
+    'packages/cli/seeds/**/*',
+  ],
   env: {
     node: true,
     mocha: true,

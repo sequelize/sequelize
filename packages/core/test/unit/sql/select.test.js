@@ -1047,7 +1047,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           db2: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (BLOB('123'));`,
           postgres: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('\\x313233');`,
           snowflake: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X'313233');`,
-          'mariadb mysql sqlite':
+          'mariadb mysql sqlite3':
             "SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X'313233');",
           mssql:
             'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);',
