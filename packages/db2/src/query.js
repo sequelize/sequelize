@@ -3,6 +3,7 @@
 import {
   AbstractQuery,
   DatabaseError,
+  EmptyResultError,
   ForeignKeyConstraintError,
   UniqueConstraintError,
   UnknownConstraintError,
@@ -193,20 +194,49 @@ export class Db2Query extends AbstractQuery {
    * @private
    */
   formatResults(data, rowCount, metadata) {
-    let result = this.instance;
-    if (this.isInsertQuery(data, metadata)) {
-      this.handleInsertQuery(data, metadata);
+    if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
+      if (this.instance && this.instance.dataValues) {
+        // If we are creating an instance, and we get no rows, the create failed but did not throw.
+        // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
+        if (this.isInsertQuery() && !this.isUpsertQuery() && data.length === 0) {
+          throw new EmptyResultError();
+        }
 
-      if (!this.instance) {
-        if (this.options.plain) {
-          const record = data[0];
-          result = record[Object.keys(record)[0]];
-        } else {
-          result = data;
+        // Due to Db2 returning values with every insert or update,
+        // we only want to map the returned values to the instance if the user wants it.
+        // TODO: This is a hack, and should be fixed in the future.
+        if (this.options.returning && Array.isArray(data) && data[0]) {
+          for (const attributeOrColumnName of Object.keys(data[0])) {
+            const modelDefinition = this.model.modelDefinition;
+            const attribute = modelDefinition.columns.get(attributeOrColumnName);
+            const updatedValue = this._parseDatabaseValue(
+              data[0][attributeOrColumnName],
+              attribute?.type,
+            );
+
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
+              raw: true,
+              comesFromDatabase: true,
+            });
+          }
         }
       }
+
+      if (this.isUpsertQuery()) {
+        return [this.instance, null];
+      }
+
+      return [
+        this.instance || (data && ((this.options.plain && data[0]) || data)) || undefined,
+        this.options.returning ? data.length : rowCount,
+      ];
     }
 
+    if (this.isBulkUpdateQuery()) {
+      return this.options.returning ? this.handleSelectQuery(data) : rowCount;
+    }
+
+    let result = this.instance;
     if (this.isDescribeQuery()) {
       result = {};
       for (const _result of data) {
@@ -227,16 +257,10 @@ export class Db2Query extends AbstractQuery {
       result = this.handleShowIndexesQuery(data);
     } else if (this.isSelectQuery()) {
       result = this.handleSelectQuery(data);
-    } else if (this.isUpsertQuery()) {
-      result = data;
     } else if (this.isCallQuery()) {
       result = data;
-    } else if (this.isBulkUpdateQuery()) {
-      result = data.length;
     } else if (this.isDeleteQuery()) {
       result = rowCount;
-    } else if (this.isInsertQuery() || this.isUpdateQuery()) {
-      result = [result, rowCount];
     } else if (this.isShowConstraintsQuery()) {
       result = data;
     } else if (this.isRawQuery()) {
@@ -409,27 +433,5 @@ export class Db2Query extends AbstractQuery {
     }, new Map());
 
     return Array.from(indexes.values());
-  }
-
-  handleInsertQuery(results, metaData) {
-    if (!this.instance) {
-      return;
-    }
-
-    const modelDefinition = this.model.modelDefinition;
-    if (!modelDefinition.autoIncrementAttributeName) {
-      return;
-    }
-
-    const autoIncrementAttribute = modelDefinition.attributes.get(
-      modelDefinition.autoIncrementAttributeName,
-    );
-
-    const id =
-      results?.[0][this.getInsertIdField()] ??
-      metaData?.[this.getInsertIdField()] ??
-      results?.[0][autoIncrementAttribute.columnName];
-
-    this.instance[autoIncrementAttribute.attributeName] = id;
   }
 }
