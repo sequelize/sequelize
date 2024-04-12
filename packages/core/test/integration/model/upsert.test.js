@@ -63,7 +63,7 @@ describe('Model', () => {
     describe('upsert', () => {
       it('works with upsert on id', async function () {
         const [, created0] = await this.User.upsert({ id: 42, username: 'john' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.true;
@@ -71,7 +71,7 @@ describe('Model', () => {
 
         this.clock.tick(1000);
         const [, created] = await this.User.upsert({ id: 42, username: 'doe' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -85,7 +85,7 @@ describe('Model', () => {
 
       it('works with upsert on a composite key', async function () {
         const [, created0] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.true;
@@ -93,7 +93,7 @@ describe('Model', () => {
 
         this.clock.tick(1000);
         const [, created] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -144,7 +144,7 @@ describe('Model', () => {
           User.upsert({ a: 'a', b: 'a', username: 'curt' }),
         ]);
 
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created1[1]).to.be.null;
           expect(created2[1]).to.be.null;
         } else {
@@ -155,7 +155,7 @@ describe('Model', () => {
         this.clock.tick(1000);
         // Update the first one
         const [, created] = await User.upsert({ a: 'a', b: 'b', username: 'doe' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -202,7 +202,7 @@ describe('Model', () => {
 
         await User.sync({ force: true });
         const [, created] = await User.upsert({ id: 1, email: 'notanemail' }, options);
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.true;
@@ -215,7 +215,7 @@ describe('Model', () => {
           username: 'john',
           blob: Buffer.from('kaj'),
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -227,7 +227,7 @@ describe('Model', () => {
           username: 'doe',
           blob: Buffer.from('andrea'),
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -242,14 +242,14 @@ describe('Model', () => {
 
       it('works with .field', async function () {
         const [, created0] = await this.User.upsert({ id: 42, baz: 'foo' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
         }
 
         const [, created] = await this.User.upsert({ id: 42, baz: 'oof' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -261,7 +261,7 @@ describe('Model', () => {
 
       it('works with primary key using .field', async function () {
         const [, created0] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -269,7 +269,7 @@ describe('Model', () => {
 
         this.clock.tick(1000);
         const [, created] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -285,7 +285,7 @@ describe('Model', () => {
           username: 'john',
           foo: this.sequelize.fn('upper', 'mixedCase1'),
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -297,7 +297,7 @@ describe('Model', () => {
           username: 'doe',
           foo: this.sequelize.fn('upper', 'mixedCase2'),
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -380,7 +380,7 @@ describe('Model', () => {
         await this.User.create({ id: 42, username: 'john' });
         const user = await this.User.findByPk(42);
         const [, created] = await this.User.upsert({ id: user.id, username: user.username });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           // After set node-mysql flags = '-FOUND_ROWS' / foundRows=false
@@ -410,7 +410,7 @@ describe('Model', () => {
           email: 'user1@domain.ext',
           city: 'City',
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -421,7 +421,7 @@ describe('Model', () => {
           email: 'user1@domain.ext',
           city: 'New City',
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -462,7 +462,7 @@ describe('Model', () => {
           email: 'user1@domain.ext',
           city: 'City',
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -473,7 +473,7 @@ describe('Model', () => {
           email: 'user1@domain.ext',
           city: 'New City',
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).to.be.false;
@@ -506,7 +506,7 @@ describe('Model', () => {
 
         await User.sync({ force: true });
         const [, created0] = await User.upsert({ name: 'user1', address: 'address', city: 'City' });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
         } else {
           expect(created0).to.be.ok;
@@ -517,7 +517,7 @@ describe('Model', () => {
           address: 'address',
           city: 'New City',
         });
-        if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
         } else {
           expect(created).not.to.be.ok;
@@ -618,7 +618,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -630,7 +630,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -657,7 +657,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -669,7 +669,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -695,7 +695,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal('surya');
             expect(user0.get('username')).to.equal('john');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -707,7 +707,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal('surya');
             expect(user.get('username')).to.equal('doe');
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -730,7 +730,7 @@ describe('Model', () => {
             expect(user.name).to.equal('Test default value');
             expect(user.code).to.equal(2020);
 
-            if (['db2', 'sqlite', 'postgres'].includes(dialectName)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.true;
