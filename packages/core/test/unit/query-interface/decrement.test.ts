@@ -49,8 +49,10 @@ describe('QueryInterface#decrement', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: `UPDATE [Users] SET [age]=[age]- ':age',[name]=':name' WHERE [firstName] = ':firstName'`,
-      postgres: `UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
       mssql: `UPDATE [Users] SET [age]=[age]- N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':firstName'`,
+      sqlite3:
+        "UPDATE `Users` SET `age`=`age`- ':age',`name`=':name' WHERE `firstName` = ':firstName' RETURNING `:data`",
+      postgres: `UPDATE "Users" SET "age"="age"- ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
     });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });

@@ -45,6 +45,8 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2',
+      sqlite3:
+        'UPDATE `Users` SET `firstName`=$sequelize_1 WHERE `firstName` = $sequelize_2 RETURNING `:data`',
       postgres:
         'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2 RETURNING ":data"',
       mssql:
