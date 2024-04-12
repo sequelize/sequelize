@@ -4,11 +4,18 @@ import type {
   BindCollector,
   DialectSupports,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerPostgresDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import type { PgModule } from './connection-manager.js';
+import type { PgModule, PostgresConnectionOptions } from './connection-manager.js';
 import { PostgresConnectionManager } from './connection-manager.js';
 import { PostgresQueryGenerator } from './query-generator.js';
 import { PostgresQueryInterface } from './query-interface.js';
@@ -32,14 +39,38 @@ export interface PostgresDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   pgModule?: PgModule;
+
+  /**
+   * The PostgreSQL `standard_conforming_strings` session parameter.
+   * Set to `false` to not set the option.
+   * WARNING: Setting this to false may expose vulnerabilities and is not recommended!
+   *
+   * @default true
+   */
+  standardConformingStrings?: boolean;
+
+  /**
+   * The PostgreSql `client_min_messages` session parameter.
+   * Set explicitly to `false` to not override the database's default.
+   * Redshift does not support this parameter, it is important to set this option
+   * to `false` when connecting to Redshift.
+   *
+   * @default 'warning'
+   */
+  clientMinMessages?: string | boolean;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<PostgresDialectOptions>({
+  clientMinMessages: undefined,
   native: undefined,
   pgModule: undefined,
+  standardConformingStrings: undefined,
 });
 
-export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
+export class PostgresDialect extends AbstractDialect<
+  PostgresDialectOptions,
+  PostgresConnectionOptions
+> {
   static readonly supports: DialectSupports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     EXCEPTION: true,
@@ -185,19 +216,33 @@ export class PostgresDialect extends AbstractDialect<PostgresDialectOptions> {
     // postgres can use \ to escape if one of these is true:
     // - standard_conforming_strings is off
     // - the string is prefixed with E (out of scope for this method)
-
-    return !this.sequelize.options.standardConformingStrings;
+    return this.options.standardConformingStrings === false;
   }
 
   getDefaultSchema() {
     return 'public';
   }
 
-  static getDefaultPort() {
-    return 5432;
+  parseConnectionUrl(url: string): PostgresConnectionOptions {
+    return parseCommonConnectionUrlOptions<PostgresConnectionOptions>({
+      url,
+      allowedProtocols: ['postgres', 'postgresql'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {
     return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

@@ -1,4 +1,4 @@
-import type { Connection as AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -23,14 +23,39 @@ export type MySql2Module = typeof MySql2;
 
 export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
 
+export interface MySqlConnectionOptions
+  extends Omit<
+    MySql2.ConnectionOptions,
+    // The user cannot modify these options:
+    // This option is currently a global Sequelize option
+    | 'timezone'
+    // Conflicts with our own features
+    | 'nestTables'
+    // We provide our own placeholders.
+    // TODO: should we use named placeholders for mysql?
+    | 'namedPlaceholders'
+    // We provide our own pool
+    | 'pool'
+    // Our code expects specific response formats, setting any of the following option would break Sequelize
+    | 'typeCast'
+    | 'bigNumberStrings'
+    | 'supportBigNumbers'
+    | 'dateStrings'
+    | 'decimalNumbers'
+    | 'rowsAsArray'
+    | 'stringifyObjects'
+    | 'queryFormat'
+    | 'Promise'
+    // We provide our own "url" implementation
+    | 'uri'
+  > {}
+
 /**
  * MySQL Connection Manager
  *
  * Get connections, validate and disconnect them.
  * AbstractConnectionManager pooling use it to handle MySQL specific connections
  * Use https://github.com/sidorares/node-mysql2 to connect with MySQL server
- *
- * @private
  */
 export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlDialect,
@@ -62,23 +87,18 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
    * Also set proper timezone once connection is connected.
    *
    * @param config
-   * @returns
-   * @private
    */
-  async connect(config: ConnectionOptions): Promise<MySqlConnection> {
+  async connect(config: ConnectionOptions<MySqlDialect>): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
+    // TODO: enable dateStrings
     const connectionConfig: MySql2.ConnectionOptions = {
+      flags: ['-FOUND_ROWS'],
+      port: 3306,
+      ...config,
+      ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
       bigNumberStrings: false,
       supportBigNumbers: true,
-      flags: ['-FOUND_ROWS'],
-      ...config.dialectOptions,
-      ...(config.host == null ? null : { host: config.host }),
-      port: config.port,
-      ...(config.username == null ? null : { user: config.username }),
-      ...(config.password == null ? null : { password: config.password }),
-      ...(config.database == null ? null : { database: config.database }),
-      ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
       typeCast: (field, next) => this.#typecast(field, next),
     };
 
@@ -97,13 +117,13 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
           case 'ECONNRESET':
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
-            void this.pool.destroy(connection);
+            void this.sequelize.pool.destroy(connection);
             break;
           default:
         }
       });
 
-      if (!this.sequelize.config.keepDefaultTimezone && this.sequelize.options.timezone) {
+      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
         // set timezone for this connection
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;

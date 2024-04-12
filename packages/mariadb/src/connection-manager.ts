@@ -1,4 +1,4 @@
-import type { Connection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -20,7 +20,39 @@ const debug = logger.debugContext('connection:mariadb');
 
 export type MariaDbModule = typeof MariaDb;
 
-export interface MariaDbConnection extends Connection, MariaDb.Connection {}
+export interface MariaDbConnection extends AbstractConnection, MariaDb.Connection {}
+
+export interface MariaDbConnectionOptions
+  extends Omit<
+    MariaDb.ConnectionConfig,
+    // Can only be set by Sequelize to prevent users from making it return a format
+    // that is incompatible with Sequelize
+    | 'typeCast'
+    // Replaced by Sequelize's global option
+    | 'timezone'
+    // Users cannot use MariaDB's placeholders, they use Sequelize's syntax instead
+    | 'namedPlaceholders'
+    | 'arrayParenthesis'
+
+    // The following options will conflict with the format expected by Sequelize
+    | 'insertIdAsNumber'
+    | 'metaAsArray'
+    | 'rowsAsArray'
+    | 'nestTables'
+    | 'dateStrings'
+    | 'decimalAsNumber'
+    | 'bigIntAsNumber'
+    | 'supportBigNumbers'
+    | 'bigNumberStrings'
+    | 'autoJsonMap'
+    // This option is not necessary because we do not allow using decimalAsNumber,
+    // insertIdAsNumber, nor bigIntAsNumber.
+    // If someone requests to enable this option, do not accept it.
+    // Instead, the same feature should be added to Sequelize as a cross-dialect feature.
+    | 'checkNumberRange'
+    // unsafe compatibility option
+    | 'permitSetMultiParamEntries'
+  > {}
 
 /**
  * MariaDB Connection Manager
@@ -28,8 +60,6 @@ export interface MariaDbConnection extends Connection, MariaDb.Connection {}
  * Get connections, validate and disconnect them.
  * AbstractConnectionManager pooling use it to handle MariaDB specific connections
  * Use https://github.com/MariaDB/mariadb-connector-nodejs to connect with MariaDB server
- *
- * @private
  */
 export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbDialect,
@@ -58,28 +88,21 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
    * Also set proper timezone once connection is connected.
    *
    * @param config
-   * @returns
-   * @private
    */
-  async connect(config: ConnectionOptions): Promise<MariaDbConnection> {
+  async connect(config: ConnectionOptions<MariaDbDialect>): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
     tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
 
     const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
-      host: config.host,
-      port: config.port ? Number(config.port) : undefined,
-      user: config.username,
-      password: config.password,
-      database: config.database,
-      timezone: tzOffset,
       foundRows: false,
-      ...config.dialectOptions,
+      ...config,
+      timezone: tzOffset,
       typeCast: (field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction) =>
         this.#typeCast(field, next),
     });
 
-    if (!this.sequelize.config.keepDefaultTimezone) {
+    if (!this.sequelize.options.keepDefaultTimezone) {
       // set timezone for this connection
       if (connectionConfig.initSql) {
         if (!Array.isArray(connectionConfig.initSql)) {
@@ -94,7 +117,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
     try {
       const connection = await this.#lib.createConnection(connectionConfig);
-      this.sequelize.options.databaseVersion = semver.coerce(connection.serverVersion())!.version;
+      this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
 
       debug('connection acquired');
       connection.on('error', error => {
@@ -103,7 +126,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
           case 'ECONNRESET':
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
-            void this.pool.destroy(connection);
+            void this.sequelize.pool.destroy(connection);
             break;
           default:
         }

@@ -32,7 +32,7 @@ describe('setTransactionFromCls', () => {
 
   it('does not use CLS if a transaction is already provided', async () => {
     // SQLite only has a single connection, we can't open a second transaction
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 
@@ -68,7 +68,7 @@ describe('setTransactionFromCls', () => {
 
   it('does not set the transaction from CLS if an incompatible connection is provided', async () => {
     // SQLite only has a single connection, so it's the same connection
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 
@@ -102,7 +102,7 @@ describe('setTransactionFromCls', () => {
 
   it('does not allow mismatching connection & transaction', async () => {
     // SQLite only has a single connection, so it's the same connection
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 

@@ -7,6 +7,8 @@
   "timeout": 30000,
   "reporter": "spec",
   "exit": true,
+  "inline-diffs": true,
+  "full-trace": true,
   // Globals added as per https://github.com/sequelize/sequelize/pull/17206#discussion_r1538541573
   "globals": [
     "__extends",

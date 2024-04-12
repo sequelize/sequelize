@@ -1,0 +1,77 @@
+{
+  "bin": {
+    "sequelize": "./bin/run.js"
+  },
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "dependencies": {
+    "@oclif/core": "^3.26.0",
+    "@oclif/plugin-help": "^6.0.20",
+    "@sequelize/utils": "workspace:*",
+    "@types/inquirer": "^9.0.7",
+    "chalk": "^5.3.0",
+    "cosmiconfig": "^9.0.0",
+    "inquirer": "^9.2.14",
+    "zod": "^3.22.4"
+  },
+  "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
+  "devDependencies": {
+    "@oclif/test": "3.2.9",
+    "@types/chai": "4.3.14",
+    "@types/mocha": "10.0.6",
+    "chai": "4.4.1",
+    "concurrently": "8.2.2",
+    "mocha": "10.4.0",
+    "oclif": "4.8.0",
+    "rimraf": "5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "exports": "./lib/index.js",
+  "files": [
+    "/bin",
+    "/lib",
+    "/static",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://sequelize.org/docs/v7/cli/",
+  "keywords": [],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "@sequelize/cli",
+  "oclif": {
+    "bin": "sequelize",
+    "dirname": "sequelize",
+    "commands": "./lib/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "migration": {
+        "description": "Commands for managing database migrations"
+      },
+      "seed": {
+        "description": "Commands for managing database seeding"
+      }
+    }
+  },
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "rimraf lib && tsc --project tsconfig.build.json",
+    "postpack": "rimraf oclif.manifest.json",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "prepare": "yarn build",
+    "test": "concurrently \"npm:test-*\"",
+    "test-unit": "mocha ./**/*.test.ts",
+    "test-typings": "tsc --noEmit",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "module",
+  "types": "lib/index.d.ts",
+  "version": "7.0.0-alpha.40",
+  "publishConfig": {
+    "access": "public"
+  }
+}

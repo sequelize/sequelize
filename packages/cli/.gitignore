@@ -1,0 +1,8 @@
+/dist
+/lib
+/tmp
+node_modules
+oclif.lock
+oclif.manifest.json
+/migrations
+/seeds

@@ -1,6 +1,7 @@
 import type { AbstractDialect, Options } from '@sequelize/core';
 import { QueryTypes, Sequelize } from '@sequelize/core';
 import type { AbstractQuery } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js';
+import type { SqliteDialect } from '@sequelize/sqlite3';
 import uniq from 'lodash/uniq';
 import fs from 'node:fs';
 import pTimeout from 'p-timeout';
@@ -11,7 +12,10 @@ import {
   rand,
   resetSequelizeInstance,
   sequelize,
+  setIsIntegrationTestSuite,
 } from '../support';
+
+setIsIntegrationTestSuite(true);
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
 // avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
@@ -59,8 +63,13 @@ before(async () => {
 
 /** used to run reset on all used sequelize instances for a given suite */
 const allSequelizeInstances = new Set<Sequelize>();
+const sequelizeInstanceSources = new WeakMap<Sequelize, string>();
 Sequelize.hooks.addListener('afterInit', sequelizeInstance => {
   allSequelizeInstances.add(sequelizeInstance);
+  sequelizeInstanceSources.set(
+    sequelizeInstance,
+    new Error('A Sequelize instance was created here').stack!,
+  );
 });
 
 const singleTestInstances = new Set<Sequelize>();
@@ -71,9 +80,9 @@ const singleTestInstances = new Set<Sequelize>();
  *
  * @param options
  */
-export function createSingleTestSequelizeInstance(
-  options: Options<AbstractDialect> = {},
-): Sequelize {
+export function createSingleTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(options?: Omit<Options<Dialect>, 'dialect'>): Sequelize {
   const instance = createSequelizeInstance(options);
   destroySequelizeAfterTest(instance);
 
@@ -91,33 +100,42 @@ export function destroySequelizeAfterTest(sequelizeInstance: Sequelize): void {
  * If you're creating the instance within a test, consider using {@link createSingleTransactionalTestSequelizeInstance}.
  *
  * @param sequelizeOrOptions
+ * @param overrideOptions
  */
-export async function createMultiTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
+export async function createMultiTransactionalTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(
+  sequelizeOrOptions: Sequelize | Options<Dialect>,
+  overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
-  const sequelizeOptions =
-    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.options : sequelizeOrOptions;
+  const baseOptions =
+    sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.rawOptions : sequelizeOrOptions;
+
   const dialect = getTestDialect();
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     const p = getSqliteDatabasePath(`transactional-${rand()}.sqlite`);
     if (fs.existsSync(p)) {
       fs.unlinkSync(p);
     }
 
-    const options = { ...sequelizeOptions, storage: p };
-    if (sequelizeOrOptions instanceof Sequelize) {
-      options.database = sequelizeOrOptions.config.database;
-    }
-
-    const _sequelize = createSequelizeInstance(options);
+    const _sequelize = createSequelizeInstance<SqliteDialect>({
+      ...(baseOptions as Options<SqliteDialect>),
+      storage: p,
+      // allow using multiple connections as we are connecting to a file
+      pool: { max: 5, idle: 30_000 },
+      ...(overrideOptions as Options<SqliteDialect>),
+    });
 
     await _sequelize.sync({ force: true });
 
     return _sequelize;
   }
 
-  return createSequelizeInstance(sequelizeOptions);
+  return createSequelizeInstance({
+    ...baseOptions,
+    ...overrideOptions,
+  });
 }
 
 /**
@@ -127,11 +145,18 @@ export async function createMultiTransactionalTestSequelizeInstance(
  * Can only be used within a test. For before/after hooks, use {@link createMultiTransactionalTestSequelizeInstance}.
  *
  * @param sequelizeOrOptions
+ * @param overrideOptions
  */
-export async function createSingleTransactionalTestSequelizeInstance(
-  sequelizeOrOptions: Sequelize | Options<AbstractDialect>,
+export async function createSingleTransactionalTestSequelizeInstance<
+  Dialect extends AbstractDialect = AbstractDialect,
+>(
+  sequelizeOrOptions: Sequelize | Options<Dialect>,
+  overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
-  const instance = await createMultiTransactionalTestSequelizeInstance(sequelizeOrOptions);
+  const instance = await createMultiTransactionalTestSequelizeInstance(
+    sequelizeOrOptions,
+    overrideOptions,
+  );
   destroySequelizeAfterTest(instance);
 
   return instance;
@@ -142,10 +167,10 @@ before('first database reset', async () => {
   await clearDatabase();
 });
 
+// TODO: make "none" the default.
 type ResetMode = 'none' | 'truncate' | 'destroy' | 'drop';
 let currentSuiteResetMode: ResetMode = 'drop';
 
-// TODO: make "none" the default.
 /**
  * Controls how the current test suite will reset the database between each test.
  * Note that this does not affect how the database is reset between each suite, only between each test.
@@ -175,7 +200,7 @@ afterEach('database reset', async () => {
   const sequelizeInstances = uniq([sequelize, ...allSequelizeInstances]);
 
   for (const sequelizeInstance of sequelizeInstances) {
-    if (sequelizeInstance.connectionManager.isClosed) {
+    if (sequelizeInstance.isClosed()) {
       allSequelizeInstances.delete(sequelizeInstance);
       continue;
     }
@@ -184,36 +209,51 @@ afterEach('database reset', async () => {
       continue;
     }
 
-    /* eslint-disable no-await-in-loop */
-    switch (currentSuiteResetMode) {
-      case 'drop':
-        await clearDatabase(sequelizeInstance);
-        // unregister all models
-        resetSequelizeInstance(sequelizeInstance);
-        break;
+    let hasValidCredentials;
+    try {
+      /* eslint-disable no-await-in-loop */
+      await sequelizeInstance.authenticate();
+      hasValidCredentials = true;
+    } catch {
+      hasValidCredentials = false;
+    }
 
-      case 'truncate':
-        await sequelizeInstance.truncate(sequelizeInstance.dialect.supports.truncate);
-        break;
+    if (hasValidCredentials) {
+      /* eslint-disable no-await-in-loop */
+      switch (currentSuiteResetMode) {
+        case 'drop':
+          await clearDatabase(sequelizeInstance);
+          // unregister all models
+          resetSequelizeInstance(sequelizeInstance);
+          break;
 
-      case 'destroy':
-        await sequelizeInstance.destroyAll({ force: true });
-        break;
+        case 'truncate':
+          await sequelizeInstance.truncate({
+            ...sequelizeInstance.dialect.supports.truncate,
+            withoutForeignKeyChecks:
+              sequelizeInstance.dialect.supports.constraints.foreignKeyChecksDisableable,
+          });
+          break;
 
-      default:
-        break;
-      /* eslint-enable no-await-in-loop */
+        case 'destroy':
+          await sequelizeInstance.destroyAll({ force: true });
+          break;
+
+        default:
+          break;
+        /* eslint-enable no-await-in-loop */
+      }
     }
   }
 
-  if (sequelize.connectionManager.isClosed) {
+  if (sequelize.isClosed()) {
     throw new Error('The main sequelize instance was closed. This is not allowed.');
   }
 
   await Promise.all(
     [...singleTestInstances].map(async instance => {
       allSequelizeInstances.delete(instance);
-      if (!instance.connectionManager.isClosed) {
+      if (!instance.isClosed()) {
         await instance.close();
       }
     }),
@@ -231,6 +271,15 @@ The following methods can be used to mark a sequelize instance for automatic dis
 - createSingleTransactionalTestSequelizeInstance
 - createSingleTestSequelizeInstance
 - sequelize.close()
+
+The sequelize instances were created in the following locations:
+${[...allSequelizeInstances]
+  .map(instance => {
+    const source = sequelizeInstanceSources.get(instance);
+
+    return source ? `  - ${source}` : '  - unknown';
+  })
+  .join('\n')}
 `);
   }
 });
@@ -277,7 +326,10 @@ export async function dropTestDatabases(customSequelize: Sequelize = sequelize) 
   }
 
   const qi = customSequelize.queryInterface;
-  const databases = await qi.listDatabases({ skip: [customSequelize.config.database] });
+  const databases = await qi.listDatabases({
+    skip: [customSequelize.dialect.getDefaultSchema(), 'sequelize_test'],
+  });
+
   if (getTestDialect() === 'db2') {
     for (const db of databases) {
       // DB2 can sometimes deadlock / timeout when deleting more than one schema at the same time.
@@ -296,7 +348,9 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
     return;
   }
 
-  await customSequelize.queryInterface.dropAllSchemas({ skip: [customSequelize.config.database] });
+  await customSequelize.queryInterface.dropAllSchemas({
+    skip: [customSequelize.dialect.getDefaultSchema(), 'sequelize_test'],
+  });
 }
 
 export * from '../support';

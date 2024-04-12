@@ -206,7 +206,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (!['sqlite', 'mssql', 'db2', 'ibmi'].includes(current.dialect.name)) {
+    if (!['sqlite3', 'mssql', 'db2', 'ibmi'].includes(current.dialect.name)) {
       it('should not deadlock with no existing entries and no outer transaction', async function () {
         const User = this.customSequelize.define('User', {
           email: {
@@ -495,7 +495,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-        if (['sqlite', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+        if (['sqlite3', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
           return;
         }
 
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should error correctly when defaults contain a unique key without a transaction', async function () {
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           return;
         }
 
@@ -589,7 +589,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works without a transaction', async function () {
         // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           return;
         }
 
@@ -616,7 +616,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   // TODO: move to own suite
   describe('findCreateFind', () => {
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('should work with multiple concurrent calls', async function () {
         const [[instance1, created1], [instance2, created2], [instance3, created3]] =
           await Promise.all([
@@ -907,7 +907,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const bindParam =
         dialectName === 'postgres'
           ? '$1'
-          : dialectName === 'sqlite'
+          : dialectName === 'sqlite3'
             ? '$sequelize_1'
             : dialectName === 'mssql'
               ? '@sequelize_1'
@@ -1033,7 +1033,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return;
       }
 
-      if (dialectName === 'sqlite') {
+      if (dialectName === 'sqlite3') {
         // The definition here is a bit hacky. sqlite expects () around the expression for default values, so we call a function without a name
         // to enclose the date function in (). http://www.sqlite.org/syntaxdiagrams.html#column-constraint
         userWithDefaults = this.customSequelize.define('userWithDefaults', {
@@ -1206,8 +1206,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         smth: { type: DataTypes.STRING, allowNull: false },
       });
 
-      this.customSequelize.options.omitNull = false;
-
       await UserNull.sync({ force: true });
 
       try {
@@ -1228,8 +1226,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         smth: { type: DataTypes.STRING, allowNull: false },
       });
 
-      this.customSequelize.options.omitNull = false;
-
       await UserNull.sync({ force: true });
       await UserNull.create({ username: 'foo', smth: 'foo' });
 
@@ -1248,8 +1244,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const StringIsNullOrUrl = this.customSequelize.define('StringIsNullOrUrl', {
         str: { type: DataTypes.STRING, allowNull: true, validate: { isURL: true } },
       });
-
-      this.customSequelize.options.omitNull = false;
 
       await StringIsNullOrUrl.sync({ force: true });
       const str1 = await StringIsNullOrUrl.create({ str: null });
