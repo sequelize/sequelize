@@ -5,7 +5,6 @@ import { expectTypeOf } from 'expect-type';
 describe('isNullish', () => {
   it('returns true for null and undefined', () => {
     expect(isNullish(null)).to.be.true;
-    // eslint-disable-next-line unicorn/no-useless-undefined -- false positive
     expect(isNullish(undefined)).to.be.true;
   });
 
