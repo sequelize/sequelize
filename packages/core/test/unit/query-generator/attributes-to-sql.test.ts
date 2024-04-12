@@ -41,7 +41,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           id: { type: 'INTEGER', references: { table: 'myTable' } },
         }),
       {
-        'mariadb mysql sqlite': { id: 'INTEGER REFERENCES `myTable` (`id`)' },
+        'mariadb mysql sqlite3': { id: 'INTEGER REFERENCES `myTable` (`id`)' },
         'postgres snowflake db2 ibmi': { id: 'INTEGER REFERENCES "myTable" ("id")' },
         mssql: { id: 'INTEGER NULL REFERENCES [myTable] ([id])' },
       },
@@ -61,7 +61,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           },
         }),
       {
-        'mariadb mysql sqlite': {
+        'mariadb mysql sqlite3': {
           id: 'INTEGER REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
         },
         'postgres snowflake db2 ibmi': {
@@ -86,7 +86,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           },
         }),
       {
-        'mariadb mysql sqlite': {
+        'mariadb mysql sqlite3': {
           id: 'INTEGER UNIQUE REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
         },
         'postgres snowflake ibmi': {
@@ -118,7 +118,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           },
         }),
       {
-        'mariadb mysql sqlite': {
+        'mariadb mysql sqlite3': {
           id: 'INTEGER REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
           name: 'STRING REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
         },
@@ -158,7 +158,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           },
         }),
       {
-        'mariadb mysql sqlite': {
+        'mariadb mysql sqlite3': {
           id: 'INTEGER REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
           name: 'STRING REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
         },
@@ -201,7 +201,7 @@ describe('QueryGenerator#attributesToSQL', () => {
           },
         }),
       {
-        'mariadb mysql sqlite': {
+        'mariadb mysql sqlite3': {
           id: 'INTEGER REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
           birthdate: 'DATE REFERENCES `myTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
           name: 'STRING REFERENCES `otherTable` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
