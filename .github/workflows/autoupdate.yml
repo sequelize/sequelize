@@ -26,7 +26,7 @@ jobs:
         with:
           app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
-      - uses: sequelize/pr-auto-update-and-handle-conflicts@257ac5f68859672393e3320495164251140bd801 # 1.0.1
+      - uses: sequelize/pr-auto-update-and-handle-conflicts@74929c430b8843e691e7b83d229d8d13d78d89e3 # 2.0.0
         with:
           conflict-label: 'conflicted'
           conflict-requires-ready-state: 'ready_for_review'
