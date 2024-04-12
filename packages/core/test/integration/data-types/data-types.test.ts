@@ -1190,9 +1190,8 @@ describe('DataTypes', () => {
         '2022-01-01T00:00:00Z',
         dialect.name === 'mssql'
           ? '2022-01-01 00:00:00.000+00'
-          : // sqlite decided to have a weird format that is not ISO 8601 compliant
-            dialect.name === 'sqlite3'
-            ? '2022-01-01 00:00:00.000 +00:00'
+          : dialect.name === 'sqlite3'
+            ? '2022-01-01 00:00:00.000+00:00'
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
               : '2022-01-01 00:00:00+00',
@@ -1271,6 +1270,162 @@ describe('DataTypes', () => {
         'dateMaxPrecisionAttr',
         '2022-01-01T12:13:14.123456Z',
         new Date('2022-01-01T12:13:14.123Z'),
+      );
+    });
+  });
+
+  describe('DATE.PLAIN', () => {
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare dateAttr: Date | string | number | Moment | dayjs.Dayjs;
+      }
+
+      User.init(
+        {
+          dateAttr: {
+            type: DataTypes.DATE.PLAIN,
+            allowNull: false,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    it('accepts Date objects, strings', async () => {
+      const dateString = '2022-01-01T00:00:00';
+      const plainDate = new Date(dateString);
+      const date = new Date(`${dateString}Z`);
+
+      await testSimpleInOut(vars.User, 'dateAttr', plainDate, plainDate);
+      await testSimpleInOut(vars.User, 'dateAttr', dateString, plainDate);
+
+      // parses DateOnly string inputs as UTC, not local time
+      await testSimpleInOut(vars.User, 'dateAttr', '2022-01-01', date);
+
+      // timestamp
+      await testSimpleInOut(vars.User, 'dateAttr', 1_640_995_200_000, date);
+    });
+
+    it('handles timezones (moment)', async () => {
+      await testSimpleInOut(
+        vars.User,
+        'dateAttr',
+        moment.tz('2014-06-01 12:00', 'America/New_York'),
+        new Date('2014-06-01T16:00:00.000Z'),
+      );
+    });
+
+    it('handles timezones (dayjs)', async () => {
+      await testSimpleInOut(
+        vars.User,
+        'dateAttr',
+        dayjs.tz('2014-06-01 12:00', 'America/New_York'),
+        new Date('2014-06-01T16:00:00.000Z'),
+      );
+    });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(
+        vars.User,
+        'dateAttr',
+        new Date('2022-01-01T00:00:00'),
+        ['mariadb', 'mysql'].includes(dialect.name)
+          ? '2022-01-01 00:00:00+00'
+          : dialect.name === 'db2'
+            ? '2022-01-01 00:00:00.000000+00'
+            : dialect.name === 'mssql'
+              ? '2022-01-01 00:00:00.000+00'
+              : dialect.name === 'postgres'
+                ? '2022-01-01 00:00:00'
+                : '2022-01-01 00:00:00.000',
+      );
+    });
+  });
+
+  describe('DATE(precision).PLAIN', () => {
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare dateMinPrecisionAttr: Date | string | null;
+        declare dateTwoPrecisionAttr: Date | string | null;
+        declare dateMaxPrecisionAttr: Date | string | null;
+      }
+
+      User.init(
+        {
+          dateMinPrecisionAttr: {
+            type: DataTypes.DATE(0).PLAIN,
+            allowNull: true,
+          },
+          dateTwoPrecisionAttr: {
+            type: DataTypes.DATE(2).PLAIN,
+            allowNull: true,
+          },
+          dateMaxPrecisionAttr: {
+            type: DataTypes.DATE(6).PLAIN,
+            allowNull: true,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    it('clamps to specified precision', async () => {
+      const maxPrecision = new Date('2022-01-01T12:13:14.123');
+
+      // sqlite does not support restricting the precision
+      if (dialect.name !== 'sqlite3') {
+        await testSimpleInOut(
+          vars.User,
+          'dateMinPrecisionAttr',
+          '2022-01-01T12:13:14.123',
+          new Date('2022-01-01T12:13:14.000'),
+        );
+        await testSimpleInOut(
+          vars.User,
+          'dateTwoPrecisionAttr',
+          '2022-01-01T12:13:14.123',
+          new Date('2022-01-01T12:13:14.120'),
+        );
+
+        // Date is also used for inserting, so we also lose precision during insert.
+        if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'db2') {
+          await testSimpleInOutRaw(
+            vars.User,
+            'dateMaxPrecisionAttr',
+            maxPrecision,
+            '2022-01-01 12:13:14.123000+00',
+          );
+        } else if (dialect.name === 'mssql') {
+          await testSimpleInOutRaw(
+            vars.User,
+            'dateMaxPrecisionAttr',
+            maxPrecision,
+            '2022-01-01 12:13:14.123+00',
+          );
+        } else {
+          await testSimpleInOutRaw(
+            vars.User,
+            'dateMaxPrecisionAttr',
+            maxPrecision,
+            '2022-01-01 12:13:14.123',
+          );
+        }
+      }
+
+      // The Date object doesn't go further than milliseconds.
+      await testSimpleInOut(
+        vars.User,
+        'dateMaxPrecisionAttr',
+        maxPrecision,
+        new Date('2022-01-01T12:13:14.123'),
       );
     });
   });

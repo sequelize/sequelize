@@ -609,7 +609,7 @@ if (dialect.startsWith('postgres')) {
             ],
           ],
           expectation:
-            "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+            "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000+00:00'),('bar','2012-03-27 10:01:55.000+00:00');",
         },
         {
           arguments: [
@@ -730,7 +730,7 @@ if (dialect.startsWith('postgres')) {
             ],
           ],
           expectation:
-            "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+            "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000+00:00'),('bar','2012-03-27 10:01:55.000+00:00');",
           context: { options: { quoteIdentifiers: false } },
         },
         {

@@ -174,11 +174,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             bind: {
               // these dialects change the DB-side timezone, and the input doesn't specify the timezone offset, so we have to offset the value ourselves
               // because it will be interpreted as CET by the dialect.
-              snowflake: { sequelize_1: '2015-01-20 01:00:00.000' },
               mysql: { sequelize_1: '2015-01-20 01:00:00.000' },
               mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
               // These dialects do specify the offset, so they can use whichever offset they want.
-              postgres: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
+              postgres: { sequelize_1: '2015-01-20 01:00:00.000+01:00' },
+              snowflake: { sequelize_1: '2015-01-20 01:00:00.000+01:00' },
             },
           },
         );
@@ -217,12 +217,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             ibmi: { sequelize_1: '2015-01-20 00:00:00.000' },
             db2: { sequelize_1: '2015-01-20 00:00:00.000' },
-            snowflake: { sequelize_1: '2015-01-20 00:00:00.000' },
             mysql: { sequelize_1: '2015-01-20 00:00:00.000' },
             mariadb: { sequelize_1: '2015-01-20 00:00:00.000' },
-            sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            mssql: { sequelize_1: '2015-01-20 00:00:00.000+00:00' },
+            sqlite3: { sequelize_1: '2015-01-20 00:00:00.000+00:00' },
+            postgres: { sequelize_1: '2015-01-20 00:00:00.000+00:00' },
+            snowflake: { sequelize_1: '2015-01-20 00:00:00.000+00:00' },
           },
         },
       );
@@ -260,12 +260,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           bind: {
             ibmi: { sequelize_1: '2015-01-20 01:02:03.089' },
             db2: { sequelize_1: '2015-01-20 01:02:03.089' },
-            snowflake: { sequelize_1: '2015-01-20 01:02:03.089' },
             mariadb: { sequelize_1: '2015-01-20 01:02:03.089' },
             mysql: { sequelize_1: '2015-01-20 01:02:03.089' },
-            sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
-            postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
-            mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            mssql: { sequelize_1: '2015-01-20 01:02:03.089+00:00' },
+            sqlite3: { sequelize_1: '2015-01-20 01:02:03.089+00:00' },
+            postgres: { sequelize_1: '2015-01-20 01:02:03.089+00:00' },
+            snowflake: { sequelize_1: '2015-01-20 01:02:03.089+00:00' },
           },
         },
       );
