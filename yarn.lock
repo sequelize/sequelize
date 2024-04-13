@@ -1655,6 +1655,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@inquirer/figures@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@inquirer/figures@npm:1.0.0"
+  checksum: 10c0/18fb0f68968173e1425b5d7dbc3c01f2f43293f2cc957e6dfe6ee9b3e42d2eec450351192f4440c96d081fa7d094e75d8bc37e300f6fcad548b32635f556f56a
+  languageName: node
+  linkType: hard
+
 "@inquirer/input@npm:^2.1.1":
   version: 2.1.2
   resolution: "@inquirer/input@npm:2.1.2"
@@ -2437,7 +2444,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.8.0"
+    oclif: "npm:4.8.2"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -8687,16 +8694,16 @@ __metadata:
   linkType: hard
 
 "inquirer@npm:^9.2.14":
-  version: 9.2.17
-  resolution: "inquirer@npm:9.2.17"
+  version: 9.2.18
+  resolution: "inquirer@npm:9.2.18"
   dependencies:
+    "@inquirer/figures": "npm:^1.0.0"
     "@ljharb/through": "npm:^2.3.13"
     ansi-escapes: "npm:^4.3.2"
     chalk: "npm:^5.3.0"
     cli-cursor: "npm:^3.1.0"
     cli-width: "npm:^4.1.0"
     external-editor: "npm:^3.1.0"
-    figures: "npm:^3.2.0"
     lodash: "npm:^4.17.21"
     mute-stream: "npm:1.0.0"
     ora: "npm:^5.4.1"
@@ -8705,7 +8712,7 @@ __metadata:
     string-width: "npm:^4.2.3"
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^6.2.0"
-  checksum: 10c0/713ec2fe2d6fd9943576bfa4dd724449095b014feacc57c6b675512bc255cd04fdd22df60e9f5d38df58651e8a0ac681f19d59a31e9d4d3c8c8a14b51e8287cc
+  checksum: 10c0/2e82bc10c66dc5551bc19c403d9fd971856051580c19be0ef4dae98d5ab99b591e603e297e49817ba7c3346993a032de11b97d9feb1dfd3f567d0bff72dbab33
   languageName: node
   linkType: hard
 
@@ -11555,9 +11562,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.8.0":
-  version: 4.8.0
-  resolution: "oclif@npm:4.8.0"
+"oclif@npm:4.8.2":
+  version: 4.8.2
+  resolution: "oclif@npm:4.8.2"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.535.0"
     "@aws-sdk/client-s3": "npm:^3.550.0"
@@ -11584,7 +11591,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/53a112bee8b691a0042ab7752521b32e08267e3bba4636295fcedb93c14dc649f846ba7822657fd377d8627826cb4a528613fe809d7accdbea5c718603c935b2
+  checksum: 10c0/cd91b02bc89b52d81b6c7e401124acee0f0698bfefd9cdb6c92b392d8faaba94e66680ff27adfe558176fc642af63dff58af5ed4569db2ef5f06fb8a46ab1b63
   languageName: node
   linkType: hard
 
