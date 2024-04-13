@@ -17,6 +17,7 @@ class Transaction {
    * @param {string} [options.type] Sets the type of the transaction. Sqlite only
    * @param {string} [options.isolationLevel] Sets the isolation level of the transaction.
    * @param {string} [options.deferrable] Sets the constraints to be deferred or immediately checked. PostgreSQL only
+   * @param {boolean} [options.readOnly] Whether this transaction will only be used to read data. Used to determine whether sequelize is allowed to use a read replication server.
    */
   constructor(sequelize, options) {
     this.sequelize = sequelize;
