@@ -2174,8 +2174,8 @@ __metadata:
   linkType: hard
 
 "@oclif/core@npm:^3.26.0":
-  version: 3.26.2
-  resolution: "@oclif/core@npm:3.26.2"
+  version: 3.26.3
+  resolution: "@oclif/core@npm:3.26.3"
   dependencies:
     "@types/cli-progress": "npm:^3.11.5"
     ansi-escapes: "npm:^4.3.2"
@@ -2186,7 +2186,7 @@ __metadata:
     cli-progress: "npm:^3.12.0"
     color: "npm:^4.2.3"
     debug: "npm:^4.3.4"
-    ejs: "npm:^3.1.9"
+    ejs: "npm:^3.1.10"
     get-package-type: "npm:^0.1.0"
     globby: "npm:^11.1.0"
     hyperlinker: "npm:^1.0.0"
@@ -2205,7 +2205,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/c2e05a6c40ad18cf4d3851e637ef04cbfd778ec655e828aa21830b0c65cb5d097168135dda8de2881456ee02376337c6c10d74e15fa8e38ccd47e5c005d40ea6
+  checksum: 10c0/66cee683f01225a46c9eaea6bb62b293212b0c323566c0dd92bcb3ab66818d4c11e3fe0782f2c801e3783c8d94c95413c91482791b4e1491bd6119830f88880a
   languageName: node
   linkType: hard
 
@@ -6276,14 +6276,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ejs@npm:^3.1.7, ejs@npm:^3.1.9":
-  version: 3.1.9
-  resolution: "ejs@npm:3.1.9"
+"ejs@npm:^3.1.10, ejs@npm:^3.1.7, ejs@npm:^3.1.9":
+  version: 3.1.10
+  resolution: "ejs@npm:3.1.10"
   dependencies:
     jake: "npm:^10.8.5"
   bin:
     ejs: bin/cli.js
-  checksum: 10c0/f0e249c79128810f5f6d5cbf347fc906d86bb9384263db0b2a9004aea649f2bc2d112736de5716c509c80afb4721c47281bd5b57c757d3b63f1bf5ac5f885893
+  checksum: 10c0/52eade9e68416ed04f7f92c492183340582a36482836b11eab97b159fcdcfdedc62233a1bf0bf5e5e1851c501f2dca0e2e9afd111db2599e4e7f53ee29429ae1
   languageName: node
   linkType: hard
 
