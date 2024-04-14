@@ -3833,12 +3833,12 @@ __metadata:
   linkType: hard
 
 "@types/snowflake-sdk@npm:^1.6.20":
-  version: 1.6.20
-  resolution: "@types/snowflake-sdk@npm:1.6.20"
+  version: 1.6.21
+  resolution: "@types/snowflake-sdk@npm:1.6.21"
   dependencies:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
-  checksum: 10c0/b49b4fd25a6d701228a9c2a0f1e0dd4d2405464606f90ff8085f5eb1d69ab811c0acde171cbe115f3a08055640c0538f968281fde848fc4e53ea5ceaa8beda58
+  checksum: 10c0/72d76f9c50eeb21822261f9f3367944577444255280de4fd501349df868bc7649961e404032ffcc9668b59a2409e95bccbe1a8a8fc67f9591d151bd8136f738b
   languageName: node
   linkType: hard
 
