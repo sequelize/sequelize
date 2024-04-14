@@ -1324,9 +1324,6 @@ export interface UpdateOptions<TAttributes = any>
 
   /**
    * How many rows to update
-   *
-   * Only for mysql and mariadb,
-   * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
   limit?: number | BaseSqlExpression | Nullish;
 
@@ -1334,6 +1331,13 @@ export interface UpdateOptions<TAttributes = any>
    * If true, the updatedAt timestamp will not be updated.
    */
   silent?: boolean;
+
+  /**
+   * Ignore duplicate values for primary keys?
+   *
+   * @default false
+   */
+  ignoreDuplicates?: boolean;
 }
 
 /**

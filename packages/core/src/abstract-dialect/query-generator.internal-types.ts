@@ -14,3 +14,8 @@ export interface AttributeToSqlOptions {
   table: string;
   withoutForeignKeyConstraints?: boolean;
 }
+
+export interface GetReturnFieldsOptions extends Writable<FormatWhereOptions, 'replacements'> {
+  hasTrigger?: boolean | undefined;
+  returning?: boolean | Array<string | BaseSqlExpression> | undefined;
+}

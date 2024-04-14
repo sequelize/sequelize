@@ -2,26 +2,33 @@ import type {
   BulkDeleteQueryOptions,
   GetConstraintSnippetQueryOptions,
   ListTablesQueryOptions,
+  QueryWithBindParams,
   RemoveColumnQueryOptions,
   RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, IsolationLevel } from '@sequelize/core';
+import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  UPDATE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { extractModelDefinition } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { isPlainObject } from '@sequelize/utils';
 import { randomBytes } from 'node:crypto';
+import { inspect } from 'node:util';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
@@ -304,6 +311,116 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return joinSQLFragments([`DELETE FROM ${table}`, whereFragment]);
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    valueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'updateQuery',
+        this.dialect,
+        UPDATE_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.update,
+        options,
+      );
+    }
+
+    if (!isPlainObject(valueHash)) {
+      throw new Error(`Invalid value: ${inspect(valueHash)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const attributeMap = new Map<string, NormalizedDataType>();
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const updateOptions: UpdateQueryOptions = {
+      ...options,
+      model: modelDefinition,
+      bindParam:
+        options?.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam,
+    };
+
+    if (modelDefinition && updateOptions.columnTypes) {
+      throw new Error(
+        'Using options.columnTypes in updateQuery is not allowed if a model or model definition is specified.',
+      );
+    } else if (updateOptions.columnTypes) {
+      for (const column of Object.keys(updateOptions.columnTypes)) {
+        attributeMap.set(
+          column,
+          this.sequelize.normalizeDataType(updateOptions.columnTypes[column]),
+        );
+      }
+    }
+
+    const updateFragment: string[] = [];
+    for (const column of Object.keys(valueHash)) {
+      const rowValue = valueHash[column];
+      if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      }
+
+      if (modelDefinition) {
+        const columnName = modelDefinition.getColumnName(column);
+        const attribute = modelDefinition.physicalAttributes.getOrThrow(column);
+
+        updateFragment.push(
+          `${this.quoteIdentifier(columnName)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attribute.type,
+          })}`,
+        );
+      } else {
+        updateFragment.push(
+          `${this.quoteIdentifier(column)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attributeMap.get(column),
+          })}`,
+        );
+      }
+    }
+
+    if (updateFragment.length === 0) {
+      throw new Error('No values to update');
+    }
+
+    const table = this.quoteTable(tableOrModel);
+    const queryFragments = [
+      'UPDATE',
+      updateOptions.ignoreDuplicates ? 'OR IGNORE' : '',
+      table,
+      'SET',
+      updateFragment.join(','),
+    ];
+    const whereFragment = updateOptions.where
+      ? this.whereQuery(updateOptions.where, updateOptions)
+      : '';
+
+    if (updateOptions.limit) {
+      queryFragments.push(
+        `WHERE rowid IN (`,
+        `SELECT rowid FROM ${table}`,
+        whereFragment,
+        this.#internals.addLimitAndOffset(updateOptions),
+        ')',
+      );
+    } else {
+      queryFragments.push(whereFragment, this.#internals.addLimitAndOffset(updateOptions));
+    }
+
+    if (updateOptions.returning) {
+      queryFragments.push(
+        `RETURNING ${this.#internals.formatReturnFields(updateOptions, modelDefinition).join(', ')}`,
+      );
+    }
+
+    return {
+      query: joinSQLFragments(queryFragments),
+      bind: typeof updateOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 
   /**
