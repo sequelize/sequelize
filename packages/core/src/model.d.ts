@@ -21,7 +21,10 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type {
+  BaseSqlExpression,
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
@@ -145,7 +148,7 @@ export interface Paranoid {
   paranoid?: boolean;
 }
 
-export type GroupOption = AllowArray<string | Fn | Col | Literal>;
+export type GroupOption = AllowArray<string | BaseSqlExpression>;
 
 /**
  * Options to pass to Model on drop
@@ -727,7 +730,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
    *
    * Only available when setting {@link IncludeOptions.separate} to true.
    */
-  limit?: number | Literal | Nullish;
+  limit?: number | BaseSqlExpression | Nullish;
 
   /**
    * If true, runs a separate query to fetch the associated instances.
@@ -762,16 +765,14 @@ type OrderItemAssociation =
   | ModelStatic<Model>
   | { model: ModelStatic<Model>; as: string }
   | string;
-type OrderItemColumn = string | Col | Fn | Literal;
+type OrderItemColumn = string | BaseSqlExpression;
 export type OrderItem =
   | string
-  | Fn
-  | Col
-  | Literal
+  | BaseSqlExpression
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
   | [...OrderItemAssociation[], OrderItemColumn, string];
-export type Order = Fn | Col | Literal | OrderItem[];
+export type Order = BaseSqlExpression | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
@@ -783,7 +784,7 @@ export type ProjectionAlias = readonly [
 ];
 
 export type FindAttributeOptions<TAttributes = any> =
-  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
+  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | BaseSqlExpression>
   | {
       exclude: Array<Extract<keyof TAttributes, string>>;
       include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
@@ -883,7 +884,7 @@ export interface FindOptions<TAttributes = any>
    * });
    * ```
    */
-  limit?: number | Literal | Nullish;
+  limit?: number | BaseSqlExpression | Nullish;
 
   // TODO: document this - this is an undocumented property but it exists and there are tests for it.
   groupedLimit?: unknown;
@@ -891,7 +892,7 @@ export interface FindOptions<TAttributes = any>
   /**
    * Skip the first n items of the results.
    */
-  offset?: number | Literal | Nullish;
+  offset?: number | BaseSqlExpression | Nullish;
 
   /**
    * Lock the selected rows. Possible options are transaction.LOCK.UPDATE and transaction.LOCK.SHARE.
@@ -1055,7 +1056,7 @@ export interface CreateOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * If false, validations won't be run.
@@ -1118,7 +1119,7 @@ export interface UpsertOptions<TAttributes = any>
   /**
    * Fetch back the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * Run validations before the row is inserted
@@ -1189,7 +1190,7 @@ export interface BulkCreateOptions<TAttributes = any>
   /**
    * Return all columns or only the specified columns for the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * An optional parameter to specify a where clause for partial unique indexes
@@ -1243,7 +1244,7 @@ export interface DestroyOptions<TAttributes = any>
   /**
    * How many rows to delete
    */
-  limit?: number | Literal | Nullish;
+  limit?: number | BaseSqlExpression | Nullish;
 
   /**
    * Delete instead of setting deletedAt to current timestamp (only applicable if `paranoid` is enabled)
@@ -1270,7 +1271,7 @@ export interface RestoreOptions<TAttributes = any>
   /**
    * How many rows to undelete
    */
-  limit?: number | Literal | Nullish;
+  limit?: number | BaseSqlExpression | Nullish;
 }
 
 /**
@@ -1319,7 +1320,7 @@ export interface UpdateOptions<TAttributes = any>
    *
    * @default false
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 
   /**
    * How many rows to update
@@ -1327,7 +1328,7 @@ export interface UpdateOptions<TAttributes = any>
    * Only for mysql and mariadb,
    * Implemented as TOP(n) for MSSQL; for sqlite it is supported only when rowid is present
    */
-  limit?: number | Literal | Nullish;
+  limit?: number | BaseSqlExpression | Nullish;
 
   /**
    * If true, the updatedAt timestamp will not be updated.
@@ -1341,7 +1342,7 @@ export interface UpdateOptions<TAttributes = any>
  * Used by {@link Model.update}
  */
 export type UpdateValues<M extends Model> = {
-  [key in keyof Attributes<M>]?: Attributes<M>[key] | Fn | Col | Literal;
+  [key in keyof Attributes<M>]?: Attributes<M>[key] | BaseSqlExpression;
 };
 
 /**
@@ -1377,7 +1378,7 @@ export interface IncrementDecrementOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 }
 
 /**
@@ -1465,7 +1466,7 @@ export interface SaveOptions<TAttributes = any>
   /**
    * Return the affected rows (only for postgres)
    */
-  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
+  returning?: boolean | Array<keyof TAttributes | BaseSqlExpression>;
 }
 
 /**
@@ -3071,12 +3072,12 @@ export abstract class Model<
    */
   update<K extends keyof TModelAttributes>(
     attributeName: K,
-    value: TModelAttributes[K] | Col | Fn | Literal,
+    value: TModelAttributes[K] | BaseSqlExpression,
     options?: InstanceUpdateOptions<TModelAttributes>,
   ): Promise<this>;
   update(
     attributes: {
-      [key in keyof TModelAttributes]?: TModelAttributes[key] | Fn | Col | Literal;
+      [key in keyof TModelAttributes]?: TModelAttributes[key] | BaseSqlExpression;
     },
     options?: InstanceUpdateOptions<TModelAttributes>,
   ): Promise<this>;

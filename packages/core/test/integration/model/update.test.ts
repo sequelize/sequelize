@@ -106,7 +106,6 @@ describe('Model.update', () => {
       await User.create({ username: 'John' });
       await User.update(
         {
-          // @ts-expect-error -- TODO: fix typing to allow this
           username: sql.cast('1', dialectName === 'mssql' ? 'nvarchar' : 'char'),
         },
         {
