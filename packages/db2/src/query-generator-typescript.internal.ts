@@ -3,11 +3,13 @@ import type {
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  QueryWithBindParams,
   RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import {
@@ -19,6 +21,7 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { getDb2IbmiSelectFromFinalTable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { randomBytes } from 'node:crypto';
 import type { Db2Dialect } from './dialect.js';
@@ -254,5 +257,25 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   generateTransactionId(): string {
     return randomBytes(10).toString('hex');
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    attrValueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    const updateQuery = super.updateQuery(tableOrModel, attrValueHash, {
+      ...options,
+      returning: false,
+    });
+
+    updateQuery.query = getDb2IbmiSelectFromFinalTable(
+      this.#internals,
+      tableOrModel,
+      updateQuery.query,
+      options,
+    );
+
+    return updateQuery;
   }
 }

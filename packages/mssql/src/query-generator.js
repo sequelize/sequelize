@@ -308,17 +308,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     return `${commands.join(';')};`;
   }
 
-  updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
-    const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
-
-    if (options.limit) {
-      const updateArgs = `UPDATE TOP(${this.escape(options.limit, undefined, options)})`;
-      sql.query = sql.query.replace('UPDATE', updateArgs);
-    }
-
-    return sql;
-  }
-
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     // TODO: support TableNameWithSchema objects
     const targetTableAlias = this.quoteTable(`${tableName}_target`);

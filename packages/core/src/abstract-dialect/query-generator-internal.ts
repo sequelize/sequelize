@@ -1,21 +1,26 @@
 import { EMPTY_ARRAY } from '@sequelize/utils';
+import { inspect } from 'node:util';
 import { Deferrable } from '../deferrable.js';
 import type { AssociationPath } from '../expression-builders/association-path.js';
 import type { Attribute } from '../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { Cast } from '../expression-builders/cast.js';
-import type { Col } from '../expression-builders/col.js';
+import { col, type Col } from '../expression-builders/col.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import type { Fn } from '../expression-builders/fn.js';
 import type { JsonPath } from '../expression-builders/json-path.js';
 import type { Literal } from '../expression-builders/literal.js';
+import type { ModelDefinition } from '../model-definition.js';
 import type { Sequelize } from '../sequelize.js';
 import { extractModelDefinition } from '../utils/model-utils.js';
 import { injectReplacements } from '../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
 import type { AbstractDialect } from './dialect.js';
 import type { EscapeOptions } from './query-generator-typescript.js';
-import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
+import type {
+  AddLimitOffsetOptions,
+  GetReturnFieldsOptions,
+} from './query-generator.internal-types.js';
 import type { GetConstraintSnippetQueryOptions, TableOrModel } from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
@@ -344,11 +349,71 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   }
 
   /**
-   * Returns an SQL fragment for adding result constraints.
+   * Returns an SQL fragment for adding LIMIT/OFFSET to a query.
    *
    * @param _options
    */
   addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
+  }
+
+  normalizeReturning(
+    options: GetReturnFieldsOptions,
+    modelDefinition?: ModelDefinition | null,
+  ): ReadonlyArray<string | BaseSqlExpression> {
+    if (options.returning === true) {
+      const returnFields: Array<string | BaseSqlExpression> = [];
+      if (modelDefinition) {
+        for (const attribute of modelDefinition.physicalAttributes.values()) {
+          returnFields.push(attribute.columnName);
+        }
+      }
+
+      if (returnFields.length === 0) {
+        returnFields.push(col('*'));
+      }
+
+      return returnFields;
+    }
+
+    if (options.returning === false || options.returning === undefined) {
+      return EMPTY_ARRAY;
+    }
+
+    if (Array.isArray(options.returning)) {
+      return options.returning;
+    }
+
+    throw new Error(
+      `Unsupported value in "returning" option: ${inspect(options.returning)}. This option only accepts true, false, an array of strings and sql expressions.`,
+    );
+  }
+
+  /**
+   * Returns the SQL fragment to handle returning the attributes from an insert/update query.
+   *
+   * @param options         An object with options.
+   * @param modelDefinition A map with the model attributes.
+   */
+  formatReturnFields(
+    options: GetReturnFieldsOptions,
+    modelDefinition?: ModelDefinition | null,
+  ): string[] {
+    const returnFields = this.normalizeReturning(options, modelDefinition);
+
+    return returnFields.map(field => {
+      if (typeof field === 'string') {
+        return this.queryGenerator.quoteIdentifier(field);
+      } else if (field instanceof BaseSqlExpression) {
+        return this.queryGenerator.formatSqlExpression(field, {
+          ...options,
+          model: modelDefinition,
+        });
+      }
+
+      throw new Error(
+        `Unsupported value in "returning" option: ${inspect(field)}. This option only accepts true, false, an array of strings and sql expressions.`,
+      );
+    });
   }
 }
