@@ -345,7 +345,7 @@ If you really need to access the connection manager, access it through \`sequeli
   }
 
   readonly #models = new Set<ModelStatic>();
-  readonly models = new ModelSetView(this, this.#models);
+  readonly models = new ModelSetView<Dialect>(this, this.#models);
   #isClosed: boolean = false;
   readonly pool: ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>;
 
