@@ -496,7 +496,7 @@ export abstract class AbstractDialect<
     return merge(cloneDeep(this.supports) ?? {}, supportsOverwrite);
   }
 
-  readonly sequelize: Sequelize;
+  readonly sequelize: Sequelize<this>;
 
   abstract readonly Query: typeof AbstractQuery;
   abstract readonly queryGenerator: AbstractQueryGenerator;
@@ -543,7 +543,7 @@ export abstract class AbstractDialect<
   }
 
   constructor(params: AbstractDialectParams<Options>) {
-    this.sequelize = params.sequelize;
+    this.sequelize = params.sequelize as Sequelize<this>;
     this.name = params.name;
     this.dataTypesDocumentationUrl = params.dataTypesDocumentationUrl;
     this.options = params.options ? getImmutablePojo(params.options) : EMPTY_OBJECT;
