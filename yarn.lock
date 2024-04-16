@@ -1932,10 +1932,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/figures@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@inquirer/figures@npm:1.0.0"
-  checksum: 10c0/18fb0f68968173e1425b5d7dbc3c01f2f43293f2cc957e6dfe6ee9b3e42d2eec450351192f4440c96d081fa7d094e75d8bc37e300f6fcad548b32635f556f56a
+"@inquirer/figures@npm:^1.0.0, @inquirer/figures@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@inquirer/figures@npm:1.0.1"
+  checksum: 10c0/a1e9d3852e0d33c416eb39d7ee0e898971681a0a5a0d2fad5ebbb63047dd7e8b7bd32872cf2ef09578ce632bd9cc339f7e851dbd4640a9af11224481bf811e14
   languageName: node
   linkType: hard
 
@@ -8971,10 +8971,10 @@ __metadata:
   linkType: hard
 
 "inquirer@npm:^9.2.14":
-  version: 9.2.18
-  resolution: "inquirer@npm:9.2.18"
+  version: 9.2.19
+  resolution: "inquirer@npm:9.2.19"
   dependencies:
-    "@inquirer/figures": "npm:^1.0.0"
+    "@inquirer/figures": "npm:^1.0.1"
     "@ljharb/through": "npm:^2.3.13"
     ansi-escapes: "npm:^4.3.2"
     chalk: "npm:^5.3.0"
@@ -8989,7 +8989,7 @@ __metadata:
     string-width: "npm:^4.2.3"
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^6.2.0"
-  checksum: 10c0/2e82bc10c66dc5551bc19c403d9fd971856051580c19be0ef4dae98d5ab99b591e603e297e49817ba7c3346993a032de11b97d9feb1dfd3f567d0bff72dbab33
+  checksum: 10c0/9015947d7f27ed11c8c609c26222e748121df00b6030df06fb7a0c99cb5ffc09f8afa1c4c969c93ec9add7682e540a70e7736ee60f0f816b91cedd17a620e7e6
   languageName: node
   linkType: hard
 
