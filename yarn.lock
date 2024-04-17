@@ -11099,8 +11099,8 @@ __metadata:
   linkType: hard
 
 "mysql2@npm:^3.9.3":
-  version: 3.9.4
-  resolution: "mysql2@npm:3.9.4"
+  version: 3.9.5
+  resolution: "mysql2@npm:3.9.5"
   dependencies:
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
@@ -11110,7 +11110,7 @@ __metadata:
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/bdb3c3da705b7e7a20fbdfe982a38acff133dda571d05b35bcc8a2b39e0535f91e448d6afd4cda24aa87fda2dbe5ff1b6165186c4b6c2f1037b73ca1b0af09fb
+  checksum: 10c0/bb68e70c292610537aba36e6ff068790e13095e259ed0a49373accbda7b159b652c46a1b05f25c946492479c6bc1cf92e555aaaf68b9891821a83c2ea836836f
   languageName: node
   linkType: hard
 
