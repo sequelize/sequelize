@@ -12,7 +12,7 @@ import {
   InvalidConnectionError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import * as oracledb from 'oracledb';
+import oracledb from 'oracledb';
 import assert from 'node:assert';
 // import AbstractConnectionManager from '@sequelize/core';
 import type { OracleDialect } from './dialect.js';
@@ -25,11 +25,11 @@ export interface OracleConnection extends AbstractConnection, oracledbConnection
 }
 
 export class OracleConnectionManager extends AbstractConnectionManager<OracleDialect, OracleConnection> {
-  readonly #lib: typeof oracledb;
+  readonly lib: typeof oracledb;
   constructor(dialect: OracleDialect) {
     super(dialect);
-    this.#lib = oracledb;
     this.extendLib();
+    this.lib = oracledb;
   }
 
   buildConnectString(config: ConnectionOptions) {
@@ -59,18 +59,18 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     if (this.sequelize.config && 'dialectOptions' in this.sequelize.config) {
       const dialectOptions = this.sequelize.config.dialectOptions;
       if (dialectOptions && 'maxRows' in dialectOptions) {
-        this.#lib.maxRows = this.sequelize.config.dialectOptions.maxRows;
+        oracledb.maxRows = this.sequelize.config.dialectOptions.maxRows;
       }
 
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        this.#lib.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
+        oracledb.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
       } else {
-        this.#lib.fetchAsString = [this.#lib.CLOB];
+        oracledb.fetchAsString = [oracledb.CLOB];
       }
     }
 
     // Retrieve BLOB always as Buffer.
-    this.#lib.fetchAsBuffer = [this.#lib.BLOB];
+    oracledb.fetchAsBuffer = [oracledb.BLOB];
   }
 
   async connect(config: ConnectionOptions): Promise<OracleConnection> {
@@ -83,7 +83,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     };
 
     try {
-      const connection: OracleConnection = await this.#lib.getConnection(connectionConfig) as OracleConnection;
+      const connection: OracleConnection = await this.lib.getConnection(connectionConfig) as OracleConnection;
       // this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString)!.version; correct fetchDatabaseVersion()
 
       debug('connection acquired');

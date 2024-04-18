@@ -14,7 +14,7 @@ import {
   UnknownConstraintError,
   ValidationErrorItem,
 } from '@sequelize/core';
-import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string';
+import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 
 const debug = logger.debugContext('sql:oracle');

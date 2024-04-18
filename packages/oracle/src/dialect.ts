@@ -116,4 +116,8 @@ export class OracleDialect extends AbstractDialect {
 
     return `'${hex}'`;
   }
+
+  static getSupportedOptions() {
+    return [];
+  }
 }
