@@ -2840,7 +2840,7 @@ __metadata:
     esbuild: "npm:0.17.19"
     eslint: "npm:8.57.0"
     eslint-plugin-jsdoc: "npm:48.2.3"
-    eslint-plugin-mocha: "npm:10.4.2"
+    eslint-plugin-mocha: "npm:10.4.3"
     fast-glob: "npm:3.3.2"
     husky: "npm:9.0.11"
     lerna: "npm:8.1.2"
@@ -7090,16 +7090,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-mocha@npm:10.4.2":
-  version: 10.4.2
-  resolution: "eslint-plugin-mocha@npm:10.4.2"
+"eslint-plugin-mocha@npm:10.4.3":
+  version: 10.4.3
+  resolution: "eslint-plugin-mocha@npm:10.4.3"
   dependencies:
     eslint-utils: "npm:^3.0.0"
     globals: "npm:^13.24.0"
     rambda: "npm:^7.4.0"
   peerDependencies:
     eslint: ">=7.0.0"
-  checksum: 10c0/b7eb4b1b2766f1a3c3dce7534ede0db7dc67510d241c56a57d4cd45ffbdc425c5cb021a2e9fffc07f3f8339e03bc5a1d853b2a1b75d07e0bae3fe12f0602a603
+  checksum: 10c0/4161132800363a2c9bbb89a77ac8a1055100b8882530ff06e4067c3c5d2b30af974e09a1b079a96eb696d8ec44d4a9ed56bdc3c03359149d4448baa38395463b
   languageName: node
   linkType: hard
 
