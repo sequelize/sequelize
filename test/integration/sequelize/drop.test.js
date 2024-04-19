@@ -33,4 +33,54 @@ describe('Sequelize#drop', () => {
     // drop both tables
     await sequelize.drop();
   });
+
+  describe('with schemas', () => {
+    beforeEach(async () => {
+      await Promise.all([
+        sequelize.createSchema('schemaA'),
+        sequelize.createSchema('schemaB')
+      ]);
+    });
+
+    afterEach(async () => {
+      await Promise.all([
+        sequelize.dropSchema('schemaA'),
+        sequelize.dropSchema('schemaB')
+      ]);
+    });
+
+    it('supports schemas when dropping foreign keys for a table', async () => {
+      sequelize.define('schemaA_A', {}, {
+        tableName: 'A',
+        schema: 'schemaA'
+      });
+
+
+      // External tables, use sequelize interface to create them.
+      const schemaB_A = sequelize.define('schemaB_A', {}, {
+        tableName: 'A',
+        schema: 'schemaB'
+      });
+
+      const schemaB_B = sequelize.define('schemaB_B', {
+        BId: {
+          type: DataTypes.INTEGER
+        }
+      }, {
+        tableName: 'B',
+        schema: 'schemaB'
+      });
+
+      schemaB_A.belongsTo(schemaB_B, { foreignKey: { allowNull: false } });
+
+      await sequelize.sync();
+
+      // Assume "schemaB" models were not created by sequelize and already exist in the database.
+      sequelize.modelManager.removeModel(schemaB_A);
+      sequelize.modelManager.removeModel(schemaB_B);
+
+      // Try to drop "schemaA" table.
+      await sequelize.drop();
+    });
+  });
 });
