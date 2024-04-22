@@ -16,7 +16,7 @@ describe('DataTypes.BLOB', () => {
     mssql: 'VARBINARY(256)',
     db2: 'BLOB(255)',
     postgres: 'BYTEA',
-    sqlite: 'BLOB',
+    sqlite3: 'BLOB',
     oracle: 'BLOB',
   });
 
@@ -26,7 +26,7 @@ describe('DataTypes.BLOB', () => {
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
     postgres: 'BYTEA',
-    sqlite: 'BLOB',
+    sqlite3: 'BLOB',
     oracle: 'BLOB',
   });
 
@@ -36,7 +36,7 @@ describe('DataTypes.BLOB', () => {
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(16M)',
     postgres: 'BYTEA',
-    sqlite: 'BLOB',
+    sqlite3: 'BLOB',
     oracle: 'BLOB',
   });
 
@@ -46,7 +46,7 @@ describe('DataTypes.BLOB', () => {
     mssql: 'VARBINARY(MAX)',
     db2: 'BLOB(2G)',
     postgres: 'BYTEA',
-    sqlite: 'BLOB',
+    sqlite3: 'BLOB',
     oracle: 'BLOB',
   });
 

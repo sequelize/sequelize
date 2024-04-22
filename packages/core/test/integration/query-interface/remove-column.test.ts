@@ -211,7 +211,7 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
             constraintCatalog: 'sequelize_test',
           }),
           constraintSchema: defaultSchema,
-          constraintName: dialectName === 'sqlite' ? 'FOREIGN' : 'actors_level_id_fkey',
+          constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
           constraintType: 'FOREIGN KEY',
           ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
           ...(dialectName !== 'oracle') && { tableSchema: defaultSchema },
@@ -222,7 +222,7 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
           ...(dialectName !== 'oracle') && { updateAction:
-            dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite' ? '' : 'NO ACTION' },
+            dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite3' ? '' : 'NO ACTION' },
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),

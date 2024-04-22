@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { QueryTypes } from '../query-types.js';
 import type { QueryRawOptions, Sequelize } from '../sequelize.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { FetchDatabaseVersionOptions } from './query-interface.types.js';
 

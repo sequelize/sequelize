@@ -166,7 +166,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         deleteAction: 'CASCADE',
         ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
           ? 'RESTRICT'
-          : dialect === 'sqlite'
+          : dialect === 'sqlite3'
             ? ''
             : 'NO ACTION' },
         ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -250,7 +250,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         deleteAction: 'CASCADE',
         ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
           ? 'RESTRICT'
-          : dialect === 'sqlite'
+          : dialect === 'sqlite3'
             ? ''
             : 'NO ACTION'},
         ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -387,7 +387,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
               ? '"age" > 10'
               : dialect === 'postgres'
                 ? '((age > 10))'
-                : ['mysql', 'sqlite'].includes(dialect)
+                : ['mysql', 'sqlite3'].includes(dialect)
                   ? '(`age` > 10)'
                   : '`age` > 10'},
           ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -550,7 +550,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           deleteAction: 'CASCADE',
           ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
             ? 'RESTRICT'
-            : dialect === 'sqlite'
+            : dialect === 'sqlite3'
               ? ''
               : 'NO ACTION' },
           ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -674,7 +674,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             deleteAction: 'CASCADE',
             ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
               ? 'RESTRICT'
-              : dialect === 'sqlite'
+              : dialect === 'sqlite3'
                 ? ''
                 : 'NO ACTION'},
             ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -705,7 +705,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             deleteAction: 'CASCADE',
             ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
             ? 'RESTRICT'
-            : dialect === 'sqlite'
+            : dialect === 'sqlite3'
               ? ''
               : 'NO ACTION'},
             ...(sequelize.dialect.supports.constraints.deferrable && {

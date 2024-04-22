@@ -99,7 +99,7 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectPerDialect(() => firstCall, {
       default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
-      'mysql mariadb sqlite': toMatchSql(
+      'mysql mariadb sqlite3': toMatchSql(
         "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
       ),
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),

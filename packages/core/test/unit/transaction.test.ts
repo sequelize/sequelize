@@ -13,13 +13,16 @@ describe('Transaction', () => {
   }
 
   const vars = beforeAll2(() => {
+    sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
+
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
-      stubConnection: sinon.stub(sequelize.connectionManager, 'getConnection').resolves({
+      stubConnection: sinon.stub(sequelize.dialect.connectionManager, 'connect').resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {},
       }),
-      stubRelease: sinon.stub(sequelize.connectionManager, 'releaseConnection'),
+      stubValidate: sinon.stub(sequelize.dialect.connectionManager, 'validate').returns(true),
+      stubRelease: sinon.stub(sequelize.dialect.connectionManager, 'disconnect'),
       stubTransactionId: sinon
         .stub(sequelize.queryGenerator, 'generateTransactionId')
         .returns('123'),
@@ -29,21 +32,25 @@ describe('Transaction', () => {
   beforeEach(() => {
     vars.stub.resetHistory();
     vars.stubConnection.resetHistory();
+    vars.stubValidate.resetHistory();
     vars.stubRelease.resetHistory();
   });
 
   after(() => {
     vars.stub.restore();
     vars.stubConnection.restore();
+    vars.stubValidate.restore();
     vars.stubRelease.restore();
     vars.stubTransactionId.restore();
   });
 
   it('should run auto commit query only when needed', async () => {
+    sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
+
     const expectations: Record<string, string[]> = {
       all: ['START TRANSACTION'],
       snowflake: ['START TRANSACTION NAME "123"'],
-      sqlite: ['BEGIN DEFERRED TRANSACTION'],
+      sqlite3: ['BEGIN DEFERRED TRANSACTION'],
       oracle: ['BEGIN TRANSACTION'],
     };
 
@@ -58,7 +65,7 @@ describe('Transaction', () => {
     const expectations: Record<string, string[]> = {
       all: ['SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED', 'START TRANSACTION'],
       postgres: ['START TRANSACTION', 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED'],
-      sqlite: ['BEGIN DEFERRED TRANSACTION', 'PRAGMA read_uncommitted = 1'],
+      sqlite3: ['BEGIN DEFERRED TRANSACTION', 'PRAGMA read_uncommitted = 1'],
       oracle: ['BEGIN TRANSACTION', 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED']
     };
 

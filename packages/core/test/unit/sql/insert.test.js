@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error('missing dialect support for conflictWhere option'),
-          'postgres sqlite': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
+          'postgres sqlite3': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
         });
       },
     );
@@ -223,7 +223,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: { sequelize_1: '2015-01-20 00:00:00.000' },
             mysql: { sequelize_1: '2015-01-20 00:00:00.000' },
             mariadb: { sequelize_1: '2015-01-20 00:00:00.000' },
-            sqlite: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             oracle: {sequelize_1: new Date(Date.UTC(2015, 0, 20)) }
@@ -268,7 +268,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: { sequelize_1: '2015-01-20 01:02:03.089' },
             mariadb: { sequelize_1: '2015-01-20 01:02:03.089' },
             mysql: { sequelize_1: '2015-01-20 01:02:03.089' },
-            sqlite: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             oracle: { sequelize_1:new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) },
@@ -362,7 +362,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           mysql:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
-          sqlite:
+          sqlite3:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
           oracle: `INSERT INTO "users" ("user_name","pass_word") VALUES (:1,:2)`,
         },
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
-          'postgres sqlite':
+          'postgres sqlite3':
             "INSERT INTO [users] ([user_name],[pass_word]) VALUES ('testuser','12345') ON CONFLICT ([user_name]) WHERE [deleted_at] IS NULL DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];",
         });
       });

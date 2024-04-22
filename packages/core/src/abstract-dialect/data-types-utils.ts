@@ -8,7 +8,7 @@ import type {
   DataTypeInstance,
 } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 
 export function isDataType(value: any): value is DataType {
   return isDataTypeClass(value) || value instanceof AbstractDataType;

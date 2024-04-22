@@ -32,7 +32,7 @@ describe('setTransactionFromCls', () => {
 
   it('does not use CLS if a transaction is already provided', async () => {
     // SQLite only has a single connection, we can't open a second transaction
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 
@@ -61,14 +61,13 @@ describe('setTransactionFromCls', () => {
       setTransactionFromCls(options, sequelize);
 
       expect(options.transaction).to.eq(null);
-      // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
       expect(options.connection).to.eq(undefined);
     });
   });
 
   it('does not set the transaction from CLS if an incompatible connection is provided', async () => {
     // SQLite only has a single connection, so it's the same connection
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 
@@ -80,7 +79,6 @@ describe('setTransactionFromCls', () => {
 
         setTransactionFromCls(options, sequelize);
 
-        // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
         expect(options.transaction).to.eq(undefined);
         expect(options.connection).to.eq(connection);
       });
@@ -102,7 +100,7 @@ describe('setTransactionFromCls', () => {
 
   it('does not allow mismatching connection & transaction', async () => {
     // SQLite only has a single connection, so it's the same connection
-    if (dialectName === 'sqlite') {
+    if (dialectName === 'sqlite3') {
       return;
     }
 

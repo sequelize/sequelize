@@ -189,7 +189,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
             { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } },
           ),
         {
-          sqlite: 'CONSTRAINT `myTable_age_ck` CHECK (`age` >= 10)',
+          sqlite3: 'CONSTRAINT `myTable_age_ck` CHECK (`age` >= 10)',
         },
       );
     });
@@ -321,7 +321,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
             { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' },
           ),
         {
-          sqlite: defaultNotSupportedError,
+          sqlite3: defaultNotSupportedError,
         },
       );
     });
@@ -455,7 +455,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
             { type: 'UNIQUE', fields: ['username'] },
           ),
         {
-          sqlite: 'CONSTRAINT `myTable_username_uk` UNIQUE (`username`)',
+          sqlite3: 'CONSTRAINT `myTable_username_uk` UNIQUE (`username`)',
         },
       );
     });
@@ -613,7 +613,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
-          sqlite:
+          sqlite3:
             'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchema.otherTable` (`id`)',
         },
       );
@@ -652,7 +652,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
-          sqlite:
+          sqlite3:
             'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchema.otherTable` (`id`)',
         },
       );
@@ -678,7 +678,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
             },
           ),
         {
-          sqlite:
+          sqlite3:
             'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchemacustomotherTable` (`id`)',
         },
       );
@@ -821,7 +821,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
             { type: 'PRIMARY KEY', fields: ['username'] },
           ),
         {
-          sqlite: 'CONSTRAINT `myTable_username_pk` PRIMARY KEY (`username`)',
+          sqlite3: 'CONSTRAINT `myTable_username_pk` PRIMARY KEY (`username`)',
         },
       );
     });

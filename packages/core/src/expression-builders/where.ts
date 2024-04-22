@@ -6,13 +6,13 @@ import { PojoWhere } from '../abstract-dialect/where-sql-builder.js';
 import type { WhereOperators } from '../model.js';
 import type { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
  * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
-  private declare readonly brand: 'where';
+  protected declare readonly [SQL_IDENTIFIER]: 'where';
 
   readonly where: PojoWhere | WhereOptions;
 

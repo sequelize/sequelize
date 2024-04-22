@@ -44,7 +44,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
@@ -66,7 +66,7 @@ describe('QueryGenerator#dropTableQuery', () => {
 
     expectsql(() => queryGeneratorSchema.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
@@ -85,7 +85,7 @@ describe('QueryGenerator#dropTableQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
+        sqlite3: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
       },
     );
   });

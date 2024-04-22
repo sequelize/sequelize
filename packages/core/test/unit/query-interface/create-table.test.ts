@@ -36,7 +36,7 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql':
         'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY, PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER DEFAULT NEWID(), PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
@@ -90,7 +90,7 @@ describe('QueryInterface#createTable', () => {
       mariadb:
         'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT UUID(), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER, PRIMARY KEY ([id]));`,
-      sqlite: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
+      sqlite3: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
@@ -119,7 +119,7 @@ describe('QueryInterface#createTable', () => {
       postgres: `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
-      sqlite: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
+      sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });

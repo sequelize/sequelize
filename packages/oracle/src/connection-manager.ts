@@ -1,7 +1,7 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
 import type { Connection as oracledbConnection } from 'oracledb';
-import type { Connection as AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -17,11 +17,30 @@ import assert from 'node:assert';
 // import AbstractConnectionManager from '@sequelize/core';
 import type { OracleDialect } from './dialect.js';
 
+export type oracledbModule = typeof  oracledb;
+
 const debug = logger.debugContext('connection:oracle');
 
-export interface OracleConnection extends AbstractConnection, oracledbConnection {
+export interface OracleConnection extends oracledbConnection, AbstractConnection {
   isHealthy(): boolean;
   on(event: 'error', listener: (err: any) => void): this;
+}
+
+export interface OracleConnectionOptions {
+
+  connectString?: string | undefined;
+
+  database?: string;
+
+  host?: string;
+
+  oracleOptions?: object;
+
+  password?: string | undefined;
+
+  port?: number | string;
+
+  username?: string | undefined;
 }
 
 export class OracleConnectionManager extends AbstractConnectionManager<OracleDialect, OracleConnection> {
@@ -32,7 +51,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     this.lib = oracledb;
   }
 
-  buildConnectString(config: ConnectionOptions) {
+  buildConnectString(config: ConnectionOptions<OracleDialect>) {
     if (!config.host || config.host.length === 0) {
       return config.database;
     }
@@ -56,14 +75,16 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
    *
    */
   extendLib() {
-    if (this.sequelize.config && 'dialectOptions' in this.sequelize.config) {
-      const dialectOptions = this.sequelize.config.dialectOptions;
+    if (this.sequelize.options && 'dialectOptions' in this.sequelize.options.replication.write) {
+      const dialectOptions = this.sequelize.options.replication.write.oracleOptions;
       if (dialectOptions && 'maxRows' in dialectOptions) {
-        oracledb.maxRows = this.sequelize.config.dialectOptions.maxRows;
+        // @ts-expect-error
+        oracledb.maxRows = this.sequelize.options.replication.write.oracleOptions.maxRows;
       }
 
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        oracledb.fetchAsString = this.sequelize.config.dialectOptions.fetchAsString;
+        // @ts-expect-error
+        oracledb.fetchAsString = this.sequelize.options.replication.write.oracleOptions.fetchAsString;
       } else {
         oracledb.fetchAsString = [oracledb.CLOB];
       }
@@ -73,13 +94,13 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     oracledb.fetchAsBuffer = [oracledb.BLOB];
   }
 
-  async connect(config: ConnectionOptions): Promise<OracleConnection> {
+  async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
-    const connectionConfig = {
-      user: config.username,
+    const connectionConfig: OracleConnectionOptions = {
+      username: config.username,
       password: config.password,
       connectString: this.buildConnectString(config),
-      ...config.dialectOptions,
+      ...config.oracleOptions,
     };
 
     try {
@@ -93,7 +114,9 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
           case 'ECONNRESET':
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
-            this.pool.destroy(connection);
+            void this.sequelize.pool.destroy(connection);
+            break;
+          default:
         }
       });
 

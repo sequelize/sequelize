@@ -1,14 +1,41 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMsSqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { MsSqlConnectionOptions, TediousModule } from './connection-manager.js';
 import { MsSqlConnectionManager } from './connection-manager.js';
 import { MsSqlQueryGenerator } from './query-generator.js';
 import { MsSqlQueryInterface } from './query-interface.js';
 import { MsSqlQuery } from './query.js';
 
-export class MsSqlDialect extends AbstractDialect {
+export { TDS_VERSION, ISOLATION_LEVEL as TEDIOUS_ISOLATION_LEVEL } from 'tedious';
+
+export interface MsSqlDialectOptions {
+  /**
+   * The tedious library to use.
+   * If not provided, the tedious npm library will be used.
+   * Must be compatible with the tedious npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  tediousModule?: TediousModule;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
+  tediousModule: undefined,
+});
+
+export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
@@ -74,22 +101,28 @@ export class MsSqlDialect extends AbstractDialect {
   readonly queryGenerator: MsSqlQueryGenerator;
   readonly queryInterface: MsSqlQueryInterface;
   readonly Query = MsSqlQuery;
-  readonly dataTypesDocumentationUrl =
-    'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx';
 
-  // SQL Server 2017 Express (version 14), minimum supported version, all the way
-  // up to the most recent version. When increasing this version, remember to
-  // update also the minimum version in the documentation at
-  //   https://github.com/sequelize/website/blob/main/docs/other-topics/dialect-specific-things.md
-  // and set the relevant years for the mssql Docker images in the ci.yml file at
-  //   .github/workflows/ci.yml
-  // minimum supported version
-  readonly defaultVersion = '14.0.1000';
-  readonly TICK_CHAR_LEFT = '[';
-  readonly TICK_CHAR_RIGHT = ']';
+  constructor(sequelize: Sequelize, options: MsSqlDialectOptions) {
+    super({
+      name: 'mssql',
+      sequelize,
+      dataTypeOverrides: DataTypes,
+      identifierDelimiter: {
+        start: '[',
+        end: ']',
+      },
+      options,
+      dataTypesDocumentationUrl:
+        'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx',
+      // SQL Server 2017 Express (version 14), minimum supported version, all the way
+      // up to the most recent version. When increasing this version, remember to
+      // update also the minimum version in the documentation at
+      //   https://github.com/sequelize/website/blob/main/docs/other-topics/dialect-specific-things.md
+      // and set the relevant years for the mssql Docker images in the ci.yml file at
+      //   .github/workflows/ci.yml
+      minimumDatabaseVersion: '14.0.1000',
+    });
 
-  constructor(sequelize: Sequelize) {
-    super(sequelize, DataTypes, 'mssql');
     this.connectionManager = new MsSqlConnectionManager(this);
     this.queryGenerator = new MsSqlQueryGenerator(this);
     this.queryInterface = new MsSqlQueryInterface(this);
@@ -119,11 +152,43 @@ export class MsSqlDialect extends AbstractDialect {
     return 'dbo';
   }
 
-  static getDefaultPort() {
-    return 1433;
+  parseConnectionUrl(url: string): MsSqlConnectionOptions {
+    const urlObject = new URL(url);
+
+    const options: MsSqlConnectionOptions = parseCommonConnectionUrlOptions({
+      allowedProtocols: ['sqlserver'],
+      url: urlObject,
+      hostname: 'server',
+      port: 'port',
+      pathname: 'database',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
+
+    if (urlObject.username || urlObject.password) {
+      options.authentication = {
+        type: 'default',
+        options: {},
+      };
+
+      if (urlObject.username) {
+        options.authentication.options.userName = decodeURIComponent(urlObject.username);
+      }
+
+      if (urlObject.password) {
+        options.authentication.options.password = decodeURIComponent(urlObject.password);
+      }
+    }
+
+    return options;
   }
 
   static getSupportedOptions() {
-    return [];
+    return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

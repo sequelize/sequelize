@@ -22,7 +22,8 @@ import { IndexHints } from '../index-hints.js';
 import type { ModelDefinition } from '../model-definition.js';
 import type { Attributes, Model, ModelStatic } from '../model.js';
 import { Op } from '../operators.js';
-import type { BindOrReplacements, Expression } from '../sequelize.js';
+import type { BindOrReplacements, Expression, Sequelize } from '../sequelize.js';
+import type { NormalizedOptions } from '../sequelize.types.js';
 import { bestGuessDataTypeOfVal } from '../sql-string.js';
 import { TableHints } from '../table-hints.js';
 import type { IsolationLevel } from '../transaction.js';
@@ -37,7 +38,7 @@ import {
 } from '../utils/model-utils.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
@@ -171,12 +172,12 @@ export interface Bindable {
  * This is a temporary class used to progressively migrate the AbstractQueryGenerator class to TypeScript by slowly moving its functions here.
  * Always use {@link AbstractQueryGenerator} instead.
  */
-export class AbstractQueryGeneratorTypeScript {
-  readonly dialect: AbstractDialect;
+export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = AbstractDialect> {
+  readonly dialect: Dialect;
   readonly #internals: AbstractQueryGeneratorInternal;
 
   constructor(
-    dialect: AbstractDialect,
+    dialect: Dialect,
     internals: AbstractQueryGeneratorInternal = new AbstractQueryGeneratorInternal(dialect),
   ) {
     this.dialect = dialect;
@@ -187,11 +188,11 @@ export class AbstractQueryGeneratorTypeScript {
     return this.#internals.whereSqlBuilder;
   }
 
-  protected get sequelize() {
+  protected get sequelize(): Sequelize<Dialect> {
     return this.dialect.sequelize;
   }
 
-  protected get options() {
+  protected get options(): NormalizedOptions<Dialect> {
     return this.sequelize.options;
   }
 

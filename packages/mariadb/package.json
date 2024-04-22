@@ -13,6 +13,9 @@
       }
     }
   },
+  "files": [
+    "lib"
+  ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "sideEffects": false,
@@ -24,11 +27,12 @@
     "build": "../../build-packages.mjs mariadb",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.40",
   "publishConfig": {
     "access": "public"
   },
@@ -36,10 +40,10 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
-    "lodash": "4.17.21",
-    "mariadb": "3.3.0",
-    "semver": "7.6.0",
-    "wkx": "0.5.0"
+    "lodash": "^4.17.21",
+    "mariadb": "^3.3.0",
+    "semver": "^7.6.0",
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.14",

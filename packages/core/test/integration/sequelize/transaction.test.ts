@@ -192,7 +192,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     });
 
     // sqlite cannot have more than one transaction at the same time, so separate is not available.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('creates a new transaction if nestMode is set to "separate"', async () => {
         await sequelize.transaction(async transaction1 => {
           await sequelize.transaction(
@@ -239,7 +239,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     it(`defaults nestMode to sequelize's defaultTransactionNestMode option`, async () => {
-      const customSequelize = await createSingleTransactionalTestSequelizeInstance({
+      const customSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize, {
         defaultTransactionNestMode: TransactionNestMode.savepoint,
       });
 
@@ -297,7 +297,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
         });
 
-        if (dialectName !== 'sqlite') {
+        if (dialectName !== 'sqlite3') {
           await transactionSequelize.transaction(async transaction => {
             await transaction.setIsolationLevel(IsolationLevel.READ_COMMITTED);
             const johnDoe = await User.findOne({ where: { name: 'John Doe' }, transaction });
@@ -322,7 +322,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // SQLite only supports read uncommitted and serializable.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('should read the most recent committed rows when using the READ COMMITTED isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
@@ -340,7 +340,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow dirty reads with isolation level "READ UNCOMMITTED".
-    if (!['postgres', 'sqlite', 'oracle'].includes(dialectName)) {
+    if (!['postgres', 'sqlite3', 'oracle'].includes(dialectName)) {
       it('should allow dirty read with isolation level "READ UNCOMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -367,7 +367,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // SQLite only supports read uncommitted and serializable.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('should prevent dirty read with isolation level "READ COMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -394,7 +394,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // SQLite only supports read uncommitted and serializable.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('should allow non-repeatable read with isolation level "READ COMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -444,7 +444,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         );
       });
       // SQLite only supports read uncommitted and serializable.
-    } else if (dialectName !== 'sqlite') {
+    } else if (dialectName !== 'sqlite3') {
       it('should allow phantom read with isolation level "REPEATABLE READ"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -512,9 +512,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
     // we cannot close a sqlite connection, but there also cannot be a network error with sqlite.
     // so this test is not necessary for that dialect.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('does not pollute the pool with broken connections if commit fails', async () => {
-        const initialPoolSize = sequelize.connectionManager.pool.size;
+        const initialPoolSize = sequelize.pool.size;
 
         stubs.push(
           sinon
@@ -527,7 +527,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(t.commit()).to.be.rejectedWith('Oh no, an error!');
 
         // connection should have been destroyed
-        expect(sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+        expect(sequelize.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
       });
     }
   });
@@ -541,9 +541,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
     // we cannot close a sqlite connection, but there also cannot be a network error with sqlite.
     // so this test is not necessary for that dialect.
-    if (dialectName !== 'sqlite') {
+    if (dialectName !== 'sqlite3') {
       it('does not pollute the pool with broken connections if the rollback fails', async () => {
-        const initialPoolSize = sequelize.connectionManager.pool.size;
+        const initialPoolSize = sequelize.pool.size;
 
         stubs.push(
           sinon
@@ -556,12 +556,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await expect(t.rollback()).to.be.rejectedWith('Oh no, an error!');
 
         // connection should have been destroyed
-        expect(sequelize.connectionManager.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
+        expect(sequelize.pool.size).to.eq(Math.max(0, initialPoolSize - 1));
       });
     }
   });
 
-  if (getTestDialect() !== 'sqlite' && getTestDialect() !== 'db2') {
+  if (getTestDialect() !== 'sqlite3' && getTestDialect() !== 'db2') {
     it('works for long running transactions', async () => {
       const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
@@ -585,7 +585,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         case 'postgres':
           query = 'select pg_sleep(2);';
           break;
-        case 'sqlite':
+        case 'sqlite3':
           query = 'select sqlite3_sleep(2000);';
           break;
         case 'mssql':

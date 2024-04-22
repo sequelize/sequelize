@@ -1,14 +1,14 @@
 import { isPlainObject } from '@sequelize/utils';
 import { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
  * Do not use me directly. Use {@link fn}
  */
 export class Fn extends BaseSqlExpression {
-  private declare readonly brand: 'fn';
+  protected declare readonly [SQL_IDENTIFIER]: 'fn';
 
   readonly fn: string;
   readonly args: readonly Expression[];

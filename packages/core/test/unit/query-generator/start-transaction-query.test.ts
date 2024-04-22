@@ -13,7 +13,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
   it('should generate a query for starting a transaction', () => {
     expectsql(() => queryGenerator.startTransactionQuery(), {
       default: 'START TRANSACTION',
-      sqlite: 'BEGIN DEFERRED TRANSACTION',
+      sqlite3: 'BEGIN DEFERRED TRANSACTION',
       'db2 ibmi mssql': notSupportedError,
       oracle: 'BEGIN TRANSACTION',
     });
@@ -23,7 +23,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
     expectsql(() => queryGenerator.startTransactionQuery({ transactionName: 'myTransaction' }), {
       default: 'START TRANSACTION',
       snowflake: 'START TRANSACTION NAME "myTransaction"',
-      sqlite: 'BEGIN DEFERRED TRANSACTION',
+      sqlite3: 'BEGIN DEFERRED TRANSACTION',
       'db2 ibmi mssql': notSupportedError,
       oracle: 'BEGIN TRANSACTION',
     });
@@ -44,7 +44,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
         default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'transactionType',
         ]),
-        sqlite: 'BEGIN DEFERRED TRANSACTION',
+        sqlite3: 'BEGIN DEFERRED TRANSACTION',
         'db2 ibmi mssql': notSupportedError,
       },
     );
@@ -57,7 +57,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
         default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'transactionType',
         ]),
-        sqlite: 'BEGIN IMMEDIATE TRANSACTION',
+        sqlite3: 'BEGIN IMMEDIATE TRANSACTION',
         'db2 ibmi mssql': notSupportedError,
       },
     );
@@ -70,7 +70,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
         default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'transactionType',
         ]),
-        sqlite: 'BEGIN EXCLUSIVE TRANSACTION',
+        sqlite3: 'BEGIN EXCLUSIVE TRANSACTION',
         'db2 ibmi mssql': notSupportedError,
       },
     );
@@ -88,7 +88,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
         default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'transactionType',
         ]),
-        'snowflake sqlite oracle': buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+        'snowflake sqlite3 oracle': buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'readOnly',
         ]),
         'db2 ibmi mssql': notSupportedError,

@@ -10,7 +10,6 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
   });
 
@@ -111,7 +110,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
-        case 'sqlite':
+        case 'sqlite3':
           assertVal = 'TEXT';
           break;
         case 'ibmi':
@@ -127,7 +126,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(username.allowNull).to.be.true;
 
       switch (dialect) {
-        case 'sqlite':
+        case 'sqlite3':
         case 'oracle':
           expect(username.defaultValue).to.be.undefined;
           break;
@@ -136,7 +135,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       switch (dialect) {
-        case 'sqlite':
+        case 'sqlite3':
           expect(city.defaultValue).to.be.null;
           break;
       }
@@ -147,7 +146,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'db2':
           assertVal = 'BOOLEAN';
           break;
-        case 'sqlite':
+        case 'sqlite3':
           assertVal = 'INTEGER';
           break;
         case 'mssql':
@@ -164,7 +163,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(isAdmin.type).to.equal(assertVal);
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
-        case 'sqlite':
+        case 'sqlite3':
         case 'oracle':
           expect(isAdmin.defaultValue).to.be.undefined;
           break;

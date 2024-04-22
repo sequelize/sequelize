@@ -13,7 +13,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [myTable]`,
-      sqlite: 'DROP INDEX `user_foo_bar`',
+      sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       'db2 oracle': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
@@ -24,7 +24,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX query from a table with attributes', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', ['foo', 'bar']), {
       default: `DROP INDEX [my_table_foo_bar] ON [myTable]`,
-      sqlite: 'DROP INDEX `my_table_foo_bar`',
+      sqlite3: 'DROP INDEX `my_table_foo_bar`',
       ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
       'db2 oracle': `DROP INDEX "my_table_foo_bar"`,
       postgres: `DROP INDEX "public"."my_table_foo_bar"`,
@@ -50,7 +50,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       () => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { ifExists: true }),
       {
         default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable]`,
-        sqlite: 'DROP INDEX IF EXISTS `user_foo_bar`',
+        sqlite3: 'DROP INDEX IF EXISTS `user_foo_bar`',
         postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
         ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
         snowflake: notImplementedError,
@@ -84,7 +84,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
           'cascade',
           'ifExists',
         ]),
-        'ibmi mariadb mssql sqlite': buildInvalidOptionReceivedError(
+        'ibmi mariadb mssql sqlite3': buildInvalidOptionReceivedError(
           'removeIndexQuery',
           dialect.name,
           ['cascade'],
@@ -108,7 +108,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
           'concurrently',
           'ifExists',
         ]),
-        'ibmi mariadb mssql sqlite': buildInvalidOptionReceivedError(
+        'ibmi mariadb mssql sqlite3': buildInvalidOptionReceivedError(
           'removeIndexQuery',
           dialect.name,
           ['concurrently'],
@@ -142,7 +142,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
     expectsql(() => queryGenerator.removeIndexQuery(MyModel, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
-      sqlite: 'DROP INDEX `user_foo_bar`',
+      sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       'db2 oracle': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
@@ -156,7 +156,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
     expectsql(() => queryGenerator.removeIndexQuery(myDefinition, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
-      sqlite: 'DROP INDEX `user_foo_bar`',
+      sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
@@ -174,7 +174,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         ),
       {
         default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
-        sqlite: 'DROP INDEX `user_foo_bar`',
+        sqlite3: 'DROP INDEX `user_foo_bar`',
         postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
         'db2 oracle': `DROP INDEX "user_foo_bar"`,
@@ -192,7 +192,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         ),
       {
         default: `DROP INDEX [user_foo_bar] ON [myTable]`,
-        sqlite: 'DROP INDEX `user_foo_bar`',
+        sqlite3: 'DROP INDEX `user_foo_bar`',
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
         'db2 oracle': `DROP INDEX "user_foo_bar"`,
         postgres: `DROP INDEX "public"."user_foo_bar"`,
@@ -207,7 +207,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
     expectsql(() => queryGeneratorSchema.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
-      sqlite: 'DROP INDEX `user_foo_bar`',
+      sqlite3: 'DROP INDEX `user_foo_bar`',
       postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       'db2 oracle': 'DROP INDEX "user_foo_bar"',

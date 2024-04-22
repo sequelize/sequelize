@@ -1,3 +1,4 @@
+import { isNotNullish } from '@sequelize/utils';
 import isEmpty from 'lodash/isEmpty';
 import assert from 'node:assert';
 import type { ConstraintChecking } from '../deferrable';
@@ -14,8 +15,8 @@ import {
   showAllToListSchemas,
   showAllToListTables,
 } from '../utils/deprecations';
-import type { Connection } from './connection-manager.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractConnection } from './connection-manager.js';
+import type { AbstractDialect } from './dialect.js';
 import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import type { TableNameWithSchema } from './query-interface.js';
@@ -50,7 +51,7 @@ import type {
   StartTransactionOptions,
 } from './query-interface.types';
 
-export type WithoutForeignKeyChecksCallback<T> = (connection: Connection) => Promise<T>;
+export type WithoutForeignKeyChecksCallback<T> = (connection: AbstractConnection) => Promise<T>;
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -73,7 +74,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
   }
 
-  get sequelize(): Sequelize {
+  get sequelize(): Sequelize<Dialect> {
     return this.dialect.sequelize;
   }
 
@@ -748,7 +749,9 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     try {
       await this.unsafeToggleForeignKeyChecks(false, options);
 
-      return await cb(options.connection!);
+      isNotNullish.assert(options.connection, 'options.connection must be provided');
+
+      return await cb(options.connection);
     } finally {
       await this.unsafeToggleForeignKeyChecks(true, options);
     }

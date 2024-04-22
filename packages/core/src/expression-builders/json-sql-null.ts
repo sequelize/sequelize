@@ -1,4 +1,4 @@
-import type { AbstractDialect } from '../abstract-dialect/index.js';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import { DialectAwareFn } from './dialect-aware-fn.js';
 import { literal } from './literal.js';
 

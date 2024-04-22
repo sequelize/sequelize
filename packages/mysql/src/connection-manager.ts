@@ -1,4 +1,4 @@
-import type { Connection as AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -12,14 +12,43 @@ import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import * as MySql from 'mysql2';
+import * as MySql2 from 'mysql2';
 import assert from 'node:assert';
 import { promisify } from 'node:util';
 import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
-export interface MySqlConnection extends MySql.Connection, AbstractConnection {}
+export type MySql2Module = typeof MySql2;
+
+export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
+
+export interface MySqlConnectionOptions
+  extends Omit<
+    MySql2.ConnectionOptions,
+    // The user cannot modify these options:
+    // This option is currently a global Sequelize option
+    | 'timezone'
+    // Conflicts with our own features
+    | 'nestTables'
+    // We provide our own placeholders.
+    // TODO: should we use named placeholders for mysql?
+    | 'namedPlaceholders'
+    // We provide our own pool
+    | 'pool'
+    // Our code expects specific response formats, setting any of the following option would break Sequelize
+    | 'typeCast'
+    | 'bigNumberStrings'
+    | 'supportBigNumbers'
+    | 'dateStrings'
+    | 'decimalNumbers'
+    | 'rowsAsArray'
+    | 'stringifyObjects'
+    | 'queryFormat'
+    | 'Promise'
+    // We provide our own "url" implementation
+    | 'uri'
+  > {}
 
 /**
  * MySQL Connection Manager
@@ -27,21 +56,19 @@ export interface MySqlConnection extends MySql.Connection, AbstractConnection {}
  * Get connections, validate and disconnect them.
  * AbstractConnectionManager pooling use it to handle MySQL specific connections
  * Use https://github.com/sidorares/node-mysql2 to connect with MySQL server
- *
- * @private
  */
 export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlDialect,
   MySqlConnection
 > {
-  readonly #lib: typeof MySql;
+  readonly #lib: MySql2Module;
 
   constructor(dialect: MySqlDialect) {
     super(dialect);
-    this.#lib = MySql;
+    this.#lib = this.dialect.options.mysql2Module ?? MySql2;
   }
 
-  #typecast(field: MySql.TypeCastField, next: () => void): unknown {
+  #typecast(field: MySql2.TypeCastField, next: () => void): unknown {
     const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
     if (dataParser) {
       const value = dataParser(field);
@@ -60,23 +87,18 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
    * Also set proper timezone once connection is connected.
    *
    * @param config
-   * @returns
-   * @private
    */
-  async connect(config: ConnectionOptions): Promise<MySqlConnection> {
+  async connect(config: ConnectionOptions<MySqlDialect>): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
-    const connectionConfig: MySql.ConnectionOptions = {
+    // TODO: enable dateStrings
+    const connectionConfig: MySql2.ConnectionOptions = {
+      flags: ['-FOUND_ROWS'],
+      port: 3306,
+      ...config,
+      ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
       bigNumberStrings: false,
       supportBigNumbers: true,
-      flags: ['-FOUND_ROWS'],
-      ...config.dialectOptions,
-      ...(config.host == null ? null : { host: config.host }),
-      port: config.port,
-      ...(config.username == null ? null : { user: config.username }),
-      ...(config.password == null ? null : { password: config.password }),
-      ...(config.database == null ? null : { database: config.database }),
-      ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
       typeCast: (field, next) => this.#typecast(field, next),
     };
 
@@ -95,13 +117,13 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
           case 'ECONNRESET':
           case 'EPIPE':
           case 'PROTOCOL_CONNECTION_LOST':
-            void this.pool.destroy(connection);
+            void this.sequelize.pool.destroy(connection);
             break;
           default:
         }
       });
 
-      if (!this.sequelize.config.keepDefaultTimezone && this.sequelize.options.timezone) {
+      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
         // set timezone for this connection
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
@@ -161,8 +183,8 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 }
 
 async function createConnection(
-  lib: typeof MySql,
-  config: MySql.ConnectionOptions,
+  lib: typeof MySql2,
+  config: MySql2.ConnectionOptions,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
     const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;

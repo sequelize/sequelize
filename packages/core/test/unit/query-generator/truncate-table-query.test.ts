@@ -9,7 +9,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
   it('produces a TRUNCATE TABLE query for a table', () => {
     expectPerDialect(() => queryGenerator.truncateTableQuery('myTable'), {
       mssql: 'TRUNCATE TABLE [myTable]',
-      sqlite: ['DELETE FROM `myTable`'],
+      sqlite3: ['DELETE FROM `myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `myTable`',
       'postgres snowflake': 'TRUNCATE "myTable"',
@@ -31,7 +31,10 @@ describe('QueryGenerator#truncateTableQuery', () => {
         default: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, [
           'restartIdentity',
         ]),
-        sqlite: ['DELETE FROM `myTable`', "DELETE FROM `sqlite_sequence` WHERE `name` = 'myTable'"],
+        sqlite3: [
+          'DELETE FROM `myTable`',
+          "DELETE FROM `sqlite_sequence` WHERE `name` = 'myTable'",
+        ],
         postgres: `TRUNCATE "myTable" RESTART IDENTITY`,
       },
     );
@@ -45,7 +48,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
           'cascade',
           'restartIdentity',
         ]),
-        sqlite: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
+        sqlite3: buildInvalidOptionReceivedError('truncateTableQuery', dialect.name, ['cascade']),
         postgres: `TRUNCATE "myTable" RESTART IDENTITY CASCADE`,
       },
     );
@@ -56,7 +59,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
 
     expectPerDialect(() => queryGenerator.truncateTableQuery(MyModel), {
       mssql: 'TRUNCATE TABLE [MyModels]',
-      sqlite: ['DELETE FROM `MyModels`'],
+      sqlite3: ['DELETE FROM `MyModels`'],
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
       'postgres snowflake': 'TRUNCATE "MyModels"',
@@ -70,7 +73,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
 
     expectPerDialect(() => queryGenerator.truncateTableQuery(myDefinition), {
       mssql: 'TRUNCATE TABLE [MyModels]',
-      sqlite: ['DELETE FROM `MyModels`'],
+      sqlite3: ['DELETE FROM `MyModels`'],
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
       'postgres snowflake': 'TRUNCATE "MyModels"',
@@ -83,7 +86,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       () => queryGenerator.truncateTableQuery({ tableName: 'myTable', schema: 'mySchema' }),
       {
         mssql: 'TRUNCATE TABLE [mySchema].[myTable]',
-        sqlite: ['DELETE FROM `mySchema.myTable`'],
+        sqlite3: ['DELETE FROM `mySchema.myTable`'],
         'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
         'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
         'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
@@ -101,7 +104,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
         }),
       {
         mssql: 'TRUNCATE TABLE [myTable]',
-        sqlite: ['DELETE FROM `myTable`'],
+        sqlite3: ['DELETE FROM `myTable`'],
         'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
         'mariadb mysql': 'TRUNCATE `myTable`',
         'postgres snowflake': 'TRUNCATE "myTable"',
@@ -116,7 +119,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
 
     expectPerDialect(() => queryGeneratorSchema.truncateTableQuery('myTable'), {
       mssql: 'TRUNCATE TABLE [mySchema].[myTable]',
-      sqlite: ['DELETE FROM `mySchema.myTable`'],
+      sqlite3: ['DELETE FROM `mySchema.myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
       'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
@@ -138,7 +141,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: ['DELETE FROM `mySchemacustommyTable`'],
+        sqlite3: ['DELETE FROM `mySchemacustommyTable`'],
       },
     );
   });
@@ -156,7 +159,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
           { restartIdentity: true },
         ),
       {
-        sqlite: [
+        sqlite3: [
           'DELETE FROM `mySchemacustommyTable`',
           "DELETE FROM `sqlite_sequence` WHERE `name` = 'mySchemacustommyTable'",
         ],

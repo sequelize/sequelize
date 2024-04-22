@@ -14,7 +14,7 @@ import type {
 import type { QueryRawOptions, QueryRawOptionsWithModel } from '../sequelize';
 import type { AllowLowercase } from '../utils/types.js';
 import type { DataType } from './data-types.js';
-import type { AbstractDialect } from './index.js';
+import type { AbstractDialect } from './dialect.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { AddColumnQueryOptions } from './query-generator.js';
 import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator.types.js';

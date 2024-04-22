@@ -295,7 +295,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           break;
         }
 
-        case 'sqlite':
+        case 'sqlite3':
         default: {
           expect(index.fields).to.deep.equal([
             { attribute: 'user_name', length: undefined, order: undefined },
@@ -353,7 +353,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   'user_id',
                   {
                     attribute: 'email',
-                    collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
+                    collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
                     order: 'DESC',
                     length: 5,
                   },
@@ -482,7 +482,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'fieldB',
             {
               attribute: 'fieldA',
-              collate: dialectName === 'sqlite' ? 'RTRIM' : 'en_US',
+              collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
               order:
                 dialectName === 'ibmi'
                   ? ''
@@ -535,7 +535,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       let idx3;
 
       switch (dialectName) {
-        case 'sqlite': {
+        case 'sqlite3': {
           // PRAGMA index_info does not return the primary index
           idx1 = args[0];
           idx2 = args[1];
@@ -873,8 +873,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.equals(user)).to.be.ok;
     });
 
-    // sqlite can't handle multiple primary keys
-    if (dialectName !== 'sqlite') {
+    // sqlite3 can't handle multiple primary keys
+    if (dialectName !== 'sqlite3') {
       it('correctly determines equality with multiple primary keys', async function () {
         const userKeys = this.sequelize.define('userkeys', {
           foo: { type: DataTypes.STRING, primaryKey: true },
@@ -891,7 +891,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   // sqlite can't handle multiple primary keys
-  if (dialectName !== 'sqlite') {
+  if (dialectName !== 'sqlite3') {
     describe('equalsOneOf', () => {
       beforeEach(async function () {
         this.userKey = this.sequelize.define('userKeys', {
@@ -1020,23 +1020,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.UserSpecial.drop();
       });
 
-      it('should be able to list schemas', async function () {
-        const schemas = await this.sequelize.queryInterface.listSchemas();
-
-        const expectedSchemas = {
-          // "sequelize_test" is the default schema, which some dialects will not delete
-          mysql: ['sequelize_test', 'schema_test', 'special'],
-          mariadb: ['sequelize_test', 'schema_test', 'special'],
-          ibmi: ['sequelize_test', 'schema_test', 'special'],
-          mssql: ['schema_test', 'special'],
-          postgres: ['schema_test', 'special'],
-          db2: ['schema_test', 'special '],
-          oracle: ['schema_test', 'special'],
-        };
-
-        expect(schemas.sort()).to.deep.equal(expectedSchemas[dialectName].sort());
-      });
-
       it('should describeTable using the default schema settings', async function () {
         const UserPublic = this.sequelize.define('Public', {
           username: DataTypes.STRING,
@@ -1049,7 +1032,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         let table = await this.sequelize.queryInterface.describeTable('Publics', {
           logging(sql) {
-            if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
+            if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
             } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
@@ -1068,7 +1051,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { tableName: 'Publics', schema: 'special' },
           {
             logging(sql) {
-              if (dialectName === 'sqlite' && sql.includes('TABLE_INFO')) {
+              if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
                 expect(sql).to.contain('special');
               } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
@@ -1208,7 +1191,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   break;
                 }
 
-                case 'sqlite': {
+                case 'sqlite3': {
                   expect(UserSpecial).to.include('INSERT INTO `special.UserSpecials`');
 
                   break;
@@ -1392,7 +1375,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       try {
         // The posts table gets dropped in the before filter.
         await Post.sync();
-        if (dialectName === 'sqlite') {
+        if (dialectName === 'sqlite3') {
           // sorry ... but sqlite is too stupid to understand whats going on ...
           expect(1).to.equal(1);
         } else {
@@ -1407,7 +1390,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             break;
           }
 
-          case 'sqlite': {
+          case 'sqlite3': {
             // the parser should not end up here ... see above
             expect(1).to.equal(2);
 
@@ -1731,7 +1714,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should correctly set identifiers in a column with autoIncrement with bigint values', async function () {
       // sqlite returns bigints as numbers https://github.com/sequelize/sequelize/issues/11400
-      if (dialectName === 'sqlite') {
+      if (dialectName === 'sqlite3') {
         return;
       }
 

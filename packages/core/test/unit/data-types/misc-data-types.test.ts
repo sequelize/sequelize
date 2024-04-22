@@ -16,7 +16,7 @@ describe('DataTypes.BOOLEAN', () => {
     mssql: 'BIT',
     mariadb: 'TINYINT(1)',
     mysql: 'TINYINT(1)',
-    sqlite: 'INTEGER',
+    sqlite3: 'INTEGER',
     oracle: 'CHAR(1)',
   });
 
@@ -56,7 +56,7 @@ describe('DataTypes.ENUM', () => {
       'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
       'db2 ibmi snowflake': 'VARCHAR(255)',
       oracle: 'VARCHAR2(512)',
     });
@@ -189,7 +189,7 @@ describe('DataTypes.JSON', () => {
     'mariadb mysql postgres': 'JSON',
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
-    sqlite: 'TEXT',
+    sqlite3: 'TEXT',
     oracle: 'BLOB',
   });
 

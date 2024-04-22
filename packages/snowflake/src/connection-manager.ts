@@ -1,4 +1,4 @@
-import type { Connection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   AccessDeniedError,
@@ -10,22 +10,35 @@ import {
 } from '@sequelize/core';
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import * as Snowflake from 'snowflake-sdk';
+import * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
+
+export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
 
-export interface SnowflakeConnection extends Connection, Snowflake.Connection {}
+export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
+
+export interface SnowflakeConnectionOptions
+  extends Omit<
+    SnowflakeSdk.ConnectionOptions,
+    // "region" is not used by the Snowflake SDK anymore (deprecated option)
+    | 'region'
+    // ensures that the dialect produces values that Sequelize expects
+    | 'jsTreatIntegerAsBigInt'
+    // conflicts with Sequelize's schema option. That option will be taken from Sequelize's options instead.
+    | 'schema'
+  > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,
   SnowflakeConnection
 > {
-  readonly #lib: typeof Snowflake;
+  readonly #lib: SnowflakeSdkModule;
 
   constructor(dialect: SnowflakeDialect) {
     super(dialect);
-    this.#lib = Snowflake;
+    this.#lib = this.dialect.options.snowflakeSdkModule ?? SnowflakeSdk;
   }
 
   /**
@@ -37,21 +50,12 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @returns
    * @private
    */
-  async connect(config: ConnectionOptions): Promise<SnowflakeConnection> {
-    const connectionConfig: Snowflake.ConnectionOptions = {
-      account: config.host!,
-      username: config.username!,
-      password: config.password!,
-      database: config.database,
-      // @ts-expect-error -- snowflake specific options. They should be in dialectOptions. Do not declare them in ConnectionOptions.
-      warehouse: config.warehouse,
-      // @ts-expect-error -- snowflake specific options. They should be in dialectOptions. Do not declare them in ConnectionOptions.
-      role: config.role,
-      ...config.dialectOptions,
-    };
-
+  async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
     try {
-      const connection = this.#lib.createConnection(connectionConfig) as SnowflakeConnection;
+      const connection = this.#lib.createConnection({
+        schema: this.sequelize.options.schema,
+        ...config,
+      }) as SnowflakeConnection;
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {
@@ -65,7 +69,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      if (!this.sequelize.config.keepDefaultTimezone) {
+      if (!this.sequelize.options.keepDefaultTimezone) {
         // TODO: remove default timezone.
         // default value is '+00:00', put a quick workaround for it.
         const tzOffset =

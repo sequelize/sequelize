@@ -1,23 +1,54 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/index.js';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import {
   createUnspecifiedOrderedBindCollector,
   escapeMysqlMariaDbString,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import { registerMySqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import type { MySql2Module, MySqlConnectionOptions } from './connection-manager.js';
 import { MySqlConnectionManager } from './connection-manager.js';
 import { MySqlQueryGenerator } from './query-generator.js';
 import { MySqlQueryInterface } from './query-interface.js';
 import { MySqlQuery } from './query.js';
+
+export interface MySqlDialectOptions {
+  /**
+   * The mysql2 library to use.
+   * If not provided, the mysql2 npm library will be used.
+   * Must be compatible with the mysql2 npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  mysql2Module?: MySql2Module;
+
+  /**
+   * Show warnings if there are any when executing a query
+   */
+  showWarnings?: boolean | undefined;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MySqlDialectOptions>({
+  mysql2Module: undefined,
+  showWarnings: undefined,
+});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: true,
   unsigned: true,
 };
 
-export class MySqlDialect extends AbstractDialect {
+export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
@@ -79,15 +110,18 @@ export class MySqlDialect extends AbstractDialect {
   readonly queryGenerator: MySqlQueryGenerator;
   readonly queryInterface: MySqlQueryInterface;
   readonly Query = MySqlQuery;
-  readonly dataTypesDocumentationUrl = 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html';
 
-  // minimum supported version
-  readonly defaultVersion = '8.0.19';
-  readonly TICK_CHAR_LEFT = '`';
-  readonly TICK_CHAR_RIGHT = '`';
+  constructor(sequelize: Sequelize, options: MySqlDialectOptions) {
+    super({
+      sequelize,
+      options,
+      dataTypeOverrides: DataTypes,
+      minimumDatabaseVersion: '8.0.19',
+      identifierDelimiter: '`',
+      dataTypesDocumentationUrl: 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html',
+      name: 'mysql',
+    });
 
-  constructor(sequelize: Sequelize) {
-    super(sequelize, DataTypes, 'mysql');
     this.connectionManager = new MySqlConnectionManager(this);
     this.queryGenerator = new MySqlQueryGenerator(this);
     this.queryInterface = new MySqlQueryInterface(this);
@@ -112,14 +146,29 @@ export class MySqlDialect extends AbstractDialect {
   }
 
   getDefaultSchema(): string {
-    return this.sequelize.options.database ?? '';
+    return this.sequelize.options.replication.write.database ?? '';
   }
 
-  static getDefaultPort() {
-    return 3306;
+  parseConnectionUrl(url: string): MySqlConnectionOptions {
+    return parseCommonConnectionUrlOptions<MySqlConnectionOptions>({
+      url,
+      allowedProtocols: ['mysql'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {
-    return [];
+    return DIALECT_OPTION_NAMES;
+  }
+
+  static getSupportedConnectionOptions() {
+    return CONNECTION_OPTION_NAMES;
   }
 }

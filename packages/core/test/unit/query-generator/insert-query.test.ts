@@ -153,7 +153,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [id], [firstName];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
         mssql:
@@ -182,7 +182,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [*], [myColumn];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
         mssql:
@@ -213,7 +213,7 @@ describe('QueryGenerator#insertQuery', () => {
         {
           default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING *;`,
           // TODO: insertQuery should throw if returning is not supported
-          'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+          'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
           // TODO: insertQuery should throw if returning is not supported
           snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
           mssql: new Error(
@@ -253,7 +253,7 @@ describe('QueryGenerator#insertQuery', () => {
           snowflake: {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
-          sqlite: {
+          sqlite3: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
           postgres: {
@@ -280,7 +280,7 @@ describe('QueryGenerator#insertQuery', () => {
           oracle: `INSERT INTO "myTable" ("positive","negative") VALUES (:1,:2);`,
         },
         bind: {
-          sqlite: {
+          sqlite3: {
             sequelize_1: 1,
             sequelize_2: 0,
           },

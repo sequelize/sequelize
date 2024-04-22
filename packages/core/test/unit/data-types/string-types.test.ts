@@ -16,28 +16,28 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     testDataTypeSql('STRING', DataTypes.STRING, {
       default: 'VARCHAR(255)',
       mssql: 'NVARCHAR(255)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(255)',
     });
 
     testDataTypeSql('STRING(1234)', DataTypes.STRING(1234), {
       default: 'VARCHAR(1234)',
       mssql: 'NVARCHAR(1234)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(1234)',
     });
 
     testDataTypeSql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
       default: 'VARCHAR(1234)',
       mssql: 'NVARCHAR(1234)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(1234)',
     });
 
     testDataTypeSql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
-      sqlite: 'TEXT COLLATE BINARY',
+      sqlite3: 'TEXT COLLATE BINARY',
       'mssql postgres': binaryCollationUnsupportedError,
       oracle: 'RAW(1234)',
     });
@@ -45,7 +45,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
-      sqlite: 'TEXT COLLATE BINARY',
+      sqlite3: 'TEXT COLLATE BINARY',
       'mssql postgres': binaryCollationUnsupportedError,
       oracle: 'RAW(255)',
     });
@@ -127,7 +127,7 @@ describe('DataTypes.CITEXT', () => {
         new Error(`${dialectName} does not support the case-insensitive text (CITEXT) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       postgres: 'CITEXT',
-      sqlite: 'TEXT COLLATE NOCASE',
+      sqlite3: 'TEXT COLLATE NOCASE',
     });
   });
 
@@ -158,23 +158,23 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
     testDataTypeSql('CHAR', DataTypes.CHAR, {
       default: 'CHAR(255)',
-      sqlite: charNotSupportedError,
+      sqlite3: charNotSupportedError,
     });
 
     testDataTypeSql('CHAR(12)', DataTypes.CHAR(12), {
       default: 'CHAR(12)',
-      sqlite: charNotSupportedError,
+      sqlite3: charNotSupportedError,
     });
 
     testDataTypeSql('CHAR({ length: 12 })', DataTypes.CHAR({ length: 12 }), {
       default: 'CHAR(12)',
-      sqlite: charNotSupportedError,
+      sqlite3: charNotSupportedError,
     });
 
     testDataTypeSql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
       default: 'CHAR(12) BINARY',
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
-      sqlite: charNotSupportedError,
+      sqlite3: charNotSupportedError,
       'postgres mssql': binaryNotSupportedError,
       oracle: 'RAW(12)',
     });
@@ -182,7 +182,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     testDataTypeSql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
       default: 'CHAR(255) BINARY',
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
-      sqlite: charNotSupportedError,
+      sqlite3: charNotSupportedError,
       'postgres mssql': binaryNotSupportedError,
       oracle: 'RAW(255)',
     });
