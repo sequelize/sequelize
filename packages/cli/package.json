@@ -15,13 +15,13 @@
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
-    "@oclif/test": "3.2.10",
+    "@oclif/test": "3.2.11",
     "@types/chai": "4.3.14",
     "@types/mocha": "10.0.6",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "mocha": "10.4.0",
-    "oclif": "4.8.5",
+    "oclif": "4.8.8",
     "rimraf": "5.0.5"
   },
   "engines": {
