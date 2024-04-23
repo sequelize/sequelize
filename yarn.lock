@@ -1551,21 +1551,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ephys/eslint-config-typescript@npm:20.1.3":
-  version: 20.1.3
-  resolution: "@ephys/eslint-config-typescript@npm:20.1.3"
+"@ephys/eslint-config-typescript@npm:20.1.4":
+  version: 20.1.4
+  resolution: "@ephys/eslint-config-typescript@npm:20.1.4"
   dependencies:
-    "@ephys/eslint-config": "npm:^20.1.3"
+    "@ephys/eslint-config": "npm:^20.1.4"
     "@typescript-eslint/eslint-plugin": "npm:^7.2.0"
     "@typescript-eslint/parser": "npm:^7.2.0"
     eslint-import-resolver-typescript: "npm:^3.6.1"
-  checksum: 10c0/5e66e5d286a856db2fe6c28d7c96e4a1984c760881842fd78010e3c16118d874eb9267a3857e7e7aa87b270a20a96f21fdaba98388a212debf7c806a7743b783
+  checksum: 10c0/27598291f71eef8b2f9f4a2713e02067ade467442ebf3a616687ff184e79215530b845491a0eb5a59a14621558f572d8a4f06dca530062685bdc1ae7c4812aa6
   languageName: node
   linkType: hard
 
-"@ephys/eslint-config@npm:^20.1.3":
-  version: 20.1.3
-  resolution: "@ephys/eslint-config@npm:20.1.3"
+"@ephys/eslint-config@npm:^20.1.4":
+  version: 20.1.4
+  resolution: "@ephys/eslint-config@npm:20.1.4"
   dependencies:
     "@babel/core": "npm:^7.21.4"
     "@babel/eslint-parser": "npm:^7.21.3"
@@ -1581,7 +1581,7 @@ __metadata:
     eslint-plugin-small-import: "npm:^1.0.0"
     eslint-plugin-sort-destructure-keys: "npm:^1.5.0"
     eslint-plugin-unicorn: "npm:^46.0.0"
-  checksum: 10c0/f66a1b8ce9528edfe256b1355cc4086d6a37eaf877a9b975f07d4026a82fe714e0b58692af2fe051e8e911228eb085ce6c10bc611c75c48ea04cba0a1867b917
+  checksum: 10c0/c7bd5ce1c65c0ce6cbac5aae17e27be166cdfdf3cf44526fdefaf3739472f900fc2c7f26f3e2a87732f4c8e0668e50b3ae597c5b38b10d1e932981d28984e947
   languageName: node
   linkType: hard
 
@@ -2827,7 +2827,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
-    "@ephys/eslint-config-typescript": "npm:20.1.3"
+    "@ephys/eslint-config-typescript": "npm:20.1.4"
     "@rushstack/eslint-patch": "npm:1.10.2"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.14"
