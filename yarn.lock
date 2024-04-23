@@ -4089,12 +4089,12 @@ __metadata:
   linkType: hard
 
 "@types/snowflake-sdk@npm:^1.6.20":
-  version: 1.6.21
-  resolution: "@types/snowflake-sdk@npm:1.6.21"
+  version: 1.6.22
+  resolution: "@types/snowflake-sdk@npm:1.6.22"
   dependencies:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
-  checksum: 10c0/72d76f9c50eeb21822261f9f3367944577444255280de4fd501349df868bc7649961e404032ffcc9668b59a2409e95bccbe1a8a8fc67f9591d151bd8136f738b
+  checksum: 10c0/ff1a23c677ae9b23ef1b0b86ddf69e664737325293717ffe03552660080decf4429249a6cdefe03bf702b2952e3098acc6e896e0a0eaf1f14af095dbd2583d45
   languageName: node
   linkType: hard
 
