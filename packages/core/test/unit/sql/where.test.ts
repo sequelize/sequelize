@@ -412,6 +412,7 @@ Caused by: "undefined" cannot be escaped`),
           db2: '"stringAttr" = \'here is a null char: \0\'',
           ibmi: '"stringAttr" = \'here is a null char: \0\'',
           sqlite3: "`stringAttr` = 'here is a null char: \0'",
+          hana: '"stringAttr" = \'here is a null char: \0\'',
         },
       );
 
@@ -423,7 +424,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-          'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+          'db2 snowflake ibmi hana': `"dateAttr" = '2013-01-01 00:00:00.000'`,
         },
       );
 
@@ -570,7 +571,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
           mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-          'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+          'db2 ibmi snowflake hana': `"dateAttr" = '2021-01-01 00:00:00.000'`,
         },
       );
 

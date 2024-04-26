@@ -139,6 +139,10 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
+        hana: {
+          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_2: 2,
+        },
       },
     });
   });

@@ -1,20 +1,20 @@
 import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionRefusedError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import type { ConnectionParameters, NodeOdbcError, Connection as OdbcConnection } from 'odbc';
-import * as Odbc from 'odbc';
+// import type { ConnectionParameters, NodeOdbcError, Connection as OdbcConnection } from 'odbc';
+// import * as Odbc from 'odbc';
 import type { IBMiDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:ibmi');
 
-export type OdbcModule = typeof Odbc;
+export type OdbcModule = any;//typeof Odbc;
 
-export interface IBMiConnection extends AbstractConnection, OdbcConnection {
+export interface IBMiConnection extends AbstractConnection {
   // properties of ObdcConnection, but not declared in their typings
   connected: boolean;
 }
 
-export interface IBMiConnectionOptions extends Omit<ConnectionParameters, 'connectionString'> {
+export interface IBMiConnectionOptions {
   /**
    * Any extra ODBC connection string parts to use.
    *
@@ -48,7 +48,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
 
   constructor(dialect: IBMiDialect) {
     super(dialect);
-    this.#lib = this.dialect.options.odbcModule ?? Odbc;
+    this.#lib = this.dialect.options.odbcModule;// ?? Odbc;
   }
 
   async connect(config: ConnectionOptions<IBMiDialect>): Promise<IBMiConnection> {
@@ -108,15 +108,15 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
     }
 
     await new Promise<void>((resolve, reject) => {
-      connection.close((error: NodeOdbcError) => {
-        if (error) {
-          return void reject(error);
-        }
+      // connection.close((error: NodeOdbcError) => {
+      //   if (error) {
+      //     return void reject(error);
+      //   }
 
-        resolve();
+      //   resolve();
 
-        return undefined;
-      });
+      //   return undefined;
+      // });
     });
   }
 

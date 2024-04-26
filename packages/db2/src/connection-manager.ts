@@ -6,11 +6,25 @@ import {
 } from '@sequelize/core';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { inspect } from '@sequelize/utils';
-import type { ConnStr } from 'ibm_db';
-import * as IbmDb from 'ibm_db';
+// import type { ConnStr } from 'ibm_db';
+// import * as IbmDb from 'ibm_db';
 import type { Db2Dialect } from './dialect.js';
 
-export interface Db2Connection extends AbstractConnection, IbmDb.Database {}
+interface ConnStr {
+  DATABASE: string;
+  HOSTNAME: string;
+  PORT: number | string;
+  PROTOCOL: string;
+  UID: string;
+  PWD: string;
+}
+const IbmDb = {} as any;
+
+export interface Db2Connection extends AbstractConnection {
+  close(): unknown;
+  open(arg0: ConnStr, arg1: (error: any) => undefined): unknown;
+  connected: any;
+}
 
 export interface Db2ConnectionOptions {
   /**

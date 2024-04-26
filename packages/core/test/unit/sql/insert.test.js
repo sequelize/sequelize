@@ -43,6 +43,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            hana: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
           bind: { sequelize_1: 'triggertest' },
@@ -67,6 +68,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1))',
           postgres: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
           snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
+          hana: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
           default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
         },
         bind: { sequelize_1: 0 },
@@ -210,6 +212,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            hana: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -221,6 +224,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            hana: { sequelize_1: '2015-01-20 00:00:00.000' },
           },
         },
       );
@@ -253,6 +257,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            hana: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -264,6 +269,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            hana: { sequelize_1: '2015-01-20 01:02:03.089' },
           },
         },
       );
@@ -292,6 +298,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
           snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
           mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+          hana: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
           default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
         },
         bind: {
@@ -355,6 +362,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           sqlite3:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+          hana: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
         },
       );
     });
@@ -378,6 +386,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+            hana: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
           },
         },

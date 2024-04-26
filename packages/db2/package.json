@@ -40,7 +40,6 @@
     "@sequelize/utils": "workspace:*",
     "@types/ibm_db": "^2.0.16",
     "dayjs": "^1.11.10",
-    "ibm_db": "^3.2.3",
     "lodash": "^4.17.21"
   }
 }

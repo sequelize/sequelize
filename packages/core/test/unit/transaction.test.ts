@@ -65,10 +65,13 @@ describe('Transaction', () => {
       all: ['SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED', 'START TRANSACTION'],
       postgres: ['START TRANSACTION', 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED'],
       sqlite3: ['BEGIN DEFERRED TRANSACTION', 'PRAGMA read_uncommitted = 1'],
+      hana: ['START TRANSACTION;', 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED;'],
     };
 
     try {
-      await sequelize.transaction({ isolationLevel: IsolationLevel.READ_UNCOMMITTED }, async () => {
+      const isolationLevel = dialectName === 'hana' ? IsolationLevel.READ_COMMITTED
+      : IsolationLevel.READ_UNCOMMITTED;
+      await sequelize.transaction({ isolationLevel }, async () => {
         expect(vars.stub.args.map(arg => arg[0])).to.deep.equal(
           expectations[dialectName] || expectations.all,
         );

@@ -143,6 +143,7 @@
     "test-unit-db2": "cross-env DIALECT=db2 yarn _test-unit",
     "test-unit-ibmi": "cross-env DIALECT=ibmi yarn _test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake yarn _test-unit",
+    "test-unit-hana": "cross-env DIALECT=hana yarn _test-unit",
     "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite3 && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-ibmi",
     "test-unit": "yarn test-unit-all",
     "----------------------------------------- integration tests ---------------------------------------------": "",
@@ -155,6 +156,7 @@
     "test-integration-db2": "cross-env DIALECT=db2 yarn test-integration",
     "test-integration-ibmi": "cross-env DIALECT=ibmi yarn test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake yarn test-integration",
+    "test-integration-hana": "cross-env DIALECT=hana yarn test-integration",
     "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite3 && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake",
     "----------------------------------------- all tests ---------------------------------------------": "",
     "test-mariadb": "cross-env DIALECT=mariadb yarn test",
@@ -165,6 +167,7 @@
     "test-mssql": "cross-env DIALECT=mssql yarn test",
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
+    "test-hana": "cross-env DIALECT=hana yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "node ../../build-packages.mjs core"
   },
