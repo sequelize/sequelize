@@ -8971,8 +8971,8 @@ __metadata:
   linkType: hard
 
 "inquirer@npm:^9.2.14":
-  version: 9.2.19
-  resolution: "inquirer@npm:9.2.19"
+  version: 9.2.20
+  resolution: "inquirer@npm:9.2.20"
   dependencies:
     "@inquirer/figures": "npm:^1.0.1"
     "@ljharb/through": "npm:^2.3.13"
@@ -8989,7 +8989,7 @@ __metadata:
     string-width: "npm:^4.2.3"
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^6.2.0"
-  checksum: 10c0/9015947d7f27ed11c8c609c26222e748121df00b6030df06fb7a0c99cb5ffc09f8afa1c4c969c93ec9add7682e540a70e7736ee60f0f816b91cedd17a620e7e6
+  checksum: 10c0/e7243fb3bf24975fed0284742617c8cc1b30575e069a437dbc936a8a73fec5c63e6f937eb34d557c2eaa739d9be5daa2767f003b19e40854c52e18bd3b32ff3e
   languageName: node
   linkType: hard
 
