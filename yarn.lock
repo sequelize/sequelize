@@ -14614,8 +14614,8 @@ __metadata:
   linkType: hard
 
 "tedious@npm:^18.1.0":
-  version: 18.1.0
-  resolution: "tedious@npm:18.1.0"
+  version: 18.2.0
+  resolution: "tedious@npm:18.2.0"
   dependencies:
     "@azure/identity": "npm:^3.4.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
@@ -14626,7 +14626,7 @@ __metadata:
     js-md4: "npm:^0.3.2"
     native-duplexpair: "npm:^1.0.0"
     sprintf-js: "npm:^1.1.3"
-  checksum: 10c0/f9bda17d5d394885a757cffcfb51ce9b35e29ca58a85a03e0e73e03392e84f4a8e665f4d33498725ef24b3a0c519d331b6ca18971c6a5dbaed471f937634f225
+  checksum: 10c0/c04dfb7699688cb2654d853716e8b0f098b701d86e0e608344caa73f07c65d8f5d8ca4a1fc1df89ae3663986dab71a2ef0912069241c43ee237f460ce7edd24b
   languageName: node
   linkType: hard
 
