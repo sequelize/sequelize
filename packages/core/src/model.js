@@ -1916,6 +1916,13 @@ ${associationOwner._getAssociationDebugList()}`);
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
 
+    if (options.schema) {
+      const schemas = await this.queryInterface.listSchemas();
+      if (!schemas.includes(options.schema)) {
+        await this.queryInterface.createSchema(options.schema);
+      }
+    }
+
     return await this.build(values, {
       isNewRecord: true,
       attributes: options.fields,

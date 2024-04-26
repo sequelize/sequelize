@@ -456,6 +456,13 @@ Use Sequelize#query if you wish to use replacements.`);
       );
     }
 
+    if (options.schema) {
+      const schemas = await this.queryInterface.listSchemas();
+      if (!schemas.includes(options.schema)) {
+        await this.queryInterface.createSchema(options.schema);
+      }
+    }
+
     if (options.hooks) {
       await this.hooks.runAsync('beforeBulkSync', options);
     }
