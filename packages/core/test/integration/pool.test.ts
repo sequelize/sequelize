@@ -78,7 +78,7 @@ function assertNewConnection(newConnection: AbstractConnection, oldConnection: A
       // @ts-expect-error -- untyped
       expect(oldConnection.dummyId).to.be.ok;
       break;
-    
+
     case 'oracle':
       expect(oldConnection).to.not.be.equal(newConnection);
       break;

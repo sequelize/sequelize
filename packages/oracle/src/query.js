@@ -1,11 +1,5 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
-import extend from 'lodash/extend';
-import mapKeys from 'lodash/mapKeys';
-import mapValues from 'lodash/mapValues';
-import isPlainObject from 'lodash/isPlainObject';
-import reduce from 'lodash/reduce';
-import toPairs from 'lodash/toPairs';
 import {
   AbstractQuery,
   DatabaseError,
@@ -14,8 +8,14 @@ import {
   UnknownConstraintError,
   ValidationErrorItem,
 } from '@sequelize/core';
-import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import extend from 'lodash/extend';
+import isPlainObject from 'lodash/isPlainObject';
+import mapKeys from 'lodash/mapKeys';
+import mapValues from 'lodash/mapValues';
+import reduce from 'lodash/reduce';
+import toPairs from 'lodash/toPairs';
 
 const debug = logger.debugContext('sql:oracle');
 
@@ -113,7 +113,10 @@ export class OracleQuery extends AbstractQuery {
 
     // When this.options.bindAttributes exists then it is an insertQuery/upsertQuery
     // So we insert the return bind direction and type
-    if (this.options.outBindAttributes && (Array.isArray(parameters) || isPlainObject(parameters))) {
+    if (
+      this.options.outBindAttributes &&
+      (Array.isArray(parameters) || isPlainObject(parameters))
+    ) {
       this._convertBindAttributes('outBindAttributes', oracledb);
       outParameters.push(...Object.values(this.options.outBindAttributes));
       // For upsertQuery we need to push the bindDef for isUpdate
@@ -176,7 +179,9 @@ export class OracleQuery extends AbstractQuery {
       }
 
       try {
-        await this.connection.execute(this.sql, this.bindParameters, { autoCommit: this.autoCommit });
+        await this.connection.execute(this.sql, this.bindParameters, {
+          autoCommit: this.autoCommit,
+        });
 
         return Object.create(null);
       } catch (error) {
@@ -269,7 +274,9 @@ export class OracleQuery extends AbstractQuery {
       execOpts.bindDefs = bindDef;
     }
 
-    const executePromise = this.options.executeMany ? this.connection.executeMany(this.sql, this.bindParameters, execOpts) : this.connection.execute(this.sql, this.bindParameters, execOpts);
+    const executePromise = this.options.executeMany
+      ? this.connection.executeMany(this.sql, this.bindParameters, execOpts)
+      : this.connection.execute(this.sql, this.bindParameters, execOpts);
     try {
       const result = await executePromise;
 
@@ -282,14 +289,13 @@ export class OracleQuery extends AbstractQuery {
   }
 
   /**
- * The parameters to query.run function are built here
- *
- * @param {string} sql
- * @param {Array} values
- * @param {string} dialect
- */
+   * The parameters to query.run function are built here
+   *
+   * @param {string} sql
+   * @param {Array} values
+   * @param {string} dialect
+   */
   static formatBindParameters(sql, values, dialect) {
-
     const replacementFunc = (match, key, values) => {
       if (values[key] !== undefined) {
         return `:${key}`;
@@ -313,12 +319,19 @@ export class OracleQuery extends AbstractQuery {
    * @private
    */
   _getAttributeMap(attrsMap, rawAttributes) {
-    attrsMap = Object.assign(attrsMap, reduce(rawAttributes, (mp, _, key) => {
-      const catalogKey = this.sequelize.queryInterface.queryGenerator.getCatalogName(key);
-      mp[catalogKey] = key;
+    attrsMap = Object.assign(
+      attrsMap,
+      reduce(
+        rawAttributes,
+        (mp, _, key) => {
+          const catalogKey = this.sequelize.queryInterface.queryGenerator.getCatalogName(key);
+          mp[catalogKey] = key;
 
-      return mp;
-    }, {}));
+          return mp;
+        },
+        {},
+      ),
+    );
   }
 
   /**
@@ -338,18 +351,22 @@ export class OracleQuery extends AbstractQuery {
     if (this.sequelize.options.quoteIdentifiers === false) {
       // Building the attribute map from this.options.attributes
       // Needed in case of an aggregate function
-      attrsMap = reduce(this.options.attributes, (mp, v) => {
-        // Aggregate function is of form
-        // Fn {fn: 'min', min}, so we have the name in index one of the object
-        if (typeof v === 'object') {
-          v = v[1];
-        }
+      attrsMap = reduce(
+        this.options.attributes,
+        (mp, v) => {
+          // Aggregate function is of form
+          // Fn {fn: 'min', min}, so we have the name in index one of the object
+          if (typeof v === 'object') {
+            v = v[1];
+          }
 
-        const catalogv = this.sequelize.queryInterface.queryGenerator.getCatalogName(v);
-        mp[catalogv] = v;
+          const catalogv = this.sequelize.queryInterface.queryGenerator.getCatalogName(v);
+          mp[catalogv] = v;
 
-        return mp;
-      }, {});
+          return mp;
+        },
+        {},
+      );
 
       // Building the attribute map by matching the column names received
       // from DB and the one in model.rawAttributes
@@ -361,21 +378,21 @@ export class OracleQuery extends AbstractQuery {
       // If aliasesmapping exists we update the attribute map
       if (this.options.aliasesMapping) {
         const obj = Object.fromEntries(this.options.aliasesMapping);
-        rows = rows
-          .map(row => toPairs(row)
-            .reduce((acc, [key, value]) => {
-              const mapping = Object.values(obj).find(element => {
-                const catalogElement = this.sequelize.queryInterface.queryGenerator.getCatalogName(element);
+        rows = rows.map(row =>
+          toPairs(row).reduce((acc, [key, value]) => {
+            const mapping = Object.values(obj).find(element => {
+              const catalogElement =
+                this.sequelize.queryInterface.queryGenerator.getCatalogName(element);
 
-                return catalogElement === key;
-              });
-              if (mapping) {
-                acc[mapping || key] = value;
-              }
+              return catalogElement === key;
+            });
+            if (mapping) {
+              acc[mapping || key] = value;
+            }
 
-              return acc;
-            }, {}),
-          );
+            return acc;
+          }, {}),
+        );
       }
 
       // Modify the keys into the format that sequelize expects
@@ -405,13 +422,15 @@ export class OracleQuery extends AbstractQuery {
             // For some types, the "name" of the type is returned with the length, we remove it
             // For Boolean we skip this because BOOLEAN is mapped to CHAR(1) and we dont' want to
             // remove the (1) for BOOLEAN
-            // eslint-disable-next-line unicorn/prefer-includes
-            if (typeid.indexOf('(') > -1 && modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN') {
+            if (
+              typeid.includes('(') &&
+              modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN'
+            ) {
               typeid = typeid.slice(0, typeid.indexOf('('));
             }
 
             const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);
-            if (value !== null & parser) {
+            if ((value !== null) & parser) {
               value = parser(value);
             }
           }
@@ -484,7 +503,10 @@ export class OracleQuery extends AbstractQuery {
       const modelAttributes = {};
       // Get the model raw attributes
       if (this.sequelize.models && table.length > 0) {
-        this._getAttributeMap(modelAttributes, this.sequelize.models[table[0]].modelDefinition.rawAttributes);
+        this._getAttributeMap(
+          modelAttributes,
+          this.sequelize.models[table[0]].modelDefinition.rawAttributes,
+        );
       }
 
       data.rows.forEach(_result => {
@@ -587,7 +609,10 @@ export class OracleQuery extends AbstractQuery {
 
         uniqueKey = uniqueKeys.find(key => {
           // We check directly AND with quotes -> "a"" === a || "a" === "a"
-          return key.name.toUpperCase() === match[1].toUpperCase() || key.name.toUpperCase() === `"${match[1].toUpperCase()}"`;
+          return (
+            key.name.toUpperCase() === match[1].toUpperCase() ||
+            key.name.toUpperCase() === `"${match[1].toUpperCase()}"`
+          );
         });
 
         if (uniqueKey) {
@@ -711,19 +736,18 @@ export class OracleQuery extends AbstractQuery {
       let autoIncrementAlias = null;
 
       if (
-        Object.hasOwn(modelDefinition.rawAttributes, autoIncrementField)
-        && modelDefinition.rawAttributes[autoIncrementField].field !== undefined
+        Object.hasOwn(modelDefinition.rawAttributes, autoIncrementField) &&
+        modelDefinition.rawAttributes[autoIncrementField].field !== undefined
       ) {
         autoIncrementAlias = modelDefinition.rawAttributes[autoIncrementField].field;
       }
 
-      id = id || results && results[0][this.getInsertIdField()];
-      id = id || metaData && metaData[this.getInsertIdField()];
-      id = id || results && results[0][autoIncrementField];
-      id = id || autoIncrementAlias && results && results[0][autoIncrementAlias];
+      id = id || (results && results[0][this.getInsertIdField()]);
+      id = id || (metaData && metaData[this.getInsertIdField()]);
+      id = id || (results && results[0][autoIncrementField]);
+      id = id || (autoIncrementAlias && results && results[0][autoIncrementAlias]);
 
       this.instance[autoIncrementField] = id;
     }
   }
-
 }

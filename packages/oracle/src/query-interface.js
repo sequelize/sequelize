@@ -8,7 +8,6 @@ const uniq = require('lodash/uniq');
 const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript.internal');
 
 export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
-
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
@@ -18,8 +17,12 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
 
     const model = options.model;
     const primaryKeys = Object.values(model.primaryKeys).map(item => item.field);
-    const uniqueKeys = Object.values(model.uniqueKeys).filter(c => c.fields.length > 0).map(c => c.fields);
-    const indexKeys = Object.values(model.getIndexes()).filter(c => c.unique && c.fields.length > 0).map(c => c.fields);
+    const uniqueKeys = Object.values(model.uniqueKeys)
+      .filter(c => c.fields.length > 0)
+      .map(c => c.fields);
+    const indexKeys = Object.values(model.getIndexes())
+      .filter(c => c.unique && c.fields.length > 0)
+      .map(c => c.fields);
 
     options.type = QueryTypes.UPSERT;
     options.updateOnDuplicate = Object.keys(updateValues);
@@ -43,8 +46,8 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
 
     // Always use PK, if no constraint available OR update data contains PK
     if (
-      options.upsertKeys.length === 0
-      || intersection(options.updateOnDuplicate, primaryKeys).length
+      options.upsertKeys.length === 0 ||
+      intersection(options.updateOnDuplicate, primaryKeys).length
     ) {
       options.upsertKeys = primaryKeys;
     }
@@ -71,7 +74,14 @@ export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
       tableName = tableName.tableName;
     }
 
-    const sql = this.queryGenerator.upsertQuery(tableName, insertValues, updateValues, where, model, options);
+    const sql = this.queryGenerator.upsertQuery(
+      tableName,
+      insertValues,
+      updateValues,
+      where,
+      model,
+      options,
+    );
     // we need set this to undefined otherwise sequelize would raise an error
     // Error: Both `sql.bind` and `options.bind` cannot be set at the same time
     if (sql.bind) {

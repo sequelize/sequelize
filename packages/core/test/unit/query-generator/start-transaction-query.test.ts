@@ -88,9 +88,11 @@ describe('QueryGenerator#startTransactionQuery', () => {
         default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
           'transactionType',
         ]),
-        'snowflake sqlite3 oracle': buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
-          'readOnly',
-        ]),
+        'snowflake sqlite3 oracle': buildInvalidOptionReceivedError(
+          'startTransactionQuery',
+          dialect.name,
+          ['readOnly'],
+        ),
         'db2 ibmi mssql': notSupportedError,
       },
     );

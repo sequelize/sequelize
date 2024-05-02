@@ -26,7 +26,7 @@ const fromQuery = () => {
   }
 
   return '';
-}
+};
 
 describe(Support.getTestDialectTeaser('Transaction'), () => {
   if (!current.dialect.supports.transactions) {
@@ -116,7 +116,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         transaction.afterRollback(afterRollback);
         transaction.afterTransaction(afterTransaction);
 
-        return this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction, type: QueryTypes.SELECT });
+        return this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, {
+          transaction,
+          type: QueryTypes.SELECT,
+        });
       });
 
       expect(afterCommit).to.have.been.calledOnce;
@@ -305,7 +308,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
         await t.rollback();
 
-        return await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, { transaction: t, raw: true });
+        return await this.sequelize.query(`SELECT 1+1 ${fromQuery()}`, {
+          transaction: t,
+          raw: true,
+        });
       })(),
     ).to.eventually.be.rejected;
   });

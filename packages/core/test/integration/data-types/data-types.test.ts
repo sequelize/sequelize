@@ -132,9 +132,12 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
-    (dialect.name !== 'oracle' ? it : it.skip)('is deserialized as a string when DataType is not specified', async () => {
-      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
-    });
+    (dialect.name !== 'oracle' ? it : it.skip)(
+      'is deserialized as a string when DataType is not specified',
+      async () => {
+        await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
+      },
+    );
   });
 
   describe('STRING(100).BINARY', () => {
@@ -201,9 +204,12 @@ describe('DataTypes', () => {
     });
 
     // For raw queries, Oracle expects hex string during insertion
-    (dialect.name === 'oracle' ? it.skip : it)('is deserialized as a string when DataType is not specified', async () => {
-      await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
-    });
+    (dialect.name === 'oracle' ? it.skip : it)(
+      'is deserialized as a string when DataType is not specified',
+      async () => {
+        await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
+      },
+    );
   });
 
   describe(`TEXT(<size>)`, () => {
@@ -342,12 +348,15 @@ describe('DataTypes', () => {
           declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
         }
 
-        User.init({
-          binaryCharAttr: {
-            type: DataTypes.CHAR(5).BINARY,
-            allowNull: false,
+        User.init(
+          {
+            binaryCharAttr: {
+              type: DataTypes.CHAR(5).BINARY,
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -547,7 +556,7 @@ describe('DataTypes', () => {
         await testSimpleInOutRaw(vars.User, 'booleanAttr', false, 0);
       });
     } else if (dialect.name === 'oracle') {
-      // Oracle uses CHAR(1). 
+      // Oracle uses CHAR(1).
       it('is deserialized as a char string when DataType is not specified', async () => {
         await testSimpleInOutRaw(vars.User, 'booleanAttr', true, '1');
         await testSimpleInOutRaw(vars.User, 'booleanAttr', false, '0');
@@ -760,8 +769,8 @@ describe('DataTypes', () => {
 
       it('is deserialized as a string when DataType is not specified', async () => {
         if (dialect.name !== 'oracle') {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
-        } else  {
+          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        } else {
           await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
         }
       });
@@ -1366,7 +1375,12 @@ describe('DataTypes', () => {
 
     if (dialect.name === 'oracle') {
       it(`is deserialized as a date when DataType is not specified`, async () => {
-        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', new Date('2022-01-01T00:00:00.000Z'));
+        await testSimpleInOutRaw(
+          vars.User,
+          'dateAttr',
+          '2022-01-01',
+          new Date('2022-01-01T00:00:00.000Z'),
+        );
       });
     } else {
       it(`is deserialized as a string when DataType is not specified`, async () => {
@@ -1396,41 +1410,44 @@ describe('DataTypes', () => {
           declare timeMaxPrecisionAttr: string | null;
         }
 
-        User.init({
-          timeMinPrecisionAttr: DataTypes.TIME(0),
-          timeTwoPrecisionAttr: DataTypes.TIME(2),
-          timeMaxPrecisionAttr: DataTypes.TIME(6),
-        }, { sequelize });
+        User.init(
+          {
+            timeMinPrecisionAttr: DataTypes.TIME(0),
+            timeTwoPrecisionAttr: DataTypes.TIME(2),
+            timeMaxPrecisionAttr: DataTypes.TIME(6),
+          },
+          { sequelize },
+        );
 
         await User.sync({ force: true });
-        
+
         return { User };
       });
 
-    it('accepts strings', async () => {
-      await testSimpleInOut(
-        vars.User,
-        'timeMinPrecisionAttr',
-        '04:05:06.123456',
-        dialect.name === 'mssql'
-          ? '04:05:06.000'
-          : // sqlite3 does not support restricting the precision of TIME
-            dialect.name === 'sqlite3'
-            ? '04:05:06.123456'
-            : '04:05:06',
-      );
+      it('accepts strings', async () => {
+        await testSimpleInOut(
+          vars.User,
+          'timeMinPrecisionAttr',
+          '04:05:06.123456',
+          dialect.name === 'mssql'
+            ? '04:05:06.000'
+            : // sqlite3 does not support restricting the precision of TIME
+              dialect.name === 'sqlite3'
+              ? '04:05:06.123456'
+              : '04:05:06',
+        );
 
-      await testSimpleInOut(
-        vars.User,
-        'timeTwoPrecisionAttr',
-        '04:05:06.123456',
-        dialect.name === 'mssql'
-          ? '04:05:06.120'
-          : // sqlite3 does not support restricting the precision of TIME
-            dialect.name === 'sqlite3'
-            ? '04:05:06.123456'
-            : '04:05:06.12',
-      );
+        await testSimpleInOut(
+          vars.User,
+          'timeTwoPrecisionAttr',
+          '04:05:06.123456',
+          dialect.name === 'mssql'
+            ? '04:05:06.120'
+            : // sqlite3 does not support restricting the precision of TIME
+              dialect.name === 'sqlite3'
+              ? '04:05:06.123456'
+              : '04:05:06.12',
+        );
 
         // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
         //  https://github.com/tediousjs/tedious/issues/678

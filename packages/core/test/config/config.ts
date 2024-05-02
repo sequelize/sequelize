@@ -4,10 +4,10 @@ import { IBMiDialect } from '@sequelize/db2-ibmi';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { MsSqlDialect } from '@sequelize/mssql';
 import { MySqlDialect } from '@sequelize/mysql';
+import { OracleDialect } from '@sequelize/oracle';
 import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
 import { SqliteDialect } from '@sequelize/sqlite3';
-import { OracleDialect } from '@sequelize/oracle';
 import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 

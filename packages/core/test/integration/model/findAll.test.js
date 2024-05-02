@@ -26,8 +26,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      ...(dialectName === 'oracle') ? { binary: DataTypes.STRING(16, true) }
-      : { binary: DataTypes.BLOB },
+      ...(dialectName === 'oracle'
+        ? { binary: DataTypes.STRING(16, true) }
+        : { binary: DataTypes.BLOB }),
     });
 
     await this.User.sync({ force: true });

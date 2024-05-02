@@ -2,20 +2,27 @@
 
 'use strict';
 
-import { isPlainObject } from 'lodash/isPlainObject';
-import { includes } from 'lodash/includes';
-import { forOwn } from 'lodash/forOwn';
-import { toPath } from 'lodash/toPath';
 import { each } from 'lodash/each';
+import { forOwn } from 'lodash/forOwn';
+import { includes } from 'lodash/includes';
+import { isPlainObject } from 'lodash/isPlainObject';
+import { toPath } from 'lodash/toPath';
 
 import { DataTypes } from '@sequelize/core';
-import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
-import { EMPTY_OBJECT, EMPTY_SET, getObjectFromMap } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import {
+  ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import {
+  EMPTY_OBJECT,
+  EMPTY_SET,
+  getObjectFromMap,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
@@ -26,13 +33,125 @@ const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
  *
  * @private
  */
-const ORACLE_RESERVED_WORDS = ['ACCESS', 'ADD', 'ALL', 'ALTER', 'AND', 'ANY', 'ARRAYLEN', 'AS', 'ASC', 'AUDIT', 'BETWEEN', 'BY', 'CHAR', 'CHECK', 'CLUSTER', 'COLUMN', 'COMMENT', 'COMPRESS', 'CONNECT', 'CREATE', 'CURRENT', 'DATE', 'DECIMAL', 'DEFAULT', 'DELETE', 'DESC', 'DISTINCT', 'DROP', 'ELSE', 'EXCLUSIVE', 'EXISTS', 'FILE', 'FLOAT', 'FOR', 'FROM', 'GRANT', 'GROUP', 'HAVING', 'IDENTIFIED', 'IMMEDIATE', 'IN', 'INCREMENT', 'INDEX', 'INITIAL', 'INSERT', 'INTEGER', 'INTERSECT', 'INTO', 'IS', 'LEVEL', 'LIKE', 'LOCK', 'LONG', 'MAXEXTENTS', 'MINUS', 'MODE', 'MODIFY', 'NOAUDIT', 'NOCOMPRESS', 'NOT', 'NOTFOUND', 'NOWAIT', 'NULL', 'NUMBER', 'OF', 'OFFLINE', 'ON', 'ONLINE', 'OPTION', 'OR', 'ORDER', 'PCTFREE', 'PRIOR', 'PRIVILEGES', 'PUBLIC', 'RAW', 'RENAME', 'RESOURCE', 'REVOKE', 'ROW', 'ROWID', 'ROWLABEL', 'ROWNUM', 'ROWS', 'SELECT', 'SESSION', 'SET', 'SHARE', 'SIZE', 'SMALLINT', 'SQLBUF', 'START', 'SUCCESSFUL', 'SYNONYM', 'SYSDATE', 'TABLE', 'THEN', 'TO', 'TRIGGER', 'UID', 'UNION', 'UNIQUE', 'UPDATE', 'USER', 'VALIDATE', 'VALUES', 'VARCHAR', 'VARCHAR2', 'VIEW', 'WHENEVER', 'WHERE', 'WITH'];
+const ORACLE_RESERVED_WORDS = [
+  'ACCESS',
+  'ADD',
+  'ALL',
+  'ALTER',
+  'AND',
+  'ANY',
+  'ARRAYLEN',
+  'AS',
+  'ASC',
+  'AUDIT',
+  'BETWEEN',
+  'BY',
+  'CHAR',
+  'CHECK',
+  'CLUSTER',
+  'COLUMN',
+  'COMMENT',
+  'COMPRESS',
+  'CONNECT',
+  'CREATE',
+  'CURRENT',
+  'DATE',
+  'DECIMAL',
+  'DEFAULT',
+  'DELETE',
+  'DESC',
+  'DISTINCT',
+  'DROP',
+  'ELSE',
+  'EXCLUSIVE',
+  'EXISTS',
+  'FILE',
+  'FLOAT',
+  'FOR',
+  'FROM',
+  'GRANT',
+  'GROUP',
+  'HAVING',
+  'IDENTIFIED',
+  'IMMEDIATE',
+  'IN',
+  'INCREMENT',
+  'INDEX',
+  'INITIAL',
+  'INSERT',
+  'INTEGER',
+  'INTERSECT',
+  'INTO',
+  'IS',
+  'LEVEL',
+  'LIKE',
+  'LOCK',
+  'LONG',
+  'MAXEXTENTS',
+  'MINUS',
+  'MODE',
+  'MODIFY',
+  'NOAUDIT',
+  'NOCOMPRESS',
+  'NOT',
+  'NOTFOUND',
+  'NOWAIT',
+  'NULL',
+  'NUMBER',
+  'OF',
+  'OFFLINE',
+  'ON',
+  'ONLINE',
+  'OPTION',
+  'OR',
+  'ORDER',
+  'PCTFREE',
+  'PRIOR',
+  'PRIVILEGES',
+  'PUBLIC',
+  'RAW',
+  'RENAME',
+  'RESOURCE',
+  'REVOKE',
+  'ROW',
+  'ROWID',
+  'ROWLABEL',
+  'ROWNUM',
+  'ROWS',
+  'SELECT',
+  'SESSION',
+  'SET',
+  'SHARE',
+  'SIZE',
+  'SMALLINT',
+  'SQLBUF',
+  'START',
+  'SUCCESSFUL',
+  'SYNONYM',
+  'SYSDATE',
+  'TABLE',
+  'THEN',
+  'TO',
+  'TRIGGER',
+  'UID',
+  'UNION',
+  'UNIQUE',
+  'UPDATE',
+  'USER',
+  'VALIDATE',
+  'VALUES',
+  'VARCHAR',
+  'VARCHAR2',
+  'VIEW',
+  'WHENEVER',
+  'WHERE',
+  'WITH',
+];
 const JSON_FUNCTION_REGEX = /^\s*((?:[a-z]+_){0,2}jsonb?(?:_[a-z]+){0,2})\([^)]*\)/i;
 const JSON_OPERATOR_REGEX = /^\s*(->>?|@>|<@|\?[|&]?|\|{2}|#-)/i;
 const TOKEN_CAPTURE_REGEX = /^\s*((?:([`"'])(?:(?!\2).|\2{2})*\2)|[\w\d\s]+|[().,;+-])/i;
 
 export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
-
   listSchemasQuery() {
     return 'SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = (\'NO\') AND USERNAME != user';
   }
@@ -139,7 +258,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (options && options.indexes && options.indexes.length > 0) {
       const idxToDelete = [];
       options.indexes.forEach((index, idx) => {
-        if ('unique' in index && (index.unique === true || index.unique.length > 0 && index.unique !== false)) {
+        if (
+          'unique' in index &&
+          (index.unique === true || (index.unique.length > 0 && index.unique !== false))
+        ) {
           // If unique index, transform to unique constraint on column
           const fields = index.fields.map(field => {
             if (typeof field === 'string') {
@@ -147,7 +269,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
             }
 
             return field.attribute;
-
           });
 
           // Now we have to be sure that the constraint isn't already declared in uniqueKeys
@@ -214,9 +335,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         const sortedColumnFields = [...columns.fields];
         sortedColumnFields.sort();
         // if primary keys === unique keys, then skip adding new constraint
-        const uniqueIsPrimary
-          = sortedColumnFields.length === primaryKeys.length
-          && sortedColumnFields.every((value, index) => {
+        const uniqueIsPrimary =
+          sortedColumnFields.length === primaryKeys.length &&
+          sortedColumnFields.every((value, index) => {
             return value === sortedPrimaryKeys[index];
           });
         if (uniqueIsPrimary) {
@@ -228,17 +349,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           indexName = `uniq_${tableName}_${columns.fields.join('_')}`;
         }
 
-        values.attributes
-          += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
+        values.attributes += `, CONSTRAINT ${this.quoteIdentifier(indexName)} UNIQUE (${columns.fields.map(field => this.quoteIdentifier(field)).join(', ')})`;
       });
     }
 
     // we replace single quotes by two quotes in order for the execute statement to work
-    const query = joinSQLFragments([
-      'CREATE TABLE',
-      values.table,
-      `(${values.attributes})`,
-    ]);
+    const query = joinSQLFragments(['CREATE TABLE', values.table, `(${values.attributes})`]);
 
     return joinSQLFragments([
       'BEGIN',
@@ -280,8 +396,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
       `WHERE C.TABLE_NAME =${this.escape(table)}`,
       `AND C.OWNER =${this.escape(schema)}`,
-      options?.constraintName ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}` : '',
+      options?.constraintName
+        ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}`
+        : '',
+      options?.constraintType
+        ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}`
+        : '',
       'ORDER BY C.CONSTRAINT_NAME',
     ]);
   }
@@ -315,9 +435,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   dropTableQuery(tableName) {
     return joinSQLFragments([
       'BEGIN ',
-      'EXECUTE IMMEDIATE \'DROP TABLE',
+      "EXECUTE IMMEDIATE 'DROP TABLE",
       this.quoteTable(tableName),
-      'CASCADE CONSTRAINTS PURGE\';',
+      "CASCADE CONSTRAINTS PURGE';",
       'EXCEPTION WHEN OTHERS THEN',
       ' IF SQLCODE != -942 THEN',
       '   RAISE;',
@@ -374,13 +494,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       }),
     ]);
 
-    return joinSQLFragments([
-      'ALTER TABLE',
-      this.quoteTable(table),
-      'ADD',
-      attribute,
-      ';',
-    ]);
+    return joinSQLFragments(['ALTER TABLE', this.quoteTable(table), 'ADD', attribute, ';']);
   }
 
   /**
@@ -410,7 +524,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       '  WHERE cc.owner = c.owner',
       '  AND cc.table_name = c.table_name',
       '  AND cc.constraint_name = c.constraint_name',
-      '  AND c.constraint_type = \'R\'',
+      "  AND c.constraint_type = 'R'",
       '  GROUP BY cc.owner, cc.table_name, cc.constraint_name, cc.column_name',
       ')',
       'WHERE owner =',
@@ -475,11 +589,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   changeColumnQuery(table, attributes) {
-    const sql = [
-      'DECLARE',
-      'CONS_NAME VARCHAR2(200);',
-      'BEGIN',
-    ];
+    const sql = ['DECLARE', 'CONS_NAME VARCHAR2(200);', 'BEGIN'];
     for (const attributeName in attributes) {
       if (!Object.prototype.hasOwn(attributes, attributeName)) {
         continue;
@@ -517,7 +627,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    *
    * @private
    */
-  populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, inbindLength, returnAttributes, options) {
+  populateInsertQueryReturnIntoBinds(
+    returningModelAttributes,
+    returnTypes,
+    inbindLength,
+    returnAttributes,
+    options,
+  ) {
     const oracledb = this.sequelize.connectionManager.lib;
     const outBindAttributes = Object.create(null);
     const outbind = {};
@@ -529,7 +645,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         element = element.slice(1, -1);
       }
 
-      outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });
+      outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), {
+        dir: oracledb.BIND_OUT,
+      });
       const returnAttribute = `${outbindParam(undefined)}`;
       returnAttributes.push(returnAttribute);
     });
@@ -558,24 +676,26 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const sql = [
       'DECLARE ',
       'BEGIN ',
-      updateQuery.query ? [
-        updateQuery.query,
-        '; ',
-        ' IF ( SQL%ROWCOUNT = 0 ) THEN ',
-        insertQuery.query,
-        ' :isUpdate := 0; ',
-        'ELSE ',
-        ' :isUpdate := 1; ',
-        ' END IF; ',
-      ].join('') : [
-        insertQuery.query,
-        ' :isUpdate := 0; ',
-        // If there is a conflict on insert we ignore
-        'EXCEPTION WHEN OTHERS THEN',
-        ' IF SQLCODE != -1 THEN',
-        '   RAISE;',
-        ' END IF;',
-      ].join(''),
+      updateQuery.query
+        ? [
+            updateQuery.query,
+            '; ',
+            ' IF ( SQL%ROWCOUNT = 0 ) THEN ',
+            insertQuery.query,
+            ' :isUpdate := 0; ',
+            'ELSE ',
+            ' :isUpdate := 1; ',
+            ' END IF; ',
+          ].join('')
+        : [
+            insertQuery.query,
+            ' :isUpdate := 0; ',
+            // If there is a conflict on insert we ignore
+            'EXCEPTION WHEN OTHERS THEN',
+            ' IF SQLCODE != -1 THEN',
+            '   RAISE;',
+            ' END IF;',
+          ].join(''),
       'END;',
     ];
 
@@ -619,7 +739,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // is valid for the specific column else it is set to false
     for (const fieldValueHash of fieldValueHashes) {
       forOwn(fieldValueHash, (value, key) => {
-        allColumns[key] = fieldMappedAttributes[key] && fieldMappedAttributes[key].autoIncrement === true && value === null;
+        allColumns[key] =
+          fieldMappedAttributes[key] &&
+          fieldMappedAttributes[key].autoIncrement === true &&
+          value === null;
       });
     }
 
@@ -635,7 +758,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // A function expression for this.bindParam/options.bindparam function
       // This function is passed to this.format function which inserts column values to the tuple list
       // using _bindParam/_stringify function in data-type.js file
-      const inbindParam = options.bindParam === undefined ? this.bindParam(bindMap) : options.bindParam;
+      const inbindParam =
+        options.bindParam === undefined ? this.bindParam(bindMap) : options.bindParam;
       // We are iterating over each col
       // and pushing the given values to tuple list using this.format function
       // and also simultaneously generating the bindPosition
@@ -646,7 +770,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           // If we get any other row that has this specific column as non-null we must raise an error
           // Since for an auto-increment column, either all row has to be null or all row has to be a non-null
           if (fieldValueHash[key] !== null) {
-            throw new Error('For an auto-increment column either all row must be null or non-null, a mix of null and non-null is not allowed!');
+            throw new Error(
+              'For an auto-increment column either all row must be null or non-null, a mix of null and non-null is not allowed!',
+            );
           }
 
           // Return DEFAULT for auto-increment column and if all values for the column is null in each row
@@ -760,9 +886,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // Note that the condition <e> has to be in the subquery; otherwise, the subquery would select <l> arbitrary rows.
     if (options.limit) {
       const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
-      queryTmpl
-        = `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl
-        })`;
+      queryTmpl = `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl})`;
     } else {
       const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';
       queryTmpl = `DELETE FROM ${this.quoteTable(table)}${whereTmpl}`;
@@ -779,11 +903,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     // handle self referential constraints
-    if (attribute.references && attribute.Model &&
-      attribute.Model.tableName === attribute.references.tableName) {
+    if (
+      attribute.references &&
+      attribute.Model &&
+      attribute.Model.tableName === attribute.references.tableName
+    ) {
       this.sequelize.log(
-        'Oracle does not support self referencial constraints, '
-        + 'we will remove it but we recommend restructuring your query',
+        'Oracle does not support self referencial constraints, ' +
+          'we will remove it but we recommend restructuring your query',
       );
       attribute.onDelete = '';
     }
@@ -793,11 +920,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      template
-        += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values.map(value => {
+      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values
+        .map(value => {
           return this.escape(value, undefined, {});
-        }).join(', ')
-        }))`;
+        })
+        .join(', ')}))`;
 
       return template;
     }
@@ -811,8 +938,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
-      template
-        += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
+      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
 
       return template;
     }
@@ -833,10 +959,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
       // Blobs/texts cannot have a defaultValue
       if (
-        attribute.type
-        && attribute.type !== 'TEXT'
-        && attribute.type._binary !== true
-        && defaultValueSchemable(attribute.defaultValue, this.dialect)
+        attribute.type &&
+        attribute.type !== 'TEXT' &&
+        attribute.type._binary !== true &&
+        defaultValueSchemable(attribute.defaultValue, this.dialect)
       ) {
         template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
       }
@@ -845,7 +971,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         // If autoincrement, not null is set automatically
         if (attribute.allowNull === false) {
           template += ' NOT NULL';
-        } else if (!attribute.primaryKey && !defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        } else if (
+          !attribute.primaryKey &&
+          !defaultValueSchemable(attribute.defaultValue, this.dialect)
+        ) {
           template += ' NULL';
         }
       }
@@ -942,11 +1071,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
       ' JOIN all_cons_columns b ON c.owner = b.owner AND c.r_constraint_name = b.constraint_name',
-      ' WHERE c.constraint_type  = \'R\'',
+      " WHERE c.constraint_type  = 'R'",
       ' AND a.table_name = ',
       this.escape(tableName),
       ' AND a.owner = ',
-      (tableDetails.schema && schemaName !== '') ? this.escape(schemaName) : 'USER',
+      tableDetails.schema && schemaName !== '' ? this.escape(schemaName) : 'USER',
       ' ORDER BY a.table_name, a.constraint_name',
     ].join('');
 
@@ -967,7 +1096,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.escape(tableName),
       'AND cols.owner = ',
       table.schema ? this.escape(schemaName) : 'USER ',
-      'AND cons.constraint_type = \'P\' ',
+      "AND cons.constraint_type = 'P' ",
       'AND cons.constraint_name = cols.constraint_name ',
       'AND cons.owner = cols.owner ',
       'ORDER BY cols.table_name, cols.position',
@@ -1097,7 +1226,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       return /\D/.test(subPath) ? this.addTicks(subPath, '"') : subPath;
     });
 
-    const pathStr = this.escape(['$'].concat(paths).join('.').replaceAll(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
+    const pathStr = this.escape(
+      ['$']
+        .concat(paths)
+        .join('.')
+        .replaceAll(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`),
+    );
     const extractQuery = `json_value(${quotedColumn},${pathStr})`;
 
     return extractQuery;
@@ -1113,10 +1247,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const regExp = /^(([\w][\w\d_]*))$/g;
 
     if (
-      optForceQuote !== true
-      && optQuoteIdentifiers === false
-      && regExp.test(identifier)
-      && !ORACLE_RESERVED_WORDS.includes(identifier.toUpperCase())
+      optForceQuote !== true &&
+      optQuoteIdentifiers === false &&
+      regExp.test(identifier) &&
+      !ORACLE_RESERVED_WORDS.includes(identifier.toUpperCase())
     ) {
       // In Oracle, if tables, attributes or alias are created double-quoted,
       // they are always case sensitive. If they contain any lowercase
@@ -1130,13 +1264,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   /**
-  * It causes bindbyPosition like :1, :2, :3
-  * We pass the val parameter so that the outBind indexes
-  * starts after the inBind indexes end
-  *
-  * @param {Array} bind
-  * @param {number} posOffset
-  */
+   * It causes bindbyPosition like :1, :2, :3
+   * We pass the val parameter so that the outBind indexes
+   * starts after the inBind indexes end
+   *
+   * @param {Array} bind
+   * @param {number} posOffset
+   */
   bindParam(bind, posOffset = 0) {
     let i = Object.keys(bind).length;
 

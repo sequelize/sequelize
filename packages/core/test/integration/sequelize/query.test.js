@@ -46,7 +46,7 @@ const fromQuery = () => {
   }
 
   return query;
-}
+};
 
 const dateLiteral = str => {
   if (dialectName === 'oracle') {
@@ -119,8 +119,10 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       it('properly bind parameters on extra retries', async function () {
         const payload = {
           username: 'test',
-          createdAt: dialectName === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00',
-          updatedAt: dialectName === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00'
+          createdAt:
+            dialectName === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00',
+          updatedAt:
+            dialectName === 'oracle' ? new Date('2010-10-10 00:00:00') : '2010-10-10 00:00:00',
         };
 
         const spy = sinon.spy();
@@ -163,13 +165,10 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       it('executes a query with benchmarking option and custom logger', async function () {
         const logger = sinon.spy();
 
-        await this.sequelize.query(
-          `select 1${fromQuery()};`,
-          {
-            logging: logger,
-            benchmark: true,
-          },
-        );
+        await this.sequelize.query(`select 1${fromQuery()};`, {
+          logging: logger,
+          benchmark: true,
+        });
 
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
@@ -182,12 +181,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           logging: logger,
         });
 
-        await sequelize.query(
-          `select 1${fromQuery()};`,
-          {
-            queryLabel: 'tricky select',
-          },
-        );
+        await sequelize.query(`select 1${fromQuery()};`, {
+          queryLabel: 'tricky select',
+        });
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(
           /^tricky select[\n]Executing \((\d*|default)\): select 1/,
@@ -200,12 +196,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           logging: logger,
         });
 
-        await sequelize.query(
-          `select 1${fromQuery()};`,
-          {
-            queryLabel: '',
-          },
-        );
+        await sequelize.query(`select 1${fromQuery()};`, {
+          queryLabel: '',
+        });
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/^Executing \((\d*|default)\): select 1/);
       });
@@ -217,12 +210,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           benchmark: true,
         });
 
-        await sequelize.query(
-          `select 1${fromQuery()};`,
-          {
-            queryLabel: 'tricky select',
-          },
-        );
+        await sequelize.query(`select 1${fromQuery()};`, {
+          queryLabel: 'tricky select',
+        });
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(
           /^tricky select[\n]Executed \((\d*|default)\): select 1/,
@@ -984,7 +974,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       });
     }
 
-    if (['postgres', 'sqlite3', 'mssql','oracle'].includes(dialectName)) {
+    if (['postgres', 'sqlite3', 'mssql', 'oracle'].includes(dialectName)) {
       it('does not improperly escape arrays of strings bound to named parameters', async function () {
         const result = await this.sequelize.query(`select :stringArray as foo${fromQuery()}`, {
           raw: true,
@@ -1003,9 +993,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         datetime = 'SYSDATE';
       }
 
-      const [result] = await this.sequelize.query(
-        `SELECT ${datetime} AS t${fromQuery()}`,
-      );
+      const [result] = await this.sequelize.query(`SELECT ${datetime} AS t${fromQuery()}`);
       expect(dayjs(result[0].t).isValid()).to.be.true;
     });
 

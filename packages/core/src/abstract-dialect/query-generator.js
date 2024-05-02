@@ -108,7 +108,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += ' VALUES ()';
     }
 
-    if ((this.dialect.supports.returnValues || this.dialect.supports.returnIntoValues) && options.returning) {
+    if (
+      (this.dialect.supports.returnValues || this.dialect.supports.returnIntoValues) &&
+      options.returning
+    ) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
@@ -266,7 +269,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (this.dialect.supports.returnIntoValues && options.returning) {
       // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
-      this.populateInsertQueryReturnIntoBinds(returningModelAttributes, returnTypes, Object.keys(bind).length, returnAttributes, options);
+      this.populateInsertQueryReturnIntoBinds(
+        returningModelAttributes,
+        returnTypes,
+        Object.keys(bind).length,
+        returnAttributes,
+        options,
+      );
     }
 
     query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}${returnAttributes.join(',')}`.trim()};`;
@@ -413,7 +422,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Helper method for populating the returning into bind information
    * that is needed by some dialects (currently Oracle)
-   * 
+   *
    * @private
    */
   populateInsertQueryReturnIntoBinds() {
@@ -455,7 +464,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       this.dialect.supports['LIMIT ON UPDATE'] &&
       options.limit &&
       this.dialect.name !== 'mssql' &&
-      this.dialect.name !== 'db2'  &&
+      this.dialect.name !== 'db2' &&
       this.dialect.name !== 'oracle'
     ) {
       // TODO: use bind parameter
@@ -464,17 +473,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       this.dialect.supports['LIMIT ON UPDATE'] &&
       options.limit &&
       this.dialect.name === 'oracle'
-      ) {
-        // This cannot be set in where because rownum will be quoted
-        if (where && (where.length && where.length > 0 || Object.keys(where).length > 0)) {
-          // If we have a where clause, we add AND
-          suffix += ' AND ';
-        } else {
-          // No where clause, we add where
-          suffix += ' WHERE ';
-        }
+    ) {
+      // This cannot be set in where because rownum will be quoted
+      if (where && ((where.length && where.length > 0) || Object.keys(where).length > 0)) {
+        // If we have a where clause, we add AND
+        suffix += ' AND ';
+      } else {
+        // No where clause, we add where
+        suffix += ' WHERE ';
+      }
 
-        suffix += `rownum <= ${this.escape(options.limit)} `;
+      suffix += `rownum <= ${this.escape(options.limit)} `;
     }
 
     if (this.dialect.supports.returnValues && options.returning) {
@@ -1221,7 +1230,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.  
+          // For the Oracle dialect, the result of a select is a set, not a sequence, and so is the result of UNION.
           // So the top level ORDER BY is required
           if (!this.dialect.supports.topLevelOrderByRequired) {
             delete options.order;
@@ -1596,10 +1605,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             /json_extract\(/i,
             `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`,
           );
-        }  else if (/json_value\(/.test(attr)) {
+        } else if (/json_value\(/.test(attr)) {
           prefix = attr.replace(
             /json_value\(/i,
-            `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`);
+            `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`,
+          );
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
         }

@@ -1,6 +1,5 @@
 // Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
 
-import type { Connection as oracledbConnection } from 'oracledb';
 import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
@@ -12,12 +11,13 @@ import {
   InvalidConnectionError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import oracledb from 'oracledb';
 import assert from 'node:assert';
+import type { Connection as oracledbConnection } from 'oracledb';
+import oracledb from 'oracledb';
 // import AbstractConnectionManager from '@sequelize/core';
 import type { OracleDialect } from './dialect.js';
 
-export type oracledbModule = typeof  oracledb;
+export type oracledbModule = typeof oracledb;
 
 const debug = logger.debugContext('connection:oracle');
 
@@ -27,7 +27,6 @@ export interface OracleConnection extends oracledbConnection, AbstractConnection
 }
 
 export interface OracleConnectionOptions {
-
   connectString?: string | undefined;
 
   database?: string;
@@ -43,7 +42,10 @@ export interface OracleConnectionOptions {
   username?: string | undefined;
 }
 
-export class OracleConnectionManager extends AbstractConnectionManager<OracleDialect, OracleConnection> {
+export class OracleConnectionManager extends AbstractConnectionManager<
+  OracleDialect,
+  OracleConnection
+> {
   readonly lib: typeof oracledb;
   constructor(dialect: OracleDialect) {
     super(dialect);
@@ -84,9 +86,9 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
       }
 
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error add fetchRow
-        oracledb.fetchAsString = this.sequelize.options.replication.write.oracleOptions.fetchAsString;
+        oracledb.fetchAsString =
+          // @ts-expect-error -- addfetchAsString
+          this.sequelize.options.replication.write.oracleOptions.fetchAsString;
       } else {
         oracledb.fetchAsString = [oracledb.CLOB];
       }
@@ -106,7 +108,9 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     };
 
     try {
-      const connection: OracleConnection = await this.lib.getConnection(connectionConfig) as OracleConnection;
+      const connection: OracleConnection = (await this.lib.getConnection(
+        connectionConfig,
+      )) as OracleConnection;
       // this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString)!.version; correct fetchDatabaseVersion()
 
       debug('connection acquired');
@@ -154,7 +158,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
           throw new InvalidConnectionError(error);
         case 'ORA-12170': // ORA-12170: TNS: Connect Timeout occurred
         case 'NJS-510': // NJS-510: Connect Timeout occurred
-
           throw new ConnectionTimedOutError(error);
         default:
           throw new ConnectionError(error);

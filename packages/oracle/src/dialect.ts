@@ -2,15 +2,15 @@
 
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
+import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
-import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
-import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
-import { OracleConnectionManager } from './connection-manager';
 import * as DataTypes from './_internal/data-types-overrides';
-import { OracleQuery } from './query.js';
+import { OracleConnectionManager } from './connection-manager';
+import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
 import { OracleQueryGenerator } from './query-generator.js';
 import { OracleQueryInterface } from './query-interface.js';
+import { OracleQuery } from './query.js';
 
 export interface OracleDialectOptions {
   /**
@@ -92,12 +92,13 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   readonly queryGenerator: OracleQueryGenerator;
   readonly queryInterface: OracleQueryInterface;
   readonly Query = OracleQuery;
-  readonly dataTypesDocumentationUrl = 'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483';
+  readonly dataTypesDocumentationUrl =
+    'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483';
 
   constructor(sequelize: Sequelize, options: OracleDialectOptions) {
     super({
       dataTypesDocumentationUrl:
-      'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483',
+        'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483',
       minimumDatabaseVersion: '18.0.0',
       identifierDelimiter: '"',
       name: 'oracle',
@@ -135,7 +136,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       return val;
     }
 
-    val = val.replaceAll('\'', '\'\'');
+    val = val.replaceAll("'", "''");
 
     return `'${val}'`;
   }
@@ -153,5 +154,4 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   static getSupportedConnectionOptions() {
     return CONNECTION_OPTION_NAMES;
   }
-
 }

@@ -21,9 +21,11 @@ describe('QueryGenerator#createSchemaQuery', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { authorization: 'myUser' }), {
       default: 'CREATE SCHEMA [mySchema] AUTHORIZATION [myUser]',
       sqlite3: notSupportedError,
-      'mariadb mysql snowflake oracle': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
-        'authorization',
-      ]),
+      'mariadb mysql snowflake oracle': buildInvalidOptionReceivedError(
+        'createSchemaQuery',
+        dialectName,
+        ['authorization'],
+      ),
     });
   });
 

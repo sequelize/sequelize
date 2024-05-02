@@ -150,8 +150,7 @@ describe('QueryGenerator#generateJoin', () => {
           'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
         mssql:
           'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
-        oracle:
-          `INNER JOIN "company" "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1`,
+        oracle: `INNER JOIN "company" "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1`,
       },
     );
   });
@@ -174,8 +173,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
-        oracle: 
-          `LEFT OUTER JOIN "company" "Professionals->Company" ON "Professionals"."company_id" = "Professionals->Company"."id"`,
+        oracle: `LEFT OUTER JOIN "company" "Professionals->Company" ON "Professionals"."company_id" = "Professionals->Company"."id"`,
       },
     );
   });
@@ -218,8 +216,7 @@ describe('QueryGenerator#generateJoin', () => {
           "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
         mssql:
           "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'",
-        oracle:
-          `LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id" AND "Company"."name" = 'ABC'`,
+        oracle: `LEFT OUTER JOIN "company" "Company" ON "User"."companyId" = "Company"."id" AND "Company"."name" = 'ABC'`,
       },
     );
   });
@@ -264,8 +261,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
-        oracle: 
-          `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user"`,
+        oracle: `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user"`,
       },
     );
   });
@@ -293,8 +289,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]',
-        oracle:
-          `LEFT OUTER JOIN "profession" "Company->Owner->Profession" ON "Company->Owner"."professionId" = "Company->Owner->Profession"."id"`,
+        oracle: `LEFT OUTER JOIN "profession" "Company->Owner->Profession" ON "Company->Owner"."professionId" = "Company->Owner->Profession"."id"`,
       },
     );
   });
@@ -318,8 +313,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
-        oracle: 
-          `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user"`,
+        oracle: `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user"`,
       },
     );
   });
@@ -401,8 +395,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2',
-        oracle:
-          `LEFT OUTER JOIN "task" "Tasks" ON "User"."id_user" = "Tasks"."user_id" OR "Tasks"."user_id" = 2`,
+        oracle: `LEFT OUTER JOIN "task" "Tasks" ON "User"."id_user" = "Tasks"."user_id" OR "Tasks"."user_id" = 2`,
       },
     );
   });
@@ -456,8 +449,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
-        oracle:
-            `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user" OR "Company->Owner"."id_user" = 2`,
+        oracle: `LEFT OUTER JOIN "user" "Company->Owner" ON "Company"."owner_id" = "Company->Owner"."id_user" OR "Company->Owner"."id_user" = 2`,
       },
     );
   });

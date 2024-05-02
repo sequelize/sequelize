@@ -560,15 +560,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx1.fields).to.deep.equal([
             { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined }
+            { attribute: 'fieldA', length: undefined, order: 'ASC', collate: undefined },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: 'ASC', collate: undefined }
+            { attribute: 'fieldC', length: undefined, order: 'ASC', collate: undefined },
           ]);
 
           expect(idx3.fields).to.deep.equal([
-            { attribute: 'fieldD', length: undefined, order: 'ASC', collate: undefined }
+            { attribute: 'fieldD', length: undefined, order: 'ASC', collate: undefined },
           ]);
 
           break;
@@ -1035,7 +1035,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
-            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
+            } else if (
+              ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)
+            ) {
               test++;
               expect(sql).to.not.contain('special');
             }
@@ -1054,7 +1056,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
                 expect(sql).to.contain('special');
-              } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
+              } else if (
+                ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)
+              ) {
                 test++;
                 expect(sql).to.contain('special');
               }

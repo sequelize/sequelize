@@ -62,7 +62,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
         ibmi: 'SELECT * FROM "Users" AS "User"',
         mssql: 'SELECT * FROM [Users] AS [User];',
         snowflake: 'SELECT * FROM "Users" AS "User";',
-        oracle: `SELECT * FROM "Users" "User";`
+        oracle: `SELECT * FROM "Users" "User";`,
       },
     );
   });

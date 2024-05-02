@@ -48,7 +48,9 @@ if (dialect.name !== 'oracle') {
       class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
         declare name: string;
         declare userId: ForeignKey<number>;
-        declare stakeholders?: NonAttribute<Array<User & { ProjectStakeholder: ProjectStakeholder }>>;
+        declare stakeholders?: NonAttribute<
+          Array<User & { ProjectStakeholder: ProjectStakeholder }>
+        >;
 
         declare addStakeholder: BelongsToManyAddAssociationMixin<User, User['id']>;
       }
@@ -126,9 +128,9 @@ if (dialect.name !== 'oracle') {
 
     it(`retrieving a model only calls 'parseDatabaseValue' (no join)`, async () => {
       const out = await models.User.findOne({ rejectOnEmpty: true });
-  
+
       expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue not called on top level model');
-  
+
       expect(spies.sanitize.called).to.eq(false, 'sanitize should not have been called');
       expect(spies.validate.called).to.eq(false, 'validate should not have been called');
     });

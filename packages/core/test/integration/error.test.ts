@@ -680,7 +680,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'oracle':
-            expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*.users_username_unique\) violated/);
+            expect(error.cause.message).to.match(
+              /ORA-00001: unique constraint \(.*.users_username_unique\) violated/,
+            );
             break;
 
           default:
@@ -761,7 +763,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'oracle':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.match(/ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/);
+            expect(error.cause.message).to.match(
+              /ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/,
+            );
             break;
 
           default:
@@ -838,11 +842,13 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
             );
             break;
-          
+
           case 'oracle':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.match(/ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/);
+            expect(error.cause.message).to.match(
+              /ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/,
+            );
             break;
 
           default:

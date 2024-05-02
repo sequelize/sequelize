@@ -1,5 +1,5 @@
 import { DataTypes, literal } from '@sequelize/core';
-import { beforeAll2, expectsql, sequelize, getTestDialect } from '../../support';
+import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialect = getTestDialect();
 

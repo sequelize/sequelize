@@ -273,7 +273,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           AccUser.create(),
-          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => Product.findAll({ order: [['id', 'ASC']] })),
+          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() =>
+            Product.findAll({ order: [['id', 'ASC']] }),
+          ),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -954,7 +956,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           User.create({ name: 'FooBarzz' }),
-          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => Product.findAll({ order: [['id', 'ASC']] })),
+          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() =>
+            Product.findAll({ order: [['id', 'ASC']] }),
+          ),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([

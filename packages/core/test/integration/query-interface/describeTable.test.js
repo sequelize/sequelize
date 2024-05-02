@@ -176,8 +176,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
         expect(enumVals.type).to.eql("ENUM('hello','world')");
-      }  else if(dialect === 'oracle') {
-          expect(enumVals.type).to.eql('VARCHAR2');
+      } else if (dialect === 'oracle') {
+        expect(enumVals.type).to.eql('VARCHAR2');
       }
 
       if (['postgres', 'mysql', 'mssql'].includes(dialect)) {

@@ -69,10 +69,10 @@ export type DialectSupports = {
   returnValues: false | 'output' | 'returning';
 
   /* does the dialect support returning values for inserted/updated fields in outBinds */
-  returnIntoValues: boolean,
+  returnIntoValues: boolean;
 
   /* does the dialect support returning values for inserted/updated fields in outBinds */
-  topLevelOrderByRequired: boolean,
+  topLevelOrderByRequired: boolean;
 
   /* features specific to autoIncrement values */
   autoIncrement: {

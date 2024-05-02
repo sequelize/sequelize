@@ -343,7 +343,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           User.create(),
-          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => Product.findAll({ order: [['id', 'ASC']] })),
+          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() =>
+            Product.findAll({ order: [['id', 'ASC']] }),
+          ),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([

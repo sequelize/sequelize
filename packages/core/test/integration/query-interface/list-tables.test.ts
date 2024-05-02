@@ -33,18 +33,18 @@ describe('QueryInterface#listTables', () => {
               throw error;
             }
           }
-        }  else if (dialectName === 'oracle') {
+        } else if (dialectName === 'oracle') {
           const plsql = [
             'BEGIN',
             'EXECUTE IMMEDIATE',
-            '\'DROP VIEW V_Fail\';',
+            "'DROP VIEW V_Fail';",
             'EXCEPTION WHEN OTHERS THEN',
             '  IF SQLCODE != -942 THEN',
             '    RAISE;',
             '  END IF;',
             'END;',
           ].join(' ');
-          await sequelize.query(plsql); 
+          await sequelize.query(plsql);
         } else {
           await sequelize.queryRaw('DROP VIEW IF EXISTS V_Fail;');
         }

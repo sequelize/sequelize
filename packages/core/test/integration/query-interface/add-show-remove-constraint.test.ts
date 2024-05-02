@@ -114,7 +114,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintName: 'custom_constraint_name',
         constraintType: 'UNIQUE',
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-        ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+        ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'actors',
         columnNames: dialect === 'oracle' ? ['age', 'name'] : ['name', 'age'],
         ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -157,18 +157,17 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-        ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+        ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'actors',
         columnNames: ['level_id'],
         referencedTableName: 'levels',
         referencedTableSchema: defaultSchema,
         referencedColumnNames: ['id'],
         deleteAction: 'CASCADE',
-        ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
-          ? 'RESTRICT'
-          : dialect === 'sqlite3'
-            ? ''
-            : 'NO ACTION' },
+        ...(dialect !== 'oracle' && {
+          updateAction:
+            dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        }),
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -191,7 +190,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-        ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+        ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'levels',
         columnNames: ['id'],
         ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -237,22 +236,17 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-        ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+        ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'actors',
-        columnNames: dialect === 'oracle'
-        ? ['manager_id', 'level_id']
-        : ['level_id', 'manager_id'],
+        columnNames: dialect === 'oracle' ? ['manager_id', 'level_id'] : ['level_id', 'manager_id'],
         referencedTableSchema: defaultSchema,
         referencedTableName: 'levels',
-        referencedColumnNames: dialect === 'oracle'
-        ? ['manager_id', 'id']
-        : ['id', 'manager_id'],
+        referencedColumnNames: dialect === 'oracle' ? ['manager_id', 'id'] : ['id', 'manager_id'],
         deleteAction: 'CASCADE',
-        ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
-          ? 'RESTRICT'
-          : dialect === 'sqlite3'
-            ? ''
-            : 'NO ACTION' },
+        ...(dialect !== 'oracle' && {
+          updateAction:
+            dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        }),
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -273,12 +267,10 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         constraintSchema: defaultSchema,
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
-        ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
-        ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'levels',
-        columnNames: dialect === 'oracle'
-          ? ['manager_id', 'id']
-          : ['id', 'manager_id'],
+        columnNames: dialect === 'oracle' ? ['manager_id', 'id'] : ['id', 'manager_id'],
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -375,21 +367,24 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         expect(constraints[0]).to.deep.equal({
           ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
-          ...['oracle'].includes(dialect) && { columnNames: ['age'] },
+          ...(['oracle'].includes(dialect) && { columnNames: ['age'] }),
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
-          ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
-          ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
           tableName: 'actors',
-          ...(dialect !== 'oracle') && { definition: dialect === 'mssql'
-            ? '([age]>(10))'
-            : dialect === 'db2'
-              ? '"age" > 10'
-              : dialect === 'postgres'
-                ? '((age > 10))'
-                : ['mysql', 'sqlite3'].includes(dialect)
-                  ? '(`age` > 10)'
-                  : '`age` > 10' },
+          ...(dialect !== 'oracle' && {
+            definition:
+              dialect === 'mssql'
+                ? '([age]>(10))'
+                : dialect === 'db2'
+                  ? '"age" > 10'
+                  : dialect === 'postgres'
+                    ? '((age > 10))'
+                    : ['mysql', 'sqlite3'].includes(dialect)
+                      ? '(`age` > 10)'
+                      : '`age` > 10',
+          }),
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -541,18 +536,17 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
           ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-          ...(dialect !== 'oracle') && { tableSchema: schema },
+          ...(dialect !== 'oracle' && { tableSchema: schema }),
           tableName: 'actors',
           columnNames: ['level_id'],
           referencedTableSchema: schema,
           referencedTableName: 'levels',
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
-            ? 'RESTRICT'
-            : dialect === 'sqlite3'
-              ? ''
-              : 'NO ACTION' },
+          ...(dialect !== 'oracle' && {
+            updateAction:
+              dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+          }),
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -579,7 +573,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
           ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-          ...(dialect !== 'oracle') && { tableSchema: schema },
+          ...(dialect !== 'oracle' && { tableSchema: schema }),
           tableName: 'levels',
           columnNames: ['id'],
           ...(sequelize.dialect.supports.constraints.deferrable && {
@@ -665,18 +659,17 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
             ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-            ...(dialect !== 'oracle') && { tableSchema: schema },
+            ...(dialect !== 'oracle' && { tableSchema: schema }),
             tableName: 'actors',
             columnNames: ['level_id'],
             referencedTableSchema: schema,
             referencedTableName: 'levels',
             referencedColumnNames: ['id'],
             deleteAction: 'CASCADE',
-            ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
-              ? 'RESTRICT'
-              : dialect === 'sqlite3'
-                ? ''
-                : 'NO ACTION' },
+            ...(dialect !== 'oracle' && {
+              updateAction:
+                dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+            }),
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),
@@ -696,18 +689,17 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
             ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-            ...(dialect !== 'oracle') && { tableSchema: sequelize.dialect.getDefaultSchema() },
+            ...(dialect !== 'oracle' && { tableSchema: sequelize.dialect.getDefaultSchema() }),
             tableName: 'actors',
             columnNames: ['level_id'],
             referencedTableSchema: sequelize.dialect.getDefaultSchema(),
             referencedTableName: 'levels',
             referencedColumnNames: ['id'],
             deleteAction: 'CASCADE',
-            ...(dialect !== 'oracle') && { updateAction: dialect === 'mariadb'
-            ? 'RESTRICT'
-            : dialect === 'sqlite3'
-              ? ''
-              : 'NO ACTION' },
+            ...(dialect !== 'oracle' && {
+              updateAction:
+                dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+            }),
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),

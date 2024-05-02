@@ -1798,8 +1798,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect)
         ? 'BINARY(255)'
         : dialect === 'oracle'
-        ? DataTypes.STRING(255, true)
-        : DataTypes.BLOB('tiny');
+          ? DataTypes.STRING(255, true)
+          : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
