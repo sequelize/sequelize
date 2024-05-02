@@ -68,7 +68,7 @@
     "validator": "^13.11.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.14",
+    "@types/chai": "4.3.15",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
     "@types/lodash": "4.17.0",

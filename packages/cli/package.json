@@ -16,7 +16,7 @@
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
     "@oclif/test": "3.2.12",
-    "@types/chai": "4.3.14",
+    "@types/chai": "4.3.15",
     "@types/mocha": "10.0.6",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
