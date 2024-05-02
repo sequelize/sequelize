@@ -610,7 +610,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   /**
    * Returns the alias token
    *
-   * @returns {string}
+   * @returns string
    */
   getAliasToken() {
     return 'AS';

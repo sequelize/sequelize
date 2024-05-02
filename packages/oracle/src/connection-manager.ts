@@ -78,12 +78,14 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     if (this.sequelize.options && 'dialectOptions' in this.sequelize.options.replication.write) {
       const dialectOptions = this.sequelize.options.replication.write.oracleOptions;
       if (dialectOptions && 'maxRows' in dialectOptions) {
-        // @ts-expect-error
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error add maxRow
         oracledb.maxRows = this.sequelize.options.replication.write.oracleOptions.maxRows;
       }
 
       if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        // @ts-expect-error
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-expect-error add fetchRow
         oracledb.fetchAsString = this.sequelize.options.replication.write.oracleOptions.fetchAsString;
       } else {
         oracledb.fetchAsString = [oracledb.CLOB];
@@ -170,6 +172,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<OracleDia
     await new Promise<void>((resolve, reject) => {
       connection.close(error => {
         if (error) {
+          // eslint-disable-next-line prefer-promise-reject-errors
           return void reject();
         }
 

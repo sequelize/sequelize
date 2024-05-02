@@ -28,7 +28,7 @@ describe('QueryInterface#upsert', () => {
 
   // you'll find more replacement tests in query-generator tests
   // For oracle the datatype validation for id fails. Oracle uses Where clause which does the type validation.
-  (dialectName === 'oracle' ? it.skip :it)('does not parse replacements outside of raw sql', async () => {
+  (dialectName === 'oracle' ? it.skip : it)('does not parse replacements outside of raw sql', async () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -106,7 +106,7 @@ describe('QueryInterface#upsert', () => {
     );
   });
 
-  (dialectName === 'oracle' ? it.skip :it)('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+  (dialectName === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -163,7 +163,7 @@ describe('QueryInterface#upsert', () => {
     }
   });
 
-(dialectName === 'oracle' ? it.skip :it)('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+(dialectName === 'oracle' ? it.skip : it)('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 

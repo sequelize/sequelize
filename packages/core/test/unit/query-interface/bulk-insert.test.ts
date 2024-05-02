@@ -43,7 +43,7 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       // oracle uses `executeMany()` provided by node-oracledb driver and passes the value with binds
       oracle: toMatchRegex(
-        /^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/
+        /^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/,
       ),
     });
   });
@@ -70,7 +70,7 @@ describe('QueryInterface#bulkInsert', () => {
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
       ),
       oracle: toMatchRegex(
-        /^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/
+        /^INSERT INTO "Users" \("firstName"\) VALUES \(:\d\)$/,
       ),
     });
   });
@@ -108,7 +108,7 @@ describe('QueryInterface#bulkInsert', () => {
         `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
       ),
       oracle: toMatchSql(
-        `INSERT INTO "Users" ("firstName") VALUES (:1)`
+        `INSERT INTO "Users" ("firstName") VALUES (:1)`,
       ),
     });
   });

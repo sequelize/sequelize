@@ -719,7 +719,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite' || dialect === 'oracle') {
+        if (dialect === 'sqlite3' || dialect === 'oracle') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -800,7 +800,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite' || dialect === 'oracle') {
+        if (dialect === 'sqlite3' || dialect === 'oracle') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');

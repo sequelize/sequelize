@@ -267,7 +267,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
-      oracle: `SELECT "id" FROM "Projects" "Project" WHERE "Project"."duration" = 9007199254740993;`
+      oracle: `SELECT "id" FROM "Projects" "Project" WHERE "Project"."duration" = 9007199254740993;`,
     });
   });
 
@@ -304,7 +304,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id] FROM [Users] AS [User];`,
-      oracle: `SELECT "id" FROM "Users" "User";`
+      oracle: `SELECT "id" FROM "Users" "User";`,
     });
   });
 
@@ -888,7 +888,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       expectsql(sql, {
         default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
-        oracle: `SELECT *, YEAR("createdAt") AS "creationYear" FROM "Users" "User" GROUP BY "creationYear", "title" HAVING "User"."creationYear" > 2002;`
+        oracle: `SELECT *, YEAR("createdAt") AS "creationYear" FROM "Users" "User" GROUP BY "creationYear", "title" HAVING "User"."creationYear" > 2002;`,
       });
     });
   });

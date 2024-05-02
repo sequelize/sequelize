@@ -369,7 +369,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
     });
 
-    (dialect.name != 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
+    (dialect.name !== 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
       const M = Support.sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,

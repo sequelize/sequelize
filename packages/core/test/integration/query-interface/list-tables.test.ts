@@ -42,7 +42,7 @@ describe('QueryInterface#listTables', () => {
             '  IF SQLCODE != -942 THEN',
             '    RAISE;',
             '  END IF;',
-            'END;'
+            'END;',
           ].join(' ');
           await sequelize.query(plsql); 
         } else {
@@ -56,8 +56,10 @@ describe('QueryInterface#listTables', () => {
         } else if (dialectName === 'oracle') {
           return 'FROM DUAL';
         }
+
         return '';
-      }
+      };
+
       await queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup();
       const sql = `CREATE VIEW V_Fail AS SELECT 1 Id ${fromQuery()};`;

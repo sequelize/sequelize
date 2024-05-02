@@ -128,11 +128,11 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    (dialect.name !== 'oracle'? it : it.skip)('accepts strings', async () => {
+    (dialect.name !== 'oracle' ? it : it.skip)('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
-    (dialect.name !== 'oracle'? it : it.skip)('is deserialized as a string when DataType is not specified', async () => {
+    (dialect.name !== 'oracle' ? it : it.skip)('is deserialized as a string when DataType is not specified', async () => {
       await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
   });
@@ -608,6 +608,7 @@ describe('DataTypes', () => {
         if (dialect.name !== 'oracle') {
           await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
         }
+
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(
@@ -676,6 +677,7 @@ describe('DataTypes', () => {
         if (dialect.name !== 'oracle') {
           await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
         }
+
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(
@@ -825,6 +827,7 @@ describe('DataTypes', () => {
         if (dialect.name !== 'oracle') {
           await testSimpleInOut(vars.User, 'attr', 123n, 123);
         }
+
         await testSimpleInOut(vars.User, 'attr', '100.5', 100.5);
       });
 
@@ -977,6 +980,7 @@ describe('DataTypes', () => {
       if (dialect.name !== 'oracle') {
         await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123');
       }
+
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', '123.4');
     });
 
@@ -1057,6 +1061,7 @@ describe('DataTypes', () => {
           dialect.name === 'mssql' ? '123' : '123.00',
         );
       }
+
       await testSimpleInOut(
         vars.User,
         'decimalAttr',

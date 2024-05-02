@@ -30,7 +30,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         oracle: buildInvalidOptionReceivedError(
           'removeConstraintQuery',
           dialect.name,
-          ['ifExists']
+          ['ifExists'],
         ),
       },
     );

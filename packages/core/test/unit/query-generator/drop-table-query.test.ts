@@ -37,7 +37,7 @@ describe('QueryGenerator#dropTableQuery', () => {
 
     expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
       default: `DROP TABLE IF EXISTS [MyModels]`,
-      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 

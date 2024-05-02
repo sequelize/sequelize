@@ -116,6 +116,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (this.dialect.supports.returnIntoValues) {
         returnTypes.push(...returnValues.returnTypes);
       }
+
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -472,6 +473,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           // No where clause, we add where
           suffix += ' WHERE ';
         }
+
         suffix += `rownum <= ${this.escape(options.limit)} `;
     }
 
@@ -1224,6 +1226,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           if (!this.dialect.supports.topLevelOrderByRequired) {
             delete options.order;
           }
+
           where = and(new Literal(placeholder), where);
         }
 

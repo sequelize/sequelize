@@ -2,8 +2,13 @@
 
 'use strict';
 
-import { DataTypes } from '@sequelize/core';
+import { isPlainObject } from 'lodash/isPlainObject';
+import { includes } from 'lodash/includes';
+import { forOwn } from 'lodash/forOwn';
+import { toPath } from 'lodash/toPath';
+import { each } from 'lodash/each';
 
+import { DataTypes } from '@sequelize/core';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_OBJECT, EMPTY_SET, getObjectFromMap } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
@@ -12,8 +17,6 @@ import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-o
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS, CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
-
-const _ = require('lodash');
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
@@ -106,7 +109,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       }
     }
 
-    values['attributes'] = attrStr.join(', ');
+    values.attributes = attrStr.join(', ');
 
     const pkString = primaryKeys.join(', ');
 
@@ -121,7 +124,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       }
 
       // Oracle default response for FK, doesn't support if defined
-      if (foreignKeys[fkey].indexOf('ON DELETE NO ACTION') > -1) {
+      if (foreignKeys[fkey].includes('ON DELETE NO ACTION')) {
         foreignKeys[fkey] = foreignKeys[fkey].replace('ON DELETE NO ACTION', '');
       }
 
@@ -152,7 +155,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           if (options.uniqueKeys) {
             const keys = Object.keys(options.uniqueKeys);
 
-            for (let fieldIdx = 0; fieldIdx < keys.length; fieldIdx++) {
+            for (const fieldIdx of keys) {
               const currUnique = options.uniqueKeys[keys[fieldIdx]];
 
               if (currUnique.fields.length === fields.length) {
@@ -161,7 +164,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
                 for (i = 0; i < currUnique.fields.length; i++) {
                   const field = currUnique.fields[i];
 
-                  if (_.includes(fields, field)) {
+                  if (includes(fields, field)) {
                     canContinue = false;
                   } else {
                     // We have at least one different column, even if we found the same columns previously, we let the constraint be created
@@ -207,7 +210,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         return elem.replaceAll('"', '');
       });
       sortedPrimaryKeys.sort();
-      _.each(options.uniqueKeys, (columns, indexName) => {
+      each(options.uniqueKeys, (columns, indexName) => {
         const sortedColumnFields = [...columns.fields];
         sortedColumnFields.sort();
         // if primary keys === unique keys, then skip adding new constraint
@@ -301,9 +304,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   listTablesQuery(options) {
     let query = `SELECT owner as "schema", table_name as "tableName" FROM all_tables where OWNER IN`;
     if (options && options.schema) {
-      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\' AND USERNAME=${this.escape(options.schema)})`;
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = 'N' AND USERNAME=${this.escape(options.schema)})`;
     } else {
-      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = \'N\')`;
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = 'N')`;
     }
 
     return query;
@@ -478,12 +481,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'BEGIN',
     ];
     for (const attributeName in attributes) {
-      if (!Object.prototype.hasOwnProperty.call(attributes, attributeName)) {
+      if (!Object.prototype.hasOwn(attributes, attributeName)) {
         continue;
       }
 
       const definition = attributes[attributeName];
-      if (definition.match(/REFERENCES/)) {
+      if (definition.test(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
       } else {
         // Building the modify query
@@ -523,7 +526,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       // generateReturnValues function quotes identifier based on the quoteIdentifier option
       // If the identifier starts with a quote we remove it else we use it as is
       if (element.startsWith('"')) {
-        element = element.substring(1, element.length - 1);
+        element = element.slice(1, -1);
       }
 
       outBindAttributes[element] = Object.assign(returnTypes[index]._getBindDef(oracledb), { dir: oracledb.BIND_OUT });
@@ -615,7 +618,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // auto-increment field and the value given is null and fieldMappedAttributes[key]
     // is valid for the specific column else it is set to false
     for (const fieldValueHash of fieldValueHashes) {
-      _.forOwn(fieldValueHash, (value, key) => {
+      forOwn(fieldValueHash, (value, key) => {
         allColumns[key] = fieldMappedAttributes[key] && fieldMappedAttributes[key].autoIncrement === true && value === null;
       });
     }
@@ -769,21 +772,20 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!_.isPlainObject(attribute)) {
+    if (!isPlainObject(attribute)) {
       attribute = {
         type: attribute,
       };
     }
 
     // handle self referential constraints
-    if (attribute.references) {
-      if (attribute.Model && attribute.Model.tableName === attribute.references.tableName) {
-        this.sequelize.log(
-          'Oracle does not support self referencial constraints, '
-          + 'we will remove it but we recommend restructuring your query',
-        );
-        attribute.onDelete = '';
-      }
+    if (attribute.references && attribute.Model &&
+      attribute.Model.tableName === attribute.references.tableName) {
+      this.sequelize.log(
+        'Oracle does not support self referencial constraints, '
+        + 'we will remove it but we recommend restructuring your query',
+      );
+      attribute.onDelete = '';
     }
 
     let template;
@@ -1034,7 +1036,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     let hasInvalidToken = false;
 
     while (currentIndex < stmt.length) {
-      const string = stmt.substr(currentIndex);
+      const string = stmt.slice(currentIndex);
       const functionMatches = JSON_FUNCTION_REGEX.exec(string);
       if (functionMatches) {
         currentIndex += functionMatches[0].indexOf('(');
@@ -1082,20 +1084,20 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   addTicks(identifier, tickChar) {
-    identifier = identifier.replace(new RegExp(tickChar, 'g'), '');
+    identifier = identifier.replaceAll(new RegExp(tickChar, 'g'), '');
 
     return tickChar + identifier + tickChar;
   }
 
-  jsonPathExtractionQuery(column, path, unquote) {
-    let paths = _.toPath(path);
+  jsonPathExtractionQuery(column, path) {
+    let paths = toPath(path);
     const quotedColumn = this.isIdentifierQuoted(column) ? column : this.quoteIdentifier(column);
 
     paths = paths.map(subPath => {
       return /\D/.test(subPath) ? this.addTicks(subPath, '"') : subPath;
     });
 
-    const pathStr = this.escape(['$'].concat(paths).join('.').replace(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
+    const pathStr = this.escape(['$'].concat(paths).join('.').replaceAll(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`));
     const extractQuery = `json_value(${quotedColumn},${pathStr})`;
 
     return extractQuery;

@@ -165,7 +165,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
-    (dialect.name === 'oracle' ? it.skip :it)('supports array of strings (column names)', () => {
+    (dialect.name === 'oracle' ? it.skip : it)('supports array of strings (column names)', () => {
       const { User } = vars;
 
       const { query } = queryGenerator.insertQuery(
@@ -194,7 +194,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
-    (dialect.name === 'oracle' ? it.skip :it)('supports array of literals', () => {
+    (dialect.name === 'oracle' ? it.skip : it)('supports array of literals', () => {
       const { User } = vars;
 
       expectsql(
@@ -264,7 +264,7 @@ describe('QueryGenerator#insertQuery', () => {
           },
           oracle: {
             sequelize_1: new Date('2011-03-27T10:01:55Z'),
-          }
+          },
         },
       });
     });
@@ -315,7 +315,7 @@ describe('QueryGenerator#insertQuery', () => {
           oracle: {
             sequelize_1: '1',
             sequelize_2: '0',
-          }
+          },
         },
       });
     });

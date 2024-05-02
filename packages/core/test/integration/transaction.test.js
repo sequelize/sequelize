@@ -24,6 +24,7 @@ const fromQuery = () => {
   if (dialect === 'oracle') {
     return 'FROM DUAL';
   }
+
   return '';
 }
 

@@ -37,7 +37,7 @@ describe('mapBindParameters', () => {
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name ==='oracle') {
+    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id']);
@@ -60,7 +60,7 @@ describe('mapBindParameters', () => {
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name ==='oracle') {
+    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['1']);
@@ -135,7 +135,7 @@ describe('mapBindParameters', () => {
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name ==='oracle') {
+    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['a']);
@@ -162,7 +162,7 @@ describe('mapBindParameters', () => {
       expect(bindOrder).to.be.null;
     } else if (dialect.name === 'postgres') {
       expect(bindOrder).to.deep.eq(['id']);
-    } else if (dialect.name ==='oracle') {
+    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id', 'id', 'id', 'id']);

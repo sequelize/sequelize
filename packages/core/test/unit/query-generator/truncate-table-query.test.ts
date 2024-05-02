@@ -63,7 +63,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
       'postgres snowflake': 'TRUNCATE "MyModels"',
-      oracle: `TRUNCATE TABLE "MyModels"`
+      oracle: `TRUNCATE TABLE "MyModels"`,
     });
   });
 

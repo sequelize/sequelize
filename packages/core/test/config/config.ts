@@ -7,6 +7,7 @@ import { MySqlDialect } from '@sequelize/mysql';
 import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
 import { SqliteDialect } from '@sequelize/sqlite3';
+import { OracleDialect } from '@sequelize/oracle';
 import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 
@@ -27,6 +28,7 @@ export interface DialectConfigs {
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
+  oracle: Options<OracleDialect>;
 }
 
 export interface DialectConnectionConfigs {
@@ -38,6 +40,7 @@ export interface DialectConnectionConfigs {
   postgres: ConnectionOptions<PostgresDialect>;
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
+  oracle: ConnectionOptions<OracleDialect>;
 }
 
 const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
@@ -144,17 +147,15 @@ export const CONFIG: DialectConfigs = {
   },
 
   oracle: {
+    dialect: OracleDialect,
     database: env.SEQ_ORACLE_DB || env.SEQ_DB || 'XEPDB1',
     username: env.SEQ_ORACLE_USER || env.SEQ_USER || 'sequelizetest',
     password: env.SEQ_ORACLE_PW || env.SEQ_PW || 'sequelizepassword',
     host: env.SEQ_ORACLE_HOST || env.SEQ_HOST || '127.0.0.1',
     port: env.SEQ_ORACLE_PORT || env.SEQ_PORT || 1521,
-    dialectOptions: {
-      stmtCacheSize: Number(env.SEQ_ORACLE_STMT_CACHE || 0),
-    },
     pool: {
       max: Number(env.SEQ_ORACLE_POOL_MAX || env.SEQ_POOL_MAX || 5),
-      idle: Number(env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000)
+      idle: Number(env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
   },
 

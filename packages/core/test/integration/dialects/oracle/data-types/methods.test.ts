@@ -10,7 +10,6 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { beforeAll2, beforeEach2, sequelize, setResetMode } from '../../../support';
-const oracledb = require('oracledb');
 
 // This test suite ensures DataType methods are called at the appropriate time
 
@@ -26,7 +25,7 @@ describe('DataType Methods', () => {
       return customValueSymbol;
     }
 
-    _getBindDef(oracledb : any) {
+    _getBindDef(oracledb: any) {
       return { type: oracledb.DB_TYPE_VARCHAR, maxSize: 255 };
     }
   }

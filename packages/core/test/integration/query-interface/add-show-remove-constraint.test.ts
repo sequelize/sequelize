@@ -116,7 +116,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
         ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
         tableName: 'actors',
-        columnNames: dialect === 'oracle' ? ['age', 'name'] :['name', 'age'],
+        columnNames: dialect === 'oracle' ? ['age', 'name'] : ['name', 'age'],
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -252,7 +252,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           ? 'RESTRICT'
           : dialect === 'sqlite3'
             ? ''
-            : 'NO ACTION'},
+            : 'NO ACTION' },
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -379,9 +379,9 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
           ...['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' },
-          ...(dialect !== 'oracle') && { tableSchema: defaultSchema} ,
+          ...(dialect !== 'oracle') && { tableSchema: defaultSchema },
           tableName: 'actors',
-          ...(dialect !== 'oracle') && {definition: dialect === 'mssql'
+          ...(dialect !== 'oracle') && { definition: dialect === 'mssql'
             ? '([age]>(10))'
             : dialect === 'db2'
               ? '"age" > 10'
@@ -389,7 +389,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
                 ? '((age > 10))'
                 : ['mysql', 'sqlite3'].includes(dialect)
                   ? '(`age` > 10)'
-                  : '`age` > 10'},
+                  : '`age` > 10' },
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -676,7 +676,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
               ? 'RESTRICT'
               : dialect === 'sqlite3'
                 ? ''
-                : 'NO ACTION'},
+                : 'NO ACTION' },
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),
@@ -707,7 +707,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             ? 'RESTRICT'
             : dialect === 'sqlite3'
               ? ''
-              : 'NO ACTION'},
+              : 'NO ACTION' },
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),

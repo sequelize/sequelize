@@ -24,6 +24,7 @@ export class OracleQuery extends AbstractQuery {
     super(connection, sequelize, options);
     this.options = extend(
       {
+        // eslint-disable-next-line no-console
         logging: console.log,
         plain: false,
         raw: false,
@@ -88,7 +89,7 @@ export class OracleQuery extends AbstractQuery {
             this.options[bindingDictionary][key] = {
               ...oldBinding,
               type: oracledb.STRING,
-              maxSize: 10000000, //TOTALLY ARBITRARY Number to prevent query failure
+              maxSize: 10_000_000, // TOTALLY ARBITRARY Number to prevent query failure
             };
           }
         }
@@ -104,7 +105,7 @@ export class OracleQuery extends AbstractQuery {
     const bindParameters = [];
     const bindDef = [];
 
-    if (!sql.match(/END;$/)) {
+    if (!sql.test(/END;$/)) {
       this.sql = sql.replace(/; *$/, '');
     } else {
       this.sql = sql;
@@ -130,6 +131,7 @@ export class OracleQuery extends AbstractQuery {
         // Building the bindDef for in and out binds
         this._convertBindAttributes('inbindAttributes', oracledb);
         bindDef.push(...Object.values(this.options.inbindAttributes));
+        // eslint-disable-next-line unicorn/no-array-push-push
         bindDef.push(...outParameters);
         this.bindParameters = parameters;
       } else {
@@ -145,18 +147,21 @@ export class OracleQuery extends AbstractQuery {
     if (this.sql.startsWith('BEGIN TRANSACTION')) {
       this.autocommit = false;
 
+      // eslint-disable-next-line unicorn/no-useless-promise-resolve-reject
       return Promise.resolve();
     }
 
     if (this.sql.startsWith('SET AUTOCOMMIT ON')) {
       this.autocommit = true;
 
+      // eslint-disable-next-line unicorn/no-useless-promise-resolve-reject
       return Promise.resolve();
     }
 
     if (this.sql.startsWith('SET AUTOCOMMIT OFF')) {
       this.autocommit = false;
 
+      // eslint-disable-next-line unicorn/no-useless-promise-resolve-reject
       return Promise.resolve();
     }
 
@@ -400,8 +405,9 @@ export class OracleQuery extends AbstractQuery {
             // For some types, the "name" of the type is returned with the length, we remove it
             // For Boolean we skip this because BOOLEAN is mapped to CHAR(1) and we dont' want to
             // remove the (1) for BOOLEAN
+            // eslint-disable-next-line unicorn/prefer-includes
             if (typeid.indexOf('(') > -1 && modelDefinition.rawAttributes[key].type.getDataTypeId() !== 'BOOLEAN') {
-              typeid = typeid.substr(0, typeid.indexOf('('));
+              typeid = typeid.slice(0, typeid.indexOf('('));
             }
 
             const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);
@@ -485,6 +491,7 @@ export class OracleQuery extends AbstractQuery {
         if (_result.Default) {
           _result.Default = _result.Default.replace(`('`, '')
             .replace(`')`, '')
+            // eslint-disable-next-line unicorn/prefer-string-replace-all
             .replace(/'/g, ''); /* jshint ignore: line */
         }
 
@@ -497,6 +504,7 @@ export class OracleQuery extends AbstractQuery {
 
           result[key] = {
             type: _result.DATA_TYPE.toUpperCase(),
+            // eslint-disable-next-line no-unneeded-ternary
             allowNull: _result.NULLABLE === 'N' ? false : true,
             defaultValue: undefined,
             primaryKey: _result.CONSTRAINT_TYPE === 'P',
@@ -527,8 +535,10 @@ export class OracleQuery extends AbstractQuery {
         obj[keys[k]] = data[k];
       }
 
+      // eslint-disable-next-line unicorn/prefer-at
       obj.isUpdate = data[data.length - 1];
       data = obj;
+      // eslint-disable-next-line eqeqeq
       result = [{ isNewRecord: data.isUpdate, value: data }, data.isUpdate == 0];
     } else if (this.isShowConstraintsQuery()) {
       result = this.handleShowConstraintsQuery(data);
@@ -584,6 +594,7 @@ export class OracleQuery extends AbstractQuery {
           fields = uniqueKey.fields;
         }
 
+        // eslint-disable-next-line no-implicit-coercion
         if (uniqueKey && !!uniqueKey.msg) {
           message = uniqueKey.msg;
         }
@@ -628,11 +639,12 @@ export class OracleQuery extends AbstractQuery {
   }
 
   isShowIndexesQuery() {
+    // eslint-disable-next-line unicorn/prefer-includes
     return this.sql.indexOf('SELECT i.index_name,i.table_name, i.column_name, u.uniqueness') > -1;
   }
 
   isSelectCountQuery() {
-    return this.sql.toUpperCase().indexOf('SELECT COUNT(') > -1;
+    return this.sql.toUpperCase().includes('SELECT COUNT(');
   }
 
   handleShowIndexesQuery(data) {
@@ -669,10 +681,11 @@ export class OracleQuery extends AbstractQuery {
       columns.unique = acc[accKey].unique;
       // We are generating index field name in the format sequelize expects
       // to avoid creating a unique index on auto-generated index name
-      if (acc[accKey].name.match(/SYS_C[0-9]*/)) {
+      if (acc[accKey].name.test(/SYS_C[0-9]*/)) {
         acc[accKey].name = nameIndex(columns, acc[accKey].tableName).name;
       }
 
+      // eslint-disable-next-line array-callback-return
       acc[accKey].fields.map(field => {
         field.attribute = field.name;
         delete field.name;

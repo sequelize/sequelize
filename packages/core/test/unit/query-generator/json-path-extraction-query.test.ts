@@ -79,7 +79,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
           sqlite3: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
           postgres: `"profile"#>ARRAY['"','''','$']::VARCHAR(255)[]`,
-          oracle: `json_value("profile",'$.""."\'\'"."$"')`,
+          oracle: `json_value("profile",'$.""."''"."$"')`,
         },
       );
     });

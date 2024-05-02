@@ -233,7 +233,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        oracle-version: [18, 21]
+        oracle-version: [oldest, latest]
         node-version: [18, 20]
     name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -246,12 +246,12 @@ jobs:
       SEQ_ORACLE_HOST: localhost
       SEQ_ORACLE_PORT: 1521
     steps:
-      - uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-      - uses: actions/setup-node@5e21ff4d9bc1a8cf6de233a3057d20ec6b3fb69d # v3.8.1
+      - uses: actions/checkout@0ad4b8fadaa221de15dcec353f45205ec38ea70b # v4.1.4
+      - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
+      - uses: actions/download-artifact@65a9edc5881444af0b9093a5e628f2fe47ea3b2e # v4.1.7
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact

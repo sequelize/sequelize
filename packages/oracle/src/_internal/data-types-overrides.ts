@@ -12,14 +12,14 @@ type Lib = typeof import('oracledb');
 
 dayjs.extend(utc);
 
-let Moment: any;
-try {
-  Moment = require('moment');
-} catch { /* ignore */ }
+// let Moment: any;
+// try {
+//   Moment = require('moment');
+// } catch { /* ignore */ }
 
-function isMoment(value: any): boolean {
-  return Moment?.isMoment(value) ?? false;
-}
+// function isMoment(value: any): boolean {
+//   return Moment?.isMoment(value) ?? false;
+// }
 
 export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -163,7 +163,7 @@ export class DATE extends BaseTypes.DATE {
      * @override
      */
   getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
-    if (dayjs.isDayjs(value) || isMoment(value)) {
+    if (dayjs.isDayjs(value)) {
       return options.bindParam(this._sanitize(value));
     }
 
