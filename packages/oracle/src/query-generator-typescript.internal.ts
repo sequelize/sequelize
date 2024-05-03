@@ -29,7 +29,7 @@ import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-r
 
 import type { TableNameWithSchema } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface.js';
 import type { OracleDialect } from './dialect.js';
-import { OracleQueryGeneratorInternal } from './query-generator-internal.js';
+import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: OracleQueryGeneratorInternal;

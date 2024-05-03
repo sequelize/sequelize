@@ -235,7 +235,7 @@ jobs:
       matrix:
         node-version: [18, 20]
         database-version: [oldest, latest]
-        dialect: [mysql, mariadb, mssql, db2]
+        dialect: [mysql, mariadb, mssql, db2, oracle]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [unit-test, test-typings]
