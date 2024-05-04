@@ -11958,6 +11958,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oracledb@npm:6.0":
+  version: 6.0.3
+  resolution: "oracledb@npm:6.0.3"
+  checksum: 71bf5aaf34b4b439efe6e463749e8c6eb303abf11643c8957ef1d5d31a4d4d40ecf3efe5e253790da1832385ecf379e12f4e16487dde1193c9c6bad629efa830
+  languageName: node
+  linkType: hard
+
 "os-tmpdir@npm:~1.0.2":
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
