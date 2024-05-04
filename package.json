@@ -75,10 +75,10 @@
     "@ephys/eslint-config-typescript": "^20.1.4",
     "@rushstack/eslint-patch": "1.10.2",
     "@sequelize/utils": "workspace:*",
-    "@types/chai": "4.3.14",
-    "@types/lodash": "4.17.0",
+    "@types/chai": "4.3.15",
+    "@types/lodash": "4.17.1",
     "@types/mocha": "10.0.6",
-    "@types/node": "20.12.7",
+    "@types/node": "20.12.8",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -106,7 +106,7 @@
     "typedoc-plugin-missing-exports": "2.2.0",
     "typescript": "5.4.5"
   },
-  "packageManager": "yarn@4.1.1",
+  "packageManager": "yarn@4.2.1",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"

@@ -2425,14 +2425,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:3.2.11":
-  version: 3.2.11
-  resolution: "@oclif/test@npm:3.2.11"
+"@oclif/test@npm:3.2.12":
+  version: 3.2.12
+  resolution: "@oclif/test@npm:3.2.12"
   dependencies:
     "@oclif/core": "npm:^3.26.4"
     chai: "npm:^4.4.1"
     fancy-test: "npm:^3.0.14"
-  checksum: 10c0/fe0aae00b66f3366e1e15f8ca98095ab60f2e8977518bb2e54687d84d3b562fe696bf20eb7a5006486daa3a4750e1c2accbc32f5a3994c4487f1b199cf7f3f6d
+  checksum: 10c0/aa7057ad53fe37fd16ec6def1f89e93d5724b88395c49e70c3d3fe94c2a7688530678016d091020c0ace402ad41edbbf04cc338a2ac7ec7d0919eb55a5d20a6e
   languageName: node
   linkType: hard
 
@@ -2615,9 +2615,9 @@ __metadata:
   dependencies:
     "@oclif/core": "npm:^3.26.0"
     "@oclif/plugin-help": "npm:^6.0.20"
-    "@oclif/test": "npm:3.2.11"
+    "@oclif/test": "npm:3.2.12"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/inquirer": "npm:^9.0.7"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
@@ -2626,7 +2626,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.9.3"
+    oclif: "npm:4.10.1"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -2639,11 +2639,11 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.12"
-    "@types/lodash": "npm:4.17.0"
+    "@types/lodash": "npm:4.17.1"
     "@types/mocha": "npm:10.0.6"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
@@ -2716,7 +2716,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
@@ -2735,10 +2735,10 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:^20.1.4"
     "@rushstack/eslint-patch": "npm:1.10.2"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
-    "@types/lodash": "npm:4.17.0"
+    "@types/chai": "npm:4.3.15"
+    "@types/lodash": "npm:4.17.1"
     "@types/mocha": "npm:10.0.6"
-    "@types/node": "npm:20.12.7"
+    "@types/node": "npm:20.12.8"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
@@ -2774,7 +2774,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/mocha": "npm:10.0.6"
     "@types/sinon": "npm:17.0.3"
     chai: "npm:4.4.1"
@@ -2792,7 +2792,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
     dayjs: "npm:^1.11.10"
@@ -2829,7 +2829,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/mocha": "npm:10.0.6"
     "@types/pg": "npm:^8.11.4"
     chai: "npm:4.4.1"
@@ -2871,7 +2871,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/lodash": "npm:^4.17.0"
     "@types/mocha": "npm:10.0.6"
     chai: "npm:4.4.1"
@@ -2888,7 +2888,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
-    "@types/chai": "npm:4.3.14"
+    "@types/chai": "npm:4.3.15"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.1"
@@ -3807,10 +3807,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*, @types/chai@npm:4.3.14":
-  version: 4.3.14
-  resolution: "@types/chai@npm:4.3.14"
-  checksum: 10c0/7712594c1e457cb99c7227d0fe1afcbb900bbd1369494ec2d2b0d79a383057a09ab13d23d7b300287394b99995a8c017aa55e6b9a369b77910bc10310ba504af
+"@types/chai@npm:*, @types/chai@npm:4.3.15":
+  version: 4.3.15
+  resolution: "@types/chai@npm:4.3.15"
+  checksum: 10c0/a942fe35f7043e131efd68ca1822463768c417dc4ab263d7ef00f36d046e9700e24fadd0a92777dd0ea7e83d969035235fcbba32f6bde785a6c6f10aca543a7b
   languageName: node
   linkType: hard
 
@@ -3877,10 +3877,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:4.17.0, @types/lodash@npm:^4.17.0":
-  version: 4.17.0
-  resolution: "@types/lodash@npm:4.17.0"
-  checksum: 10c0/4c5b41c9a6c41e2c05d08499e96f7940bcf194dcfa84356235b630da920c2a5e05f193618cea76006719bec61c76617dff02defa9d29934f9f6a76a49291bd8f
+"@types/lodash@npm:*, @types/lodash@npm:4.17.1, @types/lodash@npm:^4.17.0":
+  version: 4.17.1
+  resolution: "@types/lodash@npm:4.17.1"
+  checksum: 10c0/af2ad8a3c8d7deb170a7ec6e18afc5ae8980576e5f7fe798d8a95a1df7222c15bdf967a25a35879f575a3b64743de00145710ee461a0051e055e94e4fe253f45
   languageName: node
   linkType: hard
 
@@ -3931,12 +3931,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.7, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4, @types/node@npm:^20.12.7":
-  version: 20.12.7
-  resolution: "@types/node@npm:20.12.7"
+"@types/node@npm:*, @types/node@npm:20.12.8, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4, @types/node@npm:^20.12.7":
+  version: 20.12.8
+  resolution: "@types/node@npm:20.12.8"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/dce80d63a3b91892b321af823d624995c61e39c6a223cc0ac481a44d337640cc46931d33efb3beeed75f5c85c3bda1d97cef4c5cd4ec333caf5dee59cff6eca0
+  checksum: 10c0/840002d20654e38a9af8cdffa215598fdb28ac4f96c5701ed672ec365ed6ccc66da299edddaa409baf13cd71bbf1128901f633b5e44e070fc236e26415805b78
   languageName: node
   linkType: hard
 
@@ -3957,13 +3957,13 @@ __metadata:
   linkType: hard
 
 "@types/pg@npm:^8.11.4":
-  version: 8.11.5
-  resolution: "@types/pg@npm:8.11.5"
+  version: 8.11.6
+  resolution: "@types/pg@npm:8.11.6"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/d64d183bee2df96cd0558231190ff629558e8c0fd3203b880f48a7d34b1eaea528d20c09b57b19c0939f369136e6c6941533592eadd71174be78d1ec0ca5e60e
+  checksum: 10c0/e68e057d9500b25cd776f4fcc547b4880c4f3b0c7b6e03c8a0e5e262b6189dd7a00f4edc8937ffc55a9f6a136a78d7e4a9b6bbe6a46122a95c134f7be66f6842
   languageName: node
   linkType: hard
 
@@ -11789,9 +11789,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.9.3":
-  version: 4.9.3
-  resolution: "oclif@npm:4.9.3"
+"oclif@npm:4.10.1":
+  version: 4.10.1
+  resolution: "oclif@npm:4.10.1"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.535.0"
     "@aws-sdk/client-s3": "npm:^3.565.0"
@@ -11818,7 +11818,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/52adcc042dc490ff094468c642bed07e7a8b2fb835a6363fe132065a7475e609a43df236f7a940b5629ab05e581f2d358acaff3aeb868b0eb8d91e549e1e9d90
+  checksum: 10c0/4f6404b9a0b1608cd7dd6b59ddd7f774d749ffd0d81ab63727d7a61c20fce73d1cdbdca32739c48ef174612ea4dae37c79a80f38259cdbfeaf9f3c277c689240
   languageName: node
   linkType: hard
 
@@ -14947,9 +14947,9 @@ __metadata:
   linkType: hard
 
 "type-fest@npm:^4.14.0":
-  version: 4.18.0
-  resolution: "type-fest@npm:4.18.0"
-  checksum: 10c0/d16d9be71ceeb5341cfa7e21d9081e843e74791fb60b5e2555caa26c259c9bcbffd965e1a1c8e571856efddb317b4b1802f73938723f399f1070e9db5b182f4e
+  version: 4.18.1
+  resolution: "type-fest@npm:4.18.1"
+  checksum: 10c0/f81c82548a1f8c107fb286661c4d0caf5ed9c9842050dc5d417326a6208ddc67e04fa30faa9f948308a7eb164497f138fe5035e3f305c87a3ba8e7e0ce2e38c6
   languageName: node
   linkType: hard
 
@@ -15848,8 +15848,8 @@ __metadata:
   linkType: hard
 
 "zod@npm:^3.22.4":
-  version: 3.23.5
-  resolution: "zod@npm:3.23.5"
-  checksum: 10c0/5c74aefe2c0bc2f00d79c5a8724dae863054653bbad640964fdb009c52573349366fa70533f0dfcb912b007421294d437f063d466f9692eb77a2b620640c2794
+  version: 3.23.6
+  resolution: "zod@npm:3.23.6"
+  checksum: 10c0/9181606c656235cf6454c60ded6ec783226acafc0206844e9729b4d3c1c6ade411b195fa2590e882d3368c82580a44869567f7aebab005bf8d8476db6186d43f
   languageName: node
   linkType: hard
