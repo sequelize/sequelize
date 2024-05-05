@@ -3076,7 +3076,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/snowflake-sdk": "npm:^1.6.20"
+    "@types/snowflake-sdk": "npm:^1.6.23"
     lodash: "npm:^4.17.21"
     snowflake-sdk: "npm:^1.10.0"
   languageName: unknown
@@ -4239,13 +4239,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/snowflake-sdk@npm:^1.6.20":
-  version: 1.6.22
-  resolution: "@types/snowflake-sdk@npm:1.6.22"
+"@types/snowflake-sdk@npm:^1.6.23":
+  version: 1.6.23
+  resolution: "@types/snowflake-sdk@npm:1.6.23"
   dependencies:
     "@types/node": "npm:*"
     generic-pool: "npm:^3.9.0"
-  checksum: 10c0/ff1a23c677ae9b23ef1b0b86ddf69e664737325293717ffe03552660080decf4429249a6cdefe03bf702b2952e3098acc6e896e0a0eaf1f14af095dbd2583d45
+  checksum: 10c0/225b8bd3084b95ad8845d602e0cbcd3396df89b26a71f13b4eb8e6cb4855f96f581ef970985376f17c04a7574b668c4cd3aa9c19935dde52cd7f6f722c1a75a9
   languageName: node
   linkType: hard
 
