@@ -2355,7 +2355,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.2, @oclif/core@npm:^3.26.4, @oclif/core@npm:^3.26.5":
+"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.2, @oclif/core@npm:^3.26.5":
   version: 3.26.5
   resolution: "@oclif/core@npm:3.26.5"
   dependencies:
@@ -2425,14 +2425,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:3.2.12":
-  version: 3.2.12
-  resolution: "@oclif/test@npm:3.2.12"
+"@oclif/test@npm:3.2.13":
+  version: 3.2.13
+  resolution: "@oclif/test@npm:3.2.13"
   dependencies:
-    "@oclif/core": "npm:^3.26.4"
+    "@oclif/core": "npm:^3.26.5"
     chai: "npm:^4.4.1"
     fancy-test: "npm:^3.0.14"
-  checksum: 10c0/aa7057ad53fe37fd16ec6def1f89e93d5724b88395c49e70c3d3fe94c2a7688530678016d091020c0ace402ad41edbbf04cc338a2ac7ec7d0919eb55a5d20a6e
+  checksum: 10c0/5a036428aca54865f204ffff62121731592a58588360a64a186b56a2774a8d78dab3a9be6c88aa9740366371622353f46c142f5adc1c5ab348fa377bbd9fec31
   languageName: node
   linkType: hard
 
@@ -2615,7 +2615,7 @@ __metadata:
   dependencies:
     "@oclif/core": "npm:^3.26.0"
     "@oclif/plugin-help": "npm:^6.0.20"
-    "@oclif/test": "npm:3.2.12"
+    "@oclif/test": "npm:3.2.13"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.16"
     "@types/inquirer": "npm:^9.0.7"
