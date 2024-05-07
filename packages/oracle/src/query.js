@@ -33,7 +33,7 @@ export class OracleQuery extends AbstractQuery {
     );
 
     this.checkLoggingOption();
-    this.outFormat = options.outFormat || this.sequelize.connectionManager.lib.OBJECT;
+    this.outFormat = options.outFormat || this.sequelize.dialect.connectionManager.lib.OBJECT;
   }
 
   getInsertIdField() {
@@ -44,7 +44,7 @@ export class OracleQuery extends AbstractQuery {
     const execOpts = { outFormat: this.outFormat, autoCommit: this.autoCommit };
 
     // We set the oracledb
-    const oracledb = this.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.dialect.connectionManager.lib;
 
     if (this.model && this.isSelectQuery()) {
       const fInfo = {};
@@ -99,13 +99,14 @@ export class OracleQuery extends AbstractQuery {
 
   async run(sql, parameters) {
     // We set the oracledb
-    const oracledb = this.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.dialect.connectionManager.lib;
     const complete = this._logQuery(sql, debug, parameters);
     const outParameters = [];
     const bindParameters = [];
     const bindDef = [];
 
-    if (!sql.test(/END;$/)) {
+    // eslint-disable-next-line unicorn/prefer-regexp-test
+    if (!sql.match(/END;$/)) {
       this.sql = sql.replace(/; *$/, '');
     } else {
       this.sql = sql;
@@ -706,7 +707,8 @@ export class OracleQuery extends AbstractQuery {
       columns.unique = acc[accKey].unique;
       // We are generating index field name in the format sequelize expects
       // to avoid creating a unique index on auto-generated index name
-      if (acc[accKey].name.test(/SYS_C[0-9]*/)) {
+      // eslint-disable-next-line unicorn/prefer-regexp-test
+      if (acc[accKey].name.match(/SYS_C[0-9]*/)) {
         acc[accKey].name = nameIndex(columns, acc[accKey].tableName).name;
       }
 

@@ -49,7 +49,7 @@ export function importDialect(dialect: string): typeof AbstractDialect {
       return require('@sequelize/oracle').OracleDialect;
     default:
       throw new Error(
-        `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite, ibmi, db2, oracle and snowflake.`,
+        `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2, oracle and snowflake.`,
       );
   }
 }

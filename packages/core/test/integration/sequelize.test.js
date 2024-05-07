@@ -61,6 +61,9 @@ const badUsernameConfig = {
   snowflake: {
     account: 'bad_account',
   },
+  oracle: {
+    username: 'bad_user',
+  },
 };
 
 const noPasswordConfig = {
@@ -92,6 +95,9 @@ const noPasswordConfig = {
   snowflake: {
     password: null,
   },
+  oracle: {
+    password: null,
+  },
 };
 
 const badAddressConfig = {
@@ -116,6 +122,9 @@ const badAddressConfig = {
   },
   ibmi: {
     system: 'bad-address',
+  },
+  oracle: {
+    port: 9999,
   },
 };
 

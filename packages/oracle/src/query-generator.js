@@ -2,11 +2,11 @@
 
 'use strict';
 
-import { each } from 'lodash/each';
-import { forOwn } from 'lodash/forOwn';
-import { includes } from 'lodash/includes';
-import { isPlainObject } from 'lodash/isPlainObject';
-import { toPath } from 'lodash/toPath';
+import each from 'lodash/each';
+import forOwn from 'lodash/forOwn';
+import includes from 'lodash/includes';
+import isPlainObject from 'lodash/isPlainObject';
+import toPath from 'lodash/toPath';
 
 import { DataTypes } from '@sequelize/core';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -276,7 +276,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
           if (options.uniqueKeys) {
             const keys = Object.keys(options.uniqueKeys);
 
-            for (const fieldIdx of keys) {
+            // eslint-disable-next-line unicorn/no-for-loop
+            for (let fieldIdx = 0; fieldIdx < keys.length; fieldIdx++) {
               const currUnique = options.uniqueKeys[keys[fieldIdx]];
 
               if (currUnique.fields.length === fields.length) {
@@ -591,12 +592,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   changeColumnQuery(table, attributes) {
     const sql = ['DECLARE', 'CONS_NAME VARCHAR2(200);', 'BEGIN'];
     for (const attributeName in attributes) {
-      if (!Object.prototype.hasOwn(attributes, attributeName)) {
+      if (!Object.hasOwn(attributes, attributeName)) {
         continue;
       }
 
       const definition = attributes[attributeName];
-      if (definition.test(/REFERENCES/)) {
+      // eslint-disable-next-line unicorn/prefer-regexp-test
+      if (definition.match(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
       } else {
         // Building the modify query
@@ -634,7 +636,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     returnAttributes,
     options,
   ) {
-    const oracledb = this.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.dialect.connectionManager.lib;
     const outBindAttributes = Object.create(null);
     const outbind = {};
     const outbindParam = this.bindParam(outbind, inbindLength);
@@ -727,7 +729,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const allColumns = {};
     const inBindBindDefMap = {};
     const outBindBindDefMap = {};
-    const oracledb = this.sequelize.connectionManager.lib;
+    const oracledb = this.sequelize.dialect.connectionManager.lib;
 
     // Generating the allColumns map
     // The data is provided as an array of objects.

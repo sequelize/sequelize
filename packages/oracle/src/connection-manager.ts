@@ -11,7 +11,6 @@ import {
   InvalidConnectionError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import assert from 'node:assert';
 import type { Connection as oracledbConnection } from 'oracledb';
 import oracledb from 'oracledb';
 // import AbstractConnectionManager from '@sequelize/core';
@@ -46,10 +45,9 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   OracleDialect,
   OracleConnection
 > {
-  readonly lib: typeof oracledb;
+  lib: typeof oracledb;
   constructor(dialect: OracleDialect) {
     super(dialect);
-    this.extendLib();
     this.lib = oracledb;
   }
 
@@ -75,31 +73,31 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   /**
    * Method for initializing the lib
    *
+   * @param config
    */
-  extendLib() {
-    if (this.sequelize.options && 'dialectOptions' in this.sequelize.options.replication.write) {
-      const dialectOptions = this.sequelize.options.replication.write.oracleOptions;
-      if (dialectOptions && 'maxRows' in dialectOptions) {
+  extendLib(config: ConnectionOptions<OracleDialect>) {
+    if (config.oracleOptions) {
+      if ('maxRows' in config.oracleOptions) {
         // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-expect-error add maxRow
-        oracledb.maxRows = this.sequelize.options.replication.write.oracleOptions.maxRows;
+        oracledb.maxRows = config.oracleOptions.maxRows;
       }
 
-      if (dialectOptions && 'fetchAsString' in dialectOptions) {
-        oracledb.fetchAsString =
-          // @ts-expect-error -- addfetchAsString
-          this.sequelize.options.replication.write.oracleOptions.fetchAsString;
-      } else {
-        oracledb.fetchAsString = [oracledb.CLOB];
+      if ('fetchAsString' in config.oracleOptions) {
+        // @ts-expect-error -- add fetchAsString
+        oracledb.fetchAsString = config.oracleOptions.fetchAsString;
       }
     }
+
+    oracledb.fetchAsString = [oracledb.CLOB];
 
     // Retrieve BLOB always as Buffer.
     oracledb.fetchAsBuffer = [oracledb.BLOB];
   }
 
   async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
-    assert(typeof config.port === 'number', 'port has not been normalized');
+    this.extendLib(config);
+    this.lib = oracledb;
     const connectionConfig: OracleConnectionOptions = {
       username: config.username,
       password: config.password,

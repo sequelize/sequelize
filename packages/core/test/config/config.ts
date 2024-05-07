@@ -157,6 +157,9 @@ export const CONFIG: DialectConfigs = {
       max: Number(env.SEQ_ORACLE_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
+    oracleOptions: {
+      stmtCacheSize: Number(env.SEQ_ORACLE_STMT_CACHE || 0),
+    },
   },
 
   ibmi: {
