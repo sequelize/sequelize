@@ -108,7 +108,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-cloudfront@npm:^3.535.0":
+"@aws-sdk/client-cloudfront@npm:^3.569.0":
   version: 3.569.0
   resolution: "@aws-sdk/client-cloudfront@npm:3.569.0"
   dependencies:
@@ -724,11 +724,11 @@ __metadata:
   linkType: hard
 
 "@aws-sdk/util-locate-window@npm:^3.0.0":
-  version: 3.568.0
-  resolution: "@aws-sdk/util-locate-window@npm:3.568.0"
+  version: 3.535.0
+  resolution: "@aws-sdk/util-locate-window@npm:3.535.0"
   dependencies:
     tslib: "npm:^2.6.2"
-  checksum: 10c0/cb1d0919498206fe266542a635cd05909456a06f007a6a550ff897a01390b239e51c2a50e47509e23c179f8df8001bd5fecd900045da5ec989c3f934c3fd3d56
+  checksum: 10c0/bbab321b02af1bca46269a4cef58f01a7e2c7b6c6cc2e752ea10552bb2b93decd1c4ee0dab22ed12afd1a9035b3aaa0e8ce6d35b8d59a3dc03935a2640ccbeef
   languageName: node
   linkType: hard
 
@@ -2169,8 +2169,8 @@ __metadata:
   linkType: hard
 
 "@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.2, @oclif/core@npm:^3.26.5":
-  version: 3.26.5
-  resolution: "@oclif/core@npm:3.26.5"
+  version: 3.26.6
+  resolution: "@oclif/core@npm:3.26.6"
   dependencies:
     "@types/cli-progress": "npm:^3.11.5"
     ansi-escapes: "npm:^4.3.2"
@@ -2200,7 +2200,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/8e62caeaacec29fed637ef32a206cbc68ce7dbffa3899aaf154817605e29ea8b9bb6a19029884473cdcabc26ab230995e57d1ee4fe41924e0cd644a4184124a9
+  checksum: 10c0/43f93c4b44a81f922b56666cbd88e5eae10820fdba36211e26ef1572aaea229ea6800f138c50aa2ebd65603904d425cc64cd5fe76b0cec20515728173d7e0463
   languageName: node
   linkType: hard
 
@@ -2439,7 +2439,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.10.3"
+    oclif: "npm:4.10.4"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -2551,7 +2551,7 @@ __metadata:
     "@types/chai": "npm:4.3.16"
     "@types/lodash": "npm:4.17.1"
     "@types/mocha": "npm:10.0.6"
-    "@types/node": "npm:20.12.8"
+    "@types/node": "npm:20.12.10"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
@@ -3751,12 +3751,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.8, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.7":
-  version: 20.12.8
-  resolution: "@types/node@npm:20.12.8"
+"@types/node@npm:*, @types/node@npm:20.12.10, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4, @types/node@npm:^20.12.7":
+  version: 20.12.10
+  resolution: "@types/node@npm:20.12.10"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/840002d20654e38a9af8cdffa215598fdb28ac4f96c5701ed672ec365ed6ccc66da299edddaa409baf13cd71bbf1128901f633b5e44e070fc236e26415805b78
+  checksum: 10c0/2cc3b6ea09894ed1a3cf39f6491ec539281580f4ff83216e7d26ce85c83237fe0543c0ca49e25b2515ccdb6c8814b488d17a64a05f536dcaea94f9d32a60c7d7
   languageName: node
   linkType: hard
 
@@ -11602,11 +11602,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.10.3":
-  version: 4.10.3
-  resolution: "oclif@npm:4.10.3"
+"oclif@npm:4.10.4":
+  version: 4.10.4
+  resolution: "oclif@npm:4.10.4"
   dependencies:
-    "@aws-sdk/client-cloudfront": "npm:^3.535.0"
+    "@aws-sdk/client-cloudfront": "npm:^3.569.0"
     "@aws-sdk/client-s3": "npm:^3.569.0"
     "@inquirer/confirm": "npm:^3.1.6"
     "@inquirer/input": "npm:^2.1.1"
@@ -11631,7 +11631,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/5c6f2fb7a5ae8e37f6b8b58eb39bce092d6ea5484b9d322630bc0091d8019c6d66241b189b727bb5d8ad1d3772e352d8be25c873164ff740be230301ac24852e
+  checksum: 10c0/da9ba5d1dc9a31066783724bd9b206dcbdf7b00656c01c8b839bb574b0bab1dd67d21dc2facbc685b2f75dbef8da101a92496546e1fd41968aa84931fb76a448
   languageName: node
   linkType: hard
 
@@ -14760,9 +14760,9 @@ __metadata:
   linkType: hard
 
 "type-fest@npm:^4.14.0":
-  version: 4.18.1
-  resolution: "type-fest@npm:4.18.1"
-  checksum: 10c0/f81c82548a1f8c107fb286661c4d0caf5ed9c9842050dc5d417326a6208ddc67e04fa30faa9f948308a7eb164497f138fe5035e3f305c87a3ba8e7e0ce2e38c6
+  version: 4.18.2
+  resolution: "type-fest@npm:4.18.2"
+  checksum: 10c0/5e669128bf7cbc9f9cea4e4862c974517a1d9f77652589c2ac0908a8be5d852d4e52593ed14f4d8a44a604fb5e8a8ec1b658e461acd8bb7592f5e5265a04cbab
   languageName: node
   linkType: hard
 
