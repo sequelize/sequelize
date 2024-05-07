@@ -1292,7 +1292,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ephys/eslint-config-typescript@npm:^20.1.4":
+"@ephys/eslint-config-typescript@npm:20.1.4":
   version: 20.1.4
   resolution: "@ephys/eslint-config-typescript@npm:20.1.4"
   dependencies:
@@ -2545,7 +2545,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/monorepo@workspace:."
   dependencies:
-    "@ephys/eslint-config-typescript": "npm:^20.1.4"
+    "@ephys/eslint-config-typescript": "npm:20.1.4"
     "@rushstack/eslint-patch": "npm:1.10.2"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.16"
@@ -2570,7 +2570,7 @@ __metadata:
     node-hook: "npm:1.0.0"
     nx: "npm:18.3.4"
     prettier: "npm:3.2.5"
-    prettier-plugin-organize-imports: "npm:^3.2.4"
+    prettier-plugin-organize-imports: "npm:3.2.4"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.13"
@@ -3751,7 +3751,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.10, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4, @types/node@npm:^20.12.7":
+"@types/node@npm:*, @types/node@npm:20.12.10, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.7":
   version: 20.12.10
   resolution: "@types/node@npm:20.12.10"
   dependencies:
@@ -12481,7 +12481,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier-plugin-organize-imports@npm:^3.2.4":
+"prettier-plugin-organize-imports@npm:3.2.4":
   version: 3.2.4
   resolution: "prettier-plugin-organize-imports@npm:3.2.4"
   peerDependencies:
