@@ -2469,7 +2469,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.10.4"
+    oclif: "npm:4.10.5"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -8001,10 +8001,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-slugger@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "github-slugger@npm:1.5.0"
-  checksum: 10c0/116f99732925f939cbfd6f2e57db1aa7e111a460db0d103e3b3f2fce6909d44311663d4542350706cad806345b9892358cc3b153674f88eeae77f43380b3bfca
+"github-slugger@npm:^2":
+  version: 2.0.0
+  resolution: "github-slugger@npm:2.0.0"
+  checksum: 10c0/21b912b6b1e48f1e5a50b2292b48df0ff6abeeb0691b161b3d93d84f4ae6b1acd6ae23702e914af7ea5d441c096453cf0f621b72d57893946618d21dd1a1c486
   languageName: node
   linkType: hard
 
@@ -11169,15 +11169,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"normalize-package-data@npm:^6.0.0":
-  version: 6.0.0
-  resolution: "normalize-package-data@npm:6.0.0"
+"normalize-package-data@npm:^6, normalize-package-data@npm:^6.0.0":
+  version: 6.0.1
+  resolution: "normalize-package-data@npm:6.0.1"
   dependencies:
     hosted-git-info: "npm:^7.0.0"
     is-core-module: "npm:^2.8.1"
     semver: "npm:^7.3.5"
     validate-npm-package-license: "npm:^3.0.4"
-  checksum: 10c0/dbd7c712c1e016a4b682640a53b44e9290c9db7b94355c71234bafee1534bef4c5dc3970c30c7ee2c4990a3c07e963e15e211b61624d58eb857d867ec71d3bb6
+  checksum: 10c0/a44ef2312e6372b70fa48eb84081bdff509476abcd7e9ea3fe2f890a20aeb02068f6739230d2fa40f6a4494450a0a51dbfe00444ea83df3411451278ec94a911
   languageName: node
   linkType: hard
 
@@ -11603,9 +11603,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.10.4":
-  version: 4.10.4
-  resolution: "oclif@npm:4.10.4"
+"oclif@npm:4.10.5":
+  version: 4.10.5
+  resolution: "oclif@npm:4.10.5"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.569.0"
     "@aws-sdk/client-s3": "npm:^3.569.0"
@@ -11616,23 +11616,24 @@ __metadata:
     "@oclif/plugin-help": "npm:^6.0.21"
     "@oclif/plugin-not-found": "npm:^3.0.14"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.14"
+    "@types/debug": "npm:^4.1.12"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
     change-case: "npm:^4"
-    debug: "npm:^4.3.3"
+    debug: "npm:^4.3.4"
     ejs: "npm:^3.1.10"
     find-yarn-workspace-root: "npm:^2.0.0"
     fs-extra: "npm:^8.1"
-    github-slugger: "npm:^1.5.0"
+    github-slugger: "npm:^2"
     got: "npm:^13"
-    lodash.template: "npm:^4.5.0"
-    normalize-package-data: "npm:^3.0.3"
+    lodash: "npm:^4.17.21"
+    normalize-package-data: "npm:^6"
     semver: "npm:^7.6.0"
     sort-package-json: "npm:^2.10.0"
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/da9ba5d1dc9a31066783724bd9b206dcbdf7b00656c01c8b839bb574b0bab1dd67d21dc2facbc685b2f75dbef8da101a92496546e1fd41968aa84931fb76a448
+  checksum: 10c0/1f0276a84f2aa18fbc44cbb597ff1f9c04c32f8e0d0af3b3e7c8c8a96523f57f1e850c2dd7fe478e945c0951842587885d5f58a4528dea7f087a33eed6f8f665
   languageName: node
   linkType: hard
 
