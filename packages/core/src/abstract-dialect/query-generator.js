@@ -77,7 +77,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     defaults(options, this.options);
 
     const modelAttributeMap = {};
-    const bind = options.bind || Object.create(null);
+    // For Oracle, the binds are needed without which there can be inconsistent
+    // binds number in the generated SQLs.
+    const bind =
+      this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const returnTypes = [];
