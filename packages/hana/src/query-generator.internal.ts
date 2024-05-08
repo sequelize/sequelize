@@ -4,10 +4,14 @@ import type { HanaDialect } from './dialect.js';
 
 const TECHNICAL_DATABASE_NAMES = Object.freeze(['hana']);
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
+  'HANA',
+  'INFORMATION_SCHEMA',
+  'PERFORMANCE_SCHEMA',
+  'SYS',
+  'hana',
   'information_schema',
-  'tiger',
-  'tiger_data',
-  'topology',
+  'performance_schema',
+  'sys'
 ]);
 
 export class HanaQueryGeneratorInternal<

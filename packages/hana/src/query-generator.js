@@ -13,20 +13,33 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 
 import each from 'lodash/each';
+import isPlainObject from 'lodash/isPlainObject';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { forOwn } from 'lodash';
+
+import { DataTypes } from '@sequelize/core';
 
 import { HanaQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
+import { HanaQueryGeneratorInternal } from './query-generator.internal.js';
 
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
 export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
+  #internals;
+
+  constructor(dialect, internals = new HanaQueryGeneratorInternal(dialect)) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
   // createSchemaQuery(schemaName, options) {
   //   // https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/create-schema-statement-data-definition
   //   if (options) {
   //     rejectInvalidOptions(
   //       'createSchemaQuery',
-  //       this.dialect.name,
+  //       this.dialect,
   //       CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   //       CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
   //       options,
@@ -46,7 +59,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'createTableQuery',
-        this.dialect.name,
+        this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
         CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -168,7 +181,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     if (options) {
       rejectInvalidOptions(
         'addColumnQuery',
-        this.dialect.name,
+        this.dialect,
         ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
         ADD_COLUMN_QUERY_SUPPORTED_OPTIONS,
         options,
@@ -208,6 +221,128 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
+  insertQuery(table, valueHash, modelAttributes, options) {
+    const query = super.insertQuery(table, valueHash, modelAttributes, options);
+    console.log('------insert query-------', query.query)
+//     query.query = `\
+// DO ()
+// BEGIN
+//   ${query.query}
+//   --SELECT * FROM ${this.quoteTable(table)} WHERE ID=CURRENT_IDENTITY_VALUE();
+//   SELECT CURRENT_IDENTITY_VALUE() from DUMMY;
+// END;`
+    const parameterList = [];
+    let regex = /\$\w+\b/g;
+    let match = regex.exec(query.query);
+    while(match != null) {
+      parameterList.push(match);
+      match = regex.exec(query.query);
+    }
+
+    const fields = [];
+    for (const key in valueHash) {
+      if (Object.hasOwn(valueHash, key)) {
+        const value = valueHash[key] ?? null;
+        // fields.push(this.quoteIdentifier(key));
+
+        if (modelAttributes[key] && modelAttributes[key].autoIncrement === true && value == null) {
+          continue;
+        }
+        fields.push(key);
+      }
+    }
+    const blockParameters = [];
+    // parameterList.forEach((parameterMatch, index) => {
+    for(let index = parameterList.length - 1; index >= 0; index--) {
+      const parameterMatch = parameterList[index];
+      const columnName = fields[index];
+      const modelAttribute = modelAttributes[columnName];
+      const type = modelAttribute.type;
+      query.query = query.query.substring(0, parameterMatch.index) + `:${columnName}`
+        + query.query.substring(parameterMatch.index + parameterMatch[0].length);
+      blockParameters.unshift(`IN ${columnName} ${type} => ${parameterMatch[0]}`);
+    }
+    // });
+
+query.query = `\
+DO (${blockParameters.join(', ')})
+BEGIN
+  ${query.query}
+  SELECT CURRENT_IDENTITY_VALUE() as "id" FROM DUMMY;
+END;`
+
+    return query;
+  }
+
+  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
+    options = options || {};
+    fieldMappedAttributes = fieldMappedAttributes || {};
+
+    const tuples = [];
+    const serials = {};
+    const allAttributes = [];
+    let onDuplicateKeyUpdate = '';
+
+    for (const fieldValueHash of fieldValueHashes) {
+      forOwn(fieldValueHash, (value, key) => {
+        if (!allAttributes.includes(key)) {
+          allAttributes.push(key);
+        }
+
+        if (
+          fieldMappedAttributes[key]
+          && fieldMappedAttributes[key].autoIncrement === true
+        ) {
+          serials[key] = true;
+        }
+      });
+    }
+
+    for (const fieldValueHash of fieldValueHashes) {
+      const values = allAttributes.map(key => {
+        if (
+          this.dialect.supports.bulkDefault
+          && serials[key] === true
+        ) {
+          // fieldValueHashes[key] ?? 'DEFAULT'
+          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        }
+
+        return this.escape(fieldValueHash[key] ?? null, {
+          // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
+          // bindParam // TODO: support bind params
+          type: fieldMappedAttributes[key]?.type,
+          replacements: options.replacements,
+        });
+      });
+
+      tuples.push(`${values.join(',')}`);
+    }
+
+    const attributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
+    const selectStatements = [];
+    for (const tuple of tuples) {
+      selectStatements.push(joinSQLFragments([
+        'SELECT',
+        tuple,
+        'FROM',
+        'DUMMY',
+        //';',
+      ]))
+    }
+
+    return joinSQLFragments([
+      'INSERT',
+      'INTO',
+      this.quoteTable(tableName),
+      `(${attributes})`,
+      '(',
+      selectStatements.join(' UNION ALL '),
+      ')',
+      ';',
+    ]);
+  }
+
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {
     let query = `DELETE FROM ${this.quoteTable(tableName)}`;
 
@@ -226,9 +361,123 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 
   attributeToSQL(attribute, options) {
     //todo
+    if (!isPlainObject(attribute)) {
+      attribute = {
+        type: attribute,
+      };
+    }
+
+    let type;
+    if (
+      attribute.type instanceof DataTypes.ENUM
+      || attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM
+    ) {
+      const enumType = attribute.type.type || attribute.type;
+      const values = enumType.options.values;
+
+      if (Array.isArray(values) && values.length > 0) {
+        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
+
+        if (attribute.type instanceof DataTypes.ARRAY) {
+          type += '[]';
+        }
+
+      } else {
+        throw new Error('Values for ENUM haven\'t been defined.');
+      }
+    }
+
+    if (!type) {
+      type = attribute.type;
+    }
+
+    let sql = type.toString();
+
+    if (attribute.allowNull === false) {
+      sql += ' NOT NULL';
+    }
+
+    if (attribute.autoIncrement) {
+      sql += ' GENERATED BY DEFAULT AS IDENTITY';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue)) {
+      sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
+    }
+
+    if (attribute.unique === true) {
+      sql += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      sql += ' PRIMARY KEY';
+    }
+
+    if (attribute.references) {
+      let schema;
+
+      if (options.schema) {
+        schema = options.schema;
+      } else if (
+        (!attribute.references.table || typeof attribute.references.table === 'string')
+        && options.table
+        && options.table.schema
+      ) {
+        schema = options.table.schema;
+      }
+
+      const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
+
+      let referencesKey;
+
+      if (!options.withoutForeignKeyConstraints) {
+        if (attribute.references.key) {
+          referencesKey = this.quoteIdentifiers(attribute.references.key);
+        } else {
+          referencesKey = this.quoteIdentifier('id');
+        }
+
+        sql += ` REFERENCES ${this.quoteTable(referencesTable)} (${referencesKey})`;
+
+        if (attribute.onDelete) {
+          sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+        }
+
+        if (attribute.onUpdate) {
+          sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+        }
+
+        if (attribute.references.deferrable) {
+          sql += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
+        }
+      }
+    }
+
+    if (attribute.comment && typeof attribute.comment === 'string') {
+      if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
+        const quotedAttr = this.quoteIdentifier(options.key);
+        const escapedCommentText = this.escape(attribute.comment);
+        sql += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
+      } else {
+        // for createTable event which does it's own parsing
+        // TODO: centralize creation of comment statements here
+        sql += ` COMMENT ${attribute.comment}`;
+      }
+    }
+
+    return sql;
+    return 'fake result of attributeToSQL() in query generator.js'
   }
 
   attributesToSQL(attributes, options) {
     //todo
+    const result = {};
+
+    for (const key in attributes) {
+      const attribute = attributes[key];
+      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+    }
+
+    return result;
   }
 }

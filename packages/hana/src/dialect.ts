@@ -3,6 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import type {
   BindCollector, SupportableNumericOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { registerHanaDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import { HanaConnectionManager, HanaClientModule, HanaConnectionOptions } from './connection-manager.js';
@@ -59,11 +60,11 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       // skipLocked: false,
       // finalTable: false,
       // returnValues: false,
-      // autoIncrement: {
+      autoIncrement: {
       //   identityInsert: false,
-      //   defaultValue: true,
+        defaultValue: false,
       //   update: true,
-      // },
+      },
       // bulkDefault: false,
       schemas: true,
       // multiDatabases: false,
@@ -159,9 +160,9 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       // searchPath: false,
       // escapeStringConstants: false,
       // globalTimeZoneConfig: false,
-      // dropTable: {
-      //   cascade: false,
-      // },
+      dropTable: {
+        cascade: true,
+      },
       // maxExecutionTimeHint: {
       //   select: false,
       // },
@@ -189,7 +190,7 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       sequelize,
       options,
       dataTypeOverrides: DataTypes,
-      minimumDatabaseVersion: 'todo QRC 4/2023',
+      minimumDatabaseVersion: '2.0.72',
       identifierDelimiter: '"',
       dataTypesDocumentationUrl: 'https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/data-types',
       name: 'hana',
@@ -203,10 +204,10 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
   }
 
   createBindCollector(): BindCollector {
-    throw new Error('Method not implemented.');
+    return createUnspecifiedOrderedBindCollector();
   }
   getDefaultSchema(): string {
-    return 'Method not implemented.';
+    return 'SYSTEM';
     throw new Error('Method not implemented.');
   }
 

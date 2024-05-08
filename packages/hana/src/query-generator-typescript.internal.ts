@@ -1,6 +1,8 @@
 import type {
   DropSchemaQueryOptions,
+  DropTableQueryOptions,
   Expression,
+  StartTransactionQueryOptions,
   TableOrModel,
 } from '@sequelize/core';
 import type {
@@ -25,6 +27,7 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type { HanaDialect } from './dialect.js';
 import { HanaQueryGeneratorInternal } from './query-generator.internal.js';
+import { DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 
 const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>([
   'cascade',
@@ -47,35 +50,18 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     this.#internals = internals;
   }
 
-  protected _getTechnicalSchemaNames() {
-    return ['HANA', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'hana', 'information_schema', 'performance_schema', 'sys'];
-  }
-
-  dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'dropSchemaQuery',
-        this.dialect,
-        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    return super.dropSchemaQuery(schemaName, options);
-  }
-
   listSchemasQuery(options?: ListSchemasQueryOptions) {
-    const schemasToSkip = this._getTechnicalSchemaNames();
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
 
     if (options && Array.isArray(options?.skip)) {
-      schemasToSkip.push(...options.skip);
+      schemasToSkip = [...schemasToSkip, ...options.skip];
     }
 
     return joinSQLFragments([
-      'SELECT SCHEMA_NAME AS `schema`',
-      'FROM INFORMATION_SCHEMA.SCHEMATA',
-      `WHERE SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+      'SELECT SCHEMA_NAME AS "schema"',
+      'FROM SYS.SCHEMAS',
+      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'SYSTEM' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
+      `AND SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
 
@@ -84,48 +70,95 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
+    //"SELECT * FROM SYS.TABLES WHERE SCHEMA_NAME != 'SYS' and SCHEMA_NAME NOT LIKE '_SYS%'"
     return joinSQLFragments([
-      'SELECT TABLE_NAME AS `tableName`,',
-      'TABLE_SCHEMA AS `schema`',
-      `FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE'`,
+      'SELECT TABLE_NAME AS "tableName",',
+      'SCHEMA_NAME AS "schema"',
+      'FROM SYS.TABLES',
+      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'SYSTEM' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
       options?.schema
-        ? `AND TABLE_SCHEMA = ${this.escape(options.schema)}`
-        : `AND TABLE_SCHEMA NOT IN (${this._getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
-      'ORDER BY TABLE_SCHEMA, TABLE_NAME',
+        ? `AND SCHEMA_NAME = ${this.escape(options.schema)}`
+        : `AND SCHEMA_NAME NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+      'ORDER BY SCHEMA_NAME, TABLE_NAME',
+    ]);
+  }
+
+  dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {
+    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
+
+    if (this.dialect.supports.dropTable.cascade) {
+      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'dropTableQuery',
+        this.dialect,
+        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    const dropSql = joinSQLFragments([
+      'DROP TABLE',
+      this.quoteTable(tableName),
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'DO BEGIN',
+      'DECLARE table_count INTEGER;',
+      `SELECT COUNT(*) INTO table_count FROM TABLES`,
+      `WHERE TABLE_NAME = '${table.tableName}' AND SCHEMA_NAME = '${table.schema}';`,
+      'IF :table_count > 0 THEN',
+      `  EXEC '` + dropSql + `';`,
+      'END IF;',
+      'END;',
     ]);
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
     const table = this.extractTableDetails(tableName);
 
-    return joinSQLFragments([
-      'SELECT c.CONSTRAINT_SCHEMA AS constraintSchema,',
-      'c.CONSTRAINT_NAME AS constraintName,',
-      'c.CONSTRAINT_TYPE AS constraintType,',
-      'c.TABLE_SCHEMA AS tableSchema,',
-      'c.TABLE_NAME AS tableName,',
-      'kcu.COLUMN_NAME AS columnNames,',
-      'kcu.REFERENCED_TABLE_SCHEMA AS referencedTableSchema,',
-      'kcu.REFERENCED_TABLE_NAME AS referencedTableName,',
-      'kcu.REFERENCED_COLUMN_NAME AS referencedColumnNames,',
-      'r.DELETE_RULE AS deleteAction,',
-      'r.UPDATE_RULE AS updateAction',
-      'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS c',
-      'LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS r ON c.CONSTRAINT_CATALOG = r.CONSTRAINT_CATALOG',
-      'AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.TABLE_NAME = r.TABLE_NAME',
-      'LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON c.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG',
-      'AND c.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND c.TABLE_NAME = kcu.TABLE_NAME',
-      `WHERE c.TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND c.TABLE_SCHEMA = ${this.escape(table.schema)}`,
-      options?.columnName ? `AND kcu.COLUMN_NAME = ${this.escape(options.columnName)}` : '',
-      options?.constraintName ? `AND c.CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-      options?.constraintType ? `AND c.CONSTRAINT_TYPE = ${this.escape(options.constraintType)}` : '',
-      'ORDER BY c.CONSTRAINT_NAME, kcu.ORDINAL_POSITION',
-    ]);
+    if (options?.constraintType === 'FOREIGN KEY') {
+      // return 'SELECT * FROM "SYS"."REFERENTIAL_CONSTRAINTS"';
+      return joinSQLFragments([
+        'SELECT SCHEMA_NAME AS "constraintSchema",',
+        'CONSTRAINT_NAME AS "constraintName",',
+        `'FOREIGN KEY' AS "constraintType",`,
+        'SCHEMA_NAME AS "tableSchema",',
+        'TABLE_NAME AS "tableName",',
+        'COLUMN_NAME AS "columnNames",',
+        'REFERENCED_SCHEMA_NAME AS "referencedTableSchema",',
+        'REFERENCED_TABLE_NAME AS "referencedTableName",',
+        'REFERENCED_COLUMN_NAME AS "referencedColumnNames",',
+        'REFERENCED_CONSTRAINT_NAME AS "referencedConstraintNames",',
+        'DELETE_RULE AS "deleteAction",',
+        'UPDATE_RULE AS "updateAction"',
+        'FROM SYS.REFERENTIAL_CONSTRAINTS',
+        `WHERE TABLE_NAME = ${this.escape(table.tableName)}`,
+        `AND SCHEMA_NAME = ${this.escape(table.schema)}`,
+        options?.columnName ? `AND COLUMN_NAME = ${this.escape(options.columnName)}` : '',
+        options?.constraintName ? `AND CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+        'ORDER BY CONSTRAINT_NAME, POSITION',
+      ]);
+    }
+    return 'unsupported method showConstraintsQuery, type not FOREIGN KEY';
   }
 
   showIndexesQuery(tableName: TableOrModel) {
-    return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT * FROM SYS.INDEXES',
+      `WHERE SCHEMA_NAME = ${this.escape(table.schema)}`,
+      `and TABLE_NAME = ${this.escape(table.tableName)}`,
+    ]);
+
+    // `SELECT * FROM SYS.INDEXES WHERE SCHEMA_NAME ='${}' and TABLE_NAME = '' ${this.quoteTable(tableName)}`;
   }
 
   getToggleForeignKeyChecksQuery(enable: boolean): string {
@@ -172,23 +205,47 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   versionQuery() {
-    return `SELECT "VALUE" AS "version" FROM SYS.M_SYSTEM_OVERVIEW WHERE "SECTION" = 'System' and "NAME" = 'Version'`;
+    return `SELECT "VALUE" AS "version" FROM SYS.M_SYSTEM_OVERVIEW `
+      + `WHERE "SECTION" = 'System' and "NAME" = 'Version';`;
   }
 
-  protected _addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = '';
-    if (options.limit != null) {
-      fragment += ` LIMIT ${this.escape(options.limit, options)}`;
-    } else if (options.offset) {
-      // limit must be specified if offset is specified.
-      fragment += ` LIMIT 18446744073709551615`;
-    }
+  tableExistsQuery(tableName: TableOrModel): string {
+    const table = this.extractTableDetails(tableName);
 
-    if (options.offset) {
-      fragment += ` OFFSET ${this.escape(options.offset, options)}`;
-    }
-
-    return fragment;
+    return `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = ${this.escape(table.schema)} AND TABLE_NAME = ${this.escape(table.tableName)}`;
   }
 
+  startTransactionQuery(options?: StartTransactionQueryOptions) {
+    console.log('generator.ts hana startTransactionQuery', options)
+    const transactionId = 'test_transaction';
+    return `SAVEPOINT ${this.quoteIdentifier(transactionId, true)};`;
+  }
+
+  // /**
+  //  * Returns a query that commits a transaction.
+  //  *
+  //  * @param  {Transaction} transaction An object with options.
+  //  * @returns {string}         The generated sql query.
+  //  * @private
+  //  */
+  // commitTransactionQuery(transaction) {
+  //   if (transaction.parent) {
+  //     return;
+  //   }
+
+  //   return 'COMMIT;';
+  // }
+
+  /**
+   * Returns a query that rollbacks a transaction.
+   *
+   * @param  {Transaction} transaction
+   * @returns {string}         The generated sql query.
+   * @private
+   */
+  rollbackTransactionQuery() {
+    console.log('generator.ts hana ···')
+    const transactionId = 'test_transaction';
+    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transactionId, true)};`;
+  }
 }

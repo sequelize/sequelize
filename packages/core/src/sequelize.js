@@ -594,9 +594,9 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     await this.query(
-      `SELECT 1+1 AS ${this.options.dialect === 'hana' ? '"result"' : 'result'}`
+      `SELECT 1+1 AS ${this.dialect.name === 'hana' ? '"result"' : 'result'}`
       + `${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`
-      + `${this.options.dialect === 'hana' ? ' FROM DUMMY' : ''}`,
+      + `${this.dialect.name === 'hana' ? ' FROM DUMMY' : ''}`,
       options,
     );
   }

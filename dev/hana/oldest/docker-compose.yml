@@ -1,0 +1,44 @@
+services:
+  hana-latest:
+    container_name: sequelize-hana-oldest
+    image: saplabs/hanaexpress:latest
+    hostname: 3bff6b50f2f1
+
+    ports:
+      - "39013:39013"
+      - "39017:39017"
+      - "39041-39045:39041-39045"
+      - "1128-1129:1128-1129"
+      - "59013-59014:59013-59014"
+    ulimits:
+     nofile:
+       soft: 1048576
+       hard: 1048576
+    sysctls:
+      - kernel.shmmax=1073741824
+      - net.ipv4.ip_local_port_range=40000 60999
+      - kernel.shmall=8388608
+
+    command: ["--passwords-url", "file:///hana/mounts/hxepassword.json", "--agree-to-sap-license"]
+
+    environment:
+      SEQ_HANA_USER: system
+      SEQ_HANA_PW: HXEHana1
+      SEQ_HANA_DB: HXE
+    volumes:
+      - /data/hxe:/hana/mounts
+    healthcheck:
+      # test: ["CMD", "/bin/sh", "-c", "echo testing", "nc -z localhost 39013 -v"]
+      test: ["CMD", "/bin/bash", "-c", "source ~/.bashrc && HDB info"]
+      # test: ["CMD", "/bin/bash", "-c", "hdbsql", "-i90", "-dHXE", "-usystem", "-pHXEHana1", "'select 39013 from dummy;'"]
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-hana-oldest-network
+
+volumes:
+  hana-latest:
+    name: sequelize-hana-oldest-volume

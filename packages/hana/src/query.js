@@ -23,6 +23,7 @@ export class HanaQuery extends AbstractQuery {
 
 
     console.log('before run', sql);
+    console.log('parameters', parameters);
     // // const result = await exec(sql);
     // return result;
 
@@ -86,7 +87,7 @@ export class HanaQuery extends AbstractQuery {
     switch (errCode) {
       // todo format error from DB query
       default:
-        return new sequelizeErrors.DatabaseError(err);
+        return new DatabaseError(err);
     }
   }
 }

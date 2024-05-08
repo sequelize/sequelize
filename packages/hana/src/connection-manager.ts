@@ -22,13 +22,7 @@ import type { AbstractDialect } from '@sequelize/core';
 import * as HanaClient from '@sap/hana-client';
 import type { HanaDialect } from './dialect.js';
 
-const debug = logger.debugContext('connection:mysql');
-
-// TODO: once the code has been split into packages, we won't need to lazy load mysql2 anymore
-type Lib = {
-  createConnection: typeof hanaCreateConnection,
-  Connection: Connection,
-};
+const debug = logger.debugContext('connection:hana');
 
 export type HanaClientModule = typeof HanaClient;
 
@@ -136,35 +130,12 @@ export class HanaConnectionManager extends AbstractConnectionManager<
     const typeCast: ((field: any, next: () => void) => any) = (field, next) => this.#typecast(field, next);
     const connectionConfig: HanaConnectionOptions = {
       ...config
-      // ...(config.host == null ? null : { host: config.host }),
-      // port: config.port,
-      // ...(config.username == null ? null : { user: config.username }),
-      // ...(config.password == null ? null : { password: config.password }),
-      // ...(config.database == null ? null : { database: config.database }),
-      // ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
-      // typeCast,
     };
 
     try {
       const connection: HanaConnection = await createConnection(this.#lib, connectionConfig);
 
       debug('connection acquired');
-
-      // connection.on('error', (error: unknown) => {
-      //   if (!isNodeError(error)) {
-      //     return;
-      //   }
-
-      //   switch (error.code) {
-      //     case 'ESOCKET':
-      //     case 'ECONNRESET':
-      //     case 'EPIPE':
-      //     case 'PROTOCOL_CONNECTION_LOST':
-      //       void this.pool.destroy(connection);
-      //       break;
-      //     default:
-      //   }
-      // });
 
       if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
         // set timezone for this connection
@@ -211,15 +182,7 @@ export class HanaConnectionManager extends AbstractConnectionManager<
   }
 
   validate(connection: HanaConnection) {
-    return connection
-      // @ts-expect-error -- undeclared var
-      && !connection._fatalError
-      // @ts-expect-error -- undeclared var
-      && !connection._protocolError
-      // @ts-expect-error -- undeclared var
-      && !connection._closing
-      // @ts-expect-error -- undeclared var
-      && !connection.stream.destroyed;
+    return connection && connection.state() === 'connected';
   }
 }
 
