@@ -2439,7 +2439,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.10.4"
+    oclif: "npm:4.10.5"
     rimraf: "npm:5.0.5"
     zod: "npm:^3.22.4"
   bin:
@@ -2489,7 +2489,7 @@ __metadata:
     rimraf: "npm:5.0.5"
     semver: "npm:^7.3"
     sequelize-pool: "npm:^8.0.0"
-    sinon: "npm:17.0.1"
+    sinon: "npm:17.0.2"
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.14.0"
@@ -2551,7 +2551,7 @@ __metadata:
     "@types/chai": "npm:4.3.16"
     "@types/lodash": "npm:4.17.1"
     "@types/mocha": "npm:10.0.6"
-    "@types/node": "npm:20.12.10"
+    "@types/node": "npm:20.12.11"
     chai: "npm:4.4.1"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
@@ -2594,7 +2594,7 @@ __metadata:
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
-    sinon: "npm:17.0.1"
+    sinon: "npm:17.0.2"
     tedious: "npm:^18.1.0"
   languageName: unknown
   linkType: soft
@@ -2826,7 +2826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sinonjs/commons@npm:^3.0.0":
+"@sinonjs/commons@npm:^3.0.0, @sinonjs/commons@npm:^3.0.1":
   version: 3.0.1
   resolution: "@sinonjs/commons@npm:3.0.1"
   dependencies:
@@ -3751,12 +3751,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.10, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.7":
-  version: 20.12.10
-  resolution: "@types/node@npm:20.12.10"
+"@types/node@npm:*, @types/node@npm:20.12.11, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.7":
+  version: 20.12.11
+  resolution: "@types/node@npm:20.12.11"
   dependencies:
     undici-types: "npm:~5.26.4"
-  checksum: 10c0/2cc3b6ea09894ed1a3cf39f6491ec539281580f4ff83216e7d26ce85c83237fe0543c0ca49e25b2515ccdb6c8814b488d17a64a05f536dcaea94f9d32a60c7d7
+  checksum: 10c0/efaa7b08c50ba6e6982ac7d531ba08d5935539ba76e954807df1ff9382a319ead7e003ccaca5ad7cf33ecf53f212507f7c1f2794bd2ff52df6365fef21f6e1fb
   languageName: node
   linkType: hard
 
@@ -6196,7 +6196,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:^5.1.0":
+"diff@npm:^5.1.0, diff@npm:^5.2.0":
   version: 5.2.0
   resolution: "diff@npm:5.2.0"
   checksum: 10c0/aed0941f206fe261ecb258dc8d0ceea8abbde3ace5827518ff8d302f0fc9cc81ce116c4d8f379151171336caf0516b79e01abdc1ed1201b6440d895a66689eb4
@@ -7998,10 +7998,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"github-slugger@npm:^1.5.0":
-  version: 1.5.0
-  resolution: "github-slugger@npm:1.5.0"
-  checksum: 10c0/116f99732925f939cbfd6f2e57db1aa7e111a460db0d103e3b3f2fce6909d44311663d4542350706cad806345b9892358cc3b153674f88eeae77f43380b3bfca
+"github-slugger@npm:^2":
+  version: 2.0.0
+  resolution: "github-slugger@npm:2.0.0"
+  checksum: 10c0/21b912b6b1e48f1e5a50b2292b48df0ff6abeeb0691b161b3d93d84f4ae6b1acd6ae23702e914af7ea5d441c096453cf0f621b72d57893946618d21dd1a1c486
   languageName: node
   linkType: hard
 
@@ -10951,7 +10951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nise@npm:^5.1.4, nise@npm:^5.1.5":
+"nise@npm:^5.1.4, nise@npm:^5.1.5, nise@npm:^5.1.9":
   version: 5.1.9
   resolution: "nise@npm:5.1.9"
   dependencies:
@@ -11168,7 +11168,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"normalize-package-data@npm:^6.0.0":
+"normalize-package-data@npm:^6, normalize-package-data@npm:^6.0.0":
   version: 6.0.1
   resolution: "normalize-package-data@npm:6.0.1"
   dependencies:
@@ -11602,9 +11602,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.10.4":
-  version: 4.10.4
-  resolution: "oclif@npm:4.10.4"
+"oclif@npm:4.10.5":
+  version: 4.10.5
+  resolution: "oclif@npm:4.10.5"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.569.0"
     "@aws-sdk/client-s3": "npm:^3.569.0"
@@ -11615,23 +11615,24 @@ __metadata:
     "@oclif/plugin-help": "npm:^6.0.21"
     "@oclif/plugin-not-found": "npm:^3.0.14"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.14"
+    "@types/debug": "npm:^4.1.12"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
     change-case: "npm:^4"
-    debug: "npm:^4.3.3"
+    debug: "npm:^4.3.4"
     ejs: "npm:^3.1.10"
     find-yarn-workspace-root: "npm:^2.0.0"
     fs-extra: "npm:^8.1"
-    github-slugger: "npm:^1.5.0"
+    github-slugger: "npm:^2"
     got: "npm:^13"
-    lodash.template: "npm:^4.5.0"
-    normalize-package-data: "npm:^3.0.3"
+    lodash: "npm:^4.17.21"
+    normalize-package-data: "npm:^6"
     semver: "npm:^7.6.0"
     sort-package-json: "npm:^2.10.0"
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/da9ba5d1dc9a31066783724bd9b206dcbdf7b00656c01c8b839bb574b0bab1dd67d21dc2facbc685b2f75dbef8da101a92496546e1fd41968aa84931fb76a448
+  checksum: 10c0/1f0276a84f2aa18fbc44cbb597ff1f9c04c32f8e0d0af3b3e7c8c8a96523f57f1e850c2dd7fe478e945c0951842587885d5f58a4528dea7f087a33eed6f8f665
   languageName: node
   linkType: hard
 
@@ -13328,7 +13329,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"semver@npm:7.6.0, semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
+"semver@npm:7.6.0":
   version: 7.6.0
   resolution: "semver@npm:7.6.0"
   dependencies:
@@ -13345,6 +13346,15 @@ __metadata:
   bin:
     semver: bin/semver.js
   checksum: 10c0/e3d79b609071caa78bcb6ce2ad81c7966a46a7431d9d58b8800cfa9cb6a63699b3899a0e4bcce36167a284578212d9ae6942b6929ba4aa5015c079a67751d42d
+  languageName: node
+  linkType: hard
+
+"semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0":
+  version: 7.6.1
+  resolution: "semver@npm:7.6.1"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/fd28315954ffc80204df0cb5c62355160ebf54059f5ffe386e9903162ddf687ed14004c30f6e5347fa695fc77bafa242798af8d351f1d260207f007cfbeccb82
   languageName: node
   linkType: hard
 
@@ -13585,6 +13595,20 @@ __metadata:
     nise: "npm:^5.1.5"
     supports-color: "npm:^7.2.0"
   checksum: 10c0/63e678bd58a959ebf69ddadb5410e9c31bd161b848b9dbec5f34f7e1485a8681810cd27d37bde072b68915b41b498f30bb5fb890c73e7a51dc281d1b1d573cfb
+  languageName: node
+  linkType: hard
+
+"sinon@npm:17.0.2":
+  version: 17.0.2
+  resolution: "sinon@npm:17.0.2"
+  dependencies:
+    "@sinonjs/commons": "npm:^3.0.1"
+    "@sinonjs/fake-timers": "npm:^11.2.2"
+    "@sinonjs/samsam": "npm:^8.0.0"
+    diff: "npm:^5.2.0"
+    nise: "npm:^5.1.9"
+    supports-color: "npm:^7"
+  checksum: 10c0/0d16a107ed72a6c5bc2a6b4d071909675111a6b863906b1bdba49489bcd6cf19369e788224d0cc2e4370ef8a2d73fd52552930be58918f829f371131e5064b7f
   languageName: node
   linkType: hard
 
@@ -14256,7 +14280,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"supports-color@npm:^7.0.0, supports-color@npm:^7.1.0, supports-color@npm:^7.2.0":
+"supports-color@npm:^7, supports-color@npm:^7.0.0, supports-color@npm:^7.1.0, supports-color@npm:^7.2.0":
   version: 7.2.0
   resolution: "supports-color@npm:7.2.0"
   dependencies:
@@ -15661,8 +15685,8 @@ __metadata:
   linkType: hard
 
 "zod@npm:^3.22.4":
-  version: 3.23.6
-  resolution: "zod@npm:3.23.6"
-  checksum: 10c0/9181606c656235cf6454c60ded6ec783226acafc0206844e9729b4d3c1c6ade411b195fa2590e882d3368c82580a44869567f7aebab005bf8d8476db6186d43f
+  version: 3.23.7
+  resolution: "zod@npm:3.23.7"
+  checksum: 10c0/c746d8882d4797597c945fea293dc69caba6de90b82037ca8ee8a1acaea8c5f8ce73492b4a5fac3100a11a99807737b2fcd51db93d9e9ca4d6b938faed67b6e3
   languageName: node
   linkType: hard
