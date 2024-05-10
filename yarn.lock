@@ -2472,7 +2472,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.10.6"
+    oclif: "npm:4.10.7"
     rimraf: "npm:5.0.6"
     zod: "npm:^3.22.4"
   bin:
@@ -11604,9 +11604,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.10.6":
-  version: 4.10.6
-  resolution: "oclif@npm:4.10.6"
+"oclif@npm:4.10.7":
+  version: 4.10.7
+  resolution: "oclif@npm:4.10.7"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.569.0"
     "@aws-sdk/client-s3": "npm:^3.569.0"
@@ -11630,10 +11630,11 @@ __metadata:
     normalize-package-data: "npm:^6"
     semver: "npm:^7.6.0"
     sort-package-json: "npm:^2.10.0"
+    tiny-jsonc: "npm:^1.0.1"
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/b05ef6c2416e2d8542343b32f14b90fb68150eecf41a5820b915d652c9815c3ca2c3006f7e5333e44525cef623f52e9fb295aeeb5879d0d7ebccc8db06da7af8
+  checksum: 10c0/cdced0aa24aafde352092f461ad77b3794f6c2df6316174731f313f27162dbe60eae64da472af532fad5a8e60ea96f65eac5408ecab545994e7177d03bec3b45
   languageName: node
   linkType: hard
 
@@ -14459,6 +14460,13 @@ __metadata:
   version: 2.3.8
   resolution: "through@npm:2.3.8"
   checksum: 10c0/4b09f3774099de0d4df26d95c5821a62faee32c7e96fb1f4ebd54a2d7c11c57fe88b0a0d49cf375de5fee5ae6bf4eb56dbbf29d07366864e2ee805349970d3cc
+  languageName: node
+  linkType: hard
+
+"tiny-jsonc@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "tiny-jsonc@npm:1.0.1"
+  checksum: 10c0/b79324699968c75f20d44b8db1b2da55a1443252d8b1104050d20505b5cbad9f207135c54432d85a543d4d3ec0b652597446495e39f6f5b596c1f2b8ac7e39d9
   languageName: node
   linkType: hard
 
