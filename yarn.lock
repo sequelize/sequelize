@@ -2473,7 +2473,7 @@ __metadata:
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
     oclif: "npm:4.10.6"
-    rimraf: "npm:5.0.5"
+    rimraf: "npm:5.0.6"
     zod: "npm:^3.22.4"
   bin:
     sequelize: ./bin/run.js
@@ -2519,7 +2519,7 @@ __metadata:
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
     retry-as-promised: "npm:^7.0.4"
-    rimraf: "npm:5.0.5"
+    rimraf: "npm:5.0.6"
     semver: "npm:^7.3"
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:17.0.2"
@@ -13152,14 +13152,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:5.0.5":
-  version: 5.0.5
-  resolution: "rimraf@npm:5.0.5"
+"rimraf@npm:5.0.6":
+  version: 5.0.6
+  resolution: "rimraf@npm:5.0.6"
   dependencies:
     glob: "npm:^10.3.7"
   bin:
     rimraf: dist/esm/bin.mjs
-  checksum: 10c0/d50dbe724f33835decd88395b25ed35995077c60a50ae78ded06e0185418914e555817aad1b4243edbff2254548c2f6ad6f70cc850040bebb4da9e8cc016f586
+  checksum: 10c0/7e750e2d9073c058895c23622fdde6419acbdfdbba2f1baf4c14ce44c3424d1a83a513955ed32161fc13df54ab4182ceda1ca448720ceb6d834020b5ca0a7717
   languageName: node
   linkType: hard
 
