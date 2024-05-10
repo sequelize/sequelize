@@ -125,12 +125,10 @@ export class OracleQuery extends AbstractQuery {
         this.bindParameters = parameters;
       } else {
         let matcher = new RegExp(/(:)(([^\d])\w+)/gm)
+        let result;
         while ( result = matcher.exec(this.sql) ) {
           bindParameters.push(parameters[result[2]])
         }        
-        // Object.values(parameters).forEach(value => {
-        //   bindParameters.push(value);
-        // });
         bindParameters.push(...outParameters);
         Object.assign(this.bindParameters, bindParameters);
       }
