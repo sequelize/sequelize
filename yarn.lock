@@ -2525,15 +2525,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-not-found@npm:^3.1.8":
-  version: 3.1.8
-  resolution: "@oclif/plugin-not-found@npm:3.1.8"
+"@oclif/plugin-not-found@npm:^3.1.9":
+  version: 3.1.9
+  resolution: "@oclif/plugin-not-found@npm:3.1.9"
   dependencies:
     "@inquirer/confirm": "npm:^3.1.6"
     "@oclif/core": "npm:^3.26.5"
     chalk: "npm:^5.3.0"
     fast-levenshtein: "npm:^3.0.0"
-  checksum: 10c0/12239811e0a3d9c8000ca3177bb8639939bf43329498d2bd78742c53f367c271ba0c5677f2f34eeca062fd71bf13e2f7ca34df504d7db73ddd128d686c313808
+  checksum: 10c0/e7b17e29dc89032d116a6914bad260f855a1f1578382473c0b532efa8067710701bcd48cad225357dc61f8d4b5d4c0e7bdf07ba1055c012d77fa9ef8b6c9e1c8
   languageName: node
   linkType: hard
 
@@ -2751,7 +2751,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.10.10"
+    oclif: "npm:4.10.11"
     rimraf: "npm:5.0.7"
     zod: "npm:^3.22.4"
   bin:
@@ -11883,9 +11883,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.10.10":
-  version: 4.10.10
-  resolution: "oclif@npm:4.10.10"
+"oclif@npm:4.10.11":
+  version: 4.10.11
+  resolution: "oclif@npm:4.10.11"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.574.0"
     "@aws-sdk/client-s3": "npm:^3.569.0"
@@ -11894,7 +11894,7 @@ __metadata:
     "@inquirer/select": "npm:^2.3.2"
     "@oclif/core": "npm:^3.26.5"
     "@oclif/plugin-help": "npm:^6.0.21"
-    "@oclif/plugin-not-found": "npm:^3.1.8"
+    "@oclif/plugin-not-found": "npm:^3.1.9"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.18"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
@@ -11913,7 +11913,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/b00e23464f9ce2d7ee7bad778d72150736fa415d16e4a0218723fe2d50f9f33d514f6b0d9d0e8b04044a90c31166783b4fbdc0ef3adf0e0e90b152c605195634
+  checksum: 10c0/3bbb86470a648dda481c5f6c44c904d047376d3ad870438a77dc3de0407ea18f20a0f337e9af70406629d621540adba0deca46dd2aef58cd2a1670930d8d0877
   languageName: node
   linkType: hard
 
