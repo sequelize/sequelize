@@ -4050,7 +4050,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.12, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.4, @types/node@npm:^20.12.7":
+"@types/node@npm:*, @types/node@npm:20.12.12, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.7":
   version: 20.12.12
   resolution: "@types/node@npm:20.12.12"
   dependencies:
