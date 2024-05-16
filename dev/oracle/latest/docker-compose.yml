@@ -5,8 +5,8 @@ services:
     container_name: oraclexedb
     image: gvenzl/oracle-free:23.4
     environment:
-      ORACLE_PASSWORD: password
-      SEQ_ORACLE_DB: FREEPDB1
+      - ORACLE_PASSWORD: password
+      - SEQ_ORACLE_DB: FREEPDB1
     ports:
       - 1521:1521
     healthcheck:
