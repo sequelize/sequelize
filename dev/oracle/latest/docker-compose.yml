@@ -6,6 +6,7 @@ services:
     image: gvenzl/oracle-free:23.4
     environment:
       ORACLE_PASSWORD: password
+      SEQ_DB: FREEPDB1
     ports:
       - 1521:1521
     healthcheck:
