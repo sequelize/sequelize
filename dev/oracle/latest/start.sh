@@ -17,6 +17,6 @@ docker-compose -p oraclexedb up -d
 docker cp ../privileges.sql oraclexedb:/opt/oracle/.
 
 # Granting all the needed privileges to sequelizetest user
-docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
+docker exec -t oraclexedb sqlplus system/password@localhost:1521/XEPDB1 @privileges.sql
 
 echo "Local Oracle DB is ready for use!"
