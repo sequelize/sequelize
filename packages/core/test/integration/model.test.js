@@ -1427,7 +1427,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           case 'oracle': {
-            expect(error.message).to.match(/ORA-00942: table or view does not exist/);
+            expect(error.message).to.match(/^ORA-00942:/);
 
             break;
           }

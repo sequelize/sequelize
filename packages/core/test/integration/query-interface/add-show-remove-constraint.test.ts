@@ -524,78 +524,73 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
       });
 
-      // Oracle doesn't allow user to drop constraints of other schema.
-      // to do so, grant references with table and user name should be done.
-      (dialect === 'oracle' ? it.skip : it)(
-        'should add, show and delete a PRIMARY & FOREIGN KEY constraint',
-        async () => {
-          const foreignKeys = await queryInterface.showConstraints(
-            { tableName: 'actors', schema },
-            { columnName: 'level_id', constraintType: 'FOREIGN KEY' },
-          );
-          expect(foreignKeys).to.have.length(1);
-          expect(foreignKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
-            constraintSchema: schema,
-            constraintName: 'custom_constraint_name',
-            constraintType: 'FOREIGN KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-            ...(dialect !== 'oracle' && { tableSchema: schema }),
-            tableName: 'actors',
-            columnNames: ['level_id'],
-            referencedTableSchema: schema,
-            referencedTableName: 'levels',
-            referencedColumnNames: ['id'],
-            deleteAction: 'CASCADE',
-            ...(dialect !== 'oracle' && {
-              updateAction:
-                dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
-            }),
-            ...(sequelize.dialect.supports.constraints.deferrable && {
-              deferrable: 'INITIALLY_IMMEDIATE',
-            }),
-          });
+      it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
+        const foreignKeys = await queryInterface.showConstraints(
+          { tableName: 'actors', schema },
+          { columnName: 'level_id', constraintType: 'FOREIGN KEY' },
+        );
+        expect(foreignKeys).to.have.length(1);
+        expect(foreignKeys[0]).to.deep.equal({
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          constraintSchema: schema,
+          constraintName: 'custom_constraint_name',
+          constraintType: 'FOREIGN KEY',
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(dialect !== 'oracle' && { tableSchema: schema }),
+          tableName: 'actors',
+          columnNames: ['level_id'],
+          referencedTableSchema: schema,
+          referencedTableName: 'levels',
+          referencedColumnNames: ['id'],
+          deleteAction: 'CASCADE',
+          ...(dialect !== 'oracle' && {
+            updateAction:
+              dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+          }),
+          ...(sequelize.dialect.supports.constraints.deferrable && {
+            deferrable: 'INITIALLY_IMMEDIATE',
+          }),
+        });
 
-          await queryInterface.removeConstraint(
-            { tableName: 'actors', schema },
-            'custom_constraint_name',
-          );
-          const fkAfterRemove = await queryInterface.showConstraints(
-            { tableName: 'actors', schema },
-            { constraintName: 'custom_constraint_name' },
-          );
-          expect(fkAfterRemove).to.have.length(0);
+        await queryInterface.removeConstraint(
+          { tableName: 'actors', schema },
+          'custom_constraint_name',
+        );
+        const fkAfterRemove = await queryInterface.showConstraints(
+          { tableName: 'actors', schema },
+          { constraintName: 'custom_constraint_name' },
+        );
+        expect(fkAfterRemove).to.have.length(0);
 
-          const primaryKeys = await queryInterface.showConstraints(
-            { tableName: 'levels', schema },
-            { columnName: 'id', constraintType: 'PRIMARY KEY' },
-          );
-          expect(primaryKeys).to.have.length(1);
-          expect(primaryKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
-            constraintSchema: schema,
-            constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
-            constraintType: 'PRIMARY KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
-            ...(dialect !== 'oracle' && { tableSchema: schema }),
-            tableName: 'levels',
-            columnNames: ['id'],
-            ...(sequelize.dialect.supports.constraints.deferrable && {
-              deferrable: 'INITIALLY_IMMEDIATE',
-            }),
-          });
+        const primaryKeys = await queryInterface.showConstraints(
+          { tableName: 'levels', schema },
+          { columnName: 'id', constraintType: 'PRIMARY KEY' },
+        );
+        expect(primaryKeys).to.have.length(1);
+        expect(primaryKeys[0]).to.deep.equal({
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          constraintSchema: schema,
+          constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
+          constraintType: 'PRIMARY KEY',
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(dialect !== 'oracle' && { tableSchema: schema }),
+          tableName: 'levels',
+          columnNames: ['id'],
+          ...(sequelize.dialect.supports.constraints.deferrable && {
+            deferrable: 'INITIALLY_IMMEDIATE',
+          }),
+        });
 
-          await queryInterface.removeConstraint(
-            { tableName: 'levels', schema },
-            ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
-          );
-          const pkAfterRemove = await queryInterface.showConstraints(
-            { tableName: 'levels', schema },
-            { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' },
-          );
-          expect(pkAfterRemove).to.have.length(0);
-        },
-      );
+        await queryInterface.removeConstraint(
+          { tableName: 'levels', schema },
+          ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
+        );
+        const pkAfterRemove = await queryInterface.showConstraints(
+          { tableName: 'levels', schema },
+          { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' },
+        );
+        expect(pkAfterRemove).to.have.length(0);
+      });
 
       describe('when tables are present in different schemas', () => {
         beforeEach(async () => {
