@@ -92,7 +92,7 @@
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
     "rimraf": "5.0.7",
-    "sinon": "17.0.2",
+    "sinon": "18.0.0",
     "sinon-chai": "3.7.0"
   },
   "keywords": [
