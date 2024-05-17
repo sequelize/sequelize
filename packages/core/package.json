@@ -78,7 +78,7 @@
     "@types/sinon-chai": "3.2.12",
     "@types/uuid": "9.0.8",
     "chai": "4.4.1",
-    "chai-as-promised": "7.1.1",
+    "chai-as-promised": "7.1.2",
     "chai-datetime": "1.8.0",
     "delay": "5.0.0",
     "expect-type": "0.13.0",
@@ -91,8 +91,8 @@
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
     "p-timeout": "4.1.0",
-    "rimraf": "5.0.5",
-    "sinon": "17.0.1",
+    "rimraf": "5.0.7",
+    "sinon": "17.0.2",
     "sinon-chai": "3.7.0"
   },
   "keywords": [
