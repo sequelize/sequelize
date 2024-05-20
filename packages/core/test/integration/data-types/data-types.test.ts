@@ -1762,29 +1762,33 @@ describe('DataTypes', () => {
         }
       });
 
-      it('properly serializes default values', async () => {
-        const createdUser = await vars.User.create();
-        await createdUser.reload();
-        expect(createdUser.get()).to.deep.eq({
-          jsonStr: 'abc',
-          jsonBoolean: true,
-          jsonNumber: 1,
-          jsonNull: null,
-          jsonArray: ['a', 'b'],
-          jsonObject: { key: 'abc' },
-          id: 1,
+      // Oracle Database < 21 doesn't consider scalars as JSON column
+      // thus, fails the CHECK constraint test.
+      if (dialect.name !== 'oracle') {
+        it('properly serializes default values', async () => {
+          const createdUser = await vars.User.create();
+          await createdUser.reload();
+          expect(createdUser.get()).to.deep.eq({
+            jsonStr: 'abc',
+            jsonBoolean: true,
+            jsonNumber: 1,
+            jsonNull: null,
+            jsonArray: ['a', 'b'],
+            jsonObject: { key: 'abc' },
+            id: 1,
+          });
         });
-      });
 
-      it('properly serializes values', async () => {
-        await testSimpleInOut(vars.User, 'jsonStr', 'abc', 'abc');
-        await testSimpleInOut(vars.User, 'jsonBoolean', true, true);
-        await testSimpleInOut(vars.User, 'jsonBoolean', false, false);
-        await testSimpleInOut(vars.User, 'jsonNumber', 123.4, 123.4);
-        await testSimpleInOut(vars.User, 'jsonArray', [1, 2], [1, 2]);
-        await testSimpleInOut(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
-        await testSimpleInOut(vars.User, 'jsonNull', null, null);
-      });
+        it('properly serializes values', async () => {
+          await testSimpleInOut(vars.User, 'jsonStr', 'abc', 'abc');
+          await testSimpleInOut(vars.User, 'jsonBoolean', true, true);
+          await testSimpleInOut(vars.User, 'jsonBoolean', false, false);
+          await testSimpleInOut(vars.User, 'jsonNumber', 123.4, 123.4);
+          await testSimpleInOut(vars.User, 'jsonArray', [1, 2], [1, 2]);
+          await testSimpleInOut(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+          await testSimpleInOut(vars.User, 'jsonNull', null, null);
+        });
+      }
 
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
