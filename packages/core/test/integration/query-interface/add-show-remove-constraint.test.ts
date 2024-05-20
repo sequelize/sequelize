@@ -238,10 +238,10 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
         ...(dialect !== 'oracle' && { tableSchema: defaultSchema }),
         tableName: 'actors',
-        columnNames: dialect === 'oracle' ? ['manager_id', 'level_id'] : ['level_id', 'manager_id'],
+        columnNames: ['level_id', 'manager_id'],
         referencedTableSchema: defaultSchema,
         referencedTableName: 'levels',
-        referencedColumnNames: dialect === 'oracle' ? ['manager_id', 'id'] : ['id', 'manager_id'],
+        referencedColumnNames: ['id', 'manager_id'],
         deleteAction: 'CASCADE',
         ...(dialect !== 'oracle' && {
           updateAction:

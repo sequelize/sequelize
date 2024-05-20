@@ -1078,7 +1078,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       this.escape(tableName),
       ' AND a.owner = ',
       tableDetails.schema && schemaName !== '' ? this.escape(schemaName) : 'USER',
-      ' ORDER BY a.table_name, a.constraint_name',
+      ' ORDER BY a.table_name, a.column_name, b.column_name',
     ].join('');
 
     return sql;
