@@ -126,7 +126,7 @@ export class OracleQuery extends AbstractQuery {
       } else {
         let matcher = new RegExp(/(:)(([^\d])\w+)/gm)
         let result = null;
-        while ( result = matcher.exec(this.sql) ) {
+        while (( result = matcher.exec(this.sql) )) {
           bindParameters.push(parameters[result[2]])
         }        
         bindParameters.push(...outParameters);
