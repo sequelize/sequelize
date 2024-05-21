@@ -896,7 +896,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         } else if (dialect === 'oracle') {
           expect(error).to.be.instanceOf(DatabaseError);
           assert(error instanceof DatabaseError);
-          expect(error.message).to.equal('ORA-02264: name already used by an existing constraint');
+          expect(error.message).to.match(/^ORA-02264: name already used by an existing constraint/);
         } else {
           expect(error).to.be.instanceOf(DatabaseError);
           assert(error instanceof DatabaseError);

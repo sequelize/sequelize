@@ -39,7 +39,7 @@
     "@types/oracledb": "^6.3",
     "dayjs": "^1.11.10",
     "lodash": "4.17.21",
-    "oracledb": "6.0",
+    "oracledb": "6.5",
     "semver": "7.6.0"
   },
   "devDependencies": {

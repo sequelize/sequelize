@@ -2634,7 +2634,7 @@ __metadata:
     dayjs: "npm:^1.11.10"
     lodash: "npm:4.17.21"
     mocha: "npm:10.4.0"
-    oracledb: "npm:6.0"
+    oracledb: "npm:6.5"
     semver: "npm:7.6.0"
     sinon: "npm:18.0.0"
   languageName: unknown
@@ -11770,10 +11770,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oracledb@npm:6.0":
-  version: 6.0.3
-  resolution: "oracledb@npm:6.0.3"
-  checksum: 10c0/b356b243e239a87270ea5e929c7ffc49d11574cec154579803809d9aa8091586aa02ca165ce6753daa6e1ddafb3938cd19c480fc0f38d97a2cf8ae09dabf857e
+"oracledb@npm:6.5":
+  version: 6.5.0
+  resolution: "oracledb@npm:6.5.0"
+  checksum: 10c0/a524673026a5df5187de7e6891c4d583ad70b04abbc0c69ac65922670d65f7b2187150b8c1059b669cfbae0c21dc206790c2aab2fec1931ceeee195916ee4c38
   languageName: node
   linkType: hard
 
