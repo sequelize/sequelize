@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.41](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.40...v7.0.0-alpha.41) (2024-05-17)
+
+### Bug Fixes
+
+- **snowflake:** add proxy connection options ([#17309](https://github.com/sequelize/sequelize/issues/17309)) ([51b781e](https://github.com/sequelize/sequelize/commit/51b781e4028f4eda5c4221d94cf4c9141055a762))
+
 # [7.0.0-alpha.40](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.39...v7.0.0-alpha.40) (2024-04-11)
 
 ### Bug Fixes
