@@ -153,7 +153,13 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT * FROM SYS.INDEXES',
+      'SELECT SCHEMA_NAME as "schemaName",',
+      'TABLE_NAME as "tableName",',
+      'INDEX_NAME as "name",',
+      'INDEX_TYPE as "type",',
+      'CONSTRAINT as "constraint"',
+
+      'FROM SYS.INDEXES',
       `WHERE SCHEMA_NAME = ${this.escape(table.schema)}`,
       `and TABLE_NAME = ${this.escape(table.tableName)}`,
     ]);
