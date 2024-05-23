@@ -2997,7 +2997,7 @@ __metadata:
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
     eslint: "npm:8.57.0"
-    eslint-plugin-jsdoc: "npm:48.2.5"
+    eslint-plugin-jsdoc: "npm:48.2.6"
     eslint-plugin-mocha: "npm:10.4.3"
     fast-glob: "npm:3.3.2"
     husky: "npm:9.0.11"
@@ -7658,9 +7658,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:48.2.5":
-  version: 48.2.5
-  resolution: "eslint-plugin-jsdoc@npm:48.2.5"
+"eslint-plugin-jsdoc@npm:48.2.6":
+  version: 48.2.6
+  resolution: "eslint-plugin-jsdoc@npm:48.2.6"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.43.0"
     are-docs-informative: "npm:^0.0.2"
@@ -7668,12 +7668,11 @@ __metadata:
     debug: "npm:^4.3.4"
     escape-string-regexp: "npm:^4.0.0"
     esquery: "npm:^1.5.0"
-    is-builtin-module: "npm:^3.2.1"
     semver: "npm:^7.6.1"
     spdx-expression-parse: "npm:^4.0.0"
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/0e1350511b74fe443ce3f63ab83627f8d841ca36a3fea5631e6743c721d4f6cd563204c4143cf2ae1d43855134a6fceedac7916fa2fee3bcb17b74fc6c3e0bc1
+  checksum: 10c0/9f01b3000aa31f17767786c62caf62f1e8c4b88bfef04b207d3b1de785be287cc2da3ad16ed32afacd5f6e6a9b76ebf3369069be416ce2228c44cd6d084fcd8f
   languageName: node
   linkType: hard
 
@@ -9709,7 +9708,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"is-builtin-module@npm:^3.2.0, is-builtin-module@npm:^3.2.1":
+"is-builtin-module@npm:^3.2.0":
   version: 3.2.1
   resolution: "is-builtin-module@npm:3.2.1"
   dependencies:
