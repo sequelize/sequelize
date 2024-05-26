@@ -2047,27 +2047,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^7.1.2":
-  version: 7.1.2
-  resolution: "@inquirer/core@npm:7.1.2"
-  dependencies:
-    "@inquirer/type": "npm:^1.2.1"
-    "@types/mute-stream": "npm:^0.0.4"
-    "@types/node": "npm:^20.12.4"
-    "@types/wrap-ansi": "npm:^3.0.0"
-    ansi-escapes: "npm:^4.3.2"
-    chalk: "npm:^4.1.2"
-    cli-spinners: "npm:^2.9.2"
-    cli-width: "npm:^4.1.0"
-    figures: "npm:^3.2.0"
-    mute-stream: "npm:^1.0.0"
-    signal-exit: "npm:^4.1.0"
-    strip-ansi: "npm:^6.0.1"
-    wrap-ansi: "npm:^6.2.0"
-  checksum: 10c0/0b4db645e582bc140641be29f42a1af804b749f120712c42c5c83829aa0aed7cdd24489a1ca35cc97240bd1143aecc73d48238f99d3c47f2a31bd182411c9852
-  languageName: node
-  linkType: hard
-
 "@inquirer/core@npm:^8.2.1":
   version: 8.2.1
   resolution: "@inquirer/core@npm:8.2.1"
@@ -2096,13 +2075,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/input@npm:^2.1.1":
-  version: 2.1.2
-  resolution: "@inquirer/input@npm:2.1.2"
+"@inquirer/input@npm:^2.1.8":
+  version: 2.1.8
+  resolution: "@inquirer/input@npm:2.1.8"
   dependencies:
-    "@inquirer/core": "npm:^7.1.2"
-    "@inquirer/type": "npm:^1.2.1"
-  checksum: 10c0/997b433d87105c8b3034a8ce9185b80d6fbd80a1a7fa2c60596d9de31fb73048435275fedb20a7234a309caaf5afb455c8c574aee2eadcd3a33550a9df88f409
+    "@inquirer/core": "npm:^8.2.1"
+    "@inquirer/type": "npm:^1.3.2"
+  checksum: 10c0/158f7e5e553909e47fa5f2ef1b1faaaa4964f9ef7032287e69929d584ac0c41525f62e7c612eadc03eaafa11bee9bd5a0b001c1f10a33664882ce8e223d716a6
   languageName: node
   linkType: hard
 
@@ -2119,7 +2098,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/type@npm:^1.2.1, @inquirer/type@npm:^1.3.2":
+"@inquirer/type@npm:^1.3.2":
   version: 1.3.2
   resolution: "@inquirer/type@npm:1.3.2"
   checksum: 10c0/96676f93d7f88bc1d122bb110e50963c3fa4fb720c095ed782652ce48f20260dba0c4a49abe32196267c8863bc552a348474d35ce2f3d125a8bebb84de739164
@@ -2879,7 +2858,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.11.2"
+    oclif: "npm:4.11.3"
     rimraf: "npm:5.0.7"
     zod: "npm:^3.22.4"
   bin:
@@ -4637,7 +4616,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:20.12.12, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.12, @types/node@npm:^20.12.4":
+"@types/node@npm:*, @types/node@npm:20.12.12, @types/node@npm:>=18, @types/node@npm:^20.11.17, @types/node@npm:^20.12.12":
   version: 20.12.12
   resolution: "@types/node@npm:20.12.12"
   dependencies:
@@ -8274,7 +8253,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"figures@npm:3.2.0, figures@npm:^3.0.0, figures@npm:^3.2.0":
+"figures@npm:3.2.0, figures@npm:^3.0.0":
   version: 3.2.0
   resolution: "figures@npm:3.2.0"
   dependencies:
@@ -12471,14 +12450,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.11.2":
-  version: 4.11.2
-  resolution: "oclif@npm:4.11.2"
+"oclif@npm:4.11.3":
+  version: 4.11.3
+  resolution: "oclif@npm:4.11.3"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.574.0"
     "@aws-sdk/client-s3": "npm:^3.583.0"
     "@inquirer/confirm": "npm:^3.1.6"
-    "@inquirer/input": "npm:^2.1.1"
+    "@inquirer/input": "npm:^2.1.8"
     "@inquirer/select": "npm:^2.3.4"
     "@oclif/core": "npm:^3.26.5"
     "@oclif/plugin-help": "npm:^6.0.21"
@@ -12501,7 +12480,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/17c407e960ce978c342652612de7fa62caddee94bcb1e049c651276ef0d626fd6bd8ce72cffae5ad0704b46516fb8e9a5f87e0bd4ddae7af8cf84a97c66e9590
+  checksum: 10c0/073d72a39bdc663099b8a665bbbf92d0c92a10f44c195c8540f86d76dfb0860701052ac959a44536ca64575b2f7811c85ae28be019fff4d3b98096369b9b816c
   languageName: node
   linkType: hard
 
