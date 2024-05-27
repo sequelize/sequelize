@@ -57,85 +57,26 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
         ...config,
       }) as SnowflakeConnection;
 
-      await new Promise<void>((resolve, reject) => {
-        connection.connect(err => {
-          if (err) {
-            return void reject(err);
-          }
+      await new Promise((resolve, reject) => {
 
-          resolve();
-        });
-      });
-
-      debug('connection acquired');
-
-      if (!this.sequelize.options.keepDefaultTimezone) {
-        // TODO: remove default timezone.
-        // default value is '+00:00', put a quick workaround for it.
-        const tzOffset =
-          this.sequelize.options.timezone === '+00:00'
-            ? 'Etc/UTC'
-            : this.sequelize.options.timezone;
-        const isNamedTzOffset = tzOffset.includes('/');
-        if (!isNamedTzOffset) {
-          throw new Error(
-            'Snowflake only supports named timezones for the sequelize "timezone" option.',
-          );
+        if (config.authenticator != null) {
+          connection.connectAsync((err) => {
+            if (err) {
+              return void reject(err);
+            }
+            resolve();
+          });
+        }else{
+          connection.connect((err) => {
+            if (err) {
+              return void reject(err);
+            }
+            resolve();
+          });
         }
 
-        await new Promise<void>((resolve, reject) => {
-          connection.execute({
-            sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
-            complete(err) {
-              if (err) {
-                return void reject(err);
-              }
 
-              resolve();
-            },
-          });
-        });
-      }
-
-      return connection;
-    } catch (error) {
-      if (!isErrorWithStringCode(error)) {
-        throw error;
-      }
-
-      switch (error.code) {
-        case 'ECONNREFUSED':
-          throw new ConnectionRefusedError(error);
-        case 'ER_ACCESS_DENIED_ERROR':
-          throw new AccessDeniedError(error);
-        case 'ENOTFOUND':
-          throw new HostNotFoundError(error);
-        case 'EHOSTUNREACH':
-          throw new HostNotReachableError(error);
-        case 'EINVAL':
-          throw new InvalidConnectionError(error);
-        default:
-          throw new ConnectionError(error);
-      }
-    }
-  }
-
-
-  async connectOkta(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
-    try {
-      const connection = this.#lib.createConnection({
-        schema: this.sequelize.options.schema,
-        ...config,
-      }) as SnowflakeConnection;
-
-      await new Promise<void>((resolve, reject) => {
-        connection.connectAsync(err => {
-          if (err) {
-            return void reject(err);
-          }
-
-          resolve();
-        });
+       
       });
 
       debug('connection acquired');
