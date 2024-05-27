@@ -54,7 +54,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        oracle-version: [18, 21]
+        oracle-version: [18, 23]
         node-version: [10, 18]
     name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
@@ -77,8 +77,8 @@ jobs:
       - if: matrix.oracle-version == '18'
         name: Install Local Oracle DB 18
         run: yarn start-oracle-oldest
-      - if: matrix.oracle-version == '21'
-        name: Install Local Oracle DB 21
+      - if: matrix.oracle-version == '23'
+        name: Install Local Oracle DB 23
         run: yarn start-oracle-latest
       - name: Unit Tests
         run: yarn test-unit

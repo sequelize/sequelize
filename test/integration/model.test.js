@@ -2407,7 +2407,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         } else if (dialect === 'db2') {
           expect(err.message).to.match(/ is an undefined name/);
         } else if (dialect === 'oracle') {
-          expect(err.message).to.match(/ORA-00942: table or view does not exist/);
+          expect(err.message).to.match(/^ORA-00942:/);
         } else {
           throw new Error('Undefined dialect!');
         }

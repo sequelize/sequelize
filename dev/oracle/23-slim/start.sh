@@ -1,4 +1,4 @@
-# Copyright (c) 2022, Oracle and/or its affiliates. All rights reserved
+# Copyright (c) 2022, 2024 Oracle and/or its affiliates. All rights reserved
 
 #!/usr/bin/env bash
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
@@ -17,7 +17,7 @@ docker-compose -p oraclexedb up -d
 docker cp ../privileges.sql oraclexedb:/opt/oracle/.
 
 # Granting all the needed privileges to sequelizetest user
-docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
+docker exec -t oraclexedb sqlplus system/password@localhost:1521/XEPDB1 @privileges.sql
 
 SEQ_WORKSPACE="$PWD"/../../../
 
