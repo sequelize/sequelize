@@ -230,15 +230,13 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     let primaryKeyGeneratedByDb = true;
     for (const columnName in valueHash) {
       const modelAttribute = find(Object.values(modelAttributes), attribute => {
-        return Object.hasOwn(valueHash, attribute.columnName)
+        return attribute.columnName === columnName;
       });
 
       if (modelAttribute) {
         if (modelAttribute.primaryKey) {
           primaryKey = modelAttribute.columnName;
-          // todo remove localDTs, use DataTypes
-          const localDTs = DataTypes;
-          if (modelAttribute.type instanceof localDTs.UUID) {
+          if (valueHash[columnName] !== null) {
             primaryKeyGeneratedByDb = false;
           }
           break;

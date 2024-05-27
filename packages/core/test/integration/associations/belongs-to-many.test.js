@@ -1797,7 +1797,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     beforeEach(function () {
       const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect)
         ? 'BINARY(255)'
-        : DataTypes.BLOB('tiny');
+        : dialect === 'hana'
+          ? 'VARBINARY(255)'
+          : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,

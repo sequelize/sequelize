@@ -13,6 +13,8 @@ import {
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 
+const debug = logger.debugContext('sql:hana');
+
 export class HanaQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
@@ -26,6 +28,8 @@ export class HanaQuery extends AbstractQuery {
     console.log('parameters', parameters);
     // // const result = await exec(sql);
     // return result;
+
+    const complete = this._logQuery(sql, debug, parameters);
 
     return new Promise((resolve, reject) => {
       connection.exec(sql, parameters, (err, result)=> {
@@ -41,6 +45,7 @@ export class HanaQuery extends AbstractQuery {
         //   resolve(result[0])
         // }
         // resolve(result)
+        complete();
         resolve(this.formatResults(result));
       })
     });

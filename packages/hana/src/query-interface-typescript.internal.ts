@@ -1,4 +1,15 @@
-import { AbstractQueryInterface, CommitTransactionOptions, RollbackTransactionOptions, StartTransactionOptions, Transaction } from '@sequelize/core';
+import {
+  AbstractQueryInterface,
+  CommitTransactionOptions,
+  CreateTableAttributes,
+  CreationAttributes,
+  Model,
+  QueryInterfaceCreateTableOptions,
+  RollbackTransactionOptions,
+  StartTransactionOptions,
+  TableName,
+  Transaction,
+} from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { HanaDialect } from './dialect.js';
 import { HanaConnection } from './connection-manager.js';
@@ -14,6 +25,17 @@ export class HanaQueryInterfaceTypescript<
     super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;
   }
+
+  async createTable<M extends Model>(
+    tableName: TableName,
+    attributes: CreateTableAttributes<M, CreationAttributes<M>>,
+    options?: QueryInterfaceCreateTableOptions,
+  ): Promise<void> {
+    const tableExists = await this.tableExists(tableName);
+    if (!tableExists) {
+      return super.createTable(tableName, attributes, options);
+    }
+  };
 
   async _startTransaction(
     transaction: Transaction,
