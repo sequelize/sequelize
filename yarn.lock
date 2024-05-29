@@ -3062,9 +3062,8 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/snowflake-sdk": "npm:^1.6.23"
     lodash: "npm:^4.17.21"
-    snowflake-sdk: "npm:^1.10.0"
+    snowflake-sdk: "npm:^1.11.0"
   languageName: unknown
   linkType: soft
 
@@ -4695,16 +4694,6 @@ __metadata:
   version: 8.1.5
   resolution: "@types/sinonjs__fake-timers@npm:8.1.5"
   checksum: 10c0/2b8bdc246365518fc1b08f5720445093cce586183acca19a560be6ef81f824bd9a96c090e462f622af4d206406dadf2033c5daf99a51c1096da6494e5c8dc32e
-  languageName: node
-  linkType: hard
-
-"@types/snowflake-sdk@npm:^1.6.23":
-  version: 1.6.23
-  resolution: "@types/snowflake-sdk@npm:1.6.23"
-  dependencies:
-    "@types/node": "npm:*"
-    generic-pool: "npm:^3.9.0"
-  checksum: 10c0/225b8bd3084b95ad8845d602e0cbcd3396df89b26a71f13b4eb8e6cb4855f96f581ef970985376f17c04a7574b668c4cd3aa9c19935dde52cd7f6f722c1a75a9
   languageName: node
   linkType: hard
 
@@ -6837,7 +6826,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"debug@npm:^3.2.6, debug@npm:^3.2.7":
+"debug@npm:^3.2.7":
   version: 3.2.7
   resolution: "debug@npm:3.2.7"
   dependencies:
@@ -8661,7 +8650,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"generic-pool@npm:^3.8.2, generic-pool@npm:^3.9.0":
+"generic-pool@npm:^3.8.2":
   version: 3.9.0
   resolution: "generic-pool@npm:3.9.0"
   checksum: 10c0/6b314d0d71170d5cbaf7162c423f53f8d6556b2135626a65bcdc03c089840b0a2f59eeb2d907939b8200e945eaf71ceb6630426f22d2128a1d242aec4b232aa7
@@ -8900,7 +8889,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.3.7, glob@npm:~10.4.1":
+"glob@npm:^10.0.0, glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.3.7, glob@npm:~10.4.1":
   version: 10.4.1
   resolution: "glob@npm:10.4.1"
   dependencies:
@@ -8929,7 +8918,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:^9.0.0, glob@npm:^9.2.0":
+"glob@npm:^9.2.0":
   version: 9.3.5
   resolution: "glob@npm:9.3.5"
   dependencies:
@@ -14515,16 +14504,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:^1.10.0":
-  version: 1.10.1
-  resolution: "snowflake-sdk@npm:1.10.1"
+"snowflake-sdk@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "snowflake-sdk@npm:1.11.0"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.388.0"
     "@aws-sdk/node-http-handler": "npm:^3.374.0"
     "@azure/storage-blob": "npm:^12.11.0"
     "@google-cloud/storage": "npm:^7.7.0"
     "@techteamer/ocsp": "npm:1.0.1"
-    agent-base: "npm:^6.0.2"
     asn1.js-rfc2560: "npm:^5.0.0"
     asn1.js-rfc5280: "npm:^3.0.0"
     axios: "npm:^1.6.8"
@@ -14533,13 +14521,11 @@ __metadata:
     binascii: "npm:0.0.2"
     bn.js: "npm:^5.2.1"
     browser-request: "npm:^0.3.3"
-    debug: "npm:^3.2.6"
     expand-tilde: "npm:^2.0.2"
-    extend: "npm:^3.0.2"
     fast-xml-parser: "npm:^4.2.5"
     fastest-levenshtein: "npm:^1.0.16"
     generic-pool: "npm:^3.8.2"
-    glob: "npm:^9.0.0"
+    glob: "npm:^10.0.0"
     https-proxy-agent: "npm:^7.0.2"
     jsonwebtoken: "npm:^9.0.0"
     mime-types: "npm:^2.1.29"
@@ -14553,7 +14539,7 @@ __metadata:
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/95e407d3f6c1b556cf06f46f6d8f078531389a83008c53d19dba8ac907c07df7a4edf060277aaa935fed933685c40c8d353486a5a136bbfe23e8e4590bba6000
+  checksum: 10c0/b8845da982d0abaa962e3b43ca65b7374c87f97ff22a95363c6f1c55dfce2fdeeeea389664ef7220a152986e82856b64c27259eaa28c083b765b75dbcf48d222
   languageName: node
   linkType: hard
 
