@@ -2623,12 +2623,37 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.0.21":
-  version: 6.0.22
-  resolution: "@oclif/plugin-help@npm:6.0.22"
+"@oclif/core@npm:^4.0.0-beta.13":
+  version: 4.0.0-beta.13
+  resolution: "@oclif/core@npm:4.0.0-beta.13"
   dependencies:
-    "@oclif/core": "npm:^3.26.6"
-  checksum: 10c0/693d437d1022e9302f186e87a1cb371354a16c2ccbe1f2e5d1610ec152a7edd4fdee687f647663fdd5ab2a3b3afec616a3881b4e0f32d1dc95d483d05ae6bf34
+    ansi-escapes: "npm:^4.3.2"
+    ansis: "npm:^3.0.1"
+    clean-stack: "npm:^3.0.1"
+    cli-spinners: "npm:^2.9.2"
+    cosmiconfig: "npm:^9.0.0"
+    debug: "npm:^4.3.4"
+    ejs: "npm:^3.1.10"
+    get-package-type: "npm:^0.1.0"
+    globby: "npm:^11.1.0"
+    indent-string: "npm:^4.0.0"
+    is-wsl: "npm:^2.2.0"
+    minimatch: "npm:^9.0.4"
+    string-width: "npm:^4.2.3"
+    supports-color: "npm:^9.4.0"
+    widest-line: "npm:^3.1.0"
+    wordwrap: "npm:^1.0.0"
+    wrap-ansi: "npm:^7.0.0"
+  checksum: 10c0/888c23460233f7f563f08f0a338267c3337217ff34f3fb8be5b3d16aa1139b42b5837cd09e89c4e1b1655863bb80b3c5b60f4f0a7c514323bf09589fbcbd458a
+  languageName: node
+  linkType: hard
+
+"@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.0.21":
+  version: 6.1.0
+  resolution: "@oclif/plugin-help@npm:6.1.0"
+  dependencies:
+    "@oclif/core": "npm:^4.0.0-beta.13"
+  checksum: 10c0/24b340e8bf1541aab6ec1ab0874936124e333775a4faba633377c56b5078956e5ea4378f4765cda45b09b303ff3408ad90c49b7323f652f6e2addf92ccf419de
   languageName: node
   linkType: hard
 
@@ -5215,6 +5240,13 @@ __metadata:
   version: 0.3.2
   resolution: "ansicolors@npm:0.3.2"
   checksum: 10c0/e202182895e959c5357db6c60791b2abaade99fcc02221da11a581b26a7f83dc084392bc74e4d3875c22f37b3c9ef48842e896e3bfed394ec278194b8003e0ac
+  languageName: node
+  linkType: hard
+
+"ansis@npm:^3.0.1":
+  version: 3.2.0
+  resolution: "ansis@npm:3.2.0"
+  checksum: 10c0/b61c16554e707f30685ab153ffafc02b59bb9e86567a04b2e2ad521ade771c9ae3cd67f3e486a1cd2e3c89ad898653266bc38d76ea7af4ac67762baa3c87befa
   languageName: node
   linkType: hard
 
@@ -15114,6 +15146,13 @@ __metadata:
   dependencies:
     has-flag: "npm:^4.0.0"
   checksum: 10c0/afb4c88521b8b136b5f5f95160c98dee7243dc79d5432db7efc27efb219385bbc7d9427398e43dd6cc730a0f87d5085ce1652af7efbe391327bc0a7d0f7fc124
+  languageName: node
+  linkType: hard
+
+"supports-color@npm:^9.4.0":
+  version: 9.4.0
+  resolution: "supports-color@npm:9.4.0"
+  checksum: 10c0/6c24e6b2b64c6a60e5248490cfa50de5924da32cf09ae357ad8ebbf305cc5d2717ba705a9d4cb397d80bbf39417e8fdc8d7a0ce18bd0041bf7b5b456229164e4
   languageName: node
   linkType: hard
 
