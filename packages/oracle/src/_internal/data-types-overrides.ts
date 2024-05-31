@@ -5,7 +5,6 @@ import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-r
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-// import type { Falsy } from '../../generic/falsy';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports
 type Lib = typeof import('oracledb');

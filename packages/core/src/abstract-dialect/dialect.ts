@@ -71,7 +71,7 @@ export type DialectSupports = {
   /* does the dialect support returning values for inserted/updated fields in outBinds */
   returnIntoValues: boolean;
 
-  /* does the dialect support returning values for inserted/updated fields in outBinds */
+  /* does the dialect support topLevelOrderBy (ORDER BY clasue) to get desired results */
   topLevelOrderByRequired: boolean;
 
   /* features specific to autoIncrement values */

@@ -93,12 +93,12 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   readonly queryInterface: OracleQueryInterface;
   readonly Query = OracleQuery;
   readonly dataTypesDocumentationUrl =
-    'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483';
+    'https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/Data-Types.html';
 
   constructor(sequelize: Sequelize, options: OracleDialectOptions) {
     super({
       dataTypesDocumentationUrl:
-        'https://docs.oracle.com/en/database/oracle/oracle-database/21/sqlrf/Data-Types.html#GUID-A3C0D836-BADB-44E5-A5D4-265BA5968483',
+        'https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/Data-Types.html',
       minimumDatabaseVersion: '18.0.0',
       identifierDelimiter: '"',
       name: 'oracle',

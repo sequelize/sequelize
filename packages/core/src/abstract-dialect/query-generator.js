@@ -77,8 +77,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     defaults(options, this.options);
 
     const modelAttributeMap = {};
-    // For Oracle, the binds are needed without which there can be inconsistent
-    // binds number in the generated SQLs.
     const bind =
       this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
     const fields = [];
@@ -477,7 +475,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.limit &&
       this.dialect.name === 'oracle'
     ) {
-      // This cannot be set in where because rownum will be quoted
+      // This cannot be set in where clause because rownum will be quoted
       if (where && ((where.length && where.length > 0) || Object.keys(where).length > 0)) {
         // If we have a where clause, we add AND
         suffix += ' AND ';

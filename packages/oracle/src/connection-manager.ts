@@ -13,7 +13,6 @@ import {
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { Connection as oracledbConnection } from 'oracledb';
 import oracledb from 'oracledb';
-// import AbstractConnectionManager from '@sequelize/core';
 import type { OracleDialect } from './dialect.js';
 
 export type oracledbModule = typeof oracledb;
@@ -109,7 +108,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
       const connection: OracleConnection = (await this.lib.getConnection(
         connectionConfig,
       )) as OracleConnection;
-      // this.sequelize.options.databaseVersion = semver.coerce(connection.oracleServerVersionString)!.version; correct fetchDatabaseVersion()
 
       debug('connection acquired');
       connection.on('error', error => {

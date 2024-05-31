@@ -18,6 +18,7 @@ import {
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type { TableNameWithSchema } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import {
@@ -26,8 +27,6 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-
-import type { TableNameWithSchema } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface.js';
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
