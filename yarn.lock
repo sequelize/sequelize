@@ -2877,8 +2877,8 @@ __metadata:
     "@types/chai": "npm:4.3.16"
     "@types/inquirer": "npm:^9.0.7"
     "@types/mocha": "npm:10.0.6"
+    ansis: "npm:^3.2.0"
     chai: "npm:4.4.1"
-    chalk: "npm:^5.3.0"
     concurrently: "npm:8.2.2"
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
@@ -2907,11 +2907,11 @@ __metadata:
     "@types/sinon-chai": "npm:3.2.12"
     "@types/uuid": "npm:9.0.8"
     "@types/validator": "npm:^13.11.9"
+    ansis: "npm:^3.2.0"
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.4.1"
     chai-as-promised: "npm:7.1.2"
     chai-datetime: "npm:1.8.0"
-    chalk: "npm:^4.1.2"
     dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
@@ -5243,7 +5243,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.0.1":
+"ansis@npm:^3.0.1, ansis@npm:^3.2.0":
   version: 3.2.0
   resolution: "ansis@npm:3.2.0"
   checksum: 10c0/b61c16554e707f30685ab153ffafc02b59bb9e86567a04b2e2ad521ade771c9ae3cd67f3e486a1cd2e3c89ad898653266bc38d76ea7af4ac67762baa3c87befa
