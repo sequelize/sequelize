@@ -866,7 +866,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'SELECT [User].* FROM ' +
               '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
               'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
-              `WHERE EXISTS SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) AS [User];`,
+              `WHERE EXISTS ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) ) AS [User];`,
           },
         );
       });
@@ -904,7 +904,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'SELECT [User].* FROM ' +
               '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
               'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
-              `WHERE [postaliasname].[title] = ${sql.escape('test')} AND EXISTS SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) AS [User];`,
+              `WHERE [postaliasname].[title] = ${sql.escape('test')} AND EXISTS ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) ) AS [User];`,
           },
         );
       });
@@ -970,29 +970,29 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
-            'EXISTS SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
+            'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
-            `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
+            `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Company].[id] LIMIT 5) ) AS [Company];`,
           'db2 ibmi':
             'SELECT [Company].* FROM (' +
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
-            'EXISTS SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
+            'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ` +
-            `ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
+            `ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) ) AS [Company];`,
           mssql:
             'SELECT [Company].* FROM (' +
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
-            'EXISTS SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
+            'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ` +
-            `ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) AS [Company];`,
+            `ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) ) AS [Company];`,
         },
       );
     });
