@@ -979,7 +979,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
-            'EXISTS [Users].[companyId] FROM [Users] AS [Users] ' +
+            'EXISTS SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ` +
             `ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
