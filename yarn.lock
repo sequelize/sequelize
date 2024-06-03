@@ -2037,17 +2037,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/confirm@npm:^3.1.6, @inquirer/confirm@npm:^3.1.8":
-  version: 3.1.8
-  resolution: "@inquirer/confirm@npm:3.1.8"
+"@inquirer/confirm@npm:^3.1.6, @inquirer/confirm@npm:^3.1.9":
+  version: 3.1.9
+  resolution: "@inquirer/confirm@npm:3.1.9"
   dependencies:
-    "@inquirer/core": "npm:^8.2.1"
-    "@inquirer/type": "npm:^1.3.2"
-  checksum: 10c0/0cf516f9e1dcda3b57dcc4976962bba46dff13853cfbcc77dc37c014bf77c1e0c2e605c9c80f03dea004c1a722c927638f1d5529ae79abe9a688d7174e7b4a59
+    "@inquirer/core": "npm:^8.2.2"
+    "@inquirer/type": "npm:^1.3.3"
+  checksum: 10c0/9fb63a052cbe3705bcab706b3e68d70aa75ac7c7bfc04cc4fee2319e4da9355150c99b205bc72b595844e1549705643049e71d14070a3ab3d6483941c1e6a239
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^8.2.1, @inquirer/core@npm:^8.2.2":
+"@inquirer/core@npm:^8.2.2":
   version: 8.2.2
   resolution: "@inquirer/core@npm:8.2.2"
   dependencies:
@@ -2098,7 +2098,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/type@npm:^1.3.2, @inquirer/type@npm:^1.3.3":
+"@inquirer/type@npm:^1.3.3":
   version: 1.3.3
   resolution: "@inquirer/type@npm:1.3.3"
   checksum: 10c0/84048694410bb5b2c55dc4e48da6369ce942b9e8f8016d15ef63ab3f9873832a56cc12a50582b5b2b626821bfe29973dfcc19edc90f58490b51df1f4d9d0a074
@@ -2587,7 +2587,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.5, @oclif/core@npm:^3.26.6":
+"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.6":
   version: 3.26.8
   resolution: "@oclif/core@npm:3.26.8"
   dependencies:
@@ -2657,15 +2657,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-not-found@npm:^3.1.10":
-  version: 3.1.10
-  resolution: "@oclif/plugin-not-found@npm:3.1.10"
+"@oclif/plugin-not-found@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "@oclif/plugin-not-found@npm:3.2.1"
   dependencies:
-    "@inquirer/confirm": "npm:^3.1.8"
-    "@oclif/core": "npm:^3.26.5"
-    chalk: "npm:^5.3.0"
+    "@inquirer/confirm": "npm:^3.1.9"
+    "@oclif/core": "npm:^4.0.0-beta.13"
+    ansis: "npm:^3.2.0"
     fast-levenshtein: "npm:^3.0.0"
-  checksum: 10c0/53073b1dfef87ef971f3ff96cb376d466f77129018e3f8309d5351e7e89d5b026b2f68ec9c3eacc296eccd71832bde8acbbd0bd4a94d9ad36f9b72742bcebaf4
+  checksum: 10c0/411b9e3e2e69e513c87afa96996536d6a7098ae9ceaefc4fb2aef01e0c738c368b1f12964a2874b89b95dca0e8560079ec2db09f59ec3170ef0841064884f1cd
   languageName: node
   linkType: hard
 
@@ -2883,7 +2883,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.12.2"
+    oclif: "npm:4.12.3"
     rimraf: "npm:5.0.7"
     zod: "npm:^3.22.4"
   bin:
@@ -5243,7 +5243,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.0.1":
+"ansis@npm:^3.0.1, ansis@npm:^3.2.0":
   version: 3.2.0
   resolution: "ansis@npm:3.2.0"
   checksum: 10c0/b61c16554e707f30685ab153ffafc02b59bb9e86567a04b2e2ad521ade771c9ae3cd67f3e486a1cd2e3c89ad898653266bc38d76ea7af4ac67762baa3c87befa
@@ -12494,9 +12494,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.12.2":
-  version: 4.12.2
-  resolution: "oclif@npm:4.12.2"
+"oclif@npm:4.12.3":
+  version: 4.12.3
+  resolution: "oclif@npm:4.12.3"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.574.0"
     "@aws-sdk/client-s3": "npm:^3.583.0"
@@ -12505,7 +12505,7 @@ __metadata:
     "@inquirer/select": "npm:^2.3.5"
     "@oclif/core": "npm:^4.0.0-beta.12"
     "@oclif/plugin-help": "npm:^6.0.21"
-    "@oclif/plugin-not-found": "npm:^3.1.10"
+    "@oclif/plugin-not-found": "npm:^3.2.1"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.19"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
@@ -12524,7 +12524,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/787af6dba47ddd500d82bca70cb19de062e0161d53aacbc9a92e6f86497624e52e2a26622a7f8332150de6367f310ad76aca1c1b8a1f6cf880c677b7df7979d5
+  checksum: 10c0/e7be801706579f849e7700ae03a49b9119f8f5216d2f14934b40788776f4f074caea3da1e893d00240b99bf4c3ce2f53344809da1bd409bc7707678fbdaf0ccf
   languageName: node
   linkType: hard
 
