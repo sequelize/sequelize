@@ -2149,7 +2149,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.where = and(
       topLevelInfo.options.where,
-      new Literal(['EXISTS', query.replace(/;$/, '')].join(' ')),
+      new Literal(['EXISTS (', query.replace(/;$/, ''), ')'].join(' ')),
     );
   }
 
