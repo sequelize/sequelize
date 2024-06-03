@@ -35,6 +35,7 @@
     "reset-postgres": "bash dev/postgres/oldest/reset.sh; bash dev/postgres/latest/reset.sh",
     "reset-mssql": "bash dev/mssql/oldest/reset.sh; bash dev/mssql/latest/reset.sh",
     "reset-db2": "bash dev/db2/oldest/reset.sh; bash dev/db2/latest/reset.sh",
+    "reset-oracle": "bash dev/oracle/oldest/reset.sh; bash dev/oracle/latest/reset.sh",
     "reset-all": "concurrently \"npm:reset-*(!all)\"",
     "start-mariadb-oldest": "bash dev/mariadb/oldest/start.sh",
     "start-mariadb-latest": "bash dev/mariadb/latest/start.sh",
