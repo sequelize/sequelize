@@ -972,7 +972,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
-            `WHERE [Users].[companyId] = [Company].[id] ORDER BY [Company].[id] LIMIT 5) ) AS [Company];`,
+            `WHERE [Users].[companyId] = [Company].[id] ) ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
           'db2 ibmi':
             'SELECT [Company].* FROM (' +
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
@@ -981,8 +981,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
-            `WHERE [Users].[companyId] = [Company].[id] ` +
-            `ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) ) AS [Company];`,
+            `WHERE [Users].[companyId] = [Company].[id] ) ` +
+            `ORDER BY [Company].[id] FETCH NEXT 5 ROWS ONLY) AS [Company];`,
           mssql:
             'SELECT [Company].* FROM (' +
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
@@ -991,8 +991,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
-            `WHERE [Users].[companyId] = [Company].[id] ` +
-            `ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) ) AS [Company];`,
+            `WHERE [Users].[companyId] = [Company].[id] ) ` +
+            `ORDER BY [Company].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) AS [Company];`,
         },
       );
     });
