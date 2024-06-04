@@ -2623,16 +2623,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4.0.0-beta.12, @oclif/core@npm:^4.0.0-beta.13":
-  version: 4.0.0-beta.15
-  resolution: "@oclif/core@npm:4.0.0-beta.15"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.0.0-beta.13":
+  version: 4.0.0
+  resolution: "@oclif/core@npm:4.0.0"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.1.1"
     clean-stack: "npm:^3.0.1"
     cli-spinners: "npm:^2.9.2"
     cosmiconfig: "npm:^9.0.0"
-    debug: "npm:^4.3.4"
+    debug: "npm:^4.3.5"
     ejs: "npm:^3.1.10"
     get-package-type: "npm:^0.1.0"
     globby: "npm:^11.1.0"
@@ -2644,7 +2644,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/279d6a2d163f3926e78b189ffaef2f18e04ebf5bc83081bc64d7b375744266b31f2d8fe6c9f4f3c3cd7dd77a7c1770768a43881041cacbbad699e1f1caf28015
+  checksum: 10c0/0c644e1258e578ef5f8ea977034eb8239955e05f70b53985bc18abf378d387d7cb184474c5c4473ccf7a66ace1e00b4725ff94a1acdd2c801a4312f1b5a86628
   languageName: node
   linkType: hard
 
@@ -2883,7 +2883,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.12.3"
+    oclif: "npm:4.12.4"
     rimraf: "npm:5.0.7"
     zod: "npm:^3.22.4"
   bin:
@@ -12494,16 +12494,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.12.3":
-  version: 4.12.3
-  resolution: "oclif@npm:4.12.3"
+"oclif@npm:4.12.4":
+  version: 4.12.4
+  resolution: "oclif@npm:4.12.4"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.574.0"
     "@aws-sdk/client-s3": "npm:^3.583.0"
     "@inquirer/confirm": "npm:^3.1.6"
     "@inquirer/input": "npm:^2.1.9"
     "@inquirer/select": "npm:^2.3.5"
-    "@oclif/core": "npm:^4.0.0-beta.12"
+    "@oclif/core": "npm:^4"
     "@oclif/plugin-help": "npm:^6.0.21"
     "@oclif/plugin-not-found": "npm:^3.2.1"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.19"
@@ -12524,7 +12524,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/e7be801706579f849e7700ae03a49b9119f8f5216d2f14934b40788776f4f074caea3da1e893d00240b99bf4c3ce2f53344809da1bd409bc7707678fbdaf0ccf
+  checksum: 10c0/3056b6b2150e8cf2e66ed9415d092786b2c98cf54608ea316dad1095cbe5107d621920d5a6790e253b103839343a96cbe479a91e00e641f7fba2f4d6eb9db81b
   languageName: node
   linkType: hard
 
