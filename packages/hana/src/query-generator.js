@@ -281,7 +281,9 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       const parameterMatch = parameterList[index];
       const columnName = columnNames[index];
       const modelAttribute = modelAttributes[columnName];
-      const type = modelAttribute?.type || 'NVARCHAR(5000)';
+      const type =
+        modelAttribute?.type ??
+        (typeof valueHash[columnName] === 'boolean' ? 'BOOLEAN' : 'NVARCHAR(5000)');
       query.query = query.query.substring(0, parameterMatch.index) + `:${columnName}`
         + query.query.substring(parameterMatch.index + parameterMatch[0].length);
       blockParameters.unshift(`IN ${columnName} ${type} => ${parameterMatch[0]}`);
