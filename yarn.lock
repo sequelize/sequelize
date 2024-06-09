@@ -2623,7 +2623,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.0.0-beta.13":
+"@oclif/core@npm:^4":
   version: 4.0.0
   resolution: "@oclif/core@npm:4.0.0"
   dependencies:
@@ -2648,24 +2648,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.0.21":
-  version: 6.2.0
-  resolution: "@oclif/plugin-help@npm:6.2.0"
+"@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.2.0":
+  version: 6.2.1
+  resolution: "@oclif/plugin-help@npm:6.2.1"
   dependencies:
     "@oclif/core": "npm:^4"
-  checksum: 10c0/af6e3e4198d1ad261c143f126c8b8811cb7b1804cf8ada2c6b6d22e3ea5df0ae09505c7e5b44029483564ce009bd11350573b8c933d44b10720d2f54a0153f36
+  checksum: 10c0/d8e4df156b41fd2c5bf0e971e9063b8480cbbb3b6867c7666d7011ad95a940179f46a8ad04a1b4f090a4aff01f39cbdee57ba36f2e0527841e20d390ef150e0f
   languageName: node
   linkType: hard
 
-"@oclif/plugin-not-found@npm:^3.2.1":
-  version: 3.2.1
-  resolution: "@oclif/plugin-not-found@npm:3.2.1"
+"@oclif/plugin-not-found@npm:^3.2.3":
+  version: 3.2.3
+  resolution: "@oclif/plugin-not-found@npm:3.2.3"
   dependencies:
     "@inquirer/confirm": "npm:^3.1.9"
-    "@oclif/core": "npm:^4.0.0-beta.13"
+    "@oclif/core": "npm:^4"
     ansis: "npm:^3.2.0"
     fast-levenshtein: "npm:^3.0.0"
-  checksum: 10c0/411b9e3e2e69e513c87afa96996536d6a7098ae9ceaefc4fb2aef01e0c738c368b1f12964a2874b89b95dca0e8560079ec2db09f59ec3170ef0841064884f1cd
+  checksum: 10c0/dbde0af7af94e984e560a5735535bf210331756cd13da6d8ec24640445b67309615f5236f5012c5c39707bfc088d551ecf2fcda9e6ffd9a5b9236b181208f756
   languageName: node
   linkType: hard
 
@@ -2883,7 +2883,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.4.0"
-    oclif: "npm:4.13.1"
+    oclif: "npm:4.13.4"
     rimraf: "npm:5.0.7"
     zod: "npm:^3.22.4"
   bin:
@@ -3019,7 +3019,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.25.13"
     typedoc-plugin-carbon-ads: "npm:1.6.0"
-    typedoc-plugin-mdn-links: "npm:3.1.28"
+    typedoc-plugin-mdn-links: "npm:3.1.29"
     typedoc-plugin-missing-exports: "npm:2.2.0"
     typescript: "npm:5.4.5"
   languageName: unknown
@@ -12504,9 +12504,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.13.1":
-  version: 4.13.1
-  resolution: "oclif@npm:4.13.1"
+"oclif@npm:4.13.4":
+  version: 4.13.4
+  resolution: "oclif@npm:4.13.4"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.574.0"
     "@aws-sdk/client-s3": "npm:^3.583.0"
@@ -12514,8 +12514,8 @@ __metadata:
     "@inquirer/input": "npm:^2.1.9"
     "@inquirer/select": "npm:^2.3.5"
     "@oclif/core": "npm:^4"
-    "@oclif/plugin-help": "npm:^6.0.21"
-    "@oclif/plugin-not-found": "npm:^3.2.1"
+    "@oclif/plugin-help": "npm:^6.2.0"
+    "@oclif/plugin-not-found": "npm:^3.2.3"
     "@oclif/plugin-warn-if-update-available": "npm:^3.0.19"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
@@ -12534,7 +12534,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.0"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/fc28439c4500110b96f7ca65535cf88140069ab5575f92a4be16d6d769ea95bb12f10c5fd25be80d01407241789ecb5688c81ccc4b5baf7cc3d4f847fa5b4322
+  checksum: 10c0/5bd46b8a51e47a5e6c0af5f0e2f6596e4963cd2d30548cf74c652ea3bc7193a5e3fd427f89b273bc202b995faee0186ae973c8492cb7cca562c24e0cc798cef3
   languageName: node
   linkType: hard
 
@@ -15725,12 +15725,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-mdn-links@npm:3.1.28":
-  version: 3.1.28
-  resolution: "typedoc-plugin-mdn-links@npm:3.1.28"
+"typedoc-plugin-mdn-links@npm:3.1.29":
+  version: 3.1.29
+  resolution: "typedoc-plugin-mdn-links@npm:3.1.29"
   peerDependencies:
     typedoc: ">= 0.23.14 || 0.24.x || 0.25.x"
-  checksum: 10c0/f55943467bfc7f78b5e9b8e79d1c4a9232757d27f7aa9b48bf5cdb810bde7c9c7840d812e4e83a1802687d8189c224b7490090f133e9077ec23052142837a86f
+  checksum: 10c0/b3375a8bb94cd511326a092eeb4be39d162bc79a147a0e235c106b7d0ad42445fbb59abee1c6fbbb162bc0bef27849baac0f823cdbf81af023389a928a92e24a
   languageName: node
   linkType: hard
 
