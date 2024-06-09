@@ -2910,7 +2910,7 @@ __metadata:
     ansis: "npm:^3.2.0"
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.4.1"
-    chai-as-promised: "npm:7.1.2"
+    chai-as-promised: "npm:8.0.0"
     chai-datetime: "npm:1.8.0"
     dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
@@ -3128,7 +3128,7 @@ __metadata:
     "@types/chai": "npm:4.3.16"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.4.1"
-    chai-as-promised: "npm:7.1.2"
+    chai-as-promised: "npm:8.0.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
   languageName: unknown
@@ -6068,14 +6068,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai-as-promised@npm:7.1.2":
-  version: 7.1.2
-  resolution: "chai-as-promised@npm:7.1.2"
+"chai-as-promised@npm:8.0.0":
+  version: 8.0.0
+  resolution: "chai-as-promised@npm:8.0.0"
   dependencies:
-    check-error: "npm:^1.0.2"
+    check-error: "npm:^2.0.0"
   peerDependencies:
     chai: ">= 2.1.2 < 6"
-  checksum: 10c0/ee20ed75296d8cbf828b2f3c9ad64627cee67b1a38b8e906ca59fe788fb6965ddb10f702ae66645ed88f15a905ade4f2d9f8540029e92e2d59b229c9f912273f
+  checksum: 10c0/60200ea9cdac24394a97e768edd7d0cd8962097a02e3e6158932c13f7e9d89489d20e6a2e540e80dbe845c71362e7a7a311672fd16a2eab4214a6952fd0db804
   languageName: node
   linkType: hard
 
@@ -6181,7 +6181,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-error@npm:^1.0.2, check-error@npm:^1.0.3":
+"check-error@npm:^1.0.3":
   version: 1.0.3
   resolution: "check-error@npm:1.0.3"
   dependencies:
