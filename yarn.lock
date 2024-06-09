@@ -2937,7 +2937,7 @@ __metadata:
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.14.0"
-    uuid: "npm:^9.0.1"
+    uuid: "npm:^10.0.0"
     validator: "npm:^13.11.0"
   languageName: unknown
   linkType: soft
@@ -15930,6 +15930,15 @@ __metadata:
   version: 1.0.2
   resolution: "util-deprecate@npm:1.0.2"
   checksum: 10c0/41a5bdd214df2f6c3ecf8622745e4a366c4adced864bc3c833739791aeeeb1838119af7daed4ba36428114b5c67dcda034a79c882e97e43c03e66a4dd7389942
+  languageName: node
+  linkType: hard
+
+"uuid@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "uuid@npm:10.0.0"
+  bin:
+    uuid: dist/bin/uuid
+  checksum: 10c0/eab18c27fe4ab9fb9709a5d5f40119b45f2ec8314f8d4cf12ce27e4c6f4ffa4a6321dc7db6c515068fa373c075b49691ba969f0010bf37f44c37ca40cd6bf7fe
   languageName: node
   linkType: hard
 
