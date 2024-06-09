@@ -7,6 +7,7 @@ import { MySqlDialect } from '@sequelize/mysql';
 import { PostgresDialect } from '@sequelize/postgres';
 import { SnowflakeDialect } from '@sequelize/snowflake';
 import { SqliteDialect } from '@sequelize/sqlite3';
+import { DuckDbDialect } from '@sequelize/duckdb';
 import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 
@@ -27,6 +28,7 @@ export interface DialectConfigs {
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
+  duckdb: Options<DuckDbDialect>;
 }
 
 export interface DialectConnectionConfigs {
@@ -38,6 +40,7 @@ export interface DialectConnectionConfigs {
   postgres: ConnectionOptions<PostgresDialect>;
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
+  duckdb: ConnectionOptions<DuckDbDialect>;
 }
 
 const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
@@ -153,5 +156,10 @@ export const CONFIG: DialectConfigs = {
       idle: Number(env.SEQ_IBMI_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
     odbcConnectionString: env.SEQ_IBMI_CONN_STR,
+  },
+
+  duckdb: {
+    dialect: DuckDbDialect,
+    database: ':memory:',
   },
 };

@@ -62,6 +62,11 @@ describe('Configuration', () => {
         storage: '/path/to/no/where/land',
         mode: OPEN_READONLY,
       },
+      duckdb: {
+        ...CONFIG.duckdb,
+        database: '/path/to/no/where/land',
+        mode: OPEN_READONLY,
+      },
     };
 
     const errorByDialect: Record<DialectName, Class<Error>> = {
@@ -73,6 +78,7 @@ describe('Configuration', () => {
       snowflake: HostNotReachableError,
       db2: ConnectionRefusedError,
       sqlite3: InvalidConnectionError,
+      duckdb: InvalidConnectionError,
     };
 
     const seq = new Sequelize<AbstractDialect>(badHostConfigs[dialectName]);
@@ -88,7 +94,7 @@ describe('Configuration', () => {
       return;
     }
 
-    const config: Omit<DialectConfigs, 'sqlite3'> = {
+    const config: Omit<DialectConfigs, 'sqlite3' | 'duckdb'> = {
       mssql: {
         ...CONFIG.mssql,
         authentication: {

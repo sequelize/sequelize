@@ -23,6 +23,7 @@
     "test-integration-db2": "yarn lerna run test-integration-db2",
     "test-integration-ibmi": "yarn lerna run test-integration-ibmi",
     "test-integration-snowflake": "yarn lerna run test-integration-snowflake",
+    "test-integration-duckdb": "yarn lerna run test-integration-duckdb",
     "sync-exports": "lerna run sync-exports",
     "build": "lerna run build",
     "docs": "typedoc",
@@ -61,7 +62,8 @@
     "sscce-postgres-native": "cross-env DIALECT=postgres-native yarn sscce",
     "sscce-sqlite3": "cross-env DIALECT=sqlite3 yarn sscce",
     "sscce-mssql": "cross-env DIALECT=mssql yarn sscce",
-    "sscce-db2": "cross-env DIALECT=db2 yarn sscce"
+    "sscce-db2": "cross-env DIALECT=db2 yarn sscce",
+    "sscce-duckdb": "cross-env DIALECT=duckdb yarn duckdb"
   },
   "workspaces": [
     "packages/*"
