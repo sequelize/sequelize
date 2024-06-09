@@ -10,7 +10,7 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   async run(sql, parameters) {
-    const data = await this.connection.all(sql, parameters);
+    const data = await this.connection.db.all(sql, parameters);
     if (this.isSelectQuery()) {
       return this.handleSelectQuery(data);
     }

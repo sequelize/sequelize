@@ -9,16 +9,25 @@ export interface DuckDbConnectionOptions {
   mode?: "readonly" | "readwrite";
 }
 
-export interface DuckDbConnection extends AbstractConnection, Database {}
+export interface DuckDbConnection extends AbstractConnection {
+  db: Database;
+  closed: boolean;
+}
 
 export class DuckDbConnectionManager extends AbstractConnectionManager<DuckDbDialect, DuckDbConnection> {
   async connect(config: ConnectionOptions<DuckDbDialect>): Promise<DuckDbConnection> {
     const db = await Database.create(config.database || ':memory:');
 
-    return db;
+    return { db, closed: false };
   }
 
   async disconnect(connection: DuckDbConnection) {
-    return connection.close();
+    connection.closed = true;
+
+    return connection.db.close();
+  }
+
+  validate(connection: DuckDbConnection): boolean {
+    return !connection.closed;
   }
 }
