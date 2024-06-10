@@ -29,20 +29,8 @@ function removeUnsupportedDecimalNumberOptions(
 }
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
-  // Note: the BOOLEAN type is SQLite maps to NUMERIC, but we still use BOOLEAN because introspecting the table
-  // still indicates that the column is a BOOLEAN column - which we may be able to exploit in the future to parse the value
-  // in raw queries where the DataType is not available.
-
-  escape(value: boolean | unknown): string {
-    return value ? '1' : '0';
-  }
-
-  toBindableValue(value: boolean | unknown): unknown {
-    return value ? 1 : 0;
-  }
-
   toSql(): string {
-    return 'INTEGER';
+    return 'BOOLEAN';
   }
 }
 
@@ -68,12 +56,6 @@ export class TEXT extends BaseTypes.TEXT {
       );
       this.options.length = undefined;
     }
-  }
-}
-
-export class CITEXT extends BaseTypes.CITEXT {
-  toSql() {
-    return 'TEXT COLLATE NOCASE';
   }
 }
 
@@ -137,15 +119,10 @@ export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
     removeUnsupportedDecimalNumberOptions(this, dialect);
-    dialect.warnDataTypeIssue(
-      `${dialect.name} does not support single-precision floating point numbers. SQLite's REAL type will be used instead, which in SQLite is a double-precision floating point type.`,
-    );
   }
 
-  // TODO: add check constraint >= 0 if unsigned is true
-
   protected getNumberSqlTypeName(): string {
-    return 'REAL';
+    return 'FLOAT';
   }
 }
 
@@ -155,17 +132,11 @@ export class DOUBLE extends BaseTypes.DOUBLE {
     removeUnsupportedDecimalNumberOptions(this, dialect);
   }
 
-  // TODO: add check constraint >= 0 if unsigned is true
-
   protected getNumberSqlTypeName(): string {
-    // in SQLite, REAL is 8 bytes, not 4.
-    return 'REAL';
+    return 'DOUBLE';
   }
 }
 
-/**
- * @deprecated use FLOAT.
- */
 export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
@@ -173,7 +144,6 @@ export class REAL extends BaseTypes.REAL {
   }
 
   protected getNumberSqlTypeName(): string {
-    // in SQLite, REAL is 8 bytes, not 4.
     return 'REAL';
   }
 }

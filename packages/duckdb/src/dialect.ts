@@ -57,12 +57,10 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     dataTypes: {
       CHAR: false,
       COLLATE_BINARY: true,
-      CITEXT: true,
-      DECIMAL: false,
+      CITEXT: false,
+      DECIMAL: false, // TBD; DuckDB supports decimal
       JSON: true,
     },
-    // TODO: add support for JSON operations https://www.sqlite.org/json1.html (bundled in sqlite3)
-    //  be careful: json_extract, ->, and ->> don't have the exact same meanings as mysql & mariadb
     jsonOperations: false,
     jsonExtraction: {
       unquoted: false,

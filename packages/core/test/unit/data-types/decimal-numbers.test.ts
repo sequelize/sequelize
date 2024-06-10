@@ -65,7 +65,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
   testDataTypeSql('DOUBLE', DataTypes.DOUBLE, {
     default: 'DOUBLE PRECISION',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi duckdb': 'DOUBLE',
     sqlite3: 'REAL',
     snowflake: 'FLOAT',
   });
@@ -73,7 +73,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION UNSIGNED',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi duckdb': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -81,7 +81,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12)',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi duckdb': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -89,7 +89,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12) UNSIGNED',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi duckdb': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -131,26 +131,26 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   // or a double-precision fallback if not.
   testDataTypeSql('FLOAT', DataTypes.FLOAT, {
     // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
-    'mysql mariadb snowflake': 'FLOAT',
+    'mysql mariadb snowflake duckdb': 'FLOAT',
     // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
     'postgres mssql sqlite3 db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
     'mysql mariadb': 'FLOAT UNSIGNED',
-    snowflake: 'FLOAT',
+    'snowflake duckdb': 'FLOAT',
     'postgres mssql sqlite3 db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
     'mysql mariadb': 'FLOAT(11, 12)',
-    snowflake: 'FLOAT',
+    'snowflake duckdb': 'FLOAT',
     'postgres mssql sqlite3 db2 ibmi': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-    snowflake: 'FLOAT',
+    'snowflake duckdb': 'FLOAT',
     'postgres mssql sqlite3 db2 ibmi': 'REAL',
   });
 
@@ -159,7 +159,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     DataTypes.FLOAT({ precision: 11, scale: 12 }).UNSIGNED,
     {
       'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
-      snowflake: 'FLOAT',
+      'snowflake duckdb': 'FLOAT',
       'postgres mssql sqlite3 db2 ibmi': 'REAL',
     },
   );
