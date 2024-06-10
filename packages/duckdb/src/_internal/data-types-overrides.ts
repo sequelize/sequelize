@@ -235,3 +235,5 @@ export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
     return 'TEXT';
   }
 }
+
+export class DECIMAL extends BaseTypes.DECIMAL {}

@@ -224,7 +224,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       `${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`,
     ),
     sqlite3: unsupportedError,
-    postgres: 'DECIMAL',
+    'postgres duckdb': 'DECIMAL',
   });
 
   testDataTypeSql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {

@@ -58,7 +58,12 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       CHAR: false,
       COLLATE_BINARY: true,
       CITEXT: false,
-      DECIMAL: false, // TBD; DuckDB supports decimal
+      DECIMAL: {
+        unconstrained: true,
+        constrained: true,
+        NaN: true,
+        infinity: true,
+      },
       JSON: true,
     },
     jsonOperations: false,
