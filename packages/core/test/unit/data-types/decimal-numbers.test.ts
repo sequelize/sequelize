@@ -20,17 +20,17 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
   testDataTypeSql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
     default: 'REAL UNSIGNED',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres duckdb': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12)', DataTypes.REAL(11, 12), {
     default: 'REAL(11, 12)',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres duckdb': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres duckdb': 'REAL',
   });
 
   testDataTypeSql(
@@ -38,7 +38,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED,
     {
       default: 'REAL(11, 12) UNSIGNED',
-      'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+      'sqlite3 snowflake ibmi db2 mssql postgres duckdb': 'REAL',
     },
   );
 
