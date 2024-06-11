@@ -218,7 +218,7 @@ DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn 
 
 What is SSCCE? [find out here](http://www.sscce.org/).
 
-You can modify the `sscce.js` file (at the root of the repository) to create an SSCCE.
+You can modify the `sscce.ts` file (at the root of the repository) to create an SSCCE.
 
 Run it for the dialect of your choice using one of the following commands:
 
@@ -233,7 +233,7 @@ _Note:_ First, you need to set up (once) the database instance for corresponding
 
 #### 5.1. Debugging an SSCCE with Visual Studio Code
 
-If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.js` or any other Sequelize source code).
+If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.ts` or any other Sequelize source code).
 
 ### 6. Commit your modifications
 
