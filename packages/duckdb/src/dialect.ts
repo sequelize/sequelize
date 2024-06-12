@@ -85,7 +85,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
   // TBD: options useful?
   constructor(sequelize: Sequelize, options: DuckDbDialectOptions) {
     super({
-      identifierDelimiter: '`',
+      identifierDelimiter: '"',
       options,
       sequelize,
       minimumDatabaseVersion: '0.10.2',
