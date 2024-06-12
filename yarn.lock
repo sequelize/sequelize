@@ -3323,19 +3323,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@smithy/credential-provider-imds@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@smithy/credential-provider-imds@npm:3.1.0"
-  dependencies:
-    "@smithy/node-config-provider": "npm:^3.1.0"
-    "@smithy/property-provider": "npm:^3.1.0"
-    "@smithy/types": "npm:^3.0.0"
-    "@smithy/url-parser": "npm:^3.0.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/88b4f9f4eb4383a428b9b60a2e78bbefd6f9a52c3ccfb4c33439c06b59c8d8fddb127c628330d5e985abd439aa60dc3cffeda8c568f5f5e85521d6bf4a0b64ab
-  languageName: node
-  linkType: hard
-
 "@smithy/eventstream-codec@npm:^3.0.0":
   version: 3.0.0
   resolution: "@smithy/eventstream-codec@npm:3.0.0"
@@ -3533,18 +3520,6 @@ __metadata:
   linkType: hard
 
 "@smithy/node-config-provider@npm:^3.0.0, @smithy/node-config-provider@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "@smithy/node-config-provider@npm:3.1.0"
-  dependencies:
-    "@smithy/property-provider": "npm:^3.1.0"
-    "@smithy/shared-ini-file-loader": "npm:^3.1.0"
-    "@smithy/types": "npm:^3.0.0"
-    tslib: "npm:^2.6.2"
-  checksum: 10c0/eea07cbf40cb64e1d630f23cc4dac2976d78ed76ecf2deade7fc63ad8227ea519acbd54612a09c947c6fcd4d47f1f1c38c77c435d35af8dcecc460d250a1d812
-  languageName: node
-  linkType: hard
-
-"@smithy/node-config-provider@npm:^3.1.0":
   version: 3.1.0
   resolution: "@smithy/node-config-provider@npm:3.1.0"
   dependencies:
