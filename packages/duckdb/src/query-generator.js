@@ -6,4 +6,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   createTableQuery(_ignoreTableName, _ignoreAttributes, _ignoreOptions) {
     return 'TBD';
   }
+
+
 }

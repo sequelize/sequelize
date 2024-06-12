@@ -65,11 +65,9 @@ export class TINYINT extends BaseTypes.TINYINT {
     removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  // TODO: add >= 0 =< 2^8-1 check when the unsigned option is true
-  // TODO: add >= -2^7 =< 2^7-1 check when the unsigned option is false
-
+  // TODO: check length; return SMALLINT if 2
   toSql(): string {
-    return 'INTEGER';
+    return this.options.length && this.options.length > 1 ? 'SMALLINT' : 'TINYINT';
   }
 }
 

@@ -63,7 +63,7 @@
     "sscce-sqlite3": "cross-env DIALECT=sqlite3 yarn sscce",
     "sscce-mssql": "cross-env DIALECT=mssql yarn sscce",
     "sscce-db2": "cross-env DIALECT=db2 yarn sscce",
-    "sscce-duckdb": "cross-env DIALECT=duckdb yarn duckdb"
+    "sscce-duckdb": "cross-env DIALECT=duckdb yarn sscce"
   },
   "workspaces": [
     "packages/*"

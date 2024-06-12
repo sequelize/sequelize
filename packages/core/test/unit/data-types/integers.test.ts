@@ -19,7 +19,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
         expect: {
           // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
           'mssql postgres db2 ibmi': 'SMALLINT',
-          'mysql mariadb': 'TINYINT',
+          'mysql mariadb duckdb': 'TINYINT',
           'sqlite3 snowflake': 'INTEGER',
         },
       },
@@ -28,7 +28,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
         title: 'TINYINT(2)',
         dataType: DataTypes.TINYINT(2),
         expect: {
-          'mssql postgres db2 ibmi': 'SMALLINT',
+          'mssql postgres db2 ibmi duckdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
           'sqlite3 snowflake': 'INTEGER',
         },
@@ -37,7 +37,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
         title: 'TINYINT({ length: 2 })',
         dataType: DataTypes.TINYINT({ length: 2 }),
         expect: {
-          'mssql postgres db2 ibmi': 'SMALLINT',
+          'mssql postgres db2 ibmi duckdb': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
           'sqlite3 snowflake': 'INTEGER',
         },
@@ -53,6 +53,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
           'sqlite3 snowflake': 'INTEGER',
           // TINYINT is unsigned in mssql
           mssql: 'TINYINT',
+          duckdb: 'UTINYINT',
         },
       },
       {
@@ -63,6 +64,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
           'mysql mariadb': 'TINYINT(2) UNSIGNED',
           'sqlite3 snowflake': 'INTEGER',
           mssql: 'TINYINT',
+          duckdb: 'USMALLINT',
         },
       },
       {
