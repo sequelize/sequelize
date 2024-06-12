@@ -1,4 +1,9 @@
-import { AbstractQueryGenerator, ListTablesQueryOptions } from '@sequelize/core';
+import {
+  AbstractQueryGenerator,
+  ListTablesQueryOptions,
+  ShowConstraintsQueryOptions,
+  TableOrModel
+} from '@sequelize/core';
 import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
 import { DuckDbDialect } from "./dialect";
 
@@ -19,10 +24,35 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(_options?: ListTablesQueryOptions): string {
-    // TBD: handle optional options?.schema
-    return "SELECT table_name, schema_name as schema FROM duckdb_tables()";
+    // TBD: handle optional options?.schema -- is schemaName used?
+    return 'SELECT table_name as tableName, schema_name as schemaName FROM duckdb_tables()';
   }
 
+  // copied from sqlite
+  private escapeTable(tableName: TableOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    if (table.schema) {
+      return this.escape(`${table.schema}${table.delimiter}${table.tableName}`);
+    }
+
+    return this.escape(table.tableName);
+  }
+
+  showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions): string {
+    console.log("show constraints: ", options);
+    return `SELECT constraint_column_names as columnNames,
+        schema_name as referencedTableSchema,
+        table_name as referencedTableName,
+        constraint_text as definition,
+        FROM duckdb_constraints()
+        WHERE table_name = ${this.escapeTable(tableName)}
+            AND constraint_type = ${this.escape(options?.constraintType)}`;
+  }
+
+  showIndexesQuery(tableName: TableOrModel): string {
+    return "FROM duckdb_indexes()";
+  }
 
  /* createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
     return super.createDatabaseQuery(_database, _options);
@@ -72,21 +102,14 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return super.addConstraintQuery(tableName, options);
   }
 
-  removeConstraintQuery(tableName: TableOrModel, constraintName: string, options?: RemoveConstraintQueryOptions): string {
-    return super.removeConstraintQuery(tableName, constraintName, options);
-  }
 
   setConstraintCheckingQuery(type: ConstraintChecking | Class<ConstraintChecking>, constraints?: readonly string[]): string {
     return super.setConstraintCheckingQuery(type, constraints);
   }
 
-  showConstraintsQuery(_tableName: TableOrModel, _options?: ShowConstraintsQueryOptions): string {
-    return super.showConstraintsQuery(_tableName, _options);
-  }
 
-  showIndexesQuery(_tableName: TableOrModel): string {
-    return super.showIndexesQuery(_tableName);
-  }
+
+
 
   removeIndexQuery(_tableName: TableOrModel, _indexNameOrAttributes: string | string[], _options?: RemoveIndexQueryOptions): string {
     return super.removeIndexQuery(_tableName, _indexNameOrAttributes, _options);

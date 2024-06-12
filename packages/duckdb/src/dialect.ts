@@ -6,8 +6,8 @@ import { DuckDbQuery } from "./query";
 import { DuckDbConnectionManager } from "./connection-manager";
 import { DuckDbQueryGenerator } from "./query-generator";
 import { DuckDbQueryInterface } from "./query-interface";
-import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import {getSynchronizedTypeKeys} from "@sequelize/utils";
+import { getSynchronizedTypeKeys } from "@sequelize/utils";
+import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 
 export interface DuckDbDialectOptions {
 }
@@ -40,18 +40,35 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       onConflictWhere: true,
     },
     index: {
+      collate: false,
+      length: false,
+      parser: false,
+      concurrently: false,
+      type: false,
       using: false,
-      where: true,
-      functionBased: true,
+      functionBased: false,
+      where: false,
+      include: false,
     },
     startTransaction: {
       useBegin: true,
       transactionType: true,
     },
+    autoIncrement: {
+      identityInsert: false,
+      defaultValue: false,
+      update: false,
+    },
     constraints: {
-      foreignKeyChecksDisableable: true,
-      add: false,
-      remove: false,
+      deferrable: false,
+      default: false,
+      check: false,
+      foreignKey: false,
+      foreignKeyChecksDisableable: false,
+      primaryKey: false, // TBD: change to true
+      onUpdate: false,
+      add: true,
+      remove: true,
     },
     groupedLimit: false,
     dataTypes: {
@@ -99,8 +116,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
   }
 
   createBindCollector() {
-    // TBD
-    return createNamedParamBindCollector('$');
+    return createUnspecifiedOrderedBindCollector();
   }
 
   getDefaultSchema(): string {
