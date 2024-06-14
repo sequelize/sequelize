@@ -19,6 +19,7 @@ export class DuckDbQuery extends AbstractQuery {
       data = await this.connection.db.all(sql);
     }
 
+    let result = this.instance;
     if (this.isSelectQuery()) {
       console.log("*** SELECT Query: ", sql, "params: ", parameters);
 
@@ -31,7 +32,30 @@ export class DuckDbQuery extends AbstractQuery {
 
       this.handleInsertQuery(data, metadata);
 
-      return [data, metadata];
+      if (!this.instance) {
+        const modelDefinition = this.model?.modelDefinition;
+
+        // TBD: what?
+        // handle bulkCreate AI primary key
+        if (
+            data.constructor.name === 'ResultSetHeader' &&
+            modelDefinition?.autoIncrementAttributeName &&
+            modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+        ) {
+          console.log("*** WHAT IS BULK CREATE ***");
+          const startId = data[this.getInsertIdField()];
+          result = [];
+          for (let i = startId; i < startId + data.affectedRows; i++) {
+            result.push({ [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: i });
+          }
+        } else {
+          console.log("*** NORMAL ID AUTOGENERATION");
+          result = data[this.getInsertIdField()];
+        }
+      }
+
+      // TBD: second parameter is number of affected rows
+      return [result, metadata];
 
     }
 
