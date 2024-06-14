@@ -20,24 +20,17 @@ export type oracledbModule = typeof oracledb;
 const debug = logger.debugContext('connection:oracle');
 
 export interface OracleConnection extends oracledbConnection, AbstractConnection {
-  isHealthy(): boolean;
   on(event: 'error', listener: (err: any) => void): this;
 }
 
-export interface OracleConnectionOptions {
-  connectString?: string | undefined;
-
+export interface OracleConnectionOptions extends oracledb.ConnectionAttributes {
   database?: string;
 
   host?: string;
 
   oracleOptions?: object;
 
-  password?: string | undefined;
-
   port?: number | string;
-
-  username?: string | undefined;
 }
 
 export class OracleConnectionManager extends AbstractConnectionManager<
