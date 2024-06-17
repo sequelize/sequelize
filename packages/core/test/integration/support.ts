@@ -14,6 +14,7 @@ import {
   sequelize,
   setIsIntegrationTestSuite,
 } from '../support';
+import { DuckDbDialect } from '../../../duckdb/lib/dialect';
 
 setIsIntegrationTestSuite(true);
 
@@ -108,6 +109,7 @@ export async function createMultiTransactionalTestSequelizeInstance<
   sequelizeOrOptions: Sequelize | Options<Dialect>,
   overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
+  console.log("*************** IN MULTITRANSACT ***");
   const baseOptions =
     sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.rawOptions : sequelizeOrOptions;
 
@@ -125,6 +127,25 @@ export async function createMultiTransactionalTestSequelizeInstance<
       // allow using multiple connections as we are connecting to a file
       pool: { max: 5, idle: 30_000 },
       ...(overrideOptions as Options<SqliteDialect>),
+    });
+
+    await _sequelize.sync({ force: true });
+
+    return _sequelize;
+  }
+
+  if (dialect === 'duckdb') {
+    console.log("************ OVERRIDING DUCKDB DATABASE WITH TRANSACTIONAL");
+    const p = getSqliteDatabasePath(`transactional-${rand()}.duckdb`);
+    if (fs.existsSync(p)) {
+      fs.unlinkSync(p);
+    }
+
+    const _sequelize = createSequelizeInstance<DuckDbDialect>({
+      ...(baseOptions as Options<DuckDbDialect>),
+      database: p,
+ // TBD: why is this different from SQLite -- complains about always overriding database
+ //     ...(overrideOptions as Options<DuckDbDialect>),
     });
 
     await _sequelize.sync({ force: true });
@@ -199,6 +220,7 @@ export function setResetMode(mode: ResetMode) {
 afterEach('database reset', async () => {
   const sequelizeInstances = uniq([sequelize, ...allSequelizeInstances]);
 
+  console.log("*** ELENA database reset (mode = " + currentSuiteResetMode + "), after each; instances: ", sequelizeInstances.map(s => s.rawOptions['database']));
   for (const sequelizeInstance of sequelizeInstances) {
     if (sequelizeInstance.isClosed()) {
       allSequelizeInstances.delete(sequelizeInstance);

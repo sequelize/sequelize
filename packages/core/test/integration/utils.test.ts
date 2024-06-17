@@ -1,11 +1,18 @@
 import { DataTypes, Op, cast, fn } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, getTestDialectTeaser, sequelize, setResetMode } from './support';
+import {DUCKDB_DATABASES_DIR} from "../config/config";
+import fs from "node:fs";
 
 const dialectName = sequelize.dialect.name;
 
 describe(getTestDialectTeaser('fn()'), () => {
   setResetMode('none');
+
+  if (dialectName === "duckdb") {
+    console.log("************** CREATING DUCKDB DIRECTORY ************");
+    fs.mkdirSync(DUCKDB_DATABASES_DIR);
+  }
 
   const vars = beforeAll2(async () => {
     const Airplane = sequelize.define('Airplane', {

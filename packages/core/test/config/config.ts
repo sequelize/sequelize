@@ -12,9 +12,14 @@ import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 
 export const SQLITE_DATABASES_DIR = path.join(__dirname, '..', 'sqlite-databases');
+export const DUCKDB_DATABASES_DIR = path.join(__dirname, '..', 'duckdb-databases');
 
 export function getSqliteDatabasePath(name: string): string {
   return path.join(SQLITE_DATABASES_DIR, name);
+}
+
+export function getDuckDbDatabasePath(name: string): string {
+  return path.join(DUCKDB_DATABASES_DIR, name);
 }
 
 const { env } = process;
@@ -160,6 +165,6 @@ export const CONFIG: DialectConfigs = {
 
   duckdb: {
     dialect: DuckDbDialect,
-    database: ':memory:',
+    database: getDuckDbDatabasePath('default.duckdb'),
   },
 };

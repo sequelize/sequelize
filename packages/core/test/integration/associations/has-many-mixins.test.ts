@@ -84,6 +84,10 @@ describe('hasMany Mixins', () => {
     it('supports any iterable', async () => {
       const { Label, Article } = vars;
 
+      console.log("***** ELENA *****");
+      const blah = await sequelize.query("SHOW TABLES");
+      console.log("****** ELENA RESULTS: ", blah);
+
       const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671

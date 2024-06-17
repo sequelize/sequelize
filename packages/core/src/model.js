@@ -2373,6 +2373,9 @@ ${associationOwner._getAssociationDebugList()}`);
             try {
               await instance.validate(validateOptions);
             } catch (error) {
+              console.log("****** ELENA VALIDATION ERROR: ", error);
+              await new Promise(resolve => { setTimeout(resolve, 30000) } );
+              console.log("****** DONE WAITING< RESUMING")
               errors.push(new SequelizeErrors.BulkRecordError(error, instance));
             }
           }),

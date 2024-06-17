@@ -91,6 +91,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     truncate: {
       restartIdentity: false,
     },
+    returnValues: 'returning',  // TBD: this is overachieving and returning everything rather than just IDs
   });
 
   readonly Query = DuckDbQuery;

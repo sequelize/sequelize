@@ -15,7 +15,7 @@ import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
 import type { Class } from 'type-fest';
-import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
+import {CONFIG, DUCKDB_DATABASES_DIR, SQLITE_DATABASES_DIR} from './config/config';
 
 export { getSqliteDatabasePath } from './config/config';
 
@@ -611,7 +611,11 @@ if (typeof after !== 'undefined') {
       await sequelize.close();
     }
 
-    return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
+    return Promise.all([
+        fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true }),
+        // TBD: clean up later
+        fs.promises.rm(DUCKDB_DATABASES_DIR, { recursive: true, force: true }),
+    ]);
   });
 }
 

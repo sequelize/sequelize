@@ -96,6 +96,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
 
+    console.log("SQLITE createTable sql: " + sql);
     return this.replaceBooleanDefaults(sql);
   }
 
