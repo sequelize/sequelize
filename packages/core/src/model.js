@@ -1402,8 +1402,8 @@ ${associationOwner._getAssociationDebugList()}`);
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
-   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
-   * @param  {object}                           [options] find options
+   * @param  {number|bigint|string|Buffer|object}      param The value of the desired instance's primary key.
+   * @param  {object}                                  [options] find options
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
@@ -1419,6 +1419,23 @@ ${associationOwner._getAssociationDebugList()}`);
         // TODO: support composite primary keys
         [this.primaryKeyAttribute]: param,
       };
+    } else if (typeof param === 'object') {
+      // composite primary key support
+      options.where = Object.values(this.primaryKeys).reduce((where, pkMetadata) => {
+        if (param[pkMetadata.columnName] === undefined) {
+          return where;
+        }
+
+        return {
+          ...where,
+          [pkMetadata.columnName]: param[pkMetadata.columnName],
+        };
+      }, {});
+
+      if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
+        throw new TypeError('Primary key mismatch. Please pass all primary keys');
+      }
+
     } else {
       throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
     }
