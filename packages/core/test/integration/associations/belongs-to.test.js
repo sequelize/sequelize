@@ -1002,4 +1002,61 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(individual.personwearinghat.name).to.equal('Baz');
     });
   });
+
+  describe('composite keys', () => {
+    describe('get', () => {
+      describe('getAssociation', () => {
+        if (current.dialect.supports.transactions) {
+          it('brings back associated element', async function () {
+            const User = this.sequelize.define('User', {
+              userId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+              },
+              tenantId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+              },
+              username: DataTypes.STRING,
+            });
+            const Address = this.sequelize.define('Address', {
+              addressId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+              },
+              zipCode: DataTypes.STRING,
+            },
+            {
+              indexes: [{ fields: ['zipCode'], name: 'zip_code_index', unique: true }],
+              additionalForeignKeyConstraintDefinitions: [
+                {
+                  columns: ['userId', 'tenantId'],
+                  foreignTable: User,
+                  foreignColumns: ['userId', 'tenantId'],
+                },
+              ],
+            });
+            Address.belongsTo(User, { foreignKeys: ['userId', 'tenantId'] });
+
+            await this.sequelize.sync({ force: true });
+            const user = await User.create({ username: 'foo', tenantId: 1 });
+            await Address.create({
+              zipCode: '31217',
+              userId: user.userId,
+              tenantId: user.tenantId,
+            });
+
+            const addresses = await Address.findAll();
+            const associatedUser = await addresses[0].getUser();
+            expect(associatedUser).not.to.be.null;
+            expect(associatedUser.userId).to.equal(user.userId);
+            expect(associatedUser.tenantId).to.equal(user.tenantId);
+            expect(associatedUser.username).to.equal('foo');
+          });
+        }
+      });
+    });
+  });
 });

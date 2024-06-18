@@ -291,6 +291,12 @@ export interface ForeignKeyOptions<ForeignKey extends string>
 export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
+/** Foreign Key Options */
+export interface CompositeForeignKeysOptions {
+  source: string;
+  target: string;
+}
+
 /**
  * Options provided when associating models
  */
@@ -312,6 +318,8 @@ export interface AssociationOptions<ForeignKey extends string = string> extends 
    * with the {@link ForeignKeyOptions.name} option set.
    */
   foreignKey?: ForeignKey | ForeignKeyOptions<ForeignKey>;
+
+  foreignKeys?: ForeignKey[] | Array<{ source: string, target: string }>;
 
   /**
    * Should ON UPDATE, ON DELETE, and REFERENCES constraints be enabled on the foreign key.
