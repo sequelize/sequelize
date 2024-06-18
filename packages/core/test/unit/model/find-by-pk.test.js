@@ -47,7 +47,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      Model.findOne = sinon.stub();
+      sinon.stub(Model, 'findOne');
       const findOneSpy = sinon.spy(Sequelize.Model, 'findOne');
 
       await Model.findByPk({ pk1: 1, pk2: 2 });

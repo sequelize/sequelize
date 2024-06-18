@@ -1421,16 +1421,12 @@ ${associationOwner._getAssociationDebugList()}`);
       };
     } else if (typeof param === 'object') {
       // composite primary key support
-      options.where = Object.values(this.primaryKeys).reduce((where, pkMetadata) => {
-        if (param[pkMetadata.columnName] === undefined) {
-          return where;
+      options.where = {};
+      for (const pkMetadata of Object.values(this.primaryKeys)) {
+        if (param[pkMetadata.columnName] !== undefined) {
+          options.where[pkMetadata.columnName] = param[pkMetadata.columnName];
         }
-
-        return {
-          ...where,
-          [pkMetadata.columnName]: param[pkMetadata.columnName],
-        };
-      }, {});
+      }
 
       if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
         throw new TypeError('Primary key mismatch. Please pass all primary keys');
