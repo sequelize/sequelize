@@ -5,7 +5,7 @@ const Support = require('../../support');
 const current = Support.sequelize;
 const sinon = require('sinon');
 const { DataTypes, Sequelize } = require('@sequelize/core');
-const {expect} = require("chai");
+const { expect } = require('chai');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findByPk', () => {
@@ -51,7 +51,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const findOneSpy = sinon.spy(Sequelize.Model, 'findOne');
 
       await Model.findByPk({ pk1: 1, pk2: 2 });
-      findOneSpy.should.have.been.calledWithMatch({  where: { pk1: 1, pk2: 2 } });
+      findOneSpy.should.have.been.calledWithMatch({
+        where: { pk1: 1, pk2: 2 },
+      });
     });
 
     it('should throw error if composite primary key args not match key', async () => {
@@ -66,7 +68,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(TypeError);
+      expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(
+        TypeError,
+      );
     });
   });
 });
