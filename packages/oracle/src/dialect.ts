@@ -98,6 +98,9 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       INTS: numericOptions,
       DOUBLE: numericOptions,
       DECIMAL: { unconstrained: true },
+      TIME: {
+        precision: false,
+      },
     },
     jsonOperations: true,
     jsonExtraction: {
