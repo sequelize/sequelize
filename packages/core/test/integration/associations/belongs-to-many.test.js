@@ -2323,7 +2323,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await t.rollback();
       });
 
-      // Oracle is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
       if (!['oracle'].includes(dialect)) {
         it('supports transactions when updating a through model', async function () {
           const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(

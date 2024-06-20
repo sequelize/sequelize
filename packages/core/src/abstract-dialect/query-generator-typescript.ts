@@ -608,7 +608,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
-   * Returns the alias token
+   * Returns the alias token 'AS' after `FROM` clause.
    *
    * @returns string
    */

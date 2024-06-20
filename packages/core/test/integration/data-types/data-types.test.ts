@@ -1387,7 +1387,7 @@ describe('DataTypes', () => {
     }
   });
 
-  describe.only('TIME(precision)', () => {
+  describe('TIME(precision)', () => {
     if (!dialect.supports.dataTypes.TIME.precision) {
       it('throws, as TIME(precision) is not supported', async () => {
         expect(() => {
