@@ -68,9 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(
-        TypeError,
-      );
+      expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(TypeError);
     });
   });
 });

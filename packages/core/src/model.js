@@ -1597,7 +1597,6 @@ ${associationOwner._getAssociationDebugList()}`);
       if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
         throw new TypeError('Primary key mismatch. Please pass all primary keys');
       }
-
     } else {
       throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
     }
