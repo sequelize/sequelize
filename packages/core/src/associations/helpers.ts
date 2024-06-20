@@ -1,9 +1,9 @@
-import assert from 'node:assert';
-import NodeUtils from 'node:util';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
+import assert from 'node:assert';
+import NodeUtils from 'node:util';
 import type { Class } from 'type-fest';
 import { AssociationError } from '../errors/index.js';
 import type { Model, ModelStatic } from '../model';
@@ -13,15 +13,20 @@ import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
 import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
-import type { Association, AssociationOptions, ForeignKeyOptions, NormalizedAssociationOptions } from './base';
+import type {
+  Association,
+  AssociationOptions,
+  ForeignKeyOptions,
+  NormalizedAssociationOptions,
+} from './base';
 import type { ThroughOptions } from './belongs-to-many.js';
 
 export function checkNamingCollision(source: ModelStatic<any>, associationName: string): void {
   if (Object.hasOwn(source.getAttributes(), associationName)) {
     throw new Error(
-      `Naming collision between attribute '${associationName}'`
-      + ` and association '${associationName}' on model ${source.name}`
-      + '. To remedy this, change the "as" options in your association definition',
+      `Naming collision between attribute '${associationName}'` +
+        ` and association '${associationName}' on model ${source.name}` +
+        '. To remedy this, change the "as" options in your association definition',
     );
   }
 }
@@ -72,21 +77,6 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
  */
 export const AssociationSecret = Symbol('AssociationConstructorPrivateKey');
 
-export function getModel<M extends Model>(
-  sequelize: Sequelize,
-  model: string | ModelStatic<M>,
-): ModelStatic<M> | null {
-  if (typeof model === 'string') {
-    if (!sequelize.isDefined(model)) {
-      return null;
-    }
-
-    return sequelize.model(model);
-  }
-
-  return model;
-}
-
 export function assertAssociationUnique(
   type: Class<Association>,
   source: ModelStatic<any>,
@@ -101,7 +91,12 @@ export function assertAssociationUnique(
     return;
   }
 
-  const incompatibilityStatus = getAssociationsIncompatibilityStatus(existingAssociation, type, target, options);
+  const incompatibilityStatus = getAssociationsIncompatibilityStatus(
+    existingAssociation,
+    type,
+    target,
+    options,
+  );
   if ((parent || existingAssociation.parentAssociation) && incompatibilityStatus == null) {
     return;
   }
@@ -109,26 +104,33 @@ export function assertAssociationUnique(
   const existingRoot = existingAssociation.rootAssociation;
 
   if (!parent && existingRoot === existingAssociation) {
-    throw new AssociationError(`You have defined two associations with the same name "${as}" on the model "${source.name}". Use another alias using the "as" parameter.`);
+    throw new AssociationError(
+      `You have defined two associations with the same name "${as}" on the model "${source.name}". Use another alias using the "as" parameter.`,
+    );
   }
 
-  throw new AssociationError(`
+  throw new AssociationError(
+    `
 ${parent ? `The association "${parent.as}" needs to define` : `You are trying to define`} the ${type.name} association "${options.as}" from ${source.name} to ${target.name},
 but that child association has already been defined as ${existingAssociation.associationType}, to ${target.name} by this call:
 
 ${existingRoot.source.name}.${lowerFirst(existingRoot.associationType)}(${existingRoot.target.name}, ${NodeUtils.inspect(existingRoot.options)})
 
 That association would be re-used if compatible, but it is incompatible because ${
-  incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TYPES ? `their types are different (${type.name} vs ${existingAssociation.associationType})`
-    : incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TARGETS ? `they target different models (${target.name} vs ${existingAssociation.target.name})`
-    : `their options are not reconcilable:
+      incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TYPES
+        ? `their types are different (${type.name} vs ${existingAssociation.associationType})`
+        : incompatibilityStatus === IncompatibilityStatus.DIFFERENT_TARGETS
+          ? `they target different models (${target.name} vs ${existingAssociation.target.name})`
+          : `their options are not reconcilable:
 
 Options of the association to create:
 ${NodeUtils.inspect(omit(options, 'inverse'), { sorted: true })}
 
 Options of the existing association:
 ${NodeUtils.inspect(omit(existingAssociation.options as any, 'inverse'), { sorted: true })}
-`}`.trim());
+`
+    }`.trim(),
+  );
 }
 
 /**
@@ -165,11 +167,15 @@ function getAssociationsIncompatibilityStatus(
 
 export function assertAssociationModelIsDefined(model: ModelStatic<any>): void {
   if (!model.sequelize) {
-    throw new Error(`Model ${model.name} must be defined (through Model.init or Sequelize#define) before calling one of its association declaration methods.`);
+    throw new Error(
+      `Model ${model.name} must be defined (through Model.init or Sequelize#define) before calling one of its association declaration methods.`,
+    );
   }
 }
 
-export type AssociationStatic<T extends Association> = Class<T> & OmitConstructors<typeof Association>;
+export type AssociationStatic<T extends Association> = {
+  new (...arguments_: any[]): T;
+} & OmitConstructors<typeof Association>;
 
 export function defineAssociation<
   T extends Association,
@@ -185,12 +191,14 @@ export function defineAssociation<
     type: AssociationStatic<T>,
     options: RawOptions,
     source: ModelStatic<Model>,
-    target: ModelStatic<Model>
+    target: ModelStatic<Model>,
   ) => CleanOptions,
   construct: (opts: CleanOptions) => T,
 ): T {
   if (!isModelStatic(target)) {
-    throw new Error(`${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`);
+    throw new Error(
+      `${source.name}.${lowerFirst(type.name)} was called with ${NodeUtils.inspect(target)} as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   }
 
   assertAssociationModelIsDefined(source);
@@ -217,7 +225,7 @@ export function defineAssociation<
 
   let association;
   try {
-    association = source.associations[normalizedOptions.as] as T ?? construct(normalizedOptions);
+    association = (source.associations[normalizedOptions.as] as T) ?? construct(normalizedOptions);
   } catch (error) {
     throw new AssociationError(
       parent
@@ -228,7 +236,11 @@ export function defineAssociation<
   }
 
   if (normalizedOptions.hooks) {
-    source.hooks.runSync('afterAssociate', { source, target, type, association, sequelize }, normalizedOptions);
+    source.hooks.runSync(
+      'afterAssociate',
+      { source, target, type, association, sequelize },
+      normalizedOptions,
+    );
   }
 
   checkNamingCollision(source, normalizedOptions.as);
@@ -237,10 +249,10 @@ export function defineAssociation<
 }
 
 export type NormalizeBaseAssociationOptions<T> = Omit<T, 'as' | 'hooks' | 'foreignKey'> & {
-  as: string,
-  name: { singular: string, plural: string },
-  hooks: boolean,
-  foreignKey: ForeignKeyOptions<any>,
+  as: string;
+  name: { singular: string; plural: string };
+  hooks: boolean;
+  foreignKey: ForeignKeyOptions<any>;
 };
 
 export function normalizeInverseAssociation<T extends { as?: unknown }>(
@@ -259,9 +271,10 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
   source: ModelStatic<Model>,
   target: ModelStatic<Model>,
 ): NormalizeBaseAssociationOptions<T> {
-
   if ('onDelete' in options || 'onUpdate' in options) {
-    throw new Error('Options "onDelete" and "onUpdate" have been moved to "foreignKey.onDelete" and "foreignKey.onUpdate" (also available as "otherKey" in belongsToMany)');
+    throw new Error(
+      'Options "onDelete" and "onUpdate" have been moved to "foreignKey.onDelete" and "foreignKey.onUpdate" (also available as "otherKey" in belongsToMany)',
+    );
   }
 
   if ('constraints' in options) {
@@ -269,12 +282,14 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
   }
 
   if ('foreignKeyConstraint' in options) {
-    throw new Error('Option "foreignKeyConstraint" has been renamed to "foreignKeyConstraints" (with a "s" at the end)');
+    throw new Error(
+      'Option "foreignKeyConstraint" has been renamed to "foreignKeyConstraints" (with a "s" at the end)',
+    );
   }
 
   const isMultiAssociation = associationType.isMultiAssociation;
 
-  let name: { singular: string, plural: string };
+  let name: { singular: string; plural: string };
   let as: string;
   if (options?.as) {
     if (isPlainObject(options.as)) {
@@ -290,8 +305,11 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
       };
     }
   } else {
-    as = isMultiAssociation ? target.options.name.plural : target.options.name.singular;
-    name = target.options.name;
+    as = lowerFirst(isMultiAssociation ? target.options.name.plural : target.options.name.singular);
+    name = {
+      plural: lowerFirst(target.options.name.plural),
+      singular: lowerFirst(target.options.name.singular),
+    };
   }
 
   return removeUndefined({
@@ -303,17 +321,26 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
   });
 }
 
-export function normalizeForeignKeyOptions<T extends string>(foreignKey: AssociationOptions<T>['foreignKey']): ForeignKeyOptions<any> {
-  return typeof foreignKey === 'string' ? { name: foreignKey } : removeUndefined({
-    ...foreignKey,
-    name: foreignKey?.name ?? foreignKey?.fieldName,
-    fieldName: undefined,
-  });
+export function normalizeForeignKeyOptions<T extends string>(
+  foreignKey: AssociationOptions<T>['foreignKey'],
+): ForeignKeyOptions<any> {
+  return typeof foreignKey === 'string'
+    ? { name: foreignKey }
+    : removeUndefined({
+        ...foreignKey,
+        name: foreignKey?.name ?? foreignKey?.fieldName,
+        fieldName: undefined,
+      });
 }
 
-export type MaybeForwardedModelStatic<M extends Model = Model> = ModelStatic<M> | ((sequelize: Sequelize) => ModelStatic<M>);
+export type MaybeForwardedModelStatic<M extends Model = Model> =
+  | ModelStatic<M>
+  | ((sequelize: Sequelize) => ModelStatic<M>);
 
-export function getForwardedModel(model: MaybeForwardedModelStatic, sequelize: Sequelize): ModelStatic {
+export function getForwardedModel(
+  model: MaybeForwardedModelStatic,
+  sequelize: Sequelize,
+): ModelStatic {
   return typeof model === 'function' && !isModelStatic(model) ? model(sequelize) : model;
 }
 

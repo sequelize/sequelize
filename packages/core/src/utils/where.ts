@@ -8,10 +8,7 @@ import { Op as operators } from '../operators.js';
  * @private
  */
 export function getComplexKeys(obj: object): Array<string | symbol> {
-  return [
-    ...getOperators(obj),
-    ...Object.keys(obj),
-  ];
+  return [...getOperators(obj), ...Object.keys(obj)];
 }
 
 /**

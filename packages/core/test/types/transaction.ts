@@ -1,7 +1,8 @@
 import { ConstraintChecking, Sequelize, Transaction } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 import { User } from './models/user';
 
-export const sequelize = new Sequelize('uri');
+export const sequelize = new Sequelize({ dialect: MySqlDialect });
 
 async function trans() {
   const a: number = await sequelize.transaction(async transaction => {
@@ -22,12 +23,10 @@ async function trans() {
 async function trans2() {
   return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
-    User.findAll(
-      {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      },
-    );
+    User.findAll({
+      transaction,
+      lock: transaction.LOCK.UPDATE,
+    });
 
     return 1;
   });
@@ -36,12 +35,10 @@ async function trans2() {
 async function trans3() {
   return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
-    User.findAll(
-      {
-        transaction,
-        lock: true,
-      },
-    );
+    User.findAll({
+      transaction,
+      lock: true,
+    });
 
     return 1;
   });
@@ -50,15 +47,13 @@ async function trans3() {
 async function trans4() {
   return sequelize.transaction(async transaction => {
     transaction.afterCommit(() => console.debug('transaction complete'));
-    User.findAll(
-      {
-        transaction,
-        lock: {
-          level: transaction.LOCK.UPDATE,
-          of: User,
-        },
+    User.findAll({
+      transaction,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: User,
       },
-    );
+    });
 
     return 1;
   });

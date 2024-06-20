@@ -19,14 +19,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       },
     });
 
-    this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-      username: DataTypes.STRING,
-      mood: {
-        type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+    this.ParanoidUser = this.sequelize.define(
+      'ParanoidUser',
+      {
+        username: DataTypes.STRING,
+        mood: {
+          type: DataTypes.ENUM(['happy', 'sad', 'neutral']),
+        },
       },
-    }, {
-      paranoid: true,
-    });
+      {
+        paranoid: true,
+      },
+    );
 
     await this.sequelize.sync({ force: true });
   });
@@ -57,10 +61,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' },
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' },
+          ]),
+        ).to.be.rejected;
       });
 
       it('should return an error from after', async function () {
@@ -68,10 +74,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.bulkCreate([
-          { username: 'Cheech', mood: 'sad' },
-          { username: 'Chong', mood: 'sad' },
-        ])).to.be.rejected;
+        await expect(
+          this.User.bulkCreate([
+            { username: 'Cheech', mood: 'sad' },
+            { username: 'Chong', mood: 'sad' },
+          ]),
+        ).to.be.rejected;
       });
     });
 
@@ -115,7 +123,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        const records = await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true });
+        const records = await this.User.bulkCreate(
+          [{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }],
+          { fields: ['aNumber'], individualHooks: true },
+        );
         for (const record of records) {
           expect(record.username).to.equal(`User${record.id}`);
           expect(record.beforeHookTest).to.be.true;
@@ -146,7 +157,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         try {
-          await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], { fields: ['aNumber'], individualHooks: true });
+          await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], {
+            fields: ['aNumber'],
+            individualHooks: true,
+          });
         } catch (error) {
           expect(error).to.be.instanceOf(Error);
           expect(beforeBulkCreate).to.be.true;
@@ -187,7 +201,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           { username: 'Chong', mood: 'sad' },
         ]);
 
-        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be
+          .rejected;
       });
 
       it('should return an error from after', async function () {
@@ -200,7 +215,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           { username: 'Chong', mood: 'sad' },
         ]);
 
-        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.update({ mood: 'happy' }, { where: { mood: 'sad' } })).to.be
+          .rejected;
       });
     });
 
@@ -241,11 +257,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 },
-        ]);
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
 
-        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+        const [, records] = await this.User.update(
+          { aNumber: 10 },
+          { where: { aNumber: 1 }, individualHooks: true },
+        );
         for (const record of records) {
           expect(record.username).to.equal(`User${record.id}`);
           expect(record.beforeHookTest).to.be.true;
@@ -263,11 +280,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         });
 
-        await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 },
-        ]);
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
 
-        const [, records] = await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
+        const [, records] = await this.User.update(
+          { aNumber: 10 },
+          { where: { aNumber: 1 }, individualHooks: true },
+        );
         for (const record of records) {
           expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
         }
@@ -289,7 +307,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], {
+          fields: ['aNumber'],
+        });
 
         try {
           await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
@@ -324,7 +344,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be
+          .rejected;
       });
 
       it('should return an error from after', async function () {
@@ -332,7 +353,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be.rejected;
+        await expect(this.User.destroy({ where: { username: 'Cheech', mood: 'sad' } })).to.be
+          .rejected;
       });
     });
 
@@ -378,9 +400,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        await this.User.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 },
-        ]);
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
 
         await this.User.destroy({ where: { aNumber: 1 }, individualHooks: true });
         expect(beforeBulk).to.be.true;
@@ -412,7 +432,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           afterHook = true;
         });
 
-        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+        await this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], {
+          fields: ['aNumber'],
+        });
 
         try {
           await this.User.destroy({ where: { aNumber: 1 }, individualHooks: true });
@@ -434,7 +456,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         { username: 'joe', mood: 'sad' },
       ]);
 
-      await this.ParanoidUser.destroy({ truncate: true });
+      await this.ParanoidUser.truncate();
     });
 
     describe('on success', () => {
@@ -457,7 +479,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to
+          .be.rejected;
       });
 
       it('should return an error from after', async function () {
@@ -465,20 +488,25 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops!');
         });
 
-        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to.be.rejected;
+        await expect(this.ParanoidUser.restore({ where: { username: 'adam', mood: 'happy' } })).to
+          .be.rejected;
       });
     });
 
     describe('with the {individualHooks: true} option', () => {
       beforeEach(async function () {
-        this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-          aNumber: {
-            type: DataTypes.INTEGER,
-            defaultValue: 0,
+        this.ParanoidUser = this.sequelize.define(
+          'ParanoidUser',
+          {
+            aNumber: {
+              type: DataTypes.INTEGER,
+              defaultValue: 0,
+            },
           },
-        }, {
-          paranoid: true,
-        });
+          {
+            paranoid: true,
+          },
+        );
 
         await this.ParanoidUser.sync({ force: true });
       });
@@ -494,9 +522,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.beforeRestore(beforeHook);
         this.ParanoidUser.afterRestore(afterHook);
 
-        await this.ParanoidUser.bulkCreate([
-          { aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 },
-        ]);
+        await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]);
 
         await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
         await this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
@@ -522,7 +548,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.ParanoidUser.afterRestore(afterHook);
 
         try {
-          await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], { fields: ['aNumber'] });
+          await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], {
+            fields: ['aNumber'],
+          });
           await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
           await this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
         } catch (error) {

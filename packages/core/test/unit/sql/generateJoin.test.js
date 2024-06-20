@@ -2,108 +2,134 @@
 
 const at = require('lodash/at');
 
-const Support = require('../../support');
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
-const { _validateIncludedElements } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
-const util = require('node:util');
+const { beforeAll2, expectsql, sequelize } = require('../../support');
+const { DataTypes, Model, Op } = require('@sequelize/core');
+const {
+  _validateIncludedElements,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const sql = sequelize.queryGenerator;
 
-// Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+describe('QueryGenerator#generateJoin', () => {
+  const expectJoin = function (path, options, expectation) {
+    Model._conformIncludes(options, options.model);
+    options = _validateIncludedElements(options);
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
-  describe('generateJoin', () => {
-    const testsql = function (path, options, expectation) {
+    const include = at(options, path)[0];
 
-      const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
-
-      Sequelize.Model._conformIncludes(options, options.model);
-      options = _validateIncludedElements(options);
-
-      const include = at(options, path)[0];
-
-      it(name, () => {
-
-        const join = sql.generateJoin(include,
-          {
-            options,
-            subQuery: options.subQuery === undefined ? options.limit && options.hasMultiAssociation : options.subQuery,
-          });
-
-        return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
-      });
-    };
-
-    const User = current.define('User', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        field: 'id_user',
-      },
-      companyId: {
-        type: DataTypes.INTEGER,
-        field: 'company_id',
-      },
-    }, {
-      tableName: 'user',
-    });
-    const Task = current.define('Task', {
-      title: DataTypes.STRING,
-      userId: {
-        type: DataTypes.INTEGER,
-        field: 'user_id',
-      },
-    }, {
-      tableName: 'task',
+    const join = sql.generateJoin(include, {
+      options,
+      subQuery:
+        options.subQuery === undefined
+          ? options.limit && options.hasMultiAssociation
+          : options.subQuery,
     });
 
-    const Company = current.define('Company', {
-      name: DataTypes.STRING,
-      ownerId: {
-        type: DataTypes.INTEGER,
-        field: 'owner_id',
-      },
-      public: {
-        type: DataTypes.BOOLEAN,
-      },
-    }, {
-      tableName: 'company',
-    });
+    return expectsql(`${join.join} ${join.body} ON ${join.condition}`, expectation);
+  };
 
-    const Profession = current.define('Profession', {
-      name: DataTypes.STRING,
-    }, {
-      tableName: 'profession',
-    });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define(
+      'User',
+      {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+          field: 'id_user',
+        },
+        companyId: {
+          type: DataTypes.INTEGER,
+          field: 'company_id',
+        },
+      },
+      {
+        tableName: 'user',
+      },
+    );
 
-    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId' });
-    User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
-    User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
-    Profession.Professionals = Profession.hasMany(User, { as: 'Professionals', foreignKey: 'professionId' });
-    Company.Employees = Company.hasMany(User, { as: 'Employees', foreignKey: 'companyId' });
+    const Task = sequelize.define(
+      'Task',
+      {
+        title: DataTypes.STRING,
+        userId: {
+          type: DataTypes.INTEGER,
+          field: 'user_id',
+        },
+      },
+      {
+        tableName: 'task',
+      },
+    );
+
+    const Company = sequelize.define(
+      'Company',
+      {
+        name: DataTypes.STRING,
+        ownerId: {
+          type: DataTypes.INTEGER,
+          field: 'owner_id',
+        },
+        public: {
+          type: DataTypes.BOOLEAN,
+        },
+      },
+      {
+        tableName: 'company',
+      },
+    );
+
+    const Profession = sequelize.define(
+      'Profession',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        tableName: 'profession',
+      },
+    );
+
+    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
+    User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
+    User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
+    Profession.Professionals = Profession.hasMany(User, {
+      as: 'Professionals',
+      foreignKey: 'professionId',
+      inverse: 'Profession',
+    });
+    Company.Employees = Company.hasMany(User, {
+      as: 'Employees',
+      foreignKey: 'companyId',
+      inverse: 'Company',
+    });
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
-    /*
-     * BelongsTo
-     */
+    return { User, Task, Company, Profession };
+  });
 
-    testsql(
+  /*
+   * BelongsTo
+   */
+
+  it('Generates a join query for a belongsTo association', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
-        include: [
-          User.Company,
-        ],
+        include: [User.Company],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]',
       },
     );
+  });
 
-    testsql(
+  it('Generates a belongsTo join query with an extra OR "on" condition', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
@@ -116,14 +142,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ],
       },
       {
-        default: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
+        default:
+          'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = true',
         ibmi: 'INNER JOIN "company" AS "Company" ON "User"."company_id" = "Company"."id" OR "Company"."public" = 1',
-        sqlite: 'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
-        mssql: 'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
+        sqlite3:
+          'INNER JOIN `company` AS `Company` ON `User`.`company_id` = `Company`.`id` OR `Company`.`public` = 1',
+        mssql:
+          'INNER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id] OR [Company].[public] = 1',
       },
     );
+  });
 
-    testsql(
+  it('Generates a nested belongsTo join query', () => {
+    const { Profession, User } = vars;
+
+    expectJoin(
       'include[0].include[0]',
       {
         model: Profession,
@@ -131,84 +164,105 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: Profession.Professionals,
             limit: 3,
-            include: [
-              User.Company,
-            ],
+            include: [User.Company],
           },
         ],
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
+        default:
+          'LEFT OUTER JOIN [company] AS [Professionals->Company] ON [Professionals].[company_id] = [Professionals->Company].[id]',
       },
     );
+  });
 
-    testsql(
+  it('supports subQuery = true', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         subQuery: true,
-        include: [
-          User.Company,
-        ],
+        include: [User.Company],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
       },
     );
+  });
 
-    testsql(
+  it('supports subQuery = true with required = false and nested WHERE', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         subQuery: true,
         include: [
           {
-            association: User.Company, required: false, where: { name: 'ABC' },
+            association: User.Company,
+            required: false,
+            where: { name: 'ABC' },
           },
         ],
       },
       {
-        default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = \'ABC\'',
-        mssql: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N\'ABC\'',
+        default:
+          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = 'ABC'",
+        mssql:
+          "LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id] AND [Company].[name] = N'ABC'",
       },
     );
+  });
 
-    testsql(
+  it('supports "right = true"', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         subQuery: true,
         include: [
           {
-            association: User.Company, right: true,
+            association: User.Company,
+            right: true,
           },
         ],
       },
       {
-        default: `${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`,
+        default: `${sequelize.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]`,
       },
     );
+  });
 
-    testsql(
+  it('supports nested includes with subQuery = true', () => {
+    const { Company, User } = vars;
+
+    expectJoin(
       'include[0].include[0]',
       {
         subQuery: true,
         model: User,
         include: [
           {
-            association: User.Company, include: [
-              Company.Owner,
-            ],
+            association: User.Company,
+            include: [Company.Owner],
           },
         ],
-
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
       },
     );
+  });
 
-    testsql(
+  it('supports double nested includes', () => {
+    const { Company, User } = vars;
+
+    expectJoin(
       'include[0].include[0].include[0]',
       {
         model: User,
@@ -216,19 +270,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         include: [
           {
             association: User.Company,
-            include: [{
-              association: Company.Owner,
-              include: [
-                User.Profession,
-              ],
-            }],
+            include: [
+              {
+                association: Company.Owner,
+                include: [User.Profession],
+              },
+            ],
           },
         ],
       },
-      { default: 'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]' },
+      {
+        default:
+          'LEFT OUTER JOIN [profession] AS [Company->Owner->Profession] ON [Company->Owner].[professionId] = [Company->Owner->Profession].[id]',
+      },
     );
+  });
 
-    testsql(
+  it('supports nested includes with required = true', () => {
+    const { Company, User } = vars;
+
+    expectJoin(
       'include[0].include[0]',
       {
         model: User,
@@ -237,66 +298,78 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             association: User.Company,
             required: true,
-            include: [
-              Company.Owner,
-            ],
+            include: [Company.Owner],
           },
         ],
       },
-      { default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]' },
+      {
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user]',
+      },
     );
+  });
 
-    testsql(
+  it('supports required = true', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         subQuery: true,
-        include: [
-          { association: User.Company, required: true },
-        ],
+        include: [{ association: User.Company, required: true }],
       },
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
       },
     );
+  });
 
-    // /*
-    //  * HasMany
-    //  */
+  // /*
+  //  * HasMany
+  //  */
 
-    testsql(
+  it('supports hasMany', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
-        include: [
-          User.Tasks,
-        ],
+        include: [User.Tasks],
       },
       { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]' },
     );
+  });
 
-    testsql(
+  it('supports hasMany with subQuery = true', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         subQuery: true,
-        include: [
-          User.Tasks,
-        ],
+        include: [User.Tasks],
       },
       {
         // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
         default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id] = [Tasks].[user_id]',
       },
     );
+  });
 
-    testsql(
+  it('supports hasMany with "on" condition', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
         include: [
           {
-            association: User.Tasks, on: {
+            association: User.Tasks,
+            on: {
               [Op.or]: [
                 { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
                 { '$Tasks.user_id$': 2 },
@@ -304,10 +377,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
           },
         ],
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2' },
+      },
+      {
+        default:
+          'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id] OR [Tasks].[user_id] = 2',
+      },
     );
+  });
 
-    testsql(
+  it('supports hasMany with "on" condition (2)', () => {
+    const { User } = vars;
+
+    expectJoin(
       'include[0]',
       {
         model: User,
@@ -317,10 +398,17 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             on: { user_id: { [Op.col]: 'User.alternative_id' } },
           },
         ],
-      }, { default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]' },
+      },
+      {
+        default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [Tasks].[user_id] = [User].[alternative_id]',
+      },
     );
+  });
 
-    testsql(
+  it('supports nested hasMany', () => {
+    const { Company, User } = vars;
+
+    expectJoin(
       'include[0].include[0]',
       {
         subQuery: true,
@@ -341,12 +429,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ],
           },
         ],
-
       },
       {
-        default: 'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
+        default:
+          'LEFT OUTER JOIN [user] AS [Company->Owner] ON [Company].[owner_id] = [Company->Owner].[id_user] OR [Company->Owner].[id_user] = 2',
       },
     );
-
   });
 });

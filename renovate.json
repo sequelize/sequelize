@@ -6,6 +6,7 @@
     ":semanticCommitScopeDisabled"
   ],
   "automergeStrategy": "squash",
+  "automergeType": "branch",
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "platformAutomerge": true,
@@ -14,5 +15,7 @@
       "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
       "automerge": true
     }
-  ]
+  ],
+  "labels": ["no-autoupdate"],
+  "postUpdateOptions": ["yarnDedupeHighest"]
 }

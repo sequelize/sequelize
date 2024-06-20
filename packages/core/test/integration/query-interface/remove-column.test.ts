@@ -1,6 +1,5 @@
-import { expect } from 'chai';
-import { lt } from 'semver';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { getTestDialect, getTestDialectTeaser, sequelize } from '../support';
 
 const dialectName = getTestDialect();
@@ -149,12 +148,18 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       });
 
       await queryInterface.bulkInsert('level', [{ name: 'L1' }, { name: 'L2' }, { name: 'L3' }]);
-      await queryInterface.bulkInsert('actors', [{ name: 'Keanu Reeves', level_id: 2 }, { name: 'Laurence Fishburne', level_id: 1 }]);
+      await queryInterface.bulkInsert('actors', [
+        { name: 'Keanu Reeves', level_id: 2 },
+        { name: 'Laurence Fishburne', level_id: 1 },
+      ]);
 
       await queryInterface.removeColumn('level', 'name');
 
       const actors = await queryInterface.select(null, 'actors', {});
-      expect(actors).to.deep.equal([{ id: 1, name: 'Keanu Reeves', level_id: 2 }, { id: 2, name: 'Laurence Fishburne', level_id: 1 }]);
+      expect(actors).to.deep.equal([
+        { id: 1, name: 'Keanu Reeves', level_id: 2 },
+        { id: 2, name: 'Laurence Fishburne', level_id: 1 },
+      ]);
     });
 
     it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async () => {
@@ -197,30 +202,32 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       await queryInterface.removeColumn('actors', 'name');
 
       const defaultSchema = sequelize.dialect.getDefaultSchema();
-      const constraints = await queryInterface.showConstraints('actors', { constraintType: 'FOREIGN KEY' });
-      expect(constraints).to.deep.equal([{
-        ...['mssql', 'postgres'].includes(dialectName) && { constraintCatalog: 'sequelize_test' },
-        constraintSchema: defaultSchema,
-        constraintName: dialectName === 'sqlite' ? 'FOREIGN' : 'actors_level_id_fkey',
+      const constraints = await queryInterface.showConstraints('actors', {
         constraintType: 'FOREIGN KEY',
-        ...['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' },
-        tableSchema: defaultSchema,
-        tableName: 'actors',
-        columnNames: ['level_id'],
-        referencedTableName: 'level',
-        referencedTableSchema: defaultSchema,
-        referencedColumnNames: ['id'],
-        deleteAction: 'CASCADE',
-        updateAction: dialectName === 'mariadb'
-          ? 'RESTRICT'
-          : dialectName === 'sqlite'
-          ? ''
-          // MySQL 8.0.0 changed the default to NO ACTION
-          : dialectName === 'mysql' && lt(sequelize.getDatabaseVersion(), '8.0.0')
-          ? 'RESTRICT'
-          : 'NO ACTION',
-        ...sequelize.dialect.supports.constraints.deferrable && { deferrable: 'INITIALLY_IMMEDIATE' },
-      }]);
+      });
+      expect(constraints).to.deep.equal([
+        {
+          ...(['mssql', 'postgres'].includes(dialectName) && {
+            constraintCatalog: 'sequelize_test',
+          }),
+          constraintSchema: defaultSchema,
+          constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
+          constraintType: 'FOREIGN KEY',
+          ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
+          tableSchema: defaultSchema,
+          tableName: 'actors',
+          columnNames: ['level_id'],
+          referencedTableName: 'level',
+          referencedTableSchema: defaultSchema,
+          referencedColumnNames: ['id'],
+          deleteAction: 'CASCADE',
+          updateAction:
+            dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite3' ? '' : 'NO ACTION',
+          ...(sequelize.dialect.supports.constraints.deferrable && {
+            deferrable: 'INITIALLY_IMMEDIATE',
+          }),
+        },
+      ]);
     });
   });
 
@@ -229,35 +236,41 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       beforeEach(async () => {
         await sequelize.createSchema('archive');
 
-        await queryInterface.createTable({
-          tableName: 'users',
-          schema: 'archive',
-        }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
+        await queryInterface.createTable(
+          {
+            tableName: 'users',
+            schema: 'archive',
           },
-          firstName: {
-            type: DataTypes.STRING,
-            defaultValue: 'Someone',
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            firstName: {
+              type: DataTypes.STRING,
+              defaultValue: 'Someone',
+            },
+            lastName: {
+              type: DataTypes.STRING,
+            },
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+              allowNull: false,
+            },
           },
-          lastName: {
-            type: DataTypes.STRING,
-          },
-          email: {
-            type: DataTypes.STRING,
-            unique: true,
-            allowNull: false,
-          },
-        });
+        );
       });
 
       it('should be able to remove a column', async () => {
-        await queryInterface.removeColumn({
-          tableName: 'users',
-          schema: 'archive',
-        }, 'lastName');
+        await queryInterface.removeColumn(
+          {
+            tableName: 'users',
+            schema: 'archive',
+          },
+          'lastName',
+        );
 
         const table = await queryInterface.describeTable({
           tableName: 'users',

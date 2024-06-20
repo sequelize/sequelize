@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import type {
   CreationOptional,
   GeoJson,
@@ -13,6 +12,7 @@ import type {
   InferCreationAttributes,
 } from '@sequelize/core';
 import { DataTypes, GeoJsonType, Model, QueryTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 const dialect = sequelize.dialect;
@@ -23,14 +23,17 @@ async function createUserModelWithGeometry(type?: GeoJsonType) {
     declare geometry: GeoJson | null;
   }
 
-  User.init({
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
+  User.init(
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      geometry: type ? DataTypes.GEOMETRY(type) : DataTypes.GEOMETRY,
     },
-    geometry: type ? DataTypes.GEOMETRY(type) : DataTypes.GEOMETRY,
-  }, { sequelize, timestamps: false });
+    { sequelize, timestamps: false },
+  );
 
   await User.sync({ force: true });
 
@@ -61,7 +64,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const User = vars.User;
 
       const point: GeoJsonPoint = {
-        type: 'Point', coordinates: [39.807_222, -76.984_722],
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
         crs: {
           type: 'name',
           properties: {
@@ -122,7 +126,8 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     it('works with crs field', async () => {
       const User = vars.User;
       const point: GeoJsonPoint = {
-        type: 'Point', coordinates: [39.807_222, -76.984_722],
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
         crs: {
           type: 'name',
           properties: {
@@ -142,10 +147,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const User = vars.User;
       const point: GeoJsonPoint = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
 
-      await sequelize.query(`INSERT INTO ${dialect.queryGenerator.quoteTable(User.getTableName())}(geometry) VALUES(ST_GeomFromText($geometry))`, {
-        bind: { geometry: point },
-        type: QueryTypes.INSERT,
-      });
+      await sequelize.query(
+        `INSERT INTO ${dialect.queryGenerator.quoteTable(User.table)}(geometry) VALUES(ST_GeomFromText($geometry))`,
+        {
+          bind: { geometry: point },
+          type: QueryTypes.INSERT,
+        },
+      );
 
       // TODO: check inserted value
     });
@@ -156,22 +164,21 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'Point',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [0, 0],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-          // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-          type: 'Point',
-          // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-          coordinates: [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'Point',
+            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+            coordinates: [39.807_222, "'); DELETE YOLO INJECTIONS; --"],
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -182,8 +189,20 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
     it('supports creating/updating a LineString object', async () => {
       const User = vars.User;
-      const point1: GeoJsonLineString = { type: 'LineString', coordinates: [[100, 0], [101, 1]] };
-      const point2: GeoJsonLineString = { type: 'LineString', coordinates: [[101, 0], [102, 1]] };
+      const point1: GeoJsonLineString = {
+        type: 'LineString',
+        coordinates: [
+          [100, 0],
+          [101, 1],
+        ],
+      };
+      const point2: GeoJsonLineString = {
+        type: 'LineString',
+        coordinates: [
+          [101, 0],
+          [102, 1],
+        ],
+      };
 
       const user1 = await User.create({ geometry: point1 });
       await User.update({ geometry: point2 }, { where: { id: user1.id } });
@@ -194,7 +213,11 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     it('works with crs field', async () => {
       const User = vars.User;
       const point: GeoJsonLineString = {
-        type: 'LineString', coordinates: [[100, 0], [101, 1]],
+        type: 'LineString',
+        coordinates: [
+          [100, 0],
+          [101, 1],
+        ],
         crs: {
           type: 'name',
           properties: {
@@ -213,22 +236,27 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'LineString',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
-          coordinates: [[0, 0], [0, 0]],
+          coordinates: [
+            [0, 0],
+            [0, 0],
+          ],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-          // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-          type: 'LineString',
-          // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-          coordinates: [[39.807_222, '\'); DELETE YOLO INJECTIONS; --'], [0, 0]],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+              [39.807_222, "'); DELETE YOLO INJECTIONS; --"],
+              [0, 0],
+            ],
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -242,13 +270,25 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const polygon1: GeoJsonPolygon = {
         type: 'Polygon',
         coordinates: [
-          [[100, 0], [101, 0], [101, 1], [100, 1], [100, 0]],
+          [
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
+          ],
         ],
       };
       const polygon2: GeoJsonPolygon = {
         type: 'Polygon',
         coordinates: [
-          [[100, 0], [102, 0], [102, 1], [100, 1], [100, 0]],
+          [
+            [100, 0],
+            [102, 0],
+            [102, 1],
+            [100, 1],
+            [100, 0],
+          ],
         ],
       };
 
@@ -264,8 +304,11 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         type: 'Polygon',
         coordinates: [
           [
-            [100, 0], [101, 0], [101, 1],
-            [100, 1], [100, 0],
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
           ],
         ],
         crs: {
@@ -286,35 +329,34 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'Polygon',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [
             [
-              [100, 0], [101, 0], [101, 1],
-              [100, 1], [100, 0],
+              [100, 0],
+              [101, 0],
+              [101, 1],
+              [100, 1],
+              [100, 0],
             ],
           ],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-          // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-          type: 'Polygon',
-          coordinates: [
-            [
-              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-              [39.807_222, '\'); DELETE YOLO INJECTIONS; --'],
-              // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-              // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-              // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-              [0, 0],
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'Polygon',
+            coordinates: [
+              [
+                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+                [39.807_222, "'); DELETE YOLO INJECTIONS; --"],
+                [0, 0],
+              ],
             ],
-          ],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -372,7 +414,7 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'MultiPoint',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [
             [100, 0],
@@ -381,22 +423,18 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-          // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-          type: 'MultiPoint',
-          coordinates: [
-            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-            [100, '\'); DELETE YOLO INJECTIONS; --'],
-            // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-            // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-            [0, 0],
-          ],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'MultiPoint',
+            coordinates: [
+              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+              [100, "'); DELETE YOLO INJECTIONS; --"],
+              [0, 0],
+            ],
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -410,15 +448,27 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const line1: GeoJsonMultiLineString = {
         type: 'MultiLineString',
         coordinates: [
-          [[100, 0], [101, 1]],
-          [[102, 2], [103, 3]],
+          [
+            [100, 0],
+            [101, 1],
+          ],
+          [
+            [102, 2],
+            [103, 3],
+          ],
         ],
       };
       const line2: GeoJsonMultiLineString = {
         type: 'MultiLineString',
         coordinates: [
-          [[100, 0], [101, 1]],
-          [[102, 2], [104, 3]],
+          [
+            [100, 0],
+            [101, 1],
+          ],
+          [
+            [102, 2],
+            [104, 3],
+          ],
         ],
       };
 
@@ -433,8 +483,14 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const line: GeoJsonMultiLineString = {
         type: 'MultiLineString',
         coordinates: [
-          [[100, 0], [101, 1]],
-          [[102, 2], [103, 3]],
+          [
+            [100, 0],
+            [101, 1],
+          ],
+          [
+            [102, 2],
+            [103, 3],
+          ],
         ],
         crs: {
           type: 'name',
@@ -454,31 +510,39 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'MultiLineString',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [
-            [[100, 0], [101, 1]],
-            [[102, 2], [103, 3]],
+            [
+              [100, 0],
+              [101, 1],
+            ],
+            [
+              [102, 2],
+              [103, 3],
+            ],
           ],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-          // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-          type: 'MultiLineString',
-          coordinates: [
-            // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-            [[100, '\'); DELETE YOLO INJECTIONS; --'], [101, 1]],
-            // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
-            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-            // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript inferred this type incorrectly due to coordinates being the wrong type (by design)
-            [[102, 2], [103, 3]],
-          ],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'MultiLineString',
+            coordinates: [
+              [
+                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+                [100, "'); DELETE YOLO INJECTIONS; --"],
+                [101, 1],
+              ],
+              [
+                [102, 2],
+                [103, 3],
+              ],
+            ],
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -496,7 +560,11 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           [
             // first linear ring of first polygon
             [
-              [102, 2], [103, 2], [103, 3], [102, 3], [102, 2],
+              [102, 2],
+              [103, 2],
+              [103, 3],
+              [102, 3],
+              [102, 2],
             ],
           ],
         ],
@@ -508,7 +576,11 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           [
             // first linear ring of first polygon
             [
-              [102, 2], [103, 2], [103, 3], [102, 3], [102, 2],
+              [102, 2],
+              [103, 2],
+              [103, 3],
+              [102, 3],
+              [102, 2],
             ],
           ],
         ],
@@ -529,7 +601,11 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           [
             // first linear ring of first polygon
             [
-              [102, 2], [103, 2], [103, 3], [102, 3], [102, 2],
+              [102, 2],
+              [103, 2],
+              [103, 3],
+              [102, 3],
+              [102, 2],
             ],
           ],
         ],
@@ -551,35 +627,45 @@ describe(getTestDialectTeaser('DataTypes'), () => {
         geometry: {
           type: 'MultiPolygon',
           properties: {
-            exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+            exploit: "'); DELETE YOLO INJECTIONS; -- ",
           },
           coordinates: [
             // first polygon
             [
               // first linear ring of first polygon
               [
-                [102, 2], [103, 2], [103, 3], [102, 3], [102, 2],
+                [102, 2],
+                [103, 2],
+                [103, 3],
+                [102, 3],
+                [102, 2],
               ],
             ],
           ],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          type: 'MultiPolygon',
-          coordinates: [
-            // first polygon
-            [
-              // first linear ring of first polygon
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'MultiPolygon',
+            coordinates: [
+              // first polygon
               [
-                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-                [102, 2], [103, 2], ['\'); DELETE YOLO INJECTIONS; --', 3], [102, 3], [102, 2],
+                // first linear ring of first polygon
+                [
+                  [102, 2],
+                  [103, 2],
+                  // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+                  ["'); DELETE YOLO INJECTIONS; --", 3],
+                  [102, 3],
+                  [102, 2],
+                ],
               ],
             ],
-          ],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 
@@ -599,7 +685,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           },
           {
             type: 'LineString',
-            coordinates: [[101, 0], [102, 1]],
+            coordinates: [
+              [101, 0],
+              [102, 1],
+            ],
           },
         ],
       };
@@ -612,7 +701,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           },
           {
             type: 'LineString',
-            coordinates: [[101, 0], [102, 1]],
+            coordinates: [
+              [101, 0],
+              [102, 1],
+            ],
           },
           {
             type: 'Polygon',
@@ -646,7 +738,10 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           },
           {
             type: 'LineString',
-            coordinates: [[101, 0], [102, 1]],
+            coordinates: [
+              [101, 0],
+              [102, 1],
+            ],
           },
         ],
         crs: {
@@ -671,25 +766,27 @@ describe(getTestDialectTeaser('DataTypes'), () => {
               type: 'Point',
               coordinates: [100, 0],
               properties: {
-                exploit: '\'); DELETE YOLO INJECTIONS; -- ',
+                exploit: "'); DELETE YOLO INJECTIONS; -- ",
               },
             },
           ],
         },
       });
 
-      await expect(vars.User.create({
-        geometry: {
-          type: 'GeometryCollection',
-          geometries: [
-            {
-              type: 'Point',
-              // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
-              coordinates: ['\'); DELETE YOLO INJECTIONS; --', 0],
-            },
-          ],
-        },
-      })).to.be.rejectedWith('specifies an invalid point');
+      await expect(
+        vars.User.create({
+          geometry: {
+            type: 'GeometryCollection',
+            geometries: [
+              {
+                type: 'Point',
+                // @ts-expect-error -- coordinates must be number, but we're still testing against string to be safe
+                coordinates: ["'); DELETE YOLO INJECTIONS; --", 0],
+              },
+            ],
+          },
+        }),
+      ).to.be.rejectedWith('specifies an invalid point');
     });
   });
 });

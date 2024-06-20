@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Sequelize, Op } = require('@sequelize/core');
+const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 const pMap = require('p-map');
 
 const current = Support.sequelize;
@@ -30,7 +30,9 @@ describe('Model.findOne', () => {
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -51,56 +53,67 @@ describe('Model.findOne', () => {
         await t.rollback();
       });
 
-      // Disabled in sqlite because it only supports one connection at a time
-      if (dialectName !== 'sqlite') {
-        it('supports concurrent transactions', async function () {
-          this.timeout(90_000);
-          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
-          const User = sequelize.define('User', { username: DataTypes.STRING });
-          const testAsync = async function () {
-            const t0 = await sequelize.startUnmanagedTransaction();
+      it('supports concurrent transactions', async function () {
+        // Disabled in sqlite3 because it only supports one write transaction at a time
+        if (dialectName === 'sqlite3') {
+          return;
+        }
 
-            await User.create({
+        this.timeout(90_000);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const testAsync = async function () {
+          const t0 = await sequelize.startUnmanagedTransaction();
+
+          await User.create(
+            {
               username: 'foo',
-            }, {
+            },
+            {
               transaction: t0,
-            });
+            },
+          );
 
-            const users0 = await User.findAll({
-              where: {
-                username: 'foo',
-              },
-            });
-
-            expect(users0).to.have.length(0);
-
-            const users = await User.findAll({
-              where: {
-                username: 'foo',
-              },
-              transaction: t0,
-            });
-
-            expect(users).to.have.length(1);
-            const t = t0;
-
-            return t.rollback();
-          };
-
-          await User.sync({ force: true });
-          const tasks = [];
-          for (let i = 0; i < 1000; i++) {
-            tasks.push(testAsync);
-          }
-
-          await pMap(tasks, entry => {
-            return entry();
-          }, {
-            // Needs to be one less than ??? else the non transaction query won't ever get a connection
-            concurrency: (sequelize.config.pool && sequelize.config.pool.max || 5) - 1,
+          const users0 = await User.findAll({
+            where: {
+              username: 'foo',
+            },
           });
-        });
-      }
+
+          expect(users0).to.have.length(0);
+
+          const users = await User.findAll({
+            where: {
+              username: 'foo',
+            },
+            transaction: t0,
+          });
+
+          expect(users).to.have.length(1);
+          const t = t0;
+
+          return t.rollback();
+        };
+
+        await User.sync({ force: true });
+        const tasks = [];
+        for (let i = 0; i < 1000; i++) {
+          tasks.push(testAsync);
+        }
+
+        await pMap(
+          tasks,
+          entry => {
+            return entry();
+          },
+          {
+            // Needs to be one less than ??? else the non transaction query won't ever get a connection
+            concurrency: (sequelize.rawOptions.pool?.max || 5) - 1,
+          },
+        );
+      });
     }
 
     describe('general / basic function', () => {
@@ -123,25 +136,30 @@ describe('Model.findOne', () => {
         // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
 
         it('allows bit fields as booleans', async function () {
-          let bitUser = this.sequelize.define('bituser', {
-            bool: 'BIT(1)',
-          }, {
-            timestamps: false,
-          });
+          let bitUser = this.sequelize.define(
+            'bituser',
+            {
+              bool: 'BIT(1)',
+            },
+            {
+              timestamps: false,
+            },
+          );
 
           // First use a custom data type def to create the bit field
           await bitUser.sync({ force: true });
           // Then change the definition to BOOLEAN
-          bitUser = this.sequelize.define('bituser', {
-            bool: DataTypes.BOOLEAN,
-          }, {
-            timestamps: false,
-          });
+          bitUser = this.sequelize.define(
+            'bituser',
+            {
+              bool: DataTypes.BOOLEAN,
+            },
+            {
+              timestamps: false,
+            },
+          );
 
-          await bitUser.bulkCreate([
-            { bool: false },
-            { bool: true },
-          ]);
+          await bitUser.bulkCreate([{ bool: false }, { bool: true }]);
 
           const bitUsers = await bitUser.findAll();
           expect(bitUsers[0].bool).not.to.be.ok;
@@ -156,14 +174,16 @@ describe('Model.findOne', () => {
           where: { specialkey: 'awesome' },
           logging(sql) {
             test = true;
-            expect(sql).to.match(/WHERE ["[`|]UserPrimary["\]`|]\.["[`|]specialkey["\]`|] = N?'awesome'/);
+            expect(sql).to.match(
+              /WHERE ["[`|]UserPrimary["\]`|]\.["[`|]specialkey["\]`|] = N?'awesome'/,
+            );
           },
         });
 
         expect(test).to.be.true;
       });
 
-      it('doesn\'t throw an error when entering in a non integer value for a specified primary field', async function () {
+      it("doesn't throw an error when entering in a non integer value for a specified primary field", async function () {
         const user = await this.UserPrimary.findByPk('a string');
         expect(user.specialkey).to.equal('a string');
       });
@@ -192,10 +212,14 @@ describe('Model.findOne', () => {
       });
 
       it('should fail with meaningful error message on invalid attributes definition', function () {
-        expect(this.User.findOne({
-          where: { id: 1 },
-          attributes: ['id', ['username']],
-        })).to.be.rejectedWith('["username"] is not a valid attribute definition. Please use the following format: [\'attribute definition\', \'alias\']');
+        expect(
+          this.User.findOne({
+            where: { id: 1 },
+            attributes: ['id', ['username']],
+          }),
+        ).to.be.rejectedWith(
+          "[\"username\"] is not a valid attribute definition. Please use the following format: ['attribute definition', 'alias']",
+        );
       });
 
       it('should not try to convert boolean values if they are not selected', async function () {
@@ -214,7 +238,7 @@ describe('Model.findOne', () => {
         expect(user.username).to.equal('barfooz');
       });
 
-      it('doesn\'t find a user if conditions are not matching', async function () {
+      it("doesn't find a user if conditions are not matching", async function () {
         const user = await this.User.findOne({ where: { username: 'foo' } });
         expect(user).to.be.null;
       });
@@ -278,74 +302,65 @@ describe('Model.findOne', () => {
         expect(u2.name).to.equal('Johnno');
       });
 
-      it('finds entries via a bigint primary key called id', async function () {
-        const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
-          id: { type: DataTypes.BIGINT, primaryKey: true },
-          name: DataTypes.STRING,
+      if (current.dialect.supports.dataTypes.BIGINT) {
+        it('finds entries via a bigint primary key called id', async function () {
+          const UserPrimary = this.sequelize.define('UserWithPrimaryKey', {
+            id: { type: DataTypes.BIGINT, primaryKey: true },
+            name: DataTypes.STRING,
+          });
+
+          await UserPrimary.sync({ force: true });
+
+          await UserPrimary.create({
+            id: 9_007_199_254_740_993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
+            name: 'Johnno',
+          });
+
+          const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
+          expect(u2.name).to.equal('Johnno');
+
+          // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
+          // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
+          if (dialectName === 'db2') {
+            // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
+            // https://github.com/ibmdb/node-ibm_db/issues/816
+            // It means that u2.id comes back as 9_007_199_254_740_992 here :(
+            // Hopefully this will be fixed soon.
+            // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
+            const [[{ stringifiedId }]] = await this.sequelize.query(
+              `select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`,
+            );
+            expect(stringifiedId).to.equal('9007199254740993');
+          } else if (dialectName === 'mariadb') {
+            // With our current default config, the mariadb driver sends back a Long instance.
+            // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
+            // but that's potentially a big change.
+            // For now, we'll just stringify the Long and make the comparison:
+            expect(u2.id.toString()).to.equal('9007199254740993');
+          } else {
+            expect(u2.id).to.equal('9007199254740993');
+          }
         });
-
-        await UserPrimary.sync({ force: true });
-
-        await UserPrimary.create({
-          id: 9_007_199_254_740_993n, // Number.MAX_SAFE_INTEGER + 2 (cannot be represented exactly as a number in JS)
-          name: 'Johnno',
-        });
-
-        // the rest of the test is disabled for now, because SQLite tries to return 9_007_199_254_740_993 as a JS number,
-        // which we reject due to being out of range.
-        if (dialectName === 'sqlite') {
-          // sqlite3 returns a number, so u2.id comes back as 9_007_199_254_740_992 here:
-          // https://github.com/TryGhost/node-sqlite3/issues/922
-          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
-          const [[{ stringifiedId }]] = await this.sequelize.query(`select cast("id" as text) as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
-          expect(stringifiedId).to.equal('9007199254740993');
-
-          return;
-        }
-
-        const u2 = await UserPrimary.findByPk(9_007_199_254_740_993n);
-        expect(u2.name).to.equal('Johnno');
-
-        // Getting the value back as bigint is not supported yet: https://github.com/sequelize/sequelize/issues/14296
-        // With most dialects we'll receive a string, but in some cases we have to be a bit creative to prove that we did get hold of the right record:
-        if (dialectName === 'db2') {
-          // ibm_db 2.7.4+ returns BIGINT values as JS numbers, which leads to a loss of precision:
-          // https://github.com/ibmdb/node-ibm_db/issues/816
-          // It means that u2.id comes back as 9_007_199_254_740_992 here :(
-          // Hopefully this will be fixed soon.
-          // For now we can do a separate query where we stringify the value to prove that it did get stored correctly:
-          const [[{ stringifiedId }]] = await this.sequelize.query(`select "id"::varchar as "stringifiedId" from "${UserPrimary.tableName}" where "id" = 9007199254740993`);
-          expect(stringifiedId).to.equal('9007199254740993');
-        } else if (dialectName === 'mariadb') {
-          // With our current default config, the mariadb driver sends back a Long instance.
-          // Updating the mariadb dev dep and passing "supportBigInt: true" would get it back as a bigint,
-          // but that's potentially a big change.
-          // For now, we'll just stringify the Long and make the comparison:
-          expect(u2.id.toString()).to.equal('9007199254740993');
-        } else {
-          expect(u2.id).to.equal('9007199254740993');
-        }
-      });
+      }
 
       it('always honors ZERO as primary key', async function () {
-        const permutations = [
-          0,
-          '0',
-        ];
+        const permutations = [0, '0'];
         let count = 0;
 
         await this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }]);
 
-        await Promise.all(permutations.map(async perm => {
-          const user = await this.User.findByPk(perm, {
-            logging(s) {
-              expect(s).to.include(0);
-              count++;
-            },
-          });
+        await Promise.all(
+          permutations.map(async perm => {
+            const user = await this.User.findByPk(perm, {
+              logging(s) {
+                expect(s).to.include(0);
+                count++;
+              },
+            });
 
-          expect(user).to.be.null;
-        }));
+            expect(user).to.be.null;
+          }),
+        );
 
         expect(count).to.equal(permutations.length);
       });
@@ -389,12 +404,16 @@ describe('Model.findOne', () => {
             where: { username: 'longUserNAME' },
           });
           expect(user).to.exist;
-          expect(user.username).to.equal('\'longUserNAME\'');
+          expect(user.username).to.equal("'longUserNAME'");
         });
       }
 
       it('should not fail if model is paranoid and where is an empty array', async function () {
-        const User = this.sequelize.define('User', { username: DataTypes.STRING }, { paranoid: true });
+        const User = this.sequelize.define(
+          'User',
+          { username: DataTypes.STRING },
+          { paranoid: true },
+        );
 
         await User.sync({ force: true });
         await User.create({ username: 'A fancy name' });
@@ -402,18 +421,21 @@ describe('Model.findOne', () => {
       });
 
       it('should work if model is paranoid and only operator in where clause is a Symbol (#8406)', async function () {
-        const User = this.sequelize.define('User', { username: DataTypes.STRING }, { paranoid: true });
+        const User = this.sequelize.define(
+          'User',
+          { username: DataTypes.STRING },
+          { paranoid: true },
+        );
 
         await User.sync({ force: true });
         await User.create({ username: 'foo' });
-        expect(await User.findOne({
-          where: {
-            [Op.or]: [
-              { username: 'bar' },
-              { username: 'baz' },
-            ],
-          },
-        })).to.not.be.ok;
+        expect(
+          await User.findOne({
+            where: {
+              [Op.or]: [{ username: 'bar' }, { username: 'baz' }],
+            },
+          }),
+        ).to.not.be.ok;
       });
     });
 
@@ -439,7 +461,8 @@ describe('Model.findOne', () => {
             try {
               await this.Worker.findOne({ include: [1] });
             } catch (error) {
-              expect(error.message).to.equal(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+              expect(error.message).to
+                .equal(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
 Got { association: 1 } instead`);
             }
           });
@@ -448,7 +471,9 @@ Got { association: 1 } instead`);
             try {
               await this.Worker.findOne({ include: [this.Task] });
             } catch (error) {
-              expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
+              expect(error.message).to.equal(
+                'Invalid Include received: no associations exist between "Worker" and "Task"',
+              );
             }
           });
 
@@ -464,8 +489,8 @@ Got { association: 1 } instead`);
               });
 
               expect(task).to.exist;
-              expect(task.Worker).to.exist;
-              expect(task.Worker.name).to.equal('worker');
+              expect(task.worker).to.exist;
+              expect(task.worker.name).to.equal('worker');
             });
           });
         });
@@ -474,8 +499,14 @@ Got { association: 1 } instead`);
           const ctx = Object.create(this);
           ctx.Domain = ctx.sequelize.define('Domain', { ip: DataTypes.STRING });
           ctx.Environment = ctx.sequelize.define('Environment', { name: DataTypes.STRING });
-          ctx.Environment.belongsTo(ctx.Domain, { as: 'PrivateDomain', foreignKey: 'privateDomainId' });
-          ctx.Environment.belongsTo(ctx.Domain, { as: 'PublicDomain', foreignKey: 'publicDomainId' });
+          ctx.Environment.belongsTo(ctx.Domain, {
+            as: 'PrivateDomain',
+            foreignKey: 'privateDomainId',
+          });
+          ctx.Environment.belongsTo(ctx.Domain, {
+            as: 'PublicDomain',
+            foreignKey: 'publicDomainId',
+          });
 
           await ctx.Domain.sync({ force: true });
           await ctx.Environment.sync({ force: true });
@@ -517,7 +548,7 @@ Got { association: 1 } instead`);
 
           await this.sequelize.sync({ force: true });
           await this.Group.create({ name: 'people' });
-          await this.User.create({ username: 'someone', GroupPKeagerbelongName: 'people' });
+          await this.User.create({ username: 'someone', groupPKeagerbelongName: 'people' });
 
           const someUser = await this.User.findOne({
             where: {
@@ -528,7 +559,7 @@ Got { association: 1 } instead`);
 
           expect(someUser).to.exist;
           expect(someUser.username).to.equal('someone');
-          expect(someUser.GroupPKeagerbelong.name).to.equal('people');
+          expect(someUser.groupPKeagerbelong.name).to.equal('people');
         });
 
         it('getting parent data in many to one relationship', async function () {
@@ -552,20 +583,17 @@ Got { association: 1 } instead`);
 
           const messages = await Message.findAll({
             where: { user_id: user.id },
-            attributes: [
-              'user_id',
-              'message',
-            ],
+            attributes: ['user_id', 'message'],
             include: [{ model: User, attributes: ['username'] }],
           });
 
           expect(messages.length).to.equal(2);
 
           expect(messages[0].message).to.equal('hi there!');
-          expect(messages[0].User.username).to.equal('test_testerson');
+          expect(messages[0].user.username).to.equal('test_testerson');
 
           expect(messages[1].message).to.equal('a second message');
-          expect(messages[1].User.username).to.equal('test_testerson');
+          expect(messages[1].user.username).to.equal('test_testerson');
         });
 
         it('allows mulitple assocations of the same model with different alias', async function () {
@@ -596,7 +624,9 @@ Got { association: 1 } instead`);
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
+            expect(error.message).to.equal(
+              'Invalid Include received: no associations exist between "Task" and "Worker"',
+            );
           }
         });
 
@@ -607,8 +637,8 @@ Got { association: 1 } instead`);
           });
 
           expect(worker).to.exist;
-          expect(worker.Task).to.exist;
-          expect(worker.Task.title).to.equal('homework');
+          expect(worker.task).to.exist;
+          expect(worker.task.title).to.equal('homework');
         });
 
         it('eager loads with non-id primary keys', async function () {
@@ -628,7 +658,7 @@ Got { association: 1 } instead`);
 
           await this.sequelize.sync({ force: true });
           await this.Group.create({ name: 'people' });
-          await this.User.create({ username: 'someone', GroupPKeageroneName: 'people' });
+          await this.User.create({ username: 'someone', groupPKeageroneName: 'people' });
 
           const someGroup = await this.Group.findOne({
             where: {
@@ -639,7 +669,7 @@ Got { association: 1 } instead`);
 
           expect(someGroup).to.exist;
           expect(someGroup.name).to.equal('people');
-          expect(someGroup.UserPKeagerone.username).to.equal('someone');
+          expect(someGroup.userPKeagerone.username).to.equal('someone');
         });
       });
 
@@ -648,7 +678,9 @@ Got { association: 1 } instead`);
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
+            expect(error.message).to.equal(
+              'Invalid Include received: no associations exist between "Worker" and "Task"',
+            );
           }
         });
 
@@ -661,11 +693,12 @@ Got { association: 1 } instead`);
             });
           });
 
-          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function () {
+          it("throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn't match", async function () {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+              expect(error.message).to
+                .equal(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDo"`);
             }
           });
@@ -718,7 +751,9 @@ The following associations are defined on "Worker": "ToDo"`);
           try {
             await this.Task.findOne({ include: [this.Worker] });
           } catch (error) {
-            expect(error.message).to.equal('Invalid Include received: no associations exist between "Task" and "Worker"');
+            expect(error.message).to.equal(
+              'Invalid Include received: no associations exist between "Task" and "Worker"',
+            );
           }
         });
 
@@ -729,8 +764,8 @@ The following associations are defined on "Worker": "ToDo"`);
           });
 
           expect(worker).to.exist;
-          expect(worker.Tasks).to.exist;
-          expect(worker.Tasks[0].title).to.equal('homework');
+          expect(worker.tasks).to.exist;
+          expect(worker.tasks[0].title).to.equal('homework');
         });
 
         it('including two has many relations should not result in duplicate values', async function () {
@@ -758,7 +793,7 @@ The following associations are defined on "Worker": "ToDo"`);
 
           expect(fetchedContact).to.exist;
           expect(fetchedContact.Photos.length).to.equal(1);
-          expect(fetchedContact.PhoneNumbers.length).to.equal(2);
+          expect(fetchedContact.phoneNumbers.length).to.equal(2);
         });
 
         it('eager loads with non-id primary keys', async function () {
@@ -791,7 +826,7 @@ The following associations are defined on "Worker": "ToDo"`);
 
           expect(someUser0).to.exist;
           expect(someUser0.username).to.equal('someone');
-          expect(someUser0.GroupPKeagerones[0].name).to.equal('people');
+          expect(someUser0.groupPKeagerones[0].name).to.equal('people');
         });
       });
 
@@ -800,7 +835,9 @@ The following associations are defined on "Worker": "ToDo"`);
           try {
             await this.Worker.findOne({ include: [this.Task] });
           } catch (error) {
-            expect(error.message).to.equal('Invalid Include received: no associations exist between "Worker" and "Task"');
+            expect(error.message).to.equal(
+              'Invalid Include received: no associations exist between "Worker" and "Task"',
+            );
           }
         });
 
@@ -813,11 +850,12 @@ The following associations are defined on "Worker": "ToDo"`);
             });
           });
 
-          it('throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn\'t match', async function () {
+          it("throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn't match", async function () {
             try {
               await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
             } catch (error) {
-              expect(error.message).to.equal(`Association with alias "Work" does not exist on Worker.
+              expect(error.message).to
+                .equal(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDos"`);
             }
           });
@@ -877,17 +915,10 @@ The following associations are defined on "Worker": "ToDos"`);
               { title: 'Dress' },
               { title: 'Jan' },
             ]),
-            this.Tag.bulkCreate([
-              { name: 'Furniture' },
-              { name: 'Clothing' },
-              { name: 'People' },
-            ]),
+            this.Tag.bulkCreate([{ name: 'Furniture' }, { name: 'Clothing' }, { name: 'People' }]),
           ]);
 
-          const [products, tags] = await Promise.all([
-            this.Product.findAll(),
-            this.Tag.findAll(),
-          ]);
+          const [products, tags] = await Promise.all([this.Product.findAll(), this.Tag.findAll()]);
 
           this.products = products;
           this.tags = tags;
@@ -906,9 +937,7 @@ The following associations are defined on "Worker": "ToDos"`);
                 where: {
                   id: tags[0].id,
                 },
-                include: [
-                  { model: this.Product, as: 'products' },
-                ],
+                include: [{ model: this.Product, as: 'products' }],
               });
 
               expect(tag).to.exist;
@@ -922,9 +951,7 @@ The following associations are defined on "Worker": "ToDos"`);
                 where: {
                   id: products[0].id,
                 },
-                include: [
-                  { model: this.Tag, as: 'tags' },
-                ],
+                include: [{ model: this.Tag, as: 'tags' }],
               });
 
               expect(product).to.exist;
@@ -953,17 +980,10 @@ The following associations are defined on "Worker": "ToDos"`);
               { title: 'Dress' },
               { title: 'Jan' },
             ]),
-            this.Tag.bulkCreate([
-              { name: 'Furniture' },
-              { name: 'Clothing' },
-              { name: 'People' },
-            ]),
+            this.Tag.bulkCreate([{ name: 'Furniture' }, { name: 'Clothing' }, { name: 'People' }]),
           ]);
 
-          const [products, tags] = await Promise.all([
-            this.Product.findAll(),
-            this.Tag.findAll(),
-          ]);
+          const [products, tags] = await Promise.all([this.Product.findAll(), this.Tag.findAll()]);
 
           this.products = products;
           this.tags = tags;
@@ -977,22 +997,26 @@ The following associations are defined on "Worker": "ToDos"`);
           ]);
 
           await Promise.all([
-            expect(this.Tag.findOne({
-              where: {
-                id: this.tags[0].id,
-              },
-              include: [
-                { model: this.Product, as: 'products' },
-              ],
-            })).to.eventually.have.property('products').to.have.length(2),
-            expect(this.Product.findOne({
-              where: {
-                id: this.products[0].id,
-              },
-              include: [
-                { model: this.Tag, as: 'tags' },
-              ],
-            })).to.eventually.have.property('tags').to.have.length(2),
+            expect(
+              this.Tag.findOne({
+                where: {
+                  id: this.tags[0].id,
+                },
+                include: [{ model: this.Product, as: 'products' }],
+              }),
+            )
+              .to.eventually.have.property('products')
+              .to.have.length(2),
+            expect(
+              this.Product.findOne({
+                where: {
+                  id: this.products[0].id,
+                },
+                include: [{ model: this.Tag, as: 'tags' }],
+              }),
+            )
+              .to.eventually.have.property('tags')
+              .to.have.length(2),
             expect(this.tags[1].getProducts()).to.eventually.have.length(3),
             expect(this.products[1].getTags()).to.eventually.have.length(1),
           ]);
@@ -1036,60 +1060,78 @@ The following associations are defined on "Worker": "ToDos"`);
 
     describe('rejectOnEmpty mode', () => {
       it('throws error when record not found by findOne', async function () {
-        await expect(this.User.findOne({
-          where: {
-            username: 'ath-kantam-pradakshnami',
-          },
-          rejectOnEmpty: true,
-        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        await expect(
+          this.User.findOne({
+            where: {
+              username: 'ath-kantam-pradakshnami',
+            },
+            rejectOnEmpty: true,
+          }),
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by findByPk', async function () {
-        await expect(this.User.findByPk(2, {
-          rejectOnEmpty: true,
-        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        await expect(
+          this.User.findByPk(2, {
+            rejectOnEmpty: true,
+          }),
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('throws error when record not found by find', async function () {
-        await expect(this.User.findOne({
-          where: {
-            username: 'some-username-that-is-not-used-anywhere',
-          },
-          rejectOnEmpty: true,
-        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        await expect(
+          this.User.findOne({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere',
+            },
+            rejectOnEmpty: true,
+          }),
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('works from model options', async () => {
-        const Model = current.define('Test', {
-          username: DataTypes.STRING(100),
-        }, {
-          rejectOnEmpty: true,
-        });
+        const Model = current.define(
+          'Test',
+          {
+            username: DataTypes.STRING(100),
+          },
+          {
+            rejectOnEmpty: true,
+          },
+        );
 
         await Model.sync({ force: true });
 
-        await expect(Model.findOne({
-          where: {
-            username: 'some-username-that-is-not-used-anywhere',
-          },
-        })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        await expect(
+          Model.findOne({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere',
+            },
+          }),
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('override model options', async () => {
-        const Model = current.define('Test', {
-          username: DataTypes.STRING(100),
-        }, {
-          rejectOnEmpty: true,
-        });
+        const Model = current.define(
+          'Test',
+          {
+            username: DataTypes.STRING(100),
+          },
+          {
+            rejectOnEmpty: true,
+          },
+        );
 
         await Model.sync({ force: true });
 
-        await expect(Model.findOne({
-          rejectOnEmpty: false,
-          where: {
-            username: 'some-username-that-is-not-used-anywhere',
-          },
-        })).to.eventually.be.deep.equal(null);
+        await expect(
+          Model.findOne({
+            rejectOnEmpty: false,
+            where: {
+              username: 'some-username-that-is-not-used-anywhere',
+            },
+          }),
+        ).to.eventually.be.deep.equal(null);
       });
 
       it('resolve null when disabled', async () => {
@@ -1099,11 +1141,13 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await Model.sync({ force: true });
 
-        await expect(Model.findOne({
-          where: {
-            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
-          },
-        })).to.eventually.be.equal(null);
+        await expect(
+          Model.findOne({
+            where: {
+              username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
+            },
+          }),
+        ).to.eventually.be.equal(null);
       });
     });
   });

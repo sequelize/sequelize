@@ -1,11 +1,10 @@
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
  * Do not use me directly. Use {@link literal}
  */
 export class Literal extends BaseSqlExpression {
-  /** this (type-only) brand prevents TypeScript from thinking Cast is assignable to Literal because they share the same shape */
-  declare private readonly brand: 'literal';
+  protected declare readonly [SQL_IDENTIFIER]: 'literal';
 
   readonly val: ReadonlyArray<string | BaseSqlExpression>;
 
@@ -25,4 +24,3 @@ export class Literal extends BaseSqlExpression {
 export function literal(val: string | Array<string | BaseSqlExpression>): Literal {
   return new Literal(val);
 }
-

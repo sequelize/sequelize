@@ -1,3 +1,5 @@
+import type { ReadonlyMapLike } from '@sequelize/utils';
+import { SetView, combinedIterator, map, pojo } from '@sequelize/utils';
 // @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
 import baseIsNative from 'lodash/_baseIsNative';
 import cloneDeepWith from 'lodash/cloneDeepWith';
@@ -9,13 +11,9 @@ import isPlainObject from 'lodash/isPlainObject';
 import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
 import omitBy from 'lodash/omitBy.js';
-import type { MapView } from './immutability.js';
-import { combinedIterator, map } from './iterators.js';
-import { camelize } from './string';
 import { getComplexKeys } from './where.js';
 
-export const EMPTY_OBJECT = Object.freeze(Object.create(null));
-export const EMPTY_ARRAY = Object.freeze([]);
+export const EMPTY_SET = new SetView<never>(new Set());
 
 /**
  * Deeply merges object `b` into `a`.
@@ -97,7 +95,6 @@ export function cloneDeep<T>(obj: T, onlyPlain?: boolean): T {
     }
   });
 }
-/* eslint-enable consistent-return */
 
 /**
  * Receives a tree-like object and returns a plain object which depth is 1.
@@ -155,13 +152,27 @@ export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Fl
 // taken from
 // https://stackoverflow.com/questions/66614528/flatten-object-with-custom-keys-in-typescript
 // because this is typescript black magic
-type Flatten<T extends object> = object extends T ? object : {
-  [K in keyof T]-?: (x: NonNullable<T[K]> extends infer V ? V extends object ?
-    V extends readonly any[] ? Pick<T, K> : Flatten<V> extends infer FV ? ({
-      [P in keyof FV as `${Extract<K, string | number>}.${Extract<P, string | number>}`]:
-      FV[P] }) : never : Pick<T, K> : never
-  ) => void } extends Record<keyof T, (y: infer O) => void> ?
-  O extends unknown ? { [K in keyof O]: O[K] } : never : never;
+type Flatten<T extends object> = object extends T
+  ? object
+  : {
+        [K in keyof T]-?: (
+          x: NonNullable<T[K]> extends infer V
+            ? V extends object
+              ? V extends readonly any[]
+                ? Pick<T, K>
+                : Flatten<V> extends infer FV
+                  ? {
+                      [P in keyof FV as `${Extract<K, string | number>}.${Extract<P, string | number>}`]: FV[P];
+                    }
+                  : never
+              : Pick<T, K>
+            : never,
+        ) => void;
+      } extends Record<keyof T, (y: infer O) => void>
+    ? O extends unknown
+      ? { [K in keyof O]: O[K] }
+      : never
+    : never;
 
 /**
  * Assigns own and inherited enumerable string and symbol keyed properties of source
@@ -190,9 +201,8 @@ export function defaults(
       const objectPrototype: { [key: PropertyKey]: any } = Object.prototype;
 
       if (
-        value === undefined
-        || isEqual(value, objectPrototype[key])
-        && !Object.hasOwn(objectIn, key)
+        value === undefined ||
+        (isEqual(value, objectPrototype[key]) && !Object.hasOwn(objectIn, key))
       ) {
         objectIn[key] = source[key];
       }
@@ -202,28 +212,21 @@ export function defaults(
   return objectIn;
 }
 
-/**
- * @param obj
- * @returns A new object with camel-cased keys
- * @private
- */
-export function camelizeObjectKeys(obj: { [key: string]: any }) {
-  const newObj: { [key: string]: any } = Object.create(null);
-
-  for (const key of Object.keys(obj)) {
-    newObj[camelize(key)] = obj[key];
-  }
-
-  return newObj;
-}
-
 type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
+
+type NoNullishField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
 export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
   return omitBy(val, isUndefined) as NoUndefinedField<T>;
 }
 
-export function getObjectFromMap<K extends PropertyKey, V>(aMap: Map<K, V> | MapView<K, V>): Record<K, V> {
+export function removeNullish<T extends {}>(val: T): NoNullishField<T> {
+  return omitBy(val, v => v == null) as NoNullishField<T>;
+}
+
+export function getObjectFromMap<K extends PropertyKey, V>(
+  aMap: Map<K, V> | ReadonlyMapLike<K, V>,
+): Record<K, V> {
   const record = Object.create(null);
 
   for (const key of aMap.keys()) {
@@ -250,15 +253,41 @@ export function getAllOwnKeys(object: object): IterableIterator<string | symbol>
  *
  * @param obj
  */
-export function getAllOwnEntries<T>(obj: { [s: PropertyKey]: T }): IterableIterator<[key: string | symbol, value: T]>;
-export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]>;
-export function getAllOwnEntries(obj: object): IterableIterator<[key: string | symbol, value: unknown]> {
+export function getAllOwnEntries<T>(obj: {
+  [s: PropertyKey]: T;
+}): IterableIterator<[key: string | symbol, value: T]>;
+export function getAllOwnEntries(
+  obj: object,
+): IterableIterator<[key: string | symbol, value: unknown]>;
+export function getAllOwnEntries(
+  obj: object,
+): IterableIterator<[key: string | symbol, value: unknown]> {
   // @ts-expect-error -- obj[key] is implicitly any
   return map(getAllOwnKeys(obj), key => [key, obj[key]]);
 }
 
-export function noPrototype<T extends object>(obj: T): T {
-  Object.setPrototypeOf(obj, null);
+export function untypedMultiSplitObject<T extends Record<string, any>>(
+  obj: T,
+  groups: Record<string, readonly string[]>,
+): [groups: Record<string, Record<string, unknown>>, unseenKeys: Set<string>] {
+  const outputGroups: Record<string, Record<string, unknown>> = pojo();
+  const unseenKeys = new Set<string>(Object.keys(obj));
 
-  return obj;
+  for (const groupName of Object.keys(groups)) {
+    const groupKeys = groups[groupName];
+
+    const groupValues: any = pojo();
+    outputGroups[groupName] = groupValues;
+
+    for (const key of groupKeys) {
+      if (obj[key] === undefined) {
+        continue;
+      }
+
+      groupValues[key] = obj[key];
+      unseenKeys.delete(key);
+    }
+  }
+
+  return [outputGroups, unseenKeys];
 }

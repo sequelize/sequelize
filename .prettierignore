@@ -1,0 +1,3 @@
+.yarn
+/packages/cli/migrations
+/packages/cli/seeds

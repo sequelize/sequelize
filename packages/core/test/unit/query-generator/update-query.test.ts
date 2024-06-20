@@ -1,23 +1,38 @@
-import { expect } from 'chai';
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { expect } from 'chai';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
+
+    return { User };
+  });
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.table, {
-      firstName: literal(':name'),
-    }, literal('name = :name'), {
-      replacements: {
-        name: 'Zoe',
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: literal(':name'),
       },
-    });
+      literal('name = :name'),
+      {
+        replacements: {
+          name: 'Zoe',
+        },
+      },
+    );
 
     expectsql(query, {
       default: `UPDATE [Users] SET [firstName]='Zoe' WHERE name = 'Zoe'`,
@@ -28,11 +43,17 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('generates extra bind params', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.table, {
-      firstName: 'John',
-      lastName: literal('$1'),
-      username: 'jd',
-    }, {});
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: 'John',
+        lastName: literal('$1'),
+        username: 'jd',
+      },
+      {},
+    );
 
     // lastName's bind position being changed from $1 to $2 is intentional
     expectsql(query, {
@@ -46,13 +67,20 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('does not generate extra bind params with bindParams: false', async () => {
-    const { query, bind } = queryGenerator.updateQuery(User.table, {
-      firstName: 'John',
-      lastName: literal('$1'),
-      username: 'jd',
-    }, literal('first_name = $2'), {
-      bindParam: false,
-    });
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: 'John',
+        lastName: literal('$1'),
+        username: 'jd',
+      },
+      literal('first_name = $2'),
+      {
+        bindParam: false,
+      },
+    );
 
     // lastName's bind position being changed from $1 to $2 is intentional
     expectsql(query, {
@@ -65,9 +93,13 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('binds date values', () => {
-    const result = queryGenerator.updateQuery('myTable', {
-      date: new Date('2011-03-27T10:01:55Z'),
-    }, { id: 2 });
+    const result = queryGenerator.updateQuery(
+      'myTable',
+      {
+        date: new Date('2011-03-27T10:01:55Z'),
+      },
+      { id: 2 },
+    );
 
     expectsql(result, {
       query: {
@@ -95,7 +127,7 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000',
           sequelize_2: 2,
         },
-        sqlite: {
+        sqlite3: {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
@@ -112,18 +144,23 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('binds boolean values', () => {
-    const result = queryGenerator.updateQuery('myTable', {
-      positive: true,
-      negative: false,
-    }, { id: 2 });
+    const result = queryGenerator.updateQuery(
+      'myTable',
+      {
+        positive: true,
+        negative: false,
+      },
+      { id: 2 },
+    );
 
     expectsql(result, {
       query: {
-        default: 'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
+        default:
+          'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
         db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
       },
       bind: {
-        sqlite: {
+        sqlite3: {
           sequelize_1: 1,
           sequelize_2: 0,
           sequelize_3: 2,
@@ -169,13 +206,18 @@ describe('QueryGenerator#updateQuery', () => {
 
   // TODO: Should we ignore undefined values instead? undefined is closer to "missing property" than null
   it('treats undefined as null', () => {
-    const { query, bind } = queryGenerator.updateQuery('myTable', {
-      value: undefined,
-      name: 'bar',
-    }, { id: 2 });
+    const { query, bind } = queryGenerator.updateQuery(
+      'myTable',
+      {
+        value: undefined,
+        name: 'bar',
+      },
+      { id: 2 },
+    );
 
     expectsql(query, {
-      default: 'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
+      default:
+        'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
       db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
     });
 

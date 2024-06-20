@@ -25,7 +25,7 @@ Learn to use [GitHub flavored markdown](https://help.github.com/articles/github-
 
 ### Opening an issue to report a bug
 
-It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [papb/sequelize-sscce](https://github.com/papb/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
+It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [sequelize-sscce](https://github.com/sequelize/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
 
 If you can even provide a Pull Request with a failing test (unit test or integration test), that is great! The bug will likely be fixed much faster in this case.
 
@@ -67,7 +67,7 @@ A Pull Request is a request for maintainers to "pull" a specific change in code 
 
 Anyone can open a Pull Request, there is no need to ask for permission. Maintainers will look at your pull request and tell you if anything else must be done before it can be merged.
 
-The target of the Pull Request should be the `main` branch (or in rare cases the `v5` branch, if previously agreed with a maintainer).
+The target of the Pull Request should be the `main` branch (or in rare cases the `v6` branch, if previously agreed with a maintainer).
 
 Please check the _allow edits from maintainers_ box when opening it. Thank you in advance for any pull requests that you open!
 
@@ -106,6 +106,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
     - [EditorConfig extension](https://marketplace.visualstudio.com/items?itemName=EditorConfig.EditorConfig)
       - Also run `npm install --global editorconfig` (or `yarn global add editorconfig`) to make sure this extension will work properly
     - [ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+    - [Prettier extension](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
 
 ### 1. Clone the repository
 
@@ -113,11 +114,41 @@ Clone the repository (if you haven't already) via `git clone https://github.com/
 
 ### 2. Install the Node.js dependencies
 
-Run `yarn install` within the cloned repository folder.
+Run `yarn install` within the cloned repository folder to install the dependencies.
+
+Once installed, run the `yarn build` command to build the project.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+[Yarn v4](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+
+#### 2.2 Running commands
+
+Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
+
+```
+yarn lerna run test-unit
+```
+
+By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
+
+```
+yarn lerna run test-unit --scope=@sequelize/core
+```
+
+Lerna caching is enabled and the following commands:
+
+- `yarn build`
+- `yarn test-typings`
+- `yarn test-unit`
+
+Currently the caching is configured to watch the `src` folder and `package.json` and `tsconfig.json` files in each package for production changes and all files in each package for default changes.
+
+This means that running the `yarn build` command and not making changes to the production files (see above), the output of the commands loaded from cache rather than the command executing. When running `yarn test-typings` or `yarn test-unit`, any changes in the package folder will cause command to run rather than the results loaded from cache.
+
+If you run into any issues with the cache, running the command `yarn dlx nx reset` will reset the cache.
+
+For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
 
 ### 3. Prepare local databases to run tests
 
@@ -127,11 +158,11 @@ If you're happy to run tests only against an SQLite database, you can skip this 
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.0)
-- `yarn start-mysql-oldest` (for MySQL 5.7) or `yarn start-mysql-latest` (for MySQL 8.0)
+- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.3)
+- `yarn start-mysql-oldest` (for MySQL 8.0) or `yarn start-mysql-latest` (for MySQL 8.3)
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
-- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.8.0)
+- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.9.0)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -155,20 +186,6 @@ You will have to manually install and configure each of database engines you wan
 
 ### 4. Running tests
 
-Sequelize is a monorepo and uses `lerna` to run scripts in each of the packages. The syntax for the commands is: `yarn lerna run` followed by the script name. For example:
-
-```
-yarn lerna run test-unit
-```
-
-By default, the `yarn lerna run` command will run the script in all packages which have a matching script. By appending `--scope=package_name` to the command (where `package_name` is the name of the package you want to run the script on) you can select a specific package to run the script on. For example:
-
-```
-yarn lerna run test-unit --scope=@sequelize/core
-```
-
-For more information about using `lerna` commands, use the [Lerna Documentation](https://lerna.js.org/docs/api-reference/commands).
-
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
@@ -184,6 +201,8 @@ Then, if you want to run tests for another dialect, assuming you've set it up as
 - `yarn lerna run test-db2`
 
 There are also the `test-unit-*` and `test-integration-*` sets of scripts (for example, `test-integration-postgres`).
+
+_Note:_ when running these test, you will need to run `yarn build` after you have made changes to the source code for these changes to affect the tests. The `yarn lerna run test-{dialect}` command does this for you.
 
 #### 4.1. Running only some tests
 
@@ -225,8 +244,13 @@ but you will need to follow the [Conventional Commits Conventions](https://www.c
 We will then use the title of your PR as the message of the Squash Commit. It will then be used to automatically generate a changelog and calculate the next [semver](https://semver.org/) version number.
 
 We use a simple conventional commits convention:
+
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
-- We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
+- We allow the following commit scopes (they're the list of packages):
+  - `core`
+  - `utils`
+  - `cli`
+  - `validator.js`
   - `postgres`
   - `mysql`
   - `mariadb`
@@ -235,7 +259,6 @@ We use a simple conventional commits convention:
   - `db2`
   - `ibmi`
   - `snowflake`
-  - `types`
 - If your changes impact more than one scope, simply omit the scope.
 
 Example:
@@ -248,7 +271,11 @@ Happy hacking and thank you for contributing.
 
 # Coding guidelines
 
-Have a look at our [.eslintrc.js](https://github.com/sequelize/sequelize/blob/main/.eslintrc.js) file for the specifics. As part of the test process, all files will be linted, and your PR will **not** be accepted if it does not pass linting.
+Sequelize uses eslint and prettier to enforce a consistent coding style.
+We recommend configuring them in your IDE to automatically format your code on save.
+
+You can format your code at any point by running `yarn format`.
+Any issue not automatically fixed by this command will be printed to the console.
 
 # Contributing to the documentation
 

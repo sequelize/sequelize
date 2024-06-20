@@ -17,7 +17,9 @@ describe('exports', () => {
 
   it('blocks access to lib files', async () => {
     // @ts-expect-error -- we're testing that this will be rejected
-    await expect(import('@sequelize/core/lib/model')).to.be.rejectedWith('Package subpath \'./lib/model\' is not defined by "exports"');
+    await expect(import('@sequelize/core/lib/model')).to.be.rejectedWith(
+      'ERR_PACKAGE_PATH_NOT_EXPORTED',
+    );
   });
 
   it('allows access to lib if the user acknowledges that it is unsafe', async () => {

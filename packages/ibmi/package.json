@@ -1,0 +1,45 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "DB2 for IBM i Connector for Sequelize",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/db2-ibmi",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "../../build-packages.mjs ibmi",
+    "test": "concurrently \"npm:test-*\"",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "commonjs",
+  "version": "7.0.0-alpha.41",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "@sequelize/utils": "workspace:*",
+    "dayjs": "^1.11.10",
+    "lodash": "^4.17.21",
+    "odbc": "^2.4.8"
+  }
+}

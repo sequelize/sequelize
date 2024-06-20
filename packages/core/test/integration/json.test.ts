@@ -1,8 +1,13 @@
-import { expect } from 'chai';
-import semver from 'semver';
-import type { CreationOptional, InferAttributes, InferCreationAttributes, NonAttribute } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  NonAttribute,
+} from '@sequelize/core';
 import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import semver from 'semver';
 import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
 
 const dialect = sequelize.dialect;
@@ -13,7 +18,7 @@ const dialectName = dialect.name;
  * In dialects like postgres, no "json = json" operator exists, we need to cast to text first.
  * It does however support "jsonb = jsonb".
  */
-const dialectSupportsJsonEquality = ['sqlite', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
+const dialectSupportsJsonEquality = ['sqlite3', 'mysql', 'mariadb', 'mssql'].includes(dialectName);
 
 describe('JSON Manipulation', () => {
   if (!dialect.supports.dataTypes.JSON) {
@@ -124,11 +129,13 @@ describe('JSON Querying', () => {
     });
   } else {
     it('should not be able to compare JSON to JSON directly', async () => {
-      await expect(vars.User.findOne({
-        where: {
-          stringJsonAttr: JSON_STRING,
-        },
-      })).to.be.rejected;
+      await expect(
+        vars.User.findOne({
+          where: {
+            stringJsonAttr: JSON_STRING,
+          },
+        }),
+      ).to.be.rejected;
     });
   }
 
@@ -144,13 +151,17 @@ describe('JSON Querying', () => {
       metaOldJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL,
       metaNewJSONtype longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK(json_valid(metaNewJSONtype)))`);
 
-    const Posts = sequelize.define('Posts', {
-      metaOldJSONtype: DataTypes.JSON,
-      metaNewJSONtype: DataTypes.JSON,
-    }, {
-      freezeTableName: true,
-      timestamps: false,
-    });
+    const Posts = sequelize.define(
+      'Posts',
+      {
+        metaOldJSONtype: DataTypes.JSON,
+        metaNewJSONtype: DataTypes.JSON,
+      },
+      {
+        freezeTableName: true,
+        timestamps: false,
+      },
+    );
 
     await Posts.create({ metaOldJSONtype: 'some text', metaNewJSONtype: 'some text' });
 
@@ -175,7 +186,8 @@ describe('JSON Querying', () => {
       it('should be able to query using JSON path objects', async () => {
         // JSON requires casting to text in postgres. There is no "json = json" operator
         // No-cast version is tested higher up in this suite
-        const comparison = dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
+        const comparison =
+          dialectName === 'postgres' ? { 'name::text': '"swen"' } : { name: 'swen' };
 
         const user = await vars.User.findOne({
           where: { objectJsonAttr: comparison },
@@ -187,7 +199,10 @@ describe('JSON Querying', () => {
       it('should be able to query using JSON path dot notation', async () => {
         // JSON requires casting to text in postgres. There is no "json = json" operator
         // No-cast version is tested higher up in this suite
-        const comparison = dialectName === 'postgres' ? { 'objectJsonAttr.name::text': '"swen"' } : { 'objectJsonAttr.name': 'swen' };
+        const comparison =
+          dialectName === 'postgres'
+            ? { 'objectJsonAttr.name::text': '"swen"' }
+            : { 'objectJsonAttr.name': 'swen' };
 
         const user = await vars.User.findOne({
           where: comparison,
@@ -199,18 +214,21 @@ describe('JSON Querying', () => {
       it('should be able retrieve json value with nested include', async () => {
         const orders = await vars.Order.findAll({
           attributes: ['id'],
-          include: [{
-            model: vars.User,
-            attributes: [
-              [sql.attribute('objectJsonAttr.name'), 'name'],
-            ],
-          }],
+          include: [
+            {
+              model: vars.User,
+              attributes: [[sql.attribute('objectJsonAttr.name'), 'name']],
+            },
+          ],
         });
 
         // we can't automatically detect that the output is JSON type in mariadb < 10.5.2,
         // and we don't yet support specifying (nor inferring) the type of custom attributes,
         // so for now the output is different in this specific case
-        const expectedResult = dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.5.2') ? '"swen"' : 'swen';
+        const expectedResult =
+          dialectName === 'mariadb' && semver.lt(sequelize.getDatabaseVersion(), '10.5.2')
+            ? '"swen"'
+            : 'swen';
 
         // @ts-expect-error -- getDataValue does not support custom attributes
         expect(orders[0].user.getDataValue('name')).to.equal(expectedResult);
@@ -244,12 +262,12 @@ describe('JSON Querying', () => {
       it('should be able retrieve json value with nested include', async () => {
         const orders = await vars.Order.findAll({
           attributes: ['id'],
-          include: [{
-            model: vars.User,
-            attributes: [
-              [sql.attribute('objectJsonAttr.name:unquote'), 'name'],
-            ],
-          }],
+          include: [
+            {
+              model: vars.User,
+              attributes: [[sql.attribute('objectJsonAttr.name:unquote'), 'name']],
+            },
+          ],
         });
 
         // @ts-expect-error -- getDataValue does not support custom attributes
@@ -285,11 +303,12 @@ describe('JSON Casting', () => {
       },
     });
 
-    const cast = dialectName === 'mysql' || dialectName === 'mariadb'
-      ? 'DATETIME'
-      : dialectName === 'mssql'
-      ? 'DATETIMEOFFSET'
-      : 'TIMESTAMPTZ';
+    const cast =
+      dialectName === 'mysql' || dialectName === 'mariadb'
+        ? 'DATETIME'
+        : dialectName === 'mssql'
+          ? 'DATETIMEOFFSET'
+          : 'TIMESTAMPTZ';
 
     const user = await vars.User.findOne({
       where: {
@@ -420,12 +439,12 @@ describe('JSONB Querying', () => {
   it('should be able retrieve json value with nested include', async () => {
     const orders = await vars.Order.findAll({
       attributes: ['id'],
-      include: [{
-        model: vars.User,
-        attributes: [
-          [sql.attribute('objectJsonbAttr.name'), 'name'],
-        ],
-      }],
+      include: [
+        {
+          model: vars.User,
+          attributes: [[sql.attribute('objectJsonbAttr.name'), 'name']],
+        },
+      ],
     });
 
     // @ts-expect-error -- getDataValue's typing does not support custom attributes
@@ -467,7 +486,9 @@ describe('JSONB Querying', () => {
     expect(created).to.equal(true);
     expect(user.isNewRecord).to.equal(false);
 
-    const refreshedUser = await vars.User.findOne({ where: { 'objectJsonbAttr.text:unquote': text } });
+    const refreshedUser = await vars.User.findOne({
+      where: { 'objectJsonbAttr.text:unquote': text },
+    });
     expect(refreshedUser).to.exist;
   });
 });
@@ -525,12 +546,14 @@ describe('JSONB Casting', () => {
   });
 
   it('requires being explicit when comparing to NULL', async () => {
-    const error = await expect(vars.User.findOne({
-      where: {
-        'jsonbAttr.value': null,
-      },
-    })).to.be.rejected;
+    const error = await expect(
+      vars.User.findOne({
+        where: {
+          'jsonbAttr.value': null,
+        },
+      }),
+    ).to.be.rejected;
 
-    expect(inlineErrorCause(error)).to.include('Because JSON has two possible null values, comparing a JSON/JSONB attribute to NULL requires an explicit comparison operator. Use the `Op.is` operator to compare to SQL NULL, or the `Op.eq` operator to compare to JSON null.');
+    expect(inlineErrorCause(error)).to.include('You must be explicit');
   });
 });

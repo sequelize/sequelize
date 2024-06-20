@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
 import type {
   BelongsToManyAddAssociationMixin,
   CreationOptional,
@@ -9,6 +7,8 @@ import type {
   NonAttribute,
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
+import { expect } from 'chai';
+import sinon from 'sinon';
 import { beforeAll2, beforeEach2, sequelize, setResetMode } from '../support';
 
 // This test suite ensures DataType methods are called at the appropriate time
@@ -33,10 +33,13 @@ describe('DataType Methods', () => {
       declare projects?: NonAttribute<Project[]>;
     }
 
-    User.init({
-      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-      name: { type: CustomDataType, allowNull: true, field: 'first_name' },
-    }, { sequelize });
+    User.init(
+      {
+        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        name: { type: CustomDataType, allowNull: true, field: 'first_name' },
+      },
+      { sequelize },
+    );
 
     class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
       declare name: string;
@@ -46,9 +49,12 @@ describe('DataType Methods', () => {
       declare addStakeholder: BelongsToManyAddAssociationMixin<User, User['id']>;
     }
 
-    Project.init({
-      name: { type: CustomDataType, allowNull: false },
-    }, { sequelize });
+    Project.init(
+      {
+        name: { type: CustomDataType, allowNull: false },
+      },
+      { sequelize },
+    );
 
     class ProjectStakeholder extends Model<
       InferAttributes<ProjectStakeholder>,
@@ -57,9 +63,12 @@ describe('DataType Methods', () => {
       declare key: string;
     }
 
-    ProjectStakeholder.init({
-      key: { type: CustomDataType, allowNull: false },
-    }, { sequelize, noPrimaryKey: true, timestamps: false });
+    ProjectStakeholder.init(
+      {
+        key: { type: CustomDataType, allowNull: false },
+      },
+      { sequelize, noPrimaryKey: true, timestamps: false },
+    );
 
     Project.belongsTo(User, {
       as: 'user',
@@ -69,6 +78,7 @@ describe('DataType Methods', () => {
 
     Project.belongsToMany(User, {
       as: 'stakeholders',
+      inverse: 'stakeholdings',
       through: ProjectStakeholder,
     });
 
@@ -104,7 +114,10 @@ describe('DataType Methods', () => {
 
     expect(spies.sanitize.calledOnce).to.eq(true, 'sanitized not called exactly once');
     expect(spies.validate.called).to.eq(false, 'validate should not have been called');
-    expect(spies.parseDatabaseValue.called).to.eq(false, 'parseDatabaseValue should not have been called');
+    expect(spies.parseDatabaseValue.called).to.eq(
+      false,
+      'parseDatabaseValue should not have been called',
+    );
   });
 
   it(`retrieving a model only calls 'parseDatabaseValue' (no join)`, async () => {
@@ -120,17 +133,28 @@ describe('DataType Methods', () => {
     // this test is separate from the no-join version because they use different code paths.
     // We test both double nested associations & that through tables are handled correctly.
     const out = await models.User.findOne({
-      include: [{
-        association: 'projects',
-        include: ['stakeholders'],
-      }],
+      include: [
+        {
+          association: 'projects',
+          include: ['stakeholders'],
+        },
+      ],
       rejectOnEmpty: true,
     });
 
     expect(out.name).to.eq(customValueSymbol, 'parseDatabaseValue not called on top level model');
-    expect(out.projects![0].name).to.eq(customValueSymbol, 'parseDatabaseValue not called on first include level');
-    expect(out.projects![0].stakeholders![0].name).to.eq(customValueSymbol, 'parseDatabaseValue not called on second include level');
-    expect(out.projects![0].stakeholders![0].ProjectStakeholder.key).to.eq(customValueSymbol, 'parseDatabaseValue not called on Many-To-Many through table');
+    expect(out.projects![0].name).to.eq(
+      customValueSymbol,
+      'parseDatabaseValue not called on first include level',
+    );
+    expect(out.projects![0].stakeholders![0].name).to.eq(
+      customValueSymbol,
+      'parseDatabaseValue not called on second include level',
+    );
+    expect(out.projects![0].stakeholders![0].ProjectStakeholder.key).to.eq(
+      customValueSymbol,
+      'parseDatabaseValue not called on Many-To-Many through table',
+    );
 
     expect(spies.sanitize.called).to.eq(false, 'sanitize should not have been called');
     expect(spies.validate.called).to.eq(false, 'validate should not have been called');
@@ -179,6 +203,9 @@ describe('DataType Methods', () => {
     await user.reload();
 
     expect(user.name).to.eq(null, 'parseDatabaseValue called on null value');
-    expect(spies.parseDatabaseValue.called).to.eq(false, 'parseDatabaseValue should not have been called');
+    expect(spies.parseDatabaseValue.called).to.eq(
+      false,
+      'parseDatabaseValue should not have been called',
+    );
   });
 });

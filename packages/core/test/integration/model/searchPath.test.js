@@ -1,8 +1,6 @@
 'use strict';
 
-const chai = require('chai');
-
-const expect = chai.expect;
+const { expect } = require('chai');
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
@@ -18,9 +16,7 @@ describe('SearchPath in Model Methods', () => {
 
   const vars = Support.beforeAll2(() => {
     const sequelize = Support.createSequelizeInstance({
-      dialectOptions: {
-        prependSearchPath: true,
-      },
+      prependSearchPath: true,
     });
 
     return { sequelize };
@@ -30,24 +26,33 @@ describe('SearchPath in Model Methods', () => {
     return vars.sequelize.close();
   });
 
-  before(function () {
+  beforeEach('build restaurant tables', async function () {
     const { sequelize } = vars;
 
-    this.Restaurant = sequelize.define('restaurant', {
-      foo: DataTypes.STRING,
-      bar: DataTypes.STRING,
-    },
-    { tableName: 'restaurants' });
-    this.Location = sequelize.define('location', {
-      name: DataTypes.STRING,
-      type: DataTypes.ENUM('a', 'b'),
-    },
-    { tableName: 'locations' });
-    this.Employee = sequelize.define('employee', {
-      first_name: DataTypes.STRING,
-      last_name: DataTypes.STRING,
-    },
-    { tableName: 'employees' });
+    this.Restaurant = sequelize.define(
+      'restaurant',
+      {
+        foo: DataTypes.STRING,
+        bar: DataTypes.STRING,
+      },
+      { tableName: 'restaurants' },
+    );
+    this.Location = sequelize.define(
+      'location',
+      {
+        name: DataTypes.STRING,
+        type: DataTypes.ENUM('a', 'b'),
+      },
+      { tableName: 'locations' },
+    );
+    this.Employee = sequelize.define(
+      'employee',
+      {
+        first_name: DataTypes.STRING,
+        last_name: DataTypes.STRING,
+      },
+      { tableName: 'employees' },
+    );
     this.Restaurant.belongsTo(this.Location, {
       foreignKey: 'location_id',
       foreignKeyConstraints: false,
@@ -60,10 +65,6 @@ describe('SearchPath in Model Methods', () => {
       foreignKey: 'restaurant_id',
       foreignKeyConstraints: false,
     });
-  });
-
-  beforeEach('build restaurant tables', async function () {
-    const { sequelize } = vars;
 
     const Restaurant = this.Restaurant;
 
@@ -71,13 +72,6 @@ describe('SearchPath in Model Methods', () => {
     await sequelize.createSchema('schema_two');
     await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_ONE });
     await Restaurant.sync({ force: true, searchPath: SEARCH_PATH_TWO });
-  });
-
-  afterEach('drop schemas', async () => {
-    const { sequelize } = vars;
-
-    await sequelize.dropSchema('schema_one');
-    await sequelize.dropSchema('schema_two');
   });
 
   describe('enum case', () => {
@@ -90,13 +84,17 @@ describe('SearchPath in Model Methods', () => {
     it('should be able to insert data into the table in schema_one using create', async function () {
       const Restaurant = this.Restaurant;
 
-      await Restaurant.create({
-        foo: 'one',
-        location_id: locationId,
-      }, { searchPath: SEARCH_PATH_ONE });
+      await Restaurant.create(
+        {
+          foo: 'one',
+          location_id: locationId,
+        },
+        { searchPath: SEARCH_PATH_ONE },
+      );
 
       const obj0 = await Restaurant.findOne({
-        where: { foo: 'one' }, searchPath: SEARCH_PATH_ONE,
+        where: { foo: 'one' },
+        searchPath: SEARCH_PATH_ONE,
       });
 
       expect(obj0).to.not.be.null;
@@ -111,9 +109,12 @@ describe('SearchPath in Model Methods', () => {
       const Restaurant = this.Restaurant;
 
       try {
-        await Restaurant.create({
-          foo: 'test',
-        }, { searchPath: SEARCH_PATH_TWO });
+        await Restaurant.create(
+          {
+            foo: 'test',
+          },
+          { searchPath: SEARCH_PATH_TWO },
+        );
       } catch (error) {
         expect(error).to.not.be.null;
       }
@@ -122,13 +123,17 @@ describe('SearchPath in Model Methods', () => {
     it('should be able to insert data into the table in schema_two using create', async function () {
       const Restaurant = this.Restaurant;
 
-      await Restaurant.create({
-        foo: 'two',
-        location_id: locationId,
-      }, { searchPath: SEARCH_PATH_TWO });
+      await Restaurant.create(
+        {
+          foo: 'two',
+          location_id: locationId,
+        },
+        { searchPath: SEARCH_PATH_TWO },
+      );
 
       const obj0 = await Restaurant.findOne({
-        where: { foo: 'two' }, searchPath: SEARCH_PATH_TWO,
+        where: { foo: 'two' },
+        searchPath: SEARCH_PATH_TWO,
       });
 
       expect(obj0).to.not.be.null;
@@ -142,14 +147,20 @@ describe('SearchPath in Model Methods', () => {
     it('should fail to find schema_one object in schema_two', async function () {
       const Restaurant = this.Restaurant;
 
-      const RestaurantObj = await Restaurant.findOne({ where: { foo: 'one' }, searchPath: SEARCH_PATH_TWO });
+      const RestaurantObj = await Restaurant.findOne({
+        where: { foo: 'one' },
+        searchPath: SEARCH_PATH_TWO,
+      });
       expect(RestaurantObj).to.be.null;
     });
 
     it('should fail to find schema_two object in schema_one', async function () {
       const Restaurant = this.Restaurant;
 
-      const RestaurantObj = await Restaurant.findOne({ where: { foo: 'two' }, searchPath: SEARCH_PATH_ONE });
+      const RestaurantObj = await Restaurant.findOne({
+        where: { foo: 'two' },
+        searchPath: SEARCH_PATH_ONE,
+      });
       expect(RestaurantObj).to.be.null;
     });
   });
@@ -265,15 +276,23 @@ describe('SearchPath in Model Methods', () => {
       const Restaurant = this.Restaurant;
       const Location = this.Location;
 
-      await Restaurant.create({
-        foo: 'one',
-        location_id: locationId,
-      }, { searchPath: SEARCH_PATH_ONE });
+      await Restaurant.create(
+        {
+          foo: 'one',
+          location_id: locationId,
+        },
+        { searchPath: SEARCH_PATH_ONE },
+      );
 
       const obj = await Restaurant.findOne({
-        where: { foo: 'one' }, include: [{
-          model: Location, as: 'location',
-        }], searchPath: SEARCH_PATH_ONE,
+        where: { foo: 'one' },
+        include: [
+          {
+            model: Location,
+            as: 'location',
+          },
+        ],
+        searchPath: SEARCH_PATH_ONE,
       });
 
       expect(obj).to.not.be.null;
@@ -286,15 +305,23 @@ describe('SearchPath in Model Methods', () => {
       const Restaurant = this.Restaurant;
       const Location = this.Location;
 
-      await Restaurant.create({
-        foo: 'two',
-        location_id: locationId,
-      }, { searchPath: SEARCH_PATH_TWO });
+      await Restaurant.create(
+        {
+          foo: 'two',
+          location_id: locationId,
+        },
+        { searchPath: SEARCH_PATH_TWO },
+      );
 
       const obj = await Restaurant.findOne({
-        where: { foo: 'two' }, include: [{
-          model: Location, as: 'location',
-        }], searchPath: SEARCH_PATH_TWO,
+        where: { foo: 'two' },
+        include: [
+          {
+            model: Location,
+            as: 'location',
+          },
+        ],
+        searchPath: SEARCH_PATH_TWO,
       });
 
       expect(obj).to.not.be.null;
@@ -315,28 +342,40 @@ describe('SearchPath in Model Methods', () => {
     it('should be able to insert and retrieve associated data into the table in schema_one', async function () {
       const Restaurant = this.Restaurant;
       const Employee = this.Employee;
-      await Restaurant.create({
-        foo: 'one',
-      }, { searchPath: SEARCH_PATH_ONE });
+      await Restaurant.create(
+        {
+          foo: 'one',
+        },
+        { searchPath: SEARCH_PATH_ONE },
+      );
 
       const obj1 = await Restaurant.findOne({
-        where: { foo: 'one' }, searchPath: SEARCH_PATH_ONE,
+        where: { foo: 'one' },
+        searchPath: SEARCH_PATH_ONE,
       });
 
       expect(obj1).to.not.be.null;
       expect(obj1.foo).to.equal('one');
       const restaurantId = obj1.id;
 
-      await Employee.create({
-        first_name: 'Restaurant',
-        last_name: 'one',
-        restaurant_id: restaurantId,
-      }, { searchPath: SEARCH_PATH_ONE });
+      await Employee.create(
+        {
+          first_name: 'Restaurant',
+          last_name: 'one',
+          restaurant_id: restaurantId,
+        },
+        { searchPath: SEARCH_PATH_ONE },
+      );
 
       const obj0 = await Restaurant.findOne({
-        where: { foo: 'one' }, searchPath: SEARCH_PATH_ONE, include: [{
-          model: Employee, as: 'employees',
-        }],
+        where: { foo: 'one' },
+        searchPath: SEARCH_PATH_ONE,
+        include: [
+          {
+            model: Employee,
+            as: 'employees',
+          },
+        ],
       });
 
       expect(obj0).to.not.be.null;
@@ -348,9 +387,14 @@ describe('SearchPath in Model Methods', () => {
       expect(employees[0].last_name).to.equal('one');
 
       const obj = await Employee.findOne({
-        where: { last_name: 'one' }, searchPath: SEARCH_PATH_ONE, include: [{
-          model: Restaurant, as: 'restaurant',
-        }],
+        where: { last_name: 'one' },
+        searchPath: SEARCH_PATH_ONE,
+        include: [
+          {
+            model: Restaurant,
+            as: 'restaurant',
+          },
+        ],
       });
 
       expect(obj).to.not.be.null;
@@ -365,28 +409,40 @@ describe('SearchPath in Model Methods', () => {
       const Restaurant = this.Restaurant;
       const Employee = this.Employee;
 
-      await Restaurant.create({
-        foo: 'two',
-      }, { searchPath: SEARCH_PATH_TWO });
+      await Restaurant.create(
+        {
+          foo: 'two',
+        },
+        { searchPath: SEARCH_PATH_TWO },
+      );
 
       const obj1 = await Restaurant.findOne({
-        where: { foo: 'two' }, searchPath: SEARCH_PATH_TWO,
+        where: { foo: 'two' },
+        searchPath: SEARCH_PATH_TWO,
       });
 
       expect(obj1).to.not.be.null;
       expect(obj1.foo).to.equal('two');
       const restaurantId = obj1.id;
 
-      await Employee.create({
-        first_name: 'Restaurant',
-        last_name: 'two',
-        restaurant_id: restaurantId,
-      }, { searchPath: SEARCH_PATH_TWO });
+      await Employee.create(
+        {
+          first_name: 'Restaurant',
+          last_name: 'two',
+          restaurant_id: restaurantId,
+        },
+        { searchPath: SEARCH_PATH_TWO },
+      );
 
       const obj0 = await Restaurant.findOne({
-        where: { foo: 'two' }, searchPath: SEARCH_PATH_TWO, include: [{
-          model: Employee, as: 'employees',
-        }],
+        where: { foo: 'two' },
+        searchPath: SEARCH_PATH_TWO,
+        include: [
+          {
+            model: Employee,
+            as: 'employees',
+          },
+        ],
       });
 
       expect(obj0).to.not.be.null;
@@ -398,9 +454,14 @@ describe('SearchPath in Model Methods', () => {
       expect(employees[0].last_name).to.equal('two');
 
       const obj = await Employee.findOne({
-        where: { last_name: 'two' }, searchPath: SEARCH_PATH_TWO, include: [{
-          model: Restaurant, as: 'restaurant',
-        }],
+        where: { last_name: 'two' },
+        searchPath: SEARCH_PATH_TWO,
+        include: [
+          {
+            model: Restaurant,
+            as: 'restaurant',
+          },
+        ],
       });
 
       expect(obj).to.not.be.null;
@@ -443,16 +504,22 @@ describe('SearchPath in Model Methods', () => {
     it('should be able to update data via instance update in both schemas, and retrieve it via findAll with where', async function () {
       const Restaurant = this.Restaurant;
 
-      const rnt = await Restaurant.create({ foo: 'one', bar: '1' }, { searchPath: SEARCH_PATH_ONE });
+      const rnt = await Restaurant.create(
+        { foo: 'one', bar: '1' },
+        { searchPath: SEARCH_PATH_ONE },
+      );
 
       await Promise.all([
         await rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_ONE }),
-        Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE })
-          .then(rnt => rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_ONE })),
-        Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO })
-          .then(rnt => rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_TWO })),
-        Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO })
-          .then(rnt => rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO })),
+        Restaurant.create({ foo: 'one', bar: '2' }, { searchPath: SEARCH_PATH_ONE }).then(rnt =>
+          rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_ONE }),
+        ),
+        Restaurant.create({ foo: 'two', bar: '1' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
+          rnt.update({ bar: 'x.1' }, { searchPath: SEARCH_PATH_TWO }),
+        ),
+        Restaurant.create({ foo: 'two', bar: '2' }, { searchPath: SEARCH_PATH_TWO }).then(rnt =>
+          rnt.update({ bar: 'x.2' }, { searchPath: SEARCH_PATH_TWO }),
+        ),
       ]);
 
       await Promise.all([

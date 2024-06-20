@@ -35,7 +35,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -80,9 +82,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             model: Comment,
             as: 'comments',
-            attributes: [
-              [Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount'],
-            ],
+            attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount']],
           },
         ],
       });
@@ -250,10 +250,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'boo6', aBool: true },
         ]);
 
-        await Passports.bulkCreate([
-          { isActive: true },
-          { isActive: false },
-        ]);
+        await Passports.bulkCreate([{ isActive: true }, { isActive: false }]);
 
         const user = await User.findByPk(1);
         const passport = await Passports.findByPk(1);
@@ -294,10 +291,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             { username: 'boo6', aBool: true },
           ]);
 
-          await Binary.bulkCreate([
-            { id: buf1 },
-            { id: buf2 },
-          ]);
+          await Binary.bulkCreate([{ id: buf1 }, { id: buf2 }]);
 
           const user = await User.findByPk(1);
           const binary = await Binary.findByPk(buf1);
@@ -564,16 +558,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('throws an error about unexpected input if include contains a non-object', async function () {
-          await expect(this.Worker.findAll({ include: [1] }))
-            .to.be.rejectedWith(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+          await expect(this.Worker.findAll({ include: [1] })).to.be
+            .rejectedWith(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
 Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
           const OtherModel = this.sequelize.define('OtherModel');
 
-          await expect(this.Worker.findAll({ include: [OtherModel] }))
-            .to.be.rejectedWith('Invalid Include received: no associations exist between "Worker" and "OtherModel"');
+          await expect(this.Worker.findAll({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Worker" and "OtherModel"',
+          );
         });
 
         it('returns the associated worker via task.worker', async function () {
@@ -583,8 +578,8 @@ Got { association: 1 } instead`);
           });
 
           expect(tasks).to.exist;
-          expect(tasks[0].Worker).to.exist;
-          expect(tasks[0].Worker.name).to.equal('worker');
+          expect(tasks[0].worker).to.exist;
+          expect(tasks[0].worker.name).to.equal('worker');
         });
 
         it('returns the associated worker via task.worker, using limit and sort', async function () {
@@ -596,8 +591,8 @@ Got { association: 1 } instead`);
           });
 
           expect(tasks).to.exist;
-          expect(tasks[0].Worker).to.exist;
-          expect(tasks[0].Worker.name).to.equal('worker');
+          expect(tasks[0].worker).to.exist;
+          expect(tasks[0].worker.name).to.equal('worker');
         });
       });
 
@@ -618,8 +613,9 @@ Got { association: 1 } instead`);
         it('throws an error if included DaoFactory is not associated', async function () {
           const OtherModel = this.sequelize.define('OtherModel');
 
-          await expect(this.Task.findAll({ include: [OtherModel] }))
-            .to.be.rejectedWith('Invalid Include received: no associations exist between "TaskHasOne" and "OtherModel"');
+          await expect(this.Task.findAll({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "TaskHasOne" and "OtherModel"',
+          );
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -629,8 +625,8 @@ Got { association: 1 } instead`);
           });
 
           expect(workers).to.exist;
-          expect(workers[0].TaskHasOne).to.exist;
-          expect(workers[0].TaskHasOne.title).to.equal('homework');
+          expect(workers[0].taskHasOne).to.exist;
+          expect(workers[0].taskHasOne.title).to.equal('homework');
         });
       });
 
@@ -649,8 +645,8 @@ Got { association: 1 } instead`);
         });
 
         it('throws an error if alias is not associated', async function () {
-          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }))
-            .to.be.rejectedWith(`Association with alias "Work" does not exist on Worker.
+          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] })).to.be
+            .rejectedWith(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDo"`);
         });
 
@@ -692,7 +688,9 @@ The following associations are defined on "Worker": "ToDo"`);
         it('throws an error if included DaoFactory is not associated', async function () {
           const OtherModel = this.sequelize.define('OtherModel');
 
-          await expect(this.Task.findAll({ include: [OtherModel] })).to.be.rejectedWith('Invalid Include received: no associations exist between "task" and "OtherModel"');
+          await expect(this.Task.findAll({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "task" and "OtherModel"',
+          );
         });
 
         it('returns the associated tasks via worker.tasks', async function () {
@@ -720,11 +718,7 @@ The following associations are defined on "Worker": "ToDo"`);
           await User.sync({ force: true });
           await Project.sync({ force: true });
 
-          await User.bulkCreate([
-            { name: 'a' },
-            { name: 'b' },
-            { name: 'c' },
-          ]);
+          await User.bulkCreate([{ name: 'a' }, { name: 'b' }, { name: 'c' }]);
 
           const users = await User.findAll({
             order: ['name'],
@@ -750,11 +744,7 @@ The following associations are defined on "Worker": "ToDo"`);
           await User.sync({ force: true });
           await Project.sync({ force: true });
 
-          await User.bulkCreate([
-            { name: 'a' },
-            { name: 'b' },
-            { name: 'c' },
-          ]);
+          await User.bulkCreate([{ name: 'a' }, { name: 'b' }, { name: 'c' }]);
 
           const users = await User.findAll({
             order: [['name', 'DESC']],
@@ -791,7 +781,10 @@ The following associations are defined on "Worker": "ToDo"`);
           ]);
 
           const users0 = await User.findAll({
-            order: [['name', 'ASC'], ['age', 'DESC']],
+            order: [
+              ['name', 'ASC'],
+              ['age', 'DESC'],
+            ],
             limit: 2,
             include: [Project],
           });
@@ -830,8 +823,8 @@ The following associations are defined on "Worker": "ToDo"`);
         });
 
         it('throws an error if alias is not associated', async function () {
-          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] }))
-            .to.be.rejectedWith(`Association with alias "Work" does not exist on Worker.
+          await expect(this.Worker.findAll({ include: [{ model: this.Task, as: 'Work' }] })).to.be
+            .rejectedWith(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDos"`);
         });
 
@@ -890,7 +883,10 @@ The following associations are defined on "Worker": "ToDos"`);
           this.Continent = this.sequelize.define('continent', { name: DataTypes.STRING });
           this.Country = this.sequelize.define('country', { name: DataTypes.STRING });
           this.Industry = this.sequelize.define('industry', { name: DataTypes.STRING });
-          this.Person = this.sequelize.define('person', { name: DataTypes.STRING, lastName: DataTypes.STRING });
+          this.Person = this.sequelize.define('person', {
+            name: DataTypes.STRING,
+            lastName: DataTypes.STRING,
+          });
 
           this.Continent.hasMany(this.Country);
           this.Country.belongsTo(this.Continent);
@@ -898,7 +894,11 @@ The following associations are defined on "Worker": "ToDos"`);
           this.Industry.belongsToMany(this.Country, { through: 'country_industry' });
           this.Country.hasMany(this.Person);
           this.Person.belongsTo(this.Country);
-          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId', inverse: { as: 'CountryResident' } });
+          this.Country.hasMany(this.Person, {
+            as: 'residents',
+            foreignKey: 'CountryResidentId',
+            inverse: { as: 'CountryResident' },
+          });
 
           await this.sequelize.sync({ force: true });
 
@@ -942,12 +942,17 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('forbids using options', async function () {
-          await expect(this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }))
-            .to.be.rejectedWith('"include: { all: true }" does not allow extra options (except for "nested") because they are unsafe. Select includes one by one if you want to specify more options.');
+          await expect(
+            this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }),
+          ).to.be.rejectedWith(
+            '"include: { all: true }" does not allow extra options (except for "nested") because they are unsafe. Select includes one by one if you want to specify more options.',
+          );
         });
 
         it('is over-ruled by specified include', async function () {
-          const countries = await this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] });
+          const countries = await this.Country.findAll({
+            include: [{ all: true }, { model: this.Continent, attributes: ['id'] }],
+          });
           expect(countries).to.exist;
           expect(countries[0]).to.exist;
           expect(countries[0].continent).to.exist;
@@ -955,7 +960,9 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('includes all nested associations', async function () {
-          const continents = await this.Continent.findAll({ include: [{ all: true, nested: true }] });
+          const continents = await this.Continent.findAll({
+            include: [{ all: true, nested: true }],
+          });
           expect(continents).to.exist;
           expect(continents[0]).to.exist;
           expect(continents[0].countries).to.exist;
@@ -998,20 +1005,18 @@ The following associations are defined on "Worker": "ToDos"`);
             this.Kingdom.create({ name: 'Wind' }),
           ]);
 
-          await Promise.all([
-            k1.addAnimals([a1, a2]),
-            k2.addAnimals([a4]),
-            k3.addAnimals([a3]),
-          ]);
+          await Promise.all([k1.addAnimals([a1, a2]), k2.addAnimals([a4]), k3.addAnimals([a3])]);
         });
 
         it('N:M with ignoring include.attributes only', async function () {
           const kingdoms = await this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { [Op.gte]: 29 } },
-              attributes: [],
-            }],
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { [Op.gte]: 29 } },
+                attributes: [],
+              },
+            ],
           });
 
           expect(kingdoms.length).to.be.eql(2);
@@ -1023,32 +1028,36 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('N:M with ignoring through.attributes only', async function () {
           const kingdoms = await this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { [Op.gte]: 29 } },
-              through: {
-                attributes: [],
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { [Op.gte]: 29 } },
+                through: {
+                  attributes: [],
+                },
               },
-            }],
+            ],
           });
 
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
-            expect(kingdom.Animals).to.exist; // include model exists
-            expect(kingdom.Animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
+            expect(kingdom.animals).to.exist; // include model exists
+            expect(kingdom.animals[0].AnimalKingdom).to.not.exist; // through doesn't exists
           }
         });
 
         it('N:M with ignoring include.attributes but having through.attributes', async function () {
           const kingdoms = await this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { [Op.gte]: 29 } },
-              attributes: [],
-              through: {
-                attributes: ['mutation'],
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { [Op.gte]: 29 } },
+                attributes: [],
+                through: {
+                  attributes: ['mutation'],
+                },
               },
-            }],
+            ],
           });
 
           expect(kingdoms.length).to.be.eql(2);
@@ -1065,11 +1074,18 @@ The following associations are defined on "Worker": "ToDos"`);
         beforeEach(async function () {
           this.Continent = this.sequelize.define('continent', { name: DataTypes.STRING });
           this.Country = this.sequelize.define('country', { name: DataTypes.STRING });
-          this.Person = this.sequelize.define('person', { name: DataTypes.STRING, lastName: DataTypes.STRING });
+          this.Person = this.sequelize.define('person', {
+            name: DataTypes.STRING,
+            lastName: DataTypes.STRING,
+          });
 
           this.Continent.hasMany(this.Country);
           this.Country.hasMany(this.Person);
-          this.Country.hasMany(this.Person, { as: 'residents', foreignKey: 'CountryResidentId', inverse: { as: 'CountryResident' } });
+          this.Country.hasMany(this.Person, {
+            as: 'residents',
+            foreignKey: 'CountryResidentId',
+            inverse: { as: 'CountryResident' },
+          });
 
           await this.sequelize.sync({ force: true });
 
@@ -1107,117 +1123,168 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('sorts simply', async function () {
-          await Promise.all([['ASC', 'Asia'], ['DESC', 'Europe']].map(async params => {
-            const continents = await this.Continent.findAll({
-              order: [['name', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'Asia'],
+              ['DESC', 'Europe'],
+            ].map(async params => {
+              const continents = await this.Continent.findAll({
+                order: [['name', params[0]]],
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+            }),
+          );
         });
 
         it('sorts by 1st degree association', async function () {
-          await Promise.all([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']].map(async params => {
-            const continents = await this.Continent.findAll({
-              include: [this.Country],
-              order: [[this.Country, 'name', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'Europe', 'England'],
+              ['DESC', 'Asia', 'Korea'],
+            ].map(async params => {
+              const continents = await this.Continent.findAll({
+                include: [this.Country],
+                order: [[this.Country, 'name', params[0]]],
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-            expect(continents[0].countries).to.exist;
-            expect(continents[0].countries[0]).to.exist;
-            expect(continents[0].countries[0].name).to.equal(params[2]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries[0]).to.exist;
+              expect(continents[0].countries[0].name).to.equal(params[2]);
+            }),
+          );
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', async function () {
-          await Promise.all([['ASC', 'Asia', 'Europe', 'England']].map(async params => {
-            const continents = await this.Continent.findAll({
-              include: [{
-                model: this.Country,
-                required: false,
-                where: {
-                  name: params[3],
-                },
-              }],
-              limit: 2,
-              order: [['name', params[0]], [this.Country, 'name', params[0]]],
-            });
+          await Promise.all(
+            [['ASC', 'Asia', 'Europe', 'England']].map(async params => {
+              const continents = await this.Continent.findAll({
+                include: [
+                  {
+                    model: this.Country,
+                    required: false,
+                    where: {
+                      name: params[3],
+                    },
+                  },
+                ],
+                limit: 2,
+                order: [
+                  ['name', params[0]],
+                  [this.Country, 'name', params[0]],
+                ],
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-            expect(continents[0].countries).to.exist;
-            expect(continents[0].countries.length).to.equal(0);
-            expect(continents[1]).to.exist;
-            expect(continents[1].name).to.equal(params[2]);
-            expect(continents[1].countries).to.exist;
-            expect(continents[1].countries.length).to.equal(1);
-            expect(continents[1].countries[0]).to.exist;
-            expect(continents[1].countries[0].name).to.equal(params[3]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries.length).to.equal(0);
+              expect(continents[1]).to.exist;
+              expect(continents[1].name).to.equal(params[2]);
+              expect(continents[1].countries).to.exist;
+              expect(continents[1].countries.length).to.equal(1);
+              expect(continents[1].countries[0]).to.exist;
+              expect(continents[1].countries[0].name).to.equal(params[3]);
+            }),
+          );
         });
 
         it('sorts by 2nd degree association', async function () {
-          await Promise.all([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']].map(async params => {
-            const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: ['people'] }],
-              order: [[this.Country, 'people', 'lastName', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'Europe', 'England', 'Fred'],
+              ['DESC', 'Asia', 'Korea', 'Kim'],
+            ].map(async params => {
+              const continents = await this.Continent.findAll({
+                include: [{ model: this.Country, include: ['people'] }],
+                order: [[this.Country, 'people', 'lastName', params[0]]],
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-            expect(continents[0].countries).to.exist;
-            expect(continents[0].countries[0]).to.exist;
-            expect(continents[0].countries[0].name).to.equal(params[2]);
-            expect(continents[0].countries[0].people).to.exist;
-            expect(continents[0].countries[0].people[0]).to.exist;
-            expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries[0]).to.exist;
+              expect(continents[0].countries[0].name).to.equal(params[2]);
+              expect(continents[0].countries[0].people).to.exist;
+              expect(continents[0].countries[0].people[0]).to.exist;
+              expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
+            }),
+          );
         });
 
         it('sorts by 2nd degree association with alias', async function () {
-          await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
-            const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: ['people', { model: this.Person, as: 'residents' }] }],
-              order: [[this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'Europe', 'France', 'Fred'],
+              ['DESC', 'Europe', 'England', 'Kim'],
+            ].map(async params => {
+              const continents = await this.Continent.findAll({
+                include: [
+                  {
+                    model: this.Country,
+                    include: ['people', { model: this.Person, as: 'residents' }],
+                  },
+                ],
+                order: [
+                  [this.Country, { model: this.Person, as: 'residents' }, 'lastName', params[0]],
+                ],
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-            expect(continents[0].countries).to.exist;
-            expect(continents[0].countries[0]).to.exist;
-            expect(continents[0].countries[0].name).to.equal(params[2]);
-            expect(continents[0].countries[0].residents).to.exist;
-            expect(continents[0].countries[0].residents[0]).to.exist;
-            expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries[0]).to.exist;
+              expect(continents[0].countries[0].name).to.equal(params[2]);
+              expect(continents[0].countries[0].residents).to.exist;
+              expect(continents[0].countries[0].residents[0]).to.exist;
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
+            }),
+          );
         });
 
         it('sorts by 2nd degree association with alias while using limit', async function () {
-          await Promise.all([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']].map(async params => {
-            const continents = await this.Continent.findAll({
-              include: [{ model: this.Country, include: ['people', { model: this.Person, as: 'residents' }] }],
-              order: [[{ model: this.Country }, { model: this.Person, as: 'residents' }, 'lastName', params[0]]],
-              limit: 3,
-            });
+          await Promise.all(
+            [
+              ['ASC', 'Europe', 'France', 'Fred'],
+              ['DESC', 'Europe', 'England', 'Kim'],
+            ].map(async params => {
+              const continents = await this.Continent.findAll({
+                include: [
+                  {
+                    model: this.Country,
+                    include: ['people', { model: this.Person, as: 'residents' }],
+                  },
+                ],
+                order: [
+                  [
+                    { model: this.Country },
+                    { model: this.Person, as: 'residents' },
+                    'lastName',
+                    params[0],
+                  ],
+                ],
+                limit: 3,
+              });
 
-            expect(continents).to.exist;
-            expect(continents[0]).to.exist;
-            expect(continents[0].name).to.equal(params[1]);
-            expect(continents[0].countries).to.exist;
-            expect(continents[0].countries[0]).to.exist;
-            expect(continents[0].countries[0].name).to.equal(params[2]);
-            expect(continents[0].countries[0].residents).to.exist;
-            expect(continents[0].countries[0].residents[0]).to.exist;
-            expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-          }));
+              expect(continents).to.exist;
+              expect(continents[0]).to.exist;
+              expect(continents[0].name).to.equal(params[1]);
+              expect(continents[0].countries).to.exist;
+              expect(continents[0].countries[0]).to.exist;
+              expect(continents[0].countries[0].name).to.equal(params[2]);
+              expect(continents[0].countries[0].residents).to.exist;
+              expect(continents[0].countries[0].residents[0]).to.exist;
+              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
+            }),
+          );
         });
       });
 
@@ -1225,7 +1292,9 @@ The following associations are defined on "Worker": "ToDos"`);
         beforeEach(async function () {
           this.Country = this.sequelize.define('country', { name: DataTypes.STRING });
           this.Industry = this.sequelize.define('industry', { name: DataTypes.STRING });
-          this.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: DataTypes.INTEGER });
+          this.IndustryCountry = this.sequelize.define('IndustryCountry', {
+            numYears: DataTypes.INTEGER,
+          });
 
           this.Country.belongsToMany(this.Industry, { through: this.IndustryCountry });
           this.Industry.belongsToMany(this.Country, { through: this.IndustryCountry });
@@ -1254,62 +1323,83 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('sorts by 1st degree association', async function () {
-          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
-            const countries = await this.Country.findAll({
-              include: [this.Industry],
-              order: [[this.Industry, 'name', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'England', 'Energy'],
+              ['DESC', 'Korea', 'Tech'],
+            ].map(async params => {
+              const countries = await this.Country.findAll({
+                include: [this.Industry],
+                order: [[this.Industry, 'name', params[0]]],
+              });
 
-            expect(countries).to.exist;
-            expect(countries[0]).to.exist;
-            expect(countries[0].name).to.equal(params[1]);
-            expect(countries[0].industries).to.exist;
-            expect(countries[0].industries[0]).to.exist;
-            expect(countries[0].industries[0].name).to.equal(params[2]);
-          }));
+              expect(countries).to.exist;
+              expect(countries[0]).to.exist;
+              expect(countries[0].name).to.equal(params[1]);
+              expect(countries[0].industries).to.exist;
+              expect(countries[0].industries[0]).to.exist;
+              expect(countries[0].industries[0].name).to.equal(params[2]);
+            }),
+          );
         });
 
         it('sorts by 1st degree association while using limit', async function () {
-          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']].map(async params => {
-            const countries = await this.Country.findAll({
-              include: [this.Industry],
-              order: [
-                [this.Industry, 'name', params[0]],
-              ],
-              limit: 3,
-            });
+          await Promise.all(
+            [
+              ['ASC', 'England', 'Energy'],
+              ['DESC', 'Korea', 'Tech'],
+            ].map(async params => {
+              const countries = await this.Country.findAll({
+                include: [this.Industry],
+                order: [[this.Industry, 'name', params[0]]],
+                limit: 3,
+              });
 
-            expect(countries).to.exist;
-            expect(countries[0]).to.exist;
-            expect(countries[0].name).to.equal(params[1]);
-            expect(countries[0].industries).to.exist;
-            expect(countries[0].industries[0]).to.exist;
-            expect(countries[0].industries[0].name).to.equal(params[2]);
-          }));
+              expect(countries).to.exist;
+              expect(countries[0]).to.exist;
+              expect(countries[0].name).to.equal(params[1]);
+              expect(countries[0].industries).to.exist;
+              expect(countries[0].industries[0]).to.exist;
+              expect(countries[0].industries[0].name).to.equal(params[2]);
+            }),
+          );
         });
 
         it('sorts by through table attribute', async function () {
-          await Promise.all([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']].map(async params => {
-            const countries = await this.Country.findAll({
-              include: [this.Industry],
-              order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]],
-            });
+          await Promise.all(
+            [
+              ['ASC', 'England', 'Energy'],
+              ['DESC', 'France', 'Media'],
+            ].map(async params => {
+              const countries = await this.Country.findAll({
+                include: [this.Industry],
+                order: [[this.Industry, this.IndustryCountry, 'numYears', params[0]]],
+              });
 
-            expect(countries).to.exist;
-            expect(countries[0]).to.exist;
-            expect(countries[0].name).to.equal(params[1]);
-            expect(countries[0].industries).to.exist;
-            expect(countries[0].industries[0]).to.exist;
-            expect(countries[0].industries[0].name).to.equal(params[2]);
-          }));
+              expect(countries).to.exist;
+              expect(countries[0]).to.exist;
+              expect(countries[0].name).to.equal(params[1]);
+              expect(countries[0].industries).to.exist;
+              expect(countries[0].industries[0]).to.exist;
+              expect(countries[0].industries[0].name).to.equal(params[2]);
+            }),
+          );
         });
       });
     });
 
     describe('normal findAll', () => {
       beforeEach(async function () {
-        const user = await this.User.create({ username: 'user', data: 'foobar', theDate: dayjs().toDate() });
-        const user2 = await this.User.create({ username: 'user2', data: 'bar', theDate: dayjs().toDate() });
+        const user = await this.User.create({
+          username: 'user',
+          data: 'foobar',
+          theDate: dayjs().toDate(),
+        });
+        const user2 = await this.User.create({
+          username: 'user2',
+          data: 'bar',
+          theDate: dayjs().toDate(),
+        });
         this.users = [user].concat(user2);
       });
 
@@ -1336,7 +1426,11 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       it('sorts the results via a date column', async function () {
-        await this.User.create({ username: 'user3', data: 'bar', theDate: dayjs().add(2, 'hours').toDate() });
+        await this.User.create({
+          username: 'user3',
+          data: 'bar',
+          theDate: dayjs().add(2, 'hours').toDate(),
+        });
         const users = await this.User.findAll({ order: [['theDate', 'DESC']] });
         expect(users[0].id).to.be.above(users[2].id);
       });
@@ -1374,16 +1468,20 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       it('should pull in dependent fields for a VIRTUAL', async function () {
-        const User = this.sequelize.define('User', {
-          active: {
-            type: DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
-            get() {
-              return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
+        const User = this.sequelize.define(
+          'User',
+          {
+            active: {
+              type: DataTypes.VIRTUAL(DataTypes.BOOLEAN, ['createdAt']),
+              get() {
+                return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
+              },
             },
           },
-        }, {
-          timestamps: true,
-        });
+          {
+            timestamps: true,
+          },
+        );
 
         await User.create();
 
@@ -1420,29 +1518,36 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await this.sequelize.sync({ force: true });
 
-        await User.create({
-          name: 'some user',
-          Image: {
-            path: 'folder1/folder2/logo.png',
+        await User.create(
+          {
+            name: 'some user',
+            image: {
+              path: 'folder1/folder2/logo.png',
+            },
           },
-        }, {
-          include: {
-            model: Image,
+          {
+            include: {
+              model: Image,
+            },
           },
-        });
+        );
 
         const users = await User.findAll({
           attributes: ['name'],
-          include: [{
-            model: Image,
-            attributes: ['url'],
-          }],
+          include: [
+            {
+              model: Image,
+              attributes: ['url'],
+            },
+          ],
         });
 
         for (const user of users) {
           expect(user.get('name')).to.equal('some user');
-          expect(user.Image.get('url')).to.equal('https://my-cool-domain.com/folder1/folder2/logo.png');
-          expect(user.Image.get('path')).to.equal('folder1/folder2/logo.png');
+          expect(user.image.get('url')).to.equal(
+            'https://my-cool-domain.com/folder1/folder2/logo.png',
+          );
+          expect(user.image.get('path')).to.equal('folder1/folder2/logo.png');
         }
       });
     });
@@ -1462,7 +1567,9 @@ The following associations are defined on "Worker": "ToDos"`);
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1477,14 +1584,19 @@ The following associations are defined on "Worker": "ToDos"`);
     }
 
     it('handles where clause {only}', async function () {
-      const info = await this.User.findAndCountAll({ where: { id: { [Op.ne]: this.users[0].id } } });
+      const info = await this.User.findAndCountAll({
+        where: { id: { [Op.ne]: this.users[0].id } },
+      });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
       expect(info.rows.length).to.equal(2);
     });
 
     it('handles where clause with ordering {only}', async function () {
-      const info = await this.User.findAndCountAll({ where: { id: { [Op.ne]: this.users[0].id } }, order: [['id', 'ASC']] });
+      const info = await this.User.findAndCountAll({
+        where: { id: { [Op.ne]: this.users[0].id } },
+        order: [['id', 'ASC']],
+      });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
       expect(info.rows.length).to.equal(2);
@@ -1520,7 +1632,11 @@ The following associations are defined on "Worker": "ToDos"`);
       });
 
       // Associations
-      Election.belongsToMany(Citizen, { as: 'Voters', through: 'ElectionsVotes', inverse: { as: 'Votes' } });
+      Election.belongsToMany(Citizen, {
+        as: 'Voters',
+        through: 'ElectionsVotes',
+        inverse: { as: 'Votes' },
+      });
       Election.belongsTo(Citizen);
       Citizen.hasMany(Election);
 
@@ -1539,7 +1655,7 @@ The following associations are defined on "Worker": "ToDos"`);
           name: 'Some election',
         },
         include: [
-          'Citizen', // Election creator
+          'citizen', // Election creator
           { model: Citizen, as: 'Voters' }, // Election voters
         ],
       });
@@ -1548,7 +1664,10 @@ The following associations are defined on "Worker": "ToDos"`);
     });
 
     it('handles attributes', async function () {
-      const info = await this.User.findAndCountAll({ where: { id: { [Op.ne]: this.users[0].id } }, attributes: ['data'] });
+      const info = await this.User.findAndCountAll({
+        where: { id: { [Op.ne]: this.users[0].id } },
+        attributes: ['data'],
+      });
       expect(info.count).to.equal(2);
       expect(Array.isArray(info.rows)).to.be.ok;
       expect(info.rows.length).to.equal(2);
@@ -1567,7 +1686,9 @@ The following associations are defined on "Worker": "ToDos"`);
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });
@@ -1600,51 +1721,69 @@ The following associations are defined on "Worker": "ToDos"`);
 
   describe('rejectOnEmpty mode', () => {
     it('works from model options', async () => {
-      const Model = current.define('Test', {
-        username: DataTypes.STRING(100),
-      }, {
-        rejectOnEmpty: true,
-      });
+      const Model = current.define(
+        'Test',
+        {
+          username: DataTypes.STRING(100),
+        },
+        {
+          rejectOnEmpty: true,
+        },
+      );
 
       await Model.sync({ force: true });
 
-      await expect(Model.findAll({
-        where: {
-          username: 'some-username-that-is-not-used-anywhere',
-        },
-      })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      await expect(
+        Model.findAll({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere',
+          },
+        }),
+      ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
     });
 
     it('throws custom error with initialized', async () => {
-      const Model = current.define('Test', {
-        username: DataTypes.STRING(100),
-      }, {
-        rejectOnEmpty: new Sequelize.ConnectionError('Some Error'), // using custom error instance
-      });
+      const Model = current.define(
+        'Test',
+        {
+          username: DataTypes.STRING(100),
+        },
+        {
+          rejectOnEmpty: new Sequelize.ConnectionError('Some Error'), // using custom error instance
+        },
+      );
 
       await Model.sync({ force: true });
 
-      await expect(Model.findAll({
-        where: {
-          username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
-        },
-      })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      await expect(
+        Model.findAll({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
+          },
+        }),
+      ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
     });
 
     it('throws custom error with instance', async () => {
-      const Model = current.define('Test', {
-        username: DataTypes.STRING(100),
-      }, {
-        rejectOnEmpty: Sequelize.ConnectionError, // using custom error instance
-      });
+      const Model = current.define(
+        'Test',
+        {
+          username: DataTypes.STRING(100),
+        },
+        {
+          rejectOnEmpty: Sequelize.ConnectionError, // using custom error instance
+        },
+      );
 
       await Model.sync({ force: true });
 
-      await expect(Model.findAll({
-        where: {
-          username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
-        },
-      })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      await expect(
+        Model.findAll({
+          where: {
+            username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
+          },
+        }),
+      ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
     });
   });
 });

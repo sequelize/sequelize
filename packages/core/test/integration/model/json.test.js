@@ -100,23 +100,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
+        await Promise.all([
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson',
+              },
+              employment: 'Housewife',
             },
-            employment: 'Housewife',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Bart',
-              last: 'Simpson',
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Bart',
+                last: 'Simpson',
+              },
+              employment: 'None',
             },
-            employment: 'None',
-          },
-        })]);
+          }),
+        ]);
 
         const events = await this.Event.findAll({
           where: {
@@ -129,9 +132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             },
           },
-          order: [
-            ['id', 'ASC'],
-          ],
+          order: [['id', 'ASC']],
         });
 
         expect(events).to.have.length(2);
@@ -151,7 +152,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           employment: 'Housewife',
         });
-
       });
 
       it('should be possible to query a nested value and order results', async function () {
@@ -165,23 +165,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Marge',
-              last: 'Simpson',
+        await Promise.all([
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Marge',
+                last: 'Simpson',
+              },
+              employment: 'Housewife',
             },
-            employment: 'Housewife',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Bart',
-              last: 'Simpson',
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Bart',
+                last: 'Simpson',
+              },
+              employment: 'None',
             },
-            employment: 'None',
-          },
-        })]);
+          }),
+        ]);
 
         const events = await this.Event.findAll({
           where: {
@@ -191,9 +194,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
             },
           },
-          order: [
-            ['data.name.first'],
-          ],
+          order: [['data.name.first']],
         });
 
         expect(events.length).to.equal(3);
@@ -238,31 +239,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         };
 
-        await Promise.all([this.Event.create({
-          data: {
-            name: {
-              first: 'Elliot',
-              last: 'Alderson',
+        await Promise.all([
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Elliot',
+                last: 'Alderson',
+              },
+              employment: 'Hacker',
             },
-            employment: 'Hacker',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: 'Christian',
-              last: 'Slater',
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: 'Christian',
+                last: 'Slater',
+              },
+              employment: 'Hacker',
             },
-            employment: 'Hacker',
-          },
-        }), this.Event.create({
-          data: {
-            name: {
-              first: ' Tyrell',
-              last: 'Wellick',
+          }),
+          this.Event.create({
+            data: {
+              name: {
+                first: ' Tyrell',
+                last: 'Wellick',
+              },
+              employment: 'CTO',
             },
-            employment: 'CTO',
-          },
-        })]);
+          }),
+        ]);
 
         await expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
 
@@ -291,23 +296,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           });
 
-          await Promise.all([this.Event.create({
-            data: {
-              name: {
-                first: 'Marge',
-                last: 'Simpson',
+          await Promise.all([
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Marge',
+                  last: 'Simpson',
+                },
+                employment: 'Housewife',
               },
-              employment: 'Housewife',
-            },
-          }), this.Event.create({
-            data: {
-              name: {
-                first: 'Bart',
-                last: 'Simpson',
+            }),
+            this.Event.create({
+              data: {
+                name: {
+                  first: 'Bart',
+                  last: 'Simpson',
+                },
+                employment: 'None',
               },
-              employment: 'None',
-            },
-          })]);
+            }),
+          ]);
 
           const events = await this.Event.findAll({
             where: {
@@ -317,9 +325,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 },
               },
             },
-            order: [
-              ['data.name.first}\'); INSERT INJECTION HERE! SELECT (\''],
-            ],
+            order: [["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]],
           });
 
           expect(events).to.be.ok;

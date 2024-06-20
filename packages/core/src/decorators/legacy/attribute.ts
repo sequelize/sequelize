@@ -1,10 +1,13 @@
-import { isDataType } from '../../dialects/abstract/data-types-utils.js';
-import type { DataType } from '../../dialects/abstract/data-types.js';
+import type { NonUndefined } from '@sequelize/utils';
+import { isDataType } from '../../abstract-dialect/data-types-utils.js';
+import type { DataType } from '../../abstract-dialect/data-types.js';
 import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { underscore } from '../../utils/string.js';
-import type { NonUndefined } from '../../utils/types.js';
-import { createOptionalAttributeOptionsDecorator, createRequiredAttributeOptionsDecorator } from './attribute-utils.js';
+import {
+  createOptionalAttributeOptionsDecorator,
+  createRequiredAttributeOptionsDecorator,
+} from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
 type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
@@ -33,15 +36,18 @@ type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
  * }
  * ```
  */
-export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>('Attribute', attrOptionOrDataType => {
-  if (isDataType(attrOptionOrDataType)) {
-    return {
-      type: attrOptionOrDataType,
-    };
-  }
+export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecoratorOption>(
+  'Attribute',
+  attrOptionOrDataType => {
+    if (isDataType(attrOptionOrDataType)) {
+      return {
+        type: attrOptionOrDataType,
+      };
+    }
 
-  return attrOptionOrDataType;
-});
+    return attrOptionOrDataType;
+  },
+);
 
 /**
  * @param optionsOrDataType
@@ -83,7 +89,11 @@ type UniqueOptions = NonNullable<AttributeOptions['unique']>;
  * }
  * ```
  */
-export const Unique = createOptionalAttributeOptionsDecorator<UniqueOptions>('Unique', true, (unique: UniqueOptions) => ({ unique }));
+export const Unique = createOptionalAttributeOptionsDecorator<UniqueOptions>(
+  'Unique',
+  true,
+  (unique: UniqueOptions) => ({ unique }),
+);
 
 /**
  * Makes the attribute accept null values. Opposite of {@link NotNull}.
@@ -98,7 +108,11 @@ export const Unique = createOptionalAttributeOptionsDecorator<UniqueOptions>('Un
  * }
  * ```
  */
-export const AllowNull = createOptionalAttributeOptionsDecorator<boolean>('AllowNull', true, (allowNull: boolean) => ({ allowNull }));
+export const AllowNull = createOptionalAttributeOptionsDecorator<boolean>(
+  'AllowNull',
+  true,
+  (allowNull: boolean) => ({ allowNull }),
+);
 
 /**
  * Makes the attribute reject null values. Opposite of {@link AllowNull}.
@@ -113,7 +127,11 @@ export const AllowNull = createOptionalAttributeOptionsDecorator<boolean>('Allow
  * }
  * ```
  */
-export const NotNull = createOptionalAttributeOptionsDecorator<boolean>('NotNull', true, (notNull: boolean) => ({ allowNull: !notNull }));
+export const NotNull = createOptionalAttributeOptionsDecorator<boolean>(
+  'NotNull',
+  true,
+  (notNull: boolean) => ({ allowNull: !notNull }),
+);
 
 /**
  * The `@PrimaryKey` decorator is used to make an attribute a primary key,
@@ -128,7 +146,11 @@ export const NotNull = createOptionalAttributeOptionsDecorator<boolean>('NotNull
  * }
  * ```
  */
-export const PrimaryKey = createOptionalAttributeOptionsDecorator<boolean>('PrimaryKey', true, (primaryKey: boolean) => ({ primaryKey }));
+export const PrimaryKey = createOptionalAttributeOptionsDecorator<boolean>(
+  'PrimaryKey',
+  true,
+  (primaryKey: boolean) => ({ primaryKey }),
+);
 
 /**
  * The `@AutoIncrement` decorator is used to make an attribute auto-increment,
@@ -146,14 +168,21 @@ export const PrimaryKey = createOptionalAttributeOptionsDecorator<boolean>('Prim
  * }
  * ```
  */
-export const AutoIncrement = createOptionalAttributeOptionsDecorator<boolean>('AutoIncrement', true, (autoIncrement: boolean) => ({ autoIncrement }));
+export const AutoIncrement = createOptionalAttributeOptionsDecorator<boolean>(
+  'AutoIncrement',
+  true,
+  (autoIncrement: boolean) => ({ autoIncrement }),
+);
 
 /**
  * The `@Comment` decorator is used to set the comment on a column, it is a shortcut for setting the `comment` option of the {@link Attribute} decorator.
  *
  * This is only useful if you use {@link index~Sequelize#sync} to create your tables.
  */
-export const Comment = createRequiredAttributeOptionsDecorator<string>('Comment', (comment: string) => ({ comment }));
+export const Comment = createRequiredAttributeOptionsDecorator<string>(
+  'Comment',
+  (comment: string) => ({ comment }),
+);
 
 /**
  * The `@Default` decorator is used to set a default value for an attribute, it is a shortcut for setting the `defaultValue` option of the {@link Attribute} decorator.
@@ -167,7 +196,10 @@ export const Comment = createRequiredAttributeOptionsDecorator<string>('Comment'
  * }
  * ```
  */
-export const Default = createRequiredAttributeOptionsDecorator<unknown>('Default', (defaultValue: unknown) => ({ defaultValue }));
+export const Default = createRequiredAttributeOptionsDecorator<unknown>(
+  'Default',
+  (defaultValue: unknown) => ({ defaultValue }),
+);
 
 /**
  * Sets the name of the column (in the database) this attribute maps to.
@@ -185,11 +217,17 @@ export const Default = createRequiredAttributeOptionsDecorator<unknown>('Default
  * }
  * ```
  */
-export const ColumnName = createRequiredAttributeOptionsDecorator<string>('ColumnName', (columnName: string) => ({ columnName }));
+export const ColumnName = createRequiredAttributeOptionsDecorator<string>(
+  'ColumnName',
+  (columnName: string) => ({ columnName }),
+);
 
 type IndexAttributeOption = NonUndefined<AttributeIndexOptions['attribute']>;
 
-export function createIndexDecorator(decoratorName: string, options: Omit<AttributeIndexOptions, 'attribute'> = {}) {
+export function createIndexDecorator(
+  decoratorName: string,
+  options: Omit<AttributeIndexOptions, 'attribute'> = {},
+) {
   return createOptionalAttributeOptionsDecorator<IndexAttributeOption>(
     decoratorName,
     {},

@@ -1,15 +1,18 @@
-import type { WhereAttributeHashValue, WhereOptions } from '../dialects/abstract/where-sql-builder-types.js';
-import { PojoWhere } from '../dialects/abstract/where-sql-builder.js';
+import type {
+  WhereAttributeHashValue,
+  WhereOptions,
+} from '../abstract-dialect/where-sql-builder-types.js';
+import { PojoWhere } from '../abstract-dialect/where-sql-builder.js';
 import type { WhereOperators } from '../model.js';
 import type { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
  * Do not use me directly. Use {@link where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
-  declare private readonly brand: 'where';
+  protected declare readonly [SQL_IDENTIFIER]: 'where';
 
   readonly where: PojoWhere | WhereOptions;
 
@@ -79,7 +82,7 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  *
  * If your left operand is an attribute name, using the regular POJO syntax (`{ where: { attrName: value }}`) syntax is usually more convenient.
  *
- * ⚠️ Unlike the POJO syntax, if the left operand is a string, it will be treated as a _value_, not an attribute name. If you wish to refer to an attribute, use {@link attribute} instead.
+ * ⚠️ Unlike the POJO syntax, if the left operand is a string, it will be treated as a _value_, not an attribute name. If you wish to refer to an attribute, use {@link Attribute} instead.
  *
  * @example
  * ```ts
@@ -95,7 +98,10 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  * @param leftOperand The left operand
  * @param whereAttributeHashValue The POJO containing the operators and the right operands
  */
-export function where(leftOperand: Expression, whereAttributeHashValue: WhereAttributeHashValue<any>): Where;
+export function where(
+  leftOperand: Expression,
+  whereAttributeHashValue: WhereAttributeHashValue<any>,
+): Where;
 /**
  * This version of `where` is used to opt back into the POJO syntax. Useful in combination with {@link sql}.
  *
@@ -140,7 +146,11 @@ export function where(whereOptions: WhereOptions): Where;
  * @param operator The operator to use (one of the different values available in the {@link Op} object)
  * @param rightOperand The right operand
  */
-export function where(leftOperand: Expression, operator: keyof WhereOperators, rightOperand: Expression): Where;
+export function where(
+  leftOperand: Expression,
+  operator: keyof WhereOperators,
+  rightOperand: Expression,
+): Where;
 export function where(
   ...args:
     | [whereOptions: WhereOptions]

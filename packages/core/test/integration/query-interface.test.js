@@ -10,36 +10,28 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
-const current = Support.sequelize;
 
-describe(Support.getTestDialectTeaser('QueryInterface'), () => {
+describe('QueryInterface', () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
   });
 
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
-  });
+  describe('dropAllSchema', () => {
+    if (!dialect.supports.schemas) {
+      return;
+    }
 
-  if (dialect.supports.schemas) {
-    describe('dropAllSchema', () => {
-      it('should drop all schema', async function () {
-        await this.queryInterface.dropAllSchemas({
-          skip: [this.sequelize.config.database],
-        });
-        const schemaNames = await this.queryInterface.listSchemas();
-        await this.queryInterface.createSchema('newSchema');
-        const newSchemaNames = await this.queryInterface.listSchemas();
-        if (!current.dialect.supports.schemas) {
-          return;
-        }
-
-        expect(newSchemaNames).to.have.length(schemaNames.length + 1);
-        await this.queryInterface.dropSchema('newSchema');
+    it('should drop all schema', async function () {
+      await this.queryInterface.dropAllSchemas({
+        skip: [this.sequelize.options.replication.write.database],
       });
+      const schemaNames = await this.queryInterface.listSchemas();
+      await this.queryInterface.createSchema('newSchema');
+      const newSchemaNames = await this.queryInterface.listSchemas();
+
+      expect(newSchemaNames).to.have.length(schemaNames.length + 1);
     });
-  }
+  });
 
   describe('dropAllTables', () => {
     it('should drop all tables', async function () {
@@ -131,16 +123,20 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (dialect.supports.schemas) {
       it('works with schemas', async function () {
         await this.sequelize.createSchema('schema');
-        await this.queryInterface.createTable('table', {
-          name: {
-            type: DataTypes.STRING,
+        await this.queryInterface.createTable(
+          'table',
+          {
+            name: {
+              type: DataTypes.STRING,
+            },
+            isAdmin: {
+              type: DataTypes.STRING,
+            },
           },
-          isAdmin: {
-            type: DataTypes.STRING,
+          {
+            schema: 'schema',
           },
-        }, {
-          schema: 'schema',
-        });
+        );
         await this.queryInterface.addIndex(
           { schema: 'schema', tableName: 'table' },
           ['name', 'isAdmin'],
@@ -164,9 +160,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   if (dialectName !== 'ibmi') {
     describe('renameColumn', () => {
       it('rename a simple column', async function () {
-        const Users = this.sequelize.define('_Users', {
-          username: DataTypes.STRING,
-        }, { freezeTableName: true });
+        const Users = this.sequelize.define(
+          '_Users',
+          {
+            username: DataTypes.STRING,
+          },
+          { freezeTableName: true },
+        );
 
         await Users.sync({ force: true });
         await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
@@ -178,17 +178,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       if (dialect.supports.schemas) {
         it('works with schemas', async function () {
           await this.sequelize.createSchema('archive');
-          const Users = this.sequelize.define('User', {
-            username: DataTypes.STRING,
-          }, {
-            tableName: 'Users',
-            schema: 'archive',
-          });
+          const Users = this.sequelize.define(
+            'User',
+            {
+              username: DataTypes.STRING,
+            },
+            {
+              tableName: 'Users',
+              schema: 'archive',
+            },
+          );
           await Users.sync({ force: true });
-          await this.queryInterface.renameColumn({
-            schema: 'archive',
-            tableName: 'Users',
-          }, 'username', 'pseudo');
+          await this.queryInterface.renameColumn(
+            {
+              schema: 'archive',
+              tableName: 'Users',
+            },
+            'username',
+            'pseudo',
+          );
           const table = await this.queryInterface.describeTable({
             schema: 'archive',
             tableName: 'Users',
@@ -199,12 +207,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       it('rename a column non-null without default value', async function () {
-        const Users = this.sequelize.define('_Users', {
-          username: {
-            type: DataTypes.STRING,
-            allowNull: false,
+        const Users = this.sequelize.define(
+          '_Users',
+          {
+            username: {
+              type: DataTypes.STRING,
+              allowNull: false,
+            },
           },
-        }, { freezeTableName: true });
+          { freezeTableName: true },
+        );
 
         await Users.sync({ force: true });
         await this.queryInterface.renameColumn('_Users', 'username', 'pseudo');
@@ -214,13 +226,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
 
       it('rename a boolean column non-null without default value', async function () {
-        const Users = this.sequelize.define('_Users', {
-          active: {
-            type: DataTypes.BOOLEAN,
-            allowNull: false,
-            defaultValue: false,
+        const Users = this.sequelize.define(
+          '_Users',
+          {
+            active: {
+              type: DataTypes.BOOLEAN,
+              allowNull: false,
+              defaultValue: false,
+            },
           },
-        }, { freezeTableName: true });
+          { freezeTableName: true },
+        );
 
         await Users.sync({ force: true });
         await this.queryInterface.renameColumn('_Users', 'active', 'enabled');
@@ -229,16 +245,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(table).to.not.have.property('active');
       });
 
-      if (dialectName !== 'db2') { // Db2 does not allow rename of a primary key column
+      if (dialectName !== 'db2') {
+        // Db2 does not allow rename of a primary key column
         it('renames a column primary key autoIncrement column', async function () {
-          const Fruits = this.sequelize.define('Fruit', {
-            fruitId: {
-              type: DataTypes.INTEGER,
-              allowNull: false,
-              primaryKey: true,
-              autoIncrement: true,
+          const Fruits = this.sequelize.define(
+            'Fruit',
+            {
+              fruitId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+                primaryKey: true,
+                autoIncrement: true,
+              },
             },
-          }, { freezeTableName: true });
+            { freezeTableName: true },
+          );
 
           await Fruits.sync({ force: true });
           await this.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
@@ -249,14 +270,18 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
 
       it('shows a reasonable error message when column is missing', async function () {
-        const Users = this.sequelize.define('_Users', {
-          username: DataTypes.STRING,
-        }, { freezeTableName: true });
+        const Users = this.sequelize.define(
+          '_Users',
+          {
+            username: DataTypes.STRING,
+          },
+          { freezeTableName: true },
+        );
 
         await Users.sync({ force: true });
         await expect(
           this.queryInterface.renameColumn('_Users', 'email', 'pseudo'),
-        ).to.be.rejectedWith('Table _Users doesn\'t have the column email');
+        ).to.be.rejectedWith("Table _Users doesn't have the column email");
       });
     });
   }
@@ -302,8 +327,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         },
       });
 
-      const testArgs = (...args) => expect(this.queryInterface.addColumn(...args))
-        .to.be.rejectedWith(Error, 'addColumn takes at least 3 arguments (table, attribute name, attribute definition)');
+      const testArgs = (...args) =>
+        expect(this.queryInterface.addColumn(...args)).to.be.rejectedWith(
+          Error,
+          'addColumn takes at least 3 arguments (table, attribute name, attribute definition)',
+        );
 
       await testArgs('users', 'level_id');
       await testArgs(null, 'level_id');
@@ -323,11 +351,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
           },
         );
-        await this.queryInterface.addColumn(
-          { tableName: 'users', schema: 'archive' },
-          'level_id',
-          { type: DataTypes.INTEGER },
-        );
+        await this.queryInterface.addColumn({ tableName: 'users', schema: 'archive' }, 'level_id', {
+          type: DataTypes.INTEGER,
+        });
         const table = await this.queryInterface.describeTable({
           tableName: 'users',
           schema: 'archive',
@@ -339,7 +365,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // Db2 does not support enums in alter column
     if (dialectName !== 'db2') {
       it('should work with enums (1)', async function () {
-        await this.queryInterface.addColumn('users', 'someEnum', DataTypes.ENUM('value1', 'value2', 'value3'));
+        await this.queryInterface.addColumn(
+          'users',
+          'someEnum',
+          DataTypes.ENUM('value1', 'value2', 'value3'),
+        );
       });
 
       it('should work with enums (2)', async function () {
@@ -353,11 +383,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
-          type: DataTypes.ARRAY(DataTypes.ENUM(
-            'Value1',
-            'Value2',
-            'Value3',
-          )),
+          type: DataTypes.ARRAY(DataTypes.ENUM('Value1', 'Value2', 'Value3')),
         });
         const result = await this.queryInterface.describeTable('users');
         expect(result).to.have.property('tags');

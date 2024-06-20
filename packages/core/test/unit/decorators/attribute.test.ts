@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import omit from 'lodash/omit';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import {
@@ -16,6 +14,8 @@ import {
   Unique,
   createIndexDecorator,
 } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import omit from 'lodash/omit';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -34,25 +34,46 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+    expect(() => Test.init({}, { sequelize })).to.throw(
+      /pass your model to the Sequelize constructor/,
+    );
   });
 
-  it('registers an attribute when sequelize.addModels is called', () => {
-    class BigIntModel extends Model<InferAttributes<BigIntModel>> {
-      @Attribute({ type: DataTypes.BIGINT, primaryKey: true })
-      declare id: bigint;
+  if (sequelize.dialect.supports.dataTypes.BIGINT) {
+    it('registers an attribute when sequelize.addModels is called', () => {
+      class BigIntModel extends Model<InferAttributes<BigIntModel>> {
+        @Attribute({ type: DataTypes.BIGINT, primaryKey: true })
+        declare id: bigint;
 
-      @Attribute(DataTypes.STRING)
-      declare name: string;
-    }
+        @Attribute(DataTypes.STRING)
+        declare name: string;
+      }
 
-    sequelize.addModels([BigIntModel]);
+      sequelize.addModels([BigIntModel]);
 
-    expect(BigIntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
-    expect(BigIntModel.getAttributes().id.type).to.be.instanceof(DataTypes.BIGINT);
-    expect(BigIntModel.getAttributes().id.primaryKey).to.eq(true);
-    expect(BigIntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
-  });
+      expect(BigIntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
+      expect(BigIntModel.getAttributes().id.type).to.be.instanceof(DataTypes.BIGINT);
+      expect(BigIntModel.getAttributes().id.primaryKey).to.eq(true);
+      expect(BigIntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
+    });
+  } else {
+    it('registers an attribute when sequelize.addModels is called', () => {
+      class IntModel extends Model<InferAttributes<IntModel>> {
+        @Attribute({ type: DataTypes.INTEGER, primaryKey: true })
+        declare id: number;
+
+        @Attribute(DataTypes.STRING)
+        declare name: string;
+      }
+
+      sequelize.addModels([IntModel]);
+
+      expect(IntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
+      expect(IntModel.getAttributes().id.type).to.be.instanceof(DataTypes.INTEGER);
+      expect(IntModel.getAttributes().id.primaryKey).to.eq(true);
+      expect(IntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
+    });
+  }
 
   it('works on getters', () => {
     class User extends Model {

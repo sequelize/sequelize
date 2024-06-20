@@ -5,14 +5,15 @@
     "prod": [
       "{projectRoot}/src/**/*",
       "{projectRoot}/package.json",
-      "{projectRoot}/tsconfig.json"
+      "{projectRoot}/tsconfig.json",
+      "!{projectRoot}/src/**/*.test.ts"
     ]
   },
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["prod", "^prod"],
-      "outputs": ["{projectRoot}/lib", "{projectRoot}/types"]
+      "outputs": ["{projectRoot}/lib"]
     },
     "test-typings": {
       "inputs": ["default", "^prod"]

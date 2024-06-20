@@ -13,40 +13,46 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.Child = this.sequelize.define('Child', {
           priority: DataTypes.INTEGER,
         });
-        this.ScopeMe = this.sequelize.define('ScopeMe', {
-          username: DataTypes.STRING,
-          email: DataTypes.STRING,
-          access_level: DataTypes.INTEGER,
-          other_value: DataTypes.INTEGER,
-        }, {
-          defaultScope: {
-            where: {
-              access_level: {
-                [Op.gte]: 5,
-              },
-            },
+        this.ScopeMe = this.sequelize.define(
+          'ScopeMe',
+          {
+            username: DataTypes.STRING,
+            email: DataTypes.STRING,
+            access_level: DataTypes.INTEGER,
+            other_value: DataTypes.INTEGER,
           },
-          scopes: {
-            lowAccess: {
+          {
+            defaultScope: {
               where: {
                 access_level: {
-                  [Op.lte]: 5,
+                  [Op.gte]: 5,
                 },
               },
             },
-            withOrder: {
-              order: ['username'],
-            },
-            withInclude: {
-              include: [{
-                model: this.Child,
+            scopes: {
+              lowAccess: {
                 where: {
-                  priority: 1,
+                  access_level: {
+                    [Op.lte]: 5,
+                  },
                 },
-              }],
+              },
+              withOrder: {
+                order: ['username'],
+              },
+              withInclude: {
+                include: [
+                  {
+                    model: this.Child,
+                    where: {
+                      priority: 1,
+                    },
+                  },
+                ],
+              },
             },
           },
-        });
+        );
         this.Child.belongsTo(this.ScopeMe);
         this.ScopeMe.hasMany(this.Child);
 
@@ -75,49 +81,59 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to override default scope', async function () {
-        await expect(this.ScopeMe.aggregate('*', 'count', { where: { access_level: { [Op.gt]: 5 } } })).to.eventually.equal(1);
+        await expect(
+          this.ScopeMe.aggregate('*', 'count', { where: { access_level: { [Op.gt]: 5 } } }),
+        ).to.eventually.equal(1);
       });
 
       it('should be able to unscope', async function () {
-        await expect(this.ScopeMe.unscoped().aggregate('*', 'count')).to.eventually.equal(4);
+        await expect(this.ScopeMe.withoutScope().aggregate('*', 'count')).to.eventually.equal(4);
       });
 
       it('should be able to apply other scopes', async function () {
-        await expect(this.ScopeMe.scope('lowAccess').aggregate('*', 'count')).to.eventually.equal(3);
+        await expect(
+          this.ScopeMe.withScope('lowAccess').aggregate('*', 'count'),
+        ).to.eventually.equal(3);
       });
 
       it('should be able to merge scopes with where', async function () {
-        await expect(this.ScopeMe.scope('lowAccess').aggregate('*', 'count', { where: { username: 'dan' } })).to.eventually.equal(1);
+        await expect(
+          this.ScopeMe.withScope('lowAccess').aggregate('*', 'count', {
+            where: { username: 'dan' },
+          }),
+        ).to.eventually.equal(1);
       });
 
       it('should be able to use where on include', async function () {
-        await expect(this.ScopeMe.scope('withInclude').aggregate('ScopeMe.id', 'count', {
-          plain: true,
-          dataType: new DataTypes.INTEGER(),
-          includeIgnoreAttributes: false,
-          limit: null,
-          offset: null,
-          order: null,
-          attributes: [],
-        })).to.eventually.equal(1);
+        await expect(
+          this.ScopeMe.withScope('withInclude').aggregate('ScopeMe.id', 'count', {
+            plain: true,
+            dataType: new DataTypes.INTEGER(),
+            includeIgnoreAttributes: false,
+            limit: null,
+            offset: null,
+            order: null,
+            attributes: [],
+          }),
+        ).to.eventually.equal(1);
       });
 
       if (Support.sequelize.dialect.supports.schemas) {
         it('aggregate with schema', async function () {
-          this.Hero = this.sequelize.define('Hero', {
-            codename: DataTypes.STRING,
-          }, { schema: 'heroschema' });
+          this.Hero = this.sequelize.define(
+            'Hero',
+            {
+              codename: DataTypes.STRING,
+            },
+            { schema: 'heroschema' },
+          );
           await this.sequelize.createSchema('heroschema');
           await this.sequelize.sync({ force: true });
-          const records = [
-            { codename: 'hulk' },
-            { codename: 'rantanplan' },
-          ];
+          const records = [{ codename: 'hulk' }, { codename: 'rantanplan' }];
           await this.Hero.bulkCreate(records);
 
           await expect(
-            this.Hero.unscoped().aggregate('*', 'count',
-              { schema: 'heroschema' }),
+            this.Hero.withoutScope().aggregate('*', 'count', { schema: 'heroschema' }),
           ).to.eventually.equal(2);
         });
       }

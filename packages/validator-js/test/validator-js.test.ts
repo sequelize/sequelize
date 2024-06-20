@@ -1,8 +1,9 @@
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
 import { Attribute } from '@sequelize/core/decorators-legacy';
+import { SqliteDialect } from '@sequelize/sqlite3';
+import { IsLowercase } from '@sequelize/validator.js';
 import chai, { expect } from 'chai';
 import chaiAsPromised from 'chai-as-promised';
-import { IsLowercase } from '@sequelize/validator.js';
 
 chai.use(chaiAsPromised);
 
@@ -14,7 +15,9 @@ describe('@IsLowercase legacy decorator', () => {
       declare name: string;
     }
 
-    new Sequelize('sqlite::memory:', {
+    new Sequelize({
+      dialect: SqliteDialect,
+      storage: ':memory:',
       models: [User],
     });
 

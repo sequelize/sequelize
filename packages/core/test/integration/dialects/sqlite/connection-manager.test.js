@@ -13,7 +13,7 @@ const fileName = `${Math.random()}_test.sqlite`;
 const directoryName = `${Math.random()}_test_directory`;
 const nestedFileName = jetpack.path(directoryName, 'subdirectory', 'test.sqlite');
 
-if (dialect === 'sqlite') {
+if (dialect === 'sqlite3') {
   describe('[SQLITE Specific] Connection Manager', () => {
     after(() => {
       jetpack.remove(fileName);
@@ -57,9 +57,10 @@ if (dialect === 'sqlite') {
     });
 
     it('automatic path provision for `options.storage`', async () => {
-      const sequelize = await Support.createSingleTestSequelizeInstance({ storage: nestedFileName });
-      await sequelize.define('User', { username: DataTypes.STRING })
-        .sync({ force: true });
+      const sequelize = await Support.createSingleTestSequelizeInstance({
+        storage: nestedFileName,
+      });
+      await sequelize.define('User', { username: DataTypes.STRING }).sync({ force: true });
 
       expect(jetpack.exists(nestedFileName)).to.equal('file');
 

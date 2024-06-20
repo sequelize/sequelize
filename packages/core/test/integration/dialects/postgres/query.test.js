@@ -10,7 +10,6 @@ const { DatabaseError, DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
-
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
     const sponsorAlias = 'AnotherVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
@@ -24,8 +23,18 @@ if (dialect.startsWith('postgres')) {
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
       User.belongsTo(Task, { as: taskAlias, foreignKey: 'task_id' });
-      User.belongsToMany(Team, { as: teamAlias, foreignKey: 'teamId', otherKey: 'userId', through: 'UserTeam' });
-      Team.belongsToMany(Sponsor, { as: sponsorAlias, foreignKey: 'sponsorId', otherKey: 'teamId', through: 'TeamSponsor' });
+      User.belongsToMany(Team, {
+        as: teamAlias,
+        foreignKey: 'teamId',
+        otherKey: 'userId',
+        through: 'UserTeam',
+      });
+      Team.belongsToMany(Sponsor, {
+        as: sponsorAlias,
+        foreignKey: 'sponsorId',
+        otherKey: 'teamId',
+        through: 'TeamSponsor',
+      });
 
       await sequelize.sync({ force: true });
       const sponsor = await Sponsor.create({ name: 'Company' });
@@ -91,35 +100,43 @@ if (dialect.startsWith('postgres')) {
             as: sponsorAlias,
           },
         ];
-        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal('Company');
+        expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal(
+          'Company',
+        );
       });
     });
 
     it('should throw due to table name being truncated', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
 
-      const User = sequelize.define('user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+      const User = sequelize.define(
+        'user_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
           name: DataTypes.STRING,
           email: DataTypes.STRING,
         },
         {
           tableName: 'user',
-        });
-      const Project = sequelize.define('project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        },
+      );
+      const Project = sequelize.define(
+        'project_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
           name: DataTypes.STRING,
         },
         {
           tableName: 'project',
-        });
-      const Company = sequelize.define('company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
+        },
+      );
+      const Company = sequelize.define(
+        'company_model_name_that_is_long_for_demo_but_also_surpasses_the_character_limit',
         {
           name: DataTypes.STRING,
         },
         {
           tableName: 'company',
-        });
+        },
+      );
       User.hasMany(Project, { foreignKey: 'userId' });
       Project.belongsTo(Company, { foreignKey: 'companyId' });
 
@@ -146,45 +163,51 @@ if (dialect.startsWith('postgres')) {
         },
       });
 
-      const Foo = sequelizeMinifyAliases.define('Foo', {
-        name: {
-          field: 'my_name',
-          type: DataTypes.TEXT,
+      const Foo = sequelizeMinifyAliases.define(
+        'Foo',
+        {
+          name: {
+            field: 'my_name',
+            type: DataTypes.TEXT,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
       await sequelizeMinifyAliases.sync({ force: true });
       await Foo.create({ name: 'record1' });
       await Foo.create({ name: 'record2' });
 
-      const baseTest = (await Foo.findAll({
-        subQuery: false,
-        order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
-      })).map(f => f.name);
+      const baseTest = (
+        await Foo.findAll({
+          subQuery: false,
+          order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
+        })
+      ).map(f => f.name);
       expect(baseTest[0]).to.equal('record1');
 
-      const orderByAscSubquery = (await Foo.findAll({
-        attributes: {
-          include: [
-            [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
-          ],
-        },
-        subQuery: true,
-        order: [['customAttribute']],
-        limit: 1,
-      })).map(f => f.name);
+      const orderByAscSubquery = (
+        await Foo.findAll({
+          attributes: {
+            include: [[sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute']],
+          },
+          subQuery: true,
+          order: [['customAttribute']],
+          limit: 1,
+        })
+      ).map(f => f.name);
       expect(orderByAscSubquery[0]).to.equal('record1');
 
-      const orderByDescSubquery = (await Foo.findAll({
-        attributes: {
-          include: [
-            [sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute'],
-          ],
-        },
-        subQuery: true,
-        order: [['customAttribute', 'DESC']],
-        limit: 1,
-      })).map(f => f.name);
+      const orderByDescSubquery = (
+        await Foo.findAll({
+          attributes: {
+            include: [[sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute']],
+          },
+          subQuery: true,
+          order: [['customAttribute', 'DESC']],
+          limit: 1,
+        })
+      ).map(f => f.name);
       expect(orderByDescSubquery[0]).to.equal('record2');
     });
 
@@ -214,9 +237,7 @@ if (dialect.startsWith('postgres')) {
       await Foo.findAll({
         subQuery: false,
         attributes: {
-          include: [
-            [sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0'],
-          ],
+          include: [[sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0']],
         },
         order: [['order_0', 'DESC']],
       });
@@ -230,10 +251,8 @@ if (dialect.startsWith('postgres')) {
 
       async function setUp(clientQueryTimeoutMs) {
         const sequelize = Support.createSingleTestSequelizeInstance({
-          dialectOptions: {
-            statement_timeout: 500, // ms
-            query_timeout: clientQueryTimeoutMs,
-          },
+          statement_timeout: 500, // ms
+          query_timeout: clientQueryTimeoutMs,
           pool: {
             max: 1, // having only one helps us know whether the connection was invalidated
             idle: 60_000,
@@ -244,24 +263,30 @@ if (dialect.startsWith('postgres')) {
       }
 
       async function getConnectionPid(sequelize) {
-        const connection = await sequelize.connectionManager.getConnection();
+        const connection = await sequelize.pool.acquire();
         const pid = connection.processID;
-        sequelize.connectionManager.releaseConnection(connection);
+        sequelize.pool.release(connection);
 
         return pid;
       }
 
       it('reuses connection after statement timeout', async () => {
         // client timeout > statement timeout means that the query should fail with a statement timeout
-        const { sequelize, originalPid } = await setUp(10_000);
-        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(DatabaseError, 'canceling statement due to statement timeout');
+        const { originalPid, sequelize } = await setUp(10_000);
+        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(
+          DatabaseError,
+          'canceling statement due to statement timeout',
+        );
         expect(await getConnectionPid(sequelize)).to.equal(originalPid);
       });
 
       it('invalidates connection after client-side query timeout', async () => {
         // client timeout < statement timeout means that the query should fail with a read timeout
-        const { sequelize, originalPid } = await setUp(250);
-        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(DatabaseError, 'Query read timeout');
+        const { originalPid, sequelize } = await setUp(250);
+        await expect(sequelize.query('select pg_sleep(1)')).to.eventually.be.rejectedWith(
+          DatabaseError,
+          'Query read timeout',
+        );
         expect(await getConnectionPid(sequelize)).to.not.equal(originalPid);
       });
     });

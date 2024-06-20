@@ -42,6 +42,7 @@ const ignoredCjsKeysMap = {
     'JSON',
     'JSONB',
     'MACADDR',
+    'MACADDR8',
     'MEDIUMINT',
     'NOW',
     'RANGE',
@@ -58,6 +59,16 @@ const ignoredCjsKeysMap = {
     'VIRTUAL',
   ],
   '@sequelize/core/decorators-legacy': ['__esModule'],
+  '@sequelize/db2': ['__esModule'],
+  '@sequelize/db2-ibmi': ['__esModule'],
+  '@sequelize/mariadb': ['__esModule'],
+  '@sequelize/mssql': ['__esModule'],
+  '@sequelize/mysql': ['__esModule'],
+  '@sequelize/postgres': ['__esModule'],
+  '@sequelize/snowflake': ['__esModule'],
+  '@sequelize/sqlite3': ['__esModule'],
+  '@sequelize/utils': ['__esModule'],
+  '@sequelize/utils/node': ['__esModule'],
   '@sequelize/validator.js': ['__esModule'],
 };
 
@@ -79,9 +90,10 @@ for (const exportPath of exportPaths) {
 
       const ignoredCjsKeys = ignoredCjsKeysMap[exportPath];
       for (const key of ignoredCjsKeys) {
-        expect(cjsKeys)
-          .to
-          .include(key, `Sequelize static property ${JSON.stringify(key)} is marked as ignored for ESM export but does not exist. Remove it from ignore list.`);
+        expect(cjsKeys).to.include(
+          key,
+          `Sequelize static property ${JSON.stringify(key)} is marked as ignored for ESM export but does not exist. Remove it from ignore list.`,
+        );
       }
 
       const missingEsmKeys = [];
@@ -95,32 +107,32 @@ for (const exportPath of exportPaths) {
         }
       }
 
-      expect(missingEsmKeys.length)
-        .to
-        .eq(0,
-          `ESM entry point is missing exports: ${missingEsmKeys.map(v => JSON.stringify(v))
-            .join(', ')}.
+      expect(missingEsmKeys.length).to.eq(
+        0,
+        `ESM entry point is missing exports: ${missingEsmKeys
+          .map(v => JSON.stringify(v))
+          .join(', ')}.
 Either add these exports the corresponding .mjs file (and .d.ts if applicable), or mark them as ignored in "esm-named-exports.test.js:
 
 ${missingEsmKeys.map(key => `export const ${key} = Pkg.${key};\n`).join('')}"
-      `);
+      `,
+      );
 
       for (const key of esmKeys) {
-        expect(sequelizeEsm[key])
-          .not
-          .to
-          .eq(undefined, `ESM is exporting undefined under key ${JSON.stringify(key)}`);
+        expect(sequelizeEsm[key]).not.to.eq(
+          undefined,
+          `ESM is exporting undefined under key ${JSON.stringify(key)}`,
+        );
 
-        expect(cjsKeys)
-          .to
-          .include(key, `ESM entry point is declaring export ${JSON.stringify(key)} that is missing from CJS`);
+        expect(cjsKeys).to.include(
+          key,
+          `ESM entry point is declaring export ${JSON.stringify(key)} that is missing from CJS`,
+        );
 
         // exported values need to be the same instances
         //  if we want to avoid major bugs:
         //  https://github.com/sequelize/sequelize/pull/13689#issuecomment-987412233
-        expect(sequelizeEsm[key])
-          .to
-          .eq(sequelizeCjs[key]);
+        expect(sequelizeEsm[key]).to.eq(sequelizeCjs[key]);
       }
     });
   });

@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, Sequelize, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -13,8 +13,8 @@ describe('Model#update', () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
@@ -63,13 +63,17 @@ describe('Model#update', () => {
     });
 
     it('should update timestamps with milliseconds', async function () {
-      const User = this.sequelize.define(`User${Support.rand()}`, {
-        name: DataTypes.STRING,
-        bio: DataTypes.TEXT,
-        email: DataTypes.STRING,
-      }, {
-        timestamps: true,
-      });
+      const User = this.sequelize.define(
+        `User${Support.rand()}`,
+        {
+          name: DataTypes.STRING,
+          bio: DataTypes.TEXT,
+          email: DataTypes.STRING,
+        },
+        {
+          timestamps: true,
+        },
+      );
 
       this.clock.tick(2100); // move the clock forward 2100 ms.
 
@@ -94,11 +98,14 @@ describe('Model#update', () => {
 
       this.clock.tick(1000);
 
-      await user.update({
-        username: 'userman',
-      }, {
-        silent: true,
-      });
+      await user.update(
+        {
+          username: 'userman',
+        },
+        {
+          silent: true,
+        },
+      );
 
       expect(user.updatedAt).to.equalTime(updatedAt);
     });
@@ -137,7 +144,9 @@ describe('Model#update', () => {
 
   if (current.dialect.supports.transactions) {
     it('supports transactions', async function () {
-      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+      const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+        this.sequelize,
+      );
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       await User.sync({ force: true });
@@ -161,12 +170,15 @@ describe('Model#update', () => {
 
     await User.sync({ force: true });
 
-    const user1 = await User.create({
-      name: 'snafu',
-      email: 'email',
-    }, {
-      fields: ['name', 'email'],
-    });
+    const user1 = await User.create(
+      {
+        name: 'snafu',
+        email: 'email',
+      },
+      {
+        fields: ['name', 'email'],
+      },
+    );
 
     const user0 = await user1.update({ bio: 'swag' });
     const user = await user0.reload();
@@ -176,22 +188,29 @@ describe('Model#update', () => {
   });
 
   it('should succeed in updating when values are unchanged (without timestamps)', async function () {
-    const User = this.sequelize.define(`User${Support.rand()}`, {
-      name: DataTypes.STRING,
-      bio: DataTypes.TEXT,
-      email: DataTypes.STRING,
-    }, {
-      timestamps: false,
-    });
+    const User = this.sequelize.define(
+      `User${Support.rand()}`,
+      {
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
+        email: DataTypes.STRING,
+      },
+      {
+        timestamps: false,
+      },
+    );
 
     await User.sync({ force: true });
 
-    const user1 = await User.create({
-      name: 'snafu',
-      email: 'email',
-    }, {
-      fields: ['name', 'email'],
-    });
+    const user1 = await User.create(
+      {
+        name: 'snafu',
+        email: 'email',
+      },
+      {
+        fields: ['name', 'email'],
+      },
+    );
 
     const user0 = await user1.update({
       name: 'snafu',
@@ -229,13 +248,19 @@ describe('Model#update', () => {
   });
 
   it('fails if the update was made to a new record which is not persisted', async function () {
-    const Foo = this.sequelize.define('Foo', {
-      name: { type: DataTypes.STRING },
-    }, { noPrimaryKey: true });
+    const Foo = this.sequelize.define(
+      'Foo',
+      {
+        name: { type: DataTypes.STRING },
+      },
+      { noPrimaryKey: true },
+    );
     await Foo.sync({ force: true });
 
     const instance = Foo.build({ name: 'FooBar' }, { isNewRecord: true });
-    await expect(instance.update()).to.be.rejectedWith('You attempted to update an instance that is not persisted.');
+    await expect(instance.update()).to.be.rejectedWith(
+      'You attempted to update an instance that is not persisted.',
+    );
   });
 
   describe('hooks', () => {
@@ -330,14 +355,18 @@ describe('Model#update', () => {
     it('runs validation', async function () {
       const user = await this.User.create({ aNumber: 0 });
 
-      const error = await expect(user.update({ validateTest: 'hello' })).to.be.rejectedWith(Sequelize.ValidationError);
+      const error = await expect(user.update({ validateTest: 'hello' })).to.be.rejectedWith(
+        Sequelize.ValidationError,
+      );
 
       expect(error).to.exist;
       expect(error).to.be.instanceof(Object);
       expect(error.get('validateTest')).to.exist;
       expect(error.get('validateTest')).to.be.instanceof(Array);
       expect(error.get('validateTest')[1]).to.exist;
-      expect(error.get('validateTest')[1].message).to.equal('Validation isInt on validateTest failed');
+      expect(error.get('validateTest')[1].message).to.equal(
+        'Validation isInt on validateTest failed',
+      );
     });
 
     it('should validate attributes added in hooks when default fields are used', async function () {
@@ -364,9 +393,11 @@ describe('Model#update', () => {
         email: 'valid.email@gmail.com',
       });
 
-      await expect(user0.update({
-        name: 'B',
-      })).to.be.rejectedWith(Sequelize.ValidationError);
+      await expect(
+        user0.update({
+          name: 'B',
+        }),
+      ).to.be.rejectedWith(Sequelize.ValidationError);
 
       const user = await User.findOne({});
       expect(user.get('email')).to.equal('valid.email@gmail.com');
@@ -396,10 +427,12 @@ describe('Model#update', () => {
         email: 'valid.email@gmail.com',
       });
 
-      await expect(user0.update({
-        name: 'B',
-        email: 'still.valid.email@gmail.com',
-      })).to.be.rejectedWith(Sequelize.ValidationError);
+      await expect(
+        user0.update({
+          name: 'B',
+          email: 'still.valid.email@gmail.com',
+        }),
+      ).to.be.rejectedWith(Sequelize.ValidationError);
 
       const user = await User.findOne({});
       expect(user.get('email')).to.equal('valid.email@gmail.com');
@@ -420,12 +453,15 @@ describe('Model#update', () => {
       email: 'email',
     });
 
-    const user = await user0.update({
-      bio: 'heyo',
-      email: 'heho',
-    }, {
-      fields: ['bio'],
-    });
+    const user = await user0.update(
+      {
+        bio: 'heyo',
+        email: 'heho',
+      },
+      {
+        fields: ['bio'],
+      },
+    );
 
     expect(user.get('name')).to.equal('snafu');
     expect(user.get('email')).to.equal('email');
@@ -533,7 +569,7 @@ describe('Model#update', () => {
     const title1 = 'title 1';
     const title2 = 'title 2';
 
-    const book1 = await Book.create({ id: 0, title: title1 }, { logging: console.log });
+    const book1 = await Book.create({ id: 0, title: title1 });
     expect(book1.id).to.equal(0);
     expect(book1.title).to.equal(title1);
 

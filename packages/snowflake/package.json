@@ -1,0 +1,45 @@
+{
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "description": "Snowflake Connector for Sequelize",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    }
+  },
+  "files": [
+    "lib"
+  ],
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "sideEffects": false,
+  "homepage": "https://sequelize.org",
+  "license": "MIT",
+  "name": "@sequelize/snowflake",
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "../../build-packages.mjs snowflake",
+    "test": "concurrently \"npm:test-*\"",
+    "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "commonjs",
+  "version": "7.0.0-alpha.41",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "@sequelize/utils": "workspace:*",
+    "@types/snowflake-sdk": "^1.6.23",
+    "lodash": "^4.17.21",
+    "snowflake-sdk": "^1.10.0"
+  }
+}

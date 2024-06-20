@@ -1,12 +1,14 @@
-export type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+import type { NonUndefined, PartialBy } from '@sequelize/utils';
+
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>;
+    }
+  : T;
 
 export type DeepWriteable<T> = {
-  -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>
+  -readonly [K in keyof T]: T[K] extends Function ? T[K] : DeepWriteable<T[K]>;
 };
-
-export type AnyFunction = (...args: any[]) => any;
 
 /**
  * Returns all shallow properties that accept `undefined` or `null`.
@@ -27,9 +29,7 @@ export type AnyFunction = (...args: any[]) => any;
  * ```
  */
 export type NullishPropertiesOf<T> = {
-  [P in keyof T]-?: undefined extends T[P] ? P
-    : null extends T[P] ? P
-      : never
+  [P in keyof T]-?: undefined extends T[P] ? P : null extends T[P] ? P : never;
 }[keyof T];
 
 /**
@@ -56,40 +56,16 @@ export type NullishPropertiesOf<T> = {
  */
 export type MakeNullishOptional<T extends object> = PartialBy<T, NullishPropertiesOf<T>>;
 
-/**
- * Makes the type accept null & undefined
- */
-export type Nullish<T> = T | null | undefined;
-
-export type NonNullish<T> = T extends null | undefined ? never : T;
-
-export type NonUndefined<T> = T extends undefined ? never : T;
-
 export type NonUndefinedKeys<T, K extends keyof T> = {
   [P in keyof T]: P extends K ? NonUndefined<T[P]> : T[P];
 };
 
-export type AllowArray<T> = T | T[];
-
-export type AllowIterable<T> = T | Iterable<T>;
-
 export type AllowLowercase<T extends string> = T | Lowercase<T>;
 
-export type AllowReadonlyArray<T> = T | readonly T[];
+export type ConstructorKeys<T> = {
+  [P in keyof T]: T[P] extends new () => any ? P : never;
+}[keyof T];
 
-export type ConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? P : never })[keyof T];
-
-type NonConstructorKeys<T> = ({ [P in keyof T]: T[P] extends new () => any ? never : P })[keyof T];
+type NonConstructorKeys<T> = { [P in keyof T]: T[P] extends new () => any ? never : P }[keyof T];
 
 export type OmitConstructors<T> = Pick<T, NonConstructorKeys<T>>;
-
-/**
- * Type helper for making certain fields of an object optional.
- */
-export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
-
-export type RequiredBy<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
-
-export type StrictRequiredBy<T, K extends keyof T> = NonUndefinedKeys<Omit<T, K> & Required<Pick<T, K>>, K>;
-
-export type ReadOnlyRecord<K extends PropertyKey, V> = Readonly<Record<K, V>>;

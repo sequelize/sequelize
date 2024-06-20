@@ -45,8 +45,14 @@ describe('Model.count', () => {
       expect(count).to.have.lengthOf(2);
 
       // The order of count varies across dialects; Hence find element by identified first.
-      expect(count.find(i => i.username === 'user1')).to.deep.equal({ username: 'user1', count: 2 });
-      expect(count.find(i => i.username === 'user2')).to.deep.equal({ username: 'user2', count: 1 });
+      expect(count.find(i => i.username === 'user1')).to.deep.equal({
+        username: 'user1',
+        count: 2,
+      });
+      expect(count.find(i => i.username === 'user2')).to.deep.equal({
+        username: 'user2',
+        count: 1,
+      });
     });
 
     if (dialectName !== 'mssql' && dialectName !== 'db2' && dialectName !== 'ibmi') {
@@ -72,7 +78,8 @@ describe('Model.count', () => {
 
       afterEach(() => {
         expect(aggregateSpy).to.have.been.calledWith(
-          sinon.match.any, sinon.match.any,
+          sinon.match.any,
+          sinon.match.any,
           sinon.match.object.and(sinon.match.has('where', { username: 'user1' })),
         );
 
@@ -84,7 +91,8 @@ describe('Model.count', () => {
 
         await this.User.count(options);
         expect(aggregateSpy).to.have.been.calledWith(
-          sinon.match.any, sinon.match.any,
+          sinon.match.any,
+          sinon.match.any,
           sinon.match.object.and(sinon.match.has('limit', null)),
         );
       });
@@ -94,7 +102,8 @@ describe('Model.count', () => {
 
         await this.User.count(options);
         expect(aggregateSpy).to.have.been.calledWith(
-          sinon.match.any, sinon.match.any,
+          sinon.match.any,
+          sinon.match.any,
           sinon.match.object.and(sinon.match.has('offset', null)),
         );
       });
@@ -104,7 +113,8 @@ describe('Model.count', () => {
 
         await this.User.count(options);
         expect(aggregateSpy).to.have.been.calledWith(
-          sinon.match.any, sinon.match.any,
+          sinon.match.any,
+          sinon.match.any,
           sinon.match.object.and(sinon.match.has('order', null)),
         );
       });
@@ -136,37 +146,41 @@ describe('Model.count', () => {
       await Post.sync({ force: true });
       await PostComment.sync({ force: true });
       const post = await Post.create({});
-      await PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]);
-      const count1 = await Post.count({ distinct: false, include: { model: PostComment, required: false } });
-      const count2 = await Post.count({ distinct: true, include: { model: PostComment, required: false } });
+      await PostComment.bulkCreate([{ postId: post.id }, { postId: post.id }]);
+      const count1 = await Post.count({
+        distinct: false,
+        include: { model: PostComment, required: false },
+      });
+      const count2 = await Post.count({
+        distinct: true,
+        include: { model: PostComment, required: false },
+      });
       expect(count1).to.equal(2);
       expect(count2).to.equal(1);
     });
 
     it('should count rows', async function () {
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' },
-      ]);
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       await expect(this.User.count()).to.eventually.equal(2);
     });
 
     it('should support include', async function () {
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' },
-      ]);
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       const user = await this.User.findOne();
       await user.createProject({ name: 'project1' });
 
-      await expect(this.User.count({
-        include: [{
-          model: this.Project,
-          where: { name: 'project1' },
-        }],
-      })).to.eventually.equal(1);
+      await expect(
+        this.User.count({
+          include: [
+            {
+              model: this.Project,
+              where: { name: 'project1' },
+            },
+          ],
+        }),
+      ).to.eventually.equal(1);
     });
 
     it('should count groups correctly and return attributes', async function () {
@@ -256,20 +270,17 @@ describe('Model.count', () => {
         col: 'username',
         include: [this.Project],
         where: {
-          '$Projects.name$': 'project1',
+          '$projects.name$': 'project1',
         },
       };
 
-      await this.User.bulkCreate([
-        { username: 'foo' },
-        { username: 'bar' },
-      ]);
+      await this.User.bulkCreate([{ username: 'foo' }, { username: 'bar' }]);
 
       const user = await this.User.findOne();
       await user.createProject({ name: 'project1' });
       const count0 = await this.User.count(countOptions);
       expect(count0).to.be.eql(1);
-      countOptions.where['$Projects.name$'] = 'project2';
+      countOptions.where['$projects.name$'] = 'project2';
       const count = await this.User.count(countOptions);
       expect(count).to.be.eql(0);
     });
@@ -323,7 +334,9 @@ describe('Model.count', () => {
   context('test-specific models', () => {
     if (Support.sequelize.dialect.supports.transactions) {
       it('supports transactions', async function () {
-        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
         const User = sequelize.define('User', { username: DataTypes.STRING });
 
         await User.sync({ force: true });

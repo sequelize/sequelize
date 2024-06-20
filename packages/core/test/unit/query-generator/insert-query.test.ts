@@ -1,23 +1,38 @@
-import { expect } from 'chai';
 import { DataTypes, literal } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { expect } from 'chai';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const User = sequelize.define('User', {
-    firstName: DataTypes.STRING,
-  }, { timestamps: false });
+  const vars = beforeAll2(() => {
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
+
+    return { User };
+  });
 
   // you'll find more replacement tests in query-generator tests
   it('parses named replacements in literals', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.table, {
-      firstName: literal(':name'),
-    }, {}, {
-      replacements: {
-        name: 'Zoe',
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.insertQuery(
+      User.table,
+      {
+        firstName: literal(':name'),
       },
-    });
+      {},
+      {
+        replacements: {
+          name: 'Zoe',
+        },
+      },
+    );
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
@@ -29,6 +44,8 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('supports named bind parameters in literals', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$lastName'),
@@ -48,6 +65,8 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses positional bind parameters in literals', () => {
+    const { User } = vars;
+
     const { query, bind } = queryGenerator.insertQuery(User.table, {
       firstName: 'John',
       lastName: literal('$1'),
@@ -67,13 +86,20 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   it('parses bind parameters in literals even with bindParams: false', () => {
-    const { query, bind } = queryGenerator.insertQuery(User.table, {
-      firstName: 'John',
-      lastName: literal('$1'),
-      username: 'jd',
-    }, {}, {
-      bindParam: false,
-    });
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.insertQuery(
+      User.table,
+      {
+        firstName: 'John',
+        lastName: literal('$1'),
+        username: 'jd',
+      },
+      {},
+      {
+        bindParam: false,
+      },
+    );
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
@@ -89,6 +115,8 @@ describe('QueryGenerator#insertQuery', () => {
     if (!sequelize.dialect.supports.dataTypes.ARRAY) {
       return;
     }
+
+    const { User } = vars;
 
     const { query, bind } = queryGenerator.insertQuery(User.tableName, {
       numbers: [1, 2, 3],
@@ -106,38 +134,54 @@ describe('QueryGenerator#insertQuery', () => {
 
   describe('returning', () => {
     it('supports returning: true', () => {
-      const { query } = queryGenerator.insertQuery(User.table, {
-        firstName: 'John',
-      }, User.getAttributes(), {
-        returning: true,
-      });
+      const { User } = vars;
+
+      const { query } = queryGenerator.insertQuery(
+        User.table,
+        {
+          firstName: 'John',
+        },
+        User.getAttributes(),
+        {
+          returning: true,
+        },
+      );
 
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [id], [firstName];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
-        mssql: 'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
+        mssql:
+          'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
       });
     });
 
     it('supports array of strings (column names)', () => {
-      const { query } = queryGenerator.insertQuery(User.table, {
-        firstName: 'John',
-      }, User.getAttributes(), {
-        returning: ['*', 'myColumn'],
-      });
+      const { User } = vars;
+
+      const { query } = queryGenerator.insertQuery(
+        User.table,
+        {
+          firstName: 'John',
+        },
+        User.getAttributes(),
+        {
+          returning: ['*', 'myColumn'],
+        },
+      );
 
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [*], [myColumn];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
-        mssql: 'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[*], INSERTED.[myColumn] VALUES ($sequelize_1);',
+        mssql:
+          'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[*], INSERTED.[myColumn] VALUES ($sequelize_1);',
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
@@ -145,32 +189,46 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
+      const { User } = vars;
 
-      expectsql(() => {
-        return queryGenerator.insertQuery(User.table, {
-          firstName: 'John',
-        }, User.getAttributes(), {
-          returning: [literal('*')],
-        }).query;
-      }, {
-        default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING *;`,
-        // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
-        // TODO: insertQuery should throw if returning is not supported
-        snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
-        mssql: new Error('literal() cannot be used in the "returning" option array in mssql. Use col(), or a string instead.'),
-        // TODO: should only select specified columns
-        db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
-        ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
-      });
+      expectsql(
+        () => {
+          return queryGenerator.insertQuery(
+            User.table,
+            {
+              firstName: 'John',
+            },
+            User.getAttributes(),
+            {
+              returning: [literal('*')],
+            },
+          ).query;
+        },
+        {
+          default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING *;`,
+          // TODO: insertQuery should throw if returning is not supported
+          'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+          // TODO: insertQuery should throw if returning is not supported
+          snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
+          mssql: new Error(
+            'literal() cannot be used in the "returning" option array in mssql. Use col(), or a string instead.',
+          ),
+          // TODO: should only select specified columns
+          db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
+          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        },
+      );
     });
 
     it('binds date values', () => {
-      const result = queryGenerator.insertQuery('myTable', { birthday: new Date('2011-03-27T10:01:55Z') });
+      const result = queryGenerator.insertQuery('myTable', {
+        birthday: new Date('2011-03-27T10:01:55Z'),
+      });
       expectsql(result, {
         query: {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
-          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+          'db2 ibmi':
+            'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
         },
         bind: {
           mysql: {
@@ -188,7 +246,7 @@ describe('QueryGenerator#insertQuery', () => {
           snowflake: {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
-          sqlite: {
+          sqlite3: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
           postgres: {
@@ -205,11 +263,13 @@ describe('QueryGenerator#insertQuery', () => {
       const result = queryGenerator.insertQuery('myTable', { positive: true, negative: false });
       expectsql(result, {
         query: {
-          default: 'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
-          'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
+          default:
+            'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
+          'db2 ibmi':
+            'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
         },
         bind: {
-          sqlite: {
+          sqlite3: {
             sequelize_1: 1,
             sequelize_2: 0,
           },
@@ -247,10 +307,14 @@ describe('QueryGenerator#insertQuery', () => {
 
     // TODO: Should we ignore undefined values instead? undefined is closer to "missing property" than null
     it('treats undefined as null', () => {
-      const { query, bind } = queryGenerator.insertQuery('myTable', { value: undefined, name: 'bar' });
+      const { query, bind } = queryGenerator.insertQuery('myTable', {
+        value: undefined,
+        name: 'bar',
+      });
       expectsql(query, {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
-        'db2 ibmi': 'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
+        'db2 ibmi':
+          'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
       });
 
       expect(bind).to.deep.eq({

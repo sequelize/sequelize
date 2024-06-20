@@ -1,10 +1,15 @@
+import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
+import { DataTypes, Model, QueryTypes } from '@sequelize/core';
+import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { expect } from 'chai';
 import delay from 'delay';
 import sinon from 'sinon';
-import { DataTypes, Model, QueryTypes } from '@sequelize/core';
-import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
-import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
-import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from './support';
+import {
+  beforeAll2,
+  createMultiTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from './support';
 
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
@@ -14,7 +19,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   setResetMode('none');
 
   const vars = beforeAll2(async () => {
-    const clsSequelize = await createMultiTransactionalTestSequelizeInstance({
+    const clsSequelize = await createMultiTransactionalTestSequelizeInstance(sequelize, {
       disableClsTransactions: false,
     });
 
@@ -22,9 +27,12 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       declare name: string | null;
     }
 
-    User.init({
-      name: DataTypes.STRING,
-    }, { sequelize: clsSequelize });
+    User.init(
+      {
+        name: DataTypes.STRING,
+      },
+      { sequelize: clsSequelize },
+    );
     await clsSequelize.sync({ force: true });
 
     return { clsSequelize, User };
@@ -173,16 +181,21 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
   // reason for this test: https://github.com/sequelize/sequelize/issues/12973
   describe('Model Hook integration', () => {
-
     type Params<M extends Model> = {
-      method: string,
-      hooks: Array<keyof ModelHooks>,
-      optionPos: number,
-      execute(model: ModelStatic<M>): Promise<unknown>,
-      getModel(): ModelStatic<M>,
+      method: string;
+      hooks: Array<keyof ModelHooks>;
+      optionPos: number;
+      execute(model: ModelStatic<M>): Promise<unknown>;
+      getModel(): ModelStatic<M>;
     };
 
-    function testHooks<T extends Model>({ method, hooks: hookNames, optionPos, execute, getModel }: Params<T>) {
+    function testHooks<T extends Model>({
+      method,
+      hooks: hookNames,
+      optionPos,
+      execute,
+      getModel,
+    }: Params<T>) {
       it(`passes the transaction to hooks {${hookNames.join(',')}} when calling ${method}`, async () => {
         await vars.clsSequelize.transaction(async transaction => {
           const hooks = Object.create(null);
@@ -374,9 +387,13 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
     describe('paranoid restore', () => {
       const vars2 = beforeAll2(async () => {
-        const ParanoidUser = vars.clsSequelize.define('ParanoidUser', {
-          name: DataTypes.STRING,
-        }, { paranoid: true });
+        const ParanoidUser = vars.clsSequelize.define(
+          'ParanoidUser',
+          {
+            name: DataTypes.STRING,
+          },
+          { paranoid: true },
+        );
 
         await ParanoidUser.sync({ force: true });
 

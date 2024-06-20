@@ -1,23 +1,27 @@
 'use strict';
 
 const { DataTypes } = require('@sequelize/core');
-const { AbstractQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query.js');
+const {
+  AbstractQuery: Query,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query.js');
 
 const Support = require('../../../support');
 const chai = require('chai');
-const { stub, match } = require('sinon');
+const { match, stub } = require('sinon');
 
 const current = Support.sequelize;
 const expect = chai.expect;
 
 describe('[ABSTRACT]', () => {
   describe('_groupJoinData', () => {
-
     it('should hash second nested set correctly, when has multiple primary keys and one is a Buffer', () => {
       const Team = current.define('team', {
         id: {
           primaryKey: true,
           type: DataTypes.STRING(1),
+        },
+        name: {
+          type: DataTypes.TEXT,
         },
       });
 
@@ -66,6 +70,7 @@ describe('[ABSTRACT]', () => {
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
           'players.lastModified': new Date('2017-03-06T15:47:30.000Z'),
           'agents.uuid': agentOneUuid,
+          name: 'vansh',
           'agents.id': 'p',
           'agents.name': 'One',
         },
@@ -75,6 +80,7 @@ describe('[ABSTRACT]', () => {
           'players.created': new Date('2017-03-06T15:47:30.000Z'),
           'players.lastModified': new Date('2017-08-22T11:16:44.000Z'),
           'agents.uuid': agentTwoUuid,
+          name: 'joe',
           'agents.id': 'z',
           'agents.name': 'Two',
         },
@@ -85,6 +91,7 @@ describe('[ABSTRACT]', () => {
       expect(result.length).to.equal(1);
 
       expect(result[0]).to.have.property('id').and.be.equal('a');
+      expect(result[0]).to.have.property('name').and.be.ok;
       expect(result[0].agents).to.be.deep.equal([
         {
           id: 'p',
@@ -254,11 +261,13 @@ describe('[ABSTRACT]', () => {
       ]);
 
       expect(result[1]).to.have.property('uuid').and.be.equal(teamTwoUuid);
-      expect(result[1].players).to.be.deep.equal([{
-        id: '2-1',
-        created: new Date('2017-03-06T15:47:30.000Z'),
-        lastModified: new Date('2017-08-22T11:16:44.000Z'),
-      }]);
+      expect(result[1].players).to.be.deep.equal([
+        {
+          id: '2-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z'),
+        },
+      ]);
     });
 
     it('should hash parents correctly, when primary key is a Buffer', () => {
@@ -331,11 +340,13 @@ describe('[ABSTRACT]', () => {
       ]);
 
       expect(result[1]).to.have.property('uuid').and.be.equal(teamTwoUuid);
-      expect(result[1].players).to.be.deep.equal([{
-        id: '2-1',
-        created: new Date('2017-03-06T15:47:30.000Z'),
-        lastModified: new Date('2017-08-22T11:16:44.000Z'),
-      }]);
+      expect(result[1].players).to.be.deep.equal([
+        {
+          id: '2-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z'),
+        },
+      ]);
     });
 
     it('should hash nested correctly, when primary key is a Buffer', () => {
@@ -505,7 +516,11 @@ describe('[ABSTRACT]', () => {
       const complete = qry._logQuery('SELECT 1', debugStub);
       complete();
       expect(this.sequelizeStub.log).to.have.been.calledOnce;
-      expect(this.sequelizeStub.log).to.have.been.calledWithMatch('Executed (test): SELECT 1', match.number, { benchmark: true });
+      expect(this.sequelizeStub.log).to.have.been.calledWithMatch(
+        'Executed (test): SELECT 1',
+        match.number,
+        { benchmark: true },
+      );
 
       expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1');
       expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1');
@@ -535,8 +550,12 @@ describe('[ABSTRACT]', () => {
 
       complete();
 
-      expect(debugStub).to.have.been.calledWith('Executing (test): SELECT 1; with parameters [ 1n ]');
-      expect(debugStub).to.have.been.calledWith('Executed (test): SELECT 1; with parameters [ 1n ]');
+      expect(debugStub).to.have.been.calledWith(
+        'Executing (test): SELECT 1; with parameters [ 1n ]',
+      );
+      expect(debugStub).to.have.been.calledWith(
+        'Executed (test): SELECT 1; with parameters [ 1n ]',
+      );
     });
   });
 });

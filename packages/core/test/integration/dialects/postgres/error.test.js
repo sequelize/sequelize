@@ -19,8 +19,7 @@ if (dialect.startsWith('postgres')) {
         period: DataTypes.RANGE(DataTypes.DATE),
       });
 
-      await this.Booking
-        .sync({ force: true });
+      await this.Booking.sync({ force: true });
 
       await this.sequelize.query(
         `ALTER TABLE "${this.Booking.tableName}" ADD CONSTRAINT ${constraintName} EXCLUDE USING gist ("roomNo" WITH =, period WITH &&)`,
@@ -33,7 +32,7 @@ if (dialect.startsWith('postgres')) {
         constraint: 'constraint_name',
         fields: { field1: 1, field2: [123, 321] },
         table: 'table_name',
-        parent: new Error('Test error'),
+        cause: new Error('Test error'),
       };
       const err = new Sequelize.ExclusionConstraintError(errDetails);
 
@@ -45,20 +44,19 @@ if (dialect.startsWith('postgres')) {
     it('should throw ExclusionConstraintError when "period" value overlaps existing', async function () {
       const Booking = this.Booking;
 
-      await Booking
-        .create({
-          roomNo: 1,
-          guestName: 'Incognito Visitor',
-          period: [new Date(2015, 0, 1), new Date(2015, 0, 3)],
-        });
+      await Booking.create({
+        roomNo: 1,
+        guestName: 'Incognito Visitor',
+        period: [new Date(2015, 0, 1), new Date(2015, 0, 3)],
+      });
 
-      await expect(Booking
-        .create({
+      await expect(
+        Booking.create({
           roomNo: 1,
           guestName: 'Frequent Visitor',
           period: [new Date(2015, 0, 2), new Date(2015, 0, 5)],
-        })).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
+        }),
+      ).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
     });
-
   });
 }

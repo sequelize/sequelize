@@ -5,21 +5,6 @@ export interface CommonErrorProperties {
   readonly sql: string;
 }
 
-// TODO [>=2023-04-30]:
-//  Remove me in Sequelize 8, where this is added natively by TypeScript (>= 4.6):
-//  This is a breaking change and must be done in a MAJOR release.
-export interface ErrorOptions {
-  cause?: unknown;
-}
-
-const supportsErrorCause = (() => {
-  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- Supported in TS 4.6, not before
-  // @ts-ignore
-  const err = new Error('Dummy 1', { cause: new Error('Dummy 2') });
-
-  return 'cause' in err;
-})();
-
 /**
  * The Base Error all Sequelize Errors inherit from.
  *
@@ -28,10 +13,6 @@ const supportsErrorCause = (() => {
  * All sequelize errors inherit from the base JS error object.
  */
 export class BaseError extends Error {
-  // 'cause' is incorrectly typed as Error instead of unknown in TypeScript <= 4.7.
-  // TODO [2023-05-24]: Change this type to unknown once we drop support for TypeScript <= 4.7
-  declare cause?: any;
-
   /**
    * @deprecated use {@link cause}.
    */
@@ -51,36 +32,7 @@ export class BaseError extends Error {
   }
 
   constructor(message?: string, options?: ErrorOptions) {
-    // TODO [>=2023-04-30]: remove this ts-ignore (Sequelize 8)
-    // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- Supported in TS 4.6, not before
-    // @ts-ignore
-    super(supportsErrorCause ? message : addCause(message, options?.cause), options);
+    super(message, options);
     this.name = 'SequelizeBaseError';
-
-    if (!supportsErrorCause && options?.cause) {
-      // TODO [>=2023-04-30]:
-      //  Once all supported node versions have support for Error.cause (added in Node 16.9.0), delete this line:
-      //  This is a breaking change and must be done in a MAJOR release.
-      this.cause = options.cause;
-    }
   }
-}
-
-function addCause(message: string = '', cause?: unknown) {
-  let out = message;
-
-  if (cause) {
-    out += `\nCaused by: ${getErrorMessage(cause)}`;
-  }
-
-  return out;
-}
-
-function getErrorMessage(error: unknown) {
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return String(error);
 }

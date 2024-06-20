@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes, Op, sql } = require('@sequelize/core');
 
-if (dialect === 'sqlite') {
+if (dialect === 'sqlite3') {
   describe('[SQLITE Specific] DAO', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
@@ -59,11 +59,12 @@ if (dialect === 'sqlite') {
       });
 
       it('handles dates in includes correctly #2644', async function () {
-        await this.User.create({
-          projects: [
-            { dateField: new Date(1990, 5, 5) },
-          ],
-        }, { include: [this.Project] });
+        await this.User.create(
+          {
+            projects: [{ dateField: new Date(1990, 5, 5) }],
+          },
+          { include: [this.Project] },
+        );
 
         const obj = await this.User.findAll({
           include: [this.Project],
@@ -111,7 +112,8 @@ if (dialect === 'sqlite') {
 
         await Payments.sync({ force: true });
 
-        await expect(Payments.bulkCreate([{ id: 1 }, { id: 1 }], { ignoreDuplicates: false })).to.eventually.be.rejected;
+        await expect(Payments.bulkCreate([{ id: 1 }, { id: 1 }], { ignoreDuplicates: false })).to
+          .eventually.be.rejected;
       });
     });
   });

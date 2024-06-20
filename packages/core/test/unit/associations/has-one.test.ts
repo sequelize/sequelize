@@ -1,9 +1,9 @@
-import assert from 'node:assert';
-import { expect } from 'chai';
-import each from 'lodash/each';
-import sinon from 'sinon';
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import each from 'lodash/each';
+import assert from 'node:assert';
+import sinon from 'sinon';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasOne'), () => {
@@ -13,7 +13,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.hasOne();
-    }).to.throw(`User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.hasOne was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('warn on invalid options', () => {
@@ -22,7 +24,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     expect(() => {
       User.hasOne(Task, { sourceKey: 'wowow' });
-    }).to.throwWithCause('Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first');
+    }).to.throwWithCause(
+      'Unknown attribute "wowow" passed as sourceKey, define this attribute on model "User" first',
+    );
   });
 
   it('forbids alias inference in self-associations', () => {
@@ -30,7 +34,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     expect(() => {
       User.hasOne(User);
-    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different');
+    }).to.throwWithCause(
+      'Both options "as" and "inverse.as" must be defined for hasOne self-associations, and their value must be different',
+    );
   });
 
   it('allows self-associations with explicit alias', () => {
@@ -60,18 +66,28 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(User.associations.task).to.be.ok;
   });
 
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
+
+    User.hasOne(Task);
+
+    expect(Object.keys(Task.associations)).to.deep.eq(['user']);
+    expect(Object.keys(User.associations)).to.deep.eq(['task']);
+  });
+
   it('does not use `as` option to generate foreign key name', () => {
     // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = sequelize.define('User', { username: DataTypes.STRING });
     const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
     const association1 = User.hasOne(Task);
-    expect(association1.foreignKey).to.equal('UserId');
-    expect(Task.getAttributes().UserId).not.to.be.empty;
+    expect(association1.foreignKey).to.equal('userId');
+    expect(Task.getAttributes().userId).not.to.be.empty;
 
     const association2 = User.hasOne(Task, { as: 'Shabda' });
-    expect(association2.foreignKey).to.equal('UserId');
-    expect(Task.getAttributes().UserId).not.to.be.empty;
+    expect(association2.foreignKey).to.equal('userId');
+    expect(Task.getAttributes().userId).not.to.be.empty;
   });
 
   it('should not override custom methods with association mixin', () => {
@@ -86,6 +102,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     function originalFunction() {}
 
     each(methods, (alias, method) => {
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
       User.prototype[method] = originalFunction;
     });
 
@@ -180,7 +199,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
     User.hasOne(Task, { foreignKey: { allowNull: false } });
 
-    expect(Task.getAttributes().UserId.onDelete).to.eq('CASCADE');
+    expect(Task.getAttributes().userId.onDelete).to.eq('CASCADE');
   });
 
   it('should throw an error if an association clashes with the name of an already define attribute', () => {
@@ -189,8 +208,9 @@ describe(getTestDialectTeaser('hasOne'), () => {
     });
     const Attribute = sequelize.define('attribute', {});
 
-    expect(User.hasOne.bind(User, Attribute)).to
-      .throw('Naming collision between attribute \'attribute\' and association \'attribute\' on model user. To remedy this, change the "as" options in your association definition');
+    expect(User.hasOne.bind(User, Attribute)).to.throw(
+      "Naming collision between attribute 'attribute' and association 'attribute' on model user. To remedy this, change the \"as\" options in your association definition",
+    );
   });
 
   describe('Model.associations', () => {
@@ -199,12 +219,22 @@ describe(getTestDialectTeaser('hasOne'), () => {
       const Group = sequelize.define('Group', {});
 
       Group.hasOne(User);
-      Group.hasOne(User, { foreignKey: 'primaryGroupId', as: 'primaryUsers', inverse: { as: 'primaryGroup' } });
-      Group.hasOne(User, { foreignKey: 'secondaryGroupId', as: 'secondaryUsers', inverse: { as: 'secondaryGroup' } });
+      Group.hasOne(User, {
+        foreignKey: 'primaryGroupId',
+        as: 'primaryUsers',
+        inverse: { as: 'primaryGroup' },
+      });
+      Group.hasOne(User, {
+        foreignKey: 'secondaryGroupId',
+        as: 'secondaryUsers',
+        inverse: { as: 'secondaryGroup' },
+      });
 
-      expect(
-        Object.keys(Group.associations),
-      ).to.deep.equal(['User', 'primaryUsers', 'secondaryUsers']);
+      expect(Object.keys(Group.associations)).to.deep.equal([
+        'user',
+        'primaryUsers',
+        'secondaryUsers',
+      ]);
     });
   });
 
@@ -233,8 +263,7 @@ describe(getTestDialectTeaser('hasOne'), () => {
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
-
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
@@ -256,13 +285,14 @@ describe(getTestDialectTeaser('hasOne'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Projects);
         expect(firstArg.target).to.equal(Tasks);
         expect(firstArg.type.name).to.equal('HasOne');
         expect(firstArg.association.constructor.name).to.equal('HasOne');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const afterAssociate = sinon.spy();

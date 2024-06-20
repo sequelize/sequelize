@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, Op, cast, fn } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeAll2, getTestDialectTeaser, sequelize, setResetMode } from './support';
 
 const dialectName = sequelize.dialect.name;
@@ -19,10 +19,12 @@ describe(getTestDialectTeaser('fn()'), () => {
       {
         wings: 2,
         engines: 0,
-      }, {
+      },
+      {
         wings: 4,
         engines: 1,
-      }, {
+      },
+      {
         wings: 2,
         engines: 2,
       },
@@ -32,7 +34,7 @@ describe(getTestDialectTeaser('fn()'), () => {
   });
 
   // some dialects return the result of arithmetic functions (SUM, COUNT) as integer & floats, others as bigints & decimals.
-  const arithmeticAsNumber = dialectName === 'sqlite' || dialectName === 'db2';
+  const arithmeticAsNumber = dialectName === 'sqlite3' || dialectName === 'db2';
   if (dialectName !== 'mssql' && dialectName !== 'ibmi') {
     it('accepts condition object (with cast)', async () => {
       const type = dialectName === 'mysql' ? 'unsigned' : 'int';
@@ -40,17 +42,35 @@ describe(getTestDialectTeaser('fn()'), () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [
           [fn('COUNT', '*'), 'count'],
-          [fn('SUM', cast({
-            engines: 1,
-          }, type)), 'count-engines'],
-          [fn('SUM', cast({
-            [Op.or]: {
-              engines: {
-                [Op.gt]: 1,
-              },
-              wings: 4,
-            },
-          }, type)), 'count-engines-wings'],
+          [
+            fn(
+              'SUM',
+              cast(
+                {
+                  engines: 1,
+                },
+                type,
+              ),
+            ),
+            'count-engines',
+          ],
+          [
+            fn(
+              'SUM',
+              cast(
+                {
+                  [Op.or]: {
+                    engines: {
+                      [Op.gt]: 1,
+                    },
+                    wings: 4,
+                  },
+                },
+                type,
+              ),
+            ),
+            'count-engines-wings',
+          ],
         ],
       });
 
@@ -67,17 +87,23 @@ describe(getTestDialectTeaser('fn()'), () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [
           [fn('COUNT', '*'), 'count'],
-          [fn('SUM', {
-            engines: 1,
-          }), 'count-engines'],
-          [fn('SUM', {
-            [Op.or]: {
-              engines: {
-                [Op.gt]: 1,
+          [
+            fn('SUM', {
+              engines: 1,
+            }),
+            'count-engines',
+          ],
+          [
+            fn('SUM', {
+              [Op.or]: {
+                engines: {
+                  [Op.gt]: 1,
+                },
+                wings: 4,
               },
-              wings: 4,
-            },
-          }), 'count-engines-wings'],
+            }),
+            'count-engines-wings',
+          ],
         ],
       });
 

@@ -1,9 +1,11 @@
 import type { ConnectionOptions, Fn, ModelStatic } from '@sequelize/core';
 import { Model, Op, QueryTypes, Sequelize } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 
 export const sequelize = new Sequelize({
+  dialect: MySqlDialect,
   hooks: {
-    afterConnect: (connection: unknown, config: ConnectionOptions) => {
+    afterConnect: (connection: unknown, config: ConnectionOptions<MySqlDialect>) => {
       // noop
     },
   },
@@ -16,7 +18,6 @@ export const sequelize = new Sequelize({
     report: (msg, options) => {},
     name: 'durr',
   },
-  dialectModule: {},
   keepDefaultTimezone: false,
   pool: {
     evict: 1000,
@@ -52,7 +53,7 @@ sequelize.beforeCreate('test', () => {
 });
 
 sequelize
-  .addHook('beforeConnect', (config: ConnectionOptions) => {
+  .addHook('beforeConnect', (config: ConnectionOptions<MySqlDialect>) => {
     // noop
   })
   .addHook('beforeBulkSync', () => {
@@ -75,26 +76,39 @@ class Model1 extends Model {}
 
 class Model2 extends Model {}
 
-const MyModel: ModelStatic<Model1> = sequelize.models.asd;
+const MyModel: ModelStatic<Model1> = sequelize.models.getOrThrow('asd');
 MyModel.hasOne(Model2);
 MyModel.findAll();
 
 async function test() {
-  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', { type: QueryTypes.RAW });
+  // @ts-expect-error -- this should fail
+  await sequelize.query(1234);
+  // @ts-expect-error -- this should fail
+  await sequelize.query(/test/);
 
-  const res2: { count: number } | null = await sequelize
-    .query<{ count: number }>('SELECT COUNT(1) as count FROM `user`', {
+  const [results, meta]: [unknown[], unknown] = await sequelize.query('SELECT * FROM `user`', {
+    type: QueryTypes.RAW,
+  });
+
+  const res2: { count: number } | null = await sequelize.query<{ count: number }>(
+    'SELECT COUNT(1) as count FROM `user`',
+    {
       type: QueryTypes.SELECT,
       plain: true,
-    });
+    },
+  );
 
-  const res3: { [key: string]: unknown } | null = await sequelize
-    .query('SELECT COUNT(1) as count FROM `user`', {
+  const res3: { [key: string]: unknown } | null = await sequelize.query(
+    'SELECT COUNT(1) as count FROM `user`',
+    {
       plain: true,
-    });
+    },
+  );
 
-  const res4: { [key: string]: unknown } | null = await sequelize
-    .query('SELECT COUNT(1) as count FROM `user` WHERE 1 = 2', {
+  const res4: { [key: string]: unknown } | null = await sequelize.query(
+    'SELECT COUNT(1) as count FROM `user` WHERE 1 = 2',
+    {
       plain: true,
-    });
+    },
+  );
 }

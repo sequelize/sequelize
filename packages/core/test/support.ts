@@ -1,24 +1,29 @@
-import assert from 'node:assert';
-import fs from 'node:fs';
-import path from 'node:path';
-import { inspect, isDeepStrictEqual } from 'node:util';
+import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
+import { Sequelize } from '@sequelize/core';
+import type { PostgresDialect } from '@sequelize/postgres';
+import { isNotString } from '@sequelize/utils';
+import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
 import isObject from 'lodash/isObject';
 import type { ExclusiveTestFunction, PendingTestFunction, TestFunction } from 'mocha';
+import assert from 'node:assert';
+import fs from 'node:fs';
+import path from 'node:path';
+import { inspect, isDeepStrictEqual } from 'node:util';
 import sinonChai from 'sinon-chai';
-import { Sequelize } from '@sequelize/core';
-import type { Dialect, Options } from '@sequelize/core';
-import {
-  AbstractQueryGenerator,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator.js';
-import { Config } from './config/config';
+import type { Class } from 'type-fest';
+import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
+
+export { getSqliteDatabasePath } from './config/config';
 
 const expect = chai.expect;
 
-const distDir = path.resolve(__dirname, '../lib');
+const packagesDir = path.resolve(__dirname, '..', '..');
+
+const NON_DIALECT_PACKAGES = Object.freeze(['utils', 'validator-js', 'core']);
 
 chai.use(chaiDatetime);
 chai.use(chaiAsPromised);
@@ -43,7 +48,7 @@ chai.Assertion.addMethod('notBeNullish', function nullish() {
   expect(this._obj).to.exist;
 });
 
-function withInlineCause(cb: (() => any)): () => void {
+function withInlineCause(cb: () => any): () => void {
   return () => {
     try {
       return cb();
@@ -64,8 +69,6 @@ export function inlineErrorCause(error: unknown): string {
 
   let message = error.message;
 
-  // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-  // @ts-ignore -- TS < 4.6 doesn't include the typings for this property, but TS 4.6+ does.
   const cause = error.cause;
   if (cause instanceof Error) {
     message += `\nCaused by: ${inlineErrorCause(cause)}`;
@@ -123,80 +126,42 @@ export async function nextUnhandledRejection() {
   });
 }
 
-/**
- * Pushes all unhandled rejections that occur during this test onto destArray
- * (instead of failing the test).
- *
- * @param destArray the array to push unhandled rejections onto.  If you omit this,
- * one will be created and returned for you.
- *
- * @returns destArray
- */
-export function captureUnhandledRejections(destArray = []) {
-  unhandledRejections = destArray;
+export function createSequelizeInstance<Dialect extends AbstractDialect = AbstractDialect>(
+  options?: Omit<Options<Dialect>, 'dialect'>,
+): Sequelize<Dialect> {
+  const dialectName = getTestDialect();
+  const config = CONFIG[dialectName];
 
-  return unhandledRejections;
-}
-
-export function createSequelizeInstance(options: Options = {}): Sequelize {
-  options.dialect = getTestDialect();
-
-  const config = Config[options.dialect];
-
-  const sequelizeOptions = defaults(options, {
-    host: options.host || config.host,
-    logging: process.env.SEQ_LOG ? console.debug : false,
-    dialect: options.dialect,
-    port: options.port || process.env.SEQ_PORT || config.port,
-    pool: config.pool,
-    dialectOptions: options.dialectOptions || config.dialectOptions || {},
-    minifyAliases: options.minifyAliases || config.minifyAliases,
+  const sequelizeOptions = defaults(options, config, {
     // the test suite was written before CLS was turned on by default.
     disableClsTransactions: true,
-  });
+  } as const);
 
-  if (process.env.DIALECT === 'postgres-native') {
-    sequelizeOptions.native = true;
+  if (dialectName === 'postgres') {
+    const sequelizePostgresOptions: Options<PostgresDialect> = {
+      ...(sequelizeOptions as Options<PostgresDialect>),
+      native: process.env.DIALECT === 'postgres-native',
+    };
+
+    return new Sequelize(sequelizePostgresOptions) as unknown as Sequelize<Dialect>;
   }
 
-  if (config.storage || config.storage === '') {
-    sequelizeOptions.storage = config.storage;
-  }
-
-  return getSequelizeInstance(config.database!, config.username!, config.password!, sequelizeOptions);
-}
-
-export function getConnectionOptionsWithoutPool() {
-  // Do not break existing config object - shallow clone before `delete config.pool`
-  const config = { ...Config[getTestDialect()] };
-  delete config.pool;
-
-  return config;
-}
-
-export function getSequelizeInstance(db: string, user: string, pass: string, options?: Options): Sequelize {
-  options = options || {};
-  options.dialect = options.dialect || getTestDialect();
-
-  return new Sequelize(db, user, pass, options);
+  return new Sequelize<Dialect>(sequelizeOptions as Options<Dialect>);
 }
 
 export function getSupportedDialects() {
-  return fs.readdirSync(path.join(distDir, 'dialects'))
-    .filter(file => !file.includes('.js') && !file.includes('abstract'));
+  return fs.readdirSync(packagesDir).filter(file => !NON_DIALECT_PACKAGES.includes(file));
 }
 
-export function getAbstractQueryGenerator(sequelize: Sequelize): AbstractQueryGenerator {
-  class ModdedQueryGenerator extends AbstractQueryGenerator {
-    quoteIdentifier(x: string): string {
-      return x;
-    }
-  }
+export function getTestDialectClass(): Class<AbstractDialect> {
+  const dialectClass = CONFIG[getTestDialect()].dialect;
 
-  return new ModdedQueryGenerator({ sequelize, dialect: sequelize.dialect });
+  isNotString.assert(dialectClass);
+
+  return dialectClass;
 }
 
-export function getTestDialect(): Dialect {
+export function getTestDialect(): DialectName {
   let envDialect = process.env.DIALECT || '';
 
   if (envDialect === 'postgres-native') {
@@ -204,10 +169,14 @@ export function getTestDialect(): Dialect {
   }
 
   if (!getSupportedDialects().includes(envDialect)) {
-    throw new Error(`The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects().map(d => JSON.stringify(d)).join(', ')} instead.`);
+    throw new Error(
+      `The DIALECT environment variable was set to ${JSON.stringify(envDialect)}, which is not a supported dialect. Set it to one of ${getSupportedDialects()
+        .map(d => JSON.stringify(d))
+        .join(', ')} instead.`,
+    );
   }
 
-  return envDialect as Dialect;
+  return envDialect as DialectName;
 }
 
 export function getTestDialectTeaser(moduleName: string): string {
@@ -221,10 +190,10 @@ export function getTestDialectTeaser(moduleName: string): string {
 }
 
 export function getPoolMax(): number {
-  return Config[getTestDialect()].pool?.max ?? 1;
+  return CONFIG[getTestDialect()].pool?.max ?? 1;
 }
 
-type ExpectationKey = 'default' | Permutations<Dialect, 4>;
+type ExpectationKey = 'default' | Permutations<DialectName, 4>;
 
 export type ExpectationRecord<V> = PartialRecord<ExpectationKey, V | Expectation<V> | Error>;
 
@@ -238,14 +207,12 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
-export function expectPerDialect<Out>(
-  method: () => Out,
-  assertions: ExpectationRecord<Out>,
-) {
-  const expectations: PartialRecord<'default' | Dialect, Out | Error | Expectation<Out>> = Object.create(null);
+export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
+  const expectations: PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>> =
+    Object.create(null);
 
   for (const [key, value] of Object.entries(assertions)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     for (const dialect of acceptedDialects) {
       if (dialect === 'default' && acceptedDialects.length > 1) {
@@ -272,44 +239,81 @@ export function expectPerDialect<Out>(
 
   const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
   if (expectation === undefined) {
-    throw new Error(`No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`);
+    throw new Error(
+      `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
+    );
   }
 
   if (expectation instanceof Error) {
-    assert(result instanceof Error, `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`);
+    assert(
+      result instanceof Error,
+      `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`,
+    );
 
     expect(inlineErrorCause(result)).to.include(expectation.message);
   } else {
-    assert(!(result instanceof Error), `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`);
+    assert(
+      !(result instanceof Error),
+      `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
+    );
 
-    assertMatchesExpectation(result, expectation);
+    const isDefault = expectations[sequelize.dialect.name] === undefined;
+    assertMatchesExpectation(result, expectation, isDefault);
   }
 }
 
-function assertMatchesExpectation<V>(result: V, expectation: V | Expectation<V>): void {
+function assertMatchesExpectation<V>(
+  result: V,
+  expectation: V | Expectation<V>,
+  isDefault: boolean,
+): void {
   if (expectation instanceof Expectation) {
-    expectation.assert(result);
+    expectation.assert(result, isDefault);
   } else {
     expect(result).to.deep.equal(expectation);
   }
 }
 
 abstract class Expectation<Value> {
-  abstract assert(value: Value): void;
+  abstract assert(value: Value, isDefault: boolean): void;
 }
 
-class SqlExpectation extends Expectation<string> {
-  constructor(private readonly sql: string) {
+interface SqlExpectationOptions {
+  genericQuotes?: boolean;
+}
+
+class SqlExpectation extends Expectation<string | string[]> {
+  readonly #sql: string | readonly string[];
+  readonly #options: SqlExpectationOptions | undefined;
+
+  constructor(sql: string | readonly string[], options?: SqlExpectationOptions) {
     super();
+
+    this.#sql = sql;
+    this.#options = options;
   }
 
-  assert(value: string) {
-    expect(minifySql(value)).to.equal(minifySql(this.sql));
+  #prepareSql(sql: string | readonly string[], isDefault: boolean): string | string[] {
+    if (Array.isArray(sql)) {
+      return sql.map(part => this.#prepareSql(part, isDefault)) as string[];
+    }
+
+    if (isDefault) {
+      sql = replaceGenericIdentifierQuotes(sql as string, sequelize.dialect);
+    }
+
+    return minifySql(sql as string);
+  }
+
+  assert(value: string | readonly string[], isDefault: boolean) {
+    expect(this.#prepareSql(value, false)).to.deep.equal(
+      this.#prepareSql(this.#sql, isDefault || this.#options?.genericQuotes === true),
+    );
   }
 }
 
-export function toMatchSql(sql: string) {
-  return new SqlExpectation(sql);
+export function toMatchSql(sql: string | string[], options?: SqlExpectationOptions) {
+  return new SqlExpectation(sql, options);
 }
 
 class RegexExpectation extends Expectation<string> {
@@ -335,48 +339,54 @@ class HasPropertiesExpectation<Obj extends Record<string, unknown>> extends Expe
     super();
   }
 
-  assert(value: Obj) {
+  assert(value: Obj, isDefault: boolean) {
     for (const key of Object.keys(this.properties) as Array<keyof Obj>) {
-      assertMatchesExpectation(value[key], this.properties[key]);
+      assertMatchesExpectation(value[key], this.properties[key], isDefault);
     }
   }
 }
 
-export function toHaveProperties<Obj extends Record<string, unknown>>(properties: HasPropertiesInput<Obj>) {
+export function toHaveProperties<Obj extends Record<string, unknown>>(
+  properties: HasPropertiesInput<Obj>,
+) {
   return new HasPropertiesExpectation<Obj>(properties);
 }
 
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string, bind?: unknown } | Error>,
+  query: MaybeLazy<{ query: string; bind?: unknown } | Error>,
   assertions: {
-    query: PartialRecord<ExpectationKey, string | Error>,
-    bind: PartialRecord<ExpectationKey, unknown>,
-   },
+    query: PartialRecord<ExpectationKey, string | Error>;
+    bind: PartialRecord<ExpectationKey, unknown>;
+  },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string, bind?: unknown }>,
+  query: MaybeLazy<string | Error | { query: string; bind?: unknown }>,
   assertions:
-    | { query: PartialRecord<ExpectationKey, string | Error>, bind: PartialRecord<ExpectationKey, unknown> }
+    | {
+        query: PartialRecord<ExpectationKey, string | Error>;
+        bind: PartialRecord<ExpectationKey, unknown>;
+      }
     | PartialRecord<ExpectationKey, string | Error>,
 ): void {
-  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> = 'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | Dialect, string | Error> = Object.create(null);
+  const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
+    'query' in assertions ? assertions.query : assertions;
+  const expectations: PartialRecord<'default' | DialectName, string | Error> = Object.create(null);
 
   /**
    * The list of expectations that are run against more than one dialect, which enables the transformation of
    * identifier quoting to match the dialect.
    */
-  const combinedExpectations = new Set<Dialect | 'default'>();
+  const combinedExpectations = new Set<DialectName | 'default'>();
   combinedExpectations.add('default');
 
   for (const [key, value] of Object.entries(rawExpectationMap)) {
-    const acceptedDialects = key.split(' ') as Array<Dialect | 'default'>;
+    const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
 
     if (acceptedDialects.length > 1) {
       for (const dialect of acceptedDialects) {
@@ -402,13 +412,15 @@ export function expectsql(
 
   let expectation = expectations[usedExpectationName];
   if (expectation == null) {
-    throw new Error(`Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`);
+    throw new Error(
+      `Undefined expectation for "${sequelize.dialect.name}"! (expectations: ${JSON.stringify(expectations)})`,
+    );
   }
 
   if (combinedExpectations.has(usedExpectationName) && typeof expectation === 'string') {
     // replace [...] with the proper quote character for the dialect
     // except for ARRAY[...]
-    expectation = expectation.replaceAll(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
+    expectation = replaceGenericIdentifierQuotes(expectation, dialect);
     if (dialect.name === 'ibmi') {
       expectation = expectation.trim().replace(/;$/, '');
     }
@@ -419,7 +431,9 @@ export function expectsql(
       query = query();
     } catch (error: unknown) {
       if (!(error instanceof Error)) {
-        throw new TypeError('expectsql: function threw something that is not an instance of Error.');
+        throw new TypeError(
+          'expectsql: function threw something that is not an instance of Error.',
+        );
       }
 
       query = error;
@@ -427,20 +441,34 @@ export function expectsql(
   }
 
   if (expectation instanceof Error) {
-    assert(query instanceof Error, `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`);
+    assert(
+      query instanceof Error,
+      `Expected query to error with "${expectation.message}", but it is equal to ${JSON.stringify(query)}.`,
+    );
 
     expect(inlineErrorCause(query)).to.include(expectation.message);
   } else {
-    assert(!(query instanceof Error), `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`);
+    assert(
+      !(query instanceof Error),
+      `Expected query to equal:\n${minifySql(expectation)}\n\nBut it errored with:\n${inlineErrorCause(query)}`,
+    );
 
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
   if ('bind' in assertions) {
-    const bind = assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
+    const bind =
+      assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
+}
+
+function replaceGenericIdentifierQuotes(sql: string, dialect: AbstractDialect): string {
+  return sql.replaceAll(
+    /(?<!ARRAY)\[([^\]]+)]/g,
+    `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`,
+  );
 }
 
 export function rand() {
@@ -459,23 +487,24 @@ export function isDeepEqualToOneOf(actual: unknown, expectedOptions: unknown[]):
  */
 export function minifySql(sql: string): string {
   // replace all consecutive whitespaces with a single plain space character
-  return sql.replaceAll(/\s+/g, ' ')
-    // remove space before comma
-    .replaceAll(' ,', ',')
-    // remove space before )
-    .replaceAll(' )', ')')
-    // replace space after (
-    .replaceAll('( ', '(')
-    // remove whitespace at start & end
-    .trim();
+  return (
+    sql
+      .replaceAll(/\s+/g, ' ')
+      // remove space before comma
+      .replaceAll(' ,', ',')
+      // remove space before )
+      .replaceAll(' )', ')')
+      // replace space after (
+      .replaceAll('( ', '(')
+      // remove whitespace at start & end
+      .trim()
+  );
 }
 
-export const sequelize = createSequelizeInstance();
+export const sequelize = createSequelizeInstance<AbstractDialect>();
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
-  for (const model of sequelizeInstance.modelManager.all) {
-    sequelizeInstance.modelManager.removeModel(model);
-  }
+  sequelizeInstance.removeAllModels();
 }
 
 // 'support' is requested by dev/check-connection, which is not a mocha context
@@ -492,14 +521,14 @@ if (typeof before !== 'undefined') {
 }
 
 type Tester<Params extends any[]> = {
-  (...params: Params): void,
-  skip(...params: Params): void,
-  only(...params: Params): void,
+  (...params: Params): void;
+  skip(...params: Params): void;
+  only(...params: Params): void;
 };
 type TestFunctions = ExclusiveTestFunction | TestFunction | PendingTestFunction;
 
 export function createTester<Params extends any[]>(
-  cb: ((testFunction: TestFunctions, ...args: Params) => void),
+  cb: (testFunction: TestFunctions, ...args: Params) => void,
 ): Tester<Params> {
   function tester(...params: Params) {
     cb(it, ...params);
@@ -518,6 +547,7 @@ export function createTester<Params extends any[]>(
 
 /**
  * Works like {@link beforeEach}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
@@ -535,6 +565,7 @@ export function beforeEach2<T extends Record<string, any>>(cb: () => Promise<T> 
 
 /**
  * Works like {@link before}, but returns an object that contains the values returned by its latest execution.
+ *
  * @param cb
  */
 export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> | T): T {
@@ -553,3 +584,59 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
 export function typeTest(_name: string, _callback: () => void): void {
   // This function doesn't do anything. a type test is only checked by TSC and never runs.
 }
+
+export async function unlinkIfExists(filePath: string): Promise<void> {
+  try {
+    await fs.promises.unlink(filePath);
+  } catch (error) {
+    if (isNodeError(error) && error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+}
+
+let isIntegrationTestSuite = false;
+
+export function setIsIntegrationTestSuite(value: boolean): void {
+  isIntegrationTestSuite = value;
+}
+
+// 'support' is requested by dev/check-connection, which is not a mocha context
+if (typeof after !== 'undefined') {
+  after('delete SQLite databases', async () => {
+    if (isIntegrationTestSuite) {
+      // all Sequelize instances must be closed to be able to delete the database files, including the default one.
+      // Closing is not possible in non-integration test suites,
+      // as _all_ connections must be mocked (even for sqlite, even though it's a file-based database).
+      await sequelize.close();
+    }
+
+    return fs.promises.rm(SQLITE_DATABASES_DIR, { recursive: true, force: true });
+  });
+}
+
+// TODO: ignoredDeprecations should be removed in favour of EMPTY_ARRAY
+const ignoredDeprecations: readonly string[] = [
+  'SEQUELIZE0013',
+  'SEQUELIZE0018',
+  'SEQUELIZE0019',
+  'SEQUELIZE0021',
+  'SEQUELIZE0022',
+];
+let allowedDeprecations: readonly string[] = ignoredDeprecations;
+export function allowDeprecationsInSuite(codes: readonly string[]) {
+  before(() => {
+    allowedDeprecations = [...codes, ...ignoredDeprecations];
+  });
+
+  after(() => {
+    allowedDeprecations = ignoredDeprecations;
+  });
+}
+
+// TODO: the DeprecationWarning is only thrown once. We should figure out a way to reset that or move all tests that use deprecated tests to one suite per deprecation.
+process.on('warning', (warning: NodeJS.ErrnoException) => {
+  if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
+    throw warning;
+  }
+});

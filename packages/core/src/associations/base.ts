@@ -1,10 +1,10 @@
+import type { AllowIterable, Nullish, PartialBy } from '@sequelize/utils';
+import { isIterable } from '@sequelize/utils';
 import isObject from 'lodash/isObject.js';
 import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
-import { isIterable } from '../utils/check.js';
 import { cloneDeep } from '../utils/object.js';
-import type { AllowIterable, Nullish, PartialBy } from '../utils/types.js';
-import { AssociationSecret } from './helpers';
 import type { NormalizeBaseAssociationOptions } from './helpers';
+import { AssociationSecret } from './helpers';
 
 /**
  * Creating associations in sequelize is done by calling one of the belongsTo / hasOne / hasMany / belongsToMany functions on a model (the source), and providing another model as the first argument to the function (the target).
@@ -96,7 +96,10 @@ export abstract class Association<
 
   readonly options: Opts;
 
-  abstract accessors: Record</* methodName in association */ string, /* method name in model */ string>;
+  abstract accessors: Record<
+    /* methodName in association */ string,
+    /* method name in model */ string
+  >;
 
   abstract foreignKey: ForeignKey;
 
@@ -150,16 +153,18 @@ export abstract class Association<
     parent?: Association<any>,
   ) {
     if (secret !== AssociationSecret) {
-      throw new Error(`Class ${this.constructor.name} cannot be instantiated directly due to it mutating the source model. Use one of the static methods on Model instead.`);
+      throw new Error(
+        `Class ${this.constructor.name} cannot be instantiated directly due to it mutating the source model. Use one of the static methods on Model instead.`,
+      );
     }
 
     this.source = source;
     this.target = target;
     this.parentAssociation = parent ?? null;
 
-    this.isSelfAssociation
+    this.isSelfAssociation =
       // @ts-expect-error -- TypeScript thinks ModelStatic & ModelStatic have no overlap.
-      = this.source === this.target;
+      this.source === this.target;
 
     this.isAliased = Boolean(options?.as);
 
@@ -177,7 +182,7 @@ export abstract class Association<
     return this.options.as;
   }
 
-  get name(): { singular: string, plural: string } {
+  get name(): { singular: string; plural: string } {
     return this.options.name;
   }
 
@@ -200,13 +205,12 @@ export abstract class MultiAssociation<
   TargetKey extends AttributeNames<T> = any,
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
-
   static get isMultiAssociation() {
     return true;
   }
 
   protected toInstanceOrPkArray(
-    input: Nullish<AllowIterable<T | Exclude<T[TargetKey], any[]>>>,
+    input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | Nullish,
   ): Array<T | Exclude<T[TargetKey], any[]>> {
     if (input == null) {
       return [];
@@ -217,7 +221,6 @@ export abstract class MultiAssociation<
     }
 
     return [...input];
-
   }
 
   /**
@@ -249,26 +252,27 @@ export abstract class MultiAssociation<
 }
 
 export type SingleAssociationAccessors = {
-  get: string,
-  set: string,
-  create: string,
+  get: string;
+  set: string;
+  create: string;
 };
 
 export type MultiAssociationAccessors = {
-  get: string,
-  set: string,
-  addMultiple: string,
-  add: string,
-  create: string,
-  remove: string,
-  removeMultiple: string,
-  hasSingle: string,
-  hasAll: string,
-  count: string,
+  get: string;
+  set: string;
+  addMultiple: string;
+  add: string;
+  create: string;
+  remove: string;
+  removeMultiple: string;
+  hasSingle: string;
+  hasAll: string;
+  count: string;
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string> extends PartialBy<AttributeOptions, 'type'> {
+export interface ForeignKeyOptions<ForeignKey extends string>
+  extends PartialBy<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
    *
@@ -284,8 +288,8 @@ export interface ForeignKeyOptions<ForeignKey extends string> extends PartialBy<
   fieldName?: string;
 }
 
-export type NormalizedAssociationOptions<ForeignKey extends string>
-  = NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
+export type NormalizedAssociationOptions<ForeignKey extends string> =
+  NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
 /**
  * Options provided when associating models
@@ -298,7 +302,7 @@ export interface AssociationOptions<ForeignKey extends string = string> extends 
    * same alias when eager loading and when getting associated models. Defaults to the singularized name of
    * target
    */
-  as?: string | { singular: string, plural: string };
+  as?: string | { singular: string; plural: string };
 
   /**
    * The configuration of the foreign key Attribute. See {@link Sequelize#define}
@@ -330,7 +334,8 @@ export interface AssociationScope {
 /**
  * Options provided for many-to-many relationships
  */
-export interface MultiAssociationOptions<ForeignKey extends string> extends AssociationOptions<ForeignKey> {
+export interface MultiAssociationOptions<ForeignKey extends string>
+  extends AssociationOptions<ForeignKey> {
   /**
    * A key/value set that will be used for association create and find defaults on the target.
    * (sqlite not supported for N:M)

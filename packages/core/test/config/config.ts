@@ -1,70 +1,123 @@
-import type { Dialect, Options } from '@sequelize/core';
+import type { ConnectionOptions, Options } from '@sequelize/core';
+import { Db2Dialect } from '@sequelize/db2';
+import { IBMiDialect } from '@sequelize/db2-ibmi';
+import { MariaDbDialect } from '@sequelize/mariadb';
+import { MsSqlDialect } from '@sequelize/mssql';
+import { MySqlDialect } from '@sequelize/mysql';
+import { PostgresDialect } from '@sequelize/postgres';
+import { SnowflakeDialect } from '@sequelize/snowflake';
+import { SqliteDialect } from '@sequelize/sqlite3';
+import { parseSafeInteger } from '@sequelize/utils';
+import path from 'node:path';
+
+export const SQLITE_DATABASES_DIR = path.join(__dirname, '..', 'sqlite-databases');
+
+export function getSqliteDatabasePath(name: string): string {
+  return path.join(SQLITE_DATABASES_DIR, name);
+}
 
 const { env } = process;
 
-export const Config: Record<Dialect, Options> = {
+export interface DialectConfigs {
+  mssql: Options<MsSqlDialect>;
+  mysql: Options<MySqlDialect>;
+  snowflake: Options<SnowflakeDialect>;
+  mariadb: Options<MariaDbDialect>;
+  sqlite3: Options<SqliteDialect>;
+  postgres: Options<PostgresDialect>;
+  db2: Options<Db2Dialect>;
+  ibmi: Options<IBMiDialect>;
+}
+
+export interface DialectConnectionConfigs {
+  mssql: ConnectionOptions<MsSqlDialect>;
+  mysql: ConnectionOptions<MySqlDialect>;
+  snowflake: ConnectionOptions<SnowflakeDialect>;
+  mariadb: ConnectionOptions<MariaDbDialect>;
+  sqlite3: ConnectionOptions<SqliteDialect>;
+  postgres: ConnectionOptions<PostgresDialect>;
+  db2: ConnectionOptions<Db2Dialect>;
+  ibmi: ConnectionOptions<IBMiDialect>;
+}
+
+const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
+
+export const CONFIG: DialectConfigs = {
   mssql: {
-    host: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
-    username: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',
-    password: env.SEQ_MSSQL_PW || env.SEQ_PW || 'Password12!',
-    port: env.SEQ_MSSQL_PORT || env.SEQ_PORT || 22_019,
-    database: env.SEQ_MSSQL_DB || env.SEQ_DB || 'sequelize_test',
-    dialectOptions: {
+    dialect: MsSqlDialect,
+    authentication: {
+      type: 'default',
       options: {
-        encrypt: false,
-        requestTimeout: 25_000,
+        userName: env.SEQ_MSSQL_USER || env.SEQ_USER || 'SA',
+        password: env.SEQ_MSSQL_PW || env.SEQ_PW || 'Password12!',
       },
     },
+    database: env.SEQ_MSSQL_DB || env.SEQ_DB || 'sequelize_test',
+    encrypt: false,
     pool: {
-      max: Number(env.SEQ_MSSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
-      idle: Number(env.SEQ_MSSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
+      max: parseSafeInteger.orThrow(env.SEQ_MSSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: parseSafeInteger.orThrow(env.SEQ_MSSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
+    port: parseSafeInteger.orThrow(env.SEQ_MSSQL_PORT || seqPort || 22_019),
+    requestTimeout: 25_000,
+    server: env.SEQ_MSSQL_HOST || env.SEQ_HOST || 'localhost',
   },
 
   mysql: {
+    dialect: MySqlDialect,
     database: env.SEQ_MYSQL_DB || env.SEQ_DB || 'sequelize_test',
-    username: env.SEQ_MYSQL_USER || env.SEQ_USER || 'sequelize_test',
+    user: env.SEQ_MYSQL_USER || env.SEQ_USER || 'sequelize_test',
     password: env.SEQ_MYSQL_PW || env.SEQ_PW || 'sequelize_test',
     host: env.MYSQL_PORT_3306_TCP_ADDR || env.SEQ_MYSQL_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.MYSQL_PORT_3306_TCP_PORT || env.SEQ_MYSQL_PORT || env.SEQ_PORT || 20_057,
+    port: parseSafeInteger.orThrow(
+      env.MYSQL_PORT_3306_TCP_PORT || env.SEQ_MYSQL_PORT || seqPort || 20_057,
+    ),
     pool: {
-      max: Number(env.SEQ_MYSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
-      idle: Number(env.SEQ_MYSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
+      max: parseSafeInteger.orThrow(env.SEQ_MYSQL_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: parseSafeInteger.orThrow(env.SEQ_MYSQL_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
   },
 
   snowflake: {
+    dialect: SnowflakeDialect,
     username: env.SEQ_SNOWFLAKE_USER || env.SEQ_USER || 'root',
     password: env.SEQ_SNOWFLAKE_PW || env.SEQ_PW || '',
     database: env.SEQ_SNOWFLAKE_DB || env.SEQ_DB || 'sequelize_test',
-    dialectOptions: {
-      account: env.SEQ_SNOWFLAKE_ACCOUNT || env.SEQ_ACCOUNT || 'sequelize_test',
-      role: env.SEQ_SNOWFLAKE_ROLE || env.SEQ_ROLE || 'role',
-      warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse',
-      schema: env.SEQ_SNOWFLAKE_SCHEMA || env.SEQ_SCHEMA || '',
-    },
+    account: env.SEQ_SNOWFLAKE_ACCOUNT || env.SEQ_ACCOUNT || 'sequelize_test',
+    role: env.SEQ_SNOWFLAKE_ROLE || env.SEQ_ROLE || 'role',
+    warehouse: env.SEQ_SNOWFLAKE_WH || env.SEQ_WH || 'warehouse',
+    schema: env.SEQ_SNOWFLAKE_SCHEMA || env.SEQ_SCHEMA || '',
   },
 
   mariadb: {
+    dialect: MariaDbDialect,
     database: env.SEQ_MARIADB_DB || env.SEQ_DB || 'sequelize_test',
-    username: env.SEQ_MARIADB_USER || env.SEQ_USER || 'sequelize_test',
+    user: env.SEQ_MARIADB_USER || env.SEQ_USER || 'sequelize_test',
     password: env.SEQ_MARIADB_PW || env.SEQ_PW || 'sequelize_test',
     host: env.MARIADB_PORT_3306_TCP_ADDR || env.SEQ_MARIADB_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.MARIADB_PORT_3306_TCP_PORT || env.SEQ_MARIADB_PORT || env.SEQ_PORT || 21_103,
+    port: parseSafeInteger.orThrow(
+      env.MARIADB_PORT_3306_TCP_PORT || env.SEQ_MARIADB_PORT || seqPort || 21_103,
+    ),
     pool: {
       max: Number(env.SEQ_MARIADB_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_MARIADB_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
   },
 
-  sqlite: {},
+  sqlite3: {
+    dialect: SqliteDialect,
+    storage: getSqliteDatabasePath('default.sqlite'),
+  },
 
   postgres: {
+    dialect: PostgresDialect,
     database: env.SEQ_PG_DB || env.SEQ_DB || 'sequelize_test',
-    username: env.SEQ_PG_USER || env.SEQ_USER || 'sequelize_test',
+    user: env.SEQ_PG_USER || env.SEQ_USER || 'sequelize_test',
     password: env.SEQ_PG_PW || env.SEQ_PW || 'sequelize_test',
     host: env.POSTGRES_PORT_5432_TCP_ADDR || env.SEQ_PG_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.POSTGRES_PORT_5432_TCP_PORT || env.SEQ_PG_PORT || env.SEQ_PORT || 23_010,
+    port: parseSafeInteger.orThrow(
+      env.POSTGRES_PORT_5432_TCP_PORT || env.SEQ_PG_PORT || seqPort || 23_010,
+    ),
     pool: {
       max: Number(env.SEQ_PG_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_PG_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
@@ -73,28 +126,32 @@ export const Config: Record<Dialect, Options> = {
   },
 
   db2: {
-    database: process.env.SEQ_DB2_DB || process.env.SEQ_DB || process.env.IBM_DB_DBNAME || 'testdb',
-    username: process.env.SEQ_DB2_USER || process.env.SEQ_USER || process.env.IBM_DB_UID || 'db2inst1',
-    password: process.env.SEQ_DB2_PW || process.env.SEQ_PW || process.env.IBM_DB_PWD || 'password',
-    host: process.env.DB2_PORT_50000_TCP_ADDR || process.env.SEQ_DB2_HOST || process.env.SEQ_HOST || process.env.IBM_DB_HOSTNAME || '127.0.0.1',
-    port: process.env.DB2_PORT_50000_TCP_PORT || process.env.SEQ_DB2_PORT || process.env.SEQ_PORT
-      || process.env.IBM_DB_PORT || 50_000,
+    dialect: Db2Dialect,
+    database: env.SEQ_DB2_DB || env.SEQ_DB || env.IBM_DB_DBNAME || 'testdb',
+    username: env.SEQ_DB2_USER || env.SEQ_USER || env.IBM_DB_UID || 'db2inst1',
+    password: env.SEQ_DB2_PW || env.SEQ_PW || env.IBM_DB_PWD || 'password',
+    hostname:
+      env.DB2_PORT_50000_TCP_ADDR ||
+      env.SEQ_DB2_HOST ||
+      env.SEQ_HOST ||
+      env.IBM_DB_HOSTNAME ||
+      '127.0.0.1',
+    port: env.DB2_PORT_50000_TCP_PORT || env.SEQ_DB2_PORT || seqPort || env.IBM_DB_PORT || 50_000,
     pool: {
-      max: Number(process.env.SEQ_DB2_POOL_MAX || process.env.SEQ_POOL_MAX || 5),
-      idle: Number(process.env.SEQ_DB2_POOL_IDLE || process.env.SEQ_POOL_IDLE || 3000),
+      max: parseSafeInteger.orThrow(env.SEQ_DB2_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: parseSafeInteger.orThrow(env.SEQ_DB2_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
   },
 
   ibmi: {
-    database: env.SEQ_IBMI_DB || env.SEQ_DB,
-    username: process.env.SEQ_IBMI_USER || process.env.SEQ_USER,
-    password: process.env.SEQ_IBMI_PW || process.env.SEQ_PW,
+    dialect: IBMiDialect,
+    dataSourceName: env.SEQ_IBMI_DB || env.SEQ_DB,
+    username: env.SEQ_IBMI_USER || env.SEQ_USER,
+    password: env.SEQ_IBMI_PW || env.SEQ_PW,
     pool: {
       max: Number(env.SEQ_IBMI_POOL_MAX || env.SEQ_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_IBMI_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
-    dialectOptions: {
-      odbcConnectionString: env.SEQ_IBMI_CONN_STR,
-    },
+    odbcConnectionString: env.SEQ_IBMI_CONN_STR,
   },
 };

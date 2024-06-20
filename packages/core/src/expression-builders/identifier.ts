@@ -1,10 +1,10 @@
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
  * Use {@link identifier} instead.
  */
 export class Identifier extends BaseSqlExpression {
-  declare private readonly brand: 'identifier';
+  protected declare readonly [SQL_IDENTIFIER]: 'identifier';
 
   constructor(readonly value: string) {
     super();

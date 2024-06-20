@@ -1,15 +1,15 @@
-import type { DataType } from '../dialects/abstract/data-types.js';
+import { isPlainObject } from '@sequelize/utils';
+import type { DataType } from '../abstract-dialect/data-types.js';
 import { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
-import { isPlainObject } from '../utils/check.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
  * Do not use me directly. Use {@link cast}
  */
 export class Cast extends BaseSqlExpression {
-  declare private readonly brand: 'cast';
+  protected declare readonly [SQL_IDENTIFIER]: 'cast';
 
   constructor(
     readonly expression: Expression,
@@ -29,7 +29,6 @@ export function cast(val: unknown, type: DataType): Cast {
   if (isPlainObject(val) && !(Op.col in val)) {
     // Users should wrap this parameter with `where` themselves, but we do it to ensure backwards compatibility
     // with https://github.com/sequelize/sequelize/issues/6666
-    // @ts-expect-error -- backwards compatibility hack
     val = where(val);
   }
 

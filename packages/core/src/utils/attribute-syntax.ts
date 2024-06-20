@@ -1,3 +1,4 @@
+import { pojo } from '@sequelize/utils';
 import type { SyntaxNode } from 'bnf-parser';
 import { BNF, Compile, ParseError } from 'bnf-parser';
 import memoize from 'lodash/memoize.js';
@@ -8,7 +9,6 @@ import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
-import { noPrototype } from './object.js';
 
 /**
  * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "BaseExpression" representation.
@@ -39,14 +39,16 @@ export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
  *
  * All names should be lowercase, as they are case-insensitive.
  */
-const builtInModifiers: Record<string, Class<DialectAwareFn>> = noPrototype({
+const builtInModifiers: Record<string, Class<DialectAwareFn>> = pojo({
   unquote: Unquote,
 });
 
 function getModifier(name: string): Class<DialectAwareFn> {
   const ModifierClass = builtInModifiers[name.toLowerCase()];
   if (!ModifierClass) {
-    throw new Error(`${name} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`);
+    throw new Error(
+      `${name} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`,
+    );
   }
 
   return ModifierClass;
@@ -88,7 +90,9 @@ const attributeParser = (() => {
 
   const parsedAttributeBnf = BNF.parse(advancedAttributeBnf);
   if (parsedAttributeBnf instanceof ParseError) {
-    throw new Error(`Failed to initialize attribute syntax parser. This is a Sequelize bug: ${parsedAttributeBnf.toString()}`);
+    throw new Error(
+      `Failed to initialize attribute syntax parser. This is a Sequelize bug: ${parsedAttributeBnf.toString()}`,
+    );
   }
 
   return Compile(parsedAttributeBnf);
@@ -108,22 +112,24 @@ interface AttributeAst extends SyntaxNode {
   type: 'attribute';
   value: [
     attribute: StringNode<'association' | 'identifier'>,
-    jsonPath: UselessNode<'jsonPath?', [
-      UselessNode<'jsonPath', [
+    jsonPath: UselessNode<
+      'jsonPath?',
+      [
         UselessNode<
-          '(...)+',
-          Array<StringNode<'keyAccess' | 'indexAccess'>>
+          'jsonPath',
+          [UselessNode<'(...)+', Array<StringNode<'keyAccess' | 'indexAccess'>>>]
         >,
-      ]>,
-    ]>,
-    castOrModifiers: UselessNode<'castOrModifiers?', [
-      UselessNode<'castOrModifiers', [
+      ]
+    >,
+    castOrModifiers: UselessNode<
+      'castOrModifiers?',
+      [
         UselessNode<
-          '(...)+',
-          Array<StringNode<'cast' | 'modifier'>>
+          'castOrModifiers',
+          [UselessNode<'(...)+', Array<StringNode<'cast' | 'modifier'>>>]
         >,
-      ]>,
-    ]>,
+      ]
+    >,
   ];
 }
 
@@ -141,7 +147,9 @@ ${' '.repeat(parsed.ref.start.index)}^`);
 
   const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
 
-  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(attributeNode.value);
+  let result: Cast | JsonPath | AssociationPath | Attribute | DialectAwareFn = parseAssociationPath(
+    attributeNode.value,
+  );
 
   const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
   if (jsonPathNodes) {
@@ -154,11 +162,9 @@ ${' '.repeat(parsed.ref.start.index)}^`);
 
   const castOrModifierNodes = castOrModifiersNodeRaw.value[0]?.value[0].value;
   if (castOrModifierNodes) {
-
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
     for (const castOrModifierNode of castOrModifierNodes) {
-
       if (castOrModifierNode.type === 'cast') {
         result = new Cast(result, castOrModifierNode.value);
         continue;
@@ -200,22 +206,24 @@ interface JsonPathAst extends SyntaxNode {
   type: 'partialJsonPath';
   value: [
     firstKey: StringNode<'key' | 'indexAccess'>,
-    jsonPath: UselessNode<'jsonPath?', [
-      UselessNode<'jsonPath', [
+    jsonPath: UselessNode<
+      'jsonPath?',
+      [
         UselessNode<
-          '(...)+',
-          Array<StringNode<'keyAccess' | 'indexAccess'>>
+          'jsonPath',
+          [UselessNode<'(...)+', Array<StringNode<'keyAccess' | 'indexAccess'>>>]
         >,
-      ]>,
-    ]>,
-    castOrModifiers: UselessNode<'castOrModifiers?', [
-      UselessNode<'castOrModifiers', [
+      ]
+    >,
+    castOrModifiers: UselessNode<
+      'castOrModifiers?',
+      [
         UselessNode<
-          '(...)+',
-          Array<StringNode<'cast' | 'modifier'>>
+          'castOrModifiers',
+          [UselessNode<'(...)+', Array<StringNode<'cast' | 'modifier'>>>]
         >,
-      ]>,
-    ]>,
+      ]
+    >,
   ];
 }
 
@@ -245,7 +253,6 @@ ${' '.repeat(parsed.ref.start.index)}^`);
     // casts & modifiers can be chained, the last one is applied last
     // foo:upper:lower needs to produce LOWER(UPPER(foo))
     for (const castOrModifierNode of castOrModifierNodes) {
-
       if (castOrModifierNode.type === 'cast') {
         castsAndModifiers.push(castOrModifierNode.value);
         continue;

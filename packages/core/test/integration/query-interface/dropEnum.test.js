@@ -10,17 +10,12 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
-    this.sequelize.options.quoteIdenifiers = true;
     this.queryInterface = this.sequelize.queryInterface;
-  });
-
-  afterEach(async function () {
-    await Support.dropTestSchemas(this.sequelize);
   });
 
   describe('dropEnum', () => {
     beforeEach(async function () {
-      await this.queryInterface.createTable('menus',  {
+      await this.queryInterface.createTable('menus', {
         structuretype: DataTypes.ENUM('menus', 'submenu', 'routine'),
         sequence: DataTypes.INTEGER,
         name: DataTypes.STRING,

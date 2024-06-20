@@ -2,12 +2,12 @@ import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
 import { sequelize } from '../support';
 
-const dialect = sequelize.getDialect();
+const dialect = sequelize.dialect.name;
 
 describe('Sequelize#drop', () => {
   it('supports dropping cyclic associations', async () => {
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
@@ -16,7 +16,7 @@ describe('Sequelize#drop', () => {
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
         references: {
           deferrable: Deferrable.INITIALLY_IMMEDIATE,
@@ -25,7 +25,10 @@ describe('Sequelize#drop', () => {
     });
 
     // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
-    const mssqlConstraints = dialect === 'mssql' ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction } : null;
+    const mssqlConstraints =
+      dialect === 'mssql'
+        ? { onDelete: 'NO ACTION' as ReferentialAction, onUpdate: 'NO ACTION' as ReferentialAction }
+        : null;
 
     // These models both have a foreign key that references the other model.
     // Sequelize should be able to create them.
@@ -44,13 +47,13 @@ describe('Sequelize#drop', () => {
     }
 
     const A = sequelize.define('A', {
-      BId: {
+      bId: {
         type: DataTypes.INTEGER,
       },
     });
 
     const B = sequelize.define('B', {
-      AId: {
+      aId: {
         type: DataTypes.INTEGER,
       },
     });

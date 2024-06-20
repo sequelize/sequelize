@@ -3,8 +3,6 @@
 .DS_STORE
 npm-debug.log*
 *~
-test.sqlite
-test.sqlite2
 *.sublime*
 package-lock.json
 pnpm-lock.yaml
@@ -12,13 +10,16 @@ pnpm-lock.yaml
 .nyc_output
 coverage-*
 coverage
-tmp
 .vscode/
 .typedoc-build
 node_modules
 *.log
 /packages/*/lib
 /packages/*/types
+/packages/core/test/sqlite-databases
+/.nx
+
+lib
 
 .pnp.*
 .yarn/*

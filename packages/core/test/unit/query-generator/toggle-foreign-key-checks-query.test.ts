@@ -9,7 +9,7 @@ describe('QueryGenerator#getToggleForeignKeyChecksQuery', () => {
     expectsql(() => queryGenerator.getToggleForeignKeyChecksQuery(false), {
       default: notSupportedError,
       'mysql mariadb': 'SET FOREIGN_KEY_CHECKS=0',
-      sqlite: 'PRAGMA foreign_keys = OFF',
+      sqlite3: 'PRAGMA foreign_keys = OFF',
     });
   });
 
@@ -17,7 +17,7 @@ describe('QueryGenerator#getToggleForeignKeyChecksQuery', () => {
     expectsql(() => queryGenerator.getToggleForeignKeyChecksQuery(true), {
       default: notSupportedError,
       'mysql mariadb': 'SET FOREIGN_KEY_CHECKS=1',
-      sqlite: 'PRAGMA foreign_keys = ON',
+      sqlite3: 'PRAGMA foreign_keys = ON',
     });
   });
 });

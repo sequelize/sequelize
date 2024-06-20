@@ -22,9 +22,14 @@ export const Value = Pkg.Value;
 export const sql = Pkg.sql;
 export const and = Pkg.and;
 export const or = Pkg.or;
+export const SQL_NULL = Pkg.SQL_NULL;
+export const JSON_NULL = Pkg.JSON_NULL;
 
-// export * from './lib/query-interface';
 export const AbstractQueryInterface = Pkg.AbstractQueryInterface;
+export const AbstractConnectionManager = Pkg.AbstractConnectionManager;
+export const AbstractQueryGenerator = Pkg.AbstractQueryGenerator;
+export const AbstractQuery = Pkg.AbstractQuery;
+export const AbstractDialect = Pkg.AbstractDialect;
 
 // export * from './lib/model';
 export const Model = Pkg.Model;
@@ -38,16 +43,15 @@ export const IsolationLevel = Pkg.IsolationLevel;
 
 // export * from './lib/associations/index';
 export const Association = Pkg.Association;
-export const BelongsTo = Pkg.BelongsTo;
-export const HasOne = Pkg.HasOne;
-export const HasMany = Pkg.HasMany;
-export const BelongsToMany = Pkg.BelongsToMany;
+export const BelongsToAssociation = Pkg.BelongsToAssociation;
+export const HasOneAssociation = Pkg.HasOneAssociation;
+export const HasManyAssociation = Pkg.HasManyAssociation;
+export const BelongsToManyAssociation = Pkg.BelongsToManyAssociation;
 
 // export * from './lib/errors';
 export const BaseError = Pkg.BaseError;
 
 export const AggregateError = Pkg.AggregateError;
-export const AsyncQueueError = Pkg.AsyncQueueError;
 export const AssociationError = Pkg.AssociationError;
 export const BulkRecordError = Pkg.BulkRecordError;
 export const ConnectionError = Pkg.ConnectionError;
@@ -98,5 +102,7 @@ export const ValidationErrorItemType = Pkg.ValidationErrorItemType;
 export const isModelStatic = Pkg.isModelStatic;
 export const isSameInitialModel = Pkg.isSameInitialModel;
 export const importModels = Pkg.importModels;
+export const ManualOnDelete = Pkg.ManualOnDelete;
 
+// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
 export { default } from './index.js';

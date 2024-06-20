@@ -6,12 +6,12 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Fn, Col } = require('@sequelize/core');
+const { Col, DataTypes, Fn } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
     describe('set', () => {
-      it('doesn\'t overwrite generated primary keys', function () {
+      it("doesn't overwrite generated primary keys", function () {
         const User = this.sequelize.define('User', {
           name: { type: DataTypes.STRING },
         });
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         expect(user.get('name')).to.equal('Jan');
       });
 
-      it('doesn\'t overwrite defined primary keys', function () {
+      it("doesn't overwrite defined primary keys", function () {
         const User = this.sequelize.define('User', {
           identifier: { type: DataTypes.STRING, primaryKey: true },
         });
@@ -40,14 +40,17 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         expect(user.get('identifier')).to.equal('identifier');
       });
 
-      it('doesn\'t set timestamps', function () {
+      it("doesn't set timestamps", function () {
         const User = this.sequelize.define('User', {
           identifier: { type: DataTypes.STRING, primaryKey: true },
         });
 
-        const user = User.build({}, {
-          isNewRecord: false,
-        });
+        const user = User.build(
+          {},
+          {
+            isNewRecord: false,
+          },
+        );
 
         user.set({
           createdAt: new Date(2000, 1, 1),
@@ -58,16 +61,23 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         expect(user.get('updatedAt')).not.to.be.ok;
       });
 
-      it('doesn\'t set underscored timestamps', function () {
-        const User = this.sequelize.define('User', {
-          identifier: { type: DataTypes.STRING, primaryKey: true },
-        }, {
-          underscored: true,
-        });
+      it("doesn't set underscored timestamps", function () {
+        const User = this.sequelize.define(
+          'User',
+          {
+            identifier: { type: DataTypes.STRING, primaryKey: true },
+          },
+          {
+            underscored: true,
+          },
+        );
 
-        const user = User.build({}, {
-          isNewRecord: false,
-        });
+        const user = User.build(
+          {},
+          {
+            isNewRecord: false,
+          },
+        );
 
         user.set({
           created_at: new Date(2000, 1, 1),
@@ -79,22 +89,29 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
       });
 
       it('allows use of sequelize.fn and sequelize.col in date and bool fields', async function () {
-        const User = this.sequelize.define('User', {
-          d: DataTypes.DATE,
-          b: DataTypes.BOOLEAN,
-          always_false: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: false,
+        const User = this.sequelize.define(
+          'User',
+          {
+            d: DataTypes.DATE,
+            b: DataTypes.BOOLEAN,
+            always_false: {
+              type: DataTypes.BOOLEAN,
+              defaultValue: false,
+            },
           },
-        }, { timestamps: false });
+          { timestamps: false },
+        );
 
         await User.sync({ force: true });
         const user = await User.create({});
         // Create the user first to set the proper default values. PG does not support column references in insert,
         // so we must create a record with the right value for always_false, then reference it in an update
-        const now = dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
-          : dialect === 'mssql' ? this.sequelize.fn('', this.sequelize.fn('getdate'))
-          : this.sequelize.fn('NOW');
+        const now =
+          dialect === 'sqlite3'
+            ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
+            : dialect === 'mssql'
+              ? this.sequelize.fn('', this.sequelize.fn('getdate'))
+              : this.sequelize.fn('NOW');
 
         user.set({
           d: now,
@@ -126,12 +143,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
-            include: [
-              User,
-              Tag,
-            ],
-          });
+          const product = Product.build(
+            {},
+            {
+              include: [User, Tag],
+            },
+          );
 
           product.set({
             id: 1,
@@ -169,26 +186,29 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           Product.hasMany(Tag);
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
-            include: [
-              User,
-              Tag,
-            ],
-          });
-
-          product.set({
-            id: 1,
-            title: 'Chair',
-            tags: [
-              { id: 1, name: 'Alpha' },
-              { id: 2, name: 'Beta' },
-            ],
-            user: {
-              id: 1,
-              first_name: 'Mick',
-              last_name: 'Hansen',
+          const product = Product.build(
+            {},
+            {
+              include: [User, Tag],
             },
-          }, { raw: true });
+          );
+
+          product.set(
+            {
+              id: 1,
+              title: 'Chair',
+              tags: [
+                { id: 1, name: 'Alpha' },
+                { id: 2, name: 'Beta' },
+              ],
+              user: {
+                id: 1,
+                first_name: 'Mick',
+                last_name: 'Hansen',
+              },
+            },
+            { raw: true },
+          );
 
           expect(product.tags).to.be.ok;
           expect(product.tags.length).to.equal(2);
@@ -257,21 +277,25 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
           Product.belongsTo(User);
 
-          const product = Product.build({}, {
-            include: [
-              User,
-            ],
-          });
-
-          product.set({
-            id: 1,
-            title: 'Chair',
-            user: {
-              id: 1,
-              first_name: 'Mick',
-              last_name: 'Hansen',
+          const product = Product.build(
+            {},
+            {
+              include: [User],
             },
-          }, { raw: true });
+          );
+
+          product.set(
+            {
+              id: 1,
+              title: 'Chair',
+              user: {
+                id: 1,
+                first_name: 'Mick',
+                last_name: 'Hansen',
+              },
+            },
+            { raw: true },
+          );
 
           expect(product.get('user', { plain: true })).not.to.be.instanceof(User);
           expect(product.get({ plain: true }).user).not.to.be.instanceof(User);
@@ -284,10 +308,13 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             title: DataTypes.STRING,
           });
 
-          const product = Product.build({
-            id: 1,
-            title: 'Chair',
-          }, { raw: true });
+          const product = Product.build(
+            {
+              id: 1,
+              title: 'Chair',
+            },
+            { raw: true },
+          );
 
           const values = product.get({ clone: true });
           delete values.title;
@@ -351,7 +378,6 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
         User.afterUpdate(instance => {
           changed = instance.changed();
-
         });
 
         await User.sync({ force: true });

@@ -28,17 +28,20 @@ describe('Model', () => {
   });
 
   describe('sum', () => {
-
     it('should sum without rows', async function () {
       await expect(this.Payment.sum('amount', { where: { mood: 'sad' } })).to.eventually.be.null;
     });
 
     it('should sum when is 0', async function () {
-      await expect(this.Payment.sum('amount', { where: { mood: 'neutral' } })).to.eventually.be.equal(0);
+      await expect(
+        this.Payment.sum('amount', { where: { mood: 'neutral' } }),
+      ).to.eventually.be.equal(0);
     });
 
     it('should sum', async function () {
-      await expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(100);
+      await expect(this.Payment.sum('amount', { where: { mood: 'happy' } })).to.eventually.be.equal(
+        100,
+      );
     });
   });
 
@@ -55,7 +58,9 @@ describe('Model', () => {
 
       if (Support.sequelize.dialect.supports.transactions) {
         it('supports transactions', async function () {
-          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(this.sequelize);
+          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+            this.sequelize,
+          );
           const User = sequelize.define('User', { age: DataTypes.INTEGER });
 
           await User.sync({ force: true });

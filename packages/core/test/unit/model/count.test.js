@@ -63,6 +63,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(count).to.eql(findAndCountAll);
       });
     });
-
   });
 });
