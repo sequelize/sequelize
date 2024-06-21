@@ -2,7 +2,7 @@
   "extends": "../../tsconfig-preset.json",
   "compilerOptions": {
     "outDir": "./lib",
-    "rootDir": "./src",
+    "rootDir": "./src"
   },
   "include": ["./src/**/*.ts"]
 }

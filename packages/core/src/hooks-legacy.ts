@@ -68,7 +68,7 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
     hooksReworked();
 
     if (hook) {
-      // @ts-ignore -- this is not valid since TS 5.2
+      // @ts-expect-error -- this is not valid since TS 5.2
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
@@ -105,7 +105,7 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
     hooksReworked();
 
     if (hook) {
-      // @ts-ignore -- this is not valid since TS 5.2
+      // @ts-expect-error -- this is not valid since TS 5.2
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
