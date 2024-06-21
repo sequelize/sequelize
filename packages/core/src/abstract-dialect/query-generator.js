@@ -462,9 +462,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
-    if (
-      this.dialect.supports['LIMIT ON UPDATE'] &&
-      options.limit) {
+    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
       if (!['mssql', 'db2', 'oracle'].includes(this.dialect.name)) {
         // TODO: use bind parameter
         suffix = ` LIMIT ${this.escape(options.limit, options)} `;
