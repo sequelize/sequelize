@@ -35,9 +35,6 @@ export class OracleQueryGeneratorInternal<
     );
     const targetSql = attributeTypeToSql(type).toUpperCase();
 
-    // TODO: if we're casting to the same SQL DataType, we could skip the SQL cast (but keep the JS cast)
-    //  This is useful because sometimes you want to cast the Sequelize DataType to another Sequelize DataType,
-    //  but they are both the same SQL type, so a SQL cast would be redundant.
     if (type === 'boolean') {
       castSql = `(CASE WHEN ${castSql}='true' THEN 1 ELSE 0 END)`;
 

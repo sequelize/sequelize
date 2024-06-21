@@ -369,14 +369,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ]);
   }
 
-  // TODO: write your own escape function
   tableExistsQuery(table) {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
 
     return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${this.escape(tableName)} AND OWNER = ${table.schema ? this.escape(schemaName) : 'USER'}`;
   }
-
-  // TODO: MOVE IT TO QUERY-GENERATOR-TYPESCRIPT.TS ALONG WITH GETCATALOG()
 
   showConstraintsQuery(tableName, options) {
     if (options && options.constraintType === 'FOREIGN KEY') {
