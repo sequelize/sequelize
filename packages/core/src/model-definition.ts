@@ -1008,7 +1008,6 @@ export function mergeModelOptions(
           : [existingHooks[hookType]];
 
         if (!Array.isArray(optionValue[hookType])) {
-          // @ts-expect-error -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, optionValue[hookType]];
         } else {
           // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+

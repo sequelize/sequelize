@@ -133,7 +133,6 @@ export function mergeAttributeOptions(
       }
 
       if (Array.isArray(optionValue)) {
-        // @ts-expect-error -- runtime type checking is enforced by model
         existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
       } else {
         existingOptions[optionName] = [...existingOptions[optionName], optionValue];
