@@ -981,7 +981,7 @@ export function mergeModelOptions(
           continue;
         }
 
-        if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]!) {
+        if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]) {
           throw new Error(
             `Trying to set the option ${optionName}[${JSON.stringify(subOptionName)}], but a value already exists.`,
           );

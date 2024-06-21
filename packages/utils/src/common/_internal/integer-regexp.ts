@@ -68,5 +68,5 @@ export function getIsIntegerRegExp(radix: number): RegExp {
     integerRegExps[radix] = new RegExp(`^-?[${characterSet.join('')}]+$`, 'i');
   }
 
-  return integerRegExps[radix]!;
+  return integerRegExps[radix];
 }
