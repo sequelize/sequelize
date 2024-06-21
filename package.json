@@ -73,7 +73,7 @@
     "@types/chai": "4.3.16",
     "@types/lodash": "4.17.5",
     "@types/mocha": "10.0.6",
-    "@types/node": "20.14.6",
+    "@types/node": "20.14.7",
     "chai": "4.4.1",
     "concurrently": "8.2.2",
     "cross-env": "7.0.3",
@@ -101,7 +101,7 @@
     "typedoc-plugin-missing-exports": "2.3.0",
     "typescript": "5.4.5"
   },
-  "packageManager": "yarn@4.3.0",
+  "packageManager": "yarn@4.3.1",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"
