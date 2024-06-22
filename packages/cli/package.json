@@ -4,7 +4,7 @@
   },
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
-    "@oclif/core": "^3.26.0",
+    "@oclif/core": "^4.0.6",
     "@oclif/plugin-help": "^6.0.20",
     "@sequelize/utils": "workspace:*",
     "@types/inquirer": "^9.0.7",
@@ -15,7 +15,7 @@
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
-    "@oclif/test": "3.2.15",
+    "@oclif/test": "4.0.4",
     "@types/chai": "4.3.16",
     "@types/mocha": "10.0.6",
     "chai": "4.4.1",

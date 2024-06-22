@@ -76,7 +76,7 @@
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
-    "@types/uuid": "9.0.8",
+    "@types/uuid": "10.0.0",
     "chai": "4.4.1",
     "chai-as-promised": "7.1.2",
     "chai-datetime": "1.8.0",

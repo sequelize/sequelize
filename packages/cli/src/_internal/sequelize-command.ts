@@ -1,6 +1,7 @@
 import type { Interfaces } from '@oclif/core';
 import { Command, Flags } from '@oclif/core';
-import type { Flag, FlagInput } from '@oclif/core/lib/interfaces/parser.js';
+import type { Flag } from '@oclif/core/interfaces';
+import type { FlagInput } from '@oclif/core/parser';
 import { pojo } from '@sequelize/utils';
 import type { DistinctQuestion } from 'inquirer';
 import inquirer from 'inquirer';
@@ -33,7 +34,6 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       looseParseFlagConfig[key] = {
         ...strictFlagConfig[key],
         required: false,
-        default: undefined,
       };
     }
 

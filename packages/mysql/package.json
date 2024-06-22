@@ -41,7 +41,7 @@
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
-    "mysql2": "^3.9.3",
+    "mysql2": "^3.10.0",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
