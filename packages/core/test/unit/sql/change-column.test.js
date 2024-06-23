@@ -87,4 +87,20 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
     });
   });
+
+  it('properly generate alter queries for comments', async () => {
+    const sql = await sequelize.queryInterface.changeColumn('users', 'level_id', {
+      type: DataTypes.FLOAT,
+      comment: 'FooBar',
+    });
+
+    expectsql(sql, {
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL',
+      mssql: `ALTER TABLE [users] ALTER COLUMN [level_id] REAL NULL; EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'N''FooBar''', @level0type = N'Schema', @level0name = N'dbo', @level1type = N'Table', @level1name = [users], @level2type = N'Column', @level2name = [level_id];`,
+      db2: `ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL COMMENT 'FooBar';`,
+      'mariadb mysql': "ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT COMMENT 'FooBar';",
+      postgres: `ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL; COMMENT ON COLUMN "users"."level_id" IS 'FooBar';`,
+      snowflake: `ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT COMMENT 'FooBar';`,
+    });
+  });
 });
