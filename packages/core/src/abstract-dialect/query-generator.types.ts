@@ -4,6 +4,12 @@ import type { Literal } from '../expression-builders/literal';
 import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '../model';
 import type { ModelDefinition } from '../model-definition.js';
 import type { TableHints } from '../table-hints';
+import type {
+  HistoryRetentionPeriod,
+  TemporalTableOptions,
+  TemporalTableType,
+  TemporalTimeFindOptions,
+} from '../temporal-tables';
 import type { TransactionType } from '../transaction';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';
@@ -50,6 +56,7 @@ export interface ListSchemasQueryOptions {
 // keep DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface DropTableQueryOptions {
   cascade?: boolean;
+  dropHistoryTable?: boolean;
 }
 
 // Keeep LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -66,6 +73,19 @@ export interface RenameTableQueryOptions {
 export interface TruncateTableQueryOptions {
   cascade?: boolean;
   restartIdentity?: boolean;
+}
+
+// keep ADD_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface AddTemporalTableQueryOptions
+  extends Omit<TemporalTableOptions, 'temporalTableType'> {
+  temporalTableType: Exclude<TemporalTableType, TemporalTableType.NON_TEMPORAL>;
+}
+
+// keep CHANGE_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface ChangeTemporalTableQueryOptions {
+  historyRetentionPeriod?: HistoryRetentionPeriod;
+  historyTableName?: string | undefined;
+  temporalTableType: TemporalTableType;
 }
 
 // keep REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -177,8 +197,10 @@ export interface StartTransactionQueryOptions {
 }
 
 export interface QuoteTableOptions extends IndexHintable {
-  alias: boolean | string;
+  alias?: boolean | string;
+  forceSchema?: boolean;
   tableHints?: TableHints[] | undefined;
+  temporalTime?: TemporalTimeFindOptions;
 }
 
 export interface BulkDeleteQueryOptions<TAttributes = any>

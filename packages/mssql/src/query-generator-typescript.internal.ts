@@ -1,5 +1,7 @@
 import type {
+  AddTemporalTableQueryOptions,
   BulkDeleteQueryOptions,
+  ChangeTemporalTableQueryOptions,
   ConstraintType,
   CreateDatabaseQueryOptions,
   Expression,
@@ -12,9 +14,14 @@ import type {
   TableOrModel,
   TruncateTableQueryOptions,
 } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core';
+import {
+  AbstractQueryGenerator,
+  HistoryRetentionPeriodUnit,
+  TemporalTableType,
+} from '@sequelize/core';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
+  ADD_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -28,6 +35,13 @@ import { randomBytes } from 'node:crypto';
 import type { MsSqlDialect } from './dialect.js';
 import { MsSqlQueryGeneratorInternal } from './query-generator.internal.js';
 
+const ADD_TEMPORAL_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof AddTemporalTableQueryOptions>([
+  'historyRetentionPeriod',
+  'historyTableName',
+  'systemPeriodRowStart',
+  'systemPeriodRowEnd',
+  'temporalTableType',
+]);
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'collate',
 ]);
@@ -129,15 +143,21 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
+    const schemaSql = options?.schema
+      ? `AND s.name = ${this.escape(options.schema)}`
+      : `AND s.name NOT IN (${this.#internals
+          .getTechnicalSchemaNames()
+          .map(schema => this.escape(schema))
+          .join(', ')})`;
+
     return joinSQLFragments([
-      'SELECT t.name AS [tableName], s.name AS [schema]',
-      `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
-      options?.schema
-        ? `AND s.name = ${this.escape(options.schema)}`
-        : `AND s.name NOT IN (${this.#internals
-            .getTechnicalSchemaNames()
-            .map(schema => this.escape(schema))
-            .join(', ')})`,
+      `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t`,
+      `INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      schemaSql,
+      `EXCEPT`,
+      `SELECT OBJECT_NAME(t.history_table_id) AS [tableName], s.name AS [schema] FROM sys.tables t`,
+      `INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
+      schemaSql,
       'ORDER BY s.name, t.name',
     ]);
   }
@@ -181,6 +201,163 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
+  }
+
+  addTemporalTableQuery(tableOrModel: TableOrModel, options: AddTemporalTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'addTemporalTableQuery',
+        this.dialect,
+        ADD_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        ADD_TEMPORAL_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    if (options.temporalTableType !== TemporalTableType.SYSTEM_PERIOD) {
+      throw new Error(
+        `${options.temporalTableType} tables are not supported in ${this.dialect.name}.`,
+      );
+    }
+
+    const table = this.extractTableDetails(tableOrModel);
+    const quoteTbl = this.quoteTable(tableOrModel);
+    const quoteHistoryTbl = this.quoteTable(
+      {
+        tableName: options.historyTableName || `${table.tableName}_history`,
+        schema: table.schema,
+      },
+      { forceSchema: true },
+    );
+    const historyTableSql = [];
+
+    if (
+      options.historyRetentionPeriod?.unit &&
+      options.historyRetentionPeriod.unit !== HistoryRetentionPeriodUnit.INFINITE
+    ) {
+      if (!Number.isInteger(options?.historyRetentionPeriod?.length)) {
+        throw new TypeError('Invalid history retention period length.');
+      }
+
+      historyTableSql.push(
+        ` (HISTORY_TABLE = ${quoteHistoryTbl},`,
+        ` HISTORY_RETENTION_PERIOD = ${options?.historyRetentionPeriod?.length} ${options?.historyRetentionPeriod?.unit})`,
+      );
+    } else {
+      historyTableSql.push(` (HISTORY_TABLE = ${quoteHistoryTbl})`);
+    }
+
+    const rowEnd = this.quoteIdentifier(options?.systemPeriodRowEnd || 'SysEndTime');
+    const rowStart = this.quoteIdentifier(options?.systemPeriodRowStart || 'SysStartTime');
+
+    return joinSQLFragments([
+      `ALTER TABLE ${quoteTbl} ADD`,
+      `${rowStart} DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL DEFAULT SYSUTCDATETIME(),`,
+      `${rowEnd} DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),`,
+      `PERIOD FOR SYSTEM_TIME (${rowStart}, ${rowEnd});`,
+      `ALTER TABLE ${quoteTbl} SET (SYSTEM_VERSIONING = ON`,
+      ...historyTableSql,
+      `);`,
+    ]);
+  }
+
+  changeTemporalTableQuery(tableOrModel: TableOrModel, options: ChangeTemporalTableQueryOptions) {
+    const quoteTbl = this.quoteTable(tableOrModel);
+
+    if (options.temporalTableType === TemporalTableType.NON_TEMPORAL) {
+      return `ALTER TABLE ${quoteTbl} SET (SYSTEM_VERSIONING = OFF)`;
+    }
+
+    if (options.temporalTableType !== TemporalTableType.SYSTEM_PERIOD) {
+      throw new Error(
+        `${options.temporalTableType} tables are not supported in ${this.dialect.name}.`,
+      );
+    }
+
+    const historyTableSql: string[] = [];
+    const table = this.extractTableDetails(tableOrModel);
+    const quoteHistoryTbl = this.quoteTable(
+      {
+        tableName: options.historyTableName || `${table.tableName}_history`,
+        schema: table.schema,
+      },
+      { forceSchema: true },
+    );
+    historyTableSql.push(` (HISTORY_TABLE = ${quoteHistoryTbl}`);
+
+    if (options.historyRetentionPeriod) {
+      if (options.historyRetentionPeriod.unit !== HistoryRetentionPeriodUnit.INFINITE) {
+        if (!Number.isInteger(options?.historyRetentionPeriod?.length)) {
+          throw new TypeError('Invalid history retention period length.');
+        }
+
+        historyTableSql.push(
+          `, HISTORY_RETENTION_PERIOD = ${options.historyRetentionPeriod.length} ${options.historyRetentionPeriod.unit})`,
+        );
+      } else {
+        historyTableSql.push(
+          `, HISTORY_RETENTION_PERIOD = ${options.historyRetentionPeriod.unit})`,
+        );
+      }
+    } else {
+      historyTableSql.push(')');
+    }
+
+    return joinSQLFragments([
+      `ALTER TABLE ${quoteTbl} SET (SYSTEM_VERSIONING = ON`,
+      ...historyTableSql,
+      `)`,
+    ]);
+  }
+
+  isTemporalTableQuery(tableOrModel: TableOrModel) {
+    const table = this.extractTableDetails(tableOrModel);
+
+    return joinSQLFragments([
+      'SELECT temporal_type_desc FROM sys.tables',
+      `WHERE [name] = ${this.escape(table.tableName)}`,
+      `AND SCHEMA_NAME(schema_id) = ${this.escape(table.schema)}`,
+      `AND temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE'`,
+    ]);
+  }
+
+  removeTemporalTableQuery(tableOrModel: TableOrModel) {
+    const quoteTbl = this.quoteTable(tableOrModel);
+
+    return joinSQLFragments([
+      `ALTER TABLE ${quoteTbl} SET (SYSTEM_VERSIONING = OFF);`,
+      `ALTER TABLE ${quoteTbl} DROP PERIOD FOR SYSTEM_TIME;`,
+    ]);
+  }
+
+  showTemporalPeriodsQuery(tableOrModel: TableOrModel) {
+    const quoteTbl = this.quoteTable(tableOrModel);
+
+    return joinSQLFragments([
+      'SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p',
+      'INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id',
+      'INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id',
+      `WHERE p.object_id = OBJECT_ID('${quoteTbl}', 'U')`,
+    ]);
+  }
+
+  showTemporalTablesQuery(tableOrModel: TableOrModel) {
+    const table = this.extractTableDetails(tableOrModel);
+
+    return joinSQLFragments([
+      'SELECT t.[name] AS [tableName],',
+      's.[name] AS [schema],',
+      't.[temporal_type_desc] AS [type],',
+      'h.[name] AS [historyTableName],',
+      't.[history_retention_period] AS [historyRetentionPeriodLength],',
+      't.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]',
+      'FROM sys.tables t',
+      'INNER JOIN sys.schemas s ON t.schema_id = s.schema_id',
+      'LEFT JOIN sys.tables h ON t.history_table_id = h.object_id',
+      `WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE'`,
+      `AND t.[name] = ${this.escape(table.tableName)}`,
+      `AND s.[name] = ${this.escape(table.schema)}`,
+    ]);
   }
 
   #getConstraintType(type: ConstraintType): string {
