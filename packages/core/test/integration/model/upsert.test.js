@@ -872,6 +872,71 @@ describe('Model', () => {
             expect(otherMembership.permissions).to.eq('member');
             expect(otherMembership.id).to.not.eq(originalMembership.id);
           });
+
+          it('should map conflictFields to column names', async () => {
+            const Employees = sequelize.define('employees', {
+              employeeId: {
+                type: DataTypes.INTEGER,
+                field: 'Employee_ID',
+              },
+              departmentId: {
+                type: DataTypes.INTEGER,
+                field: 'Department_ID',
+              },
+              position: DataTypes.ENUM('junior', 'senior'),
+            });
+
+            await Employees.sync({ force: true });
+
+            await sequelize.queryInterface.addConstraint('employees', {
+              type: 'UNIQUE',
+              fields: ['Employee_ID', 'Department_ID'],
+            });
+
+            const [originalEmployee] = await Employees.upsert(
+              {
+                employeeId: 1,
+                departmentId: 1,
+                position: 'junior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(originalEmployee).to.not.eq(null);
+            expect(originalEmployee.position).to.eq('junior');
+
+            const [updatedEmployee] = await Employees.upsert(
+              {
+                employeeId: 1,
+                departmentId: 1,
+                position: 'senior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(updatedEmployee).to.not.eq(null);
+            expect(updatedEmployee.position).to.eq('senior');
+            expect(updatedEmployee.id).to.eq(originalEmployee.id);
+
+            const [otherEmployee] = await Employees.upsert(
+              {
+                employeeId: 2,
+                departmentId: 1,
+                position: 'senior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(otherEmployee).to.not.eq(null);
+            expect(otherEmployee.position).to.eq('senior');
+            expect(otherEmployee.id).to.not.eq(originalEmployee.id);
+          });
         });
       }
 
