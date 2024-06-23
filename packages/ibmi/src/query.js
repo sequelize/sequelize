@@ -128,17 +128,12 @@ export class IBMiQuery extends AbstractQuery {
       return data[0];
     }
 
-    if (this.isBulkUpdateQuery() || this.isDeleteQuery() || this.isUpsertQuery()) {
+    if (this.isBulkUpdateQuery()) {
+      return this.options.returning ? data : data.at(0)?.['1'];
+    }
+
+    if (this.isDeleteQuery()) {
       return data.count;
-    }
-
-    if (this.isInsertQuery(data)) {
-      // insert queries can't call count, because they are actually select queries wrapped around insert queries to get the inserted id. Need to count the number of results instead.
-      return [result, data.length];
-    }
-
-    if (this.isUpdateQuery()) {
-      return [result, data.count];
     }
 
     if (this.isShowConstraintsQuery()) {

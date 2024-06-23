@@ -286,14 +286,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `CREATE${options.unique ? ' UNIQUE' : ''} INDEX ${schema ? ` ${schema}.` : ''}${this.quoteIdentifiers(options.name)} ON ${tableName} (${fieldsSql.join(', ')}${options.operator ? ` ${options.operator}` : ''})${options.where ? ` ${options.where}` : ''}`;
   }
 
-  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
-    const out = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
-
-    out.query = removeTrailingSemicolon(out.query);
-
-    return out;
-  }
-
   arithmeticQuery(
     operator,
     tableName,

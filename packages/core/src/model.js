@@ -1,6 +1,6 @@
 'use strict';
 
-import { EMPTY_OBJECT, every, find } from '@sequelize/utils';
+import { EMPTY_OBJECT, every, find, map } from '@sequelize/utils';
 import Dottie from 'dottie';
 import assignWith from 'lodash/assignWith';
 import cloneDeepLodash from 'lodash/cloneDeep';
@@ -60,7 +60,12 @@ import {
   scopeRenamedToWithScope,
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
-import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
+import {
+  mapFinderOptions,
+  mapOptionFieldNames,
+  mapValueFieldNames,
+  removeNullishValuesFromHash,
+} from './utils/format';
 import { logger } from './utils/logger';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import {
@@ -2747,9 +2752,6 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
-    const modelDefinition = this.modelDefinition;
-    const attributes = modelDefinition.attributes;
-
     options = defaultsLodash(options, {
       hooks: true,
       individualHooks: false,
@@ -2783,30 +2785,32 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     let result;
+    const modelDefinition = this.modelDefinition;
     // TODO: rename force -> paranoid: false, as that's how it's called in the instance version
     // Run delete query (or update if paranoid)
     if (modelDefinition.timestampAttributeNames.deletedAt && !options.force) {
-      // Set query type appropriately when running soft delete
-      options.type = QueryTypes.BULKUPDATE;
+      const deletedAtAttribute = modelDefinition.physicalAttributes.getOrThrow(
+        modelDefinition.timestampAttributeNames.deletedAt,
+      );
+      const attrValueHash = { [deletedAtAttribute.attributeName]: new Date() };
 
-      const attrValueHash = {};
-      const deletedAtAttribute = attributes.get(modelDefinition.timestampAttributeNames.deletedAt);
-      const deletedAtColumnName = deletedAtAttribute.columnName;
-
-      // FIXME: where must be joined with AND instead of using Object.assign. This won't work with literals!
       const where = {
-        [deletedAtColumnName]: Object.hasOwn(deletedAtAttribute, 'defaultValue')
+        [deletedAtAttribute.attributeName]: Object.hasOwn(deletedAtAttribute, 'defaultValue')
           ? deletedAtAttribute.defaultValue
           : null,
       };
 
-      attrValueHash[deletedAtColumnName] = new Date();
+      if (options.where) {
+        options.where = { [Op.and]: [options.where, where] };
+      } else {
+        options.where = where;
+      }
+
       result = await this.queryInterface.bulkUpdate(
-        this.table,
-        attrValueHash,
-        Object.assign(where, options.where),
+        this,
+        removeNullishValuesFromHash(attrValueHash, this.options.omitNull ?? false),
+        options.where,
         options,
-        getObjectFromMap(modelDefinition.attributes),
       );
     } else {
       result = await this.queryInterface.bulkDelete(this, options);
@@ -2881,19 +2885,20 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     // Run undelete query
-    const attrValueHash = {};
-    const deletedAtAttributeName = modelDefinition.timestampAttributeNames.deletedAt;
-    const deletedAtAttribute = modelDefinition.attributes.get(deletedAtAttributeName);
-    const deletedAtDefaultValue = deletedAtAttribute.defaultValue ?? null;
+    const deletedAtAttribute = modelDefinition.physicalAttributes.getOrThrow(
+      modelDefinition.timestampAttributeNames.deletedAt,
+    );
+    const attrValueHash = {
+      [deletedAtAttribute.attributeName]: Object.hasOwn(deletedAtAttribute, 'defaultValue')
+        ? deletedAtAttribute.defaultValue
+        : null,
+    };
 
-    attrValueHash[deletedAtAttribute.columnName || deletedAtAttributeName] = deletedAtDefaultValue;
-    options.omitNull = false;
     const result = await this.queryInterface.bulkUpdate(
-      this.table,
-      attrValueHash,
+      this,
+      removeNullishValuesFromHash(attrValueHash, false),
       options.where,
       options,
-      getObjectFromMap(modelDefinition.attributes),
     );
     // Run afterDestroy hook on each record individually
     if (options.individualHooks) {
@@ -3095,16 +3100,14 @@ ${associationOwner._getAssociationDebugList()}`);
       // only updatedAt is being passed, then skip update
       result = [0];
     } else {
-      valuesUse = mapValueFieldNames(valuesUse, options.fields, this);
       options = mapOptionFieldNames(options, this);
       options.hasTrigger = this.options ? this.options.hasTrigger : false;
 
       const affectedRows = await this.queryInterface.bulkUpdate(
-        this.table,
-        valuesUse,
+        this,
+        removeNullishValuesFromHash(valuesUse, this.options.omitNull ?? false),
         options.where,
         options,
-        getObjectFromMap(this.modelDefinition.physicalAttributes),
       );
       if (options.returning) {
         result = [affectedRows.length, affectedRows];
@@ -3917,9 +3920,10 @@ Instead of specifying a Model, either:
       }
     }
 
-    // TODO: use modelDefinition.primaryKeyAttributes (plural!)
-    const primaryKeyName = this.constructor.primaryKeyAttribute;
-    const primaryKeyAttribute = primaryKeyName && modelDefinition.attributes.get(primaryKeyName);
+    const primaryKeyNames = modelDefinition.primaryKeysAttributeNames;
+    const primaryKeyAttributes = map(primaryKeyNames, name =>
+      modelDefinition.physicalAttributes.getOrThrow(name),
+    );
     const createdAtAttr = modelDefinition.timestampAttributeNames.createdAt;
     const versionAttr = modelDefinition.versionAttributeName;
     const hook = this.isNewRecord ? 'Create' : 'Update';
@@ -3946,23 +3950,29 @@ Instead of specifying a Model, either:
         options.fields.push(createdAtAttr);
       }
 
-      if (
-        primaryKeyAttribute &&
-        primaryKeyAttribute.defaultValue &&
-        !options.fields.includes(primaryKeyName)
-      ) {
-        options.fields.unshift(primaryKeyName);
+      for (const pk of primaryKeyAttributes) {
+        if (pk.defaultValue && !options.fields.includes(pk.attributeName)) {
+          options.fields.unshift(pk.attributeName);
+        }
       }
     }
 
-    if (
-      this.isNewRecord === false &&
-      primaryKeyName &&
-      this.get(primaryKeyName, { raw: true }) === undefined
-    ) {
-      throw new Error(
-        'You attempted to save an instance with no primary key, this is not allowed since it would result in a global update',
-      );
+    if (this.isNewRecord === false) {
+      for (const pk of primaryKeyNames) {
+        if (this.get(pk, { raw: true }) === undefined) {
+          throw new Error(
+            'You attempted to save an instance with no primary key, this is not allowed since it would result in a global update',
+          );
+        }
+      }
+
+      if (
+        options.fields.includes(modelDefinition.autoIncrementAttributeName) &&
+        !this.sequelize.dialect.supports.autoIncrement.update
+      ) {
+        // remove auto increment fields from the update if the database does not support it.
+        remove(options.fields, field => field === modelDefinition.autoIncrementAttributeName);
+      }
     }
 
     if (updatedAtAttr && !options.silent && options.fields.includes(updatedAtAttr)) {
@@ -4064,29 +4074,48 @@ Instead of specifying a Model, either:
       return this;
     }
 
-    const versionColumnName = versionAttr && modelDefinition.getColumnName(versionAttr);
-    const values = mapValueFieldNames(this.dataValues, options.fields, this.constructor);
     let query;
     let args;
     let where;
+    const attributeValueHash = {};
+    for (const field of options.fields) {
+      if (
+        this.dataValues[field] !== undefined &&
+        !modelDefinition.virtualAttributeNames.has(field)
+      ) {
+        attributeValueHash[field] = this.dataValues[field];
+      }
+    }
 
     if (!this.isNewRecord) {
       where = this.where(true);
       if (versionAttr) {
-        values[versionColumnName] = Number.parseInt(values[versionColumnName], 10) + 1;
+        attributeValueHash[versionAttr] = Number.parseInt(attributeValueHash[versionAttr], 10) + 1;
+      }
+
+      if (options.returning) {
+        options.returning = this.sequelize.dialect.supports.update.returning;
       }
 
       query = 'update';
-      args = [this, this.constructor.table, values, where, options];
+      args = [
+        this,
+        this.constructor,
+        removeNullishValuesFromHash(attributeValueHash, this.constructor.options.omitNull ?? false),
+        where,
+        options,
+      ];
     }
 
     if (!this.changed() && !this.isNewRecord) {
       return this;
     }
 
+    const values = mapValueFieldNames(attributeValueHash, options.fields, this.constructor);
+    const versionColumnName = versionAttr && modelDefinition.getColumnName(versionAttr);
     if (this.isNewRecord) {
       query = 'insert';
-      args = [this, this.constructor.table, values, options];
+      args = [this, this.constructor, values, options];
     }
 
     const [result, rowsUpdated] = await this.constructor.queryInterface[query](...args);

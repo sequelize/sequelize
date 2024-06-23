@@ -36,7 +36,8 @@ import {
   extractTableIdentifier,
   isModelStatic,
 } from '../utils/model-utils.js';
-import type { BindParamOptions, DataType } from './data-types.js';
+import { createBindParamGenerator } from '../utils/sql.js';
+import type { BindParamOptions, DataType, NormalizedDataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -50,6 +51,7 @@ import type {
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  QueryWithBindParams,
   QuoteTableOptions,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
@@ -59,6 +61,7 @@ import type {
   StartTransactionQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from './query-generator.types.js';
 import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -121,6 +124,10 @@ export const START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS = new Set<
 export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTableQueryOptions>([
   'cascade',
   'restartIdentity',
+]);
+export const UPDATE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof UpdateQueryOptions>([
+  'ignoreDuplicates',
+  'returning',
 ]);
 
 /**
@@ -957,6 +964,150 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       whereFragment,
       this.#internals.addLimitAndOffset(whereOptions),
     ]);
+  }
+
+  /**
+   * Returns an update query
+   *
+   * @param tableOrModel
+   * @param valueHash
+   * @param options
+   */
+  updateQuery(
+    tableOrModel: TableOrModel,
+    valueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    if (options) {
+      rejectInvalidOptions(
+        'updateQuery',
+        this.dialect,
+        UPDATE_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.update,
+        options,
+      );
+    }
+
+    if (!isPlainObject(valueHash)) {
+      throw new Error(`Invalid value: ${NodeUtil.inspect(valueHash)}. Expected an object.`);
+    }
+
+    const bind = Object.create(null);
+    const attributeMap = new Map<string, NormalizedDataType>();
+    const modelDefinition = extractModelDefinition(tableOrModel);
+    const updateOptions: UpdateQueryOptions = {
+      ...options,
+      model: modelDefinition,
+      bindParam:
+        options?.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam,
+    };
+
+    if (this.sequelize.options.prependSearchPath || updateOptions.searchPath) {
+      // Not currently supported with search path (requires output of multiple queries)
+      updateOptions.bindParam = undefined;
+    }
+
+    if (modelDefinition && updateOptions.columnTypes) {
+      throw new Error(
+        'Using options.columnTypes in updateQuery is not allowed if a model or model definition is specified.',
+      );
+    } else if (updateOptions.columnTypes) {
+      for (const column of Object.keys(updateOptions.columnTypes)) {
+        attributeMap.set(
+          column,
+          this.sequelize.normalizeDataType(updateOptions.columnTypes[column]),
+        );
+      }
+    }
+
+    const updateFragment: string[] = [];
+    for (const column of Object.keys(valueHash)) {
+      const rowValue = valueHash[column];
+      if (rowValue === undefined) {
+        // Treat undefined values as non-existent
+        continue;
+      }
+
+      if (modelDefinition) {
+        const columnName = modelDefinition.getColumnName(column);
+        const attribute = modelDefinition.physicalAttributes.getOrThrow(column);
+        if (attribute.autoIncrement && !this.dialect.supports.autoIncrement.update) {
+          // Skip auto-increment fields if the dialect does not support updating them
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support updating auto-increment fields.`,
+          );
+        }
+
+        updateFragment.push(
+          `${this.quoteIdentifier(columnName)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attribute.type,
+          })}`,
+        );
+      } else {
+        updateFragment.push(
+          `${this.quoteIdentifier(column)}=${this.escape(rowValue, {
+            ...updateOptions,
+            type: attributeMap.get(column),
+          })}`,
+        );
+      }
+    }
+
+    if (updateFragment.length === 0) {
+      throw new Error('No values to update');
+    }
+
+    const table = this.quoteTable(tableOrModel);
+    const queryFragments = [
+      'UPDATE',
+      updateOptions.ignoreDuplicates ? 'IGNORE' : '',
+      table,
+      'SET',
+      updateFragment.join(','),
+    ];
+    const whereFragment = updateOptions.where
+      ? this.whereQuery(updateOptions.where, updateOptions)
+      : '';
+
+    if (updateOptions.limit && !this.dialect.supports.update.limit) {
+      if (!modelDefinition) {
+        throw new Error(
+          'Using options.limit in updateQuery is not allowed if no model or model definition is specified.',
+        );
+      }
+
+      const pks = join(
+        map(modelDefinition.primaryKeysAttributeNames, attrName => {
+          return this.quoteIdentifier(modelDefinition.getColumnName(attrName));
+        }),
+        ', ',
+      );
+
+      const primaryKeys = modelDefinition.primaryKeysAttributeNames.size > 1 ? `(${pks})` : pks;
+
+      queryFragments.push(
+        `WHERE ${primaryKeys} IN (`,
+        `SELECT ${pks} FROM ${table}`,
+        whereFragment,
+        `ORDER BY ${pks}`,
+        this.#internals.addLimitAndOffset(updateOptions),
+        ')',
+      );
+    } else {
+      queryFragments.push(whereFragment, this.#internals.addLimitAndOffset(updateOptions));
+    }
+
+    if (updateOptions.returning) {
+      queryFragments.push(
+        `RETURNING ${this.#internals.formatReturnFields(updateOptions, modelDefinition).join(', ')}`,
+      );
+    }
+
+    return {
+      query: joinSQLFragments(queryFragments),
+      bind: typeof updateOptions.bindParam === 'function' ? bind : undefined,
+    };
   }
 
   __TEST__getInternals() {

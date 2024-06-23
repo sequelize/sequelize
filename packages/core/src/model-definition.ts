@@ -789,7 +789,7 @@ Specify a different name for either index to resolve this issue.`);
    * @param attributeName
    */
   getColumnName(attributeName: string): string {
-    const attribute = this.#attributes.get(attributeName);
+    const attribute = this.#physicalAttributes.get(attributeName);
 
     if (attribute == null) {
       throw new Error(`Attribute "${attributeName}" does not exist on model "${this.modelName}".`);
@@ -806,7 +806,7 @@ Specify a different name for either index to resolve this issue.`);
    * @param attributeName
    */
   getColumnNameLoose(attributeName: string): string {
-    const attribute = this.#attributes.get(attributeName);
+    const attribute = this.#physicalAttributes.get(attributeName);
 
     return attribute?.columnName ?? attributeName;
   }

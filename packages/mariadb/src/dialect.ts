@@ -54,7 +54,6 @@ export class MariaDbDialect extends AbstractDialect<
 > {
   static supports = AbstractDialect.extendSupport({
     'VALUES ()': true,
-    'LIMIT ON UPDATE': true,
     lock: true,
     forShare: 'LOCK IN SHARE MODE',
     settingIsolationLevelDuringTransaction: false,
@@ -110,6 +109,9 @@ export class MariaDbDialect extends AbstractDialect<
     },
     startTransaction: {
       readOnly: true,
+    },
+    update: {
+      ignoreDuplicates: true,
     },
   });
 

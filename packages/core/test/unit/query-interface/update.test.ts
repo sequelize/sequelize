@@ -33,10 +33,8 @@ describe('QueryInterface#update', () => {
       { firstName: ':name' },
       { firstName: ':firstName' },
       {
-        returning: [':data'],
         replacements: {
           name: 'Zoe',
-          data: 'abc',
         },
       },
     );
@@ -45,11 +43,8 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2',
-      postgres:
-        'UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2 RETURNING ":data"',
-      mssql:
-        'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [firstName] = $sequelize_2',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
+      'db2 ibmi':
+        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2)',
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: ':name',
@@ -102,7 +97,8 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $id',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id);`,
+      'db2 ibmi':
+        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -131,7 +127,8 @@ describe('QueryInterface#update', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $1',
-      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1);`,
+      'db2 ibmi':
+        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

@@ -232,11 +232,13 @@ export class Db2Query extends AbstractQuery {
     } else if (this.isCallQuery()) {
       result = data;
     } else if (this.isBulkUpdateQuery()) {
-      result = data.length;
+      result = this.options.returning ? data : data.at(0)?.['1'];
     } else if (this.isDeleteQuery()) {
       result = rowCount;
-    } else if (this.isInsertQuery() || this.isUpdateQuery()) {
+    } else if (this.isInsertQuery()) {
       result = [result, rowCount];
+    } else if (this.isUpdateQuery()) {
+      result = this.options.returning ? [data, rowCount] : [result, data.at(0)?.['1']];
     } else if (this.isShowConstraintsQuery()) {
       result = data;
     } else if (this.isRawQuery()) {
