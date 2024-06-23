@@ -4,7 +4,7 @@
   },
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
-    "@oclif/core": "^3.26.0",
+    "@oclif/core": "^4.0.0",
     "@oclif/plugin-help": "^6.0.20",
     "@sequelize/utils": "workspace:*",
     "@types/inquirer": "^9.0.7",

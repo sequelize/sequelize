@@ -2524,7 +2524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.6":
+"@oclif/core@npm:^3.26.6":
   version: 3.27.0
   resolution: "@oclif/core@npm:3.27.0"
   dependencies:
@@ -2560,9 +2560,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4":
-  version: 4.0.0
-  resolution: "@oclif/core@npm:4.0.0"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.0.0":
+  version: 4.0.3
+  resolution: "@oclif/core@npm:4.0.3"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.1.1"
@@ -2581,7 +2581,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/0c644e1258e578ef5f8ea977034eb8239955e05f70b53985bc18abf378d387d7cb184474c5c4473ccf7a66ace1e00b4725ff94a1acdd2c801a4312f1b5a86628
+  checksum: 10c0/e99170edfdf5fd000b6cb5fb9d0c7ba16e739202dec965f5eca76d3a785e497c574ec682383c524de0a3af7620b3b3dd50f7ce2503b3e06518ba8dd1e39d4d81
   languageName: node
   linkType: hard
 
@@ -2807,7 +2807,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/cli@workspace:packages/cli"
   dependencies:
-    "@oclif/core": "npm:^3.26.0"
+    "@oclif/core": "npm:^4.0.0"
     "@oclif/plugin-help": "npm:^6.0.20"
     "@oclif/test": "npm:3.2.15"
     "@sequelize/utils": "workspace:*"
