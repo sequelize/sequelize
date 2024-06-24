@@ -179,13 +179,16 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
     expect(postDeletionSchemas).to.not.include(testSchema, 'dropSchema did not drop testSchema');
   });
 
+  // For Oracle Database, users are considered as schema. listSchemas() doesn't allow to fetch the
+  // defaultSchema.
   it('shows all schemas', async () => {
     await queryInterface.createSchema(testSchema);
     const allSchemas = await queryInterface.listSchemas();
 
-    const expected = !dialect.supports.multiDatabases
-      ? [sequelize.dialect.getDefaultSchema(), testSchema]
-      : [testSchema];
+    const expected =
+      !dialect.supports.multiDatabases && dialect.name !== 'oracle'
+        ? [sequelize.dialect.getDefaultSchema(), testSchema]
+        : [testSchema];
 
     expect(allSchemas.sort()).to.deep.eq(expected.sort(basicComparator()));
   });

@@ -608,6 +608,15 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
+   * Returns the alias token 'AS' after `FROM` clause.
+   *
+   * @returns string
+   */
+  getAliasToken() {
+    return 'AS';
+  }
+
+  /**
    * Quote table name with optional alias and schema attribution
    *
    * @param param table string or object
@@ -661,7 +670,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      sql += ` ${this.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     if (options?.indexHints) {
