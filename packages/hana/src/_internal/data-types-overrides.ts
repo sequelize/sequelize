@@ -69,10 +69,10 @@ export class NOW extends BaseTypes.NOW {
 export class TINYINT extends BaseTypes.TINYINT {
   toSql(): string {
     if (this.options.unsigned) {
-      return 'SMALLINT';
+      return 'TINYINT';
     }
 
-    return 'TINYINT';
+    return 'SMALLINT';
   }
 }
 
