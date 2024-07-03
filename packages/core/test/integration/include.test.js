@@ -753,6 +753,17 @@ Instead of specifying a Model, either:
           break;
         }
 
+        case 'hana': {
+          findAttributes = [
+            Sequelize.literal(
+              'CASE WHEN EXISTS(SELECT 1 FROM DUMMY) THEN 1 ELSE 0 END AS "postComments.someProperty"',
+            ),
+            [Sequelize.literal('CASE WHEN EXISTS(SELECT 1 FROM DUMMY) THEN 1 ELSE 0 END'), 'someProperty2'],
+          ];
+
+          break;
+        }
+
         default: {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "postComments.someProperty"'),
