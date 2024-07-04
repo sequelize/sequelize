@@ -44,16 +44,10 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     // }
     let attrStr = attrArray.join(', ');
     const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
-    console.log("***** createTableQuery SQL: " + sql);
+    //console.log("***** createTableQuery SQL: " + sql);
     return sql;
   }
 
-
-  dropTableQuery(tableName, options) {
-    // TODO: figure out how to drop sequences created for primary keys
-    //console.log("DROP TABLE options: ", options);
-    return super.dropTableQuery(tableName, options);
-  }
 
   attributesToSQL(attributes, options) {
     const result = {};

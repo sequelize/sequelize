@@ -55,7 +55,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions): string {
-    console.log("************** DUCKDB START TRANSACTION: ", options);
+    //console.log("************** DUCKDB START TRANSACTION: ", options);
     return super.startTransactionQuery(options);
   }
   //
