@@ -1575,17 +1575,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     options = cloneDeep(options) ?? {};
 
-    if (
-      typeof param === 'number' ||
-      typeof param === 'bigint' ||
-      typeof param === 'string' ||
-      Buffer.isBuffer(param)
-    ) {
-      options.where = {
-        // TODO: support composite primary keys
-        [this.primaryKeyAttribute]: param,
-      };
-    } else if (typeof param === 'object') {
+    const hasCompositeKey = this.primaryKeys.size > 1;
+    if (hasCompositeKey && !isPlainObject(param)) {
+      throw new TypeError(
+        `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }`,
+      );
+    } else if (hasCompositeKey && isPlainObject(param)) {
       // composite primary key support
       options.where = {};
       for (const pkMetadata of Object.values(this.primaryKeys)) {
@@ -1597,6 +1592,16 @@ ${associationOwner._getAssociationDebugList()}`);
       if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
         throw new TypeError('Primary key mismatch. Please pass all primary keys');
       }
+    } else if (
+      typeof param === 'number' ||
+      typeof param === 'bigint' ||
+      typeof param === 'string' ||
+      Buffer.isBuffer(param)
+    ) {
+      options.where = {
+        // TODO: support composite primary keys
+        [this.primaryKeyAttribute]: param,
+      };
     } else {
       throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
     }
