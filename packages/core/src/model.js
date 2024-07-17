@@ -1575,7 +1575,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     options = cloneDeep(options) ?? {};
 
-    const hasCompositeKey = this.primaryKeys.size > 1;
+    const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
     if (hasCompositeKey && !isPlainObject(param)) {
       throw new TypeError(
         `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }`,

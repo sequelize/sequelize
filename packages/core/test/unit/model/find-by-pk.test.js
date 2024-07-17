@@ -70,5 +70,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(TypeError);
     });
+
+    it('should throw error if wrong type passed and model has composite primary key', async () => {
+      const Model = current.define('model', {
+        pk1: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+        pk2: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      expect(Model.findByPk(1)).to.eventually.be.rejectedWith(TypeError);
+    });
   });
 });
