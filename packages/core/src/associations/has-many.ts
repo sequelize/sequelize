@@ -99,7 +99,7 @@ export class HasManyAssociation<
   }
 
   get sourceKeyField(): string {
-    return this.inverse.targetKeyField;
+    return this.inverse.targetKeyField(this.inverse.targetKey);
   }
 
   readonly inverse: BelongsToAssociation<T, S, TargetKey, SourceKey>;

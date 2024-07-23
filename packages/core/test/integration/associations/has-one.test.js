@@ -149,6 +149,22 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(task.title).to.equal('task');
     });
 
+    it('creates an associated model instance with composite foreign keys', async function () {
+      const User = this.sequelize.define('User', { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      User.hasOne(Task, { foreignKeys: ['userId', 'tenantId'] });
+
+      await this.sequelize.sync({ force: true });
+      const user = await User.create({ userId: 1, tenantId: 1 });
+      await user.createTask({ title: 'task' });
+      const task = await user.getTask();
+      expect(task).not.to.be.null;
+      expect(task.title).to.equal('task');
+      expect(task.userId).to.equal(1);
+      expect(task.tenantId).to.equal(1);
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(

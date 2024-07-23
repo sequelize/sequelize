@@ -81,13 +81,18 @@ export class BelongsToAssociation<
 
   targetKeys: TargetKey[] = [];
 
+  targetKeyIsPrimary(targetKey: TargetKey): boolean {
+    return this.target.modelDefinition.primaryKeysAttributeNames.has(targetKey);
+  }
+
   /**
    * The column name of the target key
+   *
+   * @param targetKey
    */
-  // TODO: rename to targetKeyColumnName
-  readonly targetKeyField: string;
-
-  readonly targetKeyIsPrimary: boolean;
+  targetKeyField(targetKey: TargetKey): string {
+    return getColumnName(this.target.modelDefinition.attributes.get(targetKey)!);
+  }
 
   readonly isCompositeKey: boolean = false;
 
@@ -138,10 +143,9 @@ export class BelongsToAssociation<
     }
 
     super(secret, source, target, options, parent);
-
-    this.targetKeys = Array.isArray(targetKeys) ? targetKeys : [...targetKeys].map(key => key as TargetKey);
-
     this.isCompositeKey = this.targetKeys.length > 1;
+    this.setupTargetKeys(options, target);
+
     const shouldHashPrimaryKey = this.shouldHashPrimaryKey(targetAttributes);
 
     if ((!isEmpty(options.foreignKeys) && isEmpty(options.foreignKey)) && !shouldHashPrimaryKey) {
@@ -150,8 +154,6 @@ export class BelongsToAssociation<
       // TODO: fix this
       this.targetKey = null as any;
       this.foreignKey = null as any;
-      this.targetKeyField = null as any;
-      this.targetKeyIsPrimary = null as any;
       this.identifierField = null as any;
 
       this.foreignKeys = options.foreignKeys as Array<{ source: SourceKey, target: TargetKey }>;
@@ -202,9 +204,6 @@ export class BelongsToAssociation<
 
       this.foreignKey = foreignKey as SourceKey;
 
-      this.targetKeyField = getColumnName(targetAttributes.getOrThrow(this.targetKey));
-      this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
-
       const targetAttribute = targetAttributes.get(this.targetKey)!;
 
       const existingForeignKey = source.modelDefinition.rawAttributes[this.foreignKey];
@@ -241,13 +240,13 @@ export class BelongsToAssociation<
           newReference.table = newReferencedTable;
         }
 
-      if (existingReference?.key && existingReference.key !== this.targetKeyField) {
+      if (existingReference?.key && existingReference.key !== this.targetKeyField(this.targetKey)) {
         throw new Error(
           `Foreign key ${this.foreignKey} on ${this.source.name} already references column ${existingReference.key}, but this association needs to make it reference ${this.targetKeyField} instead.`,
         );
       }
 
-        newReference.key = this.targetKeyField;
+        newReference.key = this.targetKeyField(this.targetKey);
 
         newForeignKeyAttribute.references = newReference;
         newForeignKeyAttribute.onDelete ??=
@@ -299,6 +298,31 @@ export class BelongsToAssociation<
           );
       }
     }
+  }
+
+  private setupTargetKeys(options: NormalizedBelongsToOptions<SourceKey, TargetKey>, target: ModelStatic<T>) {
+    const isForeignKeyEmpty = isEmpty(options.foreignKey);
+    const isForeignKeysValid = Array.isArray(options.foreignKeys)
+      && options.foreignKeys.length > 0
+      && options.foreignKeys.every(fk => !isEmpty(fk));
+
+    let targetKeys;
+    if (isForeignKeyEmpty && isForeignKeysValid) {
+      targetKeys = (options.foreignKeys as Array<{ source: SourceKey, target: TargetKey }>).map(fk => fk.target);
+    } else {
+      targetKeys = options?.targetKey
+        ? [options.targetKey]
+        : target.modelDefinition.primaryKeysAttributeNames;
+    }
+
+    const targetAttributes = target.modelDefinition.attributes;
+    for (const key of targetKeys) {
+      if (!targetAttributes.has(key)) {
+        throw new Error(`Unknown attribute "${key}" passed as targetKey, define this attribute on model "${target.name}" first`);
+      }
+    }
+
+    this.targetKeys = Array.isArray(targetKeys) ? targetKeys : [...targetKeys].map(key => key as TargetKey);
   }
 
   /**
@@ -429,9 +453,8 @@ export class BelongsToAssociation<
           // only fetch entities that actually have a foreign key set
           .filter(foreignKey => foreignKey != null),
       };
-    } else if (this.targetKeyIsPrimary && !options.where) {
+    } else if (this.targetKeyIsPrimary(this.targetKey) && !options.where) {
       const foreignKeyValue = instances[0].get(this.foreignKey);
-
 
         return Target.findByPk(foreignKeyValue as any, options);} else {
       // TODO: combine once we can just have the foreignKey in the foreignKeys array all the time

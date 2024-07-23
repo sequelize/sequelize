@@ -169,7 +169,7 @@ export class BelongsToManyAssociation<
    * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
    */
   get sourceKeyField(): string {
-    return this.fromThroughToSource.targetKeyField;
+    return this.fromThroughToSource.targetKeyField(this.fromThroughToSource.targetKey);
   }
 
   /**
