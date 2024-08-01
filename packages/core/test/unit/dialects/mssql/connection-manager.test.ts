@@ -94,7 +94,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     await instance.dialect.connectionManager.connect(config);
     expect(connectStub.called).to.equal(true);
   });
-  
+
   it('connectionManager.connect() should not fail with instanceName but no port specified', async () => {
     const connectStub = sinon.stub();
     Connection = {
@@ -140,7 +140,8 @@ describe('[MSSQL Specific] Connection Manager', () => {
     assert(error instanceof ConnectionError);
     expect(error.name).to.equal('SequelizeConnectionError');
     assert(error.cause instanceof Error);
-    expect(error.cause.message).to.equal('Port and instanceName are mutually exclusive, but 2433 and INSTANCENAME provided');
+    expect(error.cause.message).to.equal(
+      'Port and instanceName are mutually exclusive, but 2433 and INSTANCENAME provided',
+    );
   });
-
 });
