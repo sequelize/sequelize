@@ -969,6 +969,7 @@ export function mergeModelOptions(
     [keyof ModelOptions, any]
   >) {
     if (existingModelOptions[optionName] === undefined) {
+      // @ts-expect-error -- dynamic type, not worth typing
       existingModelOptions[optionName] = optionValue;
       continue;
     }
@@ -1031,6 +1032,7 @@ export function mergeModelOptions(
       throw new Error(`Trying to set the option ${optionName}, but a value already exists.`);
     }
 
+    // @ts-expect-error -- dynamic type, not worth typing
     existingModelOptions[optionName] = optionValue;
   }
 
