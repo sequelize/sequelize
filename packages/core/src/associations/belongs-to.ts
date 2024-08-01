@@ -20,7 +20,6 @@ import type {
 import { normalizeReference } from '../model-definition.js';
 import { Op } from '../operators';
 import { getColumnName } from '../utils/format.js';
-import type { MapView } from '../utils/immutability';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
@@ -30,6 +29,7 @@ import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import { MapView } from '@sequelize/utils';
 
 /**
  * One-to-one association
