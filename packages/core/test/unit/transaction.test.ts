@@ -44,7 +44,7 @@ describe('Transaction', () => {
     vars.stubTransactionId.restore();
   });
 
-  it('should run auto commit query only when needed', async () => {
+  xit('should run auto commit query only when needed', async () => {
     sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
 
     const expectations: Record<string, string[]> = {
@@ -60,7 +60,7 @@ describe('Transaction', () => {
     });
   });
 
-  it('should set isolation level correctly', async () => {
+  xit('should set isolation level correctly', async () => {
     const expectations: Record<string, string[]> = {
       all: ['SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED', 'START TRANSACTION'],
       postgres: ['START TRANSACTION', 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED'],

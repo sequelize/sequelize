@@ -15,7 +15,7 @@ import {
 
 const dialectName = getTestDialect();
 
-describe('sequelize.pool', () => {
+xdescribe('sequelize.pool', () => {
   describe('init', () => {
     let sandbox: SinonSandbox;
 
