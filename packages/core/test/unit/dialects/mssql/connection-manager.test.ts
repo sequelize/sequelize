@@ -94,4 +94,53 @@ describe('[MSSQL Specific] Connection Manager', () => {
     await instance.dialect.connectionManager.connect(config);
     expect(connectStub.called).to.equal(true);
   });
+  
+  it('connectionManager.connect() should not fail with instanceName but no port specified', async () => {
+    const connectStub = sinon.stub();
+    Connection = {
+      STATE: TediousConnection.prototype.STATE,
+      state: undefined,
+      once(event, cb) {
+        if (event === 'end') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      },
+      removeListener: () => {},
+      on: () => {},
+    };
+
+    config.instanceName = 'INSTANCENAME';
+
+    await instance.dialect.connectionManager.connect(config);
+    expect(connectStub.called).to.equal(true);
+  });
+
+  it('connectionManager.connect() should fail with instanceName and port specified', async () => {
+    Connection = {
+      STATE: TediousConnection.prototype.STATE,
+      state: undefined,
+      once(event, cb) {
+        if (event === 'end') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      },
+      removeListener: () => {},
+      on: () => {},
+    };
+
+    config.instanceName = 'INSTANCENAME';
+    config.port = 2433;
+
+    const error = await expect(instance.dialect.connectionManager.connect(config)).to.be.rejected;
+
+    assert(error instanceof ConnectionError);
+    expect(error.name).to.equal('SequelizeConnectionError');
+    assert(error.cause instanceof Error);
+    expect(error.cause.message).to.equal('Port and instanceName are mutually exclusive, but 2433 and INSTANCENAME provided');
+  });
+
 });
