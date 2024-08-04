@@ -5,6 +5,9 @@ const dialectName = getTestDialect();
 const notSupportedError = new Error(
   `changeTemporalTableQuery has not been implemented in ${dialectName}.`,
 );
+const biTemporalNotSupportedError = new Error(
+  `BITEMPORAL tables are not supported in ${dialectName}.`,
+);
 
 describe('QueryGenerator#changeTemporalTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -17,6 +20,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         }),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -31,6 +35,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         }),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -45,6 +50,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         }),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -58,6 +64,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         ),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -71,6 +78,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         ),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -86,6 +94,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
         }),
       {
         default: notSupportedError,
+        mssql: 'ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)',
       },
     );
   });
@@ -99,6 +108,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -112,6 +122,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -126,6 +137,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -140,6 +152,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -154,6 +167,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -167,6 +181,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -180,6 +195,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -195,6 +211,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -210,6 +227,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myTableHistory]))`,
         },
       );
     });
@@ -223,6 +241,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myTableHistory]))`,
         },
       );
     });
@@ -236,6 +255,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [mySchema].[myTableHistory]))`,
         },
       );
     });
@@ -250,6 +270,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myTableHistory], HISTORY_RETENTION_PERIOD = 3 MONTH))`,
         },
       );
     });
@@ -265,6 +286,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[MyModelsHistory]))`,
         },
       );
     });
@@ -280,6 +302,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[MyModelsHistory]))`,
         },
       );
     });
@@ -296,6 +319,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myTableHistory]))`,
         },
       );
     });
@@ -312,6 +336,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myTableHistory]))`,
         },
       );
     });
@@ -328,6 +353,7 @@ describe('QueryGenerator#changeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [mySchema].[myTableHistory]))`,
         },
       );
     });

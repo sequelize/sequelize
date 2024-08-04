@@ -11,12 +11,19 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
   it('generates a query that shows the temporal periods', () => {
     expectsql(() => queryGenerator.showTemporalPeriodsQuery(), {
       default: notImplementedError,
+      mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+      INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+      INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id`,
     });
   });
 
   it('generates a query that shows the temporal periods of a table', () => {
     expectsql(() => queryGenerator.showTemporalPeriodsQuery({ tableOrModel: 'myTable' }), {
       default: notImplementedError,
+      mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+      INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+      INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+      WHERE p.object_id = OBJECT_ID('[myTable]', 'U')`,
     });
   });
 
@@ -25,6 +32,10 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
 
     expectsql(() => queryGenerator.showTemporalPeriodsQuery({ tableOrModel: MyModel }), {
       default: notImplementedError,
+      mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+      INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+      INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+      WHERE p.object_id = OBJECT_ID('[MyModels]', 'U')`,
     });
   });
 
@@ -35,6 +46,10 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
       () => queryGenerator.showTemporalPeriodsQuery({ tableOrModel: MyModel.modelDefinition }),
       {
         default: notImplementedError,
+        mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+        INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+        INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+        WHERE p.object_id = OBJECT_ID('[MyModels]', 'U')`,
       },
     );
   });
@@ -47,6 +62,10 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
         }),
       {
         default: notImplementedError,
+        mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+        INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+        INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+        WHERE p.object_id = OBJECT_ID('[mySchema].[myTable]', 'U')`,
       },
     );
   });
@@ -59,6 +78,10 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
         }),
       {
         default: notImplementedError,
+        mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+        INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+        INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+        WHERE p.object_id = OBJECT_ID('[myTable]', 'U')`,
       },
     );
   });
@@ -69,6 +92,10 @@ describe('QueryGenerator#showTemporalPeriodsQuery', () => {
 
     expectsql(() => queryGeneratorSchema.showTemporalPeriodsQuery({ tableOrModel: 'myTable' }), {
       default: notImplementedError,
+      mssql: `SELECT p.name, p.period_type_desc AS [type], rowStart.name AS [rowStart], rowEnd.name AS [rowEnd] FROM sys.periods p
+      INNER JOIN sys.columns rowStart ON p.object_id = rowStart.object_id AND p.start_column_id = rowStart.column_id
+      INNER JOIN sys.columns rowEnd ON p.object_id = rowEnd.object_id AND p.end_column_id = rowEnd.column_id
+      WHERE p.object_id = OBJECT_ID('[mySchema].[myTable]', 'U')`,
     });
   });
 });
