@@ -4,6 +4,12 @@ import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '.
 
 const dialect = sequelize.dialect;
 const dialectName = getTestDialect();
+const biTemporalNotSupportedError = new Error(
+  `BITEMPORAL tables are not supported in ${dialectName}.`,
+);
+const applicationPeriodNotSupportedError = new Error(
+  `APPLICATION_PERIOD tables are not supported in ${dialectName}.`,
+);
 
 // TODO: check the tests with COMMENT after attributeToSQL quotes the comment
 // TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
@@ -753,6 +759,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'applicationPeriodRowEnd',
             'temporalTableType',
           ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
         },
       );
     });
@@ -780,6 +790,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'applicationPeriodRowEnd',
             'temporalTableType',
           ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
         },
       );
     });
@@ -796,6 +810,7 @@ describe('QueryGenerator#createTableQuery', () => {
           default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
             'temporalTableType',
           ]),
+          mssql: applicationPeriodNotSupportedError,
         },
       );
     });
@@ -822,6 +837,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'applicationPeriodRowStart',
             'applicationPeriodRowEnd',
             'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
           ]),
         },
       );
@@ -850,6 +869,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'applicationPeriodRowEnd',
             'temporalTableType',
           ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
         },
       );
     });
@@ -866,6 +889,7 @@ describe('QueryGenerator#createTableQuery', () => {
           default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
             'temporalTableType',
           ]),
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -897,6 +921,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'systemPeriodRowEnd',
             'temporalTableType',
           ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
         },
       );
     });
@@ -914,6 +942,7 @@ describe('QueryGenerator#createTableQuery', () => {
             'historyTable',
             'temporalTableType',
           ]),
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -934,6 +963,7 @@ describe('QueryGenerator#createTableQuery', () => {
             'historyRetentionPeriod',
             'temporalTableType',
           ]),
+          mssql: biTemporalNotSupportedError,
         },
       );
     });
@@ -950,6 +980,9 @@ describe('QueryGenerator#createTableQuery', () => {
           default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON);`,
         },
       );
     });
@@ -966,6 +999,9 @@ describe('QueryGenerator#createTableQuery', () => {
           default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON);`,
         },
       );
     });
@@ -988,6 +1024,9 @@ describe('QueryGenerator#createTableQuery', () => {
             'systemPeriodRowEnd',
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [sys_start] DATETIME2 GENERATED ALWAYS AS ROW START, [sys_end] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([sys_start], [sys_end]))
+          WITH (SYSTEM_VERSIONING = ON);`,
         },
       );
     });
@@ -1008,6 +1047,9 @@ describe('QueryGenerator#createTableQuery', () => {
             'historyTable',
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myHistoryTable]));`,
         },
       );
     });
@@ -1028,6 +1070,9 @@ describe('QueryGenerator#createTableQuery', () => {
             'historyTable',
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [mySchema].[myHistoryTable]));`,
         },
       );
     });
@@ -1048,6 +1093,9 @@ describe('QueryGenerator#createTableQuery', () => {
             'historyRetentionPeriod',
             'temporalTableType',
           ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_RETENTION_PERIOD = 3 MONTH));`,
         },
       );
     });

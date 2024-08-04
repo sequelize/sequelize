@@ -3,12 +3,19 @@ import {
   createSequelizeInstance,
   expectPerDialect,
   getTestDialect,
+  minifySql,
   sequelize,
 } from '../../support';
 
 const dialectName = getTestDialect();
 const notSupportedError = new Error(
   `removeTemporalTableQuery has not been implemented in ${dialectName}.`,
+);
+const periodMissingError = new Error(
+  'Temporal periods must be provided to remove a temporal table.',
+);
+const appPeriodNotSupportedError = new Error(
+  `Unsupported temporal period type: ${TemporalPeriodType.APPLICATION}.`,
 );
 
 describe('QueryGenerator#removeTemporalTableQuery', () => {
@@ -18,6 +25,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
     // @ts-expect-error -- intentionally passing invalid arguments
     expectPerDialect(() => queryGenerator.removeTemporalTableQuery('myTable', {}), {
       default: notSupportedError,
+      mssql: periodMissingError,
     });
   });
 
@@ -37,6 +45,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -58,6 +67,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -79,6 +89,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -101,6 +112,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -123,6 +135,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -145,6 +158,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -172,6 +186,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -199,6 +214,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -226,6 +242,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -254,6 +271,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -282,6 +300,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -310,6 +329,7 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: appPeriodNotSupportedError,
         },
       );
     });
@@ -331,6 +351,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [myTable] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [myTable] DROP
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });
@@ -352,6 +381,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [MyModels] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [MyModels] DROP
+            CONSTRAINT IF EXISTS [DF__MyModels__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__MyModels__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });
@@ -373,6 +411,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [MyModels] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [MyModels] DROP
+            CONSTRAINT IF EXISTS [DF__MyModels__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__MyModels__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });
@@ -395,6 +442,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [mySchema].[myTable] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [mySchema].[myTable] DROP
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });
@@ -417,6 +473,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [myTable] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [myTable] DROP
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });
@@ -439,6 +504,15 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
+          mssql: [
+            `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)`,
+            `ALTER TABLE [mySchema].[myTable] DROP PERIOD FOR SYSTEM_TIME`,
+            `ALTER TABLE [mySchema].[myTable] DROP
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_start],
+            CONSTRAINT IF EXISTS [DF__myTable__sys_row_end],
+            COLUMN [sys_row_start],
+            COLUMN [sys_row_end]`,
+          ].map(minifySql),
         },
       );
     });

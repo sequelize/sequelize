@@ -11,12 +11,20 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
   it('generates a query that shows the temporal tables', () => {
     expectsql(() => queryGenerator.showTemporalTablesQuery(), {
       default: notImplementedError,
+      mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+      OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+      FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+      WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE'`,
     });
   });
 
   it('generates a query that shows the temporal tables for a table', () => {
     expectsql(() => queryGenerator.showTemporalTablesQuery({ tableOrModel: 'myTable' }), {
       default: notImplementedError,
+      mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+      OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+      FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+      WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'myTable' AND s.[name] = N'${dialect.getDefaultSchema()}'`,
     });
   });
 
@@ -25,6 +33,10 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
 
     expectsql(() => queryGenerator.showTemporalTablesQuery({ tableOrModel: MyModel }), {
       default: notImplementedError,
+      mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+      OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+      FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+      WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'MyModels' AND s.[name] = N'${dialect.getDefaultSchema()}'`,
     });
   });
 
@@ -35,6 +47,10 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
       () => queryGenerator.showTemporalTablesQuery({ tableOrModel: MyModel.modelDefinition }),
       {
         default: notImplementedError,
+        mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+        OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+        FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+        WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'MyModels' AND s.[name] = N'${dialect.getDefaultSchema()}'`,
       },
     );
   });
@@ -47,6 +63,10 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
         }),
       {
         default: notImplementedError,
+        mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+        OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+        FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+        WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'myTable' AND s.[name] = N'mySchema'`,
       },
     );
   });
@@ -59,6 +79,10 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
         }),
       {
         default: notImplementedError,
+        mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+        OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+        FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+        WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'myTable' AND s.[name] = N'${dialect.getDefaultSchema()}'`,
       },
     );
   });
@@ -69,6 +93,10 @@ describe('QueryGenerator#showTemporalTablesQuery', () => {
 
     expectsql(() => queryGeneratorSchema.showTemporalTablesQuery({ tableOrModel: 'myTable' }), {
       default: notImplementedError,
+      mssql: `SELECT t.[name] AS [tableName], s.[name] AS [schema], t.[temporal_type_desc] AS [type], h.[name] AS [historyTableName],
+      OBJECT_SCHEMA_NAME(h.object_id) AS [historySchema], t.[history_retention_period] AS [historyRetentionPeriodLength], t.[history_retention_period_unit_desc] AS [historyRetentionPeriodUnit]
+      FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id LEFT JOIN sys.tables h ON t.history_table_id = h.object_id
+      WHERE t.temporal_type_desc = 'SYSTEM_VERSIONED_TEMPORAL_TABLE' AND t.[name] = N'myTable' AND s.[name] = N'mySchema'`,
     });
   });
 });
