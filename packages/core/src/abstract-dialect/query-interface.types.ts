@@ -1,9 +1,12 @@
 import type { Deferrable } from '../deferrable';
 import type { QueryRawOptions } from '../sequelize';
+import type { TemporalTableOptions } from '../temporal-tables';
 import type { IsolationLevel } from '../transaction';
 import type {
   AddConstraintQueryOptions,
+  AddTemporalTableQueryOptions,
   BulkDeleteQueryOptions,
+  ChangeTemporalTableQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
@@ -15,6 +18,8 @@ import type {
   RemoveConstraintQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  ShowTemporalPeriodsQueryOptions,
+  ShowTemporalTablesQueryOptions,
   StartTransactionQueryOptions,
   TruncateTableQueryOptions,
 } from './query-generator.types';
@@ -124,6 +129,31 @@ export interface RenameTableOptions extends RenameTableQueryOptions, QueryRawOpt
 
 /** Options accepted by {@link AbstractQueryInterface#truncate} */
 export interface QiTruncateTableOptions extends TruncateTableQueryOptions, QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#addTemporalTable} */
+export interface AddTemporalTableOptions extends AddTemporalTableQueryOptions, QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#changeTemporalTable} */
+export interface ChangeTemporalTableOptions
+  extends ChangeTemporalTableQueryOptions,
+    QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#removeTemporalTable} */
+export interface RemoveTemporalTableOptions
+  extends Pick<TemporalTableOptions, 'historyTable'>,
+    QueryRawOptions {
+  dropHistoryTable?: boolean;
+}
+
+/** Options accepted by {@link AbstractQueryInterface#showTemporalPeriods} */
+export interface ShowTemporalPeriodsOptions
+  extends ShowTemporalPeriodsQueryOptions,
+    QueryRawOptions {}
+
+/** Options accepted by {@link AbstractQueryInterface#showTemporalTables} */
+export interface ShowTemporalTablesOptions
+  extends ShowTemporalTablesQueryOptions,
+    QueryRawOptions {}
 
 export interface FetchDatabaseVersionOptions extends Omit<QueryRawOptions, 'type' | 'plain'> {}
 

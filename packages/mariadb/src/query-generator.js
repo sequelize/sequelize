@@ -4,6 +4,8 @@ import {
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
@@ -11,9 +13,28 @@ import isPlainObject from 'lodash/isPlainObject';
 import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set([
+  'collate',
+  'charset',
+  'engine',
+  'comment',
+  'initialAutoIncrement',
+  'rowFormat',
+  'uniqueKeys',
+]);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'createTableQuery',
+        this.dialect,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
     options = {
       engine: 'InnoDB',
       charset: null,

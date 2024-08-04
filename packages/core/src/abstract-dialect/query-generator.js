@@ -39,12 +39,19 @@ const sequelizeError = require('../errors');
 const { _validateIncludedElements } = require('../model-internals');
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
+  'applicationPeriodRowEnd',
+  'applicationPeriodRowStart',
   'collate',
   'charset',
   'engine',
-  'rowFormat',
   'comment',
+  'historyRetentionPeriod',
+  'historyTable',
   'initialAutoIncrement',
+  'rowFormat',
+  'systemPeriodRowEnd',
+  'systemPeriodRowStart',
+  'temporalTableType',
   'uniqueKeys',
 ]);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);

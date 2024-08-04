@@ -1,4 +1,4 @@
-import { EMPTY_OBJECT } from '@sequelize/utils';
+import { EMPTY_OBJECT, inspect } from '@sequelize/utils';
 import { cloneDataType } from '../../abstract-dialect/data-types-utils.js';
 import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
@@ -148,7 +148,7 @@ export function mergeAttributeOptions(
     }
 
     throw new Error(
-      `Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`,
+      `Multiple decorators are attempting to set different values for the option ${inspect(optionName)} of attribute ${attributeName} on model ${model.name}.`,
     );
   }
 

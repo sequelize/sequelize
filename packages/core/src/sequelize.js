@@ -43,6 +43,12 @@ import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
 import { TableHints } from './table-hints';
 import {
+  HistoryRetentionPeriodUnit,
+  TemporalPeriodType,
+  TemporalTableType,
+  TemporalTimeQueryType,
+} from './temporal-tables.js';
+import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
   Lock,
@@ -468,6 +474,7 @@ Use Sequelize#query if you wish to use replacements.`);
       await this.drop({
         ...options,
         cascade: this.dialect.supports.dropTable.cascade || undefined,
+        dropHistoryTable: this.dialect.supports.dropTable.dropHistoryTable || undefined,
       });
     }
 
@@ -781,6 +788,34 @@ Sequelize.IndexHints = IndexHints;
  * @see {@link Sequelize.transaction}
  */
 Sequelize.Transaction = Transaction;
+
+/**
+ * Available history retention period units to be used when creating temporal tables
+ *
+ * @see {@link HistoryRetentionPeriodUnit}
+ */
+Sequelize.HistoryRetentionPeriodUnit = HistoryRetentionPeriodUnit;
+
+/**
+ * Available temporal period types to be used when quering periods for temporal tables
+ *
+ * @see {@link TemporalPeriodType}
+ */
+Sequelize.TemporalPeriodType = TemporalPeriodType;
+
+/**
+ * Available temporal table types to be used for creating temporal tables
+ *
+ * @see {@link TemporalTableType}
+ */
+Sequelize.TemporalTableType = TemporalTableType;
+
+/**
+ * Available temporal time query types to be used when querying temporal tables
+ *
+ * @see {@link TemporalTimeQueryType}
+ */
+Sequelize.TemporalTimeQueryType = TemporalTimeQueryType;
 
 Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
 

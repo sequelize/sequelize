@@ -51,6 +51,7 @@ import {
 import { ModelTypeScript } from './model-typescript';
 import { Op } from './operators';
 import { QueryTypes } from './query-types';
+import { TEMPORAL_SECRET } from './temporal-tables.js';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -867,6 +868,7 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.drop({
         ...options,
         cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined,
+        dropHistoryTable: this.sequelize.dialect.supports.dropTable.dropHistoryTable || undefined,
       });
       tableExists = false;
     } else {
@@ -887,11 +889,18 @@ ${associationOwner._getAssociationDebugList()}`);
           ...options,
           constraintType: 'FOREIGN KEY',
         }),
+        this.sequelize.dialect.supports.temporalTables.applicationPeriod ||
+        this.sequelize.dialect.supports.temporalTables.biTemporal ||
+        this.sequelize.dialect.supports.temporalTables.systemPeriod
+          ? await this.queryInterface.isTemporalTable(tableName, options)
+          : Promise.resolve(false),
       ]);
 
       const columns = tableInfos[0];
       // Use for alter foreign keys
       const foreignKeyReferences = tableInfos[1];
+      // Use for alter temporal tables
+      const isTemporalTable = tableInfos[2];
       const removedConstraints = {};
 
       for (const columnName in physicalAttributes) {
@@ -899,10 +908,14 @@ ${associationOwner._getAssociationDebugList()}`);
           continue;
         }
 
-        if (!columns[columnName] && !columns[physicalAttributes[columnName].field]) {
+        if (
+          !columns[columnName] &&
+          !columns[physicalAttributes[columnName].columnName] &&
+          !physicalAttributes[columnName][TEMPORAL_SECRET]
+        ) {
           await this.queryInterface.addColumn(
             tableName,
-            physicalAttributes[columnName].field || columnName,
+            physicalAttributes[columnName].columnName || columnName,
             physicalAttributes[columnName],
             options,
           );
@@ -913,6 +926,10 @@ ${associationOwner._getAssociationDebugList()}`);
         options.alter === true ||
         (typeof options.alter === 'object' && options.alter.drop !== false)
       ) {
+        if (!options.temporalTableType && isTemporalTable) {
+          await this.queryInterface.removeTemporalTable(tableName, options);
+        }
+
         for (const columnName in columns) {
           if (!Object.hasOwn(columns, columnName)) {
             continue;
@@ -924,7 +941,7 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          if (currentAttribute.primaryKey) {
+          if (currentAttribute.primaryKey || currentAttribute[TEMPORAL_SECRET]) {
             continue;
           }
 
@@ -961,6 +978,11 @@ ${associationOwner._getAssociationDebugList()}`);
           }
 
           await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+        }
+
+        // Convert table from standard to temporal or vice versa
+        if (options.temporalTableType) {
+          await this.queryInterface.changeTemporalTable(tableName, options);
         }
       }
     }

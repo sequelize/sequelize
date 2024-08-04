@@ -25,6 +25,10 @@ export const CreatedAt = Pkg.CreatedAt;
 export const UpdatedAt = Pkg.UpdatedAt;
 export const DeletedAt = Pkg.DeletedAt;
 export const Version = Pkg.Version;
+export const ApplicationPeriodRowStart = Pkg.ApplicationPeriodRowStart;
+export const ApplicationPeriodRowEnd = Pkg.ApplicationPeriodRowEnd;
+export const SystemPeriodRowStart = Pkg.SystemPeriodRowStart;
+export const SystemPeriodRowEnd = Pkg.SystemPeriodRowEnd;
 
 // Association Decorators
 
