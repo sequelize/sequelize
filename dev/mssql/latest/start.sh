@@ -8,6 +8,6 @@ docker compose -p sequelize-mssql-latest up -d
 ./../../wait-until-healthy.sh sequelize-mssql-latest
 
 docker exec sequelize-mssql-latest \
-  /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
+  /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
 
 DIALECT=mssql ts-node ../../check-connection.ts
