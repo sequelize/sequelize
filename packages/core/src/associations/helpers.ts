@@ -321,7 +321,7 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
   return removeUndefined({
     ...options,
     foreignKey: normalizeForeignKeyOptions(options.foreignKey),
-    foreignKeys: normalizeCompositeForeignKeyOptions(options),
+    // foreignKeys: normalizeCompositeForeignKeyOptions(options),
     hooks: options.hooks ?? false,
     as,
     name,
@@ -331,39 +331,46 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
 export function normalizeForeignKeyOptions<T extends string>(
   foreignKey: AssociationOptions<T>['foreignKey'],
 ): ForeignKeyOptions<any> {
-  return typeof foreignKey === 'string'
-    ? { name: foreignKey }
-    : removeUndefined({
-      ...foreignKey,
-      name: foreignKey?.name ?? foreignKey?.columnName,
-      fieldName: undefined,
-    });
+  if (typeof foreignKey === 'string') {
+    return { name: foreignKey };
+  }
+
+  const compositeFKOptions = normalizeCompositeForeignKeyOptions(foreignKey);
+
+  return removeUndefined({
+    ...foreignKey,
+    name: foreignKey?.name ?? foreignKey?.columnName,
+    keys: compositeFKOptions?.length === 0 ? undefined : compositeFKOptions,
+    fieldName: undefined,
+  });
 }
 
 // Update the option normalization logic to turn `foreignKey` and `targetKey` into `foreignKeys`,
-export function normalizeCompositeForeignKeyOptions<T extends string>(options: AssociationOptions<T>): Array<{
-  source: string,
-  target: string,
+export function normalizeCompositeForeignKeyOptions<T extends string>(foreignKey: AssociationOptions<T>['foreignKey']): Array<{
+  source: string;
+  target: string
 }> {
   // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
-  if (isArray(options?.foreignKey?.keys) && !some(options.foreignKey.keys, isEmpty)) {
+  if (isArray(foreignKey?.keys) && !some(foreignKey?.keys, isEmpty)) {
     // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
-    return options.foreignKey.keys.map(fk => {
+    return foreignKey.keys.map(fk => {
       return typeof fk === 'string' ? { source: fk, target: fk } : fk;
     });
   }
 
-  const normalizedForeignKey = normalizeForeignKeyOptions(options.foreignKey);
+  return [];
 
-  const { targetKey, sourceKey } = options as any;
-  if (some(normalizedForeignKey, isEmpty) || normalizedForeignKey.name === undefined) {
-    return [];
-  }
-
-  // belongsTo has a targetKey option, which is the name of the column in the target table that the foreign key should reference.
-  // hasOne and hasMany have a sourceKey option, which is the name of the column in the source table that the foreign key should reference.
-  // belongsToMany has both sourceKey and targetKey, which are the names of the columns in the source and target tables that the foreign key should reference, respectively.
-  return [{ source: sourceKey ?? normalizedForeignKey.name, target: targetKey ?? normalizedForeignKey.name }];
+  // const normalizedForeignKey = normalizeForeignKeyOptions(foreignKey);
+  //
+  // // const { targetKey, sourceKey } = options as any;
+  // // if (some(normalizedForeignKey, isEmpty) || normalizedForeignKey.name === undefined) {
+  // //   return [];
+  // // }
+  //
+  // // belongsTo has a targetKey option, which is the name of the column in the target table that the foreign key should reference.
+  // // hasOne and hasMany have a sourceKey option, which is the name of the column in the source table that the foreign key should reference.
+  // // belongsToMany has both sourceKey and targetKey, which are the names of the columns in the source and target tables that the foreign key should reference, respectively.
+  // return [{ source: sourceKey ?? normalizedForeignKey.name, target: targetKey ?? normalizedForeignKey.name }];
 }
 
 export type MaybeForwardedModelStatic<M extends Model = Model> =
