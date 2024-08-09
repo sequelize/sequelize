@@ -287,11 +287,11 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
   }
 
   // make sure both are not used at the same time
-  if (some(options.foreignKey, isEmpty) && some(options.foreignKeys, isEmpty)) {
-    throw new Error(
-      'Only one of "foreignKey" and "foreignKeys" can be defined',
-    );
-  }
+  //   // if (some(options.foreignKey, isEmpty) && some(options.foreignKey.keys, isEmpty)) {
+  //   //   throw new Error(
+  //   //     'Only one of "foreignKey" and "foreignKeys" can be defined',
+  //   //   );
+  //   // }
 
   const isMultiAssociation = associationType.isMultiAssociation;
 
@@ -345,8 +345,10 @@ export function normalizeCompositeForeignKeyOptions<T extends string>(options: A
   source: string,
   target: string,
 }> {
-  if (isArray(options.foreignKeys) && !some(options.foreignKeys, isEmpty)) {
-    return options.foreignKeys.map(fk => {
+  // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
+  if (isArray(options?.foreignKey?.keys) && !some(options.foreignKey.keys, isEmpty)) {
+    // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
+    return options.foreignKey.keys.map(fk => {
       return typeof fk === 'string' ? { source: fk, target: fk } : fk;
     });
   }

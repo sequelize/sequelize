@@ -122,7 +122,8 @@ export class HasOneAssociation<
           as: options.inverse?.as,
           scope: options.inverse?.scope,
           foreignKey: options.foreignKey,
-          foreignKeys: options.foreignKeys,targetKey: options.sourceKey,
+          foreignKeys: options.foreignKey.keys,
+          targetKey: options.sourceKey,
           foreignKeyConstraints: options.foreignKeyConstraints,
           hooks: options.hooks,
         }),
@@ -234,17 +235,17 @@ If having two associations does not make sense (for instance a "spouse" associat
 
     const where = Object.create(null);
 
-    if (instances.length > 1 && !Array.isArray(this.options.foreignKeys)) {
+    if (instances.length > 1 && !Array.isArray(this.options.foreignKey.keys)) {
       where[this.foreignKey] = {
         [Op.in]: instances.map(instance => instance.get(this.sourceKey)),
       };
-    } else if (instances.length > 1 && Array.isArray(this.options.foreignKeys)) {
+    } else if (instances.length > 1 && Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
         where[key.target] = {
           [Op.in]: instances.map(instance => instance.get(key.source)),
         };
       }
-    } else if (Array.isArray(this.options.foreignKeys)) {
+    } else if (Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
         where[key.target] = instances[0].get(key.source);
       }
@@ -400,8 +401,8 @@ This option is only available in BelongsTo associations.`);
       }
     }
 
-    if (Array.isArray(this.options.foreignKeys)) {
-      for (const foreignKey of this.options.foreignKeys) {
+    if (Array.isArray(this.options.foreignKey.keys)) {
+      for (const foreignKey of this.options.foreignKey.keys) {
         // @ts-expect-error -- implicit any, can't fix
         values[foreignKey.target] = sourceInstance.get(foreignKey.source);
       }
