@@ -153,7 +153,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       const User = this.sequelize.define('User', { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER });
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
-      User.hasOne(Task, { foreignKeys: ['userId', 'tenantId'] });
+      User.hasOne(Task, { foreignKey: { keys: ['userId', 'tenantId']} });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ userId: 1, tenantId: 1 });

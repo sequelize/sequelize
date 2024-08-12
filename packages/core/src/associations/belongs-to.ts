@@ -142,8 +142,8 @@ export class BelongsToAssociation<
     }
 
     super(secret, source, target, options, parent);
-    this.isCompositeKey = this.targetKeys.length > 1;
     this.setupTargetKeys(options, target);
+    this.isCompositeKey = this.targetKeys.length > 1;
 
     const shouldHashPrimaryKey = this.shouldHashPrimaryKey(targetAttributes);
 
@@ -454,7 +454,8 @@ export class BelongsToAssociation<
     } else if (this.targetKeyIsPrimary(this.targetKey) && !options.where) {
       const foreignKeyValue = instances[0].get(this.foreignKey);
 
-        return Target.findByPk(foreignKeyValue as any, options);} else {
+        return Target.findByPk(foreignKeyValue as any, options);
+    } else {
       // TODO: combine once we can just have the foreignKey in the foreignKeys array all the time
       if (this.isCompositeKey) {
         for (const key of this.foreignKeys) {

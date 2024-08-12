@@ -1030,15 +1030,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             },
             {
               indexes: [{ fields: ['zipCode'], name: 'zip_code_index', unique: true }],
-              additionalForeignKeyConstraintDefinitions: [
-                {
-                  columns: ['userId', 'tenantId'],
-                  foreignTable: User,
-                  foreignColumns: ['userId', 'tenantId'],
-                },
-              ],
             });
-            Address.belongsTo(User, { foreignKeys: ['userId', 'tenantId'] });
+            Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
 
             await this.sequelize.sync({ force: true });
             const user = await User.create({ username: 'foo', tenantId: 1 });

@@ -122,7 +122,6 @@ export class HasOneAssociation<
           as: options.inverse?.as,
           scope: options.inverse?.scope,
           foreignKey: options.foreignKey,
-          foreignKeys: options.foreignKey.keys,
           targetKey: options.sourceKey,
           foreignKeyConstraints: options.foreignKeyConstraints,
           hooks: options.hooks,
