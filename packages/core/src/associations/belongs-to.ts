@@ -112,13 +112,12 @@ export class BelongsToAssociation<
     options: NormalizedBelongsToOptions<SourceKey, TargetKey>,
     parent?: Association,
   ) {
-    const isForeignKeyEmpty = isEmpty(options.foreignKey);
     const isForeignKeysValid = Array.isArray(options.foreignKey.keys)
       && options.foreignKey.keys.length > 0
       && options.foreignKey.keys.every(fk => !isEmpty(fk));
 
     let targetKeys;
-    if (isForeignKeyEmpty && isForeignKeysValid) {
+    if (isForeignKeysValid) {
       targetKeys = (options.foreignKey.keys as Array<{ source: SourceKey, target: TargetKey }>).map(fk => fk.target);
     } else {
       targetKeys = options?.targetKey
@@ -148,7 +147,7 @@ export class BelongsToAssociation<
 
     const shouldHashPrimaryKey = this.shouldHashPrimaryKey(targetAttributes);
 
-    if ((!isEmpty(options.foreignKey.keys) && isEmpty(options.foreignKey)) && !shouldHashPrimaryKey) {
+    if ((!isEmpty(options.foreignKey.keys) && isEmpty(options.foreignKey.name)) && !shouldHashPrimaryKey) {
 
       // Composite key flow
       // TODO: fix this
@@ -301,13 +300,12 @@ export class BelongsToAssociation<
   }
 
   private setupTargetKeys(options: NormalizedBelongsToOptions<SourceKey, TargetKey>, target: ModelStatic<T>) {
-    const isForeignKeyEmpty = isEmpty(options.foreignKey);
     const isForeignKeysValid = Array.isArray(options.foreignKey.keys)
       && options.foreignKey.keys.length > 0
       && options.foreignKey.keys.every(fk => !isEmpty(fk));
 
     let targetKeys;
-    if (isForeignKeyEmpty && isForeignKeysValid) {
+    if (isForeignKeysValid) {
       targetKeys = (options.foreignKey.keys as Array<{ source: SourceKey, target: TargetKey }>).map(fk => fk.target);
     } else {
       targetKeys = options?.targetKey

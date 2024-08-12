@@ -1008,20 +1008,28 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const existingConstraints = await this.queryInterface.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
 
-    for (const fkConstraint of options.additionalForeignKeyConstraintDefinitions || []) {
-      const constraintName = fkConstraint.name ?? `${tableName.tableName}_${fkConstraint.columns.join('_')}_${fkConstraint.foreignTable.tableName}_${fkConstraint.foreignColumns.join('_')}_cfkey`;
+    const associations = Object.values(this.modelDefinition.associations).filter((association) => { return association.options?.foreignKey?.keys?.length > 0 });
+
+    for (const association of associations) {
+      const foreignKey = association.options.foreignKey;
+      const sourceKeyFields = foreignKey.keys.map(k => k.source);
+      const targetKeyFields = foreignKey.keys.map(k => k.target);
+
+      // const constraintName = fkConstraint.name ?? `${tableName.tableName}_${fkConstraint.columns.join('_')}_${fkConstraint.foreignTable.tableName}_${fkConstraint.foreignColumns.join('_')}_cfkey`;
+      const constraintName = `${tableName.tableName}_${sourceKeyFields.join('_')}_${association.target.tableName}_${targetKeyFields.join('_')}_cfkey`;
+      console.log(constraintName)
 
       if (!existingConstraints.some(constraint => constraint.constraintName === constraintName)) {
         await this.queryInterface.addConstraint(tableName.tableName, {
-          fields: fkConstraint.columns,
+          fields: sourceKeyFields,
           type: 'FOREIGN KEY',
           name: constraintName,
           references: {
-            table: fkConstraint.foreignTable,
-            fields: fkConstraint.foreignColumns,
+            table: association.target.table.tableName,
+            fields: targetKeyFields,
           },
-          onDelete: fkConstraint.onDelete,
-          onUpdate: fkConstraint.onUpdate,
+          onDelete: foreignKey.onDelete,
+          onUpdate: foreignKey.onUpdate,
         });
       }
     }
