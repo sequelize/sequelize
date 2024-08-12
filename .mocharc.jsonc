@@ -9,6 +9,8 @@
   "exit": true,
   "inline-diffs": true,
   "full-trace": true,
+//  "grep": "creates an associated model instance with composite foreign keys",
+//  "spec": ["test/**/has-one.test.js"],
   // Globals added as per https://github.com/sequelize/sequelize/pull/17206#discussion_r1538541573
   "globals": [
     "__extends",

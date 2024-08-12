@@ -126,6 +126,7 @@ export class BelongsToAssociation<
     }
 
     const targetAttributes = target.modelDefinition.attributes;
+    targetKeys = Array.isArray(targetKeys) ? targetKeys : [...targetKeys].map(key => key as TargetKey);
 
     for (const key of targetKeys) {
       if (!targetAttributes.has(key)) {
@@ -142,9 +143,9 @@ export class BelongsToAssociation<
     }
 
     super(secret, source, target, options, parent);
-    this.setupTargetKeys(options, target);
-    this.isCompositeKey = this.targetKeys.length > 1;
 
+    this.targetKeys = targetKeys;
+    this.isCompositeKey = this.targetKeys.length > 1;
     const shouldHashPrimaryKey = this.shouldHashPrimaryKey(targetAttributes);
 
     if ((!isEmpty(options.foreignKey.keys) && isEmpty(options.foreignKey.name)) && !shouldHashPrimaryKey) {
@@ -297,30 +298,6 @@ export class BelongsToAssociation<
           );
       }
     }
-  }
-
-  private setupTargetKeys(options: NormalizedBelongsToOptions<SourceKey, TargetKey>, target: ModelStatic<T>) {
-    const isForeignKeysValid = Array.isArray(options.foreignKey.keys)
-      && options.foreignKey.keys.length > 0
-      && options.foreignKey.keys.every(fk => !isEmpty(fk));
-
-    let targetKeys;
-    if (isForeignKeysValid) {
-      targetKeys = (options.foreignKey.keys as Array<{ source: SourceKey, target: TargetKey }>).map(fk => fk.target);
-    } else {
-      targetKeys = options?.targetKey
-        ? [options.targetKey]
-        : target.modelDefinition.primaryKeysAttributeNames;
-    }
-
-    const targetAttributes = target.modelDefinition.attributes;
-    for (const key of targetKeys) {
-      if (!targetAttributes.has(key)) {
-        throw new Error(`Unknown attribute "${key}" passed as targetKey, define this attribute on model "${target.name}" first`);
-      }
-    }
-
-    this.targetKeys = Array.isArray(targetKeys) ? targetKeys : [...targetKeys].map(key => key as TargetKey);
   }
 
   /**
