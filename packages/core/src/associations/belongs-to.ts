@@ -29,7 +29,7 @@ import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
 import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
-import { MapView } from '@sequelize/utils';
+import type { MapView } from '@sequelize/utils';
 
 /**
  * One-to-one association
