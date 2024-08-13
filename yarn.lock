@@ -2828,11 +2828,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/core@npm:7.0.0-alpha.41-patch3, @sequelize/core@workspace:*, @sequelize/core@workspace:packages/core":
+"@sequelize/core@workspace:*, @sequelize/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
-    "@sequelize/utils": "npm:7.0.0-alpha.41"
+    "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.16"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
@@ -3001,8 +3001,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/postgres@workspace:packages/postgres"
   dependencies:
-    "@sequelize/core": "npm:7.0.0-alpha.41-patch3"
-    "@sequelize/utils": "npm:7.0.0-alpha.41"
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.16"
     "@types/mocha": "npm:10.0.7"
     "@types/pg": "npm:^8.11.4"
@@ -3041,7 +3041,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/utils@npm:7.0.0-alpha.41, @sequelize/utils@workspace:*, @sequelize/utils@workspace:packages/utils":
+"@sequelize/utils@workspace:*, @sequelize/utils@workspace:packages/utils":
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
