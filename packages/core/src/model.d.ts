@@ -2129,18 +2129,6 @@ export interface ModelOptions<M extends Model = Model> {
    * @default false
    */
   version?: boolean | string | undefined;
-
-  /**
-   * A container for complex (e.g. composite) foreignKeys constraints.
-   */
-  additionalForeignKeyConstraintDefinitions?: Array<{
-    readonly name?: string;
-    readonly columns: string[];
-    readonly foreignTable: ModelStatic;
-    readonly foreignColumns: string[];
-    readonly onDelete?: ReferentialAction;
-    readonly onUpdate?: ReferentialAction;
-  }>;
 }
 
 /**

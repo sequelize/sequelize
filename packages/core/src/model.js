@@ -975,7 +975,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       for (const columnName in physicalAttributes) {
-        if (!Object.hasOwn(physicalAttributes, columnName)) {
+        if (Object.hasOwn(physicalAttributes, columnName)) {
           continue;
         }
 
