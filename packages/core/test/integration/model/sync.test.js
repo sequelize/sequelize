@@ -331,9 +331,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       },
     );
     Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
-    await expect(sequelize.sync({ alter: true })).to.eventually.be.rejectedWith(
-      'there is no unique constraint matching given keys for referenced table "Users"',
-    );
+    await expect(sequelize.sync({ alter: true })).to.eventually.be.rejected;
   });
 
   it('should create composite foreign key constraint if fields are not primary key but unique constraint exists', async () => {

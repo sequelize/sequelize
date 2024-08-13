@@ -1012,7 +1012,6 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               userId: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
-                autoIncrement: true,
               },
               tenantId: {
                 type: DataTypes.INTEGER,
@@ -1031,13 +1030,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
                 zipCode: DataTypes.STRING,
               },
               {
-                indexes: [{ fields: ['zipCode'], name: 'zip_code_index', unique: true }],
+                indexes: [{ fields: ['userId', 'tenantId'], unique: true }],
               },
             );
             Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
 
             await this.sequelize.sync({ force: true });
-            const user = await User.create({ username: 'foo', tenantId: 1 });
+            const user = await User.create({ username: 'foo', tenantId: 1, userId: 1 });
             await Address.create({
               zipCode: '31217',
               userId: user.userId,
