@@ -219,8 +219,14 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
 
     await sequelize.sync({ alter: true });
-    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), { constraintType: 'FOREIGN KEY' });
-    const constraint = constraints.find(c => c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey');
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey',
+    );
     expect(constraint.columnNames).to.deep.eq(['userId', 'tenantId']);
     expect(constraint.referencedColumnNames).to.deep.eq(['userId', 'tenantId']);
     expect(constraint.referencedTableName).to.eq('Users');
@@ -248,28 +254,40 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
     await sequelize.sync({ alter: true });
     await sequelize.sync({ alter: true });
-    const constraints = await sequelize.queryInterface.showConstraints(Address.modelDefinition.table.tableName);
-    const constraint = constraints.find(c => c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey');
+    const constraints = await sequelize.queryInterface.showConstraints(
+      Address.modelDefinition.table.tableName,
+    );
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey',
+    );
     expect(constraint).to.exist;
   });
 
   it('should create composite foreign key constraint if table has no primary key but unique constraint exists', async () => {
-    const User = sequelize.define('User', {
-      userId: {
-        type: DataTypes.INTEGER,
+    const User = sequelize.define(
+      'User',
+      {
+        userId: {
+          type: DataTypes.INTEGER,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+        },
+        username: {
+          type: DataTypes.STRING,
+        },
       },
-      tenantId: {
-        type: DataTypes.INTEGER,
+      {
+        indexes: [
+          {
+            unique: true,
+            fields: ['userId', 'tenantId'],
+          },
+        ],
       },
-      username: {
-        type: DataTypes.STRING,
-      },
-    }, {
-      indexes: [{
-        unique: true,
-        fields: ['userId', 'tenantId'],
-      }],
-    });
+    );
     const Address = sequelize.define('Address', {
       addressId: {
         type: DataTypes.INTEGER,
@@ -280,7 +298,11 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
     await sequelize.sync({ alter: true });
     const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName());
-    const constraint = constraints.find(c => c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey');
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey',
+    );
     expect(constraint).to.exist;
   });
 
@@ -296,36 +318,48 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
         type: DataTypes.STRING,
       },
     });
-    const Address = sequelize.define('Address', {
-      addressId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
+    const Address = sequelize.define(
+      'Address',
+      {
+        addressId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
       },
-    }, {
-      noPrimaryKey: true,
-    });
+      {
+        noPrimaryKey: true,
+      },
+    );
     Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
-    await expect(sequelize.sync({ alter: true })).to.eventually.be.rejectedWith('there is no unique constraint matching given keys for referenced table "Users"')
+    await expect(sequelize.sync({ alter: true })).to.eventually.be.rejectedWith(
+      'there is no unique constraint matching given keys for referenced table "Users"',
+    );
   });
 
   it('should create composite foreign key constraint if fields are not primary key but unique constraint exists', async () => {
-    const User = sequelize.define('User', {
-      userId: {
-        type: DataTypes.INTEGER,
+    const User = sequelize.define(
+      'User',
+      {
+        userId: {
+          type: DataTypes.INTEGER,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+        },
+        username: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
       },
-      tenantId: {
-        type: DataTypes.INTEGER,
+      {
+        indexes: [
+          {
+            unique: true,
+            fields: ['userId', 'tenantId'],
+          },
+        ],
       },
-      username: {
-        type: DataTypes.STRING,
-        primaryKey: true,
-      },
-    }, {
-      indexes: [{
-        unique: true,
-        fields: ['userId', 'tenantId'],
-      }],
-    });
+    );
     const Address = sequelize.define('Address', {
       addressId: {
         type: DataTypes.INTEGER,
@@ -336,7 +370,11 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 
     await sequelize.sync({ alter: true });
     const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName());
-    const constraint = constraints.find(c => c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey');
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'Addresses_userId_tenantId_Users_userId_tenantId_cfkey',
+    );
     expect(constraint).to.exist;
   });
 

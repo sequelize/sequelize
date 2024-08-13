@@ -248,7 +248,6 @@ If having two associations does not make sense (for instance a "spouse" associat
       for (const key of this.foreignKeys) {
         where[key.target] = instances[0].get(key.source);
       }
-
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);
     }

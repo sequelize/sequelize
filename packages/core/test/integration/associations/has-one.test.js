@@ -150,17 +150,21 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
     });
 
     it('creates an associated model instance with composite foreign keys', async function () {
-      const User = this.sequelize.define('User', { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER }, {
-        indexes: [
-          {
-            unique: true,
-            fields: ['userId', 'tenantId']
-          }
-        ]
-      });
+      const User = this.sequelize.define(
+        'User',
+        { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER },
+        {
+          indexes: [
+            {
+              unique: true,
+              fields: ['userId', 'tenantId'],
+            },
+          ],
+        },
+      );
       const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
-      User.hasOne(Task, { foreignKey: { keys: ['userId', 'tenantId']} });
+      User.hasOne(Task, { foreignKey: { keys: ['userId', 'tenantId'] } });
 
       await this.sequelize.sync({ force: true });
       const user = await User.create({ userId: 1, tenantId: 1 });

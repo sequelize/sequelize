@@ -920,7 +920,9 @@ ${associationOwner._getAssociationDebugList()}`);
 
           const currentAttribute = columnDefs[columnName];
           if (!currentAttribute) {
-            const foreignKeyConstraints = foreignKeyReferences.filter(fk => fk.columnNames.includes(columnName));
+            const foreignKeyConstraints = foreignKeyReferences.filter(fk =>
+              fk.columnNames.includes(columnName),
+            );
             for (const fk of foreignKeyConstraints) {
               if (!removedConstraints[fk.constraintName]) {
                 await this.queryInterface.removeConstraint(tableName, fk.constraintName, options);
@@ -978,7 +980,12 @@ ${associationOwner._getAssociationDebugList()}`);
         }
 
         if (!columns[columnName] && !columns[physicalAttributes[columnName].field]) {
-          await this.queryInterface.addColumn(tableName, physicalAttributes[columnName].field || columnName, physicalAttributes[columnName], options);
+          await this.queryInterface.addColumn(
+            tableName,
+            physicalAttributes[columnName].field || columnName,
+            physicalAttributes[columnName],
+            options,
+          );
         }
       }
     }
@@ -1006,11 +1013,18 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.queryInterface.addIndex(tableName, index, options);
     }
 
-    const existingConstraints = await this.queryInterface.showConstraints(tableName, { ...options, constraintType: 'FOREIGN KEY' });
+    const existingConstraints = await this.queryInterface.showConstraints(tableName, {
+      ...options,
+      constraintType: 'FOREIGN KEY',
+    });
 
     const associations = Object.values(this.modelDefinition.associations)
-      .filter((association) => { return association.options?.foreignKey?.keys?.length > 0 })
-      .filter((association) => { return association.associationType !== 'HasOne' });
+      .filter(association => {
+        return association.options?.foreignKey?.keys?.length > 0;
+      })
+      .filter(association => {
+        return association.associationType !== 'HasOne';
+      });
 
     for (const association of associations) {
       const foreignKey = association.options.foreignKey;

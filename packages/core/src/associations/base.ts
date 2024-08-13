@@ -283,7 +283,7 @@ export interface ForeignKeyOptions<ForeignKey extends string>
   /**
    * The pairs of the foreign key attributes used for composite foreign keys.
    */
-  keys?: ForeignKey[] | Array<{ sourceKey: ForeignKey, targetKey: ForeignKey }>;
+  keys?: ForeignKey[] | Array<{ sourceKey: ForeignKey; targetKey: ForeignKey }>;
 
   /**
    * Alias of {@link ForeignKeyOptions#name}.
