@@ -49,6 +49,7 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
    *
    * If there is a cyclic dependency, this returns null.
    */
+  // TODO: fix toposort with composite foreign keys to remove hack in hasOne
   getModelsTopoSortedByForeignKey(): ModelStatic[] | null {
     const models = new Map();
     const sorter = new Toposort();
