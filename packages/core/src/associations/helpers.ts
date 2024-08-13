@@ -18,9 +18,9 @@ import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
 import type {
   Association,
-  AssociationOptions,
+  AssociationOptions, CompositeForeignKeysOptions,
   ForeignKeyOptions,
-  NormalizedAssociationOptions,
+  NormalizedAssociationOptions
 } from './base';
 import type { ThroughOptions } from './belongs-to-many.js';
 
@@ -351,31 +351,16 @@ export function normalizeForeignKeyOptions<T extends string>(
 // Update the option normalization logic to turn `foreignKey` and `targetKey` into `foreignKeys`,
 export function normalizeCompositeForeignKeyOptions<T extends string>(
   foreignKey: AssociationOptions<T>['foreignKey'],
-): Array<{
-  source: string;
-  target: string;
-}> {
+): CompositeForeignKeysOptions[] {
   // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
   if (isArray(foreignKey?.keys) && !some(foreignKey?.keys, isEmpty)) {
     // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
     return foreignKey.keys.map(fk => {
-      return typeof fk === 'string' ? { source: fk, target: fk } : fk;
+      return typeof fk === 'string' ? { sourceKey: fk, targetKey: fk } : fk;
     });
   }
 
   return [];
-
-  // const normalizedForeignKey = normalizeForeignKeyOptions(foreignKey);
-  //
-  // // const { targetKey, sourceKey } = options as any;
-  // // if (some(normalizedForeignKey, isEmpty) || normalizedForeignKey.name === undefined) {
-  // //   return [];
-  // // }
-  //
-  // // belongsTo has a targetKey option, which is the name of the column in the target table that the foreign key should reference.
-  // // hasOne and hasMany have a sourceKey option, which is the name of the column in the source table that the foreign key should reference.
-  // // belongsToMany has both sourceKey and targetKey, which are the names of the columns in the source and target tables that the foreign key should reference, respectively.
-  // return [{ source: sourceKey ?? normalizedForeignKey.name, target: targetKey ?? normalizedForeignKey.name }];
 }
 
 export type MaybeForwardedModelStatic<M extends Model = Model> =

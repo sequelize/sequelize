@@ -240,13 +240,13 @@ If having two associations does not make sense (for instance a "spouse" associat
       };
     } else if (instances.length > 1 && Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
-        where[key.target] = {
-          [Op.in]: instances.map(instance => instance.get(key.source)),
+        where[key.targetKey] = {
+          [Op.in]: instances.map(instance => instance.get(key.sourceKey)),
         };
       }
     } else if (Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
-        where[key.target] = instances[0].get(key.source);
+        where[key.targetKey] = instances[0].get(key.sourceKey);
       }
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);
@@ -399,10 +399,10 @@ This option is only available in BelongsTo associations.`);
       }
     }
 
-    if (Array.isArray(this.options.foreignKey.keys)) {
+    if (Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1) {
       for (const foreignKey of this.options.foreignKey.keys) {
         // @ts-expect-error -- implicit any, can't fix
-        values[foreignKey.target] = sourceInstance.get(foreignKey.source);
+        values[foreignKey.targetKey] = sourceInstance.get(foreignKey.sourceKey);
       }
     } else {
       // @ts-expect-error -- implicit any, can't fix

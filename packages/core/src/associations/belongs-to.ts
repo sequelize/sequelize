@@ -24,7 +24,7 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
-import type { AssociationOptions, SingleAssociationAccessors } from './base';
+import type { AssociationOptions, CompositeForeignKeysOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
@@ -64,7 +64,7 @@ export class BelongsToAssociation<
 
   foreignKey: SourceKey;
 
-  foreignKeys: Array<{ source: SourceKey; target: TargetKey }> = [];
+  foreignKeys: CompositeForeignKeysOptions[] = [];
 
   /**
    * The column name of the foreign key
@@ -119,8 +119,8 @@ export class BelongsToAssociation<
 
     let targetKeys;
     if (isForeignKeysValid) {
-      targetKeys = (options.foreignKey.keys as Array<{ source: SourceKey; target: TargetKey }>).map(
-        fk => fk.target,
+      targetKeys = (options.foreignKey.keys as Array<{ sourceKey: SourceKey; targetKey: TargetKey }>).map(
+        fk => fk.targetKey,
       );
     } else {
       targetKeys = options?.targetKey
@@ -164,7 +164,7 @@ export class BelongsToAssociation<
       this.foreignKey = null as any;
       this.identifierField = null as any;
 
-      this.foreignKeys = options.foreignKey.keys as Array<{ source: SourceKey; target: TargetKey }>;
+      this.foreignKeys = options.foreignKey.keys as CompositeForeignKeysOptions[];
 
       for (const targetKey of this.targetKeys) {
         const targetColumn = targetAttributes.get(targetKey)!;
@@ -451,7 +451,7 @@ export class BelongsToAssociation<
       // TODO: combine once we can just have the foreignKey in the foreignKeys array all the time
       if (this.isCompositeKey) {
         for (const key of this.foreignKeys) {
-          where[key.target] = instances[0].get(key.source);
+          where[key.targetKey] = instances[0].get(key.sourceKey);
         }
       } else {
         where[this.targetKey] = instances[0].get(this.foreignKey);

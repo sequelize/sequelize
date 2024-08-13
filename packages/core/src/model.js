@@ -32,9 +32,9 @@ import { AbstractDataType } from './abstract-dialect/data-types';
 import {
   Association,
   BelongsToAssociation,
-  BelongsToManyAssociation,
+  BelongsToManyAssociation, CompositeForeignKeysOptions,
   HasManyAssociation,
-  HasOneAssociation,
+  HasOneAssociation
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
@@ -1028,8 +1028,8 @@ ${associationOwner._getAssociationDebugList()}`);
 
     for (const association of associations) {
       const foreignKey = association.options.foreignKey;
-      const sourceKeyFields = foreignKey.keys.map(k => k.source);
-      const targetKeyFields = foreignKey.keys.map(k => k.target);
+      const sourceKeyFields = foreignKey.keys.map(k => k.sourceKey);
+      const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
 
       const constraintName = `${tableName.tableName}_${sourceKeyFields.join('_')}_${association.target.modelDefinition.table.tableName}_${targetKeyFields.join('_')}_cfkey`;
       if (!existingConstraints.some(constraint => constraint.constraintName === constraintName)) {

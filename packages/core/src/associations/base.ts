@@ -283,7 +283,7 @@ export interface ForeignKeyOptions<ForeignKey extends string>
   /**
    * The pairs of the foreign key attributes used for composite foreign keys.
    */
-  keys?: ForeignKey[] | Array<{ sourceKey: ForeignKey; targetKey: ForeignKey }>;
+  keys?: ForeignKey[] | CompositeForeignKeysOptions[];
 
   /**
    * Alias of {@link ForeignKeyOptions#name}.
@@ -297,10 +297,10 @@ export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
 /** Foreign Key Options */
-export interface CompositeForeignKeysOptions {
-  source: string;
-  target: string;
-}
+export type CompositeForeignKeysOptions = {
+  sourceKey: string;
+  targetKey: string;
+};
 
 /**
  * Options provided when associating models
