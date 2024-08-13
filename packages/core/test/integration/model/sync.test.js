@@ -164,40 +164,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync({ alter: true });
   });
 
-  // it('should apply custom naming for additional foreign key definitions', async () => {
-  //   const User = sequelize.define('User', {
-  //     userId: {
-  //       type: DataTypes.INTEGER,
-  //       primaryKey: true,
-  //     },
-  //     tenantId: {
-  //       type: DataTypes.INTEGER,
-  //       primaryKey: true,
-  //     },
-  //     username: DataTypes.STRING,
-  //   });
-  //   const Address = sequelize.define('Address', {
-  //     addressId: {
-  //       type: DataTypes.INTEGER,
-  //       primaryKey: true,
-  //     },
-  //   }, {
-  //     additionalForeignKeyConstraintDefinitions: [{
-  //       columns: ['userId', 'tenantId'],
-  //       foreignTable: User,
-  //       foreignColumns: ['userId', 'tenantId'],
-  //       name: 'custom_fk_name',
-  //     }],
-  //   });
-  //   Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
-  //
-  //   await sequelize.sync({ alter: true });
-  //   await sequelize.sync({ alter: true });
-  //   const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName());
-  //   const constraint = constraints.find(c => c.constraintType === 'FOREIGN KEY' && c.constraintName === 'custom_fk_name');
-  //   expect(constraint).to.exist;
-  // });
-
   it('should properly add composite fk constraint when appears in options', async () => {
     const User = sequelize.define('User', {
       userId: {
