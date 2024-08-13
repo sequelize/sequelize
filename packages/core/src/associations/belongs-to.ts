@@ -24,7 +24,11 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
-import type { AssociationOptions, CompositeForeignKeysOptions, SingleAssociationAccessors } from './base';
+import type {
+  AssociationOptions,
+  CompositeForeignKeysOptions,
+  SingleAssociationAccessors,
+} from './base';
 import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
@@ -119,9 +123,9 @@ export class BelongsToAssociation<
 
     let targetKeys;
     if (isForeignKeysValid) {
-      targetKeys = (options.foreignKey.keys as Array<{ sourceKey: SourceKey; targetKey: TargetKey }>).map(
-        fk => fk.targetKey,
-      );
+      targetKeys = (
+        options.foreignKey.keys as Array<{ sourceKey: SourceKey; targetKey: TargetKey }>
+      ).map(fk => fk.targetKey);
     } else {
       targetKeys = options?.targetKey
         ? [options.targetKey]

@@ -18,9 +18,10 @@ import { pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
 import type {
   Association,
-  AssociationOptions, CompositeForeignKeysOptions,
+  AssociationOptions,
+  CompositeForeignKeysOptions,
   ForeignKeyOptions,
-  NormalizedAssociationOptions
+  NormalizedAssociationOptions,
 } from './base';
 import type { ThroughOptions } from './belongs-to-many.js';
 

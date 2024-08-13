@@ -32,9 +32,9 @@ import { AbstractDataType } from './abstract-dialect/data-types';
 import {
   Association,
   BelongsToAssociation,
-  BelongsToManyAssociation, CompositeForeignKeysOptions,
+  BelongsToManyAssociation,
   HasManyAssociation,
-  HasOneAssociation
+  HasOneAssociation,
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
