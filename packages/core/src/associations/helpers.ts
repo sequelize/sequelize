@@ -291,12 +291,7 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
     );
   }
 
-  // make sure both are not used at the same time
-  //   // if (some(options.foreignKey, isEmpty) && some(options.foreignKey.keys, isEmpty)) {
-  //   //   throw new Error(
-  //   //     'Only one of "foreignKey" and "foreignKeys" can be defined',
-  //   //   );
-  //   // }
+  // TODO: make sure both foreignKey.name and foreignKey.keys are not used at the same time
 
   const isMultiAssociation = associationType.isMultiAssociation;
 
