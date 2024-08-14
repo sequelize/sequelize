@@ -95,7 +95,7 @@ describe('[MSSQL Specific] Connection Manager', () => {
     expect(connectStub.called).to.equal(true);
   });
 
-  it('connectionManager.connect() should not fail with instanceName but no port specified', async () => {
+  it('connectionManager.connect() should not fail with an instanceName but no port specified', async () => {
     const connectStub = sinon.stub();
     Connection = {
       STATE: TediousConnection.prototype.STATE,
