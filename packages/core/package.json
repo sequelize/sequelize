@@ -64,7 +64,7 @@
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
     "type-fest": "^4.14.0",
-    "uuid": "^9.0.1",
+    "uuid": "^10.0.0",
     "validator": "^13.11.0"
   },
   "devDependencies": {
@@ -72,7 +72,7 @@
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "0.0.39",
     "@types/lodash": "4.17.5",
-    "@types/mocha": "10.0.6",
+    "@types/mocha": "10.0.7",
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
@@ -86,7 +86,7 @@
     "lcov-result-merger": "5.0.1",
     "mocha": "10.4.0",
     "moment": "2.30.1",
-    "nyc": "15.1.0",
+    "nyc": "17.0.0",
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
