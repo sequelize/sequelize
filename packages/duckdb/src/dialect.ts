@@ -92,6 +92,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       restartIdentity: false,
     },
     returnValues: 'returning',  // TBD: this is overachieving and returning everything rather than just IDs
+    schemas: true,
   });
 
   readonly Query = DuckDbQuery;

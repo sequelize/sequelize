@@ -17,8 +17,8 @@ export interface DuckDbConnection extends AbstractConnection {
 
 export class DuckDbConnectionManager extends AbstractConnectionManager<DuckDbDialect, DuckDbConnection> {
   async connect(config: ConnectionOptions<DuckDbDialect>): Promise<DuckDbConnection> {
-    console.log("**** DUCKDB CONNECT TO: " + config.database);
-    console.log("**** DUCKDB connection options: ", config);
+    //console.log("**** DUCKDB CONNECT TO: " + config.database);
+    //console.log("**** DUCKDB connection options: ", config);
     // TBD if connecting to MotherDuck, use motherduck_attach_mode=single because multiple databases are bad
     const db = await Database.create(
         config.database || ':memory:',

@@ -14,17 +14,17 @@ export class DuckDbQuery extends AbstractQuery {
 
     const pos_newline = sql.indexOf("\n", 3);
     const sqltoprint = pos_newline >= 0 ? sql.substring(0, pos_newline) + " ... " : sql;
-    console.log("DUCKDB RUN; db path " + this.connection.db_path + "; sql = " + sqltoprint);
+    //console.log("DUCKDB RUN; db path " + this.connection.db_path + "; sql = " + sqltoprint);
 
     if (sql.startsWith("DROP TABLE")) {
       const tableName = sql.match(/^DROP TABLE IF EXISTS "([^"]+)"/)[1];
-      console.log("*** THE TABLE NAME IS ", tableName);
+      //console.log("*** THE TABLE NAME IS ", tableName);
       // clean up all the table's sequences
       const sequences = await this.connection.db.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
       );
-      console.log("*** sequences: ", sequences);
+      //console.log("*** sequences: ", sequences);
 
       for (const seq of sequences) {
         await this.connection.db.all("DROP SEQUENCE " + seq['sequence_name'] + " CASCADE");
@@ -34,7 +34,7 @@ export class DuckDbQuery extends AbstractQuery {
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
       );
-      console.log("*** sequences AFTER DROPPING: ", sequences2);
+      //console.log("*** sequences AFTER DROPPING: ", sequences2);
 
     }
 
@@ -49,7 +49,7 @@ export class DuckDbQuery extends AbstractQuery {
     let result = this.instance;
     if (this.isSelectQuery()) {
       //console.log("*** SELECT Query: ", sql, "params: ", parameters);
-      console.log("results: ", data);
+      //console.log("results: ", data);
       return this.handleSelectQuery(data);
     }
 
@@ -62,7 +62,7 @@ export class DuckDbQuery extends AbstractQuery {
       //console.log("**** INSERT QUERY; GOT DATA: ", data);
 
       if (!this.instance) {
-        console.log("***** WHY IS THERE NO INSTANCE? ******");
+        //console.log("***** WHY IS THERE NO INSTANCE? ******");
       } else {
         // why are there multiple rows?
         //console.log("*** NORMAL ID AUTOGENERATION");
@@ -108,7 +108,7 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
 
-    console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
+    //console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
 
     return [data, data];
   }

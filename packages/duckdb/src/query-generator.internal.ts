@@ -3,8 +3,8 @@ import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-y
 import type { DuckDbDialect } from './dialect.js';
 
 const TECHNICAL_SCHEMAS = Object.freeze([
-  // TBD
   'information_schema',
+  'pg_catalog',
 ]);
 
 export class DuckDbQueryGeneratorInternal<

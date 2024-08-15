@@ -1,5 +1,5 @@
 import {
-  AbstractQueryGenerator,
+  AbstractQueryGenerator, ListSchemasQueryOptions,
   ListTablesQueryOptions, NormalizedAttributeOptions,
   ShowConstraintsQueryOptions, StartTransactionQueryOptions, TableName,
   TableOrModel
@@ -58,6 +58,12 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     //console.log("************** DUCKDB START TRANSACTION: ", options);
     return super.startTransactionQuery(options);
   }
+
+  listSchemasQuery(_options?: ListSchemasQueryOptions): string {
+    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
+
+    return `SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
+  }
   //
   // insertQuery(table: TableName, valueHash: object,
   //             columnDefinitions?: { [p: string]: NormalizedAttributeOptions },
@@ -86,9 +92,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
      return super.dropSchemaQuery(schemaName, options);
    }
 
-   listSchemasQuery(_options?: ListSchemasQueryOptions): string {
-     return super.listSchemasQuery(_options);
-   }
+
 
    describeTableQuery(tableName: TableOrModel): string {
      return super.describeTableQuery(tableName);

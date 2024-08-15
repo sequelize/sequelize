@@ -16,6 +16,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     //console.log(" options: ", _options);
 
     const table = this.quoteTable(tableName);
+
     //const primaryKeys = [];
 
    // const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
