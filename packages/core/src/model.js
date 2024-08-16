@@ -1023,7 +1023,7 @@ ${associationOwner._getAssociationDebugList()}`);
         return association.options?.foreignKey?.keys?.length > 0;
       })
       .filter(association => {
-        return association.associationType !== 'HasOne';
+        return association.associationType === 'BelongsTo';
       });
 
     for (const association of associations) {
