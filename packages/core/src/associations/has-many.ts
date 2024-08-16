@@ -298,7 +298,6 @@ export class HasManyAssociation<
           instance.get(foreignKey.sourceKey, { raw: true }),
         );
       }
-      // console.log(JSON.stringify(values, null, 2))
 
       if (findOptions.limit && instances.length > 1) {
         findOptions.groupedLimit = {
@@ -312,7 +311,7 @@ export class HasManyAssociation<
         for (const foreignKey of this.foreignKeys) {
           where[foreignKey.targetKey] = {
             // @ts-expect-error -- foreignKey can be used as a string value
-            [Op.in]: values[foreignKey.sourceKey],
+            [Op.in]: values[foreignKey.targetKey],
           };
         }
 
@@ -323,8 +322,6 @@ export class HasManyAssociation<
         where[foreignKey.targetKey] = instances[0].get(foreignKey.sourceKey, { raw: true });
       }
     }
-
-    // console.log("where", JSON.stringify(where, null, 2));
 
     findOptions.where = findOptions.where ? { [Op.and]: [where, findOptions.where] } : where;
 
@@ -351,22 +348,16 @@ export class HasManyAssociation<
     }
 
     const result = new Map<any, T[]>();
-    // console.log("resultsuuuu")
-    // console.log(result)
 
     for (const instance of instances) {
-      for (const foreignKey of this.foreignKeys) {
-        result.set(instance.get(foreignKey.targetKey, { raw: true }), []);
-      }
+      const key = this.foreignKeys.map(fk => fk.sourceKey).join('&');
+      result.set(instance.get(key, { raw: true }), []);
     }
 
-    // console.log(results);
-
     for (const instance of results) {
-      for (const foreignKey of this.foreignKeys) {
-        const value = instance.get(foreignKey.targetKey, { raw: true });
-        result.get(value)!.push(instance);
-      }
+      const key = this.foreignKeys.map(fk => fk.targetKey).join('&');
+      const value = instance.get(key, { raw: true });
+      result.get(value)!.push(instance);
     }
 
     return result;
