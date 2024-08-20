@@ -89,6 +89,19 @@ describe('QueryGenerator#generateJoin', () => {
       },
     );
 
+    const Partner = sequelize.define('Partner', {
+      name: DataTypes.STRING,
+      partnerId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+      externalId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+
     User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
     User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
     User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
@@ -102,9 +115,14 @@ describe('QueryGenerator#generateJoin', () => {
       foreignKey: 'companyId',
       inverse: 'Company',
     });
+    Company.Partner = Company.belongsTo(Partner, {
+      as: 'Partner',
+      foreignKey: { keys: ['partnerId', 'externalId'] },
+    });
+
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
-    return { User, Task, Company, Profession };
+    return { User, Task, Company, Profession, Partner };
   });
 
   /*
@@ -122,6 +140,22 @@ describe('QueryGenerator#generateJoin', () => {
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]',
+      },
+    );
+  });
+
+  it('Generates a join query for a belongsTo association using composite foreign key', () => {
+    const { Company, Partner } = vars;
+
+    expectJoin(
+      'include[0]',
+      {
+        model: Company,
+        include: [Partner],
+      },
+      {
+        default:
+          'LEFT OUTER JOIN [Partners] AS [Partner] ON [Company].[partnerId] = [Partner].[partnerId] AND [Company].[externalId] = [Partner].[externalId]',
       },
     );
   });
