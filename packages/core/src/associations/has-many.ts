@@ -350,14 +350,25 @@ export class HasManyAssociation<
     const result = new Map<any, T[]>();
 
     for (const instance of instances) {
-      const key = this.foreignKeys.map(fk => fk.sourceKey).join('&');
-      result.set(instance.get(key, { raw: true }), []);
+      const key = [];
+      for (const fk of this.foreignKeys) {
+        const value = instance.get(fk.sourceKey, { raw: true });
+        key.push(value);
+      }
+
+      const resultKey = key.join('&');
+      result.set(resultKey, []);
     }
 
     for (const instance of results) {
-      const key = this.foreignKeys.map(fk => fk.targetKey).join('&');
-      const value = instance.get(key, { raw: true });
-      result.get(value)!.push(instance);
+      const key = [];
+      for (const fk of this.foreignKeys) {
+        const value = instance.get(fk.targetKey, { raw: true });
+        key.push(value);
+      }
+
+      const resultKey = key.join('&');
+      result.get(resultKey)!.push(instance);
     }
 
     return result;
