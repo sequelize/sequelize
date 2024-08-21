@@ -89,22 +89,31 @@ describe('QueryGenerator#generateJoin', () => {
       },
     );
 
-    const Partner = sequelize.define('Partner', {
-      name: DataTypes.STRING,
-      partnerId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
+    const CompanyCar = sequelize.define(
+      'CompanyCar',
+      {
+        carId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        externalId: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
       },
-      externalId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
+      {
+        tableName: 'companyCar',
       },
-    });
+    );
 
     User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
     User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
     User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
+    User.CompanyCar = User.belongsTo(CompanyCar, {
+      as: 'CompanyCar',
+      foreignKey: { keys: ['carId', 'externalId'] },
+    });
     Profession.Professionals = Profession.hasMany(User, {
       as: 'Professionals',
       foreignKey: 'professionId',
@@ -115,14 +124,10 @@ describe('QueryGenerator#generateJoin', () => {
       foreignKey: 'companyId',
       inverse: 'Company',
     });
-    Company.Partner = Company.belongsTo(Partner, {
-      as: 'Partner',
-      foreignKey: { keys: ['partnerId', 'externalId'] },
-    });
 
     Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
-    return { User, Task, Company, Profession, Partner };
+    return { User, Task, Company, Profession, CompanyCar };
   });
 
   /*
@@ -145,17 +150,17 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('Generates a join query for a belongsTo association using composite foreign key', () => {
-    const { Company, Partner } = vars;
+    const { CompanyCar, User } = vars;
 
     expectJoin(
       'include[0]',
       {
-        model: Company,
-        include: [Partner],
+        model: User,
+        include: [CompanyCar],
       },
       {
         default:
-          'LEFT OUTER JOIN [Partners] AS [Partner] ON [Company].[partnerId] = [Partner].[partnerId] AND [Company].[externalId] = [Partner].[externalId]',
+          'LEFT OUTER JOIN [companyCar] AS [CompanyCar] ON [User].[carId] = [CompanyCar].[carId] AND [User].[externalId] = [CompanyCar].[externalId]',
       },
     );
   });
