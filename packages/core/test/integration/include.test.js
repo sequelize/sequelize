@@ -107,6 +107,34 @@ Instead of specifying a Model, either:
       expect(user).to.be.ok;
     });
 
+    it('supports a belongsTo assocication using composite foreign key', async function () {
+      const Company = this.sequelize.define('Company', {
+        companyId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        externalId: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
+        name: DataTypes.STRING,
+      });
+
+      const User = this.sequelize.define('User', {});
+      User.Company = User.belongsTo(Company, {
+        as: 'Company',
+        foreignKey: { keys: ['companyId', 'externalId'] },
+      });
+      await this.sequelize.sync({ force: true });
+      this.company = await Company.create({ externalId: 'Ext1', name: 'Test Company' });
+      await User.create({ companyId: this.company.companyId, externalId: this.company.externalId });
+
+      const user = await User.findOne({ include: [Company] });
+
+      expect(user).to.be.ok;
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
