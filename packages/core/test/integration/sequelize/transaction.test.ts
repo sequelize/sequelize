@@ -340,7 +340,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow dirty reads with isolation level "READ UNCOMMITTED".
-    if (!['postgres', 'sqlite3'].includes(dialectName)) {
+    if (!['postgres', 'sqlite3', 'hana'].includes(dialectName)) {
       it('should allow dirty read with isolation level "READ UNCOMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({

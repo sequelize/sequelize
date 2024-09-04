@@ -2328,7 +2328,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi', 'hana'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 

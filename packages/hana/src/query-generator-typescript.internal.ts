@@ -66,7 +66,31 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT',
+      'SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",',
+      'SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",',
+      'SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",',
+      'SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",',
+      'SYS.TABLE_COLUMNS.LENGTH AS "Length",',
+      'SYS.TABLE_COLUMNS.SCALE AS "Scale",',
+      'SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",',
+      'SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",',
+      'SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",',
+      'pk.IS_PRIMARY_KEY AS "IsPrimaryKey",',
+      'SYS.TABLE_COLUMNS.COMMENTS AS "Comments"',
+      'FROM SYS.TABLE_COLUMNS',
+      'LEFT JOIN',
+      '(SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY',
+      `FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE') pk`,
+      'ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME',
+      'AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME',
+      'AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME',
+      `WHERE SYS.TABLE_COLUMNS.TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND SYS.TABLE_COLUMNS.SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+    ]);
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
@@ -75,7 +99,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SELECT TABLE_NAME AS "tableName",',
       'SCHEMA_NAME AS "schema"',
       'FROM SYS.TABLES',
-      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'SYSTEM' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
+      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
       options?.schema
         ? `AND SCHEMA_NAME = ${this.escape(options.schema)}`
         : `AND SCHEMA_NAME NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
@@ -112,7 +136,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'DO BEGIN',
       'DECLARE table_count INTEGER;',
       `SELECT COUNT(*) INTO table_count FROM TABLES`,
-      `WHERE TABLE_NAME = '${table.tableName}' AND SCHEMA_NAME = '${table.schema}';`,
+      `WHERE TABLE_NAME = ${this.escape(table.tableName)} AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'};`,
       'IF :table_count > 0 THEN',
       `  EXEC '` + dropSql + `';`,
       'END IF;',
@@ -140,7 +164,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'UPDATE_RULE AS "updateAction"',
         'FROM SYS.REFERENTIAL_CONSTRAINTS',
         `WHERE TABLE_NAME = ${this.escape(table.tableName)}`,
-        `AND SCHEMA_NAME = ${this.escape(table.schema)}`,
+        `AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
         options?.columnName ? `AND COLUMN_NAME = ${this.escape(options.columnName)}` : '',
         options?.constraintName ? `AND CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
         'ORDER BY CONSTRAINT_NAME, POSITION',
@@ -153,15 +177,23 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT SCHEMA_NAME as "schemaName",',
-      'TABLE_NAME as "tableName",',
-      'INDEX_NAME as "name",',
-      'INDEX_TYPE as "type",',
-      'CONSTRAINT as "constraint"',
+      'SELECT',
+      'SYS.INDEXES.SCHEMA_NAME AS "schemaName",',
+      'SYS.INDEXES.TABLE_NAME AS "tableName",',
+      'SYS.INDEXES.INDEX_NAME AS "name",',
+      'SYS.INDEXES.INDEX_TYPE AS "type",',
+      'SYS.INDEXES.CONSTRAINT AS "constraint",',
+      'SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName",',
+      'SYS.INDEX_COLUMNS.POSITION AS "position",',
+      'SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"',
 
       'FROM SYS.INDEXES',
-      `WHERE SCHEMA_NAME = ${this.escape(table.schema)}`,
-      `and TABLE_NAME = ${this.escape(table.tableName)}`,
+      'INNER JOIN SYS.INDEX_COLUMNS',
+      'ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME',
+      'AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME',
+      'AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME',
+      `WHERE SYS.INDEXES.SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+      `AND SYS.INDEXES.TABLE_NAME = ${this.escape(table.tableName)}`,
     ]);
 
     // `SELECT * FROM SYS.INDEXES WHERE SCHEMA_NAME ='${}' and TABLE_NAME = '' ${this.quoteTable(tableName)}`;
@@ -194,7 +226,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       indexName = indexNameOrAttributes;
     }
 
-    return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
+    return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
@@ -218,7 +250,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
-    return `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = ${this.escape(table.schema)} AND TABLE_NAME = ${this.escape(table.tableName)}`;
+    return `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'} AND TABLE_NAME = ${this.escape(table.tableName)}`;
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions) {

@@ -282,7 +282,7 @@ describe('DataTypes', () => {
     });
 
     it('serialize/deserializes strings', async () => {
-      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'hana') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345');
@@ -300,7 +300,7 @@ describe('DataTypes', () => {
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'hana') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOutRaw(vars.User, 'charAttr', '12345 ', '12345');
@@ -1195,7 +1195,9 @@ describe('DataTypes', () => {
             ? '2022-01-01 00:00:00.000 +00:00'
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
-              : '2022-01-01 00:00:00+00',
+              : dialect.name === 'hana'
+                ? '2022-01-01 00:00:00.000000000+00'
+                : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1233,7 +1235,8 @@ describe('DataTypes', () => {
 
     it('clamps to specified precision', async () => {
       // sqlite does not support restricting the precision
-      if (dialect.name !== 'sqlite3') {
+      // HANA does not support restricting the precision
+      if (dialect.name !== 'sqlite3' && dialect.name !== 'hana') {
         await testSimpleInOut(
           vars.User,
           'dateMinPrecisionAttr',
@@ -1701,6 +1704,9 @@ describe('DataTypes', () => {
             // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
             expect(table.jsonStr.type).to.equal('LONGTEXT');
             break;
+          case 'hana':
+            expect(table.jsonStr.type).to.equal('NVARCHAR');
+            break;
           default:
             expect(table.jsonStr.type).to.equal(jsonTypeName);
         }
@@ -1735,9 +1741,10 @@ describe('DataTypes', () => {
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
       if (dialect.name !== 'mariadb') {
-        if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite3' || dialect.name === 'hana') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
+          // HANA: does not have a JSON type, so we can't parse it if our DataType is not specified.
           it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
             await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
             await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');

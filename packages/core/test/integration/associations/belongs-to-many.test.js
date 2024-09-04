@@ -3359,8 +3359,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           await this.sequelize.sync({ force: true });
 
           const [worker0, tasks0] = await Promise.all([
-            dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create(),
-            Task.bulkCreate([{}, {}]).then(() => {
+            dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create(),
+            Task.bulkCreate(dialect === 'hana' ? [{ id: 1 }, { id: 2 }] : [{}, {}]).then(() => {
               return Task.findAll();
             }),
           ]);
@@ -3406,8 +3406,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
-          Task.bulkCreate([{}, {}, {}]).then(() => {
+          dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Task.bulkCreate(
+            dialect === 'hana' ? [{ id: 1 }, { id: 2 }, { id: 3 }] : [{}, {}, {}]
+          ).then(() => {
             return Task.findAll();
           }),
         ]);
@@ -3433,8 +3435,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
-          Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => {
+          dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Task.bulkCreate(
+            dialect === 'hana'
+              ? [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]
+              : [{}, {}, {}, {}, {}]
+          ).then(() => {
             return Task.findAll();
           }),
         ]);

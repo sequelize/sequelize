@@ -192,6 +192,12 @@ describe('Model', () => {
                 break;
               }
 
+              case 'hana': {
+                expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") ');
+
+                break;
+              }
+
               default: {
                 // mysql, sqlite3
                 expect(sql).to.include(
@@ -427,6 +433,10 @@ describe('Model', () => {
     });
 
     it('should allow blank creates (with timestamps: false)', async function () {
+      if (dialectName === 'hana') {
+        // https://sap.stackenterprise.co/questions/13539
+        return;
+      }
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);

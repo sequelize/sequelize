@@ -38,6 +38,7 @@ interface HanaClientConnectionOptions {
   database?: string;
   username?: string;
   password?: string;
+  hanaSchema?: string; // `schema` is used by sequelize
 }
 
 export interface HanaConnectionOptions

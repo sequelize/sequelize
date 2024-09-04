@@ -487,6 +487,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             Sequelize.literal('1 AS "someProperty"'),
             [Sequelize.literal('1'), 'someProperty2'],
           ];
+        } else if (dialect === 'hana') {
+          findAttributes = [
+            Sequelize.literal(
+              'CASE WHEN EXISTS(SELECT 1 FROM DUMMY) THEN 1 ELSE 0 END AS "someProperty"'
+              ),
+            [
+              Sequelize.literal('CASE WHEN EXISTS(SELECT 1 FROM DUMMY) THEN 1 ELSE 0 END'),
+              'someProperty2'
+            ],
+          ];
         } else {
           findAttributes = [
             Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),

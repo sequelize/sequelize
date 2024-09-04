@@ -3,6 +3,7 @@ import {
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_OBJECT } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
@@ -11,6 +12,7 @@ import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -26,6 +28,7 @@ import { HanaQueryGeneratorInternal } from './query-generator.internal.js';
 const ADD_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set();
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
+const REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS = new Set();
 
 export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
   #internals;
@@ -212,6 +215,27 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 
   changeColumnQuery(tableName, attributes) {
     //todo
+    const attrString = [];
+    const constraintString = [];
+
+    for (const attributeName in attributes) {
+      let definition = attributes[attributeName];
+      if (definition.includes('REFERENCES')) {
+        const attrName = this.quoteIdentifier(attributeName);
+        definition = definition.replace(/.+?(?=REFERENCES)/, '');
+        constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
+      } else {
+        attrString.push(`${this.quoteIdentifier(attributeName)} ${definition}`);
+      }
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      attrString.length && `ALTER (${attrString.join(', ')})`,
+      constraintString.length && `ADD ${constraintString.join(', ')}`,
+      ';',
+    ]);
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -222,9 +246,33 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
+  removeColumnQuery(tableName, columnName, options) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeColumnQuery',
+        this.dialect,
+        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+        REMOVE_COLUMN_QUERY_SUPPORTED_OPTIONS,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'ALTER TABLE',
+      this.quoteTable(tableName),
+      'DROP',
+      '(',
+      this.quoteIdentifier(columnName),
+      ')',
+    ]);
+  }
+
   insertQuery(table, valueHash, modelAttributes, options) {
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
     console.log('------insert query-------', query.query)
+    if (options.type === 'UPSERT') {
+      query.query = query.query.replace(/^INSERT INTO/, 'UPSERT');
+    }
 
     let primaryKey = 'id';
     let primaryKeyGeneratedByDb = true;
@@ -272,6 +320,12 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
         if (modelAttributes[key] && modelAttributes[key].autoIncrement === true && value == null) {
           continue;
         }
+
+        if(value instanceof BaseSqlExpression) {
+          // BaseSqlExpression (e.g. Cast), has already been escaped in the query:
+          // INSERT INTO "Users" ("intVal","createdAt","updatedAt") VALUES (CAST(CAST(1-2 AS INTEGER) AS INTEGER),$sequelize_1,$sequelize_2)
+          continue;
+        }
         columnNames.push(key);
       }
     }
@@ -293,8 +347,16 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 query.query = `\
 DO (${blockParameters.join(', ')})
 BEGIN
+  DECLARE CURRENT_IDENTITY_VALUE_RESULT BIGINT;
   ${query.query}
-  SELECT CURRENT_IDENTITY_VALUE() as "${primaryKey}" FROM DUMMY;
+  SELECT CURRENT_IDENTITY_VALUE() INTO CURRENT_IDENTITY_VALUE_RESULT FROM DUMMY;
+  IF
+    -2147483648 <= :CURRENT_IDENTITY_VALUE_RESULT AND :CURRENT_IDENTITY_VALUE_RESULT <= 2147483647
+  THEN
+    SELECT TO_INTEGER(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+  ELSE
+    SELECT TO_BIGINT(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+  END IF;
 END;`
 
     return query;
@@ -462,15 +524,7 @@ END;`
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        const quotedAttr = this.quoteIdentifier(options.key);
-        const escapedCommentText = this.escape(attribute.comment);
-        template += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
-      } else {
-        // for createTable event which does it's own parsing
-        // TODO: centralize creation of comment statements here
-        template += ` COMMENT ${attribute.comment}`;
-      }
+      template += ` COMMENT ${attribute.comment}`;
     }
 
     return template;

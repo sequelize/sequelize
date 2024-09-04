@@ -4,14 +4,7 @@ import type { HanaDialect } from './dialect.js';
 
 const TECHNICAL_DATABASE_NAMES = Object.freeze(['hana']);
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
-  'HANA',
-  'INFORMATION_SCHEMA',
-  'PERFORMANCE_SCHEMA',
   'SYS',
-  'hana',
-  'information_schema',
-  'performance_schema',
-  'sys'
 ]);
 
 export class HanaQueryGeneratorInternal<
@@ -32,6 +25,9 @@ export class HanaQueryGeneratorInternal<
     }
 
     if (options.offset) {
+      if (options.limit == null) {
+        fragment += ` LIMIT 9223372036854775807`;
+      }
       fragment += ` OFFSET ${this.queryGenerator.escape(options.offset, options)}`;
     }
 

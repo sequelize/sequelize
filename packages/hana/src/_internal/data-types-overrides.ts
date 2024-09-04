@@ -158,7 +158,8 @@ export class JSON extends BaseTypes.JSON {
   }
 
   toSql() {
-    return 'NCLOB';
+    // NCLOB cannot have default value, use NVARCHAR instead.
+    return 'NVARCHAR(5000)';
   }
 }
 

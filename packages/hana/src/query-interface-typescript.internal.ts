@@ -9,10 +9,12 @@ import {
   StartTransactionOptions,
   TableName,
   Transaction,
+  QiDropTableOptions
 } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { HanaDialect } from './dialect.js';
 import { HanaConnection } from './connection-manager.js';
+import { promisify } from 'node:util';
 
 export class HanaQueryInterfaceTypescript<
   Dialect extends HanaDialect = HanaDialect,
@@ -62,29 +64,12 @@ export class HanaQueryInterfaceTypescript<
     options: CommitTransactionOptions,
   ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
-      throw new Error('Unable to commit a transaction without transaction object!');
+      throw new Error('Unable to commit a transaction without the transaction object.');
     }
-
-    if (transaction.parent) {
-      // Savepoints cannot be committed
-      return;
-    }
-
-    // options = {
-    //   ...options,
-    //   transaction: transaction.parent || transaction,
-    //   supportsSearchPath: false,
-    //   completesTransaction: true,
-    // };
-
-    const sql = this.queryGenerator.commitTransactionQuery();
-    const promise = this.sequelize.queryRaw(sql, options);
-
-    // transaction.finished = 'commit';
-
-    const result = await promise;
 
     const connection = transaction.getConnection() as HanaConnection;
+    const commit = promisify(connection.commit.bind(connection));
+    await commit();
     connection.setAutoCommit(true);
 
     // return result;
@@ -105,16 +90,17 @@ export class HanaQueryInterfaceTypescript<
     //   completesTransaction: true,
     // };
     // options.transaction.name = transaction.parent ? transaction.name : undefined;
-    const sql = this.queryGenerator.rollbackTransactionQuery();
+//     const sql = this.queryGenerator.rollbackTransactionQuery();
     console.log('_rollbackTransaction options', options)
-    console.log('_rollbackTransaction sql', sql)
-    const promise = this.sequelize.queryRaw(sql && 'ROLLBACK', options);
+//     console.log('_rollbackTransaction sql', sql)
+//     const promise = this.sequelize.queryRaw(sql && 'ROLLBACK', options);
 
     // transaction.finished = 'rollback';
-
-    const result = await promise;
+//     const result = await promise;
 
     const connection = transaction.getConnection() as HanaConnection;
+    const rollback = promisify(connection.rollback.bind(connection));
+    await rollback();
     connection.setAutoCommit(true);
 
     // return result;

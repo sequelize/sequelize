@@ -1,3 +1,5 @@
+import { getDataTypeParser } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { HanaDialect } from '../dialect.js';
 
 /**
@@ -8,4 +10,12 @@ import type { HanaDialect } from '../dialect.js';
  */
 export function registerHanaDbDataTypeParsers(dialect: HanaDialect) {
   //todo dazhuang
+  // LONGDATE is a synonym of TIMESTAMP. ResultSet.getColumnInfo() returns LONGDATE, not TIMESTAMP.
+  dialect.registerDataTypeParser(['LONGDATE'], (value: unknown) => {
+    // values are returned as UTC, but the UTC Offset is left unspecified.
+    return `${value}+00`;
+  });
+
+  const parseBigInt = getDataTypeParser(dialect, BaseTypes.BIGINT);
+  dialect.registerDataTypeParser(['BIGINT'], parseBigInt);
 }

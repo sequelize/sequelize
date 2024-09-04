@@ -10,6 +10,7 @@ const STRING_CONNECTION_OPTION_MAP = {
   database: undefined,
   username: undefined,
   password: undefined,
+  hanaSchema: undefined,
 } as const satisfies Record<keyof StringConnectionOptions, undefined>;
 
 export const STRING_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<StringConnectionOptions>(

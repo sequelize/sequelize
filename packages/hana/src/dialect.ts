@@ -207,8 +207,10 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
     return createUnspecifiedOrderedBindCollector();
   }
   getDefaultSchema(): string {
-    return 'SYSTEM';
-    throw new Error('Method not implemented.');
+    if (this.sequelize.options.replication.write.hanaSchema) {
+      return this.sequelize.options.replication.write.hanaSchema;
+    }
+    return this.sequelize.options.replication.write.username?.toUpperCase() ?? '';
   }
 
   static getDefaultPort() {

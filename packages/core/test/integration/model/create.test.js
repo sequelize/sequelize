@@ -911,7 +911,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ? '$sequelize_1'
             : dialectName === 'mssql'
               ? '@sequelize_1'
-              : '?';
+              : dialectName === 'hana'
+                ? ':intVal'
+                : '?';
       let match = false;
 
       const user = await this.User.create(
