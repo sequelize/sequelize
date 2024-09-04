@@ -2871,7 +2871,7 @@ __metadata:
     semver: "npm:^7.3"
     sequelize-pool: "npm:^8.0.0"
     sinon: "npm:18.0.0"
-    sinon-chai: "npm:3.7.0"
+    sinon-chai: "npm:4.0.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.14.0"
     uuid: "npm:^10.0.0"
@@ -13933,13 +13933,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon-chai@npm:3.7.0":
-  version: 3.7.0
-  resolution: "sinon-chai@npm:3.7.0"
+"sinon-chai@npm:4.0.0":
+  version: 4.0.0
+  resolution: "sinon-chai@npm:4.0.0"
   peerDependencies:
-    chai: ^4.0.0
+    chai: ^5.0.0
     sinon: ">=4.0.0"
-  checksum: 10c0/9bbb0494be89c313f5287c2a0c9890104e3070ad6bf06c359b0c3cd776ea6273f7846ee1ab01fa2e0328e741f8717348669ee232e83b94b193676a56f48d2c63
+  checksum: 10c0/c2be6f7d964fd05dcd0870807a1447bc180703aca0cdf5ba7ed21bf2a8a2e0c8d1d2e464b2289982870dfe1b58ae797000cc742e23eeac8dd2f6339dea7d717b
   languageName: node
   linkType: hard
 
