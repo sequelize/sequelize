@@ -2524,7 +2524,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^3.26.0, @oclif/core@npm:^3.26.6":
+"@oclif/core@npm:^3.26.6":
   version: 3.27.0
   resolution: "@oclif/core@npm:3.27.0"
   dependencies:
@@ -2560,28 +2560,28 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4":
-  version: 4.0.0
-  resolution: "@oclif/core@npm:4.0.0"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.0.0":
+  version: 4.0.19
+  resolution: "@oclif/core@npm:4.0.19"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
-    ansis: "npm:^3.1.1"
+    ansis: "npm:^3.3.2"
     clean-stack: "npm:^3.0.1"
     cli-spinners: "npm:^2.9.2"
-    cosmiconfig: "npm:^9.0.0"
     debug: "npm:^4.3.5"
     ejs: "npm:^3.1.10"
     get-package-type: "npm:^0.1.0"
     globby: "npm:^11.1.0"
     indent-string: "npm:^4.0.0"
     is-wsl: "npm:^2.2.0"
-    minimatch: "npm:^9.0.4"
+    lilconfig: "npm:^3.1.2"
+    minimatch: "npm:^9.0.5"
     string-width: "npm:^4.2.3"
     supports-color: "npm:^8"
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/0c644e1258e578ef5f8ea977034eb8239955e05f70b53985bc18abf378d387d7cb184474c5c4473ccf7a66ace1e00b4725ff94a1acdd2c801a4312f1b5a86628
+  checksum: 10c0/33ea23e5bdd751d117078adf3d3824bdec1e5c3571af4ce4dd73e2aea2b8f2f9844a4c2940fa14a87d5edfdf24fef0d51b27c6ede348445a012973b406205689
   languageName: node
   linkType: hard
 
@@ -2807,7 +2807,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/cli@workspace:packages/cli"
   dependencies:
-    "@oclif/core": "npm:^3.26.0"
+    "@oclif/core": "npm:^4.0.0"
     "@oclif/plugin-help": "npm:^6.0.20"
     "@oclif/test": "npm:3.2.15"
     "@sequelize/utils": "workspace:*"
@@ -4724,10 +4724,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.1.1, ansis@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "ansis@npm:3.2.0"
-  checksum: 10c0/b61c16554e707f30685ab153ffafc02b59bb9e86567a04b2e2ad521ade771c9ae3cd67f3e486a1cd2e3c89ad898653266bc38d76ea7af4ac67762baa3c87befa
+"ansis@npm:^3.2.0, ansis@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "ansis@npm:3.3.2"
+  checksum: 10c0/7b5bd3d28e5fa12dbd2268e984b292540f863bb113fbaa78be93e512417df014e547279ecec264b39948364e13f245424a0bc911802d68def185545d2290d11c
   languageName: node
   linkType: hard
 
@@ -10247,10 +10247,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lilconfig@npm:~3.1.1":
-  version: 3.1.1
-  resolution: "lilconfig@npm:3.1.1"
-  checksum: 10c0/311b559794546894e3fe176663427326026c1c644145be9e8041c58e268aa9328799b8dfe7e4dd8c6a4ae305feae95a1c9e007db3569f35b42b6e1bc8274754c
+"lilconfig@npm:^3.1.2, lilconfig@npm:~3.1.1":
+  version: 3.1.2
+  resolution: "lilconfig@npm:3.1.2"
+  checksum: 10c0/f059630b1a9bddaeba83059db00c672b64dc14074e9f232adce32b38ca1b5686ab737eb665c5ba3c32f147f0002b4bee7311ad0386a9b98547b5623e87071fbe
   languageName: node
   linkType: hard
 
@@ -10951,12 +10951,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minimatch@npm:^9.0.0, minimatch@npm:^9.0.3, minimatch@npm:^9.0.4, minimatch@npm:~9.0.4":
-  version: 9.0.4
-  resolution: "minimatch@npm:9.0.4"
+"minimatch@npm:^9.0.0, minimatch@npm:^9.0.3, minimatch@npm:^9.0.4, minimatch@npm:^9.0.5, minimatch@npm:~9.0.4":
+  version: 9.0.5
+  resolution: "minimatch@npm:9.0.5"
   dependencies:
     brace-expansion: "npm:^2.0.1"
-  checksum: 10c0/2c16f21f50e64922864e560ff97c587d15fd491f65d92a677a344e970fe62aafdbeafe648965fa96d33c061b4d0eabfe0213466203dd793367e7f28658cf6414
+  checksum: 10c0/de96cf5e35bdf0eab3e2c853522f98ffbe9a36c37797778d2665231ec1f20a9447a7e567cb640901f89e4daaa95ae5d70c65a9e8aa2bb0019b6facbc3c0575ed
   languageName: node
   linkType: hard
 
