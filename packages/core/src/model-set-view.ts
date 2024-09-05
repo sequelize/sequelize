@@ -1,11 +1,11 @@
 import { map, SetView } from '@sequelize/utils';
 import { inspect } from 'node:util';
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
+import isEmpty from 'lodash/isEmpty.js';
 import Toposort from 'toposort-class';
 import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import type { Model, ModelStatic } from './model';
 import type { SequelizeTypeScript } from './sequelize-typescript.js';
-import isEmpty from 'lodash/isEmpty.js';
 
 export class ModelSetView<Dialect extends AbstractDialect> extends SetView<ModelStatic> {
   readonly #sequelize: SequelizeTypeScript<Dialect>;
@@ -65,12 +65,17 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
 
       const { attributes, associations } = model.modelDefinition;
 
-      for (const association of Object.values(associations).filter(a => a.parentAssociation !== null)) {
+      for (const association of Object.values(associations).filter(
+        a => a.parentAssociation !== null,
+      )) {
         if (!association.parentAssociation) {
           continue;
         }
 
-        if (!isEmpty(association.parentAssociation.options.foreignKey) && Array.isArray(association.parentAssociation.options.foreignKey.keys)) {
+        if (
+          !isEmpty(association.parentAssociation.options.foreignKey) &&
+          Array.isArray(association.parentAssociation.options.foreignKey.keys)
+        ) {
           const dep = queryGenerator.quoteTable(association.target);
           deps.push(dep);
         }
