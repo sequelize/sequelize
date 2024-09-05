@@ -14,7 +14,8 @@ services:
       test:
         [
           'CMD',
-          '/opt/mssql-tools/bin/sqlcmd',
+          '/opt/mssql-tools18/bin/sqlcmd',
+          '-C',
           '-S',
           'localhost',
           '-U',
