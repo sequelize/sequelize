@@ -321,7 +321,7 @@ export class HasManyAssociation<
 
     for (const instance of results) {
       const value = instance.get(this.foreignKey, { raw: true });
-      result.get(value)!.push(instance);
+      result.get(value)?.push(instance);
     }
 
     return result;
