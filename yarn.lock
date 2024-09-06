@@ -11958,13 +11958,13 @@ __metadata:
   linkType: hard
 
 "odbc@npm:^2.4.8":
-  version: 2.4.8
-  resolution: "odbc@npm:2.4.8"
+  version: 2.4.9
+  resolution: "odbc@npm:2.4.9"
   dependencies:
     "@mapbox/node-pre-gyp": "npm:^1.0.5"
     async: "npm:^3.0.1"
     node-addon-api: "npm:^3.0.2"
-  checksum: 10c0/d4ed9c6ebddfac5cd48889b0a04613143c4035139a80d645933e874a6c9ea60e3d7b59639cd1695c80e1168ec552620ae587e1fc66579a6cad4b4de71612c1d9
+  checksum: 10c0/394e2543f1c24f440c33f5ac05d5178b9a51a757a8628a7d57f9ed811effafc297739448b4bb6fd74212b70f985d6cb3641672edfdef9a992c3ea94543bd4218
   languageName: node
   linkType: hard
 
