@@ -38,7 +38,7 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/snowflake-sdk": "^1.6.23",
+    "@types/snowflake-sdk": "1.6.23",
     "lodash": "^4.17.21",
     "snowflake-sdk": "^1.10.0"
   }
