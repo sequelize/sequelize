@@ -80,7 +80,7 @@
     "esbuild": "0.17.19",
     "eslint": "8.57.0",
     "eslint-plugin-jsdoc": "48.2.13",
-    "eslint-plugin-mocha": "10.4.3",
+    "eslint-plugin-mocha": "10.5.0",
     "fast-glob": "3.3.2",
     "husky": "9.0.11",
     "lerna": "8.1.8",
