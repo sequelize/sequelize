@@ -22,7 +22,7 @@
     "concurrently": "8.2.2",
     "mocha": "10.4.0",
     "oclif": "4.13.8",
-    "rimraf": "5.0.7"
+    "rimraf": "5.0.10"
   },
   "engines": {
     "node": ">=18.0.0"
