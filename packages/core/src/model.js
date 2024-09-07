@@ -4216,7 +4216,19 @@ Instead of specifying a Model, either:
     }
 
     this.isNewRecord = false;
-
+    for (const [key, value] of Object.entries(options.defaults)) {
+      if (typeof value === typeof result[key]) {
+        continue;
+      } else if (Array.isArray(value)) {
+        try {
+         let p  =  result[key].replace('{', '').replace('}', '').split(',');
+         result[key] = p;
+         result._previousDataValues[key] = p;
+        } catch (e) {
+          console.error(`Error converting string to array: ${e}`);
+        }
+      }
+    }
     return result;
   }
 
