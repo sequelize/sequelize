@@ -82,7 +82,7 @@
     "eslint-plugin-jsdoc": "48.2.13",
     "eslint-plugin-mocha": "10.5.0",
     "fast-glob": "3.3.2",
-    "husky": "9.0.11",
+    "husky": "9.1.5",
     "lerna": "8.1.8",
     "lint-staged": "15.2.10",
     "lodash": "4.17.21",

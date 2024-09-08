@@ -3029,7 +3029,7 @@ __metadata:
     eslint-plugin-jsdoc: "npm:48.2.13"
     eslint-plugin-mocha: "npm:10.5.0"
     fast-glob: "npm:3.3.2"
-    husky: "npm:9.0.11"
+    husky: "npm:9.1.5"
     lerna: "npm:8.1.8"
     lint-staged: "npm:15.2.10"
     lodash: "npm:4.17.21"
@@ -8919,12 +8919,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"husky@npm:9.0.11":
-  version: 9.0.11
-  resolution: "husky@npm:9.0.11"
+"husky@npm:9.1.5":
+  version: 9.1.5
+  resolution: "husky@npm:9.1.5"
   bin:
-    husky: bin.mjs
-  checksum: 10c0/2c787dcf74a837fc9a4fea7da907509d4bd9a289f4ea10ecc9d86279e4d4542b0f5f6443a619bccae19e265f2677172cc2b86aae5c932a35a330cc227d914605
+    husky: bin.js
+  checksum: 10c0/f42efb95a026303eb880898760f802d88409780dd72f17781d2dfc302177d4f80b641cf1f1694f53f6d97c536c7397684133d8c8fe4a4426f7460186a7d1c6b8
   languageName: node
   linkType: hard
 
