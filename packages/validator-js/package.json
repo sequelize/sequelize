@@ -50,9 +50,9 @@
   },
   "devDependencies": {
     "@sequelize/sqlite3": "workspace:*",
-    "@types/chai": "4.3.16",
+    "@types/chai": "4.3.19",
     "@types/chai-as-promised": "7.1.8",
-    "chai": "4.4.1",
+    "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
     "mocha": "10.4.0"
   }

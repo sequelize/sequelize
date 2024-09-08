@@ -2899,11 +2899,11 @@ __metadata:
     "@oclif/plugin-help": "npm:^6.0.20"
     "@oclif/test": "npm:3.2.15"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/inquirer": "npm:^9.0.7"
     "@types/mocha": "npm:10.0.7"
     ansis: "npm:^3.2.0"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     concurrently: "npm:8.2.2"
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
@@ -2921,7 +2921,7 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.12"
@@ -2934,7 +2934,7 @@ __metadata:
     "@types/validator": "npm:^13.11.9"
     ansis: "npm:^3.2.0"
     bnf-parser: "npm:^3.1.6"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
     chai-datetime: "npm:1.8.0"
     dayjs: "npm:^1.11.10"
@@ -2998,9 +2998,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/mocha": "npm:10.0.7"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mariadb: "npm:^3.3.0"
@@ -3017,11 +3017,11 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:20.1.4"
     "@rushstack/eslint-patch": "npm:1.10.4"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/lodash": "npm:4.17.7"
     "@types/mocha": "npm:10.0.7"
     "@types/node": "npm:20.16.5"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     concurrently: "npm:8.2.2"
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.17.19"
@@ -3056,10 +3056,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/mocha": "npm:10.0.7"
     "@types/sinon": "npm:17.0.3"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
@@ -3074,9 +3074,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/mocha": "npm:10.0.7"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
@@ -3091,10 +3091,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/mocha": "npm:10.0.7"
     "@types/pg": "npm:^8.11.4"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
     pg: "npm:^8.11.3"
@@ -3133,10 +3133,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/lodash": "npm:^4.17.0"
     "@types/mocha": "npm:10.0.7"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     concurrently: "npm:8.2.2"
     expect-type: "npm:0.19.0"
     lodash: "npm:^4.17.21"
@@ -3150,9 +3150,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
-    "@types/chai": "npm:4.3.16"
+    "@types/chai": "npm:4.3.19"
     "@types/chai-as-promised": "npm:7.1.8"
-    chai: "npm:4.4.1"
+    chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.4.0"
@@ -4015,10 +4015,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*, @types/chai@npm:4.3.16":
-  version: 4.3.16
-  resolution: "@types/chai@npm:4.3.16"
-  checksum: 10c0/745d4a9be429d5d86a7ab26064610b8957fe12dd80e94dc7d0707cf3db1c889e3ffe0d73d69bb15e6d376bf4462a7a75e9d8fc1051750b5d656d6cfe459829b7
+"@types/chai@npm:*, @types/chai@npm:4.3.19":
+  version: 4.3.19
+  resolution: "@types/chai@npm:4.3.19"
+  checksum: 10c0/8fd573192e486803c4d04185f2b0fab554660d9a1300dbed5bde9747ab8bef15f462a226f560ed5ca48827eecaf8d71eed64aa653ff9aec72fb2eae272e43a84
   languageName: node
   linkType: hard
 
@@ -5581,9 +5581,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:4.4.1, chai@npm:^4.4.1":
-  version: 4.4.1
-  resolution: "chai@npm:4.4.1"
+"chai@npm:4.5.0, chai@npm:^4.4.1":
+  version: 4.5.0
+  resolution: "chai@npm:4.5.0"
   dependencies:
     assertion-error: "npm:^1.1.0"
     check-error: "npm:^1.0.3"
@@ -5591,8 +5591,8 @@ __metadata:
     get-func-name: "npm:^2.0.2"
     loupe: "npm:^2.3.6"
     pathval: "npm:^1.1.1"
-    type-detect: "npm:^4.0.8"
-  checksum: 10c0/91590a8fe18bd6235dece04ccb2d5b4ecec49984b50924499bdcd7a95c02cb1fd2a689407c19bb854497bde534ef57525cfad6c7fdd2507100fd802fbc2aefbd
+    type-detect: "npm:^4.1.0"
+  checksum: 10c0/b8cb596bd1aece1aec659e41a6e479290c7d9bee5b3ad63d2898ad230064e5b47889a3bc367b20100a0853b62e026e2dc514acf25a3c9385f936aa3614d4ab4d
   languageName: node
   linkType: hard
 
@@ -15010,10 +15010,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-detect@npm:4.0.8, type-detect@npm:^4.0.0, type-detect@npm:^4.0.8":
+"type-detect@npm:4.0.8":
   version: 4.0.8
   resolution: "type-detect@npm:4.0.8"
   checksum: 10c0/8fb9a51d3f365a7de84ab7f73b653534b61b622aa6800aecdb0f1095a4a646d3f5eb295322127b6573db7982afcd40ab492d038cf825a42093a58b1e1353e0bd
+  languageName: node
+  linkType: hard
+
+"type-detect@npm:^4.0.0, type-detect@npm:^4.0.8, type-detect@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "type-detect@npm:4.1.0"
+  checksum: 10c0/df8157ca3f5d311edc22885abc134e18ff8ffbc93d6a9848af5b682730ca6a5a44499259750197250479c5331a8a75b5537529df5ec410622041650a7f293e2a
   languageName: node
   linkType: hard
 
