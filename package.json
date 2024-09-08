@@ -97,7 +97,7 @@
     "ts-node": "10.9.2",
     "typedoc": "0.25.13",
     "typedoc-plugin-carbon-ads": "1.6.0",
-    "typedoc-plugin-mdn-links": "3.2.11",
+    "typedoc-plugin-mdn-links": "3.2.12",
     "typedoc-plugin-missing-exports": "2.3.0",
     "typescript": "5.4.5"
   },
