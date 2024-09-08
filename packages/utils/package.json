@@ -63,6 +63,6 @@
     "chai": "4.5.0",
     "concurrently": "8.2.2",
     "expect-type": "0.19.0",
-    "mocha": "10.4.0"
+    "mocha": "10.7.3"
   }
 }
