@@ -79,7 +79,7 @@
     "@types/uuid": "10.0.0",
     "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
-    "chai-datetime": "1.8.0",
+    "chai-datetime": "1.8.1",
     "delay": "5.0.0",
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",

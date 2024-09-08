@@ -2966,7 +2966,7 @@ __metadata:
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
-    chai-datetime: "npm:1.8.0"
+    chai-datetime: "npm:1.8.1"
     dayjs: "npm:^1.11.10"
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
@@ -5611,12 +5611,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai-datetime@npm:1.8.0":
-  version: 1.8.0
-  resolution: "chai-datetime@npm:1.8.0"
+"chai-datetime@npm:1.8.1":
+  version: 1.8.1
+  resolution: "chai-datetime@npm:1.8.1"
   dependencies:
     chai: "npm:>1.9.0"
-  checksum: 10c0/c3e8835d3aa2af8acdf7c0c08e112b38872105e7ae918aa024dcf6d07442cfb359c0f020cc69d96065e72ed00d46e71b809e1d47897ca25002957a54403ee198
+  checksum: 10c0/3bb2e342a517027fbef4d8ab7907dfb478a6260b77263ea2359cecbac4bf4c429e8ccbf9371bfc6b08dc00c61fe49ee0ce28e0cd8573f8e29859c429be26b95e
   languageName: node
   linkType: hard
 
