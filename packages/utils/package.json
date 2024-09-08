@@ -58,9 +58,9 @@
     "lodash": "^4.17.21"
   },
   "devDependencies": {
-    "@types/chai": "4.3.16",
+    "@types/chai": "4.3.19",
     "@types/mocha": "10.0.7",
-    "chai": "4.4.1",
+    "chai": "4.5.0",
     "concurrently": "8.2.2",
     "expect-type": "0.19.0",
     "mocha": "10.4.0"
