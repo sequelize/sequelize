@@ -19,7 +19,7 @@
     "@types/chai": "4.3.19",
     "@types/mocha": "10.0.7",
     "chai": "4.5.0",
-    "concurrently": "8.2.2",
+    "concurrently": "9.0.0",
     "mocha": "10.7.3",
     "oclif": "4.14.31",
     "rimraf": "5.0.10"
