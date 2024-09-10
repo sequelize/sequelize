@@ -90,7 +90,7 @@
     "mocha": "10.7.3",
     "node-gyp": "10.2.0",
     "node-hook": "1.0.0",
-    "nx": "19.7.1",
+    "nx": "19.7.2",
     "prettier": "3.3.2",
     "prettier-plugin-organize-imports": "3.2.4",
     "source-map-support": "0.5.21",
