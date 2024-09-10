@@ -2653,7 +2653,7 @@ __metadata:
     rimraf: "npm:5.0.10"
     semver: "npm:^7.3"
     sequelize-pool: "npm:^8.0.0"
-    sinon: "npm:18.0.0"
+    sinon: "npm:18.0.1"
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.14.0"
@@ -2758,7 +2758,7 @@ __metadata:
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.7.3"
-    sinon: "npm:18.0.0"
+    sinon: "npm:18.0.1"
     tedious: "npm:^18.1.0"
   languageName: unknown
   linkType: soft
@@ -2942,21 +2942,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sinonjs/fake-timers@npm:11.2.2, @sinonjs/fake-timers@npm:^11.2.2":
+  version: 11.2.2
+  resolution: "@sinonjs/fake-timers@npm:11.2.2"
+  dependencies:
+    "@sinonjs/commons": "npm:^3.0.0"
+  checksum: 10c0/a4218efa6fdafda622d02d4c0a6ab7df3641cb038bb0b14f0a3ee56f50c95aab4f1ab2d7798ce928b40c6fc1839465a558c9393a77e4dca879e1b2f8d60d8136
+  languageName: node
+  linkType: hard
+
 "@sinonjs/fake-timers@npm:^10.3.0":
   version: 10.3.0
   resolution: "@sinonjs/fake-timers@npm:10.3.0"
   dependencies:
     "@sinonjs/commons": "npm:^3.0.0"
   checksum: 10c0/2e2fb6cc57f227912814085b7b01fede050cd4746ea8d49a1e44d5a0e56a804663b0340ae2f11af7559ea9bf4d087a11f2f646197a660ea3cb04e19efc04aa63
-  languageName: node
-  linkType: hard
-
-"@sinonjs/fake-timers@npm:^11.2.2":
-  version: 11.2.2
-  resolution: "@sinonjs/fake-timers@npm:11.2.2"
-  dependencies:
-    "@sinonjs/commons": "npm:^3.0.0"
-  checksum: 10c0/a4218efa6fdafda622d02d4c0a6ab7df3641cb038bb0b14f0a3ee56f50c95aab4f1ab2d7798ce928b40c6fc1839465a558c9393a77e4dca879e1b2f8d60d8136
   languageName: node
   linkType: hard
 
@@ -13639,17 +13639,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon@npm:18.0.0":
-  version: 18.0.0
-  resolution: "sinon@npm:18.0.0"
+"sinon@npm:18.0.1":
+  version: 18.0.1
+  resolution: "sinon@npm:18.0.1"
   dependencies:
     "@sinonjs/commons": "npm:^3.0.1"
-    "@sinonjs/fake-timers": "npm:^11.2.2"
+    "@sinonjs/fake-timers": "npm:11.2.2"
     "@sinonjs/samsam": "npm:^8.0.0"
     diff: "npm:^5.2.0"
     nise: "npm:^6.0.0"
     supports-color: "npm:^7"
-  checksum: 10c0/19db83cc8e135a824c8a5efc088673fedd81092d89cd9a878dbb4bc20ed3fc3b6e9f646788c3fff0c9a984a108f205d08c7230ae8776396f89f096b03b11a7c7
+  checksum: 10c0/c4554b8d9654d42fc4baefecd3b5ac42bcce73ad926d58521233d9c355dc2c1a0d73c55e5b2c929b6814e528cd9b54bc61096b9288579f9b284edd6e3d2da3df
   languageName: node
   linkType: hard
 
