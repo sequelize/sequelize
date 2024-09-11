@@ -275,7 +275,11 @@ class Query extends AbstractQuery {
       if (this.instance && this.instance.dataValues) {
         // If we are creating an instance, and we get no rows, the create failed but did not throw.
         // This probably means a conflict happened and was ignored, to avoid breaking a transaction.
-        if (this.isInsertQuery() && !this.isUpsertQuery() && rowCount === 0) {
+        if (
+          this.isInsertQuery()
+          && !this.isUpsertQuery()
+          && rowCount === 0
+          && (this.options && (!this.options.isPartitioned || this.options.isPartitioned === false))) {
           throw new sequelizeErrors.EmptyResultError();
         }
 
