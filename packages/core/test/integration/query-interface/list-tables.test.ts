@@ -33,6 +33,19 @@ describe('QueryInterface#listTables', () => {
               throw error;
             }
           }
+        } else if (dialectName === 'hana'){
+          // HANA does not support DROP VIEW IF EXISTS
+          const sql = [
+            'DO BEGIN',
+            'DECLARE view_count INTEGER;',
+            `SELECT COUNT(*) INTO view_count FROM VIEWS`,
+            `WHERE VIEW_NAME = 'V_FAIL' AND SCHEMA_NAME = CURRENT_SCHEMA;`,
+            'IF :view_count > 0 THEN',
+            `  EXEC 'DROP VIEW V_Fail';`,
+            'END IF;',
+            'END;',
+          ].join(' ');
+          await sequelize.queryRaw(sql);
         } else {
           await sequelize.queryRaw('DROP VIEW IF EXISTS V_Fail;');
         }
@@ -40,7 +53,12 @@ describe('QueryInterface#listTables', () => {
 
       await queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup();
-      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''};`;
+      const fromClause = ['db2', 'ibmi'].includes(dialectName)
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
+      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${fromClause};`;
       await sequelize.queryRaw(sql);
       const allTables = await queryInterface.listTables();
       const tableNames = allTables.map(v => v.tableName);
