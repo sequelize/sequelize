@@ -159,7 +159,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'REFERENCED_SCHEMA_NAME AS "referencedTableSchema",',
         'REFERENCED_TABLE_NAME AS "referencedTableName",',
         'REFERENCED_COLUMN_NAME AS "referencedColumnNames",',
-        'REFERENCED_CONSTRAINT_NAME AS "referencedConstraintNames",',
         'DELETE_RULE AS "deleteAction",',
         'UPDATE_RULE AS "updateAction"',
         'FROM SYS.REFERENTIAL_CONSTRAINTS',
