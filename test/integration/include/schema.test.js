@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   _ = require('lodash'),
   promiseProps = require('p-props');
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               { title: 'Bed' },
               { title: 'Pen' },
               { title: 'Monitor' }
-            ]).then(() => Product.findAll())
+            ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
           ]);
           const groupMembers = [
             { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -248,7 +248,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -936,7 +936,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([
             { title: 'Chair' },
             { title: 'Desk' }
-          ]).then(() => Product.findAll())
+          ]).then(() => Product.findAll({ order: [['id', 'ASC']] }))
         ]);
         await Promise.all([
           GroupMember.bulkCreate([

@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "baseUrl": ".",
+    "paths": {
+      "sequelize": ["../types/index.d.ts"],
+      "sequelize/lib/*": ["../types/*"],
+      "sequelize/*": ["../*"]
+    },
+    "types": ["node", "mocha", "sinon", "chai"],
+    "noEmit": true,
+    "emitDeclarationOnly": false
+  },
+  "include": ["./types/**/*", "../types/*"]
+}

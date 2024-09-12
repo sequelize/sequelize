@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('../support'),
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
@@ -122,6 +122,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         let now = dialect === 'sqlite' ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now')) : this.sequelize.fn('NOW');
         if (dialect === 'mssql') {
           now = this.sequelize.fn('', this.sequelize.fn('getdate'));
+        } else if (dialect === 'oracle') {
+          now = this.sequelize.fn('', this.sequelize.literal('SYSDATE'));
         }
         user.set({
           d: now,

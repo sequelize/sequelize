@@ -1,14 +1,14 @@
 'use strict';
 
-const Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
-  QueryTypes = require('../../../lib/query-types'),
-  util = require('util'),
-  _ = require('lodash'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.queryGenerator,
-  Op = Support.Sequelize.Op;
+const Support = require('../support');
+const { QueryTypes, DataTypes } = require('sequelize');
+const util = require('util');
+const _ = require('lodash');
+
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.queryGenerator;
+const Op = Support.Sequelize.Op;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -58,7 +58,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(sql.whereQuery({ id: 1 }, { prefix: current.literal(sql.quoteTable.call(current.dialect.queryGenerator, { schema: 'yolo', tableName: 'User' })) }), {
         default: 'WHERE [yolo.User].[id] = 1',
         postgres: 'WHERE "yolo"."User"."id" = 1',
+        db2: 'WHERE "yolo"."User"."id" = 1',
+        snowflake: 'WHERE "yolo"."User"."id" = 1',
         mariadb: 'WHERE `yolo`.`User`.`id` = 1',
+        oracle: 'WHERE "yolo"."User"."id" = 1',
         mssql: 'WHERE [yolo].[User].[id] = 1'
       });
     });
@@ -91,7 +94,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       name: 'here is a null char: \0'
     }, {
       default: "WHERE [name] = 'here is a null char: \\0'",
+      snowflake: 'WHERE "name" = \'here is a null char: \0\'',
       mssql: "WHERE [name] = N'here is a null char: \0'",
+      db2: "WHERE \"name\" = 'here is a null char: \0'",
+      oracle: 'WHERE "name" = \'here is a null char: \0\'',
       sqlite: "WHERE `name` = 'here is a null char: \0'"
     });
   });
@@ -114,7 +120,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     testsql('deleted', null, {
       default: '`deleted` IS NULL',
+      db2: '"deleted" IS NULL',
       postgres: '"deleted" IS NULL',
+      snowflake: '"deleted" IS NULL',
+      oracle: '"deleted" IS NULL',
       mssql: '[deleted] IS NULL'
     });
 
@@ -152,6 +161,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sqlite: "`field` = X'53657175656c697a65'",
         mariadb: "`field` = X'53657175656c697a65'",
         mysql: "`field` = X'53657175656c697a65'",
+        db2: '"field" = BLOB(\'Sequelize\')',
+        snowflake: '"field" = X\'53657175656c697a65\'',
+        oracle: '"field" = \'53657175656c697a65\'',
         mssql: '[field] = 0x53657175656c697a65'
       });
     });
@@ -162,6 +174,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: '[deleted] IS NOT true',
         mssql: '[deleted] IS NOT 1',
+        oracle: '"deleted" IS NOT 1',
         sqlite: '`deleted` IS NOT 1'
       });
 
@@ -495,6 +508,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }, {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
         mysql: "`date` BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        db2: "\"date\" BETWEEN '2013-01-01 00:00:00' AND '2013-01-11 00:00:00'",
+        snowflake: '"date" BETWEEN \'2013-01-01 00:00:00\' AND \'2013-01-11 00:00:00\'',
+        oracle: '"date" BETWEEN TO_TIMESTAMP_TZ(\'2013-01-01 00:00:00.000 +00:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\') AND TO_TIMESTAMP_TZ(\'2013-01-11 00:00:00.000 +00:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\')',
         mariadb: "`date` BETWEEN '2013-01-01 00:00:00.000' AND '2013-01-11 00:00:00.000'"
       });
 
@@ -504,13 +520,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: {
           rawAttributes: {
             date: {
-              type: new DataTypes.DATE()
+              // We need to convert timestamp to a dialect specific date format to work as expected
+              // For example: Oracle database expects TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00','YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')
+              // from a timestamp instead of '2013-01-01 00:00:00.000 +00:00' which is returned by default DATE class
+              
+              // We cannot use - type: new current.dialect.DataTypes.Date - because when dialect is set to 'mysql' 
+              // mysql DATE class returns '2013-01-01 00:00:00' instead of '2013-01-01 00:00:00.000 +00:00'(expected)
+              // and that would cause this test to fail when dialect is set to 'mysql'
+              // So we're using - new current.dialect.DataTypes.Date - only in case when dialect is set to 'oracle' as of now
+              type: current.dialect.name === 'oracle' ? new current.dialect.DataTypes.DATE() : new DataTypes.DATE()
             }
           }
         }
       },
       {
         default: "[date] BETWEEN '2013-01-01 00:00:00.000 +00:00' AND '2013-01-11 00:00:00.000 +00:00'",
+        oracle: '"date" BETWEEN TO_TIMESTAMP_TZ(\'2013-01-01 00:00:00.000 +00:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\') AND TO_TIMESTAMP_TZ(\'2013-01-11 00:00:00.000 +00:00\',\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\')',
         mssql: "[date] BETWEEN N'2013-01-01 00:00:00.000 +00:00' AND N'2013-01-11 00:00:00.000 +00:00'"
       });
 
@@ -870,6 +895,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: "(\"profile\"#>>'{id}') = CAST('12346-78912' AS TEXT)",
             sqlite: "json_extract(`profile`,'$.id') = CAST('12346-78912' AS TEXT)",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = CAST('12346-78912' AS CHAR)",
+            oracle: 'json_value("profile",\'$."id"\') = CAST(\'12346-78912\' AS TEXT)',
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = CAST('12346-78912' AS CHAR)"
           });
         });
@@ -879,6 +905,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres: "(\"profile\"#>>'{id}') = '12346-78912' AND (\"profile\"#>>'{name}') = 'test'",
             sqlite: "json_extract(`profile`,'$.id') = '12346-78912' AND json_extract(`profile`,'$.name') = 'test'",
             mariadb: "json_unquote(json_extract(`profile`,'$.id')) = '12346-78912' AND json_unquote(json_extract(`profile`,'$.name')) = 'test'",
+            oracle: 'json_value("profile",\'$."id"\') = \'12346-78912\' AND json_value("profile",\'$."name"\') = \'test\'',
             mysql: "json_unquote(json_extract(`profile`,'$.\\\"id\\\"')) = '12346-78912' AND json_unquote(json_extract(`profile`,'$.\\\"name\\\"')) = 'test'"
           });
         });
@@ -896,6 +923,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"User\".\"data\"#>>'{nested,attribute}') = 'value'",
+          oracle: 'json_value("User"."data",\'$."nested"."attribute"\') = \'value\'',
           sqlite: "json_extract(`User`.`data`,'$.nested.attribute') = 'value'"
         });
 
@@ -911,6 +939,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) IN (1, 2)",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\"')) AS DECIMAL) IN (1, 2)",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) IN (1, 2)",
+          oracle: 'CAST(json_value("data",\'$."nested"\') AS DOUBLE PRECISION) IN (1, 2)',
           sqlite: "CAST(json_extract(`data`,'$.nested') AS DOUBLE PRECISION) IN (1, 2)"
         });
 
@@ -926,6 +955,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested')) AS DECIMAL) BETWEEN 1 AND 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\"')) AS DECIMAL) BETWEEN 1 AND 2",
           postgres: "CAST((\"data\"#>>'{nested}') AS DOUBLE PRECISION) BETWEEN 1 AND 2",
+          oracle: 'CAST(json_value("data",\'$."nested"\') AS DOUBLE PRECISION) BETWEEN 1 AND 2',
           sqlite: "CAST(json_extract(`data`,'$.nested') AS DOUBLE PRECISION) BETWEEN 1 AND 2"
         });
 
@@ -945,6 +975,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.nested.attribute')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.nested.prop')) != 'None')",
           mysql: "(json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value' AND json_unquote(json_extract(`User`.`data`,'$.\\\"nested\\\".\\\"prop\\\"')) != 'None')",
           postgres: "((\"User\".\"data\"#>>'{nested,attribute}') = 'value' AND (\"User\".\"data\"#>>'{nested,prop}') != 'None')",
+          oracle: '(json_value("User"."data",\'$."nested"."attribute"\') = \'value\' AND json_value("User"."data",\'$."nested"."prop"\') != \'None\')',
           sqlite: "(json_extract(`User`.`data`,'$.nested.attribute') = 'value' AND json_extract(`User`.`data`,'$.nested.prop') != 'None')"
         });
 
@@ -964,6 +995,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(json_unquote(json_extract(`User`.`data`,'$.name.last')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.employment')) != 'None')",
           mysql: "(json_unquote(json_extract(`User`.`data`,'$.\\\"name\\\".\\\"last\\\"')) = 'Simpson' AND json_unquote(json_extract(`User`.`data`,'$.\\\"employment\\\"')) != 'None')",
           postgres: "((\"User\".\"data\"#>>'{name,last}') = 'Simpson' AND (\"User\".\"data\"#>>'{employment}') != 'None')",
+          oracle: '(json_value("User"."data",\'$."name"."last"\') = \'Simpson\' AND json_value("User"."data",\'$."employment"\') != \'None\')',
           sqlite: "(json_extract(`User`.`data`,'$.name.last') = 'Simpson' AND json_extract(`User`.`data`,'$.employment') != 'None')"
         });
 
@@ -978,6 +1010,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "(CAST(json_unquote(json_extract(`data`,'$.price')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.name')) = 'Product')",
           mysql: "(CAST(json_unquote(json_extract(`data`,'$.\\\"price\\\"')) AS DECIMAL) = 5 AND json_unquote(json_extract(`data`,'$.\\\"name\\\"')) = 'Product')",
           postgres: "(CAST((\"data\"#>>'{price}') AS DOUBLE PRECISION) = 5 AND (\"data\"#>>'{name}') = 'Product')",
+          oracle: '(CAST(json_value("data",\'$."price"\') AS DOUBLE PRECISION) = 5 AND json_value("data",\'$."name"\') = \'Product\')',
           sqlite: "(CAST(json_extract(`data`,'$.price') AS DOUBLE PRECISION) = 5 AND json_extract(`data`,'$.name') = 'Product')"
         });
 
@@ -993,6 +1026,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"data\"#>>'{nested,attribute}') = 'value'",
+          oracle: 'json_value("data",\'$."nested"."attribute"\') = \'value\'',
           sqlite: "json_extract(`data`,'$.nested.attribute') = 'value'"
         });
 
@@ -1008,6 +1042,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) = 4",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) = 4",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) = 4",
+          oracle: 'CAST(json_value("data",\'$."nested"."attribute"\') AS DOUBLE PRECISION) = 4',
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) = 4"
         });
 
@@ -1025,6 +1060,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) IN (3, 7)",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) IN (3, 7)",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) IN (3, 7)",
+          oracle: 'CAST(json_value("data",\'$."nested"."attribute"\') AS DOUBLE PRECISION) IN (3, 7)',
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) IN (3, 7)"
         });
 
@@ -1042,6 +1078,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS DOUBLE PRECISION) > 2",
+          oracle: 'CAST(json_value("data",\'$."nested"."attribute"\') AS DOUBLE PRECISION) > 2',
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS DOUBLE PRECISION) > 2"
         });
 
@@ -1059,6 +1096,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "CAST(json_unquote(json_extract(`data`,'$.nested.attribute')) AS DECIMAL) > 2",
           mysql: "CAST(json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) AS DECIMAL) > 2",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS INTEGER) > 2",
+          oracle: 'CAST(json_value("data",\'$."nested"."attribute"\') AS INTEGER) > 2',
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS INTEGER) > 2"
         });
 
@@ -1077,6 +1115,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: `CAST(json_unquote(json_extract(\`data\`,'$.nested.attribute')) AS DATETIME) > ${sql.escape(dt)}`,
           mysql: `CAST(json_unquote(json_extract(\`data\`,'$.\\"nested\\".\\"attribute\\"')) AS DATETIME) > ${sql.escape(dt)}`,
           postgres: `CAST(("data"#>>'{nested,attribute}') AS TIMESTAMPTZ) > ${sql.escape(dt)}`,
+          oracle: `json_value("data",'$."nested"."attribute"' RETURNING TIMESTAMP WITH TIME ZONE) > ${sql.escape(dt)}`,
           sqlite: `json_extract(\`data\`,'$.nested.attribute') > ${sql.escape(dt.toISOString())}`
         });
 
@@ -1092,6 +1131,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`data`,'$.nested.attribute')) = 'true'",
           mysql: "json_unquote(json_extract(`data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'true'",
           postgres: "CAST((\"data\"#>>'{nested,attribute}') AS BOOLEAN) = true",
+          oracle: 'CAST((CASE WHEN json_value("data",\'$."nested"."attribute"\')=\'true\' THEN 1 ELSE 0 END) AS NUMBER) = 1',
           sqlite: "CAST(json_extract(`data`,'$.nested.attribute') AS BOOLEAN) = 1"
         });
 
@@ -1109,6 +1149,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: "json_unquote(json_extract(`meta_data`,'$.nested.attribute')) = 'value'",
           mysql: "json_unquote(json_extract(`meta_data`,'$.\\\"nested\\\".\\\"attribute\\\"')) = 'value'",
           postgres: "(\"meta_data\"#>>'{nested,attribute}') = 'value'",
+          oracle: 'json_value("meta_data",\'$."nested"."attribute"\') = \'value\'',
           sqlite: "json_extract(`meta_data`,'$.nested.attribute') = 'value'"
         });
       });
@@ -1137,6 +1178,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`username` REGEXP '^sw.*r$'",
           mysql: "`username` REGEXP '^sw.*r$'",
+          snowflake: '"username" REGEXP \'^sw.*r$\'',
           postgres: '"username" ~ \'^sw.*r$\''
         });
       });
@@ -1147,6 +1189,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`newline` REGEXP '^new\\nline$'",
           mysql: "`newline` REGEXP '^new\\nline$'",
+          snowflake: '"newline" REGEXP \'^new\nline$\'',
           postgres: '"newline" ~ \'^new\nline$\''
         });
       });
@@ -1157,6 +1200,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`username` NOT REGEXP '^sw.*r$'",
           mysql: "`username` NOT REGEXP '^sw.*r$'",
+          snowflake: '"username" NOT REGEXP \'^sw.*r$\'',
           postgres: '"username" !~ \'^sw.*r$\''
         });
       });
@@ -1167,6 +1211,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }, {
           mariadb: "`newline` NOT REGEXP '^new\\nline$'",
           mysql: "`newline` NOT REGEXP '^new\\nline$'",
+          snowflake: '"newline" NOT REGEXP \'^new\nline$\'',
           postgres: '"newline" !~ \'^new\nline$\''
         });
       });
@@ -1204,6 +1249,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           });
         });
       }
+    }
+
+    if (current.dialect.supports.TSVESCTOR) {
+      describe('Op.match', () => {
+        testsql(
+          'username',
+          {
+            [Op.match]: Support.sequelize.fn('to_tsvector', 'swagger')
+          },
+          {
+            postgres: "[username] @@ to_tsvector('swagger')"
+          }
+        );
+      });
     }
 
     describe('fn', () => {
@@ -1248,6 +1307,34 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     testsql([current.where(current.fn('SUM', current.col('hours')), Op.gt, 0),
       current.where(current.fn('lower', current.col('name')), null)], {
       default: '(SUM([hours]) > 0 AND lower([name]) IS NULL)'
+    });
+
+    testsql(current.where(current.col('hours'), Op.between, [0, 5]), {
+      default: '[hours] BETWEEN 0 AND 5'
+    });
+
+    testsql(current.where(current.col('hours'), Op.notBetween, [0, 5]), {
+      default: '[hours] NOT BETWEEN 0 AND 5'
+    });
+
+    testsql(current.where(current.literal('\'hours\''), Op.eq, 'hours'), {
+      default: '\'hours\' = \'hours\'',
+      mssql: '\'hours\' = N\'hours\''
+    });
+
+    it('where(left: ModelAttributeColumnOptions, op, right)', () => {
+      const User = current.define('user', {
+        id: {
+          type: DataTypes.INTEGER,
+          field: 'internal_id',
+          primaryKey: true
+        }
+      });
+
+      const where = current.where(User.rawAttributes.id, Op.eq, 1);
+      const expectations = { default: '[user].[internal_id] = 1' };
+
+      return expectsql(sql.getWhereConditions(where, User.tableName, User), expectations);
     });
   });
 });

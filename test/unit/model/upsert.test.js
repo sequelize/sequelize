@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Sequelize = require('../../../index'),
+  Sequelize = require('sequelize'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {

@@ -26,7 +26,12 @@ if (dialect !== 'sqlite') {
         now = 'GETDATE()';
       }
 
-      const query = `SELECT ${now} as now`;
+      let query = `SELECT ${now} as now`;
+      if (dialect === 'db2') {
+        query = `SELECT ${now} as "now"`;
+      } else if (dialect === 'oracle') {
+        query = 'SELECT sysdate AS "now" FROM DUAL';
+      }
 
       const [now1, now2] = await Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
@@ -37,7 +42,7 @@ if (dialect !== 'sqlite') {
       expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
     });
 
-    if (dialect === 'mysql' || dialect === 'mariadb') {
+    if (['mysql', 'mariadb'].includes(dialect)) {
       it('handles existing timestamps', async function() {
         const NormalUser = this.sequelize.define('user', {}),
           TimezonedUser = this.sequelizeWithTimezone.define('user', {});

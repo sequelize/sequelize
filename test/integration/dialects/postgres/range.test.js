@@ -3,9 +3,9 @@
 const chai    = require('chai'),
   expect  = chai.expect,
   Support = require('../../support'),
-  DataTypes = require('../../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
-  range   = require('../../../../lib/dialects/postgres/range');
+  range   = require('sequelize/lib/dialects/postgres/range');
 
 if (dialect.match(/^postgres/)) {
   // Don't try to load pg until we know we're running on postgres.

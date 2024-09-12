@@ -1,11 +1,11 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
@@ -41,7 +41,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
       });
     });
 
-    if (dialect === 'mysql' || dialect === 'postgres') {
+    if (['mysql', 'postgres'].includes(dialect)) {
       describe('case sensitive', () => {
         it('should work with a regexp where', async function() {
           await this.User.create({ name: 'Foobar' });

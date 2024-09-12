@@ -2,11 +2,11 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  DataTypes = require('../../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   Support = require('../../support'),
-  Sequelize = require('../../../../lib/sequelize'),
-  ConnectionError = require('../../../../lib/errors/connection-error'),
-  { AsyncQueueError } = require('../../../../lib/dialects/mssql/async-queue'),
+  Sequelize = require('sequelize/lib/sequelize'),
+  ConnectionError = require('sequelize/lib/errors/connection-error'),
+  { AsyncQueueError } = require('sequelize/lib/dialects/mssql/async-queue'),
   dialect = Support.getTestDialect();
 
 if (dialect.match(/^mssql/)) {
@@ -46,7 +46,7 @@ if (dialect.match(/^mssql/)) {
         await expect(User.findOne({
           transaction: t
         })).not.to.be.rejected;
-      })).not.to.be.rejected;     
+      })).not.to.be.rejected;
     });
 
     it('closing the connection should reject pending requests', async function() {
@@ -66,7 +66,7 @@ if (dialect.match(/^mssql/)) {
           })).to.be.eventually.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed')
             .and.have.property('parent').that.instanceOf(AsyncQueueError)
         ])
-      )).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');     
+      )).to.be.rejectedWith(ConnectionError, 'the connection was closed before this query could be executed');
 
       await expect(promise).not.to.be.rejected;
     });

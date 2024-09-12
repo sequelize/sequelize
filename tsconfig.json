@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "allowJs": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "sourceRoot": "",
+    "outDir": "./types",
+    "strict": true,
+    "baseUrl": "./",
+    "rootDir": "./src",
+    "types": ["node"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "checkJs": false,
+    "removeComments": false
+  },
+  "include": ["./src/**/*.ts"]
+}

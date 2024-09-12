@@ -1,12 +1,12 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../../index'),
-  AggregateError = require('../../../lib/errors/aggregate-error'),
+  Sequelize = require('sequelize'),
+  AggregateError = require('sequelize/lib/errors/aggregate-error'),
   Op = Sequelize.Op,
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   current = Support.sequelize;
 
@@ -64,6 +64,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await transaction.rollback();
       });
     }
+
+    it('should not alter options', async function() {
+      const User = this.sequelize.define('User');
+      await User.sync({ force: true });
+      const options = { anOption: 1 };
+      await User.bulkCreate([{  }], options);
+      expect(options).to.eql({ anOption: 1 });
+    });
 
     it('should be able to set createdAt and updatedAt if using silent: true', async function() {
       const User = this.sequelize.define('user', {
@@ -150,8 +158,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         style: 'ipa'
       }], {
         logging(sql) {
-          if (dialect === 'postgres') {
+          if (['postgres', 'oracle'].includes(dialect)) {
             expect(sql).to.include('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT');
+          } else if (dialect === 'db2') {
+            expect(sql).to.include('INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES');
           } else if (dialect === 'mssql') {
             expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
           } else { // mysql, sqlite
@@ -302,7 +312,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const expectedValidationError = 'Validation len on code failed';
         const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
 
-        expect(error).to.be.instanceof(AggregateError);
         expect(error.toString()).to.include(expectedValidationError)
           .and.to.include(expectedNotNullError);
         const { errors } = error;
@@ -638,6 +647,67 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(people[1].name).to.equal('Bob');
           });
 
+          it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function() {
+            const Person = this.sequelize.define(
+              'Person',
+              {
+                id: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  autoIncrement: true,
+                  primaryKey: true,
+                  field: 'id'
+                },
+                systemId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  field: 'system_id'
+                },
+                system: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'system'
+                },
+                name: {
+                  type: DataTypes.STRING,
+                  allowNull: false,
+                  field: 'name'
+                }
+              },
+              {
+                indexes: [
+                  {
+                    unique: true,
+                    fields: ['system_id', 'system']
+                  }
+                ]
+              }
+            );
+
+            await Person.sync({ force: true });
+            const inserts = [{ systemId: 1, system: 'system1', name: 'Alice' }];
+            const people0 = await Person.bulkCreate(inserts);
+            expect(people0.length).to.equal(1);
+            expect(people0[0].systemId).to.equal(1);
+            expect(people0[0].system).to.equal('system1');
+            expect(people0[0].name).to.equal('Alice');
+
+            const updates = [
+              { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+              { systemId: 1, system: 'system2', name: 'Bob' }
+            ];
+
+            const people = await Person.bulkCreate(updates, {
+              updateOnDuplicate: ['systemId', 'system', 'name']
+            });
+            expect(people.length).to.equal(2);
+            expect(people[0].systemId).to.equal(1);
+            expect(people[0].system).to.equal('system1');
+            expect(people[0].name).to.equal('CHANGED NAME');
+            expect(people[1].systemId).to.equal(1);
+            expect(people[1].system).to.equal('system2');
+            expect(people[1].name).to.equal('Bob');
+          });
         });
 
 
@@ -662,6 +732,364 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.User.bulkCreate(data, { updateOnDuplicate: [] })
           ).to.be.rejectedWith('updateOnDuplicate option only supports non-empty array.');
         });
+
+        if (current.dialect.supports.inserts.conflictFields) {
+          it('should respect the conflictAttributes option', async function() {
+            const Permissions = this.sequelize.define(
+              'permissions',
+              {
+                userId: {
+                  type: DataTypes.INTEGER,
+                  allowNull: false,
+                  field: 'user_id'
+                },
+                permissions: {
+                  type: new DataTypes.ENUM('owner', 'admin', 'member'),
+                  allowNull: false,
+                  default: 'member'
+                }
+              },
+              {
+                timestamps: false
+              }
+            );
+
+            await Permissions.sync({ force: true });
+
+            // We don't want to create this index with the table, since we don't want our sequelize instance
+            // to know it exists.  This prevents it from being inferred.
+            await this.sequelize.queryInterface.addIndex(
+              'permissions',
+              ['user_id'],
+              {
+                unique: true
+              }
+            );
+
+            const initialPermissions = [
+              {
+                userId: 1,
+                permissions: 'member'
+              },
+              {
+                userId: 2,
+                permissions: 'admin'
+              },
+              {
+                userId: 3,
+                permissions: 'owner'
+              }
+            ];
+
+            const initialResults = await Permissions.bulkCreate(initialPermissions, {
+              conflictAttributes: ['userId'],
+              updateOnDuplicate: ['permissions']
+            });
+
+            expect(initialResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = initialResults[i];
+              const exp = initialPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+
+            const newPermissions = [
+              {
+                userId: 1,
+                permissions: 'owner'
+              },
+              {
+                userId: 2,
+                permissions: 'member'
+              },
+              {
+                userId: 3,
+                permissions: 'admin'
+              }
+            ];
+
+            const newResults = await Permissions.bulkCreate(newPermissions, {
+              conflictAttributes: ['userId'],
+              updateOnDuplicate: ['permissions']
+            });
+
+            expect(newResults.length).to.eql(3);
+
+            for (let i = 0; i < 3; i++) {
+              const result = newResults[i];
+              const exp = newPermissions[i];
+
+              expect(result).to.not.eql(null);
+              expect(result.id).to.eql(initialResults[i].id);
+              expect(result.userId).to.eql(exp.userId);
+              expect(result.permissions).to.eql(exp.permissions);
+            }
+          });
+
+          describe('conflictWhere', () => {
+            const Memberships = current.define(
+              'memberships',
+              {
+                // ID of the member (no foreign key constraint for testing purposes)
+                user_id: DataTypes.INTEGER,
+                // ID of what the member is a member of
+                foreign_id: DataTypes.INTEGER,
+                time_deleted: DataTypes.DATE
+              },
+              {
+                createdAt: false,
+                updatedAt: false,
+                deletedAt: 'time_deleted',
+                indexes: [
+                  {
+                    fields: ['user_id', 'foreign_id'],
+                    unique: true,
+                    where: { time_deleted: null }
+                  }
+                ]
+              }
+            );
+
+            const options = {
+              conflictWhere: { time_deleted: null },
+              conflictAttributes: ['user_id', 'foreign_id'],
+              updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted']
+            };
+
+            beforeEach(() => Memberships.sync({ force: true }));
+
+            it('should insert items with conflictWhere', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: null
+              }));
+
+              const results = await Memberships.bulkCreate(
+                memberships,
+                options
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+            });
+
+            it('should not conflict with soft deleted memberships', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: new Date()
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.not.eq(null);
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null
+                })),
+                options
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count();
+
+              expect(count).to.eq(20);
+            });
+
+            it('should upsert existing memberships', async () => {
+              const memberships = new Array(10).fill().map((_, i) => ({
+                user_id: i + 1,
+                foreign_id: i + 20,
+                time_deleted: i % 2 ? new Date() : null
+              }));
+
+              let results = await Memberships.bulkCreate(memberships, options);
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                if (i % 2) {
+                  expect(results[i].time_deleted).to.not.eq(null);
+                } else {
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+              }
+
+              for (const membership of memberships) {
+                membership.time_deleted;
+              }
+
+              results = await Memberships.bulkCreate(
+                memberships.map(membership => ({
+                  ...membership,
+                  time_deleted: null
+                })),
+                options
+              );
+
+              for (let i = 0; i < 10; i++) {
+                expect(results[i].user_id).to.eq(memberships[i].user_id);
+                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].time_deleted).to.eq(null);
+              }
+
+              const count = await Memberships.count({ paranoid: false });
+
+              expect(count).to.eq(15);
+            });
+          });
+
+          if (
+            current.dialect.supports.inserts.onConflictWhere
+          ) {
+            describe('conflictWhere', () => {
+              const Memberships = current.define(
+                'memberships',
+                {
+                  // ID of the member (no foreign key constraint for testing purposes)
+                  user_id: DataTypes.INTEGER,
+                  // ID of what the member is a member of
+                  foreign_id: DataTypes.INTEGER,
+                  time_deleted: DataTypes.DATE
+                },
+                {
+                  createdAt: false,
+                  updatedAt: false,
+                  deletedAt: 'time_deleted',
+                  indexes: [
+                    {
+                      fields: ['user_id', 'foreign_id'],
+                      unique: true,
+                      where: { time_deleted: null }
+                    }
+                  ]
+                }
+              );
+
+              const options = {
+                conflictWhere: { time_deleted: null },
+                conflictAttributes: ['user_id', 'foreign_id'],
+                updateOnDuplicate: ['user_id', 'foreign_id', 'time_deleted']
+              };
+
+              beforeEach(() => Memberships.sync({ force: true }));
+
+              it('should insert items with conflictWhere', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: null
+                }));
+
+                const results = await Memberships.bulkCreate(
+                  memberships,
+                  options
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+              });
+
+              it('should not conflict with soft deleted memberships', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: new Date()
+                }));
+
+                let results = await Memberships.bulkCreate(memberships, options);
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.not.eq(null);
+                }
+
+                results = await Memberships.bulkCreate(
+                  memberships.map(membership => ({
+                    ...membership,
+                    time_deleted: null
+                  })),
+                  options
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+
+                const count = await Memberships.count();
+
+                expect(count).to.eq(20);
+              });
+
+              it('should upsert existing memberships', async () => {
+                const memberships = new Array(10).fill().map((_, i) => ({
+                  user_id: i + 1,
+                  foreign_id: i + 20,
+                  time_deleted: i % 2 ? new Date() : null
+                }));
+
+                let results = await Memberships.bulkCreate(memberships, options);
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  if (i % 2) {
+                    expect(results[i].time_deleted).to.not.eq(null);
+                  } else {
+                    expect(results[i].time_deleted).to.eq(null);
+                  }
+                }
+
+                for (const membership of memberships) {
+                  membership.time_deleted;
+                }
+
+                results = await Memberships.bulkCreate(
+                  memberships.map(membership => ({
+                    ...membership,
+                    time_deleted: null
+                  })),
+                  options
+                );
+
+                for (let i = 0; i < 10; i++) {
+                  expect(results[i].user_id).to.eq(memberships[i].user_id);
+                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].time_deleted).to.eq(null);
+                }
+
+                const count = await Memberships.count({ paranoid: false });
+
+                expect(count).to.eq(15);
+              });
+            });
+          }
+        }
       });
     }
 

@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('./support'),
-  DataTypes = require('../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Schema'), () => {
   beforeEach(async function() {

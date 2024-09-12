@@ -3,16 +3,16 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  Sequelize = require('../../../index'),
-  DataTypes = require('../../../lib/data-types'),
+  Sequelize = require('sequelize'),
+  DataTypes = require('sequelize/lib/data-types'),
   _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   describe('findOne', () => {
     it('should include a non required model, with conditions and two includes N:M 1:M', async function() {
-      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }), 
-        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }), 
-        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }), 
+      const A = this.sequelize.define('A', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        B = this.sequelize.define('B', { name: DataTypes.STRING(40) }, { paranoid: true }),
+        C = this.sequelize.define('C', { name: DataTypes.STRING(40) }, { paranoid: true }),
         D = this.sequelize.define('D', { name: DataTypes.STRING(40) }, { paranoid: true });
 
       // Associations

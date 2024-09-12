@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   Sequelize = Support.Sequelize,
   dialect = Support.getTestDialect(),
   sinon = require('sinon');
@@ -401,6 +401,26 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       await user.update({ username: 'sendo' });
       expect(sasukeHook).to.have.been.calledOnce;
       expect(narutoHook).to.have.been.calledTwice;
+    });
+  });
+
+  describe('Sequelize hooks', () => {
+    it('should run before/afterPoolAcquire hooks', async function() {
+      if (dialect === 'sqlite') {
+        return this.skip();
+      }
+
+      const beforeHook = sinon.spy();
+      const afterHook = sinon.spy();
+
+      this.sequelize.addHook('beforePoolAcquire', beforeHook);
+      this.sequelize.addHook('afterPoolAcquire', afterHook);
+
+      await this.sequelize.authenticate();
+
+      expect(beforeHook).to.have.been.calledOnce;
+      expect(afterHook).to.have.been.calledOnce;
+
     });
   });
 });

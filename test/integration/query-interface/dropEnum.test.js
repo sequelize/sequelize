@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -19,18 +19,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   describe('dropEnum', () => {
     beforeEach(async function() {
       await this.queryInterface.createTable('menus',  {
-        structuretype: {
-          type: DataTypes.ENUM('menus', 'submenu', 'routine'),
-          allowNull: true
-        },
-        sequence: {
-          type: DataTypes.INTEGER,
-          allowNull: true
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: true
-        }
+        structuretype: DataTypes.ENUM('menus', 'submenu', 'routine'),
+        sequence: DataTypes.INTEGER,
+        name: DataTypes.STRING
       });
     });
 

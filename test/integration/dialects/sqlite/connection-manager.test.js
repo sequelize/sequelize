@@ -5,7 +5,7 @@ const jetpack = require('fs-jetpack').cwd(__dirname);
 const expect = chai.expect;
 const Support = require('../../support');
 const dialect = Support.getTestDialect();
-const DataTypes = require('../../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 
 const fileName = `${Math.random()}_test.sqlite`;
 const directoryName = `${Math.random()}_test_directory`;

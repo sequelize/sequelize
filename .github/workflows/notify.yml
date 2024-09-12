@@ -1,0 +1,28 @@
+name: Notify release channels
+on:
+  release:
+    types: [published]
+jobs:
+  tweet:
+    name: Tweet release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ethomson/send-tweet-action@v1
+        with:
+          status: "We have just released ${{ github.event.release.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ github.event.release.name }}"
+          consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+  notify-opencollective:
+    name: Notify OpenCollective
+    runs-on: ubuntu-latest
+    steps:
+      - uses: sequelize/proxy-release-to-open-collective@main
+        with:
+          releaseId: ${{ github.event.release.id }}
+          projectSlug: sequelize/sequelize
+          ocSlug: sequelize
+          ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }} 
+

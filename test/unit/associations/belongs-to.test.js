@@ -4,7 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   _         = require('lodash'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   Support   = require('../support'),
   current   = Support.sequelize;
 

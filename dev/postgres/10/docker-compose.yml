@@ -1,0 +1,19 @@
+services:
+  postgres-10:
+    container_name: sequelize-postgres-10
+    image: sushantdhiman/postgres:10
+    environment:
+      POSTGRES_USER: sequelize_test
+      POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
+    ports:
+      - 23010:5432
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "sequelize_test"]
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-postgres-10-network

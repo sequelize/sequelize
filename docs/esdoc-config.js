@@ -1,13 +1,11 @@
 'use strict';
 
-const { getDeclaredManuals, checkManuals } = require('./manual-utils');
-
-checkManuals();
-
 module.exports = {
-  source: './lib',
+  index: `${__dirname}/index.md`,
+  source: './src',
   destination: './esdoc',
-  includes: ['\\.js$'],
+  includes: ['\\.[tj]s$'],
+  excludes: ['\\.d.ts$'],
   plugins: [
     {
       name: 'esdoc-ecmascript-proposal-plugin',
@@ -45,12 +43,13 @@ module.exports = {
           site: 'https://sequelize.org/master/'
         },
         manual: {
-          index: './docs/index.md',
-          globalIndex: true,
           asset: './docs/images',
-          files: getDeclaredManuals()
+          files: []
         }
       }
+    },
+    {
+      name: './esdoc-ts'
     }
   ]
 };

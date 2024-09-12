@@ -1,0 +1,13 @@
+{
+  "versions": [
+    {
+      "version": "*",
+      "target": {
+        "node": "supported"
+      },
+      "response": {
+        "type": "time-permitting"
+      }
+    }
+  ]
+}

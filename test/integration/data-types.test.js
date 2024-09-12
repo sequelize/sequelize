@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai'),
-  Sequelize = require('../../index'),
+  Sequelize = require('sequelize'),
   expect = chai.expect,
   Support = require('./support'),
   sinon = require('sinon'),
@@ -10,7 +10,7 @@ const chai = require('chai'),
   current = Support.sequelize,
   Op = Sequelize.Op,
   uuid = require('uuid'),
-  DataTypes = require('../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   dialect = Support.getTestDialect(),
   semver = require('semver');
 
@@ -33,6 +33,22 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return value.format('YYYY-MM-DD HH:mm:ss');
     });
 
+    // oracle has a _bindParam function that checks if DATE was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    let bindParam;
+    if (dialect === 'oracle') {
+      bindParam = Sequelize.DATE.prototype.bindParam = sinon.spy(function(value, options) {
+        if (!moment.isMoment(value)) {
+          value = this._applyTimezone(value, options);
+        }
+        // For the Oracle dialect, use TO_DATE()
+        const formatedDate = value.format('YYYY-MM-DD HH:mm:ss');
+        const format = 'YYYY-MM-DD HH24:mi:ss';
+        return `TO_DATE('${formatedDate}', '${format}')`;
+      });
+    }
+
     current.refreshTypes();
 
     const User = current.define('user', {
@@ -50,7 +66,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const obj = await User.findAll();
     const user = obj[0];
     expect(parse).to.have.been.called;
-    expect(stringify).to.have.been.called;
+    // For the Oracle dialect we check if bindParam was called
+    // for other dalects we check if stringify was called
+    dialect === 'oracle' ? expect(bindParam).to.have.been.called : expect(stringify).to.have.been.called;
 
     expect(moment.isMoment(user.dateField)).to.be.ok;
 
@@ -115,7 +133,14 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', async () => {
       const Type = new Sequelize.JSON();
 
-      await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      // oracle has a _bindParam function that checks if JSON was created with
+      // the boolean param (if so it outputs a Buffer bind param). This override
+      // isn't needed for other dialects
+      if (dialect === 'oracle') {
+        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } }, { useBindParam: true });
+      } else {
+        await testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
+      }
     });
   }
 
@@ -146,19 +171,38 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for DATE', async () => {
     const Type = new Sequelize.DATE();
 
-    await testSuccess(Type, new Date());
+    // oracle has a _bindParam function that checks if DATE was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, new Date(), { useBindParam: true });
+    } else {
+      await testSuccess(Type, new Date());
+    }
   });
 
   it('calls parse and stringify for DATEONLY', async () => {
     const Type = new Sequelize.DATEONLY();
 
-    await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    // oracle has a _bindParam function that checks if DATEONLY was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'), { useBindParam: true });
+    } else {
+      await testSuccess(Type, moment(new Date()).format('YYYY-MM-DD'));
+    }
   });
 
   it('calls parse and stringify for TIME', async () => {
     const Type = new Sequelize.TIME();
 
-    await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    // TIME Datatype isn't supported by the oracle dialect
+    if (dialect === 'oracle') {
+      testFailure(Type);
+    } else {
+      await testSuccess(Type, moment(new Date()).format('HH:mm:ss'));
+    }
   });
 
   it('calls parse and stringify for BLOB', async () => {
@@ -170,16 +214,23 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for CHAR', async () => {
     const Type = new Sequelize.CHAR();
 
-    await testSuccess(Type, 'foobar');
+    // oracle has a _bindParam function that checks if STRING was created with
+    // the boolean param (if so it outputs a Buffer bind param). This override
+    // isn't needed for other dialects
+    if (dialect === 'oracle') {
+      await testSuccess(Type, 'foobar',  { useBindParam: true });
+    } else {
+      await testSuccess(Type, 'foobar');
+    }
   });
 
   it('calls parse and stringify/bindParam for STRING', async () => {
     const Type = new Sequelize.STRING();
 
-    // mssql has a _bindParam function that checks if STRING was created with
+    // mssql/oracle has a _bindParam function that checks if STRING was created with
     // the boolean param (if so it outputs a Buffer bind param). This override
     // isn't needed for other dialects
-    if (dialect === 'mssql') {
+    if (['mssql', 'db2', 'oracle'].includes(dialect)) {
       await testSuccess(Type, 'foobar',  { useBindParam: true });
     } else {
       await testSuccess(Type, 'foobar');
@@ -237,12 +288,19 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const user = await User.create({ age });
     expect(BigInt(user.age).toString()).to.equal(age.toString());
 
+    // cover also bulkCreate
+    // adds two records
+    await User.bulkCreate([{ age }, { age }]);
+
     const users = await User.findAll({
       where: { age }
     });
 
-    expect(users).to.have.lengthOf(1);
-    expect(BigInt(users[0].age).toString()).to.equal(age.toString());
+    expect(users).to.have.lengthOf(3);
+    for (const usr of users) {
+      expect(BigInt(usr.age).toString()).to.equal(age.toString());
+    }
+
   });
 
   if (dialect === 'mysql') {
@@ -308,7 +366,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].includes(dialect)) {
+    if (['postgres', 'sqlite', 'oracle', 'db2'].includes(dialect)) {
       await testSuccess(Type, uuid.v4());
     } else {
       // No native uuid type
@@ -362,10 +420,22 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
   });
 
+  if (current.dialect.supports.TSVECTOR) {
+    it('calls parse and stringify for TSVECTOR', async () => {
+      const Type = new Sequelize.TSVECTOR();
+
+      if (['postgres'].includes(dialect)) {
+        await testSuccess(Type, 'swagger');
+      } else {
+        testFailure(Type);
+      }
+    });
+  }
+
   it('calls parse and stringify for ENUM', async () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].includes(dialect)) {
+    if (['postgres', 'oracle', 'db2'].includes(dialect)) {
       await testSuccess(Type, 'hat');
     } else {
       testFailure(Type);
@@ -417,10 +487,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
         //This case throw unhandled exception
         const users = await User.findAll();
-        if (dialect === 'mysql' || dialect === 'mariadb') {
+        if (['mysql', 'mariadb'].includes(dialect)) {
           // MySQL will return NULL, because they lack EMPTY geometry data support.
           expect(users[0].field).to.be.eql(null);
-        } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+        } else if (['postgres', 'postgres-native'].includes(dialect)) {
           //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
           expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
         } else {
@@ -450,7 +520,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'sqlite') {
+  if (['postgres', 'sqlite', 'oracle'].includes(dialect)) {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
     it('should store and parse IEEE floating point literals (NaN and Infinity)', async function() {
       const Model = this.sequelize.define('model', {
@@ -475,7 +545,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql') {
+  if (['postgres', 'mysql'].includes(dialect)) {
     it('should parse DECIMAL as string', async function() {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
@@ -514,7 +584,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+  if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
     it('should parse BIGINT as string', async function() {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT

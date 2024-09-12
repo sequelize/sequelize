@@ -10,7 +10,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('dropSchema', () => {
       it('IF EXISTS', () => {
         expectsql(sql.dropSchema('foo'), {
-          postgres: 'DROP SCHEMA IF EXISTS foo CASCADE;'
+          postgres: 'DROP SCHEMA IF EXISTS "foo" CASCADE;'
         });
       });
     });
@@ -27,14 +27,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       it('9.2.0 or above', () => {
         current.options.databaseVersion = '9.2.0';
         expectsql(sql.createSchema('foo'), {
-          postgres: 'CREATE SCHEMA IF NOT EXISTS foo;'
+          postgres: 'CREATE SCHEMA IF NOT EXISTS "foo";'
         });
       });
 
       it('below 9.2.0', () => {
         current.options.databaseVersion = '9.0.0';
         expectsql(sql.createSchema('foo'), {
-          postgres: 'CREATE SCHEMA foo;'
+          postgres: 'CREATE SCHEMA "foo";'
         });
       });
     });

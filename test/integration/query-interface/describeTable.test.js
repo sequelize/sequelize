@@ -3,7 +3,7 @@
 const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
-const DataTypes = require('../../../lib/data-types');
+const DataTypes = require('sequelize/lib/data-types');
 const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
@@ -67,23 +67,30 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(id.primaryKey).to.be.true;
 
-      if (['mysql', 'mssql'].includes(dialect)) {
+      if (['mysql', 'mssql', 'db2'].includes(dialect)) {
         expect(id.autoIncrement).to.be.true;
       }
 
       let assertVal = 'VARCHAR(255)';
       switch (dialect) {
+        case 'oracle':
+          assertVal = 'NVARCHAR2';
+          break;
         case 'postgres':
           assertVal = 'CHARACTER VARYING(255)';
           break;
         case 'mssql':
           assertVal = 'NVARCHAR(255)';
           break;
+        case 'db2':
+          assertVal = 'VARCHAR';
+          break;
       }
       expect(username.type).to.equal(assertVal);
       expect(username.allowNull).to.be.true;
 
       switch (dialect) {
+        case 'oracle':
         case 'sqlite':
           expect(username.defaultValue).to.be.undefined;
           break;
@@ -99,7 +106,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       assertVal = 'TINYINT(1)';
       switch (dialect) {
+        case 'oracle':
+          assertVal = 'CHAR';
+          break;
         case 'postgres':
+        case 'db2':
           assertVal = 'BOOLEAN';
           break;
         case 'mssql':
@@ -109,6 +120,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(isAdmin.type).to.equal(assertVal);
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
+        case 'oracle':
         case 'sqlite':
           expect(isAdmin.defaultValue).to.be.undefined;
           break;
@@ -123,7 +135,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql('ENUM(\'hello\',\'world\')');
       }
 
-      if (dialect === 'postgres' || dialect === 'mysql' || dialect === 'mssql') {
+      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
@@ -161,6 +173,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       expect(metalumni.dod.primaryKey).to.eql(false);
       expect(metalumni.ctrycod.primaryKey).to.eql(false);
       expect(metalumni.city.primaryKey).to.eql(false);
+    });
+
+    it('should correctly return the columns when the table contains a dot in the name', async function() {
+      const User = this.sequelize.define('my.user', {
+        name: DataTypes.STRING
+      }, { freezeTableName: true });
+
+      await User.sync({ force: true });
+      const metadata = await this.queryInterface.describeTable('my.user');
+      
+      expect(metadata).to.haveOwnProperty('name');
     });
   });
 });

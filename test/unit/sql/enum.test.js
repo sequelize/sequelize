@@ -1,7 +1,7 @@
 'use strict';
 
 const Support   = require('../support'),
-  DataTypes = require('../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   sql       = current.dialect.queryGenerator,
@@ -43,13 +43,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       describe('pgEnum', () => {
         it('uses schema #3171', () => {
           expectsql(sql.pgEnum(FooUser.getTableName(), 'mood', FooUser.rawAttributes.mood.type), {
-            postgres: 'CREATE TYPE "foo"."enum_users_mood" AS ENUM(\'happy\', \'sad\');'
+            postgres: 'DO \'BEGIN CREATE TYPE "foo"."enum_users_mood" AS ENUM(\'\'happy\'\', \'\'sad\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';'
           });
         });
 
         it('does add schema when public', () => {
           expectsql(sql.pgEnum(PublicUser.getTableName(), 'theirMood', PublicUser.rawAttributes.mood.type), {
-            postgres: 'CREATE TYPE "public"."enum_users_theirMood" AS ENUM(\'happy\', \'sad\');'
+            postgres: 'DO \'BEGIN CREATE TYPE "public"."enum_users_theirMood" AS ENUM(\'\'happy\'\', \'\'sad\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';'
           });
         });
       });

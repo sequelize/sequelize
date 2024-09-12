@@ -2,16 +2,27 @@
 
 const fs = require('fs');
 const path = require('path');
+const { inspect, isDeepStrictEqual } = require('util');
 const _ = require('lodash');
-const Sequelize = require('../index');
+const assert = require('assert');
+
+const Sequelize = require('sequelize');
 const Config = require('./config/config');
 const chai = require('chai');
 const expect = chai.expect;
-const AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+const AbstractQueryGenerator = require('sequelize/lib/dialects/abstract/query-generator');
+const distDir = path.resolve(__dirname, '../lib');
 
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
+
+// Using util.inspect to correctly assert objects with symbols
+// Because expect.deep.equal does not test non iterator keys such as symbols (https://github.com/chaijs/chai/issues/1054)
+chai.Assertion.addMethod('deepEqual', function(expected, depth = 5) {
+  expect(inspect(this._obj, { depth })).to.deep.equal(inspect(expected, { depth }));
+});
+
 chai.config.includeStack = true;
 chai.should();
 
@@ -94,7 +105,7 @@ const Support = {
 
   createSequelizeInstance(options) {
     options = options || {};
-    options.dialect = this.getTestDialect();
+    options.dialect = Support.getTestDialect();
 
     const config = Config[options.dialect];
 
@@ -112,18 +123,17 @@ const Support = {
       sequelizeOptions.native = true;
     }
 
-    if (config.storage) {
+    if (config.storage || config.storage === '') {
       sequelizeOptions.storage = config.storage;
     }
 
-    return this.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
+    return Support.getSequelizeInstance(config.database, config.username, config.password, sequelizeOptions);
   },
 
-  getConnectionOptions() {
-    const config = Config[this.getTestDialect()];
-
+  getConnectionOptionsWithoutPool() {
+    // Do not break existing config object - shallow clone before `delete config.pool`
+    const config = { ...Config[this.getTestDialect()] };
     delete config.pool;
-
     return config;
   },
 
@@ -164,7 +174,8 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(`${__dirname}/../lib/dialects`)
+    return fs
+      .readdirSync(path.join(distDir, 'dialects'))
       .filter(file => !file.includes('.js') && !file.includes('abstract'));
   },
 
@@ -207,17 +218,44 @@ const Support = {
     return `[${dialect.toUpperCase()}] ${moduleName}`;
   },
 
+  getPoolMax() {
+    return Config[this.getTestDialect()].pool.max;
+  },
+
   expectsql(query, assertions) {
-    const expectations = assertions.query || assertions;
+    const rawExpectationMap =
+      'query' in assertions ? assertions.query : assertions;
+    const expectations = Object.create(null);
+
+    for (const [key, value] of Object.entries(rawExpectationMap)) {
+      const acceptedDialects = key.split(' ');
+
+      for (const dialect of acceptedDialects) {
+        if (dialect === 'default' && acceptedDialects.length > 1) {
+          throw new Error(
+            'The \'default\' expectation cannot be combined with other dialects.'
+          );
+        }
+
+        if (expectations[dialect] !== undefined) {
+          throw new Error(
+            `The expectation for ${dialect} was already defined.`
+          );
+        }
+
+        expectations[dialect] = value;
+      }
+    }
     let expectation = expectations[Support.sequelize.dialect.name];
+    const dialect = Support.sequelize.dialect;
 
     if (!expectation) {
       if (expectations['default'] !== undefined) {
         expectation = expectations['default'];
         if (typeof expectation === 'string') {
-          expectation = expectation
-            .replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT)
-            .replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT);
+          // replace [...] with the proper quote character for the dialect
+          // except for ARRAY[...]
+          expectation = expectation.replace(/(?<!ARRAY)\[([^\]]+)]/g, `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`);
         }
       } else {
         throw new Error(`Undefined expectation for "${Support.sequelize.dialect.name}"!`);
@@ -227,13 +265,44 @@ const Support = {
     if (query instanceof Error) {
       expect(query.message).to.equal(expectation.message);
     } else {
-      expect(query.query || query).to.equal(expectation);
+      expect(Support.minifySql(query.query || query)).to.equal(Support.minifySql(expectation));
     }
 
     if (assertions.bind) {
       const bind = assertions.bind[Support.sequelize.dialect.name] || assertions.bind['default'] || assertions.bind;
       expect(query.bind).to.deep.equal(bind);
     }
+  },
+
+  rand() {
+    return Math.floor(Math.random() * 10e5);
+  },
+
+  isDeepEqualToOneOf(actual, expectedOptions) {
+    return expectedOptions.some(expected => isDeepStrictEqual(actual, expected));
+  },
+
+  /**
+   * Reduces insignificant whitespace from SQL string.
+   *
+   * @param {string} sql the SQL string
+   * @returns {string} the SQL string with insignificant whitespace removed.
+   */
+  minifySql(sql) {
+    // replace all consecutive whitespaces with a single plain space character
+    return sql.replace(/\s+/g, ' ')
+      // remove space before comma
+      .replace(/ ,/g, ',')
+      // remove space before )
+      .replace(/ \)/g, ')')
+      // replace space after (
+      .replace(/\( /g, '(')
+      // remove whitespace at start & end
+      .trim();
+  },
+
+  addDualInSelect() { 
+    return this.getTestDialect() === 'oracle' ? ' FROM DUAL' : '';
   }
 };
 
@@ -246,5 +315,119 @@ if (global.beforeEach) {
   });
 }
 
+function expectPerDialect(method, assertions) {
+  const expectations = Object.create(null);
+
+  for (const [key, value] of Object.entries(assertions)) {
+    const acceptedDialects = key.split(' ');
+
+    for (const dialect of acceptedDialects) {
+      if (dialect === 'default' && acceptedDialects.length > 1) {
+        throw new Error(
+          'The \'default\' expectation cannot be combined with other dialects.'
+        );
+      }
+
+      if (expectations[dialect] !== undefined) {
+        throw new Error(`The expectation for ${dialect} was already defined.`);
+      }
+
+      expectations[dialect] = value;
+    }
+  }
+
+  let result;
+
+  try {
+    result = method();
+  } catch (error) {
+    assert(error instanceof Error, 'method threw a non-error');
+
+    result = error;
+  }
+
+  let expectation = expectations[Support.sequelize.dialect.name];
+  expectation = expectation != null ? expectation : expectations.default;
+
+  if (expectation === undefined) {
+    throw new Error(
+      `No expectation was defined for ${Support.sequelize.dialect.name} and the 'default' expectation has not been defined.`
+    );
+  }
+
+  if (expectation instanceof Error) {
+    assert(
+      result instanceof Error,
+      `Expected method to error with "${
+        expectation.message
+      }", but it returned ${inspect(result)}.`
+    );
+
+    expect(result.message).to.equal(expectation.message);
+  } else {
+    assert(
+      !(result instanceof Error),
+      `Did not expect query to error, but it errored with ${
+        result instanceof Error ? result.message : ''
+      }`
+    );
+
+    assertMatchesExpectation(result, expectation);
+  }
+}
+
+function assertMatchesExpectation(result, expectation) {
+  if (expectation instanceof Expectation) {
+    expectation.assert(result);
+  } else {
+    expect(result).to.deep.equal(expectation);
+  }
+}
+
+class Expectation {
+  assert(value) {}
+}
+
+class SqlExpectation extends Expectation {
+  constructor(sql) {
+    super();
+    this.sql = sql;
+  }
+
+  assert(value) {
+    expect(Support.minifySql(value)).to.equal(Support.minifySql(this.sql));
+  }
+}
+
+function toMatchSql(sql) {
+  return new SqlExpectation(sql);
+}
+
+class HasPropertiesExpectation extends Expectation {
+  constructor(properties) {
+    super();
+    this.properties = properties;
+  }
+
+  assert(value) {
+    console.log({
+      value,
+      props: this.properties,
+      keys: Object.keys(this.properties)
+    });
+    for (const key of Object.keys(this.properties)) {
+      console.log({ key, value: value[key], expected: this.properties[key] });
+      assertMatchesExpectation(value[key], this.properties[key]);
+    }
+  }
+}
+
+function toHaveProperties(properties) {
+  return new HasPropertiesExpectation(properties);
+}
+
 Support.sequelize = Support.createSequelizeInstance();
+Support.expectPerDialect = expectPerDialect;
+Support.toMatchSql = toMatchSql;
+Support.toHaveProperties = toHaveProperties;
 module.exports = Support;

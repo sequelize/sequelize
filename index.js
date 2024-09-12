@@ -1,8 +1,12 @@
 'use strict';
 
+// TODO [>=7]: remove me. I've been moved to 'exports' in package.json
+
 /**
-  * The entry point.
+  * A Sequelize module that contains the sequelize entry point.
   *
-  * @module Sequelize
+  * @module sequelize
   */
-module.exports = require('./lib/sequelize');
+
+/** Exports the sequelize entry point. */
+module.exports = require('./lib');

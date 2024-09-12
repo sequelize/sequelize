@@ -1,23 +1,19 @@
 *.swp
 .idea
 .DS_STORE
-npm-debug.log
+npm-debug.log*
 *~
-test/dialects/sqlite/test.sqlite
-test/sqlite/test.sqlite
 test.sqlite
-docs/api/tmp.md
-ssce.js
-sscce.js
 *.sublime*
-yarn.lock
 
 .nyc_output
 coverage-*
 coverage
 test/tmp/*
 test/binary/tmp/*
-site
 .vscode/
 esdoc
 node_modules
+/lib
+/types
+.oracle/

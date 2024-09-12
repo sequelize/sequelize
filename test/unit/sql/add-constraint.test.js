@@ -107,9 +107,8 @@ if (current.dialect.supports.constraints.addConstraint) {
               fields: [{
                 attribute: 'myColumn'
               }]
-            })).to.throw('Default value must be specifed for DEFAULT CONSTRAINT');
+            })).to.throw('Default value must be specified for DEFAULT CONSTRAINT');
           });
-
         });
       }
       describe('primary key', () => {
@@ -157,6 +156,27 @@ if (current.dialect.supports.constraints.addConstraint) {
           });
         });
 
+        it('supports composite keys', () => {
+          expectsql(
+            sql.addConstraintQuery('myTable', {
+              type: 'foreign key',
+              fields: ['myColumn', 'anotherColumn'],
+              references: {
+                table: 'myOtherTable',
+                fields: ['id1', 'id2']
+              },
+              onUpdate: 'cascade',
+              onDelete: 'cascade'
+            }),
+            {
+              db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
+              oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_anotherColumn_myOtherTable_fk" FOREIGN KEY ("myColumn", "anotherColumn") REFERENCES "myOtherTable" ("id1", "id2") ON DELETE CASCADE;',
+              default:
+                'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_anotherColumn_myOtherTable_fk] FOREIGN KEY ([myColumn], [anotherColumn]) REFERENCES [myOtherTable] ([id1], [id2]) ON UPDATE CASCADE ON DELETE CASCADE;'
+            }
+          );
+        });
+
         it('uses onDelete, onUpdate', () => {
           expectsql(sql.addConstraintQuery('myTable', {
             type: 'foreign key',
@@ -168,7 +188,25 @@ if (current.dialect.supports.constraints.addConstraint) {
             onUpdate: 'cascade',
             onDelete: 'cascade'
           }), {
+            db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
+            oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE CASCADE;',
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE CASCADE;'
+          });
+        });
+
+        it('uses onDelete: \'no action\'', () => {
+          expectsql(sql.addConstraintQuery('myTable', {
+            type: 'foreign key',
+            fields: ['myColumn'],
+            references: {
+              table: 'myOtherTable',
+              field: 'id'
+            },
+            onUpdate: 'cascade',
+            onDelete: 'no action'
+          }), {
+            oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id");',
+            default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE NO ACTION;'
           });
         });
 
@@ -178,8 +216,6 @@ if (current.dialect.supports.constraints.addConstraint) {
             fields: ['myColumn']
           })).to.throw('references object with table and field must be specified');
         });
-
-
       });
 
       describe('validation', () => {

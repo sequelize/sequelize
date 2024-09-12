@@ -2,7 +2,7 @@
 
 const chai      = require('chai'),
   expect    = chai.expect,
-  DataTypes = require('../../../../lib/data-types'),
+  DataTypes = require('sequelize/lib/data-types'),
   Support   = require('../../support'),
   Sequelize = Support.Sequelize,
   dialect   = Support.getTestDialect(),

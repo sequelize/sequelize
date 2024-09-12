@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require('../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method update', () => {
@@ -47,6 +47,53 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Where = function() { this.secretValue = '1'; };
 
       await expect(this.User.update(this.updates, { where: new Where() })).to.be.rejected;
+    });
+  });
+
+  describe('Update with multiple models to the same table', () => {
+    before(function() {
+      this.Model1 = current.define('Model1', {
+        value: DataTypes.INTEGER,
+        name: DataTypes.STRING,
+        isModel2: DataTypes.BOOLEAN,
+        model1ExclusiveData: DataTypes.STRING
+      }, {
+        tableName: 'model_table'
+      });
+
+      this.Model2 = current.define('Model2', {
+        value: DataTypes.INTEGER,
+        name: DataTypes.STRING
+      }, {
+        tableName: 'model_table'
+      });
+    });
+
+    beforeEach(function() {
+      this.stubQuery = sinon.stub(current, 'query').resolves([]);
+    });
+
+    afterEach(function() {
+      this.stubQuery.restore();
+    });
+
+    it('updates model1 using model1 model', async function()  {
+      await this.Model1.update({
+        name: 'other name',
+        model1ExclusiveData: 'only I can update this field'
+      }, {
+        where: { value: 1 }
+      });
+      expect(this.stubQuery.lastCall.lastArg.model).to.eq(this.Model1);
+    });
+
+    it('updates model2 using model2 model', async function()  {
+      await this.Model2.update({
+        name: 'other name'
+      }, {
+        where: { value: 2 }
+      });
+      expect(this.stubQuery.lastCall.lastArg.model).to.eq(this.Model2);
     });
   });
 });

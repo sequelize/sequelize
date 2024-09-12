@@ -6,7 +6,7 @@ const chai = require('chai'),
   Sequelize = Support.Sequelize,
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require('../../../lib/data-types');
+  DataTypes = require('sequelize/lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {

@@ -6,8 +6,8 @@ const chai = require('chai'),
   Sequelize = Support.Sequelize,
   Op = Sequelize.Op,
   dialect = Support.getTestDialect(),
-  DataTypes = require('../../../../lib/data-types'),
-  sequelize = require('../../../../lib/sequelize');
+  DataTypes = require('sequelize/lib/data-types'),
+  sequelize = require('sequelize/lib/sequelize');
 
 if (dialect.match(/^postgres/)) {
   describe('[POSTGRES Specific] DAO', () => {
@@ -435,6 +435,66 @@ if (dialect.match(/^postgres/)) {
           expect(user.type).to.equal('C');
           expect(user.owners).to.deep.equal(['userA', 'userB']);
           expect(user.permissions).to.deep.equal(['access', 'write']);
+        });
+
+        it('should be able to insert a new record even with a redefined field name', async function() {
+          const User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            specialPermissions: {
+              type: DataTypes.ARRAY(DataTypes.ENUM([
+                'access',
+                'write',
+                'check',
+                'delete'
+              ])),
+              field: 'special_permissions'
+            }
+          });
+
+          await User.sync({ force: true });
+
+          const user = await User.bulkCreate([{
+            name: 'file.exe',
+            type: 'C',
+            owners: ['userA', 'userB'],
+            specialPermissions: ['access', 'write']
+          }]);
+
+          expect(user.length).to.equal(1);
+        });
+
+        it('should be able to insert a new record even with an array of enums in a schema', async function() {
+          const schema = 'special_schema';
+          this.sequelize.createSchema(schema);
+          const User = this.sequelize.define('UserEnums', {
+            name: DataTypes.STRING,
+            type: DataTypes.ENUM('A', 'B', 'C'),
+            owners: DataTypes.ARRAY(DataTypes.STRING),
+            specialPermissions: {
+              type: DataTypes.ARRAY(DataTypes.ENUM([
+                'access',
+                'write',
+                'check',
+                'delete'
+              ])),
+              field: 'special_permissions'
+            }
+          }, {
+            schema
+          });
+
+          await User.sync({ force: true });
+
+          const user = await User.bulkCreate([{
+            name: 'file.exe',
+            type: 'C',
+            owners: ['userA', 'userB'],
+            specialPermissions: ['access', 'write']
+          }]);
+
+          expect(user.length).to.equal(1);
         });
 
         it('should fail when trying to insert foreign element on ARRAY(ENUM)', async function() {
