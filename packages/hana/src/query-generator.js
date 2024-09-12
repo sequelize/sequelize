@@ -239,7 +239,13 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
-    //todo
+    const attrAfter = Object.keys(attributes)[0];
+    return joinSQLFragments([
+      'RENAME COLUMN',
+      `${this.quoteTable(tableName)}.${this.quoteIdentifier(attrBefore)}`,
+      'TO',
+      this.quoteIdentifier(attrAfter),
+    ]);
   }
 
   truncateTableQuery(tableName) {
