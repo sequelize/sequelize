@@ -61,14 +61,12 @@ Please find upgrade information to major versions here:
 If you have security issues to report, please refer to our
 [Responsible Disclosure Policy](./SECURITY.md) for more details.
 
-## Partitioning Configuration
-
 To enable partitioning in your Sequelize model, add a `partition` key to the model definition. In this example, we are using **range partitioning** based on the `created_at` column.
 
 ### Example
-
 Add the following code to your Sequelize model file:
 
+```js
 const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/database'); // Update this path to match your config
 
@@ -92,8 +90,8 @@ Event.init({
   sequelize,
   modelName: 'Event',
   partition: {
-    type: 'range',       // Partition type: RANGE
-    column: 'created_at' // Partition based on 'created_at'
+    type: 'range',        // Partition type: RANGE
+    column: 'created_at', // Partition based on 'created_at'
   },
   timestamps: false,      // Disable timestamps if not needed
 });
