@@ -61,6 +61,7 @@ Please find upgrade information to major versions here:
 If you have security issues to report, please refer to our
 [Responsible Disclosure Policy](./SECURITY.md) for more details.
 
+### Partition Support
 To enable partitioning in your Sequelize model, add a `partition` key to the model definition. In this example, we are using **range partitioning** based on the `created_at` column.
 
 ### Example
@@ -85,6 +86,7 @@ Event.init({
   created_at: {
     type: DataTypes.DATE,
     allowNull: false,
+    primaryKey: true,
   }
 }, {
   sequelize,
@@ -97,3 +99,4 @@ Event.init({
 });
 
 module.exports = Event;
+```
