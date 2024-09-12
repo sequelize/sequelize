@@ -60,3 +60,9 @@ Please find upgrade information to major versions here:
 
 If you have security issues to report, please refer to our
 [Responsible Disclosure Policy](./SECURITY.md) for more details.
+
+## :partion support
+
+If you want to create partition of tables add 
+{partition:{type: 'range' column:'created_at'}} in model file
+you can change the column as you wish but it should satisfy partition constraints
