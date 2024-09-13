@@ -21,7 +21,7 @@
     "chai": "4.5.0",
     "concurrently": "9.0.1",
     "mocha": "10.7.3",
-    "oclif": "4.14.31",
+    "oclif": "4.14.32",
     "rimraf": "5.0.10"
   },
   "engines": {
