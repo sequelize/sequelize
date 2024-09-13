@@ -2775,7 +2775,7 @@ __metadata:
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.7.3"
-    mysql2: "npm:^3.9.3"
+    mysql2: "npm:^3.11.2"
     wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
@@ -4845,6 +4845,13 @@ __metadata:
   dependencies:
     possible-typed-array-names: "npm:^1.0.0"
   checksum: 10c0/d07226ef4f87daa01bd0fe80f8f310982e345f372926da2e5296aecc25c41cab440916bbaa4c5e1034b453af3392f67df5961124e4b586df1e99793a1374bdb2
+  languageName: node
+  linkType: hard
+
+"aws-ssl-profiles@npm:^1.1.1":
+  version: 1.1.2
+  resolution: "aws-ssl-profiles@npm:1.1.2"
+  checksum: 10c0/e5f59a4146fe3b88ad2a84f814886c788557b80b744c8cbcb1cbf8cf5ba19cc006a7a12e88819adc614ecda9233993f8f1d1f3b612cbc2f297196df9e8f4f66e
   languageName: node
   linkType: hard
 
@@ -10336,10 +10343,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:^8.0.0":
-  version: 8.0.5
-  resolution: "lru-cache@npm:8.0.5"
-  checksum: 10c0/cd95a9c38497611c5a6453de39a881f6eb5865851a2a01b5f14104ff3fee515362a7b1e7de28606028f423802910ba05bdb8ae1aa7b0d54eae70c92f0cec10b2
+"lru.min@npm:^1.0.0":
+  version: 1.1.0
+  resolution: "lru.min@npm:1.1.0"
+  checksum: 10c0/ada03b436fb003b756914fd986920c62f0a6443b1f084775af1b803a62da0d7b7b07fba485ab8580e5f6a87ac2f262d6b51044e0b0b6e4fe61f1083a79ff5ba1
   languageName: node
   linkType: hard
 
@@ -10951,19 +10958,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.9.3":
-  version: 3.9.7
-  resolution: "mysql2@npm:3.9.7"
+"mysql2@npm:^3.11.2":
+  version: 3.11.2
+  resolution: "mysql2@npm:3.11.2"
   dependencies:
+    aws-ssl-profiles: "npm:^1.1.1"
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
     iconv-lite: "npm:^0.6.3"
     long: "npm:^5.2.1"
-    lru-cache: "npm:^8.0.0"
+    lru.min: "npm:^1.0.0"
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/c9cae85339b0478fdf1ff6242dfc4574e8d53c3edf207cc1b052ecfc95fec3b38ab8cc2e63ce6e5839978231dea50d563297345ec7bd1d5fbeeda1ecf0de0cef
+  checksum: 10c0/5d3def0a1719fd895a6b35e7e3ab05ff8b8244d12a83dcb523fb07d4c6d78c971defb6eefc2916e263bf7dd9e059e95270c31da743599e4b06a7c8661125f35a
   languageName: node
   linkType: hard
 
