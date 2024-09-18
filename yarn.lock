@@ -2591,15 +2591,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nrwl/tao@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nrwl/tao@npm:19.7.3"
+"@nrwl/tao@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nrwl/tao@npm:19.7.4"
   dependencies:
-    nx: "npm:19.7.3"
+    nx: "npm:19.7.4"
     tslib: "npm:^2.3.0"
   bin:
     tao: index.js
-  checksum: 10c0/af16f1670c0aaa3e2d12598918124ba2e15f24a2c274aed6ac01be4342c718971e10a8f201f6a7521e65dfd1a0b134767a7b3cf3280824de920e76ca02ec8fa1
+  checksum: 10c0/68c6349cb7e4d77ab6ff21f0d578ce391565233341d08e3eea04e86d201fbffc3211b774343a2bbc1ee9ac71de09490737d9dc4862d437845ec994d83d23c8c1
   languageName: node
   linkType: hard
 
@@ -2622,72 +2622,72 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-darwin-arm64@npm:19.7.3"
+"@nx/nx-darwin-arm64@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-darwin-arm64@npm:19.7.4"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-darwin-x64@npm:19.7.3"
+"@nx/nx-darwin-x64@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-darwin-x64@npm:19.7.4"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-freebsd-x64@npm:19.7.3"
+"@nx/nx-freebsd-x64@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-freebsd-x64@npm:19.7.4"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:19.7.3"
+"@nx/nx-linux-arm-gnueabihf@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:19.7.4"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-linux-arm64-gnu@npm:19.7.3"
+"@nx/nx-linux-arm64-gnu@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-linux-arm64-gnu@npm:19.7.4"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-linux-arm64-musl@npm:19.7.3"
+"@nx/nx-linux-arm64-musl@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-linux-arm64-musl@npm:19.7.4"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-linux-x64-gnu@npm:19.7.3"
+"@nx/nx-linux-x64-gnu@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-linux-x64-gnu@npm:19.7.4"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-linux-x64-musl@npm:19.7.3"
+"@nx/nx-linux-x64-musl@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-linux-x64-musl@npm:19.7.4"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-win32-arm64-msvc@npm:19.7.3"
+"@nx/nx-win32-arm64-msvc@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-win32-arm64-msvc@npm:19.7.4"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:19.7.3":
-  version: 19.7.3
-  resolution: "@nx/nx-win32-x64-msvc@npm:19.7.3"
+"@nx/nx-win32-x64-msvc@npm:19.7.4":
+  version: 19.7.4
+  resolution: "@nx/nx-win32-x64-msvc@npm:19.7.4"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -3145,7 +3145,7 @@ __metadata:
     mocha: "npm:10.7.3"
     node-gyp: "npm:10.2.0"
     node-hook: "npm:1.0.0"
-    nx: "npm:19.7.3"
+    nx: "npm:19.7.4"
     prettier: "npm:3.3.2"
     prettier-plugin-organize-imports: "npm:4.0.0"
     source-map-support: "npm:0.5.21"
@@ -11853,22 +11853,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:19.7.3, nx@npm:>=17.1.2 < 20":
-  version: 19.7.3
-  resolution: "nx@npm:19.7.3"
+"nx@npm:19.7.4, nx@npm:>=17.1.2 < 20":
+  version: 19.7.4
+  resolution: "nx@npm:19.7.4"
   dependencies:
     "@napi-rs/wasm-runtime": "npm:0.2.4"
-    "@nrwl/tao": "npm:19.7.3"
-    "@nx/nx-darwin-arm64": "npm:19.7.3"
-    "@nx/nx-darwin-x64": "npm:19.7.3"
-    "@nx/nx-freebsd-x64": "npm:19.7.3"
-    "@nx/nx-linux-arm-gnueabihf": "npm:19.7.3"
-    "@nx/nx-linux-arm64-gnu": "npm:19.7.3"
-    "@nx/nx-linux-arm64-musl": "npm:19.7.3"
-    "@nx/nx-linux-x64-gnu": "npm:19.7.3"
-    "@nx/nx-linux-x64-musl": "npm:19.7.3"
-    "@nx/nx-win32-arm64-msvc": "npm:19.7.3"
-    "@nx/nx-win32-x64-msvc": "npm:19.7.3"
+    "@nrwl/tao": "npm:19.7.4"
+    "@nx/nx-darwin-arm64": "npm:19.7.4"
+    "@nx/nx-darwin-x64": "npm:19.7.4"
+    "@nx/nx-freebsd-x64": "npm:19.7.4"
+    "@nx/nx-linux-arm-gnueabihf": "npm:19.7.4"
+    "@nx/nx-linux-arm64-gnu": "npm:19.7.4"
+    "@nx/nx-linux-arm64-musl": "npm:19.7.4"
+    "@nx/nx-linux-x64-gnu": "npm:19.7.4"
+    "@nx/nx-linux-x64-musl": "npm:19.7.4"
+    "@nx/nx-win32-arm64-msvc": "npm:19.7.4"
+    "@nx/nx-win32-x64-msvc": "npm:19.7.4"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.0-rc.46"
     "@zkochan/js-yaml": "npm:0.0.7"
@@ -11934,7 +11934,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 10c0/486d9be5076e7ee012fb63b199b178c7386e9d9a8e918ea3705d9203481e991bc1fa2abc1f66b3c3f402b81db1c5ef3af8bf5ee7dcd142e356828da44d3cb217
+  checksum: 10c0/aba9e19608e2f4157dd023ae80704609a480c2ffbbf79dfa8841d72e4be51538180de318b6f4939b28994c14c8d6259c2a3118d0b350f05f77d79878b5fb8ee3
   languageName: node
   linkType: hard
 
