@@ -134,6 +134,8 @@ jobs:
         run: yarn sscce-sqlite3
       - name: Integration tests (sqlite3)
         run: yarn lerna run test-integration-sqlite3 --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn cross-env DIALECT=sqlite3 yarn lerna run test-smoke --scope=@sequelize/core
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
@@ -196,6 +198,8 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   test-postgres:
     strategy:
       fail-fast: false
@@ -227,6 +231,8 @@ jobs:
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   test-oldest-latest:
     strategy:
       fail-fast: false
@@ -253,6 +259,8 @@ jobs:
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   release:
     name: Release
     runs-on: ubuntu-latest
