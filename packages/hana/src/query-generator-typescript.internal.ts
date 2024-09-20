@@ -60,7 +60,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT SCHEMA_NAME AS "schema"',
       'FROM SYS.SCHEMAS',
-      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'SYSTEM' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
+      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'PUBLIC' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
       `AND SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
