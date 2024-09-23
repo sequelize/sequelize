@@ -117,6 +117,9 @@ const badAddressConfig = {
   ibmi: {
     system: 'bad-address',
   },
+  hana: {
+    port: 9999
+  },
 };
 
 describe(getTestDialectTeaser('Sequelize'), () => {
