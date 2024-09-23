@@ -24,22 +24,13 @@ export class DuckDbQuery extends AbstractQuery {
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
       );
-      //console.log("*** sequences: ", sequences);
 
-      for (const seq of sequences) {
-        await this.connection.db.all("DROP SEQUENCE " + seq['sequence_name'] + " CASCADE");
-      }
-
-      const sequences2 = await this.connection.db.all(
-          "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
-          tableName
-      );
-      //console.log("*** sequences AFTER DROPPING: ", sequences2);
+      return Promise.all(sequences.map(seq => this.connection.db.all("DROP SEQUENCE " + seq['sequence_name'] + " CASCADE"))).then(unused => [0,0])
 
     }
 
 
-    var data;
+    let data;
     if (parameters) {
       data = await this.connection.db.all(sql, ...parameters);
     } else {
@@ -85,7 +76,8 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isRawQuery()) {
-      //console.log("*** raw query..." + sql);
+      //console.log("*** raw query..." + sql + "; data = ", data);
+
       return [data, data];
     }
 
