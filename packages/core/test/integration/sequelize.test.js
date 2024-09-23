@@ -61,6 +61,9 @@ const badUsernameConfig = {
   snowflake: {
     account: 'bad_account',
   },
+  hana: {
+    username: 'bad_user',
+  },
 };
 
 const noPasswordConfig = {
