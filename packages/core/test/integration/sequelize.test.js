@@ -95,6 +95,9 @@ const noPasswordConfig = {
   snowflake: {
     password: null,
   },
+  hana: {
+    password: null,
+  },
 };
 
 const badAddressConfig = {
@@ -395,6 +398,12 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               expect(error.cause.odbcErrors[0].message).to.include(
                 'Data source name not found and no default driver specified',
               );
+
+              break;
+            }
+
+            case 'hana': {
+              expect(error.message).to.include('Connection failed');
 
               break;
             }
