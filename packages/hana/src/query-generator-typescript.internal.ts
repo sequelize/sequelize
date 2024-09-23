@@ -2,6 +2,7 @@ import type {
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   Expression,
+  RenameTableQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
 } from '@sequelize/core';
@@ -104,6 +105,30 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `AND SCHEMA_NAME = ${this.escape(options.schema)}`
         : `AND SCHEMA_NAME NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
       'ORDER BY SCHEMA_NAME, TABLE_NAME',
+    ]);
+  }
+
+  renameTableQuery(
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema && !options?.changeSchema) {
+      throw new Error(
+        'To move a table between schemas, you must set `options.changeSchema` to true.',
+      );
+    }
+
+    return joinSQLFragments([
+      'RENAME TABLE',
+      this.quoteTable(beforeTableName),
+      'TO',
+      afterTable.schema && afterTable.schema === this.dialect.getDefaultSchema()
+        ? `${this.quoteIdentifier(afterTable.schema)}.${this.quoteIdentifier(afterTable.tableName)}`
+        : this.quoteTable(afterTableName),
     ]);
   }
 
