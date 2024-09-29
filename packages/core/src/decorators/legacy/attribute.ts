@@ -10,7 +10,7 @@ import {
 } from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
-export interface InheritedAttributeOptions extends Partial<AttributeOptions> {
+export type InheritedAttributeOptions = Partial<AttributeOptions> & {
   /**
    * If true, the attribute will be inserted before the descendant's attributes.
    */
@@ -20,7 +20,7 @@ export interface InheritedAttributeOptions extends Partial<AttributeOptions> {
    * This is the default behavior.
    */
   insertAfter?: boolean;
-}
+};
 
 type AttributeDecoratorOption = DataType | InheritedAttributeOptions;
 
