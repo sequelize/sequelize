@@ -1,5 +1,6 @@
 'use strict';
 
+const moment = require('moment');
 const dataTypes = require('./data-types');
 const { logger } = require('./utils/logger');
 
@@ -76,9 +77,54 @@ function escape(val, timeZone, dialect, format) {
       val = val.replace(/\0/g, '\\0');
     }
   } else if (dialect === 'oracle' && typeof val === 'string') {
-    if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
+    if (val.startsWith('TO_TIMESTAMP_TZ') || val.startsWith('TO_DATE')) {
+      const splitVal = val.split(/\(|\)/);
+    
+      if (splitVal.length !== 3 || splitVal[2] !== '') {
+        throw new Error('Invalid SQL function call.');
+      }
+    
+      const functionName = splitVal[0].trim();
+      const insideParens = splitVal[1].trim();
+    
+      if (functionName !== 'TO_TIMESTAMP_TZ' && functionName !== 'TO_DATE') {
+        throw new Error('Invalid SQL function call. Expected TO_TIMESTAMP_TZ or TO_DATE.');
+      }
+    
+      const params = insideParens.split(',');
+    
+      if (params.length < 2) {
+        throw new Error('Invalid format for TO_TIMESTAMP_TZ or TO_DATE');
+      }
+    
+      const dateValue = params[0].trim().replace(/'/g, '');
+      const formatValue = params[1].trim();
+    
+      if (functionName === 'TO_TIMESTAMP_TZ') {
+        const expectedFormat = "'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'";
+        if (formatValue !== expectedFormat) {
+          throw new Error(`Invalid format string for TO_TIMESTAMP_TZ. Expected format: ${ expectedFormat}`);
+        }
+    
+        const formattedDate = moment(dateValue).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+        if (formattedDate !== dateValue) {
+          throw new Error("Invalid date value for TO_TIMESTAMP_TZ. Expected format: 'YYYY-MM-DD HH:mm:ss.SSS Z'");
+        }
+      } else if (functionName === 'TO_DATE') {
+        const expectedFormat = "'YYYY/MM/DD'";
+        if (formatValue !== expectedFormat) {
+          throw new Error(`Invalid format string for TO_DATE. Expected format: ${ expectedFormat}`);
+        }
+    
+        const formattedDate = moment(dateValue).format('YYYY-MM-DD');
+        if (formattedDate !== dateValue) {
+          throw new Error("Invalid date value for TO_DATE. Expected format: 'YYYY-MM-DD'");
+        }
+      }
+    
       return val;
     }
+    
     val = val.replace(/'/g, "''");
   } else {
 
