@@ -9,7 +9,7 @@ docker compose -p sequelize-mssql-2019 up -d
 ./../../wait-until-healthy.sh sequelize-mssql-2019
 
 docker exec sequelize-mssql-2019 \
-  /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
+  /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
 
 DIALECT=mssql node check.js
 

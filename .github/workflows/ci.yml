@@ -254,7 +254,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd="/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
+          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -l 30 -Q \"SELECT 1\""
           --health-start-period 10s
           --health-interval 10s
           --health-timeout 5s
@@ -265,7 +265,7 @@ jobs:
       SEQ_PW: Password12!
       SEQ_PORT: 1433
     steps:
-      - run: /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
+      - run: /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
