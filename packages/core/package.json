@@ -116,8 +116,7 @@
     "db"
   ],
   "publishConfig": {
-    "access": "public",
-    "tag": "alpha"
+    "access": "public"
   },
   "scripts": {
     "----------------------------------------- static analysis -----------------------------------------": "",
