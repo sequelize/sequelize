@@ -5,11 +5,8 @@ import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
-import defaults from 'lodash/defaults';
-import each from 'lodash/each';
 import isObject from 'lodash/isObject';
 import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
@@ -118,58 +115,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
 
     return this.replaceBooleanDefaults(sql);
-  }
-
-  updateQuery(tableName, attrValueHash, where, options, attributes) {
-    options ||= {};
-    defaults(options, this.options);
-
-    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
-
-    const modelAttributeMap = Object.create(null);
-    const values = [];
-    const bind = Object.create(null);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
-
-    if (attributes) {
-      each(attributes, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
-    }
-
-    for (const key in attrValueHash) {
-      const value = attrValueHash[key] ?? null;
-
-      const escapedValue = this.escape(value, {
-        replacements: options.replacements,
-        bindParam,
-        type: modelAttributeMap[key]?.type,
-        // TODO: model,
-      });
-
-      values.push(`${this.quoteIdentifier(key)}=${escapedValue}`);
-    }
-
-    let query;
-    const whereOptions = { ...options, bindParam };
-
-    if (options.limit) {
-      query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
-    } else {
-      query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
-    }
-
-    const result = { query };
-    if (options.bindParam !== false) {
-      result.bind = bind;
-    }
-
-    return result;
   }
 
   attributesToSQL(attributes, options) {

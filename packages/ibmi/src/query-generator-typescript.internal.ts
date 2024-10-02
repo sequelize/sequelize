@@ -1,11 +1,13 @@
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  QueryWithBindParams,
   RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
+  UpdateQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core';
 import {
@@ -16,6 +18,7 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { getDb2IbmiSelectFromFinalTable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { IBMiDialect } from './dialect.js';
 import { IBMiQueryGeneratorInternal } from './query-generator.internal.js';
@@ -229,5 +232,25 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   createSavepointQuery(savepointName: string): string {
     return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
+  }
+
+  updateQuery(
+    tableOrModel: TableOrModel,
+    attrValueHash: Record<string, unknown>,
+    options?: UpdateQueryOptions,
+  ): QueryWithBindParams {
+    const updateQuery = super.updateQuery(tableOrModel, attrValueHash, {
+      ...options,
+      returning: false,
+    });
+
+    updateQuery.query = getDb2IbmiSelectFromFinalTable(
+      this.#internals,
+      tableOrModel,
+      updateQuery.query,
+      options,
+    );
+
+    return updateQuery;
   }
 }

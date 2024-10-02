@@ -2,9 +2,7 @@
 
 import { map } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
-import find from 'lodash/find';
 import intersection from 'lodash/intersection';
-import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
@@ -494,17 +492,14 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
+    options = { ...options, where };
     const modelDefinition = instance?.modelDefinition;
-
-    options = { ...options, model: instance?.constructor };
     options.hasTrigger = modelDefinition?.options.hasTrigger;
 
     const { bind, query } = this.queryGenerator.updateQuery(
-      tableName,
+      modelDefinition ?? tableName,
       values,
-      where,
       options,
-      modelDefinition && getObjectFromMap(modelDefinition.attributes),
     );
 
     options.type = QueryTypes.UPDATE;
@@ -532,34 +527,21 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} values        Values to be inserted, mapped to field name
    * @param {object} where    A hash with conditions OR an ID as integer OR a string with conditions
    * @param {object} [options]     Various options, please see Model.bulkCreate options
-   * @param {object} [columnDefinitions]  Attributes on return objects if supported by SQL dialect
+   * @param {object} [columnTypes] Column type mapping for values
    *
    * @returns {Promise}
    */
-  async bulkUpdate(tableName, values, where, options, columnDefinitions) {
+  async bulkUpdate(tableName, values, where, options, columnTypes) {
     if (options?.bind) {
       assertNoReservedBind(options.bind);
     }
 
-    options = cloneDeep(options) ?? {};
-    if (typeof where === 'object') {
-      where = cloneDeep(where) ?? {};
-    }
+    options = { ...options, where };
+    options.columnTypes = columnTypes;
 
-    const { bind, query } = this.queryGenerator.updateQuery(
-      tableName,
-      values,
-      where,
-      options,
-      columnDefinitions,
-    );
-    const table = isObject(tableName) ? tableName : { tableName };
-    const model = options.model
-      ? options.model
-      : find(this.sequelize.models, { tableName: table.tableName });
+    const { bind, query } = this.queryGenerator.updateQuery(tableName, values, options);
 
     options.type = QueryTypes.BULKUPDATE;
-    options.model = model;
     options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
