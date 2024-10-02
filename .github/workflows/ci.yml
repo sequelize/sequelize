@@ -244,7 +244,7 @@ jobs:
         node-version: [10, 18]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
