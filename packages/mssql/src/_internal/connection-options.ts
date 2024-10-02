@@ -80,7 +80,6 @@ export const STRING_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<StringConn
   server: undefined,
   serverName: undefined,
   tdsVersion: undefined,
-  textsize: undefined,
   workstationId: undefined,
 });
 
@@ -118,4 +117,5 @@ export const NUMBER_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<NumberConn
   packetSize: undefined,
   port: undefined,
   requestTimeout: undefined,
+  textsize: undefined,
 });
