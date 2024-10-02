@@ -215,7 +215,7 @@ export class MariaDbQuery extends AbstractQuery {
   formatError(err) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
-        const match = err.message.match(/Duplicate entry '([\S\s]*)' for key '?((.|\s)*?)'?\s.*$/);
+        const match = err.message.match(/Duplicate entry '([\S\s]*)' for key '?([^']*?)'?\s.*$/);
 
         let fields = {};
         let message = 'Validation error';
