@@ -3220,7 +3220,6 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/snowflake-sdk": "npm:^1.6.24"
     lodash: "npm:^4.17.21"
     snowflake-sdk: "npm:^1.14.0"
   languageName: unknown
@@ -4393,16 +4392,6 @@ __metadata:
   version: 8.1.5
   resolution: "@types/sinonjs__fake-timers@npm:8.1.5"
   checksum: 10c0/2b8bdc246365518fc1b08f5720445093cce586183acca19a560be6ef81f824bd9a96c090e462f622af4d206406dadf2033c5daf99a51c1096da6494e5c8dc32e
-  languageName: node
-  linkType: hard
-
-"@types/snowflake-sdk@npm:^1.6.24":
-  version: 1.6.24
-  resolution: "@types/snowflake-sdk@npm:1.6.24"
-  dependencies:
-    "@types/node": "npm:*"
-    generic-pool: "npm:^3.9.0"
-  checksum: 10c0/79d87b71d77db94bd5eb446b246a2ccef2dc726ca09c5c05f92b63a2f059ca59684a079d09197a080de16880df6a7e84b31781c96d027c4fdc15b2fbaa377a39
   languageName: node
   linkType: hard
 
@@ -8371,7 +8360,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"generic-pool@npm:^3.8.2, generic-pool@npm:^3.9.0":
+"generic-pool@npm:^3.8.2":
   version: 3.9.0
   resolution: "generic-pool@npm:3.9.0"
   checksum: 10c0/6b314d0d71170d5cbaf7162c423f53f8d6556b2135626a65bcdc03c089840b0a2f59eeb2d907939b8200e945eaf71ceb6630426f22d2128a1d242aec4b232aa7
