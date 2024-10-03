@@ -3033,7 +3033,7 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:0.0.39"
     "@types/debug": "npm:^4.1.12"
-    "@types/lodash": "npm:4.17.9"
+    "@types/lodash": "npm:4.17.10"
     "@types/mocha": "npm:10.0.8"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
@@ -3126,7 +3126,7 @@ __metadata:
     "@rushstack/eslint-patch": "npm:1.10.4"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/lodash": "npm:4.17.9"
+    "@types/lodash": "npm:4.17.10"
     "@types/mocha": "npm:10.0.8"
     "@types/node": "npm:20.16.10"
     chai: "npm:4.5.0"
@@ -4250,10 +4250,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:4.17.9, @types/lodash@npm:^4.17.0":
-  version: 4.17.9
-  resolution: "@types/lodash@npm:4.17.9"
-  checksum: 10c0/54de935e835508b5f835a5dfaedd2b9a299685a21d11e9c5cd2dde57331d03bc2f98b71d2424ca8460f447ecd55a673e45ccdb70e58f9f72745710f6b91abc60
+"@types/lodash@npm:*, @types/lodash@npm:4.17.10, @types/lodash@npm:^4.17.0":
+  version: 4.17.10
+  resolution: "@types/lodash@npm:4.17.10"
+  checksum: 10c0/149b2b9fcc277204393423ed14df28894980c2322ec522fc23f2c6f7edef6ee8d876ee09ed4520f45d128adc0a7a6e618bb0017668349716cd99c6ef54a21621
   languageName: node
   linkType: hard
 
