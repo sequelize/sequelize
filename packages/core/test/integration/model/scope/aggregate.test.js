@@ -86,6 +86,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ).to.eventually.equal(1);
       });
 
+      it('should return null on empty result set', async function () {
+        await expect(
+          this.ScopeMe.aggregate('access_level', 'sum', {
+            where: { access_level: { [Op.gt]: 42 } },
+          }),
+        ).to.eventually.equal(null);
+      });
+
       it('should be able to unscope', async function () {
         await expect(this.ScopeMe.withoutScope().aggregate('*', 'count')).to.eventually.equal(4);
       });
