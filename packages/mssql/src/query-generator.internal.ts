@@ -66,7 +66,11 @@ export class MsSqlQueryGeneratorInternal<
       throw new TypeError('System time start date must be a Date object.');
     }
 
-    const startDate = new Date(options.startDate.getTime()).toISOString();
+    if (Number.isNaN(options.startDate)) {
+      throw new TypeError('System time start date must be a valid date.');
+    }
+
+    const startDate = options.startDate.toISOString();
     if (options.period === TemporalTimeQueryType.AS_OF) {
       return `${temporalTimeQuery} AS OF ${this.queryGenerator.escape(startDate)}`;
     }
@@ -79,7 +83,11 @@ export class MsSqlQueryGeneratorInternal<
       throw new TypeError('System time end date must be a Date object.');
     }
 
-    const endDate = new Date(options.endDate.getTime()).toISOString();
+    if (Number.isNaN(options.endDate)) {
+      throw new TypeError('System time end date must be a valid date.');
+    }
+
+    const endDate = options.endDate.toISOString();
     switch (options.period || '') {
       case TemporalTimeQueryType.FROM_TO:
         return `${temporalTimeQuery} FROM ${this.queryGenerator.escape(startDate)} TO ${this.queryGenerator.escape(endDate)}`;
