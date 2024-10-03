@@ -3049,7 +3049,7 @@ __metadata:
     debug: "npm:^4.3.4"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.6"
-    expect-type: "npm:0.13.0"
+    expect-type: "npm:1.0.0"
     fast-glob: "npm:^3.3.2"
     fs-jetpack: "npm:5.1.0"
     inflection: "npm:^3.0.0"
@@ -3245,7 +3245,7 @@ __metadata:
     "@types/mocha": "npm:10.0.8"
     chai: "npm:4.5.0"
     concurrently: "npm:9.0.1"
-    expect-type: "npm:0.19.0"
+    expect-type: "npm:1.0.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:10.7.3"
   languageName: unknown
@@ -7810,17 +7810,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"expect-type@npm:0.13.0":
-  version: 0.13.0
-  resolution: "expect-type@npm:0.13.0"
-  checksum: 10c0/dd1d1f7738e465db7b700292e3884440eea185f28d6ccd9a3dc41fb13c4cd82c6943d886ca9292d29aa97cad936a20220d606154ab448d3d5d2ef127515c6188
-  languageName: node
-  linkType: hard
-
-"expect-type@npm:0.19.0":
-  version: 0.19.0
-  resolution: "expect-type@npm:0.19.0"
-  checksum: 10c0/0a7305021c3e37bf024ce01f0a141de109435ac4225457c35fbd649a0d8cdc19b9078185fd9aaa9ebb136a88c5065d27a60883ab0f961ddc281c11851ed18097
+"expect-type@npm:1.0.0":
+  version: 1.0.0
+  resolution: "expect-type@npm:1.0.0"
+  checksum: 10c0/d464be4cd4011d1840dd7812be40edd46de8f6bf0a19995136a7b8ff27de63327b24f1ea39652ef1955a9533ae60c87f2e4d406106cc74e864a51b96d5c376fd
   languageName: node
   linkType: hard
 

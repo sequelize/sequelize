@@ -81,7 +81,7 @@
     "chai-as-promised": "7.1.2",
     "chai-datetime": "1.8.1",
     "delay": "5.0.0",
-    "expect-type": "0.13.0",
+    "expect-type": "1.0.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.1",
     "mocha": "10.7.3",
