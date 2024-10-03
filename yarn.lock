@@ -2098,7 +2098,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^2.3.10":
+"@inquirer/select@npm:^2.5.0":
   version: 2.5.0
   resolution: "@inquirer/select@npm:2.5.0"
   dependencies:
@@ -3016,7 +3016,7 @@ __metadata:
     cosmiconfig: "npm:^9.0.0"
     inquirer: "npm:^9.2.14"
     mocha: "npm:10.7.3"
-    oclif: "npm:4.14.34"
+    oclif: "npm:4.15.1"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.22.4"
   bin:
@@ -12115,15 +12115,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.14.34":
-  version: 4.14.34
-  resolution: "oclif@npm:4.14.34"
+"oclif@npm:4.15.1":
+  version: 4.15.1
+  resolution: "oclif@npm:4.15.1"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.645.0"
     "@aws-sdk/client-s3": "npm:^3.651.1"
     "@inquirer/confirm": "npm:^3.1.22"
     "@inquirer/input": "npm:^2.2.4"
-    "@inquirer/select": "npm:^2.3.10"
+    "@inquirer/select": "npm:^2.5.0"
     "@oclif/core": "npm:^4"
     "@oclif/plugin-help": "npm:^6.2.10"
     "@oclif/plugin-not-found": "npm:^3.2.21"
@@ -12145,7 +12145,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/c3359923c3a03891ba50618c268b3713e740fb0a9b613befa71ae1fb0263768f1b3a88f86d290bb8a5a4aa98f92d12da4ed5f9ae02311b9fd28ac7b2968a3a06
+  checksum: 10c0/e2f719fee2848729fc72b8eed78fa4b5549d75d2b7e5e59dcf534877a46f34096547ba7a0d0215cd6731d64a97980877b618fdaf1277f16ae98b7ebed188a8a1
   languageName: node
   linkType: hard
 
