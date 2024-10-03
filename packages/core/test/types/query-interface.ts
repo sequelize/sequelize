@@ -1,5 +1,13 @@
-import type { AbstractQueryInterface, TableNameWithSchema } from '@sequelize/core';
-import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
+import type { AbstractQueryInterface } from '@sequelize/core';
+import {
+  DataTypes,
+  HistoryRetentionPeriodUnit,
+  Model,
+  TemporalTableType,
+  col,
+  fn,
+  literal,
+} from '@sequelize/core';
 
 declare let queryInterface: AbstractQueryInterface;
 
@@ -89,7 +97,56 @@ async function test() {
     { schema: '<schema>', tableName: 'User' },
   );
 
-  const tableNames: TableNameWithSchema[] = await queryInterface.listTables();
+  const tableNames = await queryInterface.listTables();
+  tableNames.map(table => ({
+    name: table.tableName,
+  }));
+
+  await queryInterface.addTemporalTable(
+    { tableName: 'foo', schema: 'bar' },
+    {
+      historyTable: 'test',
+      historyRetentionPeriod: { length: 3, unit: HistoryRetentionPeriodUnit.MONTH },
+      systemPeriodRowEnd: 'system_versioned_row_end',
+      systemPeriodRowStart: 'system_versioned_row_start',
+      temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+    },
+  );
+
+  await queryInterface.changeTemporalTable(
+    { tableName: 'foo', schema: 'bar' },
+    {
+      historyTable: 'test',
+      historyRetentionPeriod: { length: 3, unit: HistoryRetentionPeriodUnit.MONTH },
+      temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+    },
+  );
+
+  await queryInterface.removeTemporalTable(
+    { tableName: 'foo', schema: 'bar' },
+    {
+      dropHistoryTable: true,
+      historyTable: 'test',
+    },
+  );
+
+  const temporalPeriods = await queryInterface.showTemporalPeriods({
+    tableOrModel: { tableName: 'foo', schema: 'bar' },
+  });
+
+  temporalPeriods.map(period => ({
+    periodType: period.type,
+    periodStartColum: period.rowStart,
+    periodEndColum: period.rowEnd,
+  }));
+
+  const temporalTables = await queryInterface.showTemporalTables({
+    tableOrModel: { tableName: 'foo', schema: 'bar' },
+  });
+  temporalTables.map(table => ({
+    name: table.tableName,
+    historyTable: table.historyTable,
+  }));
 
   /*
   attributes will be something like:
