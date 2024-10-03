@@ -2597,7 +2597,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<number>;
+  ): Promise<number | null>;
 
   /**
    * Builds a new model instance.
