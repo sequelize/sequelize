@@ -2196,7 +2196,6 @@ https://github.com/sequelize/sequelize/discussions/15694`);
 
         if (
           subQuery
-          && Array.isArray(order)
           && order[0]
           && !(order[0] instanceof Association)
           && !(typeof order[0] === 'function' && order[0].prototype instanceof Model)
@@ -2226,7 +2225,7 @@ https://github.com/sequelize/sequelize/discussions/15694`);
         // Handle case where renamed attributes are used to order by,
         // see https://github.com/sequelize/sequelize/issues/8739
         // need to check if either of the attribute options match the order
-        if (options.attributes && model) {
+        if (order.length <= 2 && options.attributes && model) {
           const aliasedAttribute = options.attributes.find(attr => Array.isArray(attr)
               && attr[1]
               && (attr[0] === order[0] || attr[1] === order[0]));
