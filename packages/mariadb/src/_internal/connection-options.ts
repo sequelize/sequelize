@@ -59,7 +59,7 @@ const NUMBER_CONNECTION_OPTION_MAP = {
   maxAllowedPacket: undefined,
   keepAliveDelay: undefined,
   prepareCacheLength: undefined,
-  timeout: undefined,
+  queryTimeout: undefined,
 } as const satisfies Record<keyof NumberConnectionOptions, undefined>;
 
 export const NUMBER_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<NumberConnectionOptions>(
