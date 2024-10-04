@@ -86,9 +86,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ).to.eventually.equal(1);
       });
 
-      it('should return null on empty result set', async function () {
+      it('returns null when calling sum on an empty result set', async function () {
         await expect(
           this.ScopeMe.aggregate('access_level', 'sum', {
+            where: { access_level: { [Op.gt]: 42 } },
+          }),
+        ).to.eventually.equal(null);
+      });
+
+      it('returns null when calling min on an empty result set', async function () {
+        await expect(
+          this.ScopeMe.aggregate('access_level', 'min', {
+            where: { access_level: { [Op.gt]: 42 } },
+          }),
+        ).to.eventually.equal(null);
+      });
+
+      it('returns null when calling max on an empty result set', async function () {
+        await expect(
+          this.ScopeMe.aggregate('access_level', 'max', {
             where: { access_level: { [Op.gt]: 42 } },
           }),
         ).to.eventually.equal(null);
