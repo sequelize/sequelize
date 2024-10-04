@@ -112,7 +112,7 @@ class QueryGenerator {
     options = options || {};
     _.defaults(options, this.options);
 
-    const modelAttributeMap = {};
+    const modelAttributeMap = createModelAttributeMap(modelAttributes);
     const bind = options.bind || [];
     const fields = [];
     const returningModelAttributes = [];
@@ -128,15 +128,6 @@ class QueryGenerator {
     let returningFragment = '';
     let identityWrapperRequired = false;
     let tmpTable = ''; //tmpTable declaration for trigger
-
-    if (modelAttributes) {
-      _.each(modelAttributes, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
-    }
 
     if (this._dialect.supports['DEFAULT VALUES']) {
       emptyQuery += ' DEFAULT VALUES';
@@ -439,7 +430,7 @@ class QueryGenerator {
 
     const values = [];
     const bind = [];
-    const modelAttributeMap = {};
+    const modelAttributeMap = createModelAttributeMap(attributes);
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
@@ -478,15 +469,6 @@ class QueryGenerator {
       if (!this._dialect.supports.returnValues.output && options.returning) {
         options.mapToModel = true;
       }
-    }
-
-    if (attributes) {
-      _.each(attributes, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
     }
 
     for (const key in attrValueHash) {
@@ -2929,6 +2911,40 @@ https://github.com/sequelize/sequelize/discussions/15694`);
   authTestQuery() {
     return 'SELECT 1+1 AS result';
   }
+}
+
+function createModelAttributeMap(modelAttributes) {
+  const modelAttributeMap = {};
+  
+  if (modelAttributes) {
+    _.each(modelAttributes, (attribute, key) => {
+      modelAttributeMap[key] = attribute;
+    });
+    // assign field name overrides last, so that they will win over
+    // other attribute keys like in the following:
+    //
+    // _value: {
+    //   type: DataTypes.JSONB,
+    //   field: "value",
+    // },
+    // value: {
+    //   type: DataTypes.VIRTUAL,
+    //   get() {
+    //     return parse(this.getDataValue("_value"));
+    //   },
+    //   set(value: any) {
+    //     return format(this.setDataValue("_value", value));
+    //   },
+    // }
+
+    _.each(modelAttributes, (attribute, key) => {
+      if (attribute.field) {
+        modelAttributeMap[attribute.field] = attribute;
+      }
+    });
+  }
+
+  return modelAttributeMap;
 }
 
 Object.assign(QueryGenerator.prototype, require('./query-generator/operators'));
