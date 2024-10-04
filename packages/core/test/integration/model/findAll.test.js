@@ -1608,9 +1608,10 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('get versions as of', async function () {
-          const before = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
-          const after = Date.now();
+          const after = Date.now() + 1;
           const afterVersions = await this.User.findAll({
             temporalTime: {
               type: 'SYSTEM_TIME',
@@ -1643,11 +1644,12 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('get versions between', async function () {
-          const before = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
           await setTimeout(500);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
-          const after = Date.now();
+          const after = Date.now() + 1;
           const versions = await this.User.findAll({
             order: [['SysEndTime', 'DESC']],
             temporalTime: {
@@ -1670,11 +1672,12 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('get versions from', async function () {
-          const before = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
           await setTimeout(500);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
-          const after = Date.now();
+          const after = Date.now() + 1;
           const versions = await this.User.findAll({
             order: [['SysEndTime', 'DESC']],
             temporalTime: {
@@ -1697,11 +1700,12 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('get versions contained', async function () {
-          const before = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
           await setTimeout(500);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
-          const after = Date.now();
+          const after = Date.now() + 1;
           const versions = await this.User.findAll({
             temporalTime: {
               type: 'SYSTEM_TIME',
@@ -1721,7 +1725,8 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('works with join statements', async function () {
-          const startDate = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const startDate = Date.now() - 1;
           const user = await this.User.findOne({ where: { username: 'foo' } });
           await this.Session.update({ token: 'foo' }, { where: { userId: user.id } });
           const versions = await this.User.findAll({
@@ -1739,12 +1744,12 @@ The following associations are defined on "Worker": "ToDos"`);
         });
 
         it('works with join statements with separate temporal time', async function () {
-          const startDate = Date.now();
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const startDate = Date.now() - 1;
           const user = await this.User.findOne({ where: { username: 'foo' } });
           await this.Session.update({ token: 'foo' }, { where: { userId: user.id } });
           await this.User.update({ username: 'foo_bar' }, { where: { id: user.id } });
-
-          const nextDate = Date.now();
+          const nextDate = Date.now() + 1;
           const versions1 = await this.User.findAll({
             temporalTime: {
               type: 'SYSTEM_TIME',
@@ -1788,8 +1793,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(versions2[0]?.sessions[0].token).to.equal('foo');
 
           await this.Session.update({ token: 'bar' }, { where: { userId: user.id } });
-          const finalDate = Date.now();
-
+          const finalDate = Date.now() + 1;
           const versions3 = await this.User.findAll({
             temporalTime: {
               type: 'SYSTEM_TIME',
