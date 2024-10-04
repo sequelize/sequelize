@@ -4,6 +4,8 @@ on:
     branches:
       - renovate/**
   pull_request:
+    branches-ignore:
+      - renovate/**
   merge_group:
   workflow_dispatch:
 
