@@ -3032,7 +3032,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/chai-as-promised": "npm:7.1.8"
-    "@types/chai-datetime": "npm:0.0.39"
+    "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.12"
     "@types/lodash": "npm:4.17.10"
     "@types/mocha": "npm:10.0.8"
@@ -4155,12 +4155,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai-datetime@npm:0.0.39":
-  version: 0.0.39
-  resolution: "@types/chai-datetime@npm:0.0.39"
+"@types/chai-datetime@npm:1.0.0":
+  version: 1.0.0
+  resolution: "@types/chai-datetime@npm:1.0.0"
   dependencies:
     "@types/chai": "npm:*"
-  checksum: 10c0/8126a4392fb068d646163c8c2fd58fe6ae4faf9b96c020bccf89e5d1cea5a1c67d918287891f002a91a3392a279dd74593019beebef8f40a17799e09eae92ee7
+  checksum: 10c0/a2f741e407fcbdb5ddbf7dfd9880ea7393679b628ad01838b1721149f1396d3700ca606a23ea3ce2b5fa8fde51e7a3195e32f7ec2c2a684333098ef425a266ba
   languageName: node
   linkType: hard
 
