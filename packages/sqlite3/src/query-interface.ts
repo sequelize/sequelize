@@ -328,7 +328,7 @@ export class SqliteQueryInterface<
             tableSchema: '',
             tableName: constraintTableName,
             columnNames: [column],
-            definition: definition ? definition[1] ?? '' : '',
+            definition: definition ? (definition[1] ?? '') : '',
           });
         }
       }
