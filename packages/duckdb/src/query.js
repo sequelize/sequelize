@@ -12,45 +12,67 @@ export class DuckDbQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
 
-    const pos_newline = sql.indexOf("\n", 3);
-    const sqltoprint = pos_newline >= 0 ? sql.substring(0, pos_newline) + " ... " : sql;
-    //console.log("DUCKDB RUN; db path " + this.connection.db_path + "; sql = " + sqltoprint);
+    // const pos_newline = sql.indexOf("\n", 3);
+    // const sqltoprint = pos_newline >= 0 ? sql.substring(0, pos_newline) + " ... " : sql;
+    // console.log("DUCKDB RUN; db path " + this.connection.db_path + "; sql = " + sqltoprint);
 
     if (sql.startsWith("DROP TABLE")) {
       const tableName = sql.match(/^DROP TABLE IF EXISTS "([^"]+)"/)[1];
-      //console.log("*** THE TABLE NAME IS ", tableName);
+      const sequences = [];
+      console.log("*** cleaning up sequence for the table", tableName, "; the sql = ", "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)");
       // clean up all the table's sequences
-      const sequences = await this.connection.db.all(
+       sequences.push(this.connection.db.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
-      );
+      ).then(seqResult => {
+        console.log("*** GOT SEQUENCE RSULT: ", seqResult);
+        return seqResult;
+      }));
 
-      return Promise.all(sequences.map(seq => this.connection.db.all("DROP SEQUENCE " + seq['sequence_name'] + " CASCADE"))).then(unused => [0,0])
+      return Promise.all(
+        sequences.map(seqPromise => seqPromise.then(sequence => {
+          console.log("****** ELENA - SEQUENCE IS ", sequence);
+          if ("sequence_name" in sequence) {
+            return this.connection.db.all("DROP SEQUENCE " + sequence.sequence_name + " CASCADE");
+          }
 
+          return Promise.resolve();
+        }))
+      ).then(() => [0,0]);
     }
 
+    return this.runQueryInternal(sql, parameters);
+  }
 
-    let data;
+  async runQueryInternal(sql, parameters) {
+
+    let dataPromise;
     if (parameters) {
-      data = await this.connection.db.all(sql, ...parameters);
+      dataPromise = this.connection.db.all(sql, ...parameters);
     } else {
-      data = await this.connection.db.all(sql);
+      dataPromise = this.connection.db.all(sql);
     }
 
-    let result = this.instance;
     if (this.isSelectQuery()) {
-      //console.log("*** SELECT Query: ", sql, "params: ", parameters);
-      //console.log("results: ", data);
-      return this.handleSelectQuery(data);
+      // console.log("*** SELECT Query: ", sql, "params: ", parameters);
+      // console.log("results: ", data);
+      return dataPromise.then(data => this.handleSelectQuery(data));
     }
 
+    return dataPromise.then(data => this.processResults(data));
+  }
+
+  // TBD: comment better; no longer async
+  processResults(data) {
     const metadata = {};
+    const result = this.instance;
+
     if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
-      //console.log("*** INSERT/upsert query: " + sql);
+      // console.log("*** INSERT/upsert query: " + sql);
 
       this.handleInsertQuery(data, metadata);
 
-      //console.log("**** INSERT QUERY; GOT DATA: ", data);
+      // console.log("**** INSERT QUERY; GOT DATA: ", data);
 
       if (!this.instance) {
         //console.log("***** WHY IS THERE NO INSTANCE? ******");
@@ -67,7 +89,7 @@ export class DuckDbQuery extends AbstractQuery {
         }
       }
 
-      //console.log("**** INSERT QUERY; INSTANCE: ", this.instance);
+      // console.log("**** INSERT QUERY; INSTANCE: ", this.instance);
 
 
       // TBD: second parameter is number of affected rows
@@ -76,21 +98,20 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isRawQuery()) {
-      //console.log("*** raw query..." + sql + "; data = ", data);
+      // console.log("*** raw query..." + sql + "; data = ", data);
 
       return [data, data];
     }
 
-
     if (this.isShowConstraintsQuery()) {
-      //console.log("*** show constraints..." + sql);
-      //console.log("*** show constraints...");
+      // console.log("*** show constraints..." + sql);
+      // console.log("*** show constraints...");
       return data;
     }
 
     if (this.isShowIndexesQuery()) {
-      //console.log("*** show indexes..." + sql);
-     // console.log("*** show indexes...");
+      // console.log("*** show indexes..." + sql);
+      // console.log("*** show indexes...");
       return data;
     }
 
@@ -100,7 +121,7 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
 
-    //console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
+    // console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
 
     return [data, data];
   }
