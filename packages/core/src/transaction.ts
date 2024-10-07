@@ -614,7 +614,7 @@ export function normalizeTransactionOptions(
         : undefined),
     isolationLevel:
       options.isolationLevel === undefined
-        ? sequelize.options.isolationLevel ?? null
+        ? (sequelize.options.isolationLevel ?? null)
         : options.isolationLevel,
     readOnly: options.readOnly ?? false,
     constraintChecking:
