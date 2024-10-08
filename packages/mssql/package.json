@@ -32,7 +32,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.42",
+  "version": "7.0.0-alpha.43",
   "publishConfig": {
     "access": "public"
   },
@@ -41,11 +41,11 @@
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.10",
     "lodash": "^4.17.21",
-    "tedious": "^18.6.1"
+    "tedious": "^19.0.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
-    "@types/mocha": "10.0.8",
+    "@types/mocha": "10.0.9",
     "@types/sinon": "17.0.3",
     "chai": "4.5.0",
     "mocha": "10.7.3",

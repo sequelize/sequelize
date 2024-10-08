@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
+
+### Bug Fixes
+
+- **mssql:** update mssql to v18.6.1 ([#17521](https://github.com/sequelize/sequelize/issues/17521)) ([b0ed3eb](https://github.com/sequelize/sequelize/commit/b0ed3eb5757af0b18c47c011ffc42b9c9cb44c46))
+- unify returning queries ([#17157](https://github.com/sequelize/sequelize/issues/17157)) ([0a350c0](https://github.com/sequelize/sequelize/commit/0a350c0f91d0eee9c56b92f47cc23c273c9eb206))
+
 # [7.0.0-alpha.42](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.41...v7.0.0-alpha.42) (2024-09-13)
 
 ### Bug Fixes
