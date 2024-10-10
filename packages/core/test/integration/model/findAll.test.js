@@ -1591,11 +1591,13 @@ The following associations are defined on "Worker": "ToDos"`);
             { username: 'foo', sessions: [{ token: 'abc123' }] },
             { include: { association: this.UserSessions } },
           );
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          await setTimeout(50);
         });
 
         it('find all versions', async function () {
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
-          await setTimeout(500);
+          await setTimeout(100);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
           const versions = await this.User.findAll({
             order: [['SysEndTime', 'DESC']],
@@ -1647,7 +1649,7 @@ The following associations are defined on "Worker": "ToDos"`);
           // Adding a delay to ensure that the versions are different to prevent flakiness
           const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
-          await setTimeout(500);
+          await setTimeout(100);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
           const after = Date.now() + 1;
           const versions = await this.User.findAll({
@@ -1675,7 +1677,7 @@ The following associations are defined on "Worker": "ToDos"`);
           // Adding a delay to ensure that the versions are different to prevent flakiness
           const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
-          await setTimeout(500);
+          await setTimeout(100);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
           const after = Date.now() + 1;
           const versions = await this.User.findAll({
@@ -1703,7 +1705,7 @@ The following associations are defined on "Worker": "ToDos"`);
           // Adding a delay to ensure that the versions are different to prevent flakiness
           const before = Date.now() - 1;
           await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
-          await setTimeout(500);
+          await setTimeout(100);
           await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
           const after = Date.now() + 1;
           const versions = await this.User.findAll({
