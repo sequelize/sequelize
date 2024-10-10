@@ -52,10 +52,6 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
       options: removeUndefined(inlinedOptions),
     };
 
-    if (!tediousConfig.options!.port) {
-      tediousConfig.options!.port = 1433;
-    }
-
     try {
       return await new Promise((resolve, reject) => {
         const connection: MsSqlConnection = new this.#lib.Connection(

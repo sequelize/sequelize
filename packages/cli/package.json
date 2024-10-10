@@ -16,13 +16,13 @@
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
     "@oclif/test": "3.2.15",
-    "@types/chai": "4.3.16",
-    "@types/mocha": "10.0.7",
-    "chai": "4.4.1",
-    "concurrently": "8.2.2",
-    "mocha": "10.4.0",
-    "oclif": "4.13.8",
-    "rimraf": "5.0.7"
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.9",
+    "chai": "4.5.0",
+    "concurrently": "9.0.1",
+    "mocha": "10.7.3",
+    "oclif": "4.15.6",
+    "rimraf": "5.0.10"
   },
   "engines": {
     "node": ">=18.0.0"
@@ -70,7 +70,7 @@
   },
   "type": "module",
   "types": "lib/index.d.ts",
-  "version": "7.0.0-alpha.41",
+  "version": "7.0.0-alpha.43",
   "publishConfig": {
     "access": "public"
   }
