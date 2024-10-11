@@ -501,6 +501,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
   pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
+    console.log('tableDetails', JSON.stringify(tableDetails));
 
     const enumName = `enum_${tableDetails.tableName}_${columnName}`;
     if (options.noEscape) {
