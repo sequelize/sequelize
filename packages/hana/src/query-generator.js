@@ -327,10 +327,24 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
           continue;
         }
 
-        if(value instanceof BaseSqlExpression) {
-          // BaseSqlExpression (e.g. Cast), has already been escaped in the query:
-          // INSERT INTO "Users" ("intVal","createdAt","updatedAt") VALUES (CAST(CAST(1-2 AS INTEGER) AS INTEGER),$sequelize_1,$sequelize_2)
-          continue;
+        if (value instanceof BaseSqlExpression) {
+          /*
+            BaseSqlExpression (e.g. Cast), *may* have already been escaped in the query:
+          1. { intVal: new Cast( cast(new Literal('1-2'), 'integer') , 'integer' ) }
+            INSERT INTO "Users" ("intVal","createdAt","updatedAt") VALUES (CAST(CAST(1-2 AS INTEGER) AS INTEGER),$sequelize_1,$sequelize_2);
+          2. { intVal: new Cast('1', type) }
+            INSERT INTO "Users" ("intVal","createdAt","updatedAt") VALUES (CAST($sequelize_1 AS INTEGER),$sequelize_2,$sequelize_3);
+          */
+          const bind = Object.create(null);
+          const dummyOption = {
+            type: options.type,
+            bindParam: this.bindParam(bind),
+          };
+          const dummyEscaped = this.escape(value, dummyOption);
+          const valueStringHasDollarSequelizeParameter = Object.keys(bind).length > 0;
+          if (!valueStringHasDollarSequelizeParameter) {
+            continue;
+          }
         }
         columnNames.push(key);
       }
