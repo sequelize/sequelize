@@ -471,6 +471,8 @@ END;`
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
+    } else if (attribute.allowNull === true && options && options.context === 'changeColumn') {
+      template += ' NULL';
     }
 
     if (attribute.autoIncrement) {
