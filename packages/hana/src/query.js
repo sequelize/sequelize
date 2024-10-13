@@ -499,7 +499,15 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
 
         return new UniqueConstraintError({ message, errors, cause: err, fields });
       }
-      case ERR_SQL_FK_NOT_FOUND:
+      case ERR_SQL_FK_NOT_FOUND: {
+        const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
+        return new ForeignKeyConstraintError({
+          table,
+          fields: undefined,
+          index: undefined,
+          cause: err,
+        });
+      }
       case ERR_SQL_FK_ON_UPDATE_DELETE_FAILED: {
 //        const table = err.message.match(/failed on table '(.*?)'/)?.[1];
 //        const value =

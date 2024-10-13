@@ -786,7 +786,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ForeignKeyConstraintError);
         assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite3') {
+        if (dialect === 'sqlite3' || dialect === 'hana') {
           expect(error.index).to.be.undefined;
         } else {
           expect(error.index).to.equal('Tasks_userId_Users_fk');
@@ -822,6 +822,14 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal(
               'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            );
+            break;
+
+          case 'hana':
+            expect(error.table).to.equal('Tasks');
+            expect(error.fields).to.be.undefined;
+            expect(error.cause.message).to.contain(
+              'foreign key constraint violation: TrexColumnUpdate failed on table',
             );
             break;
 
