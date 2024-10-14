@@ -945,7 +945,7 @@ describe(getTestDialectTeaser('QueryInterface#Temporal Tables'), () => {
 
     if (sequelize.dialect.supports.temporalTables.systemPeriod) {
       describe('System-period', () => {
-        it('should remove a system-period temporal table and drop columns', async () => {
+        it('should remove a system-period temporal table', async () => {
           const User = sequelize.define(
             'User',
             {
@@ -965,8 +965,6 @@ describe(getTestDialectTeaser('QueryInterface#Temporal Tables'), () => {
           ]);
 
           expect(descr).to.have.ownProperty('name');
-          expect(descr).to.not.have.ownProperty('SysEndTime');
-          expect(descr).to.not.have.ownProperty('SysStartTime');
           expect(period).to.deep.equal([]);
           expect(tableInfo).to.deep.equal([]);
         });

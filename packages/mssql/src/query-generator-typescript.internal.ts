@@ -321,19 +321,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quoteTbl = this.quoteTable(tableOrModel);
     const queries: string[] = [`ALTER TABLE ${quoteTbl} SET (SYSTEM_VERSIONING = OFF)`];
 
-    const table = this.extractTableDetails(tableOrModel);
     for (const period of options.temporalPeriods) {
       if (period.type === TemporalPeriodType.SYSTEM) {
-        queries.push(
-          `ALTER TABLE ${quoteTbl} DROP PERIOD FOR SYSTEM_TIME`,
-          joinSQLFragments([
-            `ALTER TABLE ${quoteTbl} DROP`,
-            `CONSTRAINT IF EXISTS [DF__${table.tableName.slice(0, 9)}__${period.rowStart.slice(0, 13)}],`,
-            `CONSTRAINT IF EXISTS [DF__${table.tableName.slice(0, 9)}__${period.rowEnd.slice(0, 13)}],`,
-            `COLUMN ${this.quoteIdentifier(period.rowStart)},`,
-            `COLUMN ${this.quoteIdentifier(period.rowEnd)}`,
-          ]),
-        );
+        queries.push(`ALTER TABLE ${quoteTbl} DROP PERIOD FOR SYSTEM_TIME`);
       } else {
         throw new Error(`Unsupported temporal period type: ${period.type}.`);
       }
