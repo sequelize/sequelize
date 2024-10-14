@@ -3,8 +3,8 @@ import {
   createSequelizeInstance,
   expectPerDialect,
   getTestDialect,
-  minifySql,
   sequelize,
+  toMatchSql,
 } from '../../support';
 
 const dialectName = getTestDialect();
@@ -351,10 +351,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [myTable] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -376,10 +376,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [MyModels] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -401,10 +401,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [MyModels] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -427,10 +427,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [mySchema].[myTable] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -453,10 +453,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [myTable] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -479,10 +479,10 @@ describe('QueryGenerator#removeTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = OFF)`,
             `ALTER TABLE [mySchema].[myTable] DROP PERIOD FOR SYSTEM_TIME`,
-          ].map(minifySql),
+          ]),
         },
       );
     });

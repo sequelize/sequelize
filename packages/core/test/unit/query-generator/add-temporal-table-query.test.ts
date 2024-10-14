@@ -4,8 +4,8 @@ import {
   createSequelizeInstance,
   expectPerDialect,
   getTestDialect,
-  minifySql,
   sequelize,
+  toMatchSql,
 } from '../../support';
 
 const dialectName = getTestDialect();
@@ -381,13 +381,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -405,13 +405,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [mySchema].[myTable] ADD
             [sys_row_start] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__sys_row_start] DEFAULT SYSUTCDATETIME(),
             [sys_row_end] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__sys_row_end] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([sys_row_start], [sys_row_end])`,
             `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -425,13 +425,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myHistory]))`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -445,13 +445,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [mySchema].[myHistory]))`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -465,13 +465,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_RETENTION_PERIOD = 3 MONTH))`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -486,13 +486,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myHistory], HISTORY_RETENTION_PERIOD = 3 MONTH))`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -507,13 +507,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [MyModels] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__MyModels__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__MyModels__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -528,13 +528,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [MyModels] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__MyModels__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__MyModels__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [MyModels] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -548,13 +548,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [mySchema].[myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -568,13 +568,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           ),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [myTable] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
@@ -590,13 +590,13 @@ describe('QueryGenerator#addTemporalTableQuery', () => {
           }),
         {
           default: notSupportedError,
-          mssql: [
+          mssql: toMatchSql([
             `ALTER TABLE [mySchema].[myTable] ADD
             [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysStartTime] DEFAULT SYSUTCDATETIME(),
             [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END HIDDEN NOT NULL CONSTRAINT [DF__myTable__SysEndTime] DEFAULT CONVERT(DATETIME2, '9999-12-31 23:59:59.99999999'),
             PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime])`,
             `ALTER TABLE [mySchema].[myTable] SET (SYSTEM_VERSIONING = ON)`,
-          ].map(minifySql),
+          ]),
         },
       );
     });
