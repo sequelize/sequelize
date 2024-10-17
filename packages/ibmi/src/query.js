@@ -166,36 +166,31 @@ export class IBMiQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    const indexes = Object.create(null);
-
-    data.forEach(item => {
-      if (Object.hasOwn(indexes, item.NAME)) {
-        indexes[item.NAME].fields.push({
-          attribute: item.COLUMN_NAME,
+    const indexes = new Map();
+    for (const item of data) {
+      const idx = indexes.get(item.NAME);
+      if (idx) {
+        idx.fields.push({
+          name: item.COLUMN_NAME,
           length: undefined,
           order: undefined,
           collate: undefined,
         });
       } else {
-        indexes[item.NAME] = {
-          primary: item.CONSTRAINT_TYPE === 'PRIMARY KEY',
-          fields: [
-            {
-              attribute: item.COLUMN_NAME,
-              length: undefined,
-              order: undefined,
-              collate: undefined,
-            },
-          ],
-          name: item.NAME,
+        indexes.set(item.NAME, {
+          schema: item.TABLE_SCHEMA,
           tableName: item.TABLE_NAME,
+          name: item.NAME,
+          fields: [
+            { name: item.COLUMN_NAME, length: undefined, order: undefined, collate: undefined },
+          ],
+          primary: item.CONSTRAINT_TYPE === 'PRIMARY KEY',
           unique: item.CONSTRAINT_TYPE === 'PRIMARY KEY' || item.CONSTRAINT_TYPE === 'UNIQUE',
-          type: item.CONSTRAINT_TYPE,
-        };
+        });
       }
-    });
+    }
 
-    return Object.values(indexes);
+    return [...indexes.values()];
   }
 
   formatError(err) {
