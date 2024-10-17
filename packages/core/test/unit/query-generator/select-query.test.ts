@@ -1022,6 +1022,39 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       );
     });
 
+    it('should support index hints on queries with associations', () => {
+      const { User } = vars;
+
+      expectsql(
+        () =>
+          queryGenerator.selectQuery(
+            User.table,
+            {
+              model: User,
+              attributes: ['id'],
+              indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }],
+              include: _validateIncludedElements({
+                model: User,
+                include: [
+                  {
+                    association: User.associations.projects,
+                    attributes: ['id'],
+                  },
+                ],
+              }).include,
+            },
+            User,
+          ),
+        {
+          default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
+            'indexHints',
+          ]),
+          'mariadb mysql snowflake':
+            'SELECT [User].[id], [projects].[id] AS [projects.id] FROM [Users] AS [User] FORCE INDEX ([index_project_on_name]) LEFT OUTER JOIN [Projects] AS [projects] ON [User].[id] = [projects].[userId];',
+        },
+      );
+    });
+
     it('should throw an error if an index hint if the type is not valid', () => {
       const { User } = vars;
 
