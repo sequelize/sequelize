@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
-import { QueryTypes } from '../query-types';
+import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';

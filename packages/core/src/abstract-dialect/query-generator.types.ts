@@ -1,9 +1,9 @@
 import type { Deferrable } from '../deferrable';
+import type { TableHints } from '../enums';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';
 import type { Literal } from '../expression-builders/literal';
 import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '../model';
 import type { ModelDefinition } from '../model-definition.js';
-import type { TableHints } from '../table-hints';
 import type { TransactionType } from '../transaction';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';

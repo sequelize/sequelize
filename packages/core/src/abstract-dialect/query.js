@@ -1,6 +1,7 @@
 'use strict';
 
 import NodeUtil from 'node:util';
+import { QueryTypes } from '../enums';
 import { AbstractDataType } from './data-types';
 
 import chain from 'lodash/chain';
@@ -8,7 +9,6 @@ import findKey from 'lodash/findKey';
 import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
 
-const { QueryTypes } = require('../query-types');
 const Dot = require('dottie');
 const deprecations = require('../utils/deprecations');
 const crypto = require('node:crypto');

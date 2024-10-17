@@ -1,4 +1,33 @@
 /**
+ * An enum of index hints to be used in mysql for querying with index hints
+ *
+ * @property USE
+ * @property FORCE
+ * @property IGNORE
+ */
+export enum IndexHints {
+  USE = 'USE',
+  FORCE = 'FORCE',
+  IGNORE = 'IGNORE',
+}
+
+/**
+ * An enum of query types used by {@link Sequelize#query}.
+ */
+export enum QueryTypes {
+  SELECT = 'SELECT',
+  INSERT = 'INSERT',
+  UPDATE = 'UPDATE',
+  BULKUPDATE = 'BULKUPDATE',
+  DELETE = 'DELETE',
+  UPSERT = 'UPSERT',
+  SHOWINDEXES = 'SHOWINDEXES',
+  DESCRIBE = 'DESCRIBE',
+  RAW = 'RAW',
+  SHOWCONSTRAINTS = 'SHOWCONSTRAINTS',
+}
+
+/**
  * An enum of table hints to be used in mssql for querying with table hints
  *
  * @property NOLOCK
