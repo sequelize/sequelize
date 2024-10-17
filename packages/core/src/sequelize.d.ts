@@ -110,7 +110,7 @@ export interface LegacyDialectOptions {
 
 export interface SetSessionVariablesOptions extends Omit<QueryOptions, 'raw' | 'plain' | 'type'> {}
 
-export type BindOrReplacements = { [key: string]: unknown } | unknown[];
+export type BindOrReplacements = Record<string, unknown> | unknown[];
 type FieldMap = { [key: string]: string };
 
 /**

@@ -12,6 +12,23 @@ export enum IndexHints {
 }
 
 /**
+ * An enum of operators to be used in {@link QueryGenerator} methods.
+ *
+ * @property BIND
+ * @property REPLACEMENT
+ */
+export enum ParameterStyle {
+  /**
+   * The parameter will be added to the query as a bind parameter.
+   */
+  BIND = 'BIND',
+  /**
+   * The parameter will be replaced directly into the query.
+   */
+  REPLACEMENT = 'REPLACEMENT',
+}
+
+/**
  * An enum of query types used by {@link Sequelize#query}.
  */
 export enum QueryTypes {

@@ -17,7 +17,7 @@ import { HasManyAssociation } from './associations/has-many';
 import { HasOneAssociation } from './associations/has-one';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
-import { IndexHints, QueryTypes, TableHints } from './enums.js';
+import { IndexHints, ParameterStyle, QueryTypes, TableHints } from './enums.js';
 import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
@@ -850,6 +850,7 @@ Sequelize.useInflection = useInflection;
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
 Sequelize.ManualOnDelete = ManualOnDelete;
+Sequelize.ParameterStyle = ParameterStyle;
 
 Sequelize.AbstractConnectionManager = AbstractConnectionManager;
 Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
