@@ -40,6 +40,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
+            oracle: `UPDATE "users" SET "user_name"=:1 WHERE "id" = :2`,
             default: 'UPDATE [users] SET [user_name]=$sequelize_1 WHERE [id] = $sequelize_2',
           },
           bind: {
@@ -87,6 +88,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             snowflake: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
+            oracle: `UPDATE "users" SET "user_name"=:1 WHERE "id" = :2`,
             default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',
           },
           bind: {
@@ -133,6 +135,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (UPDATE (SELECT * FROM "Users" WHERE "username" = $sequelize_2 FETCH NEXT 1 ROWS ONLY) SET "username"=$sequelize_1);',
             snowflake:
               'UPDATE "Users" SET "username"=$sequelize_1 WHERE "username" = $sequelize_2 LIMIT 1',
+            oracle: `UPDATE "Users" SET "username"=:1 WHERE "username" = :2 AND rownum <= 1`,
             default: 'UPDATE [Users] SET [username]=$sequelize_1 WHERE [username] = $sequelize_2',
           },
           bind: {
