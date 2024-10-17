@@ -4,11 +4,18 @@ const forEach = require('lodash/forEach');
 
 const chai = require('chai');
 const sinon = require('sinon');
+const { setTimeout } = require('node:timers/promises');
 
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const {
+  DataTypes,
+  Op,
+  Sequelize,
+  TemporalTableType,
+  TemporalTimeQueryType,
+} = require('@sequelize/core');
 
 const dayjs = require('dayjs');
 const promiseProps = require('p-props');
@@ -1551,6 +1558,267 @@ The following associations are defined on "Worker": "ToDos"`);
         }
       });
     });
+
+    if (dialect.supports.temporalTables.systemPeriod) {
+      describe('Temporal time queries', () => {
+        beforeEach(async function () {
+          this.User = this.sequelize.define(
+            'User',
+            {
+              username: DataTypes.STRING,
+              password: DataTypes.STRING,
+              createdAt: DataTypes.DATE,
+              updatedAt: DataTypes.DATE,
+            },
+            {
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          );
+
+          this.Session = this.sequelize.define(
+            'Session',
+            {
+              token: DataTypes.STRING,
+            },
+            {
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          );
+
+          this.UserSessions = this.User.hasMany(this.Session, { as: 'sessions' });
+          await this.sequelize.sync({ force: true });
+          await this.User.create(
+            { username: 'foo', sessions: [{ token: 'abc123' }] },
+            { include: { association: this.UserSessions } },
+          );
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          await setTimeout(50);
+        });
+
+        it('find all versions', async function () {
+          await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
+          await setTimeout(100);
+          await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
+          const versions = await this.User.findAll({
+            order: [['SysEndTime', 'DESC']],
+            temporalTime: { type: 'SYSTEM_TIME', period: TemporalTimeQueryType.ALL },
+          });
+          expect(versions).to.have.length(3);
+          expect(versions[0].password).to.equal('bar');
+          expect(versions[1].password).to.equal('foo');
+          expect(versions[2].password).to.equal(null);
+        });
+
+        it('get versions as of', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
+          await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
+          const after = Date.now() + 1;
+          const afterVersions = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(after),
+            },
+          });
+          const beforeVersions = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(before),
+            },
+          });
+
+          for (const version of afterVersions) {
+            expect(version.SysStartTime.getTime()).to.be.lessThanOrEqual(after);
+            expect(version.SysEndTime.getTime()).to.be.greaterThan(after);
+          }
+
+          for (const version of beforeVersions) {
+            expect(version.SysStartTime.getTime()).to.be.lessThanOrEqual(before);
+            expect(version.SysEndTime.getTime()).to.be.greaterThan(before);
+          }
+
+          expect(afterVersions).to.have.length(1);
+          expect(beforeVersions).to.have.length(1);
+          expect(afterVersions[0].password).to.equal('foo');
+          expect(beforeVersions[0].password).to.equal(null);
+        });
+
+        it('get versions between', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
+          await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
+          await setTimeout(100);
+          await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
+          const after = Date.now() + 1;
+          const versions = await this.User.findAll({
+            order: [['SysEndTime', 'DESC']],
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.BETWEEN,
+              startDate: new Date(before),
+              endDate: new Date(after),
+            },
+          });
+
+          for (const version of versions) {
+            expect(version.SysStartTime.getTime()).to.be.lessThanOrEqual(after);
+            expect(version.SysEndTime.getTime()).to.be.greaterThan(before);
+          }
+
+          expect(versions).to.have.length(3);
+          expect(versions[0].password).to.equal('bar');
+          expect(versions[1].password).to.equal('foo');
+          expect(versions[2].password).to.equal(null);
+        });
+
+        it('get versions from', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
+          await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
+          await setTimeout(100);
+          await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
+          const after = Date.now() + 1;
+          const versions = await this.User.findAll({
+            order: [['SysEndTime', 'DESC']],
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.FROM_TO,
+              startDate: new Date(before),
+              endDate: new Date(after),
+            },
+          });
+
+          for (const version of versions) {
+            expect(version.SysStartTime.getTime()).to.be.lessThan(after);
+            expect(version.SysEndTime.getTime()).to.be.greaterThan(before);
+          }
+
+          expect(versions).to.have.length(3);
+          expect(versions[0].password).to.equal('bar');
+          expect(versions[1].password).to.equal('foo');
+          expect(versions[2].password).to.equal(null);
+        });
+
+        it('get versions contained', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const before = Date.now() - 1;
+          await this.User.update({ password: 'foo' }, { where: { username: 'foo' } });
+          await setTimeout(100);
+          await this.User.update({ password: 'bar' }, { where: { username: 'foo' } });
+          const after = Date.now() + 1;
+          const versions = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.CONTAINED_IN,
+              startDate: new Date(before),
+              endDate: new Date(after),
+            },
+          });
+
+          for (const version of versions) {
+            expect(version.SysStartTime.getTime()).to.be.greaterThanOrEqual(before);
+            expect(version.SysEndTime.getTime()).to.be.lessThanOrEqual(after);
+          }
+
+          expect(versions).to.have.length(1);
+          expect(versions[0].password).to.equal('foo');
+        });
+
+        it('works with join statements', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const startDate = Date.now() - 1;
+          const user = await this.User.findOne({ where: { username: 'foo' } });
+          await this.Session.update({ token: 'foo' }, { where: { userId: user.id } });
+          const versions = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(startDate),
+            },
+            include: { association: this.UserSessions },
+          });
+
+          expect(versions).to.have.length(1);
+          expect(versions[0]?.sessions).to.have.length(1);
+          expect(versions[0]?.sessions[0].token).to.equal('abc123');
+        });
+
+        it('works with join statements with separate temporal time', async function () {
+          // Adding a delay to ensure that the versions are different to prevent flakiness
+          const startDate = Date.now() - 1;
+          const user = await this.User.findOne({ where: { username: 'foo' } });
+          await this.Session.update({ token: 'foo' }, { where: { userId: user.id } });
+          await this.User.update({ username: 'foo_bar' }, { where: { id: user.id } });
+          const nextDate = Date.now() + 1;
+          const versions1 = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(nextDate),
+            },
+            include: {
+              association: this.UserSessions,
+              temporalTime: {
+                type: 'SYSTEM_TIME',
+                period: TemporalTimeQueryType.AS_OF,
+                startDate: new Date(startDate),
+              },
+            },
+          });
+
+          expect(versions1).to.have.length(1);
+          expect(versions1[0]?.username).to.equal('foo_bar');
+          expect(versions1[0]?.sessions).to.have.length(1);
+          expect(versions1[0]?.sessions[0].token).to.equal('abc123');
+
+          const versions2 = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(nextDate),
+            },
+            include: {
+              association: this.UserSessions,
+              temporalTime: {
+                type: 'SYSTEM_TIME',
+                period: TemporalTimeQueryType.AS_OF,
+                startDate: new Date(nextDate),
+              },
+            },
+          });
+
+          expect(versions2).to.have.length(1);
+          expect(versions2[0]?.username).to.equal('foo_bar');
+          expect(versions2[0]?.sessions).to.have.length(1);
+          expect(versions2[0]?.sessions[0].token).to.equal('foo');
+
+          await this.Session.update({ token: 'bar' }, { where: { userId: user.id } });
+          const finalDate = Date.now() + 1;
+          const versions3 = await this.User.findAll({
+            temporalTime: {
+              type: 'SYSTEM_TIME',
+              period: TemporalTimeQueryType.AS_OF,
+              startDate: new Date(nextDate),
+            },
+            include: {
+              association: this.UserSessions,
+              temporalTime: {
+                type: 'SYSTEM_TIME',
+                period: TemporalTimeQueryType.AS_OF,
+                startDate: new Date(finalDate),
+              },
+            },
+          });
+
+          expect(versions3).to.have.length(1);
+          expect(versions2[0]?.username).to.equal('foo_bar');
+          expect(versions3[0]?.sessions).to.have.length(1);
+          expect(versions3[0]?.sessions[0].token).to.equal('bar');
+        });
+      });
+    }
   });
 
   describe('findAndCountAll', () => {
