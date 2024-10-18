@@ -27,6 +27,9 @@ describe('QueryGenerator#removeConstraintQuery', () => {
           dialect.name,
           ['ifExists'],
         ),
+        oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
+          'ifExists',
+        ]),
       },
     );
   });
@@ -59,6 +62,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'ifExists',
         ]),
+        oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
         sqlite3: notSupportedError,
       },
     );
