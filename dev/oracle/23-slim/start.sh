@@ -5,10 +5,10 @@ set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 # Remove an existing Oracle DB docker image
-docker-compose -p oraclexedb down --remove-orphans
+docker compose -p oraclexedb down --remove-orphans
 
 # Bring up new Oracle DB docker image
-docker-compose -p oraclexedb up -d
+docker compose -p oraclexedb up -d
 
 # Wait until Oracle DB is set up and docker state is healthy
 ./../wait-until-healthy.sh oraclexedb
