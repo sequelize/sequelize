@@ -2113,7 +2113,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               topInclude.through.where,
             ],
           },
-          limit: 1,
           includeIgnoreAttributes: false,
         },
         topInclude.through.model,
@@ -2141,7 +2140,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           where: {
             [Op.and]: [topInclude.where, new Literal(join)],
           },
-          limit: 1,
           tableAs: topInclude.as,
           includeIgnoreAttributes: false,
         },
@@ -2151,7 +2149,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.where = and(
       topLevelInfo.options.where,
-      new Literal(['(', query.replace(/;$/, ''), ')', 'IS NOT NULL'].join(' ')),
+      new Literal(['EXISTS (', query.replace(/;$/, ''), ')'].join(' ')),
     );
   }
 
