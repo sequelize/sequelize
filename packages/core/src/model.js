@@ -2349,7 +2349,7 @@ ${associationOwner._getAssociationDebugList()}`);
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
           options.updateOnDuplicate = intersection(
-            without(Object.keys(model.tableAttributes), createdAtAttr),
+            Object.keys(model.tableAttributes),
             options.updateOnDuplicate,
           );
         } else {
