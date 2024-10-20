@@ -132,14 +132,18 @@ export class PostgresQuery extends AbstractQuery {
 
     if (this.isShowIndexesQuery()) {
       for (const row of rows) {
+        let using;
         let attributes;
         if (/include \(([^]*)\)/gi.test(row.definition)) {
-          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi
-            .exec(row.definition)[1]
-            .split(',');
+          [, using, attributes] = /on.*?(?:using (\w+))? \(([^]*)\) include \(([^]*)\)/gi.exec(
+            row.definition,
+          );
         } else {
-          attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+          [, using, attributes] = /on.*?(?:using (\w+))? \(([^]*)\)/gi.exec(row.definition);
         }
+
+        row.using = using?.toUpperCase();
+        attributes = attributes.split(',');
 
         // Map column index in table to column name
         const columns = zipObject(
@@ -148,10 +152,8 @@ export class PostgresQuery extends AbstractQuery {
         );
         delete row.column_indexes;
         delete row.column_names;
-
         let field;
         let attribute;
-
         // Indkey is the order of attributes in the index, specified by a string of attribute indexes
         row.fields = row.index_fields
           .map((indKey, index) => {
@@ -164,15 +166,11 @@ export class PostgresQuery extends AbstractQuery {
             attribute = attributes[index];
 
             return {
-              attribute: field,
+              name: field,
               collate: /COLLATE "(.*?)"/.test(attribute)
                 ? /COLLATE "(.*?)"/.exec(attribute)[1]
                 : undefined,
-              order: attribute.includes('DESC')
-                ? 'DESC'
-                : attribute.includes('ASC')
-                  ? 'ASC'
-                  : undefined,
+              order: attribute.includes('DESC') ? 'DESC' : 'ASC',
               length: undefined,
             };
           })
