@@ -2831,11 +2831,11 @@ __metadata:
   linkType: hard
 
 "@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.2.14":
-  version: 6.2.15
-  resolution: "@oclif/plugin-help@npm:6.2.15"
+  version: 6.2.16
+  resolution: "@oclif/plugin-help@npm:6.2.16"
   dependencies:
     "@oclif/core": "npm:^4"
-  checksum: 10c0/ec46ab7f1959d22883271e4c34c3053802c47f998a0bd30b35898d4c617ffee9ccba953ddb2e76fecdea726927e728dd5f3c1b0a3865e11ed324c15c146b3e02
+  checksum: 10c0/5e9f8aa09e0d75b4402213dc4d1bfb42a06f0c3c686709ece69c2a5c3c83707ae6f489568fe95fc8a9feea206852fdb4e9b6eea874532d81c6082145a71496bb
   languageName: node
   linkType: hard
 
