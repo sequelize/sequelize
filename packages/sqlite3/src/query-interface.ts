@@ -494,6 +494,9 @@ export class SqliteQueryInterface<
     dataTypeOrOptions: DataType | AttributeOptions,
     options?: QueryRawOptions,
   ): Promise<void> {
+    if (columnName === '__proto__' || columnName === 'constructor' || columnName === 'prototype') {
+      throw new Error('Invalid column name');
+    }
     const columns = await this.describeTable(tableName, options);
     for (const column of Object.values(columns)) {
       // This is handled by copying indexes over,
