@@ -165,7 +165,10 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         referencedTableSchema: defaultSchema,
         referencedColumnNames: ['id'],
         deleteAction: 'CASCADE',
-        updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        updateAction:
+          ['mariadb', 'hana'].includes(dialect)
+            ? 'RESTRICT'
+            : dialect === 'sqlite3' ? '' : 'NO ACTION',
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -241,7 +244,10 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         referencedTableName: 'levels',
         referencedColumnNames: ['id', 'manager_id'],
         deleteAction: 'CASCADE',
-        updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        updateAction:
+          ['mariadb', 'hana'].includes(dialect)
+            ? 'RESTRICT'
+            : dialect === 'sqlite3' ? '' : 'NO ACTION',
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
