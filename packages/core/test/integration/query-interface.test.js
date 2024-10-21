@@ -22,6 +22,10 @@ describe('QueryInterface', () => {
     }
 
     it('should drop all schema', async function () {
+      if (dialectName === 'hana') {
+        // cannot drop 'SYSTEM' schema in this test
+        return;
+      }
       await this.queryInterface.dropAllSchemas({
         skip: [this.sequelize.options.replication.write.database],
       });
