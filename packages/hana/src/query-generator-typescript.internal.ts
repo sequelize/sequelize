@@ -173,28 +173,86 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     if (options?.constraintType === 'FOREIGN KEY') {
-      // return 'SELECT * FROM "SYS"."REFERENTIAL_CONSTRAINTS"';
-      return joinSQLFragments([
-        'SELECT SCHEMA_NAME AS "constraintSchema",',
-        'CONSTRAINT_NAME AS "constraintName",',
-        `'FOREIGN KEY' AS "constraintType",`,
-        'SCHEMA_NAME AS "tableSchema",',
-        'TABLE_NAME AS "tableName",',
-        'COLUMN_NAME AS "columnNames",',
-        'REFERENCED_SCHEMA_NAME AS "referencedTableSchema",',
-        'REFERENCED_TABLE_NAME AS "referencedTableName",',
-        'REFERENCED_COLUMN_NAME AS "referencedColumnNames",',
-        'DELETE_RULE AS "deleteAction",',
-        'UPDATE_RULE AS "updateAction"',
-        'FROM SYS.REFERENTIAL_CONSTRAINTS',
-        `WHERE TABLE_NAME = ${this.escape(table.tableName)}`,
-        `AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
-        options?.columnName ? `AND COLUMN_NAME = ${this.escape(options.columnName)}` : '',
-        options?.constraintName ? `AND CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
-        'ORDER BY CONSTRAINT_NAME, POSITION',
-      ]);
+      return this._showReferentialConstraintsQuery(tableName, options);
+    } else if (options?.constraintType) {
+      return this._showNonReferentialConstraintsQuery(tableName, options);
     }
-    return 'unsupported method showConstraintsQuery, type not FOREIGN KEY';
+
+    return joinSQLFragments([
+      '(',
+      this._showNonReferentialConstraintsQuery(tableName, options),
+      ')',
+      'UNION ALL',
+      '(',
+      this._showReferentialConstraintsQuery(tableName, options),
+      ')',
+    ]);
+  }
+
+  _showNonReferentialConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS "constraintSchema",',
+      'CONSTRAINT_NAME AS "constraintName",',
+      options?.constraintType
+        ? `'${options.constraintType}' AS "constraintType",`
+        : joinSQLFragments([
+            'CASE',
+            `WHEN IS_PRIMARY_KEY = 'TRUE' THEN 'PRIMARY KEY'`,
+            `WHEN IS_UNIQUE_KEY = 'TRUE' THEN 'UNIQUE'`,
+            `WHEN CHECK_CONDITION IS NOT NULL THEN 'CHECK'`,
+            'END AS "constraintType",',
+          ]),
+      'SCHEMA_NAME AS "tableSchema",',
+      'TABLE_NAME AS "tableName",',
+      'COLUMN_NAME AS "columnNames",',
+      'CHECK_CONDITION AS "definition",',
+      `NULL AS "referencedTableSchema",`,
+      `NULL AS "referencedTableName",`,
+      `NULL AS "referencedColumnNames",`,
+      `NULL AS "deleteAction",`,
+      `NULL AS "updateAction"`,
+      'FROM SYS.CONSTRAINTS',
+      `WHERE`,
+      `TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+      options?.constraintType === 'PRIMARY KEY'
+        ? `AND IS_PRIMARY_KEY = 'TRUE'`
+        : options?.constraintType === 'UNIQUE'
+          ? `AND IS_UNIQUE_KEY = 'TRUE'`
+          : options?.constraintType === 'CHECK'
+            ? `AND IS_PRIMARY_KEY = 'FALSE' AND IS_UNIQUE_KEY = 'FALSE' AND CHECK_CONDITION IS NOT NULL`
+            : '',
+      options?.columnName ? `AND COLUMN_NAME = ${this.escape(options.columnName)}` : '',
+      options?.constraintName ? `AND CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      'ORDER BY CONSTRAINT_NAME, POSITION',
+    ]);
+  }
+
+  _showReferentialConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT SCHEMA_NAME AS "constraintSchema",',
+      'CONSTRAINT_NAME AS "constraintName",',
+      `'FOREIGN KEY' AS "constraintType",`,
+      'SCHEMA_NAME AS "tableSchema",',
+      'TABLE_NAME AS "tableName",',
+      'COLUMN_NAME AS "columnNames",',
+      'NULL AS "definition",',
+      'REFERENCED_SCHEMA_NAME AS "referencedTableSchema",',
+      'REFERENCED_TABLE_NAME AS "referencedTableName",',
+      'REFERENCED_COLUMN_NAME AS "referencedColumnNames",',
+      'DELETE_RULE AS "deleteAction",',
+      'UPDATE_RULE AS "updateAction"',
+      'FROM SYS.REFERENTIAL_CONSTRAINTS',
+      `WHERE TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+      options?.columnName ? `AND COLUMN_NAME = ${this.escape(options.columnName)}` : '',
+      options?.constraintName ? `AND CONSTRAINT_NAME = ${this.escape(options.constraintName)}` : '',
+      'ORDER BY CONSTRAINT_NAME, POSITION',
+    ]);
   }
 
   showIndexesQuery(tableName: TableOrModel) {

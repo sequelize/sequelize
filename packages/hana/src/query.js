@@ -20,6 +20,7 @@ import zipObject from 'lodash/zipObject';
 
 const ERR_SQL_MANY_PRIMARY_KEY = 294;
 const ERR_SQL_UNIQUE_VIOLATED = 301;
+const ERR_SQL_INV_OBJ_NAME = 397;
 const ERR_SQL_FK_NOT_FOUND = 461;
 const ERR_SQL_FK_ON_UPDATE_DELETE_FAILED = 462;
 
@@ -299,11 +300,9 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
       try {
         stmt = await PromiseModule.prepare(connection, sql);
       } catch(error) {
+        // todo  remove redundant try-catch-throw, which is for testing
         console.log('error thrown by prepare', error)
-        error.sql = sql;
-//        reject( this.formatError(error));
-//        return;
-        throw this.formatError(error);
+        throw error;
       }
 
       const result = await PromiseModule.exec(stmt, parameters, {});
@@ -498,6 +497,16 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
         });
 
         return new UniqueConstraintError({ message, errors, cause: err, fields });
+      }
+      case ERR_SQL_INV_OBJ_NAME: {
+        const constraint = undefined;
+        const table = undefined;
+        return new UnknownConstraintError({
+          message: err.message,
+          constraint,
+          table,
+          cause: err,
+        });
       }
       case ERR_SQL_FK_NOT_FOUND: {
         const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
