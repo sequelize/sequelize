@@ -294,6 +294,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           break;
         }
 
+        case 'hana': {
+          expect(index.fields).to.deep.equal([
+            { attribute: 'user_name', length: undefined, order: 'ASC' },
+          ]);
+
+          break;
+        }
+
         case 'sqlite3':
         default: {
           expect(index.fields).to.deep.equal([
