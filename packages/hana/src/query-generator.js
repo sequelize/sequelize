@@ -531,11 +531,13 @@ END;`
 
         template += ` REFERENCES ${this.quoteTable(referencesTable)} (${referencesKey})`;
 
-        if (attribute.onDelete) {
+        if (attribute.onDelete && attribute.onDelete.toUpperCase() !== 'NO ACTION') {
+          // HANA does not support NO ACTION option for ON DELETE clause.
           template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
         }
 
-        if (attribute.onUpdate) {
+        if (attribute.onUpdate && attribute.onUpdate.toUpperCase() !== 'NO ACTION') {
+          // HANA does not support NO ACTION option for ON UPDATE clause.
           template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
         }
 
