@@ -518,15 +518,10 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
         });
       }
       case ERR_SQL_FK_ON_UPDATE_DELETE_FAILED: {
-//        const table = err.message.match(/failed on table '(.*?)'/)?.[1];
-//        const value =
+        const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
         return new ForeignKeyConstraintError({
-          // reltype: String(errCode) === String(ER_ROW_IS_REFERENCED) ? 'parent' : 'child',
-          // table: match ? match[4] : undefined,
-          // fields,
-          // value:
-          //   (fields && fields.length && this.instance && this.instance[fields[0]]) || undefined,
-          // index: match ? match[2] : undefined,
+          table,
+          fields: null,
           cause: err,
         });
       }
