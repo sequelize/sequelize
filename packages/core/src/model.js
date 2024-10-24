@@ -2199,6 +2199,13 @@ ${associationOwner._getAssociationDebugList()}`);
       await instance.validate(options);
     }
 
+    // Map conflict fields to column names
+    if (options.conflictFields) {
+      options.conflictFields = options.conflictFields.map(attrName => {
+        return modelDefinition.getColumnName(attrName);
+      });
+    }
+
     // Map field names
     const updatedDataValues = pick(instance.dataValues, changed);
     const insertValues = mapValueFieldNames(
