@@ -510,7 +510,7 @@ export enum TransactionType {
  * ```
  * UserModel will be locked but other models won't be!
  *
- * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
+ * [Read more on transaction locks here](https://sequelize.org/docs/v7/querying/transactions/#locks)
  */
 export enum Lock {
   UPDATE = 'UPDATE',
