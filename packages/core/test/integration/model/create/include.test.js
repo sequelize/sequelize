@@ -533,6 +533,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedUser.jobs).to.be.ok;
         expect(persistedUser.jobs.length).to.equal(2);
       });
+      it('should create a schema if the schema does not exist when create', async function () {
+        try {
+          const before = await this.sequelize.queryInterface.listSchemas();
+          const User = this.sequelize.define('User', {
+            username: DataTypes.STRING,
+          });
+          await this.sequelize.sync({ force: true });
+          await User.create(
+            {
+              username: 'John',
+            },
+            {
+              schema: 'temp',
+            },
+          );
+          const after = await this.sequelize.queryInterface.listSchemas();
+          const difference = after.length - before.length;
+          expect(difference).to.equal(1);
+        } catch (error) {
+          if (!error.message.includes('Schemas are not supported in')) {
+            throw error;
+          }
+        }
+      });
     });
   });
 });
