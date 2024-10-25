@@ -1651,15 +1651,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/checkbox@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@inquirer/checkbox@npm:4.0.0"
+  version: 4.0.1
+  resolution: "@inquirer/checkbox@npm:4.0.1"
   dependencies:
-    "@inquirer/core": "npm:^10.0.0"
+    "@inquirer/core": "npm:^10.0.1"
     "@inquirer/figures": "npm:^1.0.7"
     "@inquirer/type": "npm:^3.0.0"
     ansi-escapes: "npm:^4.3.2"
     yoctocolors-cjs: "npm:^2.1.2"
-  checksum: 10c0/af67ca9752cb398ce66746011cddc1458954dc3f3dbcf1ec9c188248095b1069cf638fe098101171fe06ce87d576b1e75a9d323f985f7cdf487fc99d62af2b4b
+  peerDependencies:
+    "@types/node": ">=18"
+  checksum: 10c0/62a0dd67c799ca6f45a7892564eb4bde7d5697eda4cda0594cb948022e69d86b7190f1522b291a470b5d407fa9046713b6caa5417312fc190293c599b179b0c0
   languageName: node
   linkType: hard
 
@@ -1683,9 +1685,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^10.0.0":
-  version: 10.0.0
-  resolution: "@inquirer/core@npm:10.0.0"
+"@inquirer/core@npm:^10.0.0, @inquirer/core@npm:^10.0.1":
+  version: 10.0.1
+  resolution: "@inquirer/core@npm:10.0.1"
   dependencies:
     "@inquirer/figures": "npm:^1.0.7"
     "@inquirer/type": "npm:^3.0.0"
@@ -1696,7 +1698,7 @@ __metadata:
     strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^6.2.0"
     yoctocolors-cjs: "npm:^2.1.2"
-  checksum: 10c0/628dc3c7e21c7fbc1238f4a3b6de0c99885a53c16e829bd8c7fb820e54f1406612e6c7d008bd0dc0f649aed9f4ce5589876aabd5404144c0761f3967d3f98702
+  checksum: 10c0/d55682e5c26c41037cb80a3bef5a12ae4eedf14621786b44088f48aeb32eb815dfb0f241950b6dba2eb84bf22131c126a2cb59e8e2d4ef63ad3613d59339063a
   languageName: node
   linkType: hard
 
