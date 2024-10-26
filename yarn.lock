@@ -1687,7 +1687,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^10.0.0, @inquirer/core@npm:^10.0.1":
+"@inquirer/core@npm:^10.0.1":
   version: 10.0.1
   resolution: "@inquirer/core@npm:10.0.1"
   dependencies:
@@ -1743,12 +1743,14 @@ __metadata:
   linkType: hard
 
 "@inquirer/input@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@inquirer/input@npm:4.0.0"
+  version: 4.0.1
+  resolution: "@inquirer/input@npm:4.0.1"
   dependencies:
-    "@inquirer/core": "npm:^10.0.0"
+    "@inquirer/core": "npm:^10.0.1"
     "@inquirer/type": "npm:^3.0.0"
-  checksum: 10c0/25d3d1031fae17764896ae5a13ea4ed70226d28f633852e4f0b9e584972cb1d6fe2dc599fedea29653369143177de0cc207ed2d118bae2df9c1e20f83a910180
+  peerDependencies:
+    "@types/node": ">=18"
+  checksum: 10c0/94ce23165577659fb3a01491047146502c593839eb6892f1ddfbdb092d237cdd8acb5acc2ad98776cc5eb359754eeffea97f156fddb6ec83137e123b0779ec2c
   languageName: node
   linkType: hard
 
