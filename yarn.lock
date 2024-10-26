@@ -1676,12 +1676,14 @@ __metadata:
   linkType: hard
 
 "@inquirer/confirm@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@inquirer/confirm@npm:5.0.0"
+  version: 5.0.1
+  resolution: "@inquirer/confirm@npm:5.0.1"
   dependencies:
-    "@inquirer/core": "npm:^10.0.0"
+    "@inquirer/core": "npm:^10.0.1"
     "@inquirer/type": "npm:^3.0.0"
-  checksum: 10c0/bb7d37e6b2a7b884e3e7fee16de7349a33ea5834b2683cade2471bb548089b1e8ccbe2ed94bbcabf8b430ee83b3ae7e14c742fec8ec5ff29cf91c509ba351b6a
+  peerDependencies:
+    "@types/node": ">=18"
+  checksum: 10c0/bd8fafd75d4d591b3c153cb2f76d7ac9163701cb0a032e8e589d51c918a41d1da70ae7aaeb4d8d7394979a9af24c23a7d71ea6106d3308004f9829f133765776
   languageName: node
   linkType: hard
 
