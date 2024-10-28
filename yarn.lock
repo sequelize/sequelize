@@ -3297,6 +3297,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@sequelize/oracle@workspace:packages/oracle":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/oracle@workspace:packages/oracle"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.20"
+    "@types/mocha": "npm:10.0.9"
+    "@types/oracledb": "npm:^6.3"
+    chai: "npm:4.5.0"
+    dayjs: "npm:^1.11.10"
+    lodash: "npm:4.17.21"
+    mocha: "npm:10.7.3"
+    oracledb: "npm:6.5"
+    semver: "npm:7.6.0"
+  languageName: unknown
+  linkType: soft
+
 "@sequelize/postgres@workspace:packages/postgres":
   version: 0.0.0-use.local
   resolution: "@sequelize/postgres@workspace:packages/postgres"
@@ -4420,6 +4438,15 @@ __metadata:
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
   checksum: 10c0/aef7bb9b015883d6f4119c423dd28c4bdc17b0e8a0ccf112c78b4fe0e91fbc4af7c6204b04bba0e199a57d2f3fbbd5b4a14bf8739bf9d2a39b2a0aad545e0f86
+  languageName: node
+  linkType: hard
+
+"@types/oracledb@npm:^6.3":
+  version: 6.5.2
+  resolution: "@types/oracledb@npm:6.5.2"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10c0/16e6d2e4247222dddf7be01273946b7f6a686327ce440be861671a2a0b98fe1a0d42df849d039a3f58aa1014f1c9d803f3c9793531a476077d762423ac911e65
   languageName: node
   linkType: hard
 
@@ -12388,6 +12415,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"oracledb@npm:6.5":
+  version: 6.5.1
+  resolution: "oracledb@npm:6.5.1"
+  checksum: 10c0/79b89c7020872a8daf9888852b1dd40bdcdfc13e5495a3a60f138f8dc0e0d3c6759a3d74ec75749a9db7a6d4c496353fd5f54fe174974658962f3e8d4521d931
+  languageName: node
+  linkType: hard
+
 "os-tmpdir@npm:~1.0.2":
   version: 1.0.2
   resolution: "os-tmpdir@npm:1.0.2"
@@ -13973,6 +14007,17 @@ __metadata:
   bin:
     semver: bin/semver
   checksum: 10c0/e4cf10f86f168db772ae95d86ba65b3fd6c5967c94d97c708ccb463b778c2ee53b914cd7167620950fc07faf5a564e6efe903836639e512a1aa15fbc9667fa25
+  languageName: node
+  linkType: hard
+
+"semver@npm:7.6.0":
+  version: 7.6.0
+  resolution: "semver@npm:7.6.0"
+  dependencies:
+    lru-cache: "npm:^6.0.0"
+  bin:
+    semver: bin/semver.js
+  checksum: 10c0/fbfe717094ace0aa8d6332d7ef5ce727259815bd8d8815700853f4faf23aacbd7192522f0dc5af6df52ef4fa85a355ebd2f5d39f554bd028200d6cf481ab9b53
   languageName: node
   linkType: hard
 
