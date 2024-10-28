@@ -482,7 +482,7 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
         }
 
         const errors = [];
-        fields={};// for integration test 'should not deadlock with concurrency duplicate entries and no outer transaction'
+//        fields={};// for integration test 'should not deadlock with concurrency duplicate entries and no outer transaction'
         forOwn(fields, (value, field) => {
           errors.push(
             new ValidationErrorItem(

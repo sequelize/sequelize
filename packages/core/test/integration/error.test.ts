@@ -555,7 +555,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         } else {
           expect(error.errors).to.have.length(1);
           expect(error.errors[0].type).to.equal('unique violation');
-          if (dialect === 'sqlite3') {
+          if (dialect === 'sqlite3' || dialect === 'hana') {
             expect(error.errors[0].value).to.be.null;
           } else {
             expect(error.errors[0].value).to.equal('foo');
@@ -601,6 +601,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
+            break;
+
+          case 'hana':
+            expect(error.cause.message).to.match(
+              /SYSTEM:User/,
+            );
+            expect(error.cause.message).to.match(
+              /username/,
+            );
+            expect(error.cause.message).to.match(
+              /666f6f/,
+            );
             break;
 
           default:
