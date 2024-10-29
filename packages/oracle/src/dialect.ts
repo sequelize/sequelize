@@ -3,8 +3,14 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
 import { OracleConnectionManager } from './connection-manager';
 import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
@@ -18,48 +24,6 @@ export interface OracleDialectOptions {
    */
   oracledbModule?: oracledbModule;
 }
-
-const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<OracleConnectionOptions>({
-  database: undefined,
-  host: undefined,
-  oracleOptions: undefined,
-  port: undefined,
-  accessToken: undefined,
-  accessTokenConfig: undefined,
-  connectString: undefined,
-  connectionString: undefined,
-  walletPassword: undefined,
-  walletLocation: undefined,
-  edition: undefined,
-  events: undefined,
-  externalAuth: undefined,
-  matchAny: undefined,
-  newPassword: undefined,
-  password: undefined,
-  sslAllowWeakDNMatch: undefined,
-  httpsProxy: undefined,
-  httpsProxyPort: undefined,
-  debugJdwp: undefined,
-  retryCount: undefined,
-  retryDelay: undefined,
-  connectTimeout: undefined,
-  transportConnectTimeout: undefined,
-  expireTime: undefined,
-  sdu: undefined,
-  connectionIdPrefix: undefined,
-  configDir: undefined,
-  sourceRoute: undefined,
-  sslServerCertDN: undefined,
-  sslServerDNMatch: undefined,
-  poolAlias: undefined,
-  privilege: undefined,
-  shardingKey: undefined,
-  stmtCacheSize: undefined,
-  superShardingKey: undefined,
-  tag: undefined,
-  user: undefined,
-  username: undefined,
-});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: false,
@@ -143,15 +107,23 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     });
 
     this.connectionManager = new OracleConnectionManager(this);
-    // this.connectionManager.initPools();
     this.queryGenerator = new OracleQueryGenerator(this);
     this.queryInterface = new OracleQueryInterface(this);
   }
 
-  parseConnectionUrl(): OracleConnectionOptions {
-    throw new Error(
-      'The "url" option is not supported by the Db2 dialect. Instead, please use the "odbcOptions" option.',
-    );
+  parseConnectionUrl(url: string): OracleConnectionOptions {
+    return parseCommonConnectionUrlOptions<OracleConnectionOptions>({
+      url,
+      allowedProtocols: ['oracle'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   getDefaultSchema(): string {
