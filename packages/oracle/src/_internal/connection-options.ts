@@ -27,7 +27,6 @@ const STRING_CONNECTION_OPTION_MAP = {
   username: undefined,
   walletPassword: undefined,
   walletLocation: undefined,
-
 } as const satisfies Record<keyof StringConnectionOptions, undefined>;
 
 export const STRING_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<StringConnectionOptions>(
@@ -42,7 +41,6 @@ const BOOLEAN_CONNECTION_OPTION_MAP = {
   matchAny: undefined,
   sslAllowWeakDNMatch: undefined,
   sslServerDNMatch: undefined,
-
 } as const satisfies Record<keyof BooleanConnectionOptions, undefined>;
 
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>(
@@ -62,7 +60,6 @@ const NUMBER_CONNECTION_OPTION_MAP = {
   sdu: undefined,
   stmtCacheSize: undefined,
   transportConnectTimeout: undefined,
-
 } as const satisfies Record<keyof NumberConnectionOptions, undefined>;
 
 export const NUMBER_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<NumberConnectionOptions>(
