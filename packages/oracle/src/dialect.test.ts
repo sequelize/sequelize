@@ -12,17 +12,11 @@ describe('OracleDialect#parseConnectionUrl', () => {
     );
 
     expect(options).to.deep.eq({
-      hostname: 'localhost',
+      host: 'localhost',
       port: 1234,
       database: 'dbname',
-      language: 'en',
-      authentication: {
-        type: 'default',
-        options: {
-          userName: 'user',
-          password: 'password',
-        },
-      },
+      user: 'user',
+      password: 'password',
     });
   });
 });
