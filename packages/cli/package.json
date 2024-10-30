@@ -22,7 +22,7 @@
     "@types/mocha": "10.0.9",
     "chai": "4.5.0",
     "concurrently": "9.0.1",
-    "mocha": "10.7.3",
+    "mocha": "10.8.1",
     "oclif": "4.15.16",
     "rimraf": "5.0.10"
   },
