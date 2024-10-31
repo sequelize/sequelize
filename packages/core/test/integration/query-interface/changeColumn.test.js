@@ -333,7 +333,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         table = await this.queryInterface.describeTable('foos');
         expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
         expect(table.name.unique).to.equal(false, '(2) name column should remain not unique');
-        expect(table.birthday.allowNull).to.equal(true, '(2) birthday column should allow null values');
+        expect(table.birthday.allowNull).to.equal(
+          true,
+          '(2) birthday column should allow null values',
+        );
       });
       it('should not loose indexes & unique constraints when adding or modifying columns', async function () {
         await this.queryInterface.createTable('foos', {
