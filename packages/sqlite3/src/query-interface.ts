@@ -103,10 +103,8 @@ export class SqliteQueryInterface<
 
       const indexes = await this.showIndex(tableName, options);
       for (const index of indexes) {
-        for (const field of index.fields) {
-          if (index.unique !== undefined) {
-            data[field.attribute].unique = index.unique;
-          }
+        if (index.fields.length === 1 && index.unique !== undefined) {
+            data[index.fields[0].attribute].unique = index.unique;
         }
       }
 

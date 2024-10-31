@@ -275,6 +275,66 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     // The tests below address these problems
     // TODO: run in all dialects
     if (dialect === 'sqlite3') {
+      it('should not modify unique constraints to composite primary keys when adding or modifying columns', async function () {
+        await this.queryInterface.createTable('foos', {
+          name: {
+            allowNull: false,
+            primaryKey: true,
+            unique: false,
+            type: DataTypes.STRING,
+          },
+          email: {
+            allowNull: false,
+            primaryKey: true,
+            unique: true,
+            type: DataTypes.STRING,
+          },
+          birthday: {
+            allowNull: false,
+            type: DataTypes.DATEONLY,
+          },
+        });
+        await this.queryInterface.addIndex('foos', ['birthday']);
+        const initialIndexes = await this.queryInterface.showIndex('foos');
+        let table = await this.queryInterface.describeTable('foos');
+        expect(table.email.unique).to.equal(true, '(0) email column should be unique');
+        expect(table.name.unique).to.equal(false, '(0) name column should not be unique');
+
+        await this.queryInterface.addColumn('foos', 'phone', {
+          type: DataTypes.STRING,
+          defaultValue: null,
+          allowNull: true,
+        });
+
+        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+          initialIndexes,
+          'addColumn should not modify indexes',
+        );
+
+        table = await this.queryInterface.describeTable('foos');
+        expect(table.phone.allowNull).to.equal(true, '(1) phone column should allow null values');
+        expect(table.phone.defaultValue).to.equal(
+          null,
+          '(1) phone column should have a default value of null',
+        );
+        expect(table.email.unique).to.equal(true, '(1) email column should remain unique');
+        expect(table.name.unique).to.equal(false, '(1) name column should remain not unique');
+
+        await this.queryInterface.changeColumn('foos', 'birthday', {
+          type: DataTypes.DATEONLY,
+          allowNull: true,
+        });
+
+        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+          initialIndexes,
+          'changeColumn should not modify indexes',
+        );
+
+        table = await this.queryInterface.describeTable('foos');
+        expect(table.email.unique).to.equal(true, '(2) email column should remain unique');
+        expect(table.name.unique).to.equal(false, '(2) name column should remain not unique');
+        expect(table.birthday.allowNull).to.equal(true, '(2) birthday column should allow null values');
+      });
       it('should not loose indexes & unique constraints when adding or modifying columns', async function () {
         await this.queryInterface.createTable('foos', {
           id: {
