@@ -201,7 +201,7 @@ export class ModelDefinition<M extends Model = Model> {
 
     // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
-    this.options = mergeModelOptions(
+    this.options = mergeModelOptions<M>(
       // default options
       {
         noPrimaryKey: false,
@@ -959,11 +959,11 @@ function banReferenceModel<T>(reference: T): T {
  * @param options
  * @param overrideOnConflict
  */
-export function mergeModelOptions(
-  existingModelOptions: ModelOptions,
-  options: ModelOptions,
+export function mergeModelOptions<M extends Model>(
+  existingModelOptions: ModelOptions<M>,
+  options: ModelOptions<M>,
   overrideOnConflict: boolean,
-): ModelOptions {
+): ModelOptions<M> {
   // merge-able: scopes, indexes
   for (const [optionName, optionValue] of Object.entries(options) as Array<
     [keyof ModelOptions, any]
