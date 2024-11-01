@@ -2115,7 +2115,7 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: (value: unknown) => boolean;
+        [name: string]: ((this: M) => void) | ((this: M, callback: (err: unknown) => void) => void);
       }
     | undefined;
 
