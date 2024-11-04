@@ -92,8 +92,10 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       let dataType = attributes[attr];
       let match;
 
+      let commentClause = '';
       const commentIndex = dataType.indexOf('COMMENT ');
       if (commentIndex !== -1) {
+        commentClause = dataType.slice(commentIndex);
         const commentText = dataType.slice(commentIndex + 8);
         const escapedCommentText = this.escape(commentText);
         columnComments += ` COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${escapedCommentText};`;
@@ -107,17 +109,17 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 
         if (dataType.includes('REFERENCES')) {
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
+          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')} ${commentClause}`);
           foreignKeys[attr] = match[2];
         } else {
-          attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+          attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')} ${commentClause}`);
         }
       } else if (dataType.includes('REFERENCES')) {
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
-        attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
+        attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]} ${commentClause}`);
         foreignKeys[attr] = match[2];
       } else {
-        attrStr.push(`${this.quoteIdentifier(attr)} ${dataType}`);
+        attrStr.push(`${this.quoteIdentifier(attr)} ${dataType} ${commentClause}`);
       }
     }
     const table = this.quoteTable(tableName);
@@ -177,7 +179,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       `(${attributesClause})`,
       options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       ';',
-      columnComments,
     ]);
   }
 
