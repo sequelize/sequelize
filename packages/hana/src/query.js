@@ -441,6 +441,10 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
       ];
     }
 
+    if (this.isRawQuery()) {
+      return [data, data];
+    }
+
     return data;
   }
 
