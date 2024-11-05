@@ -591,6 +591,13 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         case 'mssql':
           query = "WAITFOR DELAY '00:00:02';";
           break;
+        case 'hana':
+          query =
+            'DO BEGIN' +
+            '  USING SQLSCRIPT_SYNC AS SYNCLIB;' +
+            '  CALL SYNCLIB:SLEEP_SECONDS(2);' +
+            'END;';
+          break;
         default:
           query = 'select sleep(2);';
           break;
