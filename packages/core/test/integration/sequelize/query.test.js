@@ -26,7 +26,7 @@ const dialectName = getTestDialect();
 const queryGenerator = sequelize.queryGenerator;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'hana'].includes(dialectName)) {
     return `"${str}"`;
   }
 
@@ -62,7 +62,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       )}, ${qq(
         'updatedAt',
       )}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-      if (['db2', 'ibmi'].includes(dialectName)) {
+      if (['db2', 'ibmi', 'hana'].includes(dialectName)) {
         this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
           ("username", "email_address", ${qq('createdAt')}, ${qq('updatedAt')}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
       }
@@ -135,7 +135,12 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           benchmark: true,
         });
 
-        await sequelize.query(`select 1${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`);
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
+        await sequelize.query(`select 1${fromClause};`);
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
         expect(typeof logger.args[0][1] === 'number').to.be.true;
@@ -144,8 +149,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       it('executes a query with benchmarking option and custom logger', async function () {
         const logger = sinon.spy();
 
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         await this.sequelize.query(
-          `select 1${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`,
+          `select 1${fromClause};`,
           {
             logging: logger,
             benchmark: true,
@@ -163,8 +173,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           logging: logger,
         });
 
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         await sequelize.query(
-          `select 1${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`,
+          `select 1${fromClause};`,
           {
             queryLabel: 'tricky select',
           },
@@ -181,8 +196,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           logging: logger,
         });
 
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         await sequelize.query(
-          `select 1${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`,
+          `select 1${fromClause};`,
           {
             queryLabel: '',
           },
@@ -198,8 +218,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           benchmark: true,
         });
 
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         await sequelize.query(
-          `select 1${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''};`,
+          `select 1${fromClause};`,
           {
             queryLabel: 'tricky select',
           },
@@ -274,7 +299,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             dialectName === 'db2' ||
             dialectName === 'postgres' ||
             dialectName === 'mariadb' ||
-            dialectName === 'mysql'
+            dialectName === 'mysql' ||
+            dialectName === 'hana'
           ) {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(
@@ -305,8 +331,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             typeCast = '::VARCHAR';
           }
 
+          const fromClause = dialectName === 'ibmi'
+            ? ' FROM SYSIBM.SYSDUMMY1'
+            : dialectName === 'hana'
+              ? ' FROM DUMMY'
+              : '';
           await vars.sequelize.query(
-            `select $1${typeCast} as foo, $2${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select $1${typeCast} as foo, $2${typeCast} as bar${fromClause}`,
             {
               bind: ['foo', 'bar'],
               logging: s => {
@@ -518,7 +549,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
         it('emits full stacktraces for unique constraint error', async function () {
           let query;
-          if (['db2', 'ibmi'].includes(dialectName)) {
+          if (['db2', 'ibmi', 'hana'].includes(dialectName)) {
             query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${qq(
               'createdAt',
             )}, ${qq(
@@ -550,7 +581,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           let error = null;
           try {
             let query;
-            if (['db2', 'ibmi'].includes(dialectName)) {
+            if (['db2', 'ibmi', 'hana'].includes(dialectName)) {
               query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
                 'createdAt',
               )}, ${qq(
@@ -747,14 +778,24 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     // dialects in which the following values will be returned as bigints instead of ints
     const isBigInt = dialectName === 'mysql';
     it('dot separated attributes when doing a raw query without nest', async function () {
-      const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
+      const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${fromClause}`;
 
       const results = await this.sequelize.query(sql, { raw: true, nest: false });
       expect(results[0]).to.deep.equal([{ 'foo.bar.baz': isBigInt ? '1' : 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', async function () {
-      const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`;
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
+      const sql = `select 1 as ${queryGenerator.quoteIdentifier('foo.bar.baz')}${fromClause}`;
 
       const result = await this.sequelize.query(sql, { raw: true, nest: true });
       expect(result).to.deep.equal([{ foo: { bar: { baz: isBigInt ? '1' : 1 } } }]);
@@ -762,8 +803,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces token with the passed array', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2 }];
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       const result = await this.sequelize.query(
-        `select ? as ${queryGenerator.quoteIdentifier('foo')}, ? as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+        `select ? as ${queryGenerator.quoteIdentifier('foo')}, ? as ${queryGenerator.quoteIdentifier('bar')}${fromClause}`,
         { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] },
       );
       expect(result).to.deep.equal(expected);
@@ -771,10 +817,15 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2 }];
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       await expect(
         this.sequelize
           .query(
-            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${fromClause}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
           .then(obj => obj[0]),
@@ -783,10 +834,15 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object and ignore those which does not qualify', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: '00:00' }];
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       await expect(
         this.sequelize
           .query(
-            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, '00:00' as ${queryGenerator.quoteIdentifier('baz')}${fromClause}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
           .then(obj => obj[0]),
@@ -797,10 +853,15 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       const expected = [
         { foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2, baz: isBigInt ? '1' : 1 },
       ];
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       await expect(
         this.sequelize
           .query(
-            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as ${queryGenerator.quoteIdentifier('baz')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}, :one as ${queryGenerator.quoteIdentifier('baz')}${fromClause}`,
             { raw: true, replacements: { one: 1, two: 2 } },
           )
           .then(obj => obj[0]),
@@ -809,10 +870,15 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object having a null property', async function () {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: null }];
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       await expect(
         this.sequelize
           .query(
-            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select :one as ${queryGenerator.quoteIdentifier('foo')}, :two as ${queryGenerator.quoteIdentifier('bar')}${fromClause}`,
             { raw: true, replacements: { one: 1, two: null } },
           )
           .then(obj => obj[0]),
@@ -825,10 +891,19 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       it('binds token with the passed array', async function () {
         const expected = [{ foo: 1, bar: 2 }];
 
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
         let logSql;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $1${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $2${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$1')} as ${queryGenerator.quoteIdentifier('foo')}, ${typeCast('$2')} as ${queryGenerator.quoteIdentifier('bar')}${fromClause}`,
           {
             type: this.sequelize.QueryTypes.SELECT,
             bind: [1, 2],
@@ -846,10 +921,19 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       it('binds named parameters with the passed object', async function () {
         const expected = [{ foo: 1, bar: 2 }];
 
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
         let logSql;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $one${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $two${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$one')} as ${queryGenerator.quoteIdentifier('foo')}, ${typeCast('$two')} as ${queryGenerator.quoteIdentifier('bar')}${fromClause}`,
           {
             raw: true,
             bind: { one: 1, two: 2 },
@@ -870,10 +954,19 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
       if (dialectName !== 'db2') {
         it('binds named parameters with the passed object using the same key twice', async function () {
-          const typeCast = dialectName === 'postgres' ? '::int' : '';
+          const typeCast = dialectName === 'postgres'
+            ? (s) => `${s}::int`
+            : dialectName === 'hana'
+              ? (s) => `CAST(${s} as INT)`
+              : (s) => s;
           let logSql;
+          const fromClause = dialectName === 'ibmi'
+            ? ' FROM SYSIBM.SYSDUMMY1'
+            : dialectName === 'hana'
+              ? ' FROM DUMMY'
+              : '';
           const result = await this.sequelize.query(
-            `select $one${typeCast} as foo, $two${typeCast} as bar, $one${typeCast} as baz${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+            `select ${typeCast('$one')} as foo, ${typeCast('$two')} as bar, ${typeCast('$one')} as baz${fromClause}`,
             {
               raw: true,
               bind: { one: 1, two: 2 },
@@ -882,7 +975,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               },
             },
           );
-          if (dialectName === 'ibmi') {
+          if (dialectName === 'ibmi' || dialectName === 'hana') {
             expect(result[0]).to.deep.equal([{ FOO: 1, BAR: 2, BAZ: 1 }]);
           } else {
             expect(result[0]).to.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
@@ -897,12 +990,21 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       }
 
       it('binds named parameters with the passed object having a null property', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $one${typeCast} as foo, $two${typeCast} as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$one')} as foo, ${typeCast('$two')} as bar${fromClause}`,
           { raw: true, bind: { one: 1, two: null } },
         );
-        const expected = ['db2', 'ibmi'].includes(dialectName)
+        const expected = ['db2', 'ibmi', 'hana'].includes(dialectName)
           ? [{ FOO: 1, BAR: null }]
           : [{ foo: 1, bar: null }];
         expect(result[0]).to.deep.equal(expected);
@@ -910,10 +1012,19 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
       // this was a legacy band aid that has since been removed, because the underlying issue (transforming bind params in strings) has been fixed.
       it('does not transform $$ in strings (positional)', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
         let logSql;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $1${typeCast} as foo, '$$ / $$1' as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$1')} as foo, '$$ / $$1' as bar${fromClause}`,
           {
             raw: true,
             bind: [1],
@@ -922,7 +1033,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             },
           },
         );
-        const expected = ['db2', 'ibmi'].includes(dialectName)
+        const expected = ['db2', 'ibmi', 'hana'].includes(dialectName)
           ? [{ FOO: 1, BAR: '$$ / $$1' }]
           : [{ foo: 1, bar: '$$ / $$1' }];
         expect(result[0]).to.deep.equal(expected);
@@ -933,24 +1044,42 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
       // this was a legacy band aid that has since been removed, because the underlying issue (transforming bind params in strings) has been fixed.
       it('does not transform $$ in strings (named)', async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $one${typeCast} as foo, '$$ / $$one' as bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$one')} as foo, '$$ / $$one' as bar${fromClause}`,
           { raw: true, bind: { one: 1 } },
         );
-        const expected = ['db2', 'ibmi'].includes(dialectName)
+        const expected = ['db2', 'ibmi', 'hana'].includes(dialectName)
           ? [{ FOO: 1, BAR: '$$ / $$one' }]
           : [{ foo: 1, bar: '$$ / $$one' }];
         expect(result[0]).to.deep.equal(expected);
       });
 
       it(`does not treat a $ as a bind param if it's in the middle of an identifier`, async function () {
-        const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
+        const typeCast = ['postgres', 'db2'].includes(dialectName)
+          ? (s) => `${s}::int`
+          : dialectName === 'hana'
+            ? (s) => `CAST(${s} as INT)`
+            : (s) => s;
+        const fromClause = dialectName === 'ibmi'
+          ? ' FROM SYSIBM.SYSDUMMY1'
+          : dialectName === 'hana'
+            ? ' FROM DUMMY'
+            : '';
         const result = await this.sequelize.query(
-          `select $one${typeCast} as foo$bar${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+          `select ${typeCast('$one')} as foo$bar${fromClause}`,
           { raw: true, bind: { one: 1 } },
         );
-        const expected = ['db2', 'ibmi'].includes(dialectName)
+        const expected = ['db2', 'ibmi', 'hana'].includes(dialectName)
           ? [{ FOO$BAR: 1 }]
           : [{ foo$bar: 1 }];
         expect(result[0]).to.deep.equal(expected);
@@ -973,8 +1102,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         datetime = 'GETDATE()';
       }
 
+      const fromClause = dialectName === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : dialectName === 'hana'
+          ? ' FROM DUMMY'
+          : '';
       const [result] = await this.sequelize.query(
-        `SELECT ${datetime} AS t${dialectName === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+        `SELECT ${datetime} AS ${queryGenerator.quoteIdentifier('t')}${fromClause}`,
       );
       expect(dayjs(result[0].t).isValid()).to.be.true;
     });
