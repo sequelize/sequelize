@@ -21,7 +21,7 @@ const { CONFIG } = require('../config/config');
 const dialect = getTestDialect();
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'hana'].includes(dialect)) {
     return `"${str}"`;
   }
 
