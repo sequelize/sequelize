@@ -33,7 +33,7 @@ export class HanaQueryInterfaceTypescript<
     attributes: CreateTableAttributes<M, CreationAttributes<M>>,
     options?: QueryInterfaceCreateTableOptions,
   ): Promise<void> {
-    const tableExists = await this.tableExists(tableName);
+    const tableExists = await this.tableExists(tableName, options);
     if (!tableExists) {
       return super.createTable(tableName, attributes, options);
     }
