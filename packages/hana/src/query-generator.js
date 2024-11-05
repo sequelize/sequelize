@@ -541,10 +541,6 @@ END;`
           // HANA does not support NO ACTION option for ON UPDATE clause.
           template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
         }
-
-        if (attribute.references.deferrable) {
-          template += ` ${this._getDeferrableConstraintSnippet(attribute.references.deferrable)}`;
-        }
       }
     }
 
