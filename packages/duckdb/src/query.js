@@ -19,19 +19,16 @@ export class DuckDbQuery extends AbstractQuery {
     if (sql.startsWith("DROP TABLE")) {
       const tableName = sql.match(/^DROP TABLE IF EXISTS "([^"]+)"/)[1];
       const sequences = [];
-      console.log("*** cleaning up sequence for the table", tableName, "; the sql = ", "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)");
       // clean up all the table's sequences
        sequences.push(this.connection.db.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
       ).then(seqResult => {
-        console.log("*** GOT SEQUENCE RSULT: ", seqResult);
         return seqResult;
       }));
 
       return Promise.all(
         sequences.map(seqPromise => seqPromise.then(sequence => {
-          console.log("****** ELENA - SEQUENCE IS ", sequence);
           if ("sequence_name" in sequence) {
             return this.connection.db.all("DROP SEQUENCE " + sequence.sequence_name + " CASCADE");
           }
