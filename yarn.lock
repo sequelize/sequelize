@@ -13953,8 +13953,8 @@ __metadata:
   linkType: hard
 
 "snowflake-sdk@npm:^1.14.0":
-  version: 1.14.0
-  resolution: "snowflake-sdk@npm:1.14.0"
+  version: 1.15.0
+  resolution: "snowflake-sdk@npm:1.15.0"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.388.0"
     "@aws-sdk/node-http-handler": "npm:^3.374.0"
@@ -13988,7 +13988,7 @@ __metadata:
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/6c33eab50cf5444825017895cd16b38b8b133672726ae12d40963fec7613df66fae9656af10269208ae40896a2aea49e992185b44b83579f2df6c4ed0d6083d4
+  checksum: 10c0/820c50b7e56af25c14e86d96fd1a71a8bbcf82131d8f5f00f2696fdce3ce918e6e3c1a6ae6651a674506d8b5d58310d5ce616617edcdf0a4e3b6de81b9e3d352
   languageName: node
   linkType: hard
 
