@@ -2986,7 +2986,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:4.17.21"
-    mocha: "npm:10.8.1"
+    mocha: "npm:10.8.2"
     oracledb: "npm:6.5"
     semver: "npm:7.6.0"
   languageName: unknown
