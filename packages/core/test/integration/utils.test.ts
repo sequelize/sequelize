@@ -10,7 +10,6 @@ describe(getTestDialectTeaser('fn()'), () => {
   setResetMode('none');
 
   if (dialectName === "duckdb") {
-    console.log("************** CREATING DUCKDB DIRECTORY ************");
     fs.mkdirSync(DUCKDB_DATABASES_DIR);
   }
 

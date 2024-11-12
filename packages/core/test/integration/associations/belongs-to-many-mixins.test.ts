@@ -48,10 +48,6 @@ describe('belongsToMany Mixins', () => {
     it('associates target models to the source model', async () => {
       const { User, Article } = vars;
 
-      console.log("***** ELENA setAssociations; database is ", sequelize.options.replication.write.database);
-      const blah = await sequelize.query("SHOW TABLES");
-      console.log("****** ELENA setAssociations RESULTS: ", blah);
-
       const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;

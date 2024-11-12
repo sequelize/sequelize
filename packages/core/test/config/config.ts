@@ -166,5 +166,6 @@ export const CONFIG: DialectConfigs = {
   duckdb: {
     dialect: DuckDbDialect,
     database: getDuckDbDatabasePath('default.duckdb'),
+    //database: 'md:sequelize?attach_mode=single',  // uncomment to test against MotherDuck
   },
 };

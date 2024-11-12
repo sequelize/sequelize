@@ -14,7 +14,6 @@ import {
   sequelize,
   setIsIntegrationTestSuite,
 } from '../support';
-import { DuckDbDialect } from '../../../duckdb/lib/dialect';
 
 setIsIntegrationTestSuite(true);
 
@@ -109,7 +108,6 @@ export async function createMultiTransactionalTestSequelizeInstance<
   sequelizeOrOptions: Sequelize | Options<Dialect>,
   overrideOptions?: Partial<Options<Dialect>>,
 ): Promise<Sequelize> {
-  console.log("*************** IN MULTITRANSACT ***");
   const baseOptions =
     sequelizeOrOptions instanceof Sequelize ? sequelizeOrOptions.rawOptions : sequelizeOrOptions;
 
@@ -220,7 +218,6 @@ export function setResetMode(mode: ResetMode) {
 afterEach('database reset', async () => {
   const sequelizeInstances = uniq([sequelize, ...allSequelizeInstances]);
 
-  console.log("*** ELENA database reset (mode = " + currentSuiteResetMode + "), after each; instances: ", sequelizeInstances.map(s => s.rawOptions['database']));
   for (const sequelizeInstance of sequelizeInstances) {
     if (sequelizeInstance.isClosed()) {
       allSequelizeInstances.delete(sequelizeInstance);

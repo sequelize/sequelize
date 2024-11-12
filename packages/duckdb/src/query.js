@@ -20,7 +20,7 @@ export class DuckDbQuery extends AbstractQuery {
       const tableName = sql.match(/^DROP TABLE IF EXISTS "([^"]+)"/)[1];
       const sequences = [];
       // clean up all the table's sequences
-       sequences.push(this.connection.db.all(
+      sequences.push(this.connection.connection.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           tableName
       ).then(seqResult => {
@@ -29,8 +29,8 @@ export class DuckDbQuery extends AbstractQuery {
 
       return Promise.all(
         sequences.map(seqPromise => seqPromise.then(sequence => {
-          if ("sequence_name" in sequence) {
-            return this.connection.db.all("DROP SEQUENCE " + sequence.sequence_name + " CASCADE");
+          if (sequence && sequence.length > 0 && "sequence_name" in sequence[0]) {
+            return this.connection.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
           }
 
           return Promise.resolve();
@@ -45,9 +45,9 @@ export class DuckDbQuery extends AbstractQuery {
 
     let dataPromise;
     if (parameters) {
-      dataPromise = this.connection.db.all(sql, ...parameters);
+      dataPromise = this.connection.connection.all(sql, ...parameters);
     } else {
-      dataPromise = this.connection.db.all(sql);
+      dataPromise = this.connection.connection.all(sql);
     }
 
     if (this.isSelectQuery()) {
