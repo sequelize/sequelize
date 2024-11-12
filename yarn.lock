@@ -1866,17 +1866,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/select@npm:^4.0.0, @inquirer/select@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "@inquirer/select@npm:4.0.1"
+  version: 4.0.2
+  resolution: "@inquirer/select@npm:4.0.2"
   dependencies:
-    "@inquirer/core": "npm:^10.0.1"
-    "@inquirer/figures": "npm:^1.0.7"
-    "@inquirer/type": "npm:^3.0.0"
+    "@inquirer/core": "npm:^10.1.0"
+    "@inquirer/figures": "npm:^1.0.8"
+    "@inquirer/type": "npm:^3.0.1"
     ansi-escapes: "npm:^4.3.2"
     yoctocolors-cjs: "npm:^2.1.2"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/d852b49a7f1afed89e898f66fbb02d7f3317aeffc0e3abe8b7a785fbd8ffd51d26a8415737746b001c677cf019d42aef3ed986dce1bb66c4f6fa42426a388509
+  checksum: 10c0/abd23ba234c3489e76e96c444f97bb00913bdd3f278e2e3f4b060dfdd4c53e0ef78c0a8a3b303a111d35399e4dd366f2b23fb3e213d1b55ae10c02336e921445
   languageName: node
   linkType: hard
 
