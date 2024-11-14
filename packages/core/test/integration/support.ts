@@ -15,6 +15,7 @@ import {
   setIsIntegrationTestSuite,
 } from '../support';
 import { DuckDbDialect } from '../../../duckdb/lib/dialect';
+import {getDuckDbDatabasePath} from "../config/config";
 
 setIsIntegrationTestSuite(true);
 
@@ -126,25 +127,6 @@ export async function createMultiTransactionalTestSequelizeInstance<
       // allow using multiple connections as we are connecting to a file
       pool: { max: 5, idle: 30_000 },
       ...(overrideOptions as Options<SqliteDialect>),
-    });
-
-    await _sequelize.sync({ force: true });
-
-    return _sequelize;
-  }
-
-  if (dialect === 'duckdb') {
-    console.log("************ OVERRIDING DUCKDB DATABASE WITH TRANSACTIONAL");
-    const p = getSqliteDatabasePath(`transactional-${rand()}.duckdb`);
-    if (fs.existsSync(p)) {
-      fs.unlinkSync(p);
-    }
-
-    const _sequelize = createSequelizeInstance<DuckDbDialect>({
-      ...(baseOptions as Options<DuckDbDialect>),
-      database: p,
- // TBD: why is this different from SQLite -- complains about always overriding database
- //     ...(overrideOptions as Options<DuckDbDialect>),
     });
 
     await _sequelize.sync({ force: true });
