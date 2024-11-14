@@ -14,6 +14,7 @@ import {
   sequelize,
   setIsIntegrationTestSuite,
 } from '../support';
+import { DuckDbDialect } from '../../../duckdb/lib/dialect';
 
 setIsIntegrationTestSuite(true);
 
