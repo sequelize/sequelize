@@ -14,8 +14,14 @@ export class DuckDbQueryGeneratorInternal<
     return TECHNICAL_SCHEMAS;
   }
 
-  addLimitAndOffset(ignoreOptions: AddLimitOffsetOptions) {
-    // TBD
-    return '';
+  addLimitAndOffset(options: AddLimitOffsetOptions) {
+    let fragment = "";
+    if (options.limit != null) {
+      fragment += ` LIMIT ${this.queryGenerator.escape(options.limit, options)}`;
+    }
+    if (options.offset) {
+      fragment += ` OFFSET ${this.queryGenerator.escape(options.offset, options)}`;
+    }
+    return fragment;
   }
 }

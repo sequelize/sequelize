@@ -15,6 +15,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
       default: 'START TRANSACTION',
       sqlite3: 'BEGIN DEFERRED TRANSACTION',
       'db2 ibmi mssql': notSupportedError,
+      duckdb: 'BEGIN TRANSACTION',
     });
   });
 
@@ -24,6 +25,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
       snowflake: 'START TRANSACTION NAME "myTransaction"',
       sqlite3: 'BEGIN DEFERRED TRANSACTION',
       'db2 ibmi mssql': notSupportedError,
+      duckdb: 'BEGIN TRANSACTION',
     });
   });
 
@@ -92,6 +94,11 @@ describe('QueryGenerator#startTransactionQuery', () => {
           ['readOnly'],
         ),
         'db2 ibmi mssql': notSupportedError,
+        'duckdb': buildInvalidOptionReceivedError(
+            'startTransactionQuery',
+            dialect.name,
+            ['readOnly', 'transactionType'],
+        ),
       },
     );
   });

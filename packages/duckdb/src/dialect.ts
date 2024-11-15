@@ -52,7 +52,8 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     },
     startTransaction: {
       useBegin: true,
-      transactionType: true,
+      readOnly: false,
+      transactionType: false,
     },
     autoIncrement: {
       identityInsert: false,
@@ -93,6 +94,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     },
     returnValues: 'returning',  // TBD: this is overachieving and returning everything rather than just IDs
     schemas: true,
+    isolationLevels: false,
   });
 
   readonly Query = DuckDbQuery;
