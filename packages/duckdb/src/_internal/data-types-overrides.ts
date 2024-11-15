@@ -3,30 +3,6 @@ import { BaseError } from '@sequelize/core';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import NodeUtil from 'node:util';
 
-function removeUnsupportedIntegerOptions(
-  dataType: BaseTypes.BaseIntegerDataType,
-  dialect: AbstractDialect,
-) {
-  if (dataType.options.length != null) {
-    dialect.warnDataTypeIssue(
-      `${dialect.name} does not support '${dataType.getDataTypeId()}' with length. This option will be ignored.`,
-    );
-    delete dataType.options.length;
-  }
-}
-
-function removeUnsupportedDecimalNumberOptions(
-  dataType: BaseTypes.BaseDecimalNumberDataType,
-  dialect: AbstractDialect,
-) {
-  if (dataType.options.scale != null || dataType.options.precision != null) {
-    dialect.warnDataTypeIssue(
-      `${dialect.name} does not support '${dataType.getDataTypeId()}' with "scale" or "precision" specified. These options will be ignored.`,
-    );
-    dataType.options.scale = undefined;
-    dataType.options.precision = undefined;
-  }
-}
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql(): string {
@@ -35,14 +11,14 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 }
 
 export class STRING extends BaseTypes.STRING {
-  // TODO: add length check constraint
-  //  check(length(col) <= 5))
   toSql() {
-    if (this.options.binary) {
-      return `TEXT COLLATE BINARY`;
-    }
+    return 'VARCHAR';
+  }
+}
 
-    return 'TEXT';
+export class CHAR extends BaseTypes.CHAR {
+  toSql() {
+    return 'VARCHAR';
   }
 }
 
@@ -62,61 +38,62 @@ export class TEXT extends BaseTypes.TEXT {
 export class TINYINT extends BaseTypes.TINYINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  // TODO: check length; return SMALLINT if 2
   toSql(): string {
-    return this.options.length && this.options.length > 1 ? 'SMALLINT' : 'TINYINT';
+    if (this.options.length && this.options.length > 1) {
+        return this.options.unsigned ? 'USMALLINT' :  'SMALLINT';
+    }
+    return this.options.unsigned? 'UTINYINT' : 'TINYINT';
   }
 }
 
 export class SMALLINT extends BaseTypes.SMALLINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  // TODO: add >= 0 =< 2^16-1 check when the unsigned option is true
-  // TODO: add >= -2^15 =< 2^15-1 check when the unsigned option is false
-
   toSql(): string {
-    return 'INTEGER';
+    if (this.options.length && this.options.length > 2) {
+      return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
+    }
+    return this.options.unsigned ? 'USMALLINT' :  'SMALLINT';
   }
 }
 
 export class MEDIUMINT extends BaseTypes.MEDIUMINT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  // TODO: add >= 0 =< 2^24-1 check when the unsigned option is true
-  // TODO: add >= -2^23 =< 2^23-1 check when the unsigned option is false
-
   toSql(): string {
-    return 'INTEGER';
+    return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
   }
 }
 
 export class INTEGER extends BaseTypes.INTEGER {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedIntegerOptions(this, dialect);
   }
 
-  // TODO: add >= 0 =< 2^32-1 check when the unsigned option is true
-  // TODO: add >= -2^31 =< 2^31-1 check when the unsigned option is false
+  toSql(): string {
+    return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
+  }
+}
+
+export class BIGINT extends BaseTypes.BIGINT {
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    super._checkOptionSupport(dialect);
+  }
 
   toSql(): string {
-    return 'INTEGER';
+    return 'BIGINT';
   }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this, dialect);
   }
 
   protected getNumberSqlTypeName(): string {
@@ -127,7 +104,6 @@ export class FLOAT extends BaseTypes.FLOAT {
 export class DOUBLE extends BaseTypes.DOUBLE {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this, dialect);
   }
 
   protected getNumberSqlTypeName(): string {
@@ -138,7 +114,6 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 export class REAL extends BaseTypes.REAL {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    removeUnsupportedDecimalNumberOptions(this, dialect);
   }
 
   protected getNumberSqlTypeName(): string {
@@ -147,29 +122,20 @@ export class REAL extends BaseTypes.REAL {
 }
 
 export class TIME extends BaseTypes.TIME {
-  // TODO: add CHECK constraint
-  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
-
   toSql(): string {
-    return 'TEXT';
+    return 'TIME';
   }
 }
 
 export class DATE extends BaseTypes.DATE {
-  // TODO: add CHECK constraint
-  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
-
   toSql(): string {
-    return 'TEXT';
+    return 'DATE';
   }
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
-  // TODO: add CHECK constraint
-  //  https://github.com/sequelize/sequelize/pull/14505#issuecomment-1259279743
-
   toSql(): string {
-    return 'TEXT';
+    return 'DATE';
   }
 }
 
@@ -191,46 +157,23 @@ export class BLOB extends BaseTypes.BLOB {
 }
 
 export class JSON extends BaseTypes.JSON {
-  parseDatabaseValue(value: unknown): unknown {
-    // sqlite3 being sqlite3, JSON numbers are returned as JS numbers, but everything else is returned as a JSON string
-    if (typeof value === 'number') {
-      return value;
-    }
 
-    if (typeof value !== 'string') {
-      throw new Error(
-        `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
-      );
-    }
-
-    try {
-      return globalThis.JSON.parse(value);
-    } catch (error) {
-      throw new BaseError(
-        `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
-        { cause: error },
-      );
-    }
-  }
-
-  // TODO: add check constraint
-  //  https://www.sqlite.org/json1.html#jvalid
   toSql(): string {
-    return 'TEXT';
+    return 'JSON';
   }
 }
 
 export class UUID extends BaseTypes.UUID {
-  // TODO: add check constraint to enforce GUID format
   toSql() {
-    return 'TEXT';
+    return 'UUID';
   }
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
-  // TODO: add check constraint to enforce list of accepted values
   toSql() {
-    return 'TEXT';
+    const dialect = this._getDialect();
+
+    return `ENUM(${this.options.values.map(value => dialect.escapeString(value)).join(', ')})`;
   }
 }
 

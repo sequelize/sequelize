@@ -72,7 +72,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     },
     groupedLimit: false,
     dataTypes: {
-      CHAR: false,
+      CHAR: true,
       COLLATE_BINARY: true,
       CITEXT: false,
       DECIMAL: {

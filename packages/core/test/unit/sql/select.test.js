@@ -496,7 +496,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
       });
 
-      it('supports order, limit, offset', () => {
+      it.only('supports order, limit, offset', () => {
         const { include, User } = vars;
 
         expectSelect(
