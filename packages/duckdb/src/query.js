@@ -35,7 +35,7 @@ export class DuckDbQuery extends AbstractQuery {
 
           return Promise.resolve();
         }))
-      ).then(() => [0,0]);
+      ).then(() => this.runQueryInternal(sql, parameters));
     }
 
     return this.runQueryInternal(sql, parameters);

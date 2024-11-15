@@ -24,8 +24,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(_options?: ListTablesQueryOptions): string {
-    // TBD: handle optional options?.schema -- is schemaName used?
-    return 'SELECT table_name as tableName, schema_name as schemaName FROM duckdb_tables()';
+    return 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables()';
   }
 
   // copied from sqlite
@@ -71,6 +70,9 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   //   return super.insertQuery(table, valueHash, columnDefinitions, options);
   // }
 
+  // dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
+  //   return super.dropSchemaQuery(schemaName, options);
+  // }
 
   /* createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
      return super.createDatabaseQuery(_database, _options);
@@ -88,9 +90,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
      return super.createSchemaQuery(schemaName, options);
    }
 
-   dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
-     return super.dropSchemaQuery(schemaName, options);
-   }
+
 
 
 
