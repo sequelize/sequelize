@@ -138,4 +138,18 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
   static getSupportedConnectionOptions(): readonly string[] {
     return CONNECTION_OPTION_NAMES;
   }
+
+  escapeString(value: string): string {
+    return "'" + value.replaceAll('\0', '\\0')
+        .replaceAll("'", "''") + "'";
+  }
+
+  escapeBuffer(buffer: Buffer): string {
+    let escaped = "";
+    for (const element of buffer) {
+      escaped += `\\x${ element.toString(16) }`;
+    }
+
+    return `'${escaped}'::BLOB`;
+  }
 }

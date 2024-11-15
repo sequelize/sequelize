@@ -87,10 +87,10 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     attributes[key] = dataType;
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
     const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
-    let sql = `ALTER TABLE ${this.quoteTable(table)} ADD `;
+    let sql = `ALTER TABLE ${this.quoteTable(table)} ADD COLUMN `;
 
     if (options && options.ifNotExists) {
-      sql += ' IF NOT EXISTS';
+      sql += ' IF NOT EXISTS ';
     }
 
     sql += `${attribute};`;
