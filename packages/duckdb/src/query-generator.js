@@ -1,8 +1,6 @@
 'use strict';
 
 import isObject from "lodash/isObject";
-import {name} from "fast-glob";
-import {result} from "lodash";
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
@@ -81,5 +79,22 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     }
 
     return result;
+  }
+
+  addColumnQuery(table, key, dataType, options) {
+
+    const attributes = {};
+    attributes[key] = dataType;
+    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
+    const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
+    let sql = `ALTER TABLE ${this.quoteTable(table)} ADD `;
+
+    if (options && options.ifNotExists) {
+      sql += ' IF NOT EXISTS';
+    }
+
+    sql += `${attribute};`;
+
+    return sql;
   }
 }

@@ -51,7 +51,7 @@ describe('QueryGenerator#addColumnQuery', () => {
       {
         default: buildInvalidOptionReceivedError('addColumnQuery', dialectName, ['ifNotExists']),
         mariadb: 'ALTER TABLE `Users` ADD IF NOT EXISTS `age` INTEGER;',
-        postgres: `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
+        'postgres duckdb': `ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "age" INTEGER;`,
       },
     );
   });
