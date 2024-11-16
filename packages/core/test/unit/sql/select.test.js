@@ -1051,6 +1051,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "SELECT `name`, `age`, `data` FROM `User` AS `User` WHERE `User`.`data` IN (X'313233');",
           mssql:
             'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);',
+          duckdb: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN ('\\x31\\x32\\x33'::BLOB);`
         },
       );
     });

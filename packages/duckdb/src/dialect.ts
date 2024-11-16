@@ -57,8 +57,8 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     },
     autoIncrement: {
       identityInsert: false,
-      defaultValue: false,
-      update: false,
+      defaultValue: true,
+      update: true,
     },
     constraints: {
       deferrable: false,
@@ -95,6 +95,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     returnValues: 'returning',  // TBD: this is overachieving and returning everything rather than just IDs
     schemas: true,
     isolationLevels: false,
+    bulkDefault: true,
   });
 
   readonly Query = DuckDbQuery;

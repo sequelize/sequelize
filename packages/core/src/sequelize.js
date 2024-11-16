@@ -606,7 +606,7 @@ Use Sequelize#query if you wish to use replacements.`);
    */
   // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite3', 'snowflake'].includes(this.dialect.name)) {
+    if (['postgres', 'sqlite3', 'snowflake', 'duckdb'].includes(this.dialect.name)) {
       return fn('RANDOM');
     }
 

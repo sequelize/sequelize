@@ -150,7 +150,7 @@ describe('fn', () => {
     );
 
     expectsql(out, {
-      postgres: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
+      'postgres duckdb': `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       mssql: `concat(N'user', 1, 1, N'2011-03-27 10:01:55.000 +00:00', lower(N'user'))`,
       sqlite3: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       ibmi: `concat('user', 1, 1, '2011-03-27 10:01:55.000', lower('user'))`,
