@@ -95,7 +95,7 @@
     "prettier-plugin-organize-imports": "4.1.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
-    "typedoc": "0.25.13",
+    "typedoc": "0.26.11",
     "typedoc-plugin-carbon-ads": "1.6.0",
     "typedoc-plugin-mdn-links": "3.3.7",
     "typedoc-plugin-missing-exports": "2.3.0",
