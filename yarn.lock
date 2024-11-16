@@ -15302,11 +15302,11 @@ __metadata:
   linkType: hard
 
 "uuid@npm:^11.0.0":
-  version: 11.0.0
-  resolution: "uuid@npm:11.0.0"
+  version: 11.0.3
+  resolution: "uuid@npm:11.0.3"
   bin:
     uuid: dist/esm/bin/uuid
-  checksum: 10c0/6613e9d27f2ef6d6a5866cbaa86405f314f255b054445f185c84c734a737e9869dfd7b7452010f5e5d8ef2b20af227819058228537a3787b04d5bf3fa774e10a
+  checksum: 10c0/cee762fc76d949a2ff9205770334699e0043d52bb766472593a25f150077c9deed821230251ea3d6ab3943a5ea137d2826678797f1d5f6754c7ce5ce27e9f7a6
   languageName: node
   linkType: hard
 
