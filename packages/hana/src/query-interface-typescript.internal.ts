@@ -28,17 +28,6 @@ export class HanaQueryInterfaceTypescript<
     this.#internalQueryInterface = internalQueryInterface;
   }
 
-  async createTable<M extends Model>(
-    tableName: TableName,
-    attributes: CreateTableAttributes<M, CreationAttributes<M>>,
-    options?: QueryInterfaceCreateTableOptions,
-  ): Promise<void> {
-    const tableExists = await this.tableExists(tableName, options);
-    if (!tableExists) {
-      return super.createTable(tableName, attributes, options);
-    }
-  };
-
   async _startTransaction(
     transaction: Transaction,
     options: StartTransactionOptions,

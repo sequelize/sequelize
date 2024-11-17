@@ -171,7 +171,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       }
     }
 
-    return joinSQLFragments([
+    const createTableSql = joinSQLFragments([
       'CREATE',
       options.tableType,
       'TABLE',
@@ -179,6 +179,21 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       `(${attributesClause})`,
       options.comment && typeof options.comment === 'string' && `COMMENT ${this.escape(options.comment)}`,
       ';',
+    ]);
+
+    const tableDetails = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'DO BEGIN',
+      'DECLARE table_count INTEGER;',
+      `SELECT COUNT(*) INTO table_count FROM TABLES`,
+      `WHERE TABLE_NAME = ${this.escape(tableDetails.tableName)} AND SCHEMA_NAME = ${
+        tableDetails.schema ? this.escape(tableDetails.schema) : 'CURRENT_SCHEMA'
+      };`,
+      'IF :table_count = 0 THEN',
+      `  ${createTableSql}`,
+      'END IF;',
+      'END;',
     ]);
   }
 

@@ -163,7 +163,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `SELECT COUNT(*) INTO table_count FROM TABLES`,
       `WHERE TABLE_NAME = ${this.escape(table.tableName)} AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'};`,
       'IF :table_count > 0 THEN',
-      `  EXEC '` + dropSql + `';`,
+      `  ${dropSql};`,
       'END IF;',
       'END;',
     ]);
