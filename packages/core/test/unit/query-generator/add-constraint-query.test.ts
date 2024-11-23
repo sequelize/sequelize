@@ -34,7 +34,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         default: new Error(
           `Constraint type miss-typed is not supported by ${dialect.name} dialect`,
         ),
-        sqlite3: notSupportedError,
+        'sqlite3 duckdb': notSupportedError,
       },
     );
   });
@@ -51,7 +51,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: 'ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -69,7 +69,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] IN ('admin', 'user', 'guest'))`,
           mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([age] IN (N'admin', N'user', N'guest'))`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -85,7 +85,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -103,7 +103,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: 'ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -122,7 +122,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: 'ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -138,7 +138,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default:
             'ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -153,7 +153,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -173,7 +173,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default:
             'ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           snowflake: checkNotSupportedError,
         },
       );
@@ -192,7 +192,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             { type: 'CHECK', fields: ['age'], where: { age: { [Op.gte]: 10 } } },
           ),
         {
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -211,7 +211,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [default] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -227,7 +227,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -245,7 +245,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -264,7 +264,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -279,7 +279,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -294,7 +294,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -313,7 +313,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: defaultNotSupportedError,
           mssql: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_role_df] DEFAULT (N'guest') FOR [role]`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -331,7 +331,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             { type: 'DEFAULT', fields: ['role'], defaultValue: 'guest' },
           ),
         {
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -348,7 +348,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [unique] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -363,7 +363,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: deferrableNotSupportedError,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           'postgres snowflake': `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_uk] UNIQUE ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
         },
       );
@@ -378,7 +378,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_first_name_last_name_uk] UNIQUE ([first_name], [last_name])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -389,7 +389,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           queryGenerator.addConstraintQuery('myTable', { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -401,7 +401,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         () => queryGenerator.addConstraintQuery(MyModel, { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -415,7 +415,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           queryGenerator.addConstraintQuery(myDefinition, { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -429,7 +429,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -443,7 +443,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -460,7 +460,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -478,7 +478,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             { type: 'UNIQUE', fields: ['username'] },
           ),
         {
-          sqlite3: notSupportedError,
+           'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -496,7 +496,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [foreign key] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -512,7 +512,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: deferrableNotSupportedError,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           'postgres snowflake': `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) DEFERRABLE INITIALLY IMMEDIATE`,
         },
       );
@@ -528,7 +528,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_someId_otherTable_fk] FOREIGN KEY ([otherId], [someId]) REFERENCES [otherTable] ([id], [someId])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -544,7 +544,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON DELETE CASCADE`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -560,7 +560,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           'db2 ibmi': onUpdateNotSupportedError,
         },
       );
@@ -579,7 +579,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           default: new Error(
             'Invalid foreign key constraint options. `references` object with `table` and `field` must be specified',
           ),
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -594,7 +594,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -612,7 +612,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -632,7 +632,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -650,7 +650,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -671,7 +671,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -689,7 +689,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -714,7 +714,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             },
           ),
         {
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -731,7 +731,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [primary key] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -746,7 +746,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: deferrableNotSupportedError,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
           'postgres snowflake': `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
         },
       );
@@ -761,7 +761,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_first_name_last_name_pk] PRIMARY KEY ([first_name], [last_name])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -775,7 +775,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -788,7 +788,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           queryGenerator.addConstraintQuery(MyModel, { type: 'PRIMARY KEY', fields: ['username'] }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -805,7 +805,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [MyModels] ADD CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -819,7 +819,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -833,7 +833,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           ),
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -850,7 +850,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
           }),
         {
           default: `ALTER TABLE [mySchema].[myTable] ADD CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
@@ -868,7 +868,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             { type: 'PRIMARY KEY', fields: ['username'] },
           ),
         {
-          sqlite3: notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
