@@ -110,21 +110,33 @@ export class DuckDbQuery extends AbstractQuery {
       return [result, metadata];
     }
 
+    if (this.isShowOrDescribeQuery()) {
+      //console.log("*** SHOW OR DESCRIBE: ", data);
+      const describeResult = {};
+      for (const column of data) {
+        //console.log("Found column: ", column)
+        describeResult[column.column_name] = {
+          type: column.column_type,
+          allowNull: column.null === 'YES',
+          defaultValue: column.default,
+          primaryKey: column.key,
+          unique: false,
+        };
+      }
+
+      //console.log("Returning result: ", describeResult);
+      return describeResult;
+    }
+
     if (this.isRawQuery()) {
       // console.log("*** raw query..." + sql + "; data = ", data);
 
       return [data, data];
     }
 
-    if (this.isShowConstraintsQuery()) {
-      // console.log("*** show constraints..." + sql);
-      // console.log("*** show constraints...");
-      return data;
-    }
-
-    if (this.isShowIndexesQuery()) {
-      // console.log("*** show indexes..." + sql);
-      // console.log("*** show indexes...");
+    if (this.isShowConstraintsQuery() || this.isShowIndexesQuery()) {
+      // those are not useful right now because constraints/indexes are unsupported
+      // but they'll still return an empty array when invoked
       return data;
     }
 

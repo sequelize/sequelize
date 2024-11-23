@@ -122,4 +122,16 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     return sql;
   }
+
+  renameColumnQuery(tableName, attrBefore, attributes) {
+    const attrString = [];
+
+    for (const attributeName in attributes) {
+      attrString.push(
+          `${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(attributeName)}`,
+      );
+    }
+
+    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${attrString.join(', ')};`;
+  }
 }
