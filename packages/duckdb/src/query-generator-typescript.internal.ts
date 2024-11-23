@@ -1,12 +1,11 @@
 import {
   AbstractQueryGenerator, ListSchemasQueryOptions,
-  ListTablesQueryOptions, NormalizedAttributeOptions,
+  ListTablesQueryOptions, NormalizedAttributeOptions, TruncateTableQueryOptions,
   ShowConstraintsQueryOptions, StartTransactionQueryOptions, TableName,
   TableOrModel
 } from '@sequelize/core';
 import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
 import { DuckDbDialect } from "./dialect";
-import {TruncateTableQueryOptions} from "../../../.nx/cache/1249178707410404492/outputs/packages/core/lib";
 
 export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: DuckDbQueryGeneratorInternal;
