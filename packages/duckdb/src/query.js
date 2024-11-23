@@ -81,24 +81,23 @@ export class DuckDbQuery extends AbstractQuery {
         result = metadata[this.getInsertIdField()];
       } else {
         // why are there multiple rows?
-        //result = data[this.getInsertIdField()];
-        const idColumnName = this.model.modelDefinition.getColumnName(this.model.primaryKeyAttribute);
+        //console.log("insert on existing instance; data = ", data);
         //console.log("*** NORMAL ID AUTOGENERATION; model", this.model, "model definition: ", modelDefinition);
 
         for (const column of Object.keys(data[0])) {
-          // TBD: all fields probably don't need to be returned
           //console.log("*** NORMAL ID AUTOGENERATION: setting column " + column + " to value " + data[0][column]);
-          const attributeName = modelDefinition.columns.get(column).attributeName;
-          //console.log("Attribute name for column ", column, " is ", attributeName);
-          this.instance.set(attributeName, data[0][column], {
-            raw: true,
-            comesFromDatabase: true,
-          });
+
+          const modelColumn = modelDefinition.columns.get(column);
+          if (modelColumn) {
+            this.instance.set(modelColumn.attributeName, data[0][column], {
+              raw: true,
+              comesFromDatabase: true,
+            });
+          }
         }
       }
 
       // console.log("**** INSERT QUERY; INSTANCE: ", this.instance);
-
 
       // TBD: second parameter is number of affected rows
       return [result, metadata];

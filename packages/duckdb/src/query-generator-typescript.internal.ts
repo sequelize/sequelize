@@ -69,12 +69,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     return  `TRUNCATE ${this.quoteTable(tableName)}`;
   }
-  //
-  // insertQuery(table: TableName, valueHash: object,
-  //             columnDefinitions?: { [p: string]: NormalizedAttributeOptions },
-  //             options?: InsertOptions): { query: string; bind?: unknown[] } {
-  //   return super.insertQuery(table, valueHash, columnDefinitions, options);
-  // }
+
 
   // dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
   //   return super.dropSchemaQuery(schemaName, options);
