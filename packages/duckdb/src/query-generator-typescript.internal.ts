@@ -6,6 +6,7 @@ import {
 } from '@sequelize/core';
 import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
 import { DuckDbDialect } from "./dialect";
+import {TruncateTableQueryOptions} from "../../../.nx/cache/1249178707410404492/outputs/packages/core/lib";
 
 export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: DuckDbQueryGeneratorInternal;
@@ -51,7 +52,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
             AND constraint_type = ${this.escape(options?.constraintType)}`;
   }
 
-  showIndexesQuery(tableName: TableOrModel): string {
+  showIndexesQuery(_tableName: TableOrModel): string {
     return "FROM duckdb_indexes()";
   }
 
@@ -64,6 +65,10 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     let schemasToSkip = this.#internals.getTechnicalSchemaNames();
 
     return `SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
+  }
+
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    return  `TRUNCATE ${this.quoteTable(tableName)}`;
   }
   //
   // insertQuery(table: TableName, valueHash: object,

@@ -47,6 +47,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       type: false,
       using: false,
       functionBased: false,
+      operator: false,
       where: false,
       include: false,
     },
@@ -61,7 +62,9 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       update: true,
     },
     constraints: {
+      restrict: false,
       deferrable: false,
+      unique: false, // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       default: false,
       check: false,
       foreignKey: false,
