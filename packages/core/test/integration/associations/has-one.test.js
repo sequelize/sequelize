@@ -175,6 +175,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
   });
 
   describe('foreign key', () => {
+    if (current.dialect.supports.constraints.foreignKey) {
     it('throws a ForeignKeyConstraintError if the associated record does not exist', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
       const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
@@ -296,7 +297,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       );
       await expect(task0.reload({ subQuery: true })).to.not.eventually.be.rejected;
     });
-  });
+  }});
 
   describe('foreign key constraints', () => {
     it('are enabled by default', async function () {

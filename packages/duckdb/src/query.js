@@ -12,17 +12,16 @@ export class DuckDbQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
 
-    // const pos_newline = sql.indexOf("\n", 3);
-    // const sqltoprint = pos_newline >= 0 ? sql.substring(0, pos_newline) + " ... " : sql;
-    // console.log("DUCKDB RUN; db path " + this.connection.db_path + "; sql = " + sqltoprint);
-
     if (sql.startsWith("DROP TABLE")) {
-      const tableName = sql.match(/^DROP TABLE IF EXISTS "([^"]+)"/)[1];
+      const sequence_prefix = sql.match(/^DROP TABLE IF EXISTS "([^ ]+)"/)[1]
+          .replaceAll('.', '_')
+          .replaceAll('"', '');
+
       const sequences = [];
       // clean up all the table's sequences
       sequences.push(this.connection.connection.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
-          tableName
+          sequence_prefix
       ).then(seqResult => {
         return seqResult;
       }));
@@ -30,6 +29,7 @@ export class DuckDbQuery extends AbstractQuery {
       return Promise.all(
         sequences.map(seqPromise => seqPromise.then(sequence => {
           if (sequence && sequence.length > 0 && "sequence_name" in sequence[0]) {
+            //console.log("*** dropping sequence ", "DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
             return this.connection.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
           }
 
@@ -42,7 +42,7 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   async runQueryInternal(sql, parameters) {
-
+    //console.log("*** QUERY: ", sql);
     let dataPromise;
     if (parameters) {
       dataPromise = this.connection.connection.all(sql, ...parameters);

@@ -1,7 +1,6 @@
 import {Connection, Database} from 'duckdb-async';
 import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager } from '@sequelize/core';
-import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { DuckDbDialect } from "./dialect";
 
 export interface DuckDbConnectionOptions {

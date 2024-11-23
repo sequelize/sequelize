@@ -39,13 +39,15 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions): string {
-    //console.log("show constraints: ", options);
+    const table = this.extractTableDetails(tableName);
+
+    // TBD: add schema to query
     return `SELECT constraint_column_names as columnNames,
         schema_name as referencedTableSchema,
         table_name as referencedTableName,
         constraint_text as definition,
         FROM duckdb_constraints()
-        WHERE table_name = ${this.escapeTable(tableName)}
+        WHERE table_name = ${this.escape(table.tableName)}
             AND constraint_type = ${this.escape(options?.constraintType)}`;
   }
 
@@ -133,10 +135,6 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
    getForeignKeyQuery(_tableName: TableOrModel, _columnName?: string): Error {
      return super.getForeignKeyQuery(_tableName, _columnName);
-   }
-
-   dropForeignKeyQuery(_tableName: TableOrModel, _foreignKey: string): Error {
-     return super.dropForeignKeyQuery(_tableName, _foreignKey);
    }
 
    commitTransactionQuery(): string {

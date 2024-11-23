@@ -29,7 +29,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
 
   // TODO: supports what?
   static supports = AbstractDialect.extendSupport({
-    DEFAULT: false,
+    DEFAULT: true,
     'DEFAULT VALUES': true,
     'UNION ALL': false,
     'RIGHT JOIN': false,
@@ -66,10 +66,10 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       check: false,
       foreignKey: false,
       foreignKeyChecksDisableable: false,
-      primaryKey: false, // TBD: change to true
+      primaryKey: false,  // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       onUpdate: false,
-      add: true,
-      remove: true,
+      add: false,
+      remove: false,
     },
     groupedLimit: false,
     dataTypes: {
@@ -96,6 +96,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     schemas: true,
     isolationLevels: false,
     bulkDefault: true,
+    transactions: false,
   });
 
   readonly Query = DuckDbQuery;
