@@ -61,8 +61,9 @@ export class DuckDbQuery extends AbstractQuery {
 
   // TBD: comment better; no longer async
   processResults(data) {
+    // TBD: where should metadata come from?
     const metadata = {};
-    const result = this.instance;
+    let result = this.instance;
 
     if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
       // console.log("*** INSERT/upsert query: " + sql);
@@ -70,16 +71,26 @@ export class DuckDbQuery extends AbstractQuery {
       this.handleInsertQuery(data, metadata);
 
       // console.log("**** INSERT QUERY; GOT DATA: ", data);
+      const modelDefinition = this.model?.modelDefinition;
 
       if (!this.instance) {
-        //console.log("***** WHY IS THERE NO INSTANCE? ******");
+        // TBD: does a model need to be created?
+        //console.log("*** METADATA CONSTRUCTOR: ", metadata, "aliases mapping: ", this.options.aliasesMapping);
+
+        // TBD bulk id insert?
+        result = metadata[this.getInsertIdField()];
       } else {
         // why are there multiple rows?
-        //console.log("*** NORMAL ID AUTOGENERATION");
         //result = data[this.getInsertIdField()];
+        const idColumnName = this.model.modelDefinition.getColumnName(this.model.primaryKeyAttribute);
+        //console.log("*** NORMAL ID AUTOGENERATION; model", this.model, "model definition: ", modelDefinition);
+
         for (const column of Object.keys(data[0])) {
+          // TBD: all fields probably don't need to be returned
           //console.log("*** NORMAL ID AUTOGENERATION: setting column " + column + " to value " + data[0][column]);
-          this.instance.set(column, data[0][column], {
+          const attributeName = modelDefinition.columns.get(column).attributeName;
+          //console.log("Attribute name for column ", column, " is ", attributeName);
+          this.instance.set(attributeName, data[0][column], {
             raw: true,
             comesFromDatabase: true,
           });
@@ -92,6 +103,11 @@ export class DuckDbQuery extends AbstractQuery {
       // TBD: second parameter is number of affected rows
       return [result, metadata];
 
+    }
+
+    if (this.isUpdateQuery()) {
+      //console.log("UPDATE QUERY; result = ", result);
+      return [result, metadata];
     }
 
     if (this.isRawQuery()) {
@@ -118,7 +134,7 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
 
-    // console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
+    console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
 
     return [data, data];
   }
