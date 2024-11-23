@@ -162,6 +162,7 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       ]);
     });
 
+    if (sequelize.dialect.supports.constraints.onUpdate) {
     it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async () => {
       await queryInterface.createTable('level', {
         id: {
@@ -229,6 +230,7 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
         },
       ]);
     });
+    }
   });
 
   if (sequelize.dialect.supports.schemas) {

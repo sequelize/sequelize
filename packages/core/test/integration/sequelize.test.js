@@ -338,7 +338,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       expect(true).to.be.true;
     });
 
-    if (dialect !== 'sqlite3' && dialect !== 'db2') {
+    if (dialect !== 'sqlite3' && dialect !== 'db2' && dialect !== 'duckdb') {
       it('fails for incorrect connection even when no models are defined', async () => {
         const sequelize = createSingleTestSequelizeInstance(badUsernameConfig[dialect]);
 

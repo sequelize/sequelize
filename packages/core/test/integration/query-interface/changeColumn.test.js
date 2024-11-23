@@ -155,120 +155,122 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     }
 
-    describe('should support foreign keys', () => {
-      beforeEach(async function () {
-        await this.queryInterface.createTable('users', {
-          id: {
+    if (Support.sequelize.dialect.supports.constraints.foreignKey) {
+      describe('should support foreign keys', () => {
+        beforeEach(async function () {
+          await this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            level_id: {
+              type: DataTypes.INTEGER,
+              allowNull: false,
+            },
+          });
+
+          await this.queryInterface.createTable('level', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+          });
+        });
+
+        it('able to change column to foreign key', async function () {
+          const foreignKeys = await this.queryInterface.showConstraints('users', {
+            constraintType: 'FOREIGN KEY',
+          });
+          expect(foreignKeys).to.be.an('array');
+          expect(foreignKeys).to.be.empty;
+
+          await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-          level_id: {
+            references: {
+              table: 'level',
+              key: 'id',
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          });
+
+          const newForeignKeys = await this.queryInterface.showConstraints('users', {
+            constraintType: 'FOREIGN KEY',
+          });
+          expect(newForeignKeys).to.be.an('array');
+          expect(newForeignKeys).to.have.lengthOf(1);
+          expect(newForeignKeys[0].columnNames).to.deep.equal(['level_id']);
+        });
+
+        it('able to change column property without affecting other properties', async function () {
+          // 1. look for users table information
+          // 2. change column level_id on users to have a Foreign Key
+          // 3. look for users table Foreign Keys information
+          // 4. change column level_id AGAIN to allow null values
+          // 5. look for new foreign keys information
+          // 6. look for new table structure information
+          // 7. compare foreign keys and tables(before and after the changes)
+          const firstTable = await this.queryInterface.describeTable({
+            tableName: 'users',
+          });
+
+          await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
-            allowNull: false,
-          },
-        });
+            references: {
+              table: 'level',
+              key: 'id',
+            },
+            onUpdate: 'cascade',
+            onDelete: 'cascade',
+          });
 
-        await this.queryInterface.createTable('level', {
-          id: {
+          const keys = await this.queryInterface.showConstraints('users', {
+            constraintType: 'FOREIGN KEY',
+          });
+          const firstForeignKeys = keys;
+
+          await this.queryInterface.changeColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
-          },
-        });
-      });
+            allowNull: true,
+          });
 
-      it('able to change column to foreign key', async function () {
-        const foreignKeys = await this.queryInterface.showConstraints('users', {
-          constraintType: 'FOREIGN KEY',
-        });
-        expect(foreignKeys).to.be.an('array');
-        expect(foreignKeys).to.be.empty;
+          const newForeignKeys = await this.queryInterface.showConstraints('users', {
+            constraintType: 'FOREIGN KEY',
+          });
+          expect(firstForeignKeys.length).to.equal(newForeignKeys.length);
+          expect(firstForeignKeys[0].columnNames).to.deep.equal(['level_id']);
+          expect(firstForeignKeys[0].columnNames).to.deep.equal(newForeignKeys[0].columnNames);
 
-        await this.queryInterface.changeColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          references: {
-            table: 'level',
-            key: 'id',
-          },
-          onUpdate: 'cascade',
-          onDelete: 'cascade',
-        });
-
-        const newForeignKeys = await this.queryInterface.showConstraints('users', {
-          constraintType: 'FOREIGN KEY',
-        });
-        expect(newForeignKeys).to.be.an('array');
-        expect(newForeignKeys).to.have.lengthOf(1);
-        expect(newForeignKeys[0].columnNames).to.deep.equal(['level_id']);
-      });
-
-      it('able to change column property without affecting other properties', async function () {
-        // 1. look for users table information
-        // 2. change column level_id on users to have a Foreign Key
-        // 3. look for users table Foreign Keys information
-        // 4. change column level_id AGAIN to allow null values
-        // 5. look for new foreign keys information
-        // 6. look for new table structure information
-        // 7. compare foreign keys and tables(before and after the changes)
-        const firstTable = await this.queryInterface.describeTable({
-          tableName: 'users',
-        });
-
-        await this.queryInterface.changeColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          references: {
-            table: 'level',
-            key: 'id',
-          },
-          onUpdate: 'cascade',
-          onDelete: 'cascade',
-        });
-
-        const keys = await this.queryInterface.showConstraints('users', {
-          constraintType: 'FOREIGN KEY',
-        });
-        const firstForeignKeys = keys;
-
-        await this.queryInterface.changeColumn('users', 'level_id', {
-          type: DataTypes.INTEGER,
-          allowNull: true,
-        });
-
-        const newForeignKeys = await this.queryInterface.showConstraints('users', {
-          constraintType: 'FOREIGN KEY',
-        });
-        expect(firstForeignKeys.length).to.equal(newForeignKeys.length);
-        expect(firstForeignKeys[0].columnNames).to.deep.equal(['level_id']);
-        expect(firstForeignKeys[0].columnNames).to.deep.equal(newForeignKeys[0].columnNames);
-
-        const describedTable = await this.queryInterface.describeTable({
-          tableName: 'users',
-        });
-
-        expect(describedTable.level_id).to.have.property('allowNull');
-        expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
-        expect(describedTable.level_id.allowNull).to.equal(true);
-      });
-
-      if (!['db2', 'ibmi', 'sqlite3'].includes(dialect)) {
-        it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
           });
 
-          expect(describedTable.level_id.comment).to.equal(null);
-
-          await this.queryInterface.changeColumn('users', 'level_id', {
-            type: DataTypes.INTEGER,
-            comment: 'FooBar',
-          });
-
-          const describedTable2 = await this.queryInterface.describeTable({ tableName: 'users' });
-          expect(describedTable2.level_id.comment).to.equal('FooBar');
+          expect(describedTable.level_id).to.have.property('allowNull');
+          expect(describedTable.level_id.allowNull).to.not.equal(firstTable.level_id.allowNull);
+          expect(describedTable.level_id.allowNull).to.equal(true);
         });
-      }
-    });
+
+        if (!['db2', 'ibmi', 'sqlite3'].includes(dialect)) {
+          it('should change the comment of column', async function () {
+            const describedTable = await this.queryInterface.describeTable({
+              tableName: 'users',
+            });
+
+            expect(describedTable.level_id.comment).to.equal(null);
+
+            await this.queryInterface.changeColumn('users', 'level_id', {
+              type: DataTypes.INTEGER,
+              comment: 'FooBar',
+            });
+
+            const describedTable2 = await this.queryInterface.describeTable({tableName: 'users'});
+            expect(describedTable2.level_id.comment).to.equal('FooBar');
+          });
+        }
+      });
+    }
 
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.
