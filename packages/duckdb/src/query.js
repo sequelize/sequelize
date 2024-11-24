@@ -3,6 +3,9 @@
 import {
   AbstractQuery, DatabaseError,
 } from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+
+const debug = logger.debugContext('sql:duckdb');
 
 export class DuckDbQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
@@ -11,6 +14,7 @@ export class DuckDbQuery extends AbstractQuery {
 
   async run(sql, parameters) {
     this.sql = sql;
+    const complete = this._logQuery(sql, debug, parameters);
 
     if (sql.startsWith("DROP TABLE")) {
       const sequence_prefix = sql.match(/^DROP TABLE IF EXISTS "([^ ]+)"/)[1]
@@ -35,10 +39,10 @@ export class DuckDbQuery extends AbstractQuery {
 
           return Promise.resolve();
         }))
-      ).then(() => this.runQueryInternal(sql, parameters));
+      ).then(() => this.runQueryInternal(sql, parameters, complete));
     }
 
-    return this.runQueryInternal(sql, parameters);
+    return this.runQueryInternal(sql, parameters, complete);
   }
 
   convertError(err) {
@@ -48,7 +52,7 @@ export class DuckDbQuery extends AbstractQuery {
     throw new DatabaseError(err);
   }
 
-  async runQueryInternal(sql, parameters) {
+  async runQueryInternal(sql, parameters, loggingCompleteCallback) {
     //console.log("*** QUERY: ", sql);
     let dataPromise;
     if (parameters) {
@@ -60,10 +64,18 @@ export class DuckDbQuery extends AbstractQuery {
     if (this.isSelectQuery()) {
       // console.log("*** SELECT Query: ", sql, "params: ", parameters);
       // console.log("results: ", data);
-      return dataPromise.then(data => this.handleSelectQuery(data), error => this.convertError(error));
+      return dataPromise.then(data => {
+        loggingCompleteCallback();
+
+        return this.handleSelectQuery(data);
+      }, error => this.convertError(error));
     }
 
-    return dataPromise.then(data => this.processResults(data), error => this.convertError(error));
+    return dataPromise.then(data => {
+      loggingCompleteCallback();
+
+      return this.processResults(data);
+    }, error => this.convertError(error));
   }
 
   // TBD: comment better; no longer async
@@ -71,6 +83,8 @@ export class DuckDbQuery extends AbstractQuery {
     // TBD: where should metadata come from?
     const metadata = {};
     let result = this.instance;
+
+    //console.log("*** processing results for type ", this.options.type);
 
     if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
       // console.log("*** INSERT/upsert query: " + sql);
