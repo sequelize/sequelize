@@ -1,7 +1,7 @@
 'use strict';
 
 import {
-  AbstractQuery, DatabaseError,
+  AbstractQuery, DatabaseError, UniqueConstraintError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 
@@ -46,9 +46,10 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   convertError(err) {
-    // if (err.errorType = 'Constraint' && err.message.includes("Violates foreign key constraint")) {
-    //   throw new ForeignKeyConstraintError({message: err.message});
+    // if (err.errorType === 'Constraint' && err.message.includes("violates unique constraint")) {
+    //   throw new UniqueConstraintError({message: err.message});
     // }
+
     throw new DatabaseError(err);
   }
 
