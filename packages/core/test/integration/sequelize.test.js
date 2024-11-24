@@ -120,7 +120,7 @@ const badAddressConfig = {
 };
 
 describe(getTestDialectTeaser('Sequelize'), () => {
-  if (dialect !== 'sqlite3') {
+  if (dialect !== 'sqlite3' && dialect !== 'duckdb') {
     describe('authenticate', () => {
       describe('with valid credentials', () => {
         it('triggers the success event', async function () {

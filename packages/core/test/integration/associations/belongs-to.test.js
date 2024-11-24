@@ -252,22 +252,24 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       expect(user0).to.be.null;
     });
 
-    it('should throw a ForeignKeyConstraintError if the associated record does not exist', async function () {
-      const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('TaskXYZ', { title: DataTypes.STRING });
+    if (current.dialect.supports.constraints.foreignKey) {
+      it('should throw a ForeignKeyConstraintError if the associated record does not exist', async function () {
+        const User = this.sequelize.define('UserXYZ', {username: DataTypes.STRING});
+        const Task = this.sequelize.define('TaskXYZ', {title: DataTypes.STRING});
 
-      Task.belongsTo(User);
+        Task.belongsTo(User);
 
-      await this.sequelize.sync({ force: true });
-      await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(
-        Sequelize.ForeignKeyConstraintError,
-      );
-      const task = await Task.create({ title: 'task' });
+        await this.sequelize.sync({force: true});
+        await expect(Task.create({title: 'task', userXYZId: 5})).to.be.rejectedWith(
+            Sequelize.ForeignKeyConstraintError,
+        );
+        const task = await Task.create({title: 'task'});
 
-      await expect(
-        Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
-      ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
-    });
+        await expect(
+            Task.update({title: 'taskUpdate', userXYZId: 5}, {where: {id: task.id}}),
+        ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      });
+    }
 
     it('supports passing the primary key instead of an object', async function () {
       const User = this.sequelize.define('UserXYZ', { username: DataTypes.STRING });
