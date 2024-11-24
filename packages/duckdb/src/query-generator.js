@@ -123,6 +123,34 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     return sql;
   }
 
+  changeColumnQuery(tableName, attributes) {
+    const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
+    const sql = [];
+    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
+
+    for (const attributeName in attributes) {
+
+      let definition = fields[attributeName];
+      console.log("*** attr name = ", attributeName, "; definition = ", definition);
+      let attrSql = '';
+
+
+      if (definition.includes('DEFAULT')) {
+        attrSql += query(
+            `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
+        );
+
+        //definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
+      } else {
+        attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
+      }
+
+      sql.push(attrSql);
+    }
+
+    return sql.join('');
+  }
+
   renameColumnQuery(tableName, attrBefore, attributes) {
     const attrString = [];
 
