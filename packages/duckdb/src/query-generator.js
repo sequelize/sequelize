@@ -32,10 +32,10 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
           dataType = dataType.replace('AUTOINCREMENT', `DEFAULT nextval('${sequence_name}')`)
         }
 
-        // if (dataType.includes(' PRIMARY KEY')) {
-        //   dataType = dataType.replace(' PRIMARY KEY', '');
-        //   primaryKeys.push(columnName);
-        // }
+        if (dataType.includes(' PRIMARY KEY')) {
+          dataType = dataType.replace(' PRIMARY KEY', '');
+          //primaryKeys.push(columnName);
+        }
 
         attrArray.push(`${columnName} ${dataType}`);
       }

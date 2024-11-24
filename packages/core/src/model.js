@@ -2334,7 +2334,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (
         options.updateOnDuplicate &&
-        !['mysql', 'mariadb', 'sqlite3', 'postgres', 'ibmi'].includes(dialect)
+        !['mysql', 'mariadb', 'sqlite3', 'postgres', 'ibmi', 'duckdb'].includes(dialect)
       ) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }

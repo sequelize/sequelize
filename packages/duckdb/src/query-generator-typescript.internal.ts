@@ -70,11 +70,6 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return  `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-
-  // dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
-  //   return super.dropSchemaQuery(schemaName, options);
-  // }
-
   /* createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
      return super.createDatabaseQuery(_database, _options);
    }
@@ -86,12 +81,6 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
    listDatabasesQuery(_options?: ListDatabasesQueryOptions): string {
      return super.listDatabasesQuery(_options);
    }
-
-   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string {
-     return super.createSchemaQuery(schemaName, options);
-   }
-
-
 
 
 
