@@ -46,9 +46,9 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   convertError(err) {
-    // if (err.errorType === 'Constraint' && err.message.includes("violates unique constraint")) {
-    //   throw new UniqueConstraintError({message: err.message});
-    // }
+    if (err.errorType === 'Constraint' && err.message.includes("violates unique constraint")) {
+      throw new UniqueConstraintError({message: err.message});
+    }
 
     throw new DatabaseError(err);
   }
