@@ -1,6 +1,7 @@
 'use strict';
 
 import isObject from "lodash/isObject";
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
@@ -69,6 +70,10 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
         if (attribute.autoIncrement) {
           // unsupported syntax placeholder; will be replaced in createTableQuery
           sql += ' AUTOINCREMENT';
+        }
+
+        if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
         }
 
         // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
