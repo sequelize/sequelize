@@ -760,119 +760,121 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       }
     });
 
-    it('should throw a foreign key constraint error when inserting a child row that has invalid parent row', async () => {
-      await queryInterface.createTable('Users', {
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        username: DataTypes.STRING,
-      });
+    if (sequelize.dialect.supports.constraints.add) {
+      it('should throw a foreign key constraint error when inserting a child row that has invalid parent row', async () => {
+        await queryInterface.createTable('Users', {
+          id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+          username: DataTypes.STRING,
+        });
 
-      await queryInterface.createTable('Tasks', {
-        title: DataTypes.STRING,
-        userId: { type: DataTypes.INTEGER, allowNull: false },
-      });
+        await queryInterface.createTable('Tasks', {
+          title: DataTypes.STRING,
+          userId: {type: DataTypes.INTEGER, allowNull: false},
+        });
 
-      await queryInterface.addConstraint('Tasks', {
-        fields: ['userId'],
-        type: 'FOREIGN KEY',
-        name: 'Tasks_userId_Users_fk',
-        references: {
-          table: 'Users',
-          field: 'id',
-        },
-      });
+        await queryInterface.addConstraint('Tasks', {
+          fields: ['userId'],
+          type: 'FOREIGN KEY',
+          name: 'Tasks_userId_Users_fk',
+          references: {
+            table: 'Users',
+            field: 'id',
+          },
+        });
 
-      try {
-        await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
-      } catch (error) {
-        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-        assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite3') {
-          expect(error.index).to.be.undefined;
-        } else {
-          expect(error.index).to.equal('Tasks_userId_Users_fk');
+        try {
+          await queryInterface.bulkInsert('Tasks', [{title: 'task', userId: 1}]);
+        } catch (error) {
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          assert(error instanceof ForeignKeyConstraintError);
+          if (dialect === 'sqlite3') {
+            expect(error.index).to.be.undefined;
+          } else {
+            expect(error.index).to.equal('Tasks_userId_Users_fk');
+          }
+
+          switch (dialect) {
+            case 'db2':
+              expect(error.table).to.equal('Tasks');
+              expect(error.fields).to.be.null;
+              expect(error.cause.message).to.contain(
+                  'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
+              );
+              break;
+
+            case 'mssql':
+              expect(error.table).to.equal('dbo.Users');
+              expect(error.fields).to.deep.equal(['id']);
+              expect(error.cause.message).to.equal(
+                  'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
+              );
+              break;
+
+            case 'postgres':
+              expect(error.table).to.equal('Tasks');
+              expect(error.fields).to.be.null;
+              expect(error.cause.message).to.equal(
+                  'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
+              );
+              break;
+
+            case 'sqlite3':
+              expect(error.table).to.be.undefined;
+              expect(error.fields).to.be.undefined;
+              expect(error.cause.message).to.equal(
+                  'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+              );
+              break;
+
+            default:
+              expect(error.table).to.equal('Users');
+              expect(error.fields).to.deep.equal(['userId']);
+              expect(error.cause.message).to.contain(
+                  'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+              );
+          }
         }
-
-        switch (dialect) {
-          case 'db2':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain(
-              'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
-            );
-            break;
-
-          case 'mssql':
-            expect(error.table).to.equal('dbo.Users');
-            expect(error.fields).to.deep.equal(['id']);
-            expect(error.cause.message).to.equal(
-              'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
-            );
-            break;
-
-          case 'postgres':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal(
-              'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
-            );
-            break;
-
-          case 'sqlite3':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
-            );
-            break;
-
-          default:
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain(
-              'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
-            );
-        }
-      }
-    });
-
-    it('should throw an unknown constranit error for duplicate constraint names', async () => {
-      await queryInterface.createTable('Users', {
-        id: { type: DataTypes.INTEGER, allowNull: false },
-        username: DataTypes.STRING,
       });
 
-      await queryInterface.addConstraint('Users', {
-        type: 'PRIMARY KEY',
-        fields: ['id'],
-        name: 'unique_constraint',
-      });
+      it('should throw an unknown constranit error for duplicate constraint names', async () => {
+        await queryInterface.createTable('Users', {
+          id: {type: DataTypes.INTEGER, allowNull: false},
+          username: DataTypes.STRING,
+        });
 
-      try {
         await queryInterface.addConstraint('Users', {
-          type: 'UNIQUE',
-          fields: ['username'],
+          type: 'PRIMARY KEY',
+          fields: ['id'],
           name: 'unique_constraint',
         });
-      } catch (error) {
-        if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
-          expect(error).to.be.instanceOf(AggregateError);
-          assert(error instanceof AggregateError);
-          expect(error.errors).to.have.length(3);
-          expect(error.errors[0].message).to.equal(
-            "There is already an object named 'unique_constraint' in the database.",
-          );
-          expect(error.errors[1].message).to.equal(
-            'Could not create constraint or index. See previous errors.',
-          );
-          assert(error.errors[2] instanceof UnknownConstraintError);
-          expect(error.errors[2].constraint).to.equal('unique_constraint');
-          expect(error.errors[2].table).to.equal('Users');
-        } else {
-          expect(error).to.be.instanceOf(DatabaseError);
-          assert(error instanceof DatabaseError);
-          expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
+
+        try {
+          await queryInterface.addConstraint('Users', {
+            type: 'UNIQUE',
+            fields: ['username'],
+            name: 'unique_constraint',
+          });
+        } catch (error) {
+          if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
+            expect(error).to.be.instanceOf(AggregateError);
+            assert(error instanceof AggregateError);
+            expect(error.errors).to.have.length(3);
+            expect(error.errors[0].message).to.equal(
+                "There is already an object named 'unique_constraint' in the database.",
+            );
+            expect(error.errors[1].message).to.equal(
+                'Could not create constraint or index. See previous errors.',
+            );
+            assert(error.errors[2] instanceof UnknownConstraintError);
+            expect(error.errors[2].constraint).to.equal('unique_constraint');
+            expect(error.errors[2].table).to.equal('Users');
+          } else {
+            expect(error).to.be.instanceOf(DatabaseError);
+            assert(error instanceof DatabaseError);
+            expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
+          }
         }
-      }
-    });
+      });
+    }
   });
 });
