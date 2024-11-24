@@ -1,7 +1,7 @@
 'use strict';
 
 import {
-  AbstractQuery,
+  AbstractQuery, DatabaseError,
 } from '@sequelize/core';
 
 export class DuckDbQuery extends AbstractQuery {
@@ -41,6 +41,13 @@ export class DuckDbQuery extends AbstractQuery {
     return this.runQueryInternal(sql, parameters);
   }
 
+  convertError(err) {
+    // if (err.errorType = 'Constraint' && err.message.includes("Violates foreign key constraint")) {
+    //   throw new ForeignKeyConstraintError({message: err.message});
+    // }
+    throw new DatabaseError(err);
+  }
+
   async runQueryInternal(sql, parameters) {
     //console.log("*** QUERY: ", sql);
     let dataPromise;
@@ -53,10 +60,10 @@ export class DuckDbQuery extends AbstractQuery {
     if (this.isSelectQuery()) {
       // console.log("*** SELECT Query: ", sql, "params: ", parameters);
       // console.log("results: ", data);
-      return dataPromise.then(data => this.handleSelectQuery(data));
+      return dataPromise.then(data => this.handleSelectQuery(data), error => this.convertError(error));
     }
 
-    return dataPromise.then(data => this.processResults(data));
+    return dataPromise.then(data => this.processResults(data), error => this.convertError(error));
   }
 
   // TBD: comment better; no longer async
