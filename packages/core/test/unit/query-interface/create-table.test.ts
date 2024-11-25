@@ -40,6 +40,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      duckdb: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID); COMMENT ON COLUMN "table"."id" IS \'PRIMARY KEY\';',
     });
   });
 
@@ -93,6 +94,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      duckdb: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID); COMMENT ON COLUMN "table"."id" IS \'PRIMARY KEY\';',
     });
   });
 

@@ -54,14 +54,29 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions): string {
     const table = this.extractTableDetails(tableName);
 
-    // TBD: add schema to query
-    return `SELECT constraint_column_names as columnNames,
+    let sql = `SELECT constraint_column_names as columnNames,
         schema_name as referencedTableSchema,
         table_name as referencedTableName,
         constraint_text as definition,
         FROM duckdb_constraints()
-        WHERE table_name = ${this.escape(table.tableName)}
-            AND constraint_type = ${this.escape(options?.constraintType)}`;
+        WHERE table_name = ${this.escape(table.tableName)}`;
+    if (table.schema) {
+      sql += ` AND schema_name = ${this.escape(table.schema)}`;
+    }
+
+    if (options?.constraintType) {
+      sql += ` AND constraint_type = ${this.escape(options.constraintType)}`;
+    }
+
+    if (options?.constraintName) {
+      sql += ` AND constraint_name = ${this.escape(options.constraintName)}`;
+    }
+
+    if (options?.columnName) {
+      sql += ` AND contains(constraint_column_names, ${this.escape(options.columnName)})`;
+    }
+
+    return sql;
   }
 
   showIndexesQuery(_tableName: TableOrModel): string {
