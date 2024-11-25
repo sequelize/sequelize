@@ -127,7 +127,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
-      duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE);',
+      duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
     });
   });
 
@@ -146,7 +146,7 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT);',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';COMMENT ON COLUMN "myTable"."secondColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -183,7 +183,7 @@ describe('QueryGenerator#createTableQuery', () => {
         'snowflake db2':
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), PRIMARY KEY ("myColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"));',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -299,7 +299,7 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo);',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -404,7 +404,7 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn")); END`,
-      duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER);',
+      duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
     });
   });
 
@@ -423,7 +423,7 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER, "secondColumn" TEXT);',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER, "secondColumn" TEXT); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';COMMENT ON COLUMN "myTable"."secondColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -444,7 +444,7 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT NOT NULL, PRIMARY KEY (`secondColumn`, `thirdColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT);',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT); COMMENT ON COLUMN "myTable"."secondColumn" IS \'PRIMARY KEY\';COMMENT ON COLUMN "myTable"."thirdColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -461,7 +461,7 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
-        duckdb: 'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\'));',
+        duckdb: 'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\')); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
@@ -477,7 +477,7 @@ describe('QueryGenerator#createTableQuery', () => {
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));`,
         sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn")); END`,
-        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER(5) UNSIGNED);',
+        duckdb: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER(5) UNSIGNED); COMMENT ON COLUMN "myTable"."myColumn" IS \'PRIMARY KEY\';',
       },
     );
   });
