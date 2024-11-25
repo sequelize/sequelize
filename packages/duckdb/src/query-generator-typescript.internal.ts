@@ -31,6 +31,15 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables()';
   }
 
+  describeTableQuery(tableName: TableOrModel) {
+    const table = this.extractTableDetails(tableName);
+    let sql = 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment';
+    // TBD: restrict by catalog also
+    sql += ' FROM duckdb_columns()';
+    sql += ` WHERE table_name = '${table.tableName}' and schema_name = '${table.schema}'`;
+    return sql;
+  }
+
   // copied from sqlite
   private escapeTable(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);

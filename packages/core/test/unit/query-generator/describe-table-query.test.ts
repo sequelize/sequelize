@@ -75,6 +75,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
+        duckdb: "from duckdb_columns() where table_name = 'myTable' and schema_name = 'main'",
     });
   });
 

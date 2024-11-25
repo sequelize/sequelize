@@ -50,6 +50,8 @@ export class DuckDbQuery extends AbstractQuery {
       throw new UniqueConstraintError({message: err.message});
     }
 
+    //console.log("*** got error: ", err);
+
     throw new DatabaseError(err);
   }
 
@@ -131,18 +133,20 @@ export class DuckDbQuery extends AbstractQuery {
       return [result, metadata];
     }
 
-    if (this.isShowOrDescribeQuery()) {
-      //console.log("*** SHOW OR DESCRIBE: ", data);
+    if (this.isShowOrDescribeQuery() || this.sql.includes('FROM duckdb_columns()')) {
       const describeResult = {};
       for (const column of data) {
         //console.log("Found column: ", column)
         describeResult[column.column_name] = {
           type: column.column_type,
-          allowNull: column.null === 'YES',
-          defaultValue: column.default,
-          primaryKey: column.key,
+          allowNull: column.null === 'YES' || column.is_nullable,
+          defaultValue: column.default || null,
+          primaryKey: column.key || false,
           unique: false,
         };
+        if (column.comment?.includes('PRIMARY KEY')) {
+          describeResult[column.column_name].primaryKey = true;
+        }
       }
 
       //console.log("Returning result: ", describeResult);

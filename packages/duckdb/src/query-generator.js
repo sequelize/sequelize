@@ -26,7 +26,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     let sequence_sql = '';
     const attrArray = [];
-    //const primaryKeys = [];
+    const primaryKeys = [];
 
     for (const attr in attributes) {
       const columnName = this.quoteIdentifier(attr);
@@ -34,7 +34,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
 
-        const table_prefix = this.quoteTable(table)
+        const table_prefix = table
             .replaceAll('"', '')
             .replaceAll('.', '_');
         const sequence_name = table_prefix + '_' + attr + '_seq';
@@ -48,7 +48,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
         if (dataType.includes(' PRIMARY KEY')) {
           dataType = dataType.replace(' PRIMARY KEY', '');
-          //primaryKeys.push(columnName);
+          primaryKeys.push(columnName);
         }
 
         attrArray.push(`${columnName} ${dataType}`);
@@ -57,11 +57,14 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     let attrStr = attrArray.join(', ');
     // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
-    // if (primaryKeys.length > 0) {
-    //   attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
-    // }
+    // but a hint is useful for describe tests
+    let commentStr = '';
+    //attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
+    for (const key of primaryKeys) {
+      commentStr += `COMMENT ON COLUMN ${table}.${key} IS 'PRIMARY KEY';`;
+    }
 
-    const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
+    const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr}); ${commentStr}`;
     //console.log("CREATE TABLE sql: ", sql);
     return sql;
   }
@@ -91,12 +94,11 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
         }
 
         // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
-        /*
         if (attribute.primaryKey) {
-          // will be replaced with PRIMARY KEY clause in createTableQuery
+          // will be replaced with a PRIMARY KEY comment in createTableQuery
           sql += ' PRIMARY KEY';
         }
-
+        /*
         // foreign keys are trouble because duckdb does not support adding/removing them,
         // so integration tests end up very unhappy -- constraints can't get dropped,
         // but tables can't get dropped while constraints exist.
@@ -150,7 +152,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     for (const attributeName in attributes) {
 
       let definition = fields[attributeName];
-      console.log("*** attr name = ", attributeName, "; definition = ", definition);
+      //console.log("*** attr name = ", attributeName, "; definition = ", definition);
       let attrSql = '';
 
 
