@@ -127,7 +127,6 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
-      duckdb: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE);',
     });
   });
 
