@@ -76,7 +76,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
-    if (model && this.sequelize.dialect.name !== 'sqlite3') {
+    if (model && this.sequelize.dialect.name !== 'sqlite3' && this.sequelize.dialect.name !== 'duckdb') {
       options.uniqueKeys = options.uniqueKeys || model.uniqueKeys;
     }
 

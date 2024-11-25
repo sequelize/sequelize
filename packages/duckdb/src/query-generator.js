@@ -2,11 +2,25 @@
 
 import isObject from "lodash/isObject";
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
+} from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js";
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
 export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
-  createTableQuery(tableName, attributes, _options) {
+  createTableQuery(tableName, attributes, options) {
+    // TBD: Remove exclusion in query-interface.js and add comment-on logic
+    if (options) {
+      rejectInvalidOptions(
+          'createTableQuery',
+          this.dialect,
+          CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+          {},
+          options,
+      );
+    }
 
     const table = this.quoteTable(tableName);
 
