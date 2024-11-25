@@ -6,6 +6,10 @@ import {
 } from '@sequelize/core';
 import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
 import { DuckDbDialect } from "./dialect";
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 
 export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: DuckDbQueryGeneratorInternal;
@@ -67,6 +71,16 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+          'truncateTableQuery',
+          this.dialect,
+          TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+          {},
+          options,
+      );
+    }
+
     return  `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 

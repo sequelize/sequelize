@@ -12,7 +12,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite3: ['DELETE FROM `myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `myTable`',
-      'postgres snowflake': 'TRUNCATE "myTable"',
+      'postgres snowflake duckdb': 'TRUNCATE "myTable"',
     });
   });
 
@@ -61,7 +61,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite3: ['DELETE FROM `MyModels`'],
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
-      'postgres snowflake': 'TRUNCATE "MyModels"',
+      'postgres snowflake duckdb': 'TRUNCATE "MyModels"',
     });
   });
 
@@ -74,7 +74,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite3: ['DELETE FROM `MyModels`'],
       'db2 ibmi': 'TRUNCATE TABLE "MyModels" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `MyModels`',
-      'postgres snowflake': 'TRUNCATE "MyModels"',
+      'postgres snowflake duckdb': 'TRUNCATE "MyModels"',
     });
   });
 
@@ -86,7 +86,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
         sqlite3: ['DELETE FROM `mySchema.myTable`'],
         'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
         'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
-        'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+        'postgres snowflake duckdb': 'TRUNCATE "mySchema"."myTable"',
       },
     );
   });
@@ -103,7 +103,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
         sqlite3: ['DELETE FROM `myTable`'],
         'db2 ibmi': 'TRUNCATE TABLE "myTable" IMMEDIATE',
         'mariadb mysql': 'TRUNCATE `myTable`',
-        'postgres snowflake': 'TRUNCATE "myTable"',
+        'postgres snowflake duckdb': 'TRUNCATE "myTable"',
       },
     );
   });
@@ -117,7 +117,7 @@ describe('QueryGenerator#truncateTableQuery', () => {
       sqlite3: ['DELETE FROM `mySchema.myTable`'],
       'db2 ibmi': 'TRUNCATE TABLE "mySchema"."myTable" IMMEDIATE',
       'mariadb mysql': 'TRUNCATE `mySchema`.`myTable`',
-      'postgres snowflake': 'TRUNCATE "mySchema"."myTable"',
+      'postgres snowflake duckdb': 'TRUNCATE "mySchema"."myTable"',
     });
   });
 
