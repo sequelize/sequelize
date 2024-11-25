@@ -12,7 +12,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     let sequence_sql = '';
     const attrArray = [];
-    const primaryKeys = [];
+    //const primaryKeys = [];
 
     for (const attr in attributes) {
       const columnName = this.quoteIdentifier(attr);
@@ -34,7 +34,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
         if (dataType.includes(' PRIMARY KEY')) {
           dataType = dataType.replace(' PRIMARY KEY', '');
-          primaryKeys.push(columnName);
+          //primaryKeys.push(columnName);
         }
 
         attrArray.push(`${columnName} ${dataType}`);
@@ -43,9 +43,9 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     let attrStr = attrArray.join(', ');
     // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
-    if (primaryKeys.length > 0) {
-      attrStr += `, PRIMARY KEY (${primaryKeys.join(', ')})`;
-    }
+    // if (primaryKeys.length > 0) {
+    //   attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
+    // }
 
     const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
     //console.log("CREATE TABLE sql: ", sql);

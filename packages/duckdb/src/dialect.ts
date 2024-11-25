@@ -69,7 +69,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       check: false,
       foreignKey: false,
       foreignKeyChecksDisableable: false,
-      primaryKey: true,
+      primaryKey: false,  // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       onUpdate: false,
       add: false,
       remove: false,
