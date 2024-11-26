@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import { createSingleTestSequelizeInstance } from '../support';
 
-describe.only('sequelize.withConnection', () => {
+describe('sequelize.withConnection', () => {
   it('reserves a connection, to ensure multiple queries run on the same connection', async () => {
     const sequelize = createSingleTestSequelizeInstance();
 

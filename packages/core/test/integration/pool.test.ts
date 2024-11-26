@@ -37,6 +37,7 @@ function assertSameConnection(
     case 'sqlite3':
     case 'mssql':
     case 'ibmi':
+    case 'duckdb':
       // @ts-expect-error -- untyped
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
@@ -69,6 +70,7 @@ function assertNewConnection(newConnection: AbstractConnection, oldConnection: A
     case 'mssql':
     case 'ibmi':
     case 'sqlite3':
+    case 'duckdb':
       // @ts-expect-error -- untyped
       expect(newConnection.dummyId).to.not.be.ok;
       // @ts-expect-error -- untyped
@@ -81,7 +83,7 @@ function assertNewConnection(newConnection: AbstractConnection, oldConnection: A
 }
 
 function attachMSSQLUniqueId(connection: AbstractConnection) {
-  if (['mssql', 'ibmi', 'sqlite3'].includes(dialectName)) {
+  if (['mssql', 'ibmi', 'sqlite3', 'duckdb'].includes(dialectName)) {
     // @ts-expect-error -- not typed, test only
     connection.dummyId = Math.random();
   }
@@ -110,11 +112,11 @@ describe('Pool', () => {
     it('should obtain new connection when old connection is abruptly closed', async () => {
       async function simulateUnexpectedError(connection: AbstractConnection) {
         // should never be returned again
-        if (['mssql', 'ibmi', 'sqlite3'].includes(dialectName)) {
+        if (['mssql', 'ibmi', 'sqlite3', 'duckdb'].includes(dialectName)) {
           connection = attachMSSQLUniqueId(connection);
         }
 
-        if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3') {
+        if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3' || dialectName === 'duckdb') {
           await sequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
