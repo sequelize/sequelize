@@ -79,8 +79,15 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return sql;
   }
 
-  showIndexesQuery(_tableName: TableOrModel): string {
-    return "FROM duckdb_indexes()";
+  showIndexesQuery(tableName: TableOrModel): string {
+    const table = this.extractTableDetails(tableName);
+
+    let sql = `FROM duckdb_indexes() WHERE table_name = ${this.escape(table.tableName)}`;
+    if (table.schema) {
+      sql += ` AND schema_name = ${this.escape(table.schema)}`;
+    }
+
+    return sql;
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions): string {

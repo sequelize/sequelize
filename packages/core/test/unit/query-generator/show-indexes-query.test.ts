@@ -29,6 +29,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      duckdb: 'FROM duckdb_indexes() WHERE table_name = \'myTable\' AND schema_name = \'main\'',
     });
   });
 
@@ -58,6 +59,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+      duckdb: 'FROM duckdb_indexes() WHERE table_name = \'MyModels\' AND schema_name = \'main\'',
     });
   });
 
@@ -88,6 +90,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+      duckdb: 'FROM duckdb_indexes() WHERE table_name = \'MyModels\' AND schema_name = \'main\'',
     });
   });
 
@@ -115,6 +118,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      duckdb: 'FROM duckdb_indexes() WHERE table_name = \'myTable\' AND schema_name = \'mySchema\'',
     });
   });
 
@@ -148,6 +152,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+        duckdb: 'FROM duckdb_indexes() WHERE table_name = \'myTable\' AND schema_name = \'main\'',
       },
     );
   });
@@ -179,6 +184,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      duckdb: 'FROM duckdb_indexes() WHERE table_name = \'myTable\' AND schema_name = \'mySchema\'',
     });
   });
 
