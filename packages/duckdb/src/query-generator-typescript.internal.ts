@@ -27,8 +27,13 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'SELECT library_version as version from pragma_version()';
   }
 
-  listTablesQuery(_options?: ListTablesQueryOptions): string {
-    return 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables()';
+  listTablesQuery(options?: ListTablesQueryOptions): string {
+    let sql = 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables()';
+    if (options?.schema) {
+      sql += ` WHERE schema_name = ${this.escape(options.schema)}`;
+    }
+
+    return sql;
   }
 
   describeTableQuery(tableName: TableOrModel) {
@@ -95,8 +100,12 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return super.startTransactionQuery(options);
   }
 
-  listSchemasQuery(_options?: ListSchemasQueryOptions): string {
-    let schemasToSkip = this.#internals.getTechnicalSchemaNames();
+  listSchemasQuery(options?: ListSchemasQueryOptions): string {
+
+    const schemasToSkip = [...this.#internals.getTechnicalSchemaNames()];
+    if (options && Array.isArray(options?.skip)) {
+      schemasToSkip.push(...options.skip);
+    }
 
     return `SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
   }
