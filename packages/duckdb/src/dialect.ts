@@ -103,6 +103,10 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     createSchema: {
       ifNotExists: true,
     },
+    dropSchema: {
+      cascade: true,
+      ifExists: true,
+    },
   });
 
   readonly Query = DuckDbQuery;
