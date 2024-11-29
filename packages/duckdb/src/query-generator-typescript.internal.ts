@@ -148,7 +148,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       );
     }
 
-    return super.renameTableQuery(beforeTableName, afterTableName, options);
+    return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(afterTable.tableName)}`;
   }
 
   /* createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
