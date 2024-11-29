@@ -70,7 +70,9 @@ export class DuckDbQuery extends AbstractQuery {
         loggingCompleteCallback();
         //console.log("results: ", data);
         return this.handleSelectQuery(data);
-      }, error => this.formatError(error));
+      }, error => {
+        throw this.formatError(error);
+      });
     }
 
     return dataPromise.then(data => {

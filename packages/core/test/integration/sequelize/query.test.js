@@ -26,7 +26,7 @@ const dialectName = getTestDialect();
 const queryGenerator = sequelize.queryGenerator;
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'duckdb'].includes(dialectName)) {
     return `"${str}"`;
   }
 
