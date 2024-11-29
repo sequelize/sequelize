@@ -89,7 +89,7 @@ describe(getTestDialectTeaser('fn()'), () => {
     });
   }
 
-  if (dialectName !== 'mssql' && dialectName !== 'postgres' && dialectName !== 'ibmi') {
+  if (dialectName !== 'mssql' && dialectName !== 'postgres' && dialectName !== 'duckdb' && dialectName !== 'ibmi') {
     it('accepts condition object (auto casting)', async () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [
