@@ -45,14 +45,13 @@ export class DuckDbQuery extends AbstractQuery {
     return this.runQueryInternal(sql, parameters, complete);
   }
 
-  convertError(err) {
+  formatError(err) {
     if (err.errorType === 'Constraint' && err.message.includes("violates unique constraint")) {
-      throw new UniqueConstraintError({message: err.message});
+      return new UniqueConstraintError({message: err.message});
     }
 
     //console.log("*** got error: ", err);
-
-    throw new DatabaseError(err);
+    return new DatabaseError(err);
   }
 
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
@@ -65,20 +64,21 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isSelectQuery()) {
-      // console.log("*** SELECT Query: ", sql, "params: ", parameters);
-      // console.log("results: ", data);
+      //console.log("*** SELECT Query: ", sql, "params: ", parameters);
       return dataPromise.then(data => {
         loggingCompleteCallback();
-
+        //console.log("results: ", data);
         return this.handleSelectQuery(data);
-      }, error => this.convertError(error));
+      }, error => this.formatError(error));
     }
 
     return dataPromise.then(data => {
       loggingCompleteCallback();
 
       return this.processResults(data);
-    }, error => this.convertError(error));
+    }, error => {
+      throw this.formatError(error)
+    });
   }
 
   // TBD: comment better; no longer async
@@ -109,7 +109,7 @@ export class DuckDbQuery extends AbstractQuery {
         //console.log("*** NORMAL ID AUTOGENERATION; model", this.model, "model definition: ", modelDefinition);
 
         for (const column of Object.keys(data[0])) {
-          //console.log("*** NORMAL ID AUTOGENERATION: setting column " + column + " to value " + data[0][column]);
+          // console.log("*** NORMAL ID AUTOGENERATION: setting column " + column + " to value " + data[0][column]);
 
           const modelColumn = modelDefinition.columns.get(column);
           if (modelColumn) {
