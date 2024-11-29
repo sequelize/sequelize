@@ -46,11 +46,12 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   formatError(err) {
+    //console.log("*** got error: ", err);
     if (err.errorType === 'Constraint' && err.message.includes("violates unique constraint")) {
-      return new UniqueConstraintError({message: err.message});
+      // retry 'properly bind parameters on extra retries' test has a hardcoded condition with "Validation"
+      return new UniqueConstraintError({ message: `Validation error: ${err.message}`} );
     }
 
-    //console.log("*** got error: ", err);
     return new DatabaseError(err);
   }
 

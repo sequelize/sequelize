@@ -274,7 +274,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             dialectName === 'db2' ||
             dialectName === 'postgres' ||
             dialectName === 'mariadb' ||
-            dialectName === 'mysql'
+            dialectName === 'mysql' ||
+            dialectName === 'duckdb'
           ) {
             // these dialects use positional bind parameters
             expect(createSql.endsWith(` with parameters [ 'john', 'john@gmail.com' ]`)).to.eq(
