@@ -2,14 +2,16 @@ import {
   AbstractQueryGenerator, ListSchemasQueryOptions,
   ListTablesQueryOptions, NormalizedAttributeOptions, TruncateTableQueryOptions,
   ShowConstraintsQueryOptions, StartTransactionQueryOptions, TableName,
-  TableOrModel
+  TableOrModel, RenameTableQueryOptions
 } from '@sequelize/core';
 import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
 import { DuckDbDialect } from "./dialect";
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import {
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+
 
 export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: DuckDbQueryGeneratorInternal;
@@ -126,6 +128,29 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return  `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
+  renameTableQuery(beforeTableName: TableOrModel, afterTableName: TableOrModel, options?: RenameTableQueryOptions): string {
+    if (options) {
+      rejectInvalidOptions(
+          'renameTableQuery',
+          this.dialect,
+          RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+          {},
+          options,
+      );
+    }
+
+    const beforeTable = this.extractTableDetails(beforeTableName);
+    const afterTable = this.extractTableDetails(afterTableName);
+
+    if (beforeTable.schema !== afterTable.schema) {
+      throw new Error(
+          `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
+      );
+    }
+
+    return super.renameTableQuery(beforeTableName, afterTableName, options);
+  }
+
   /* createDatabaseQuery(_database: string, _options?: CreateDatabaseQueryOptions): string {
      return super.createDatabaseQuery(_database, _options);
    }
@@ -148,9 +173,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
      return super.dropTableQuery(tableName, options);
    }
 
-   renameTableQuery(beforeTableName: TableOrModel, afterTableName: TableOrModel, options?: RenameTableQueryOptions): string {
-     return super.renameTableQuery(beforeTableName, afterTableName, options);
-   }
+
 
    truncateTableQuery(_tableName: TableOrModel, _options?: TruncateTableQueryOptions): string | string[] {
      return super.truncateTableQuery(_tableName, _options);

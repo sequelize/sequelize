@@ -107,6 +107,10 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       cascade: true,
       ifExists: true,
     },
+    renameTable: {
+      changeSchema: false,
+      changeSchemaAndTable: false,
+    },
   });
 
   readonly Query = DuckDbQuery;
