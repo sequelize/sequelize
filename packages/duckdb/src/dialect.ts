@@ -166,7 +166,8 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
   escapeBuffer(buffer: Buffer): string {
     let escaped = "";
     for (const element of buffer) {
-      escaped += `\\x${ element.toString(16) }`;
+      const byte_str = element ? `\\x${element.toString(16)}` : '\\x00';
+      escaped += byte_str;
     }
 
     return `'${escaped}'::BLOB`;
