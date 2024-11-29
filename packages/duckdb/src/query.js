@@ -170,9 +170,10 @@ export class DuckDbQuery extends AbstractQuery {
 
     // TBD: return number of rows updated
     if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
-      return 0;
+      // this is not amazing since the result can be larger than Number,
+      // but Sequelize expects a Number...
+      return Number(data[0].Count);
     }
-
 
     console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
 
