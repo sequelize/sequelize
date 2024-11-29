@@ -145,6 +145,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   }
 
   changeColumnQuery(tableName, attributes) {
+    //console.log("*** changecolumnquery; attrs ", attributes);
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -162,6 +163,9 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
         );
 
         //definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
+      } else if (definition.includes('NOT NULL')) {
+        // adding/removing constraints in ALTER TABLE is not supported
+        attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition.replace('NOT NULL', '')}`);
       } else {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
