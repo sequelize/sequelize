@@ -60,17 +60,12 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listDatabasesQuery(options?: ListDatabasesQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'listDatabasesQuery',
-        this.dialect,
-        LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
+    let sql = `SELECT DATABASE_NAME as "name", * FROM SNOWFLAKE.INFORMATION_SCHEMA.DATABASES WHERE "name" NOT IN ('SNOWFLAKE', 'SNOWFLAKE$GDS')`;
+    if (options?.skip) {
+      sql += ` AND UPPER("name") NOT IN (${  options.skip.map(db => `UPPER(${this.escape(db)})`).join(', ')  })`;
     }
 
-    return `SHOW DATABASES`;
+    return sql;
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
