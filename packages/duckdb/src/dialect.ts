@@ -111,6 +111,9 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       changeSchema: false,
       changeSchemaAndTable: false,
     },
+    delete: {
+      limit: false,
+    },
   });
 
   readonly Query = DuckDbQuery;

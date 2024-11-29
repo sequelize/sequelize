@@ -1,6 +1,6 @@
 import {
   AbstractQueryGenerator, ListSchemasQueryOptions,
-  ListTablesQueryOptions, NormalizedAttributeOptions, TruncateTableQueryOptions,
+  ListTablesQueryOptions, TruncateTableQueryOptions,
   ShowConstraintsQueryOptions, StartTransactionQueryOptions, TableName,
   TableOrModel, RenameTableQueryOptions
 } from '@sequelize/core';
@@ -292,11 +292,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
      return super.tableExistsQuery(tableName);
    }
 
-   bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions): string {
-     return super.bulkDeleteQuery(tableOrModel, options);
-   }
-
-   __TEST__getInternals(): AbstractQueryGeneratorInternal<AbstractDialect> {
+  __TEST__getInternals(): AbstractQueryGeneratorInternal<AbstractDialect> {
      return super.__TEST__getInternals();
    }
  */
