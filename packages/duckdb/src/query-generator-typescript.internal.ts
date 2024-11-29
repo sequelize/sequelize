@@ -107,7 +107,9 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       schemasToSkip.push(...options.skip);
     }
 
-    return `SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
+    return `SELECT schema_name as schema FROM duckdb_schemas()
+        WHERE database_name = current_database()
+        AND schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
