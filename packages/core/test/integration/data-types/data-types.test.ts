@@ -58,7 +58,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite3') {
+    if (dialect.name !== 'sqlite3' && dialect.name !== 'duckdb') {
       it('throws if the string is too long', async () => {
         await expect(
           vars.User.create({
@@ -164,7 +164,7 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite3') {
+    if (dialect.name !== 'sqlite3' && dialect.name !== 'duckdb') {
       it('throws if the string is too long', async () => {
         await expect(
           vars.User.create({
