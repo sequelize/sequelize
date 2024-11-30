@@ -77,15 +77,18 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     groupedLimit: false,
     dataTypes: {
       CHAR: true,
-      COLLATE_BINARY: true,
+      COLLATE_BINARY: false,
       CITEXT: false,
       DECIMAL: {
-        unconstrained: true,
+        unconstrained: false,
         constrained: true,
-        NaN: true,
-        infinity: true,
+        NaN: false,
+        infinity: false,
       },
       JSON: true,
+      TIME: {
+        precision: false,
+      },
     },
     jsonOperations: false,
     jsonExtraction: {

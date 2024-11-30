@@ -38,16 +38,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
-      duckdb: 'VARCHAR',
+      'mssql postgres duckdb': binaryCollationUnsupportedError,
     });
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
-      duckdb: 'VARCHAR',
+      'mssql postgres duckdb': binaryCollationUnsupportedError,
     });
   });
 
@@ -153,13 +151,12 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
     testDataTypeSql('CHAR', DataTypes.CHAR, {
       default: 'CHAR(255)',
-      sqlite3: charNotSupportedError,
+      'sqlite3': charNotSupportedError,
       duckdb: 'VARCHAR',
     });
 
     testDataTypeSql('CHAR(12)', DataTypes.CHAR(12), {
       default: 'CHAR(12)',
-      sqlite3: charNotSupportedError,
       duckdb: 'VARCHAR',
     });
 
@@ -173,16 +170,14 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'CHAR(12) BINARY',
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
       sqlite3: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
-      duckdb: 'VARCHAR',
+      'postgres mssql duckdb': binaryNotSupportedError,
     });
 
     testDataTypeSql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
       default: 'CHAR(255) BINARY',
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
       sqlite3: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
-      duckdb: 'VARCHAR',
+      'postgres mssql duckdb': binaryNotSupportedError,
     });
   });
 });

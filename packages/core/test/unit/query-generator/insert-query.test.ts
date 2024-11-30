@@ -256,7 +256,7 @@ describe('QueryGenerator#insertQuery', () => {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
           duckdb: {
-            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+            sequelize_1: '2011-03-27 10:01:55.000+00:00',
           },
         },
       });

@@ -1,6 +1,7 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { BaseError } from '@sequelize/core';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import NodeUtil from 'node:util';
 
 
@@ -89,6 +90,11 @@ export class BIGINT extends BaseTypes.BIGINT {
   toSql(): string {
     return 'BIGINT';
   }
+
+  parseDatabaseValue(value: BigInt): unknown {
+    // Sequelize expects bigint to be represented as string
+    return value.toString();
+  }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {
@@ -129,13 +135,25 @@ export class TIME extends BaseTypes.TIME {
 
 export class DATE extends BaseTypes.DATE {
   toSql(): string {
-    return 'DATE';
+    return 'TIMESTAMPTZ';
+  }
+
+  toBindableValue(date: AcceptedDate) {
+    // Z here means current timezone, _not_ UTC
+    return this._applyTimezone(date).format('YYYY-MM-DD HH:mm:ss.SSSZ');
   }
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
   toSql(): string {
     return 'DATE';
+  }
+
+  parseDatabaseValue(value: Date): unknown {
+    if (value) {
+      return this.toBindableValue(value);
+    }
+    return value;
   }
 }
 
@@ -160,6 +178,28 @@ export class JSON extends BaseTypes.JSON {
 
   toSql(): string {
     return 'JSON';
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    //console.log("*** TRYING TO PARSE", value);
+    if (typeof value === 'number') {
+      return value;
+    }
+
+    if (typeof value !== 'string') {
+      throw new Error(
+          `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
+      );
+    }
+
+    try {
+      return globalThis.JSON.parse(value);
+    } catch (error) {
+      throw new BaseError(
+          `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
+          { cause: error },
+      );
+    }
   }
 }
 

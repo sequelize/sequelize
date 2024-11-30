@@ -221,7 +221,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            duckdb: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            duckdb: { sequelize_1: '2015-01-20 00:00:00.000+00:00' },
           },
         },
       );
@@ -264,7 +264,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mysql: { sequelize_1: '2015-01-20 01:02:03.089' },
             sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
-            duckdb: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            duckdb: { sequelize_1: '2015-01-20 01:02:03.089+00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
           },
         },

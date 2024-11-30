@@ -286,24 +286,32 @@ describe('DataTypes', () => {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345');
+      } else if (dialect.name === 'duckdb') {
+        // DuckDB CHAR is just an alias for VARCHAR. It will honor the padding that is inserted.
+        await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345 ');
       } else {
         await testSimpleInOut(vars.User, 'charAttr', '123456', '123456'.padEnd(20, ' '));
       }
     });
 
-    it('throws if the string is too long', async () => {
-      await expect(
-        vars.User.create({
-          charAttr: '1'.repeat(21),
-        }),
-      ).to.be.rejected;
-    });
+    if (dialect.name !== 'duckdb') {
+      it('throws if the string is too long', async () => {
+        await expect(
+            vars.User.create({
+              charAttr: '1'.repeat(21),
+            }),
+        ).to.be.rejected;
+      });
+    }
 
     it('is deserialized as a string when DataType is not specified', async () => {
       if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOutRaw(vars.User, 'charAttr', '12345 ', '12345');
+      } else if (dialect.name === 'duckdb') {
+        // DuckDB CHAR is just an alias for VARCHAR. It will honor the padding that is inserted.
+        await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345 ');
       } else {
         await testSimpleInOutRaw(vars.User, 'charAttr', '123456', '123456'.padEnd(20, ' '));
       }
@@ -745,7 +753,12 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        if (dialect.name === 'duckdb') {
+          // DuckDB does not return plaintext values
+          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123n);
+        } else {
+          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        }
       });
 
       if (dialect.supports.dataTypes.INTS.unsigned) {
@@ -1195,7 +1208,9 @@ describe('DataTypes', () => {
             ? '2022-01-01 00:00:00.000 +00:00'
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
-              : '2022-01-01 00:00:00+00',
+                : dialect.name === 'duckdb'
+                  ? '2022-01-01T00:00:00.000Z'
+                    : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1233,7 +1248,7 @@ describe('DataTypes', () => {
 
     it('clamps to specified precision', async () => {
       // sqlite does not support restricting the precision
-      if (dialect.name !== 'sqlite3') {
+      if (dialect.name !== 'sqlite3' && dialect.name !== 'duckdb') {
         await testSimpleInOut(
           vars.User,
           'dateMinPrecisionAttr',
@@ -1315,7 +1330,6 @@ describe('DataTypes', () => {
       const record0 = await record1.update({
         dateAttr: null,
       });
-
       const record = await record0.reload();
       expect(record.dateAttr).to.be.eql(null);
     });
@@ -1334,7 +1348,7 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
     });
   });
 
@@ -1735,7 +1749,7 @@ describe('DataTypes', () => {
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
       if (dialect.name !== 'mariadb') {
-        if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite3' || dialect.name === 'duckdb') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
           it(`is deserialized as a JSON string value when DataType is not specified`, async () => {

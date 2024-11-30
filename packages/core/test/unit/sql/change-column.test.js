@@ -56,7 +56,7 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
       snowflake:
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
-      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT NOT NULL;'
+      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT ;'
     });
   });
 

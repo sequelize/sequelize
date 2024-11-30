@@ -424,6 +424,7 @@ Caused by: "undefined" cannot be escaped`),
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
           'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+          duckdb: `"dateAttr" = '2013-01-01 00:00:00.000+00:00'`,
         },
       );
 
@@ -573,6 +574,7 @@ Caused by: "undefined" cannot be escaped`),
           mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
           'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+          duckdb: `"dateAttr" = '2021-01-01 00:00:00.000+00:00'`,
         },
       );
 

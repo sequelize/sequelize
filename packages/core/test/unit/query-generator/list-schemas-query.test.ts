@@ -17,7 +17,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
       sqlite3: notSupportedError,
       postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology')`,
       snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys')`,
-      duckdb: 'SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (\'information_schema\', \'pg_catalog\')',
+      duckdb: 'SELECT schema_name as schema FROM duckdb_schemas() WHERE database_name = current_database() AND schema_name NOT IN (\'information_schema\', \'pg_catalog\')',
     });
   });
 
@@ -31,7 +31,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
       sqlite3: notSupportedError,
       postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology', 'test', 'Te''st2')`,
       snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys', 'test', 'Te''st2')`,
-      duckdb: 'SELECT schema_name as schema FROM duckdb_schemas() WHERE schema_name NOT IN (\'information_schema\', \'pg_catalog\', \'test\', \'Te\'\'st2\')',
+      duckdb: 'SELECT schema_name as schema FROM duckdb_schemas() WHERE database_name = current_database() AND schema_name NOT IN (\'information_schema\', \'pg_catalog\', \'test\', \'Te\'\'st2\')',
     });
   });
 });

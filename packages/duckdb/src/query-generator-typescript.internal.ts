@@ -141,7 +141,6 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const beforeTable = this.extractTableDetails(beforeTableName);
     const afterTable = this.extractTableDetails(afterTableName);
-    console.log("*** before schema: ", beforeTable, "; after: ", afterTable);
     if (beforeTable.schema !== afterTable.schema) {
       throw new Error(
           `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,

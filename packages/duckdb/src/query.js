@@ -4,6 +4,7 @@ import {
   AbstractQuery, DatabaseError, UniqueConstraintError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { isBigInt } from "@sequelize/utils";
 
 const debug = logger.debugContext('sql:duckdb');
 
@@ -55,11 +56,38 @@ export class DuckDbQuery extends AbstractQuery {
     return new DatabaseError(err);
   }
 
+  // This is slow and terrible, but Sequelize really wants untyped string values when used without a model
+  postprocessData(data, model) {
+    //console.log("*** postprocess data: is it plain? ", this.options);
+    if (!model) {
+      // Sequelize really wants plan text data in the absence of a model
+      for (const i in data) {
+        for (const key in data[i]) {
+          if (data[i][key] instanceof Date) {
+            //console.log("got date value; turning it into a string: ", key, data[key], "str:", data[i][key].toString());
+            data[i][key] = data[i][key].toISOString();
+          }
+
+        }
+      }
+    }
+    return data;
+  }
+
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
     //console.log("*** QUERY: ", sql);
     let dataPromise;
     if (parameters) {
-      dataPromise = this.connection.connection.all(sql, ...parameters);
+      // TODO: move this into overrides
+      const convertedParameters = parameters.map(p => {
+        if (isBigInt(p)) {
+          // TBD: BigInt binds as null in duckdb-node. check if Neo does better.
+          return p.toString();
+        }
+
+        return p;
+      });
+      dataPromise = this.connection.connection.all(sql, ...convertedParameters);
     } else {
       dataPromise = this.connection.connection.all(sql);
     }
@@ -68,8 +96,9 @@ export class DuckDbQuery extends AbstractQuery {
       //console.log("*** SELECT Query: ", sql, "params: ", parameters);
       return dataPromise.then(data => {
         loggingCompleteCallback();
-        //console.log("results: ", data);
-        return this.handleSelectQuery(data);
+        //console.log("results: ", data());
+        return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
+        //return this.handleSelectQuery(data);
       }, error => {
         throw this.formatError(error);
       });
@@ -116,7 +145,8 @@ export class DuckDbQuery extends AbstractQuery {
 
           const modelColumn = modelDefinition.columns.get(column);
           if (modelColumn) {
-            this.instance.set(modelColumn.attributeName, data[0][column], {
+            const val = data[0][column] ? modelColumn.type.parseDatabaseValue(data[0][column]) : data[0][column];
+            this.instance.set(modelColumn.attributeName, val, {
               raw: true,
               comesFromDatabase: true,
             });
@@ -157,7 +187,7 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isRawQuery()) {
-      // console.log("*** raw query..." + sql + "; data = ", data);
+      //console.log("************* RAW QUERY...; data = ", data);
 
       return [data, data];
     }

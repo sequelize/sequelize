@@ -17,7 +17,7 @@ describe('DataTypes.DATE', () => {
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
       sqlite3: 'TEXT',
-      duckdb: 'DATE',
+      duckdb: 'TIMESTAMPTZ',
     });
 
     testDataTypeSql('DATE(0)', DataTypes.DATE(0), {
@@ -26,7 +26,7 @@ describe('DataTypes.DATE', () => {
       'mariadb mysql': 'DATETIME(0)',
       'db2 ibmi snowflake': 'TIMESTAMP(0)',
       sqlite3: 'TEXT',
-      duckdb: 'DATE',
+      duckdb: 'TIMESTAMPTZ',
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
@@ -36,7 +36,7 @@ describe('DataTypes.DATE', () => {
       mariadb: 'DATETIME(6)',
       mysql: 'DATETIME(6)',
       sqlite3: 'TEXT',
-      duckdb: 'DATE',
+      duckdb: 'TIMESTAMPTZ',
     });
   });
 
@@ -140,7 +140,7 @@ describe('DataTypes.TIME', () => {
       db2: new Error(`db2 does not support the TIME(precision) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       sqlite3: 'TEXT',
-      duckdb: 'TIME',
+      duckdb: new Error('duckdb does not support the TIME(precision) data type.'),
     });
   });
 });
