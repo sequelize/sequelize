@@ -72,7 +72,7 @@
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.20",
     "@types/lodash": "4.17.13",
-    "@types/mocha": "10.0.9",
+    "@types/mocha": "10.0.10",
     "@types/node": "22.9.0",
     "chai": "4.5.0",
     "concurrently": "9.1.0",
