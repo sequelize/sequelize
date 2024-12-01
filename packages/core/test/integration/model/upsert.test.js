@@ -663,7 +663,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -675,7 +675,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -702,7 +702,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -714,7 +714,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -740,7 +740,7 @@ describe('Model', () => {
             );
             expect(user0.get('id')).to.equal('surya');
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
@@ -752,7 +752,7 @@ describe('Model', () => {
             );
             expect(user.get('id')).to.equal('surya');
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -775,7 +775,7 @@ describe('Model', () => {
             expect(user.name).to.equal('Test default value');
             expect(user.code).to.equal(2020);
 
-            if (['sqlite3', 'postgres'].includes(dialectName)) {
+            if (['sqlite3', 'postgres', 'duckdb'].includes(dialectName)) {
               expect(created).to.be.null;
             } else if (dialectName === 'db2') {
               expect(created).to.be.undefined;

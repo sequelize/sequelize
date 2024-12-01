@@ -122,7 +122,6 @@ export class DuckDbQuery extends AbstractQuery {
     //console.log("*** processing results for type ", this.options.type);
 
     if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
-      // console.log("*** INSERT/upsert query: " + sql);
 
       this.handleInsertQuery(data, metadata);
 
@@ -156,8 +155,8 @@ export class DuckDbQuery extends AbstractQuery {
 
       // console.log("**** INSERT QUERY; INSTANCE: ", this.instance);
 
-      // TBD: second parameter is number of affected rows
-      return [result, metadata];
+      // Second value should be whether or not the row was inserted, but there is no way to know
+      return [result, null];
 
     }
 

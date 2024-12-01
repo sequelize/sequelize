@@ -111,6 +111,7 @@ export class DuckDbQueryInterface<
         return this.sequelize.queryRaw(query, options);
     }
 
+    // TBD: upsert and bulk insert can probably hijack the query and modify return fields before delegating to super
     async bulkInsert(tableName: TableName, records: object[], inputOptions?: QiOptionsWithReplacements,
                      attributes?: Record<string, AttributeOptions>): Promise<object | number> {
 
