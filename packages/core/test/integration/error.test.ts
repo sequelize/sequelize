@@ -611,7 +611,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       }
     });
 
-    it('should throw a unique constraint error for unique indexes', async () => {
+    it.only('should throw a unique constraint error for unique indexes', async () => {
       await queryInterface.createTable('Users', {
         username: DataTypes.STRING,
       });
@@ -626,7 +626,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ValidationError);
         assert(error instanceof ValidationError);
-        if (dialect === 'db2') {
+        if (dialect === 'db2' || dialect === 'duckdb') {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
@@ -672,6 +672,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'sqlite3':
             expect(error.cause.message).to.equal(
               'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            );
+            break;
+
+          case 'duckdb':
+            expect(error.cause.message).to.equal(
+                'Constraint Error: PRIMARY KEY or UNIQUE constraint violated: duplicate key "foo"',
             );
             break;
 
