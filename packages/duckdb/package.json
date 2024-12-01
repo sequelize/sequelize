@@ -38,7 +38,7 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "duckdb-async": "1.0.0",
+    "duckdb-async": "1.1.3",
     "lodash": "^4.17.21"
   }
 }

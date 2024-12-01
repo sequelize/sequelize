@@ -2930,7 +2930,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    duckdb-async: "npm:1.0.0"
+    duckdb-async: "npm:1.1.3"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -6717,23 +6717,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"duckdb-async@npm:1.0.0":
-  version: 1.0.0
-  resolution: "duckdb-async@npm:1.0.0"
+"duckdb-async@npm:1.1.3":
+  version: 1.1.3
+  resolution: "duckdb-async@npm:1.1.3"
   dependencies:
-    duckdb: "npm:1.0.0"
-  checksum: 10c0/be083c8433b1a9b673ce8945f8bdaa57bf53c76a46c1ab788400215d88ab91f14dc80c86de4e008c9f9da75460aae21e5b3a6173cba629a40243e00302cbe7e2
+    duckdb: "npm:1.1.3"
+  checksum: 10c0/aa3866a2a44a49dda67aad30dc4fb4a405eb298a1ddd36cd9ce67b49e6f9dced5fa83d904c67443efd7c112d96e52f2b70bd0596763a81573c9b22b52e0ea7a1
   languageName: node
   linkType: hard
 
-"duckdb@npm:1.0.0":
-  version: 1.0.0
-  resolution: "duckdb@npm:1.0.0"
+"duckdb@npm:1.1.3":
+  version: 1.1.3
+  resolution: "duckdb@npm:1.1.3"
   dependencies:
     "@mapbox/node-pre-gyp": "npm:^1.0.0"
     node-addon-api: "npm:^7.0.0"
     node-gyp: "npm:^9.3.0"
-  checksum: 10c0/0b9d0b154b5a45d4c0421598cbd5f7aff3a006a8362fd4a01e3953972f4a61b92d8ad5c1d178a5517f86a649553d0ce41412683920177a78e94fb135a2403cde
+  checksum: 10c0/7cfb37046a90d4d37379a887c8da6da03c3ad2aabc69cccdaf12c505c58d3387db7b273b83695a5acbde3e865b10c6ff090c6610e0b23e1f423e2cd67727bdb6
   languageName: node
   linkType: hard
 
