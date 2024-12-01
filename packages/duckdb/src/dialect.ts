@@ -36,8 +36,8 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     inserts: {
       ignoreDuplicates: ' OR IGNORE',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
-      conflictFields: true,
-      onConflictWhere: true,
+      conflictFields: false,
+      onConflictWhere: false,
     },
     index: {
       collate: false,

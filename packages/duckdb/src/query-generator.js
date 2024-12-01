@@ -56,19 +56,17 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     }
 
     let attrStr = attrArray.join(', ');
-    // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
+    // foreign keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
     // but a hint is useful for describe tests
     let commentStr = '';
-    //attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
-    for (const key of primaryKeys) {
-      commentStr += `COMMENT ON COLUMN ${table}.${key} IS 'PRIMARY KEY';`;
+    if (primaryKeys.length) {
+      attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
     }
 
     const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr}); ${commentStr}`;
     //console.log("CREATE TABLE sql: ", sql);
     return sql;
   }
-
 
   attributesToSQL(attributes, options) {
     const result = {};
@@ -125,6 +123,39 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     }
 
     return result;
+  }
+
+/*  addIndexQuery(tableName, attributes, options, rawTablename) {
+    console.log("*** UNIQUE INDEXES ARE NOT SUPPORTED");
+
+    const table = this.quoteTable(tableName);
+    const actualIndexQuery = super.addIndexQuery(tableName, attributes, options, rawTablename);
+    return `COMMENT ON TABLE ${table} IS '${actualIndexQuery}'`;
+  }*/
+
+  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
+    const queryWithParams = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
+    //console.log("************** update sql before: ", queryWithParams.query);
+    const query2 = queryWithParams.query.replace('RETURNING *', '');
+    //console.log("************** update sql after: ", queryWithParams.query2);
+    queryWithParams.query = query2;
+
+    return queryWithParams;
+  }
+
+  arithmeticQuery(
+      operator,
+      tableName,
+      where,
+      incrementAmountsByAttribute,
+      extraAttributesToBeUpdated,
+      options,
+  ) {
+    const query = super.arithmeticQuery( operator, tableName,
+        where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
+
+    // "returning" triggers DuckDB overeager unique indexes check
+    return query.replace('RETURNING *', '');
   }
 
   addColumnQuery(table, key, dataType, options) {

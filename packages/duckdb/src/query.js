@@ -75,7 +75,7 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
-    //console.log("*** QUERY: ", sql);
+    //console.log("*** QUERY: ", sql, parameters);
     let dataPromise;
     if (parameters) {
       // TODO: move this into overrides
