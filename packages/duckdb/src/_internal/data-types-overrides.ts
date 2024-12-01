@@ -146,14 +146,7 @@ export class DATE extends BaseTypes.DATE {
 
 export class DATEONLY extends BaseTypes.DATEONLY {
   toSql(): string {
-    return 'DATE';
-  }
-
-  parseDatabaseValue(value: Date): unknown {
-    if (value) {
-      return this.toBindableValue(value);
-    }
-    return value;
+    return 'VARCHAR';
   }
 }
 
