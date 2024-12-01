@@ -59,7 +59,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     autoIncrement: {
       identityInsert: false,
       defaultValue: true,
-      update: true,
+      update: false,
     },
     constraints: {
       restrict: false,

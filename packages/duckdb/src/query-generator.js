@@ -134,13 +134,13 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     return `COMMENT ON TABLE ${table} IS '${actualIndexQuery}'`;
   }*/
 
-  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
+  updateQuery(tableName, values, where, options, columnDefinitions) {
 
     // RETURNING in an UPDATE query in the presence of unique constraints triggers duckdb constraint violation
     // See https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
     options.returning = false;
 
-    return super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
+    return super.updateQuery(tableName, values, where, options, columnDefinitions);
   }
 
   arithmeticQuery(
