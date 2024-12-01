@@ -423,7 +423,7 @@ describe('Model.update', () => {
       expect((await User.findByPk(94, { rejectOnEmpty: true })).id2).to.equal(8877);
     });
 
-    it('updates the attributes that we select only without updating createdAt', async () => {
+    it.only('updates the attributes that we select only without updating createdAt', async () => {
       const User = sequelize.define(
         'User1',
         {
@@ -456,7 +456,7 @@ describe('Model.update', () => {
               mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
               mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
               db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
-              ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+              'ibmi duckdb': `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
             });
           },
           returning: [sql.col('*')],
