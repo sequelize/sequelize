@@ -6,6 +6,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
 } from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js";
+import {difference} from "lodash";
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
@@ -134,13 +135,12 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   }*/
 
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
-    const queryWithParams = super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
-    //console.log("************** update sql before: ", queryWithParams.query);
-    const query2 = queryWithParams.query.replace('RETURNING *', '');
-    //console.log("************** update sql after: ", queryWithParams.query2);
-    queryWithParams.query = query2;
 
-    return queryWithParams;
+    // RETURNING in an UPDATE query in the presence of unique constraints triggers duckdb constraint violation
+    // See https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
+    options.returning = false;
+
+    return super.updateQuery(tableName, attrValueHash, where, options, columnDefinitions);
   }
 
   arithmeticQuery(

@@ -1,4 +1,12 @@
-import { AbstractQueryInterface, Model, QiUpsertOptions, QueryTypes, TableName } from "@sequelize/core";
+import {
+    AbstractQueryInterface,
+    AttributeOptions,
+    Model, NormalizedAttributeOptions,
+    QiOptionsWithReplacements,
+    QiUpsertOptions,
+    QueryTypes,
+    TableName
+} from "@sequelize/core";
 import type { DuckDbDialect } from "./dialect";
 import { DuckDbQueryInterfaceInternal } from "./query-interface.internal";
 import {
@@ -14,6 +22,11 @@ interface UpsertOptionsWithAllProperties<M extends Model> extends QiUpsertOption
     upsertKeys?: string[],
     conflictFields?: string[],
     replacement?: any,
+}
+
+interface QiOptionsWithReplacementsWithAllProperties extends QiOptionsWithReplacements {
+    updateOnDuplicate?: string[],
+    upsertKeys?: string[],
 }
 
 export class DuckDbQueryInterface<
@@ -33,6 +46,7 @@ export class DuckDbQueryInterface<
     async upsert<M extends Model>(tableName: TableName, insertValues: object, updateValues: object, where: object,
             inputOptions: QiUpsertOptions<M>): Promise<object> {
 
+        //console.log("********************* IS THIS GONIG THROUGH UPSERT? ************88");
         if (inputOptions?.bind) {
             assertNoReservedBind(inputOptions.bind);
         }
@@ -95,5 +109,25 @@ export class DuckDbQueryInterface<
         options.bind = combineBinds(options.bind || {}, bind || {});
 
         return this.sequelize.queryRaw(query, options);
+    }
+
+    async bulkInsert(tableName: TableName, records: object[], inputOptions?: QiOptionsWithReplacements,
+                     attributes?: Record<string, AttributeOptions>): Promise<object | number> {
+
+        const options: QiOptionsWithReplacementsWithAllProperties = { ...inputOptions, type: QueryTypes.INSERT };
+        if (options.updateOnDuplicate && options.upsertKeys) {
+            options.updateOnDuplicate = difference(options.updateOnDuplicate, options.upsertKeys);
+        }
+        //console.log("********************* IS THIS GONIG THROUGH bulk insert? ************", options);
+
+        const attrubutesWithCoercedType = attributes as { [columnName: string]: NormalizedAttributeOptions };
+        const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attrubutesWithCoercedType);
+
+        // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+        delete options.replacements;
+
+        const results = await this.sequelize.queryRaw(sql, options);
+
+        return results[0];
     }
 }
