@@ -611,7 +611,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       }
     });
 
-    it.only('should throw a unique constraint error for unique indexes', async () => {
+    it('should throw a unique constraint error for unique indexes', async () => {
       await queryInterface.createTable('Users', {
         username: DataTypes.STRING,
       });
