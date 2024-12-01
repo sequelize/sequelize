@@ -26,7 +26,9 @@ const debug = logger.debugContext('connection:hana');
 
 export type HanaClientModule = typeof HanaClient;
 
-export interface HanaConnection extends Connection, AbstractConnection {}
+export interface HanaConnection extends Connection, AbstractConnection {
+  id: number;
+}
 
 interface HanaClientConnectionOptions {
   // serverNode: string;
@@ -145,6 +147,12 @@ export class HanaConnectionManager extends AbstractConnectionManager<
         // tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
         // await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       }
+
+      const sql = 'SELECT CURRENT_CONNECTION FROM DUMMY;';
+      const result: { CURRENT_CONNECTION: number }[] = connection.exec(sql);
+      const connectionId = result[0]['CURRENT_CONNECTION'];
+
+      connection.id = connectionId;
 
       return connection;
     } catch (error) {
