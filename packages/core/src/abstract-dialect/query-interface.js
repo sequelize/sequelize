@@ -85,6 +85,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
+    // Snowflake requires special SQL commands for SEQUENCES
+    await this.ensureSequences(tableName, attributes, options, model);
+
     const modelTable = model?.table;
 
     if (!tableName.schema && (options.schema || modelTable?.schema)) {
@@ -858,6 +861,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @private
    */
   ensureEnums() {
+    // noop by default
+  }
+
+  /**
+   * @private
+   */
+  ensureSequences() {
     // noop by default
   }
 }
