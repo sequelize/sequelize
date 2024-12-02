@@ -36,6 +36,8 @@ export class HanaQueryInterfaceTypescript<
       throw new Error('Unable to start a transaction without transaction object!');
     }
 
+    const queryOptions = { ...options, transaction, supportsSearchPath: false };
+
     // options = { ...options, transaction: transaction.parent || transaction };
     // options.transaction.name = transaction.parent ? transaction.name : undefined;
 //     const sql = this.queryGenerator.startTransactionQuery(options);
@@ -46,6 +48,10 @@ export class HanaQueryInterfaceTypescript<
     connection.setAutoCommit(false);
 
 //     await this.sequelize.queryRaw(sql, options);
+
+    if (queryOptions.isolationLevel) {
+      await transaction.setIsolationLevel(queryOptions.isolationLevel);
+    }
   }
 
   async _commitTransaction(

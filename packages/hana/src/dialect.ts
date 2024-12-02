@@ -69,6 +69,7 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       schemas: true,
       // multiDatabases: false,
       // transactions: true,
+      connectionTransactionMethods: true,
       // settingIsolationLevelDuringTransaction: true,
       // transactionOptions: {
       //   type: false,

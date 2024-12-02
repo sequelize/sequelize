@@ -2,6 +2,7 @@ import type {
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   Expression,
+  IsolationLevel,
   RenameTableQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
@@ -335,37 +336,13 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'} AND TABLE_NAME = ${this.escape(table.tableName)}`;
   }
 
-  startTransactionQuery(options?: StartTransactionQueryOptions) {
-    console.log('generator.ts hana startTransactionQuery', options)
-    const transactionId = 'test_transaction';
-    return `SAVEPOINT ${this.quoteIdentifier(transactionId, true)};`;
-  }
+  setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
+    if (!this.dialect.supports.isolationLevels) {
+      throw new Error(`Isolation levels are not supported by ${this.dialect.name}.`);
+    }
 
-  // /**
-  //  * Returns a query that commits a transaction.
-  //  *
-  //  * @param  {Transaction} transaction An object with options.
-  //  * @returns {string}         The generated sql query.
-  //  * @private
-  //  */
-  // commitTransactionQuery(transaction) {
-  //   if (transaction.parent) {
-  //     return;
-  //   }
-
-  //   return 'COMMIT;';
-  // }
-
-  /**
-   * Returns a query that rollbacks a transaction.
-   *
-   * @param  {Transaction} transaction
-   * @returns {string}         The generated sql query.
-   * @private
-   */
-  rollbackTransactionQuery() {
-    console.log('generator.ts hana ···')
-    const transactionId = 'test_transaction';
-    return `ROLLBACK TO SAVEPOINT ${this.quoteIdentifier(transactionId, true)};`;
+    // hana dialect.supports.connectionTransactionMethods is true,
+    // but hana uses SQL statement to set isolation level.
+    return `SET TRANSACTION ISOLATION LEVEL ${isolationLevel}`;
   }
 }
