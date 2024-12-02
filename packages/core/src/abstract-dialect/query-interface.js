@@ -870,4 +870,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ensureSequences() {
     // noop by default
   }
+
+    /**
+   * @private
+   */
+  getNextPrimaryKeyValue() {
+    // noop by default
+  }
 }

@@ -26,7 +26,7 @@ export class SnowflakeQueryInterface<
         continue;
       }
 
-      const seqName = this.quoteIdentifier(`${table.tableName}_${keys[i]}_seq`);
+      const seqName = this.quoteIdentifier(this.getSequenceName(table.tableName, keys[i]));
       const sql = `CREATE SEQUENCE IF NOT EXISTS ${seqName}`;
       promises.push(
         this.sequelize.queryRaw(sql, {
@@ -39,5 +39,23 @@ export class SnowflakeQueryInterface<
     }
 
     await Promise.all(promises);
+  }
+
+  private async getNextPrimaryKeyValue(tableName: string, fieldName: string) {
+    const sequenceName = this.getSequenceName(tableName, fieldName);
+    const sql = `SELECT ${this.quoteIdentifier(sequenceName)}.nextval AS NEXT_VALUE`;
+
+    const row = await this.sequelize.queryRaw(sql, {
+      plain: true,
+      raw: true,
+      type: QueryTypes.SELECT,
+    });
+
+    // @ts-expect-error -- NEXT_VALUE is a valid property of a row
+    return row?.NEXT_VALUE;
+  }
+
+  private getSequenceName(tableName: string, fieldName: string) {
+    return `${tableName}_${fieldName}_seq`;
   }
 }
