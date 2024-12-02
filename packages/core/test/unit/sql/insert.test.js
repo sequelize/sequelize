@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error('missing dialect support for conflictWhere option'),
-          'postgres sqlite3 duckdb': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
+          'postgres sqlite3': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
         });
       },
     );
@@ -442,7 +442,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
-          'postgres sqlite3 duckdb':
+          'postgres sqlite3':
             "INSERT INTO [users] ([user_name],[pass_word]) VALUES ('testuser','12345') ON CONFLICT ([user_name]) WHERE [deleted_at] IS NULL DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];",
         });
       });

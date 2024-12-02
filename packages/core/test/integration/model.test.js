@@ -471,178 +471,181 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('should allow the user to specify indexes in options', async function () {
-      const indices = [
-        {
-          name: 'a_b_uniq',
-          unique: true,
-          method: 'BTREE',
-          fields: [
-            'fieldB',
-            {
-              attribute: 'fieldA',
-              collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
-              order:
-                dialectName === 'ibmi'
-                  ? ''
-                  : // MySQL doesn't support DESC indexes (will throw)
-                    // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-                    dialectName === 'mysql' || dialectName === 'mariadb'
-                    ? 'ASC'
-                    : `DESC`,
-              length: 5,
-            },
-          ],
-        },
-      ];
+    // DuckDB dialect does not support indexes
+    if (dialectName !== 'duckdb') {
+      it('should allow the user to specify indexes in options', async function () {
+        const indices = [
+          {
+            name: 'a_b_uniq',
+            unique: true,
+            method: 'BTREE',
+            fields: [
+              'fieldB',
+              {
+                attribute: 'fieldA',
+                collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+                order:
+                    dialectName === 'ibmi'
+                        ? ''
+                        : // MySQL doesn't support DESC indexes (will throw)
+                          // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+                        dialectName === 'mysql' || dialectName === 'mariadb'
+                            ? 'ASC'
+                            : `DESC`,
+                length: 5,
+              },
+            ],
+          },
+        ];
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
-        indices.push(
-          {
-            type: 'FULLTEXT',
-            fields: ['fieldC'],
-            concurrently: true,
-          },
-          {
-            type: 'FULLTEXT',
-            fields: ['fieldD'],
-          },
+        if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          indices.push(
+              {
+                type: 'FULLTEXT',
+                fields: ['fieldC'],
+                concurrently: true,
+              },
+              {
+                type: 'FULLTEXT',
+                fields: ['fieldD'],
+              },
+          );
+        }
+
+        const modelOptions = ['mariadb', 'mysql'].includes(dialectName)
+            ? {indexes: indices, engine: 'MyISAM'}
+            : {indexes: indices};
+
+        const Model = this.sequelize.define(
+            'model',
+            {
+              fieldA: DataTypes.STRING,
+              fieldB: DataTypes.INTEGER,
+              fieldC: DataTypes.STRING,
+              fieldD: DataTypes.STRING,
+            },
+            modelOptions,
         );
-      }
 
-      const modelOptions = ['mariadb', 'mysql'].includes(dialectName)
-        ? { indexes: indices, engine: 'MyISAM' }
-        : { indexes: indices };
+        await this.sequelize.sync();
+        await this.sequelize.sync(); // The second call should not try to create the indices again
+        const args = await this.sequelize.queryInterface.showIndex(Model.table);
+        let primary;
+        let idx1;
+        let idx2;
+        let idx3;
 
-      const Model = this.sequelize.define(
-        'model',
-        {
-          fieldA: DataTypes.STRING,
-          fieldB: DataTypes.INTEGER,
-          fieldC: DataTypes.STRING,
-          fieldD: DataTypes.STRING,
-        },
-        modelOptions,
-      );
+        switch (dialectName) {
+          case 'sqlite3': {
+            // PRAGMA index_info does not return the primary index
+            idx1 = args[0];
+            idx2 = args[1];
 
-      await this.sequelize.sync();
-      await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.table);
-      let primary;
-      let idx1;
-      let idx2;
-      let idx3;
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldB', length: undefined, order: undefined},
+              {attribute: 'fieldA', length: undefined, order: undefined},
+            ]);
 
-      switch (dialectName) {
-        case 'sqlite3': {
-          // PRAGMA index_info does not return the primary index
-          idx1 = args[0];
-          idx2 = args[1];
+            expect(idx2.fields).to.deep.equal([
+              {attribute: 'fieldC', length: undefined, order: undefined},
+            ]);
 
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined },
-            { attribute: 'fieldA', length: undefined, order: undefined },
-          ]);
+            break;
+          }
 
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
-          ]);
+          case 'db2': {
+            idx1 = args[1];
 
-          break;
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
+              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
+            ]);
+
+            break;
+          }
+
+          case 'ibmi': {
+            idx1 = args[0];
+
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldA', length: undefined, order: undefined, collate: undefined},
+              {attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
+            ]);
+
+            break;
+          }
+
+          case 'mssql': {
+            idx1 = args[0];
+
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
+              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
+            ]);
+
+            break;
+          }
+
+          case 'postgres': {
+            // Postgres returns indexes in alphabetical order
+            primary = args[2];
+            idx1 = args[0];
+            idx2 = args[1];
+            idx3 = args[2];
+
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
+              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US'},
+            ]);
+
+            expect(idx2.fields).to.deep.equal([
+              {attribute: 'fieldC', length: undefined, order: undefined, collate: undefined},
+            ]);
+
+            expect(idx3.fields).to.deep.equal([
+              {attribute: 'fieldD', length: undefined, order: undefined, collate: undefined},
+            ]);
+
+            break;
+          }
+
+          default: {
+            // And finally mysql returns the primary first, and then the rest in the order they were defined
+            primary = args[0];
+            idx1 = args[1];
+            idx2 = args[2];
+
+            expect(primary.primary).to.be.ok;
+
+            expect(idx1.type).to.equal('BTREE');
+            expect(idx2.type).to.equal('FULLTEXT');
+
+            expect(idx1.fields).to.deep.equal([
+              {attribute: 'fieldB', length: undefined, order: 'ASC'},
+              // length is a bigint, which is why it's returned as a string
+              {
+                attribute: 'fieldA',
+                length: '5',
+                // mysql & mariadb don't support DESC indexes
+                order: 'ASC',
+              },
+            ]);
+
+            expect(idx2.fields).to.deep.equal([
+              {attribute: 'fieldC', length: undefined, order: null},
+            ]);
+          }
         }
 
-        case 'db2': {
-          idx1 = args[1];
+        expect(idx1.name).to.equal('a_b_uniq');
+        expect(idx1.unique).to.be.ok;
 
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
-          ]);
-
-          break;
+        if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+          expect(idx2.name).to.equal('models_field_c');
+          expect(idx2.unique).not.to.be.ok;
         }
-
-        case 'ibmi': {
-          idx1 = args[0];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldA', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'mssql': {
-          idx1 = args[0];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'postgres': {
-          // Postgres returns indexes in alphabetical order
-          primary = args[2];
-          idx1 = args[0];
-          idx2 = args[1];
-          idx3 = args[2];
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' },
-          ]);
-
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          expect(idx3.fields).to.deep.equal([
-            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          break;
-        }
-
-        default: {
-          // And finally mysql returns the primary first, and then the rest in the order they were defined
-          primary = args[0];
-          idx1 = args[1];
-          idx2 = args[2];
-
-          expect(primary.primary).to.be.ok;
-
-          expect(idx1.type).to.equal('BTREE');
-          expect(idx2.type).to.equal('FULLTEXT');
-
-          expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            // length is a bigint, which is why it's returned as a string
-            {
-              attribute: 'fieldA',
-              length: '5',
-              // mysql & mariadb don't support DESC indexes
-              order: 'ASC',
-            },
-          ]);
-
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: null },
-          ]);
-        }
-      }
-
-      expect(idx1.name).to.equal('a_b_uniq');
-      expect(idx1.unique).to.be.ok;
-
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
-        expect(idx2.name).to.equal('models_field_c');
-        expect(idx2.unique).not.to.be.ok;
-      }
-    });
+      });
+    }
   });
 
   describe('build', () => {

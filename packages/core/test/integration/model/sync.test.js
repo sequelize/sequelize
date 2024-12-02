@@ -164,271 +164,274 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync({ alter: true });
   });
 
-  it('creates one unique index for unique:true column', async () => {
-    const User = sequelize.define('testSync', {
-      email: {
-        type: DataTypes.STRING,
-        unique: true,
-      },
-    });
-
-    await User.sync({ force: true });
-
-    const syncResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.have.length(1);
-    expect(syncResults[0].name).to.eq('test_syncs_email_unique');
-    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
-
-    await User.sync({ alter: true });
-
-    const alterResults = await getNonPrimaryIndexes(User);
-    expect(alterResults).to.deep.eq(
-      syncResults,
-      '"alter" should not create new indexes if they already exist.',
-    );
-  });
-
-  it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {
-    const User = sequelize.define(
-      'testSync',
-      {
+  // DuckDB dialect does not support indexes
+  if (sequelize.dialect.name !== 'duckdb') {
+    it('creates one unique index for unique:true column', async () => {
+      const User = sequelize.define('testSync', {
         email: {
           type: DataTypes.STRING,
           unique: true,
+        },
+      });
+
+      await User.sync({force: true});
+
+      const syncResults = await getNonPrimaryIndexes(User);
+      expect(syncResults).to.have.length(1);
+      expect(syncResults[0].name).to.eq('test_syncs_email_unique');
+      expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
+
+      await User.sync({alter: true});
+
+      const alterResults = await getNonPrimaryIndexes(User);
+      expect(alterResults).to.deep.eq(
+          syncResults,
+          '"alter" should not create new indexes if they already exist.',
+      );
+    });
+
+    it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {
+      const User = sequelize.define(
+          'testSync',
+          {
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+            phone: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          },
+          {
+            timestamps: false,
+            indexes: [{name: 'wow_my_index', fields: ['email', 'phone'], unique: true}],
+          },
+      );
+
+      await User.sync({force: true});
+
+      const syncResults = await getNonPrimaryIndexes(User);
+      syncResults.sort((a, b) => a.name.localeCompare(b.name));
+
+      expect(syncResults).to.have.length(3);
+      expect(syncResults[0].name).to.eq('test_syncs_email_unique');
+      expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
+      expect(syncResults[0].unique).to.eq(true, 'index should be unique');
+
+      expect(syncResults[1].name).to.eq('test_syncs_phone_unique');
+      expect(getIndexFields(syncResults[1])).to.deep.eq(['phone']);
+      expect(syncResults[1].unique).to.eq(true, 'index should be unique');
+
+      expect(syncResults[2].name).to.eq('wow_my_index');
+      expect(getIndexFields(syncResults[2])).to.deep.eq(['email', 'phone']);
+      expect(syncResults[2].unique).to.eq(true, 'index should be unique');
+
+      await User.sync({alter: true});
+
+      const alterResults = await getNonPrimaryIndexes(User);
+      expect(syncResults).to.deep.eq(
+          alterResults,
+          '"alter" should not create new indexes if they already exist.',
+      );
+    });
+
+    it('creates one unique index per unique:name column (1 column)', async () => {
+      const User = sequelize.define('testSync', {
+        email: {
+          type: DataTypes.STRING,
+          unique: 'wow_my_index',
+        },
+      });
+
+      await User.sync({force: true});
+
+      const syncResults = await getNonPrimaryIndexes(User);
+
+      expect(syncResults).to.have.length(1);
+      expect(syncResults[0].name).to.eq('wow_my_index');
+      expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
+      expect(syncResults[0].unique).to.eq(true, 'index should be unique');
+
+      await User.sync({alter: true});
+
+      const alterResults = await getNonPrimaryIndexes(User);
+      expect(syncResults).to.deep.eq(
+          alterResults,
+          '"alter" should not create new indexes if they already exist.',
+      );
+    });
+
+    it('creates one unique index per unique:name column (multiple columns)', async () => {
+      const User = sequelize.define('testSync', {
+        email: {
+          type: DataTypes.STRING,
+          unique: 'wow_my_index',
         },
         phone: {
           type: DataTypes.STRING,
-          unique: true,
+          unique: 'wow_my_index',
         },
-      },
-      {
-        timestamps: false,
-        indexes: [{ name: 'wow_my_index', fields: ['email', 'phone'], unique: true }],
-      },
-    );
+      });
 
-    await User.sync({ force: true });
+      await User.sync({force: true});
 
-    const syncResults = await getNonPrimaryIndexes(User);
-    syncResults.sort((a, b) => a.name.localeCompare(b.name));
+      const syncResults = await getNonPrimaryIndexes(User);
 
-    expect(syncResults).to.have.length(3);
-    expect(syncResults[0].name).to.eq('test_syncs_email_unique');
-    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
-    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
+      expect(syncResults).to.have.length(1);
+      expect(syncResults[0].name).to.eq('wow_my_index');
+      expect(getIndexFields(syncResults[0])).to.deep.eq(['email', 'phone']);
+      expect(syncResults[0].unique).to.eq(true, 'index should be unique');
 
-    expect(syncResults[1].name).to.eq('test_syncs_phone_unique');
-    expect(getIndexFields(syncResults[1])).to.deep.eq(['phone']);
-    expect(syncResults[1].unique).to.eq(true, 'index should be unique');
+      await User.sync({alter: true});
 
-    expect(syncResults[2].name).to.eq('wow_my_index');
-    expect(getIndexFields(syncResults[2])).to.deep.eq(['email', 'phone']);
-    expect(syncResults[2].unique).to.eq(true, 'index should be unique');
-
-    await User.sync({ alter: true });
-
-    const alterResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.deep.eq(
-      alterResults,
-      '"alter" should not create new indexes if they already exist.',
-    );
-  });
-
-  it('creates one unique index per unique:name column (1 column)', async () => {
-    const User = sequelize.define('testSync', {
-      email: {
-        type: DataTypes.STRING,
-        unique: 'wow_my_index',
-      },
-    });
-
-    await User.sync({ force: true });
-
-    const syncResults = await getNonPrimaryIndexes(User);
-
-    expect(syncResults).to.have.length(1);
-    expect(syncResults[0].name).to.eq('wow_my_index');
-    expect(getIndexFields(syncResults[0])).to.deep.eq(['email']);
-    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
-
-    await User.sync({ alter: true });
-
-    const alterResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.deep.eq(
-      alterResults,
-      '"alter" should not create new indexes if they already exist.',
-    );
-  });
-
-  it('creates one unique index per unique:name column (multiple columns)', async () => {
-    const User = sequelize.define('testSync', {
-      email: {
-        type: DataTypes.STRING,
-        unique: 'wow_my_index',
-      },
-      phone: {
-        type: DataTypes.STRING,
-        unique: 'wow_my_index',
-      },
-    });
-
-    await User.sync({ force: true });
-
-    const syncResults = await getNonPrimaryIndexes(User);
-
-    expect(syncResults).to.have.length(1);
-    expect(syncResults[0].name).to.eq('wow_my_index');
-    expect(getIndexFields(syncResults[0])).to.deep.eq(['email', 'phone']);
-    expect(syncResults[0].unique).to.eq(true, 'index should be unique');
-
-    await User.sync({ alter: true });
-
-    const alterResults = await getNonPrimaryIndexes(User);
-    expect(syncResults).to.deep.eq(
-      alterResults,
-      '"alter" should not create new indexes if they already exist.',
-    );
-  });
-
-  it('throws if a name collision occurs between two indexes', async () => {
-    expect(() => {
-      sequelize.define(
-        'testSync',
-        {
-          email: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-        },
-        {
-          timestamps: false,
-          indexes: [{ fields: ['email'], unique: true }],
-        },
+      const alterResults = await getNonPrimaryIndexes(User);
+      expect(syncResults).to.deep.eq(
+          alterResults,
+          '"alter" should not create new indexes if they already exist.',
       );
-    }).to.throwWithCause('Sequelize tried to give the name "test_syncs_email_unique" to index');
-  });
+    });
 
-  it('adds missing unique indexes to existing tables (unique attribute option)', async () => {
-    const User1 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-        },
-      },
-      { timestamps: false },
-    );
+    it('throws if a name collision occurs between two indexes', async () => {
+      expect(() => {
+        sequelize.define(
+            'testSync',
+            {
+              email: {
+                type: DataTypes.STRING,
+                unique: true,
+              },
+            },
+            {
+              timestamps: false,
+              indexes: [{fields: ['email'], unique: true}],
+            },
+        );
+      }).to.throwWithCause('Sequelize tried to give the name "test_syncs_email_unique" to index');
+    });
 
-    // create without the unique index
-    await User1.sync({ force: true });
+    it('adds missing unique indexes to existing tables (unique attribute option)', async () => {
+      const User1 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+            },
+          },
+          {timestamps: false},
+      );
 
-    // replace model (to emulate code changes)
-    const User2 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-      },
-      { timestamps: false },
-    );
+      // create without the unique index
+      await User1.sync({force: true});
 
-    const out1 = await getNonPrimaryIndexes(User1);
-    expect(out1).to.have.length(0);
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          },
+          {timestamps: false},
+      );
 
-    // alter to add the unique index
-    await User2.sync({ alter: true });
+      const out1 = await getNonPrimaryIndexes(User1);
+      expect(out1).to.have.length(0);
 
-    const out2 = await getNonPrimaryIndexes(User1);
+      // alter to add the unique index
+      await User2.sync({alter: true});
 
-    expect(out2).to.have.length(1);
-    expect(out2[0].name).to.eq('users_email_unique');
-    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
-    expect(out2[0].unique).to.eq(true, 'index should be unique');
-  });
+      const out2 = await getNonPrimaryIndexes(User1);
 
-  it('adds missing unique indexes to existing tables (index option)', async () => {
-    const User1 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-        },
-      },
-      { timestamps: false },
-    );
+      expect(out2).to.have.length(1);
+      expect(out2[0].name).to.eq('users_email_unique');
+      expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+      expect(out2[0].unique).to.eq(true, 'index should be unique');
+    });
 
-    // create without the unique index
-    await User1.sync({ force: true });
+    it('adds missing unique indexes to existing tables (index option)', async () => {
+      const User1 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+            },
+          },
+          {timestamps: false},
+      );
 
-    // replace model (to emulate code changes)
-    const User2 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-        },
-      },
-      {
-        timestamps: false,
-        indexes: [{ fields: ['email'], unique: true }],
-      },
-    );
+      // create without the unique index
+      await User1.sync({force: true});
 
-    const out1 = await getNonPrimaryIndexes(User1);
-    expect(out1).to.have.length(0);
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+            },
+          },
+          {
+            timestamps: false,
+            indexes: [{fields: ['email'], unique: true}],
+          },
+      );
 
-    // alter to add the unique index
-    await User2.sync({ alter: true });
+      const out1 = await getNonPrimaryIndexes(User1);
+      expect(out1).to.have.length(0);
 
-    const out2 = await getNonPrimaryIndexes(User1);
-    expect(out2).to.have.length(1);
-    expect(out2[0].name).to.eq('users_email_unique');
-    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
-    expect(out2[0].unique).to.eq(true, 'index should be unique');
-  });
+      // alter to add the unique index
+      await User2.sync({alter: true});
 
-  it('adds missing non-unique indexes to existing tables (index option)', async () => {
-    const User1 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-        },
-      },
-      { timestamps: false },
-    );
+      const out2 = await getNonPrimaryIndexes(User1);
+      expect(out2).to.have.length(1);
+      expect(out2[0].name).to.eq('users_email_unique');
+      expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+      expect(out2[0].unique).to.eq(true, 'index should be unique');
+    });
 
-    // create without the unique index
-    await User1.sync({ force: true });
+    it('adds missing non-unique indexes to existing tables (index option)', async () => {
+      const User1 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+            },
+          },
+          {timestamps: false},
+      );
 
-    // replace model (to emulate code changes)
-    const User2 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-        },
-      },
-      {
-        timestamps: false,
-        indexes: [{ fields: ['email'] }],
-      },
-    );
+      // create without the unique index
+      await User1.sync({force: true});
 
-    const out1 = await getNonPrimaryIndexes(User1);
-    expect(out1).to.have.length(0);
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+            },
+          },
+          {
+            timestamps: false,
+            indexes: [{fields: ['email']}],
+          },
+      );
 
-    // alter to add the unique index
-    await User2.sync({ alter: true });
+      const out1 = await getNonPrimaryIndexes(User1);
+      expect(out1).to.have.length(0);
 
-    const out2 = await getNonPrimaryIndexes(User1);
-    expect(out2).to.have.length(1);
-    expect(out2[0].name).to.eq('users_email');
-    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
-    expect(out2[0].unique).to.eq(false, 'index should not be unique');
-  });
+      // alter to add the unique index
+      await User2.sync({alter: true});
+
+      const out2 = await getNonPrimaryIndexes(User1);
+      expect(out2).to.have.length(1);
+      expect(out2[0].name).to.eq('users_email');
+      expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+      expect(out2[0].unique).to.eq(false, 'index should not be unique');
+    });
+  }
 
   it('adds missing unique columns to existing tables', async () => {
     const User1 = sequelize.define('User', {}, { timestamps: false });
@@ -472,7 +475,8 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   const SCHEMA_ONE = 'schema_one';
   const SCHEMA_TWO = 'schema_two';
 
-  if (sequelize.dialect.supports.schemas) {
+  // DuckDB dialect does not support indexes
+  if (sequelize.dialect.supports.schemas && sequelize.dialect.name !== 'duckdb') {
     it('can create two identically named indexes in different schemas', async () => {
       await Promise.all([sequelize.createSchema(SCHEMA_ONE), sequelize.createSchema(SCHEMA_TWO)]);
 
@@ -642,7 +646,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
-  if (sequelize.dialect.supports.schemas) {
+  if (sequelize.dialect.supports.schemas && sequelize.dialect.supports.constraints.foreignKey) {
     it('should not recreate a foreign key if it already exists when { alter: true } is used with a custom schema', async () => {
       const schema = 'test';
       await sequelize.createSchema(schema);

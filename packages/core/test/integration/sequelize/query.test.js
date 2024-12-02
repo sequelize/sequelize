@@ -97,34 +97,36 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     });
 
     describe('retry', () => {
-      it('properly bind parameters on extra retries', async function () {
-        const payload = {
-          username: 'test',
-          createdAt: '2010-10-10 00:00:00',
-          updatedAt: '2010-10-10 00:00:00',
-        };
+      if (sequelize.dialect.supports.constraints.unique) {
+        it('properly bind parameters on extra retries', async function () {
+          const payload = {
+            username: 'test',
+            createdAt: '2010-10-10 00:00:00',
+            updatedAt: '2010-10-10 00:00:00',
+          };
 
-        const spy = sinon.spy();
+          const spy = sinon.spy();
 
-        await this.User.create(payload);
+          await this.User.create(payload);
 
-        await expect(
-          this.sequelize.query(
-            `
+          await expect(
+              this.sequelize.query(
+                  `
           INSERT INTO ${qq(this.User.tableName)} (${qq('username')},${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `,
-            {
-              bind: payload,
-              logging: spy,
-              retry: {
-                max: 3,
-                match: [/Validation/],
-              },
-            },
-          ),
-        ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-        expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialectName) ? 1 : 3);
-      });
+                  {
+                    bind: payload,
+                    logging: spy,
+                    retry: {
+                      max: 3,
+                      match: [/Validation/],
+                    },
+                  },
+              ),
+          ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+          expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialectName) ? 1 : 3);
+        });
+      }
     });
 
     describe('logging', () => {

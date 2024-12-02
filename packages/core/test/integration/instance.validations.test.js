@@ -6,6 +6,8 @@ const expect = chai.expect;
 const { DataTypes, Sequelize } = require('@sequelize/core');
 const Support = require('./support');
 
+const dialect = Support.sequelize.dialect;
+
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {
     it('should allow us to update specific columns without tripping the validations', async function () {
@@ -75,81 +77,83 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       }
     });
 
-    it('should enforce a unique constraint', async function () {
-      const Model = this.sequelize.define('model', {
-        uniqueName: { type: DataTypes.STRING, unique: 'uniqueName' },
-      });
-      const records = [{ uniqueName: 'unique name one' }, { uniqueName: 'unique name two' }];
-      await Model.sync({ force: true });
-      const instance0 = await Model.create(records[0]);
-      expect(instance0).to.be.ok;
-      const instance = await Model.create(records[1]);
-      expect(instance).to.be.ok;
-      const err = await expect(Model.update(records[0], { where: { id: instance.id } })).to.be
-        .rejected;
-      expect(err).to.be.an.instanceOf(Error);
-      expect(err.errors).to.have.length(1);
-      if (Support.getTestDialect() === 'ibmi') {
-        expect(err.errors[0].message).to.include('Duplicate key value specified');
-      } else {
-        expect(err.errors[0].path).to.include('uniqueName');
-        expect(err.errors[0].message).to.include('must be unique');
-      }
-    });
-
-    if (Support.getTestDialect() !== 'ibmi') {
-      it('should allow a custom unique constraint error message', async function () {
+    if (dialect.supports.constraints.unique) {
+      it('should enforce a unique constraint', async function () {
         const Model = this.sequelize.define('model', {
-          uniqueName: {
-            type: DataTypes.STRING,
-            unique: { msg: 'custom unique error message' },
-          },
+          uniqueName: {type: DataTypes.STRING, unique: 'uniqueName'},
         });
-        const records = [{ uniqueName: 'unique name one' }, { uniqueName: 'unique name two' }];
-        await Model.sync({ force: true });
+        const records = [{uniqueName: 'unique name one'}, {uniqueName: 'unique name two'}];
+        await Model.sync({force: true});
         const instance0 = await Model.create(records[0]);
         expect(instance0).to.be.ok;
         const instance = await Model.create(records[1]);
         expect(instance).to.be.ok;
-        const err = await expect(Model.update(records[0], { where: { id: instance.id } })).to.be
-          .rejected;
+        const err = await expect(Model.update(records[0], {where: {id: instance.id}})).to.be
+            .rejected;
         expect(err).to.be.an.instanceOf(Error);
         expect(err.errors).to.have.length(1);
-        expect(err.errors[0].path).to.include('uniqueName');
-        expect(err.errors[0].message).to.equal('custom unique error message');
+        if (Support.getTestDialect() === 'ibmi') {
+          expect(err.errors[0].message).to.include('Duplicate key value specified');
+        } else {
+          expect(err.errors[0].path).to.include('uniqueName');
+          expect(err.errors[0].message).to.include('must be unique');
+        }
       });
 
-      it('should handle multiple unique messages correctly', async function () {
-        const Model = this.sequelize.define('model', {
-          uniqueName1: {
-            type: DataTypes.STRING,
-            unique: { msg: 'custom unique error message 1' },
-          },
-          uniqueName2: {
-            type: DataTypes.STRING,
-            unique: { msg: 'custom unique error message 2' },
-          },
+      if (Support.getTestDialect() !== 'ibmi') {
+        it('should allow a custom unique constraint error message', async function () {
+          const Model = this.sequelize.define('model', {
+            uniqueName: {
+              type: DataTypes.STRING,
+              unique: {msg: 'custom unique error message'},
+            },
+          });
+          const records = [{uniqueName: 'unique name one'}, {uniqueName: 'unique name two'}];
+          await Model.sync({force: true});
+          const instance0 = await Model.create(records[0]);
+          expect(instance0).to.be.ok;
+          const instance = await Model.create(records[1]);
+          expect(instance).to.be.ok;
+          const err = await expect(Model.update(records[0], {where: {id: instance.id}})).to.be
+              .rejected;
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.errors).to.have.length(1);
+          expect(err.errors[0].path).to.include('uniqueName');
+          expect(err.errors[0].message).to.equal('custom unique error message');
         });
-        const records = [
-          { uniqueName1: 'unique name one', uniqueName2: 'unique name one' },
-          { uniqueName1: 'unique name one', uniqueName2: 'this is ok' },
-          { uniqueName1: 'this is ok', uniqueName2: 'unique name one' },
-        ];
-        await Model.sync({ force: true });
-        const instance = await Model.create(records[0]);
-        expect(instance).to.be.ok;
-        const err0 = await expect(Model.create(records[1])).to.be.rejected;
-        expect(err0).to.be.an.instanceOf(Error);
-        expect(err0.errors).to.have.length(1);
-        expect(err0.errors[0].path).to.include('uniqueName1');
-        expect(err0.errors[0].message).to.equal('custom unique error message 1');
 
-        const err = await expect(Model.create(records[2])).to.be.rejected;
-        expect(err).to.be.an.instanceOf(Error);
-        expect(err.errors).to.have.length(1);
-        expect(err.errors[0].path).to.include('uniqueName2');
-        expect(err.errors[0].message).to.equal('custom unique error message 2');
-      });
+        it('should handle multiple unique messages correctly', async function () {
+          const Model = this.sequelize.define('model', {
+            uniqueName1: {
+              type: DataTypes.STRING,
+              unique: {msg: 'custom unique error message 1'},
+            },
+            uniqueName2: {
+              type: DataTypes.STRING,
+              unique: {msg: 'custom unique error message 2'},
+            },
+          });
+          const records = [
+            {uniqueName1: 'unique name one', uniqueName2: 'unique name one'},
+            {uniqueName1: 'unique name one', uniqueName2: 'this is ok'},
+            {uniqueName1: 'this is ok', uniqueName2: 'unique name one'},
+          ];
+          await Model.sync({force: true});
+          const instance = await Model.create(records[0]);
+          expect(instance).to.be.ok;
+          const err0 = await expect(Model.create(records[1])).to.be.rejected;
+          expect(err0).to.be.an.instanceOf(Error);
+          expect(err0.errors).to.have.length(1);
+          expect(err0.errors[0].path).to.include('uniqueName1');
+          expect(err0.errors[0].message).to.equal('custom unique error message 1');
+
+          const err = await expect(Model.create(records[2])).to.be.rejected;
+          expect(err).to.be.an.instanceOf(Error);
+          expect(err.errors).to.have.length(1);
+          expect(err.errors[0].path).to.include('uniqueName2');
+          expect(err.errors[0].message).to.equal('custom unique error message 2');
+        });
+      }
     }
   });
 

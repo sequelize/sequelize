@@ -81,12 +81,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             mssql:
               'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$sequelize_1 OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp WHERE [id] = $sequelize_2; SELECT * FROM @tmp',
-            'postgres duckdb':
+            postgres:
               'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             snowflake: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
-            default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',
-          },
+            duckdb: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
+            default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',},
           bind: {
             default: { sequelize_1: 'triggertest', sequelize_2: 2 },
           },

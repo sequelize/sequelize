@@ -97,7 +97,7 @@ export class DuckDbQuery extends AbstractQuery {
       //console.log("*** SELECT Query: ", sql, "params: ", parameters);
       return dataPromise.then(data => {
         loggingCompleteCallback();
-        //console.log("results: ", data());
+        //console.log("results: ", data);
         return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
         //return this.handleSelectQuery(data);
       }, error => {

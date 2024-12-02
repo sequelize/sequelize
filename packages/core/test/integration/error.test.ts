@@ -394,146 +394,148 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     });
   });
 
-  describe('ConstraintError', () => {
-    allowDeprecationsInSuite(['SEQUELIZE0007']);
+  if (sequelize.dialect.supports.constraints.unique) {
+    describe('ConstraintError', () => {
+      allowDeprecationsInSuite(['SEQUELIZE0007']);
 
-    for (const constraintTest of [
-      {
-        type: 'UniqueConstraintError',
-        exception: UniqueConstraintError,
-      },
-      {
-        type: 'ValidationError',
-        exception: ValidationError,
-      },
-    ]) {
-      it(`Can be intercepted as ${constraintTest.type} using .catch`, async () => {
-        const userSpy = spy();
-        const User = sequelize.define('user', {
-          first_name: {
-            type: DataTypes.STRING,
-            unique: 'unique_name',
-          },
-          last_name: {
-            type: DataTypes.STRING,
-            unique: 'unique_name',
-          },
-        });
+      for (const constraintTest of [
+        {
+          type: 'UniqueConstraintError',
+          exception: UniqueConstraintError,
+        },
+        {
+          type: 'ValidationError',
+          exception: ValidationError,
+        },
+      ]) {
+        it(`Can be intercepted as ${constraintTest.type} using .catch`, async () => {
+          const userSpy = spy();
+          const User = sequelize.define('user', {
+            first_name: {
+              type: DataTypes.STRING,
+              unique: 'unique_name',
+            },
+            last_name: {
+              type: DataTypes.STRING,
+              unique: 'unique_name',
+            },
+          });
 
-        const record = { first_name: 'jan', last_name: 'meier' };
-        await sequelize.sync({ force: true });
-        await User.create(record);
-
-        try {
+          const record = {first_name: 'jan', last_name: 'meier'};
+          await sequelize.sync({force: true});
           await User.create(record);
-        } catch (error) {
-          if (!(error instanceof constraintTest.exception)) {
-            throw error;
+
+          try {
+            await User.create(record);
+          } catch (error) {
+            if (!(error instanceof constraintTest.exception)) {
+              throw error;
+            }
+
+            await userSpy(error);
           }
 
-          await userSpy(error);
-        }
-
-        expect(userSpy).to.have.been.calledOnce;
-      });
-    }
-
-    // IBM i doesn't support newlines in identifiers
-    if (dialect !== 'ibmi') {
-      it('Supports newlines in keys', async () => {
-        const userSpy = spy();
-        const User = sequelize.define('user', {
-          name: {
-            type: DataTypes.STRING,
-            unique: 'unique \n unique',
-          },
+          expect(userSpy).to.have.been.calledOnce;
         });
+      }
 
-        await sequelize.sync({ force: true });
-        await User.create({ name: 'jan' });
-
-        try {
-          await User.create({ name: 'jan' });
-        } catch (error) {
-          if (!(error instanceof UniqueConstraintError)) {
-            throw error;
-          }
-
-          await userSpy(error);
-        }
-
-        expect(userSpy).to.have.been.calledOnce;
-      });
-
-      it('Works when unique keys are not defined in sequelize', async () => {
-        let User = sequelize.define(
-          'user',
-          {
+      // IBM i doesn't support newlines in identifiers
+      if (dialect !== 'ibmi') {
+        it('Supports newlines in keys', async () => {
+          const userSpy = spy();
+          const User = sequelize.define('user', {
             name: {
               type: DataTypes.STRING,
               unique: 'unique \n unique',
             },
-          },
-          { timestamps: false },
+          });
+
+          await sequelize.sync({force: true});
+          await User.create({name: 'jan'});
+
+          try {
+            await User.create({name: 'jan'});
+          } catch (error) {
+            if (!(error instanceof UniqueConstraintError)) {
+              throw error;
+            }
+
+            await userSpy(error);
+          }
+
+          expect(userSpy).to.have.been.calledOnce;
+        });
+
+        it('Works when unique keys are not defined in sequelize', async () => {
+          let User = sequelize.define(
+              'user',
+              {
+                name: {
+                  type: DataTypes.STRING,
+                  unique: 'unique \n unique',
+                },
+              },
+              {timestamps: false},
+          );
+
+          await sequelize.sync({force: true});
+          // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
+          User = sequelize.define(
+              'user',
+              {
+                name: DataTypes.STRING,
+              },
+              {timestamps: false},
+          );
+
+          await User.create({name: 'jan'});
+          // It should work even though the unique key is not defined in the model
+          await expect(User.create({name: 'jan'})).to.be.rejectedWith(UniqueConstraintError);
+
+          // And when the model is not passed at all
+          if (['db2', 'ibmi'].includes(dialect)) {
+            await expect(
+                sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
+            ).to.be.rejectedWith(UniqueConstraintError);
+          } else {
+            await expect(
+                sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
+            ).to.be.rejectedWith(UniqueConstraintError);
+          }
+        });
+      }
+
+      it('adds parent and sql properties', async () => {
+        const User = sequelize.define(
+            'user',
+            {
+              name: {
+                type: DataTypes.STRING,
+                unique: 'unique',
+              },
+            },
+            {timestamps: false},
         );
 
-        await sequelize.sync({ force: true });
-        // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
-        User = sequelize.define(
-          'user',
-          {
-            name: DataTypes.STRING,
-          },
-          { timestamps: false },
-        );
+        await sequelize.sync({force: true});
+        await User.create({name: 'jan'});
+        // Unique key
+        const error0 = await expect(User.create({name: 'jan'})).to.be.rejected;
+        expect(error0).to.be.instanceOf(UniqueConstraintError);
+        expect(error0).to.have.property('parent');
+        expect(error0).to.have.property('original');
+        expect(error0).to.have.property('sql');
 
-        await User.create({ name: 'jan' });
-        // It should work even though the unique key is not defined in the model
-        await expect(User.create({ name: 'jan' })).to.be.rejectedWith(UniqueConstraintError);
-
-        // And when the model is not passed at all
-        if (['db2', 'ibmi'].includes(dialect)) {
-          await expect(
-            sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
-          ).to.be.rejectedWith(UniqueConstraintError);
-        } else {
-          await expect(
-            sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
-          ).to.be.rejectedWith(UniqueConstraintError);
-        }
+        await User.create({id: 2, name: 'jon'});
+        // Primary key
+        const error = await expect(User.create({id: 2, name: 'jon'})).to.be.rejected;
+        expect(error).to.be.instanceOf(UniqueConstraintError);
+        expect(error).to.have.property('parent');
+        expect(error).to.have.property('original');
+        expect(error).to.have.property('sql');
       });
-    }
-
-    it('adds parent and sql properties', async () => {
-      const User = sequelize.define(
-        'user',
-        {
-          name: {
-            type: DataTypes.STRING,
-            unique: 'unique',
-          },
-        },
-        { timestamps: false },
-      );
-
-      await sequelize.sync({ force: true });
-      await User.create({ name: 'jan' });
-      // Unique key
-      const error0 = await expect(User.create({ name: 'jan' })).to.be.rejected;
-      expect(error0).to.be.instanceOf(UniqueConstraintError);
-      expect(error0).to.have.property('parent');
-      expect(error0).to.have.property('original');
-      expect(error0).to.have.property('sql');
-
-      await User.create({ id: 2, name: 'jon' });
-      // Primary key
-      const error = await expect(User.create({ id: 2, name: 'jon' })).to.be.rejected;
-      expect(error).to.be.instanceOf(UniqueConstraintError);
-      expect(error).to.have.property('parent');
-      expect(error).to.have.property('original');
-      expect(error).to.have.property('sql');
     });
-  });
+  }
 
   describe('Query Errors', () => {
     it('should throw a unique constraint error for unique constraints', async () => {
@@ -689,82 +691,84 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       }
     });
 
-    it('should throw a foreign key constraint error when deleting a parent row that has assocated child rows', async () => {
-      await queryInterface.createTable('Users', {
-        id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-        username: DataTypes.STRING,
-      });
+    if (sequelize.dialect.supports.constraints.foreignKey) {
+      it('should throw a foreign key constraint error when deleting a parent row that has assocated child rows', async () => {
+        await queryInterface.createTable('Users', {
+          id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+          username: DataTypes.STRING,
+        });
 
-      await queryInterface.createTable('Tasks', {
-        title: DataTypes.STRING,
-        userId: { type: DataTypes.INTEGER, allowNull: false },
-      });
+        await queryInterface.createTable('Tasks', {
+          title: DataTypes.STRING,
+          userId: {type: DataTypes.INTEGER, allowNull: false},
+        });
 
-      await queryInterface.addConstraint('Tasks', {
-        fields: ['userId'],
-        type: 'FOREIGN KEY',
-        name: 'Tasks_userId_Users_fk',
-        references: {
-          table: 'Users',
-          field: 'id',
-        },
-      });
+        await queryInterface.addConstraint('Tasks', {
+          fields: ['userId'],
+          type: 'FOREIGN KEY',
+          name: 'Tasks_userId_Users_fk',
+          references: {
+            table: 'Users',
+            field: 'id',
+          },
+        });
 
-      await queryInterface.bulkInsert('Users', [{ username: 'foo' }]);
-      await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
-      try {
-        await queryInterface.bulkDelete('Users');
-      } catch (error) {
-        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-        assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite3') {
-          expect(error.index).to.be.undefined;
-        } else {
-          expect(error.index).to.equal('Tasks_userId_Users_fk');
+        await queryInterface.bulkInsert('Users', [{username: 'foo'}]);
+        await queryInterface.bulkInsert('Tasks', [{title: 'task', userId: 1}]);
+        try {
+          await queryInterface.bulkDelete('Users');
+        } catch (error) {
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          assert(error instanceof ForeignKeyConstraintError);
+          if (dialect === 'sqlite3') {
+            expect(error.index).to.be.undefined;
+          } else {
+            expect(error.index).to.equal('Tasks_userId_Users_fk');
+          }
+
+          switch (dialect) {
+            case 'db2':
+              expect(error.table).to.equal('Tasks');
+              expect(error.fields).to.be.null;
+              expect(error.cause.message).to.contain(
+                  'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
+              );
+              break;
+
+            case 'mssql':
+              expect(error.table).to.equal('dbo.Tasks');
+              expect(error.fields).to.deep.equal(['userId']);
+              expect(error.cause.message).to.equal(
+                  'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
+              );
+              break;
+
+            case 'postgres':
+              expect(error.table).to.equal('Users');
+              expect(error.fields).to.be.null;
+              expect(error.cause.message).to.equal(
+                  'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
+              );
+              break;
+
+            case 'sqlite3':
+              expect(error.table).to.be.undefined;
+              expect(error.fields).to.be.undefined;
+              expect(error.cause.message).to.equal(
+                  'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+              );
+              break;
+
+            default:
+              expect(error.table).to.equal('Users');
+              expect(error.fields).to.deep.equal(['userId']);
+              expect(error.cause.message).to.contain(
+                  'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+              );
+          }
         }
-
-        switch (dialect) {
-          case 'db2':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain(
-              'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
-            );
-            break;
-
-          case 'mssql':
-            expect(error.table).to.equal('dbo.Tasks');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.equal(
-              'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
-            );
-            break;
-
-          case 'postgres':
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal(
-              'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
-            );
-            break;
-
-          case 'sqlite3':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
-            );
-            break;
-
-          default:
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain(
-              'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
-            );
-        }
-      }
-    });
+      });
+    }
 
     if (sequelize.dialect.supports.constraints.add) {
       it('should throw a foreign key constraint error when inserting a child row that has invalid parent row', async () => {
@@ -842,45 +846,47 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         }
       });
 
-      it('should throw an unknown constranit error for duplicate constraint names', async () => {
-        await queryInterface.createTable('Users', {
-          id: {type: DataTypes.INTEGER, allowNull: false},
-          username: DataTypes.STRING,
-        });
+      if (sequelize.dialect.supports.constraints.unique) {
+        it('should throw an unknown constranit error for duplicate constraint names', async () => {
+          await queryInterface.createTable('Users', {
+            id: {type: DataTypes.INTEGER, allowNull: false},
+            username: DataTypes.STRING,
+          });
 
-        await queryInterface.addConstraint('Users', {
-          type: 'PRIMARY KEY',
-          fields: ['id'],
-          name: 'unique_constraint',
-        });
-
-        try {
           await queryInterface.addConstraint('Users', {
-            type: 'UNIQUE',
-            fields: ['username'],
+            type: 'PRIMARY KEY',
+            fields: ['id'],
             name: 'unique_constraint',
           });
-        } catch (error) {
-          if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
-            expect(error).to.be.instanceOf(AggregateError);
-            assert(error instanceof AggregateError);
-            expect(error.errors).to.have.length(3);
-            expect(error.errors[0].message).to.equal(
-                "There is already an object named 'unique_constraint' in the database.",
-            );
-            expect(error.errors[1].message).to.equal(
-                'Could not create constraint or index. See previous errors.',
-            );
-            assert(error.errors[2] instanceof UnknownConstraintError);
-            expect(error.errors[2].constraint).to.equal('unique_constraint');
-            expect(error.errors[2].table).to.equal('Users');
-          } else {
-            expect(error).to.be.instanceOf(DatabaseError);
-            assert(error instanceof DatabaseError);
-            expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
+
+          try {
+            await queryInterface.addConstraint('Users', {
+              type: 'UNIQUE',
+              fields: ['username'],
+              name: 'unique_constraint',
+            });
+          } catch (error) {
+            if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
+              expect(error).to.be.instanceOf(AggregateError);
+              assert(error instanceof AggregateError);
+              expect(error.errors).to.have.length(3);
+              expect(error.errors[0].message).to.equal(
+                  "There is already an object named 'unique_constraint' in the database.",
+              );
+              expect(error.errors[1].message).to.equal(
+                  'Could not create constraint or index. See previous errors.',
+              );
+              assert(error.errors[2] instanceof UnknownConstraintError);
+              expect(error.errors[2].constraint).to.equal('unique_constraint');
+              expect(error.errors[2].table).to.equal('Users');
+            } else {
+              expect(error).to.be.instanceOf(DatabaseError);
+              assert(error instanceof DatabaseError);
+              expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
+            }
           }
-        }
-      });
+        });
+      }
     }
   });
 });

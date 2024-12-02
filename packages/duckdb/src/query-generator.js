@@ -61,7 +61,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     // but a hint is useful for describe tests
     let commentStr = '';
     if (primaryKeys.length) {
-      attrStr += `, PRIMARY KEY (${primaryKeys.join(',')})`;
+      attrStr += `, PRIMARY KEY (${primaryKeys.join(', ')})`;
     }
 
     const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr}); ${commentStr}`;
@@ -126,19 +126,23 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     return result;
   }
 
-/*  addIndexQuery(tableName, attributes, options, rawTablename) {
-    console.log("*** UNIQUE INDEXES ARE NOT SUPPORTED");
-
+  // In DuckDB, an index on the column renders the column impossible to update.
+  // Since updating values seems more useful than having indexes, but disabling indexes is not supported
+  // in Sequelize, turning any attempt to add index into a no-op comment.
+  addIndexQuery(tableName, attributes, options, rawTablename) {
     const table = this.quoteTable(tableName);
     const actualIndexQuery = super.addIndexQuery(tableName, attributes, options, rawTablename);
+
     return `COMMENT ON TABLE ${table} IS '${actualIndexQuery}'`;
-  }*/
+  }
 
   updateQuery(tableName, values, where, options, columnDefinitions) {
 
+    if (options?.returning) {
     // RETURNING in an UPDATE query in the presence of unique constraints triggers duckdb constraint violation
     // See https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
-    options.returning = false;
+      options.returning = false;
+    }
 
     return super.updateQuery(tableName, values, where, options, columnDefinitions);
   }

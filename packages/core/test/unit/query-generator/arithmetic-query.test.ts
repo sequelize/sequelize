@@ -23,14 +23,16 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sqlPlus, {
       default: `UPDATE [myTable] SET [foo]=[foo]+ 3`,
-      'postgres duckdb': `UPDATE "myTable" SET "foo"="foo"+ 3 RETURNING *`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.*`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ 3`,
     });
 
     expectsql(sqlMinus, {
       default: `UPDATE [myTable] SET [foo]=[foo]- 3`,
-      'postgres duckdb': `UPDATE "myTable" SET "foo"="foo"- 3 RETURNING *`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"- 3 RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]- 3 OUTPUT INSERTED.*`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"- 3`,
     });
   });
 
@@ -39,8 +41,9 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [myTable] SET [foo]=[foo]+ bar`,
-      'postgres duckdb': `UPDATE "myTable" SET "foo"="foo"+ bar RETURNING *`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"+ bar RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ bar OUTPUT INSERTED.*`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ bar`,
     });
   });
 
@@ -49,8 +52,9 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [myTable] SET [foo]=[foo]+ 3 WHERE [bar] = 'biz'`,
-      'postgres duckdb': `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz' RETURNING *`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz' RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz'`,
     });
   });
 
@@ -74,8 +78,9 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [myTable] SET [foo]=[foo]- -1`,
-      'postgres duckdb': `UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *`,
+      postgres: `UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *`,
       mssql: `UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"- -1`,
     });
   });
 
@@ -107,8 +112,9 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [Users] SET [age]=[age]+ 2,[name]='John' WHERE id = 47`,
-      'postgres duckdb': `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *`,
+      postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *`,
       mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]=N'John' OUTPUT INSERTED.* WHERE id = 47`,
+      duckdb: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47`,
     });
   });
 });
