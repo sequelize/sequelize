@@ -3192,7 +3192,7 @@ __metadata:
     "@oclif/test": "npm:3.2.15"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     ansis: "npm:^3.2.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.0"
@@ -3216,7 +3216,7 @@ __metadata:
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.12"
     "@types/lodash": "npm:4.17.13"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
@@ -3288,7 +3288,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
@@ -3308,7 +3308,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/lodash": "npm:4.17.13"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.9.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.0"
@@ -3346,7 +3346,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     "@types/sinon": "npm:17.0.3"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
@@ -3364,7 +3364,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.10"
     lodash: "npm:^4.17.21"
@@ -3381,7 +3381,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     "@types/pg": "npm:^8.11.4"
     chai: "npm:4.5.0"
     lodash: "npm:^4.17.21"
@@ -3423,7 +3423,7 @@ __metadata:
   dependencies:
     "@types/chai": "npm:4.3.20"
     "@types/lodash": "npm:^4.17.0"
-    "@types/mocha": "npm:10.0.9"
+    "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.0"
     expect-type: "npm:0.19.0"
@@ -4442,10 +4442,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/mocha@npm:10.0.9":
-  version: 10.0.9
-  resolution: "@types/mocha@npm:10.0.9"
-  checksum: 10c0/76dd782ac7e971ea159d4a7fd40c929afa051e040be3f41187ff03a2d7b3279e19828ddaa498ba1757b3e6b91316263bb7640db0e906938275b97a06e087b989
+"@types/mocha@npm:10.0.10":
+  version: 10.0.10
+  resolution: "@types/mocha@npm:10.0.10"
+  checksum: 10c0/d2b8c48138cde6923493e42b38e839695eb42edd04629abe480a8f34c0e3f50dd82a55832c2e8d2b6e6f9e4deb492d7d733e600fbbdd5a0ceccbcfc6844ff9d5
   languageName: node
   linkType: hard
 

@@ -72,7 +72,7 @@
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "1.0.0",
     "@types/lodash": "4.17.13",
-    "@types/mocha": "10.0.9",
+    "@types/mocha": "10.0.10",
     "@types/semver": "7.5.8",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "3.2.12",
