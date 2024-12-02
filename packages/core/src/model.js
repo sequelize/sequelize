@@ -2531,7 +2531,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 !instance ||
                 (key === model.primaryKeyAttribute &&
                   instance.get(model.primaryKeyAttribute) &&
-                  ['mysql', 'mariadb', 'sqlite3'].includes(dialect))
+                  ['mysql', 'mariadb', 'sqlite3', 'hana'].includes(dialect))
               ) {
                 // The query.js for these DBs is blind, it autoincrements the
                 // primarykey value, even if it was set manually. Also, it can
