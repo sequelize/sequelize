@@ -3948,10 +3948,10 @@ Instead of specifying a Model, either:
         // so we get the next ID before the insert.
         const nextPrimaryKey = await this.constructor.queryInterface.getNextPrimaryKeyValue(
           this.constructor.table.tableName,
-          primaryKeyName
-        )
+          primaryKeyName,
+        );
         if (nextPrimaryKey) {
-          this.set(primaryKeyName, nextPrimaryKey)
+          this.set(primaryKeyName, nextPrimaryKey);
         }
       }
 

@@ -871,7 +871,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // noop by default
   }
 
-    /**
+  /**
    * @private
    */
   getNextPrimaryKeyValue() {
