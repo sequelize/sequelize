@@ -1,4 +1,3 @@
-import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
