@@ -60,7 +60,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
       if (dataType.includes('AUTOINCREMENT')) {
         // Replace AUTOINCREMENT with DEFAULT <sequence name>.NEXTVAL
-        const sequenceName = this.quoteIdentifier(`${tableName}_${attr}_seq`);
+        const tblPart = tableName.tableName ? tableName.tableName : tableName;
+        const sequenceName = this.quoteIdentifier(`${tblPart}_${attr}_seq`);
         dataType = dataType.replace('AUTOINCREMENT', `DEFAULT ${sequenceName}.NEXTVAL`);
       }
 
