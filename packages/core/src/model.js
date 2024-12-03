@@ -3942,7 +3942,7 @@ Instead of specifying a Model, either:
     }
 
     if (this.isNewRecord === true) {
-      if (primaryKeyAttribute.autoIncrement) {
+      if (primaryKeyAttribute && primaryKeyAttribute.autoIncrement) {
         // Some dialects do not support returning the last inserted ID.
         // To overcome this limitation, we check if the dialect implements getNextPrimaryKeyValue,
         // so we get the next ID before the insert.
