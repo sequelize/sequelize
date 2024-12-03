@@ -1,6 +1,5 @@
-import { AbstractQueryInterface } from '@sequelize/core';
+import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import type { SnowflakeDialect } from './dialect.js';
-import { QueryTypes } from '@sequelize/core';
 
 export class SnowflakeQueryInterface<
   Dialect extends SnowflakeDialect = SnowflakeDialect,
@@ -12,14 +11,13 @@ export class SnowflakeQueryInterface<
    * To overcome this, we create a sequence for each autoincrement column,
    * and use it to get the next value.
    *
-   * @param {string} table  Table to create
-   * @param {object} attributes Object representing a list of normalized table attributes
-   * @param {object} [options]
-   * @param {Model}  [model]
+   * @param table  Table to create
+   * @param attributes Object representing a list of normalized table attributes
+   * @param [options]
    *
    * @protected
    */
-  async ensureSequences(table: any, attributes: any, options: any, model: any) {
+  async ensureSequences(table: any, attributes: any, options: any) {
     const keys = Object.keys(attributes);
     const keyLen = keys.length;
 
