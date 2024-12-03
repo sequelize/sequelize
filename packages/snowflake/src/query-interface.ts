@@ -6,7 +6,11 @@ export class SnowflakeQueryInterface<
   Dialect extends SnowflakeDialect = SnowflakeDialect,
 > extends AbstractQueryInterface<Dialect> {
   /**
-   * Ensure enum and their values.
+   * Ensure all required sequences are created for AUTOINCREMENT columns
+   *
+   * Snowflake doesn't support returning the last inserted ID for autoincrement columns.
+   * To overcome this, we create a sequence for each autoincrement column,
+   * and use it to get the next value.
    *
    * @param {string} table  Table to create
    * @param {object} attributes Object representing a list of normalized table attributes
