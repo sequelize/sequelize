@@ -1,3 +1,4 @@
+import type { ColumnsDescription, QueryRawOptions, TableName } from '@sequelize/core';
 import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import type { SnowflakeDialect } from './dialect.js';
 
@@ -17,7 +18,11 @@ export class SnowflakeQueryInterface<
    *
    * @protected
    */
-  async ensureSequences(table: any, attributes: any, options: any) {
+  async ensureSequences(
+    table: TableName,
+    attributes: Record<string, ColumnsDescription>,
+    options: QueryRawOptions,
+  ) {
     const keys = Object.keys(attributes);
     const keyLen = keys.length;
 
@@ -28,7 +33,8 @@ export class SnowflakeQueryInterface<
         continue;
       }
 
-      const seqName = this.quoteIdentifier(this.getSequenceName(table.tableName, keys[i]));
+      const tableName = typeof table === 'string' ? table : table.tableName;
+      const seqName = this.quoteIdentifier(this.getSequenceName(tableName, keys[i]));
       const sql = `CREATE SEQUENCE IF NOT EXISTS ${seqName}`;
       promises.push(
         this.sequelize.queryRaw(sql, {
