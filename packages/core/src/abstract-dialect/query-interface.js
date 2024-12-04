@@ -86,7 +86,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     await this.ensureEnums(tableName, attributes, options, model);
 
     // Snowflake requires special SQL commands for SEQUENCES
-    await this.ensureSequences(tableName, attributes, options, model);
+    await this.ensureSequences(tableName, attributes, options);
 
     const modelTable = model?.table;
 
