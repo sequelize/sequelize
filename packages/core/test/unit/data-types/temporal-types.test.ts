@@ -95,6 +95,7 @@ describe('DataTypes.DATEONLY', () => {
     testDataTypeSql('DATEONLY', DataTypes.DATEONLY, {
       default: 'DATE',
       sqlite3: 'TEXT',
+      duckdb: 'VARCHAR'
     });
   });
 
