@@ -224,7 +224,9 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               type: sequelize.dialect.supports.startTransaction.transactionType
                 ? TransactionType.EXCLUSIVE
                 : undefined,
-              isolationLevel: IsolationLevel.READ_UNCOMMITTED,
+              isolationLevel: dialectName === 'hana'
+                ? IsolationLevel.REPEATABLE_READ
+                : IsolationLevel.READ_UNCOMMITTED,
               constraintChecking: sequelize.dialect.supports.constraints.deferrable
                 ? ConstraintChecking.DEFERRED
                 : undefined,
