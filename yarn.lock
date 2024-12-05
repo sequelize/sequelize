@@ -3358,7 +3358,7 @@ __metadata:
     node-gyp: "npm:11.0.0"
     node-hook: "npm:1.0.0"
     nx: "npm:20.1.4"
-    prettier: "npm:3.3.3"
+    prettier: "npm:3.4.2"
     prettier-plugin-organize-imports: "npm:4.1.0"
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
@@ -13317,12 +13317,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:3.3.3":
-  version: 3.3.3
-  resolution: "prettier@npm:3.3.3"
+"prettier@npm:3.4.2":
+  version: 3.4.2
+  resolution: "prettier@npm:3.4.2"
   bin:
     prettier: bin/prettier.cjs
-  checksum: 10c0/b85828b08e7505716324e4245549b9205c0cacb25342a030ba8885aba2039a115dbcf75a0b7ca3b37bc9d101ee61fab8113fc69ca3359f2a226f1ecc07ad2e26
+  checksum: 10c0/99e076a26ed0aba4ebc043880d0f08bbb8c59a4c6641cdee6cdadf2205bdd87aa1d7823f50c3aea41e015e99878d37c58d7b5f0e663bba0ef047f94e36b96446
   languageName: node
   linkType: hard
 
