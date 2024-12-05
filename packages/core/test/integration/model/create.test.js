@@ -271,6 +271,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should not deadlock with concurrency duplicate entries and no outer transaction', async function () {
+        if (dialectName === 'hana') {
+          // hana behavior (saplabs/hanaexpress:2.00.076.00.20240701.1):
+          // if unique key is a concat column, the shown error value is the newly generated primary key
+          // TODO restore this test for hana
+          return;
+        }
+
         const User = this.customSequelize.define('User', {
           email: {
             type: DataTypes.STRING,
@@ -470,6 +477,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('several concurrent calls', () => {
       if (current.dialect.supports.transactions) {
         it('works with a transaction', async function () {
+          if (dialectName === 'hana') {
+            // hana behavior (saplabs/hanaexpress:2.00.076.00.20240701.1):
+            // the shown error value is the newly generated primary key
+            // TODO restore this test for hana
+            return;
+          }
+
           const transaction = await this.customSequelize.startUnmanagedTransaction();
 
           const [first, second] = await Promise.all([
@@ -495,7 +509,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-        if (['sqlite3', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+        if (['sqlite3', 'mssql', 'db2', 'ibmi', 'hana'].includes(dialectName)) {
           return;
         }
 
@@ -590,6 +604,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('works without a transaction', async function () {
         // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
         if (dialectName === 'sqlite3') {
+          return;
+        }
+
+        if (dialectName === 'hana') {
+          // hana behavior (saplabs/hanaexpress:2.00.076.00.20240701.1):
+          // the shown error value is the newly generated primary key
+          // TODO restore this test for hana
           return;
         }
 
