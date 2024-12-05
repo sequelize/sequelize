@@ -555,8 +555,13 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         } else {
           expect(error.errors).to.have.length(1);
           expect(error.errors[0].type).to.equal('unique violation');
-          if (dialect === 'sqlite3' || dialect === 'hana') {
+          if (dialect === 'sqlite3') {
             expect(error.errors[0].value).to.be.null;
+          } else if (dialect === 'hana') {
+            // TODO delete this else if branch after hana can return 'foo' in error message
+            const hexValue = '666f6f';
+            const acceptableValues = ['foo', hexValue];
+            expect(acceptableValues).to.contain(error.errors[0].value);
           } else {
             expect(error.errors[0].value).to.equal('foo');
           }
@@ -604,15 +609,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'hana':
-            expect(error.cause.message).to.match(
-              /SYSTEM:User/,
-            );
-            expect(error.cause.message).to.match(
-              /username/,
-            );
-            expect(error.cause.message).to.match(
-              /666f6f/,
-            );
+            expect(error.cause.message).to.contain('unique constraint violated: Table(Users)');
+            expect(error.errors[0].path).to.equal('username');
+            expect(error.errors[0].message).to.equal('username must be unique');
             break;
 
           default:
@@ -647,8 +646,13 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           );
           expect(error.errors[0].type).to.equal('unique violation');
           expect(error.errors[0].path).to.match(/(?:users_username_unique|username)/);
-          if (dialect === 'sqlite3' || dialect === 'hana') {
+          if (dialect === 'sqlite3') {
             expect(error.errors[0].value).to.be.null;
+          } else if (dialect === 'hana') {
+            // TODO delete this else if branch after hana can return foo in error message
+            const hexValue = '666f6f';
+            const acceptableValues = ['foo', hexValue];
+            expect(acceptableValues).to.contain(error.errors[0].value);
           } else {
             expect(error.errors[0].value).to.equal('foo');
           }

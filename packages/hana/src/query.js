@@ -465,17 +465,20 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
         });
       }
       case ERR_SQL_UNIQUE_VIOLATED: {
-        const match = err.message.match(
+        const indexMatch = err.message.match(
           /Index\((.*)\) with error: unique constraint violation/
         );
+        const columnMatch = err.message.match(/column='([^']*)'/);
+        const valueMatch = err.message.match(/value='([^']*)'/);
         let fields = {};
         let message = 'Validation error';
-        const values =  undefined;
-        const fieldKey = match ? match[1] : undefined;
-        const fieldVal = undefined;
+        const values = valueMatch ? [valueMatch[1]] : undefined;
+        const indexName = indexMatch ? indexMatch[1] : undefined;
+        const fieldKey = columnMatch ? columnMatch[1] : undefined;
+        const fieldVal = valueMatch ? valueMatch[1] : undefined;
         const uniqueKey =
           this.model &&
-          this.model.getIndexes().find(index => index.unique && index.name === fieldKey);
+          this.model.getIndexes().find(index => index.unique && index.name === indexName);
         if (uniqueKey) {
           if (uniqueKey.msg) {
             message = uniqueKey.msg;
@@ -486,7 +489,6 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
         }
 
         const errors = [];
-//        fields={};// for integration test 'should not deadlock with concurrency duplicate entries and no outer transaction'
         forOwn(fields, (value, field) => {
           errors.push(
             new ValidationErrorItem(
