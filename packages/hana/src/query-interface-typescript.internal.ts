@@ -64,8 +64,11 @@ export class HanaQueryInterfaceTypescript<
 
     const connection = transaction.getConnection() as HanaConnection;
     const commit = promisify(connection.commit.bind(connection));
-    await commit();
-    connection.setAutoCommit(true);
+    try {
+      await commit();
+    } finally {
+      connection.setAutoCommit(true);
+    }
 
     // return result;
   }
@@ -95,8 +98,11 @@ export class HanaQueryInterfaceTypescript<
 
     const connection = transaction.getConnection() as HanaConnection;
     const rollback = promisify(connection.rollback.bind(connection));
-    await rollback();
-    connection.setAutoCommit(true);
+    try {
+      await rollback();
+    } finally {
+      connection.setAutoCommit(true);
+    }
 
     // return result;
   }
