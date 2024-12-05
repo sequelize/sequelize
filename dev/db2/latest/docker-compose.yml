@@ -1,7 +1,7 @@
 services:
   db2-latest:
     container_name: sequelize-db2-latest
-    image: icr.io/db2_community/db2:11.5.9.0
+    image: icr.io/db2_community/db2:12.1.0.0
     privileged: true
     env_file: ../.env_list
     environment:
