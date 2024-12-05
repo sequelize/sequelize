@@ -430,7 +430,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow phantom reads with isolation level "REPEATABLE READ" as they use snapshot rather than locking.
-    if (['mariadb', 'mysql', 'postgres'].includes(dialectName)) {
+    if (['mariadb', 'mysql', 'postgres', 'hana'].includes(dialectName)) {
       it('should not read newly committed rows when using the REPEATABLE READ isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
@@ -482,7 +482,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-    if (!['postgres'].includes(dialectName)) {
+    if (!['postgres', 'hana'].includes(dialectName)) {
       it('should block updates after reading a row using SERIALIZABLE', async () => {
         const { User, transactionSequelize } = vars;
         const transactionSpy = sinon.spy();
