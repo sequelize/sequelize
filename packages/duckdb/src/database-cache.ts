@@ -1,8 +1,7 @@
 import { Database, Connection } from "duckdb-async";
 import { AbstractConnection } from "@sequelize/core";
 
-export interface DuckDbConnection extends AbstractConnection {
-    connection: Connection;
+export interface DuckDbConnection extends AbstractConnection, Connection {
     db_path: string;
     closed: boolean;
 }
@@ -37,8 +36,11 @@ export class DatabaseCache {
 
             return cachedDatabase.database.connect().then(connection => {
                 cachedDatabase.count++;
+                const sequelizeConnection = connection as DuckDbConnection;
+                sequelizeConnection.closed = false;
+                sequelizeConnection.db_path = db_path;
 
-                return { connection, closed: false, db_path };
+                return sequelizeConnection;
             });
         }
 
@@ -51,9 +53,12 @@ export class DatabaseCache {
         this.databaseCache.set(db_path, { database: newDatabase, count: 1 });
         //console.log("@@@ added ", db_path, "; db cache contains: ", this.databaseCache);
 
-        const connection = await newDatabase.connect();
+        const connection = await newDatabase.connect() as DuckDbConnection;
 
-        return { connection, closed: false, db_path: db_path };
+        connection.closed = false;
+        connection.db_path = db_path;
+
+        return connection;
     }
 
     async closeConnection(connection: DuckDbConnection): Promise<void> {
@@ -76,7 +81,7 @@ export class DatabaseCache {
             cachedDatabase.count--;
         }
 
-        return connection.connection.close();
+        return connection.close();
     }
 
 }

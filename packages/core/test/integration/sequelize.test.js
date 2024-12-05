@@ -639,115 +639,117 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           });
         }
 
-        it('supports nested transactions using savepoints', async () => {
-          const User = vars.sequelizeWithTransaction.define('Users', {
-            username: DataTypes.STRING,
-          });
-
-          await User.sync({ force: true });
-          const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
-          const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-            transaction: t1,
-          });
-          await user.update({ username: 'bar' }, { transaction: t2 });
-          await t2.commit();
-          const newUser = await user.reload({ transaction: t1 });
-          expect(newUser.username).to.equal('bar');
-
-          await t1.commit();
-        });
-
-        describe('supports rolling back to savepoints', () => {
-          beforeEach(async function () {
-            this.User = vars.sequelizeWithTransaction.define('user', {});
-            await vars.sequelizeWithTransaction.sync({ force: true });
-          });
-
-          it('rolls back to the first savepoint, undoing everything', async function () {
-            const transaction = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
-            this.transaction = transaction;
-
-            const sp1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-              transaction,
+        if (current.dialect.supports.savepoints) {
+          it('supports nested transactions using savepoints', async () => {
+            const User = vars.sequelizeWithTransaction.define('Users', {
+              username: DataTypes.STRING,
             });
-            this.sp1 = sp1;
-            await this.User.create({}, { transaction: this.transaction });
-            const sp2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-              transaction: this.transaction,
+
+            await User.sync({force: true});
+            const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
+            const user = await User.create({username: 'foo'}, {transaction: t1});
+            const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+              transaction: t1,
             });
-            this.sp2 = sp2;
-            await this.User.create({}, { transaction: this.transaction });
-            const users0 = await this.User.findAll({ transaction: this.transaction });
-            expect(users0).to.have.length(2);
+            await user.update({username: 'bar'}, {transaction: t2});
+            await t2.commit();
+            const newUser = await user.reload({transaction: t1});
+            expect(newUser.username).to.equal('bar');
 
-            await this.sp1.rollback();
-            const users = await this.User.findAll({ transaction: this.transaction });
-            expect(users).to.have.length(0);
-
-            await this.transaction.rollback();
+            await t1.commit();
           });
 
-          it('rolls back to the most recent savepoint, only undoing recent changes', async function () {
-            const transaction = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
-            this.transaction = transaction;
-
-            const sp1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-              transaction,
+          describe('supports rolling back to savepoints', () => {
+            beforeEach(async function () {
+              this.User = vars.sequelizeWithTransaction.define('user', {});
+              await vars.sequelizeWithTransaction.sync({force: true});
             });
-            this.sp1 = sp1;
-            await this.User.create({}, { transaction: this.transaction });
-            const sp2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-              transaction: this.transaction,
+
+            it('rolls back to the first savepoint, undoing everything', async function () {
+              const transaction = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
+              this.transaction = transaction;
+
+              const sp1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+                transaction,
+              });
+              this.sp1 = sp1;
+              await this.User.create({}, {transaction: this.transaction});
+              const sp2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+                transaction: this.transaction,
+              });
+              this.sp2 = sp2;
+              await this.User.create({}, {transaction: this.transaction});
+              const users0 = await this.User.findAll({transaction: this.transaction});
+              expect(users0).to.have.length(2);
+
+              await this.sp1.rollback();
+              const users = await this.User.findAll({transaction: this.transaction});
+              expect(users).to.have.length(0);
+
+              await this.transaction.rollback();
             });
-            this.sp2 = sp2;
-            await this.User.create({}, { transaction: this.transaction });
-            const users0 = await this.User.findAll({ transaction: this.transaction });
-            expect(users0).to.have.length(2);
 
-            await this.sp2.rollback();
-            const users = await this.User.findAll({ transaction: this.transaction });
-            expect(users).to.have.length(1);
+            it('rolls back to the most recent savepoint, only undoing recent changes', async function () {
+              const transaction = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
+              this.transaction = transaction;
 
-            await this.transaction.rollback();
-          });
-        });
+              const sp1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+                transaction,
+              });
+              this.sp1 = sp1;
+              await this.User.create({}, {transaction: this.transaction});
+              const sp2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+                transaction: this.transaction,
+              });
+              this.sp2 = sp2;
+              await this.User.create({}, {transaction: this.transaction});
+              const users0 = await this.User.findAll({transaction: this.transaction});
+              expect(users0).to.have.length(2);
 
-        it('supports rolling back a nested transaction', async () => {
-          const User = vars.sequelizeWithTransaction.define('Users', {
-            username: DataTypes.STRING,
-          });
+              await this.sp2.rollback();
+              const users = await this.User.findAll({transaction: this.transaction});
+              expect(users).to.have.length(1);
 
-          await User.sync({ force: true });
-          const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
-          const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-            transaction: t1,
-          });
-          await user.update({ username: 'bar' }, { transaction: t2 });
-          await t2.rollback();
-          const newUser = await user.reload({ transaction: t1 });
-          expect(newUser.username).to.equal('foo');
-
-          await t1.commit();
-        });
-
-        it('supports rolling back outermost transaction', async () => {
-          const User = vars.sequelizeWithTransaction.define('Users', {
-            username: DataTypes.STRING,
+              await this.transaction.rollback();
+            });
           });
 
-          await User.sync({ force: true });
-          const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
-          const user = await User.create({ username: 'foo' }, { transaction: t1 });
-          const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
-            transaction: t1,
+          it('supports rolling back a nested transaction', async () => {
+            const User = vars.sequelizeWithTransaction.define('Users', {
+              username: DataTypes.STRING,
+            });
+
+            await User.sync({force: true});
+            const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
+            const user = await User.create({username: 'foo'}, {transaction: t1});
+            const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+              transaction: t1,
+            });
+            await user.update({username: 'bar'}, {transaction: t2});
+            await t2.rollback();
+            const newUser = await user.reload({transaction: t1});
+            expect(newUser.username).to.equal('foo');
+
+            await t1.commit();
           });
-          await user.update({ username: 'bar' }, { transaction: t2 });
-          await t1.rollback();
-          const users = await User.findAll();
-          expect(users.length).to.equal(0);
-        });
+
+          it('supports rolling back outermost transaction', async () => {
+            const User = vars.sequelizeWithTransaction.define('Users', {
+              username: DataTypes.STRING,
+            });
+
+            await User.sync({force: true});
+            const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
+            const user = await User.create({username: 'foo'}, {transaction: t1});
+            const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction({
+              transaction: t1,
+            });
+            await user.update({username: 'bar'}, {transaction: t2});
+            await t1.rollback();
+            const users = await User.findAll();
+            expect(users.length).to.equal(0);
+          });
+        }
       });
     }
   });

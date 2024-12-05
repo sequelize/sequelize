@@ -102,7 +102,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     schemas: true,
     isolationLevels: false,
     bulkDefault: true,
-    transactions: false,
+    transactions: true,
     createSchema: {
       ifNotExists: true,
     },
@@ -117,6 +117,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     delete: {
       limit: false,
     },
+    savepoints: false,
   });
 
   readonly Query = DuckDbQuery;

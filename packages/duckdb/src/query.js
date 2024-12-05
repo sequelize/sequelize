@@ -24,7 +24,7 @@ export class DuckDbQuery extends AbstractQuery {
 
       const sequences = [];
       // clean up all the table's sequences
-      sequences.push(this.connection.connection.all(
+      sequences.push(this.connection.all(
           "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
           sequence_prefix
       ).then(seqResult => {
@@ -35,7 +35,7 @@ export class DuckDbQuery extends AbstractQuery {
         sequences.map(seqPromise => seqPromise.then(sequence => {
           if (sequence && sequence.length > 0 && "sequence_name" in sequence[0]) {
             //console.log("*** dropping sequence ", "DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
-            return this.connection.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
+            return this.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
           }
 
           return Promise.resolve();
@@ -88,9 +88,9 @@ export class DuckDbQuery extends AbstractQuery {
 
         return p;
       });
-      dataPromise = this.connection.connection.all(sql, ...convertedParameters);
+      dataPromise = this.connection.all(sql, ...convertedParameters);
     } else {
-      dataPromise = this.connection.connection.all(sql);
+      dataPromise = this.connection.all(sql);
     }
 
     if (this.isSelectQuery()) {

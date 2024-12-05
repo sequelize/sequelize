@@ -1050,68 +1050,70 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(test).to.equal(2);
       });
 
-      it('should be able to reference a table with a schema set', async function () {
-        const UserPub = this.sequelize.define(
-          'UserPub',
-          {
-            username: DataTypes.STRING,
-          },
-          { schema: 'prefix' },
-        );
+      if (dialect.supports.constraints.foreignKey) {
+        it('should be able to reference a table with a schema set', async function () {
+          const UserPub = this.sequelize.define(
+              'UserPub',
+              {
+                username: DataTypes.STRING,
+              },
+              {schema: 'prefix'},
+          );
 
-        const ItemPub = this.sequelize.define(
-          'ItemPub',
-          {
-            name: DataTypes.STRING,
-          },
-          { schema: 'prefix' },
-        );
+          const ItemPub = this.sequelize.define(
+              'ItemPub',
+              {
+                name: DataTypes.STRING,
+              },
+              {schema: 'prefix'},
+          );
 
-        UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
+          UserPub.hasMany(ItemPub, {foreignKeyConstraints: true});
 
-        await this.sequelize.queryInterface.createSchema('prefix');
+          await this.sequelize.queryInterface.createSchema('prefix');
 
-        let test = false;
+          let test = false;
 
-        await UserPub.sync({ force: true });
-        await ItemPub.sync({
-          force: true,
-          logging: afterLodash(
-            2,
-            once(sql => {
-              test = true;
-              switch (dialectName) {
-                case 'postgres':
-                case 'db2':
-                case 'ibmi': {
-                  expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
+          await UserPub.sync({force: true});
+          await ItemPub.sync({
+            force: true,
+            logging: afterLodash(
+                2,
+                once(sql => {
+                  test = true;
+                  switch (dialectName) {
+                    case 'postgres':
+                    case 'db2':
+                    case 'ibmi': {
+                      expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
-                  break;
-                }
+                      break;
+                    }
 
-                case 'mssql': {
-                  expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
+                    case 'mssql': {
+                      expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
 
-                  break;
-                }
+                      break;
+                    }
 
-                case 'mysql':
-                case 'mariadb': {
-                  expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
+                    case 'mysql':
+                    case 'mariadb': {
+                      expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
 
-                  break;
-                }
+                      break;
+                    }
 
-                default: {
-                  expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
-                }
-              }
-            }),
-          ),
+                    default: {
+                      expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
+                    }
+                  }
+                }),
+            ),
+          });
+
+          expect(test).to.be.true;
         });
-
-        expect(test).to.be.true;
-      });
+      }
 
       it('should be able to create and update records under any valid schematic', async function () {
         let logged = 0;
