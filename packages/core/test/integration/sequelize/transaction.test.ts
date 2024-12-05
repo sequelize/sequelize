@@ -294,7 +294,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
         await transactionSequelize.transaction(async transaction => {
           const level = dialectName === 'hana'
-            ? IsolationLevel.SERIALIZABLE
+            ? IsolationLevel.REPEATABLE_READ
             : IsolationLevel.READ_UNCOMMITTED;
           await transaction.setIsolationLevel(level);
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
