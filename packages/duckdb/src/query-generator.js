@@ -59,13 +59,12 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     let attrStr = attrArray.join(', ');
     // foreign keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
     // but a hint is useful for describe tests
-    let commentStr = '';
     if (primaryKeys.length) {
       attrStr += `, PRIMARY KEY (${primaryKeys.join(', ')})`;
     }
 
-    const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr}); ${commentStr}`;
-    //console.log("CREATE TABLE sql: ", sql);
+    const sql = `${sequence_sql}CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
+
     return sql;
   }
 
@@ -180,7 +179,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   }
 
   changeColumnQuery(tableName, attributes) {
-    //console.log("*** changecolumnquery; attrs ", attributes);
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -188,7 +186,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     for (const attributeName in attributes) {
 
       let definition = fields[attributeName];
-      //console.log("*** attr name = ", attributeName, "; definition = ", definition);
       let attrSql = '';
 
 

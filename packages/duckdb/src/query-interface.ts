@@ -46,7 +46,6 @@ export class DuckDbQueryInterface<
     async upsert<M extends Model>(tableName: TableName, insertValues: object, updateValues: object, where: object,
             inputOptions: QiUpsertOptions<M>): Promise<object> {
 
-        //console.log("********************* IS THIS GONIG THROUGH UPSERT? ************88");
         if (inputOptions?.bind) {
             assertNoReservedBind(inputOptions.bind);
         }
@@ -119,7 +118,6 @@ export class DuckDbQueryInterface<
         if (options.updateOnDuplicate && options.upsertKeys) {
             options.updateOnDuplicate = difference(options.updateOnDuplicate, options.upsertKeys);
         }
-        //console.log("********************* IS THIS GONIG THROUGH bulk insert? ************", options);
 
         const attrubutesWithCoercedType = attributes as { [columnName: string]: NormalizedAttributeOptions };
         const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attrubutesWithCoercedType);

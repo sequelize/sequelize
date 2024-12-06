@@ -94,7 +94,6 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
   }
 
   async connect(options: ConnectionOptions<SqliteDialect>): Promise<SqliteConnection> {
-    console.log("**** SQLITE CONNECT TO: " + options.storage);
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
     const storage = options.storage ?? path.join(process.cwd(), 'sequelize.sqlite');
     const inMemory = storage === ':memory:';

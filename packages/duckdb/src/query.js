@@ -34,7 +34,6 @@ export class DuckDbQuery extends AbstractQuery {
       return Promise.all(
         sequences.map(seqPromise => seqPromise.then(sequence => {
           if (sequence && sequence.length > 0 && "sequence_name" in sequence[0]) {
-            //console.log("*** dropping sequence ", "DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
             return this.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
           }
 
@@ -59,13 +58,11 @@ export class DuckDbQuery extends AbstractQuery {
 
   // This is slow and terrible, but Sequelize really wants untyped string values when used without a model
   postprocessData(data, model) {
-    //console.log("*** postprocess data: is it plain? ", this.options);
     if (!model) {
       // Sequelize really wants plan text data in the absence of a model
       for (const i in data) {
         for (const key in data[i]) {
           if (data[i][key] instanceof Date) {
-            //console.log("got date value; turning it into a string: ", key, data[key], "str:", data[i][key].toString());
             data[i][key] = data[i][key].toISOString();
           }
 
@@ -76,7 +73,6 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
-    //console.log("*** QUERY: ", sql, parameters);
     let dataPromise;
     if (parameters) {
       // TODO: move this into overrides
@@ -94,12 +90,10 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isSelectQuery()) {
-      //console.log("*** SELECT Query: ", sql, "params: ", parameters);
       return dataPromise.then(data => {
         loggingCompleteCallback();
-        //console.log("results: ", data);
+
         return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
-        //return this.handleSelectQuery(data);
       }, error => {
         throw this.formatError(error);
       });
@@ -120,28 +114,19 @@ export class DuckDbQuery extends AbstractQuery {
     const metadata = {};
     let result = this.instance;
 
-    //console.log("*** processing results for type ", this.options.type);
-
     if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
 
       this.handleInsertQuery(data, metadata);
 
-      // console.log("**** INSERT QUERY; GOT DATA: ", data);
       const modelDefinition = this.model?.modelDefinition;
 
       if (!this.instance) {
         // TBD: does a model need to be created?
-        //console.log("*** METADATA CONSTRUCTOR: ", metadata, "aliases mapping: ", this.options.aliasesMapping);
-
         // TBD bulk id insert?
         result = metadata[this.getInsertIdField()];
       } else {
         // why are there multiple rows?
-        //console.log("insert on existing instance; data = ", data);
-        //console.log("*** NORMAL ID AUTOGENERATION; model", this.model, "model definition: ", modelDefinition);
-
         for (const column of Object.keys(data[0])) {
-          // console.log("*** NORMAL ID AUTOGENERATION: setting column " + column + " to value " + data[0][column]);
 
           const modelColumn = modelDefinition.columns.get(column);
           if (modelColumn) {
@@ -154,22 +139,18 @@ export class DuckDbQuery extends AbstractQuery {
         }
       }
 
-      // console.log("**** INSERT QUERY; INSTANCE: ", this.instance);
-
       // Second value should be whether or not the row was inserted, but there is no way to know
       return [result, null];
 
     }
 
     if (this.isUpdateQuery()) {
-      //console.log("UPDATE QUERY; result = ", result);
       return [result, metadata];
     }
 
     if (this.isShowOrDescribeQuery() || this.sql.includes('FROM duckdb_columns()')) {
       const describeResult = {};
       for (const column of data) {
-        //console.log("Found column: ", column)
         describeResult[column.column_name] = {
           type: column.column_type,
           allowNull: column.null === 'YES' || column.is_nullable,
@@ -182,13 +163,10 @@ export class DuckDbQuery extends AbstractQuery {
         }
       }
 
-      //console.log("Returning result: ", describeResult);
       return describeResult;
     }
 
     if (this.isRawQuery()) {
-      //console.log("************* RAW QUERY...; data = ", data);
-
       return [data, data];
     }
 
@@ -204,8 +182,6 @@ export class DuckDbQuery extends AbstractQuery {
       // but Sequelize expects a Number...
       return Number(data[0].Count);
     }
-
-    console.log("SOMETHING UNIMPLEMENTED: " + this.options.type);
 
     return [data, data];
   }

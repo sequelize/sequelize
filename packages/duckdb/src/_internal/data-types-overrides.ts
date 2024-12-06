@@ -174,7 +174,6 @@ export class JSON extends BaseTypes.JSON {
   }
 
   parseDatabaseValue(value: unknown): unknown {
-    //console.log("*** TRYING TO PARSE", value);
     if (typeof value === 'number') {
       return value;
     }
