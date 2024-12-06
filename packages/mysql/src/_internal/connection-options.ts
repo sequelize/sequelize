@@ -35,6 +35,7 @@ const BOOLEAN_CONNECTION_OPTION_MAP = {
   insecureAuth: undefined,
   multipleStatements: undefined,
   waitForConnections: undefined,
+  jsonStrings: undefined,
 } as const satisfies Record<keyof BooleanConnectionOptions, undefined>;
 
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>(

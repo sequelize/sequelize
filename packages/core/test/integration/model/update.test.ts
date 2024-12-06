@@ -451,6 +451,8 @@ describe('Model.update', () => {
 
             expectsql(sqlQuery, {
               default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
+              sqlite3:
+                'UPDATE `users1` SET `secretValue`=$sequelize_1,`updatedAt`=$sequelize_2 WHERE `id` = $sequelize_3 RETURNING *',
               postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
               mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
               mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',

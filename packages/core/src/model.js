@@ -2535,7 +2535,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 !instance ||
                 (key === model.primaryKeyAttribute &&
                   instance.get(model.primaryKeyAttribute) &&
-                  ['mysql', 'mariadb', 'sqlite3'].includes(dialect))
+                  ['mysql', 'mariadb'].includes(dialect))
               ) {
                 // The query.js for these DBs is blind, it autoincrements the
                 // primarykey value, even if it was set manually. Also, it can
@@ -3946,6 +3946,19 @@ Instead of specifying a Model, either:
     }
 
     if (this.isNewRecord === true) {
+      if (primaryKeyAttribute && primaryKeyAttribute.autoIncrement) {
+        // Some dialects do not support returning the last inserted ID.
+        // To overcome this limitation, we check if the dialect implements getNextPrimaryKeyValue,
+        // so we get the next ID before the insert.
+        const nextPrimaryKey = await this.constructor.queryInterface.getNextPrimaryKeyValue(
+          this.constructor.table.tableName,
+          primaryKeyName,
+        );
+        if (nextPrimaryKey) {
+          this.set(primaryKeyName, nextPrimaryKey);
+        }
+      }
+
       if (createdAtAttr && !options.fields.includes(createdAtAttr)) {
         options.fields.push(createdAtAttr);
       }

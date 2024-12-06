@@ -1,9 +1,11 @@
+import checkbox from '@inquirer/checkbox';
+import confirm from '@inquirer/confirm';
+import input from '@inquirer/input';
+import select from '@inquirer/select';
 import type { Interfaces } from '@oclif/core';
 import { Command, Flags } from '@oclif/core';
-import type { Flag, FlagInput } from '@oclif/core/lib/interfaces/parser.js';
+import type { FlagInput } from '@oclif/core/lib/interfaces/parser.js';
 import { pojo } from '@sequelize/utils';
-import type { DistinctQuestion } from 'inquirer';
-import inquirer from 'inquirer';
 
 export type CommandFlags<Flags extends FlagInput> = Interfaces.InferredFlags<
   (typeof SequelizeCommand)['baseFlags'] & Flags
@@ -74,49 +76,56 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       strict: this.ctor.strict,
     });
 
-    const inquirerConfig: DistinctQuestion[] = [];
     for (const flagKey of Object.keys(strictFlagConfig)) {
       if (flagKey in flags) {
         continue;
       }
 
-      inquirerConfig.push(getInquirerConfig(flagKey, strictFlagConfig[flagKey]));
-    }
+      const flag = strictFlagConfig[flagKey];
+      switch (flag.type) {
+        case 'option': {
+          if (flag.options) {
+            flags[flagKey] = flag.multiple
+              ? // eslint-disable-next-line no-await-in-loop
+                await checkbox({
+                  message: `${flag.summary}`,
+                  required: flag.required,
+                  choices: flag.options,
+                })
+              : // eslint-disable-next-line no-await-in-loop
+                await select({
+                  message: `${flag.summary}`,
+                  choices: flag.options,
+                  default: flag.default,
+                });
+          } else {
+            // eslint-disable-next-line no-await-in-loop
+            flags[flagKey] = await input({
+              message: `${flag.summary}`,
+              required: flag.required,
+              default: flag.default,
+            });
+          }
 
-    const promptResult = await inquirer.prompt(inquirerConfig);
+          break;
+        }
 
-    for (const [key, value] of Object.entries(promptResult)) {
-      flags[key] = value;
+        case 'boolean': {
+          // eslint-disable-next-line no-await-in-loop
+          flags[flagKey] = await confirm({
+            message: `${flag.summary}`,
+          });
+
+          break;
+        }
+
+        default: {
+          // @ts-expect-error -- just in case
+          throw new Error(`Unsupported flag type: ${flag.type}`);
+        }
+      }
     }
 
     this.flags = flags as CommandFlags<Flags>;
   }
-}
-
-function getInquirerConfig(flagName: string, flag: Flag<unknown>): DistinctQuestion {
-  const commonOptions: DistinctQuestion = {
-    default: flag.default,
-    suffix: ` ${flag.summary}`,
-    name: flagName,
-  };
-
-  switch (flag.type) {
-    case 'option': {
-      if (flag.options) {
-        return {
-          ...commonOptions,
-          choices: flag.options,
-          type: flag.multiple ? 'checkbox' : 'list',
-        };
-      }
-
-      return { ...commonOptions, type: 'input' };
-    }
-
-    case 'boolean':
-      return { ...commonOptions, type: 'confirm' };
-  }
-
-  // @ts-expect-error -- just in case
-  throw new Error(`Unsupported flag type: ${flag.type}`);
 }

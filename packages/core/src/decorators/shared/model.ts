@@ -7,6 +7,7 @@ import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } fro
 import type { Sequelize } from '../../sequelize.js';
 import { isModelStatic } from '../../utils/model-utils.js';
 import { cloneDeep, getAllOwnEntries } from '../../utils/object.js';
+import type { InheritedAttributeOptions } from '../legacy/attribute.js';
 
 export interface RegisteredModelOptions extends ModelOptions {
   /**
@@ -17,7 +18,7 @@ export interface RegisteredModelOptions extends ModelOptions {
 }
 
 export interface RegisteredAttributeOptions {
-  [key: string]: Partial<AttributeOptions>;
+  [key: string]: InheritedAttributeOptions;
 }
 
 interface RegisteredOptions {
@@ -199,17 +200,23 @@ function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
 }
 
 function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeOptions {
-  const descendantAttributes = {
-    ...(registeredOptions.get(model)?.attributes ?? (EMPTY_OBJECT as RegisteredAttributeOptions)),
+  const descendantAttributes: RegisteredAttributeOptions = {
+    ...(registeredOptions.get(model)?.attributes ?? EMPTY_OBJECT),
   };
+  const insertAfterAttributes: RegisteredAttributeOptions = {};
+  const insertBeforeAttributes: RegisteredAttributeOptions = {};
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {
     const parentAttributes: RegisteredAttributeOptions = getRegisteredAttributeOptions(parentModel);
 
     for (const attributeName of Object.keys(parentAttributes)) {
-      const descendantAttribute = descendantAttributes[attributeName];
       const parentAttribute = { ...parentAttributes[attributeName] };
+      if (parentAttribute.insertBefore && parentAttribute.insertAfter) {
+        throw new Error(
+          `Attribute ${attributeName} on model ${model.name} cannot have both 'insertBefore' and 'insertAfter' set to true.`,
+        );
+      }
 
       if (parentAttribute.type) {
         if (typeof parentAttribute.type === 'function') {
@@ -225,9 +232,8 @@ function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeO
       parentAttribute.references = cloneDeep(parentAttribute.references);
       parentAttribute.validate = cloneDeep(parentAttribute.validate);
 
-      if (!descendantAttribute) {
-        descendantAttributes[attributeName] = parentAttribute;
-      } else {
+      const descendantAttribute = descendantAttributes[attributeName];
+      if (descendantAttribute) {
         descendantAttributes[attributeName] = mergeAttributeOptions(
           attributeName,
           model,
@@ -235,11 +241,19 @@ function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeO
           descendantAttribute,
           true,
         );
+      } else if (parentAttribute.insertBefore) {
+        insertBeforeAttributes[attributeName] = parentAttribute;
+      } else {
+        insertAfterAttributes[attributeName] = parentAttribute;
       }
     }
   }
 
-  return descendantAttributes;
+  return {
+    ...insertBeforeAttributes,
+    ...descendantAttributes,
+    ...insertAfterAttributes,
+  };
 }
 
 export function isDecoratedModel(model: ModelStatic): boolean {
