@@ -21,7 +21,7 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "@sequelize/postgres",
+  "name": "sequelize-postgres-papandreou",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
     "build": "../../build-packages.mjs postgres",
