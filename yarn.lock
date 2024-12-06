@@ -3305,7 +3305,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/ibm_db": "npm:^2.0.16"
+    "@types/ibm_db": "npm:^3.0.0"
     dayjs: "npm:^1.11.10"
     ibm_db: "npm:^3.2.3"
     lodash: "npm:^4.17.21"
@@ -4431,10 +4431,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/ibm_db@npm:^2.0.16":
-  version: 2.0.16
-  resolution: "@types/ibm_db@npm:2.0.16"
-  checksum: 10c0/a9f3b940b85af39d760601795d95086eee6d365b27e0e189458e33ef033c59557267b1053ca67d9e741921c525a262f54ea4bc2d97ba04add9a735a5fc2ba335
+"@types/ibm_db@npm:^3.0.0":
+  version: 3.2.0
+  resolution: "@types/ibm_db@npm:3.2.0"
+  checksum: 10c0/ba89ff6260247964aafaafc62214dbff9d9d86b22e70e64a2d62bd106fec9fb2c4cd9b27d0c985f190f20f7564d33608cadf017b0d0f7f5b0449731092712efe
   languageName: node
   linkType: hard
 
