@@ -1,11 +1,11 @@
 import {
     AbstractQueryInterface,
-    AttributeOptions,
+    AttributeOptions, CreateSavepointOptions,
     Model, NormalizedAttributeOptions,
     QiOptionsWithReplacements,
     QiUpsertOptions,
-    QueryTypes,
-    TableName
+    QueryTypes, RollbackSavepointOptions,
+    TableName, Transaction,
 } from "@sequelize/core";
 import type { DuckDbDialect } from "./dialect";
 import { DuckDbQueryInterfaceInternal } from "./query-interface.internal";
@@ -128,5 +128,16 @@ export class DuckDbQueryInterface<
         const results = await this.sequelize.queryRaw(sql, options);
 
         return results[0];
+    }
+
+
+    // Override private methods for savepoints for now since DuckDB does not support savepoints.
+    // The alternative is or to gate the calls in transaction.ts on `this.sequelize.dialect.supports.savepoints`
+    async _createSavepoint(_transaction: Transaction, _options: CreateSavepointOptions): Promise<void> {
+        // no-op
+    }
+
+    async _rollbackSavepoint(_transaction: Transaction, _options: RollbackSavepointOptions): Promise<void> {
+        // no-op
     }
 }
