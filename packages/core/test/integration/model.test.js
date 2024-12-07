@@ -250,142 +250,144 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(await UserTable.count()).to.equal(1);
     });
 
-    it('allows unique on column with field aliases', async function () {
-      const User = this.sequelize.define('UserWithUniqueFieldAlias', {
-        userName: { type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name' },
-      });
+    if (dialect.supports.constraints.unique) {
+        it('allows unique on column with field aliases', async function () {
+            const User = this.sequelize.define('UserWithUniqueFieldAlias', {
+                userName: {type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name'},
+            });
 
-      await User.sync({ force: true });
-      const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
-        index => !index.primary,
-      );
+            await User.sync({force: true});
+            const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
+                index => !index.primary,
+            );
 
-      expect(indexes).to.have.length(1);
-      const index = indexes[0];
-      expect(index.primary).to.equal(false);
-      expect(index.unique).to.equal(true);
-      expect(index.name).to.equal('user_name_unique');
+            expect(indexes).to.have.length(1);
+            const index = indexes[0];
+            expect(index.primary).to.equal(false);
+            expect(index.unique).to.equal(true);
+            expect(index.name).to.equal('user_name_unique');
 
-      switch (dialectName) {
-        case 'mariadb':
-        case 'mysql': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', length: undefined, order: 'ASC' },
-          ]);
-          expect(index.type).to.equal('BTREE');
+            switch (dialectName) {
+                case 'mariadb':
+                case 'mysql': {
+                    expect(index.fields).to.deep.equal([
+                        {attribute: 'user_name', length: undefined, order: 'ASC'},
+                    ]);
+                    expect(index.type).to.equal('BTREE');
 
-          break;
-        }
+                    break;
+                }
 
-        case 'postgres': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', collate: undefined, order: undefined, length: undefined },
-          ]);
+                case 'postgres': {
+                    expect(index.fields).to.deep.equal([
+                        {attribute: 'user_name', collate: undefined, order: undefined, length: undefined},
+                    ]);
 
-          break;
-        }
+                    break;
+                }
 
-        case 'db2':
-        case 'mssql': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' },
-          ]);
+                case 'db2':
+                case 'mssql': {
+                    expect(index.fields).to.deep.equal([
+                        {attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'},
+                    ]);
 
-          break;
-        }
+                    break;
+                }
 
-        case 'sqlite3':
-        default: {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', length: undefined, order: undefined },
-          ]);
+                case 'sqlite3':
+                default: {
+                    expect(index.fields).to.deep.equal([
+                        {attribute: 'user_name', length: undefined, order: undefined},
+                    ]);
 
-          break;
-        }
-      }
-    });
-
-    if (dialectName !== 'ibmi') {
-      it('allows us to customize the error message for unique constraint', async function () {
-        const User = this.sequelize.define('UserWithUniqueUsername', {
-          username: {
-            type: DataTypes.STRING,
-            unique: { name: 'user_and_email', msg: 'User and email must be unique' },
-          },
-          email: { type: DataTypes.STRING, unique: 'user_and_email' },
+                    break;
+                }
+            }
         });
 
-        await User.sync({ force: true });
+        if (dialectName !== 'ibmi') {
+            it('allows us to customize the error message for unique constraint', async function () {
+                const User = this.sequelize.define('UserWithUniqueUsername', {
+                    username: {
+                        type: DataTypes.STRING,
+                        unique: {name: 'user_and_email', msg: 'User and email must be unique'},
+                    },
+                    email: {type: DataTypes.STRING, unique: 'user_and_email'},
+                });
 
-        try {
-          await Promise.all([
-            User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-            User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
+                await User.sync({force: true});
 
-          expect(error.message).to.equal('User and email must be unique');
+                try {
+                    await Promise.all([
+                        User.create({username: 'tobi', email: 'tobi@tobi.me'}),
+                        User.create({username: 'tobi', email: 'tobi@tobi.me'}),
+                    ]);
+                } catch (error) {
+                    if (!(error instanceof Sequelize.UniqueConstraintError)) {
+                        throw error;
+                    }
+
+                    expect(error.message).to.equal('User and email must be unique');
+                }
+            });
+
+            // If you use migrations to create unique indexes that have explicit names and/or contain fields
+            // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
+            it('allows us to map the customized error message with unique constraint name', async function () {
+                // Fake migration style index creation with explicit index definition
+                let User = this.sequelize.define(
+                    'UserWithUniqueUsername',
+                    {
+                        user_id: {type: DataTypes.INTEGER},
+                        email: {type: DataTypes.STRING},
+                    },
+                    {
+                        indexes: [
+                            {
+                                name: 'user_and_email_index',
+                                msg: 'User and email must be unique',
+                                unique: true,
+                                method: 'BTREE',
+                                fields: [
+                                    'user_id',
+                                    {
+                                        attribute: 'email',
+                                        collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+                                        order: 'DESC',
+                                        length: 5,
+                                    },
+                                ],
+                            },
+                        ],
+                    },
+                );
+
+                await User.sync({force: true});
+
+                // Redefine the model to use the index in database and override error message
+                User = this.sequelize.define('UserWithUniqueUsername', {
+                    user_id: {
+                        type: DataTypes.INTEGER,
+                        unique: {name: 'user_and_email_index', msg: 'User and email must be unique'},
+                    },
+                    email: {type: DataTypes.STRING, unique: 'user_and_email_index'},
+                });
+
+                try {
+                    await Promise.all([
+                        User.create({user_id: 1, email: 'tobi@tobi.me'}),
+                        User.create({user_id: 1, email: 'tobi@tobi.me'}),
+                    ]);
+                } catch (error) {
+                    if (!(error instanceof Sequelize.UniqueConstraintError)) {
+                        throw error;
+                    }
+
+                    expect(error.message).to.equal('User and email must be unique');
+                }
+            });
         }
-      });
-
-      // If you use migrations to create unique indexes that have explicit names and/or contain fields
-      // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-      it('allows us to map the customized error message with unique constraint name', async function () {
-        // Fake migration style index creation with explicit index definition
-        let User = this.sequelize.define(
-          'UserWithUniqueUsername',
-          {
-            user_id: { type: DataTypes.INTEGER },
-            email: { type: DataTypes.STRING },
-          },
-          {
-            indexes: [
-              {
-                name: 'user_and_email_index',
-                msg: 'User and email must be unique',
-                unique: true,
-                method: 'BTREE',
-                fields: [
-                  'user_id',
-                  {
-                    attribute: 'email',
-                    collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
-                    order: 'DESC',
-                    length: 5,
-                  },
-                ],
-              },
-            ],
-          },
-        );
-
-        await User.sync({ force: true });
-
-        // Redefine the model to use the index in database and override error message
-        User = this.sequelize.define('UserWithUniqueUsername', {
-          user_id: {
-            type: DataTypes.INTEGER,
-            unique: { name: 'user_and_email_index', msg: 'User and email must be unique' },
-          },
-          email: { type: DataTypes.STRING, unique: 'user_and_email_index' },
-        });
-
-        try {
-          await Promise.all([
-            User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-            User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
-      });
     }
 
     describe('descending indices (MySQL specific)', () => {
@@ -1115,7 +1117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      it.only('should be able to create and update records under any valid schematic', async function () {
+      it('should be able to create and update records under any valid schematic', async function () {
         let logged = 0;
         const UserPublicSync = await this.UserPublic.sync({ force: true });
 
