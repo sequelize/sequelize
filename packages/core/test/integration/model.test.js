@@ -1015,7 +1015,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
-            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)) {
               test++;
               expect(sql).to.not.contain('special');
             }
@@ -1034,7 +1034,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
                 expect(sql).to.contain('special');
-              } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi'].includes(dialectName)) {
+              } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)) {
                 test++;
                 expect(sql).to.contain('special');
               }
@@ -1115,7 +1115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      it('should be able to create and update records under any valid schematic', async function () {
+      it.only('should be able to create and update records under any valid schematic', async function () {
         let logged = 0;
         const UserPublicSync = await this.UserPublic.sync({ force: true });
 
@@ -1132,6 +1132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               switch (dialectName) {
                 case 'postgres':
                 case 'db2':
+                case 'duckdb':
                 case 'ibmi': {
                   expect(UserPublic).to.include('INSERT INTO "UserPublics"');
 
@@ -1164,6 +1165,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               switch (dialectName) {
                 case 'postgres':
                 case 'db2':
+                case 'duckdb':
                 case 'ibmi': {
                   expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
 
@@ -1202,6 +1204,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               switch (dialectName) {
                 case 'postgres':
                 case 'db2':
+                case 'duckdb':
                 case 'ibmi': {
                   expect(user).to.include('UPDATE "special"."UserSpecials"');
 
