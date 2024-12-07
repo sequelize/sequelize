@@ -159,9 +159,9 @@ export class DuckDbQuery extends AbstractQuery {
       for (const column of data) {
         describeResult[column.column_name] = {
           type: column.column_type,
-          allowNull: column.null === 'YES' || column.is_nullable,
+          allowNull: column.null === 'YES',
           defaultValue: column.default || null,
-          primaryKey: column.key || false,
+          primaryKey: column.key === 'PRI' || false,
           unique: false,
         };
         if (column.comment?.includes('PRIMARY KEY')) {
