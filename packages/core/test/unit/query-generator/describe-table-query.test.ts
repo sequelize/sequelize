@@ -75,7 +75,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-      duckdb: "SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = 'myTable' and schema_name = 'main'",
+      duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+                (select count(*) from duckdb_constraints where col.database_oid = database_oid
+                    and col.schema_oid = schema_oid and col.table_oid = table_oid
+                    and array_contains(constraint_column_names, col.column_name)
+                    and constraint_type='PRIMARY KEY') > 0 as is_primary_key
+                 from duckdb_columns() col where col.table_name = 'myTable' and col.schema_name = 'main'`,
     });
   });
 
@@ -151,7 +156,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'MyModels'`,
-      duckdb: 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = \'MyModels\' and schema_name = \'main\'',
+      duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+            (select count(*) from duckdb_constraints where col.database_oid = database_oid
+                and col.schema_oid = schema_oid and col.table_oid = table_oid
+                and array_contains(constraint_column_names, col.column_name)
+                and constraint_type='PRIMARY KEY') > 0 as is_primary_key from duckdb_columns() col
+                where col.table_name = 'MyModels' and col.schema_name = 'main'`,
     });
   });
 
@@ -228,7 +238,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'MyModels'`,
-      duckdb: 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = \'MyModels\' and schema_name = \'main\'',
+      duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+                (select count(*) from duckdb_constraints where col.database_oid = database_oid
+                and col.schema_oid = schema_oid and col.table_oid = table_oid
+                and array_contains(constraint_column_names, col.column_name)
+                and constraint_type='PRIMARY KEY') > 0 as is_primary_key from duckdb_columns() col
+              where col.table_name = 'MyModels' and col.schema_name = 'main'`,
     });
   });
 
@@ -302,7 +317,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema'
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-        duckdb: 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = \'myTable\' and schema_name = \'mySchema\'',
+        duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable,
+                    col.column_default as default_value, (select count(*) from duckdb_constraints
+                  where col.database_oid = database_oid and col.schema_oid = schema_oid
+                    and col.table_oid = table_oid and array_contains(constraint_column_names, col.column_name)
+                    and constraint_type='PRIMARY KEY') > 0 as is_primary_key
+                  from duckdb_columns() col where col.table_name = 'myTable' and col.schema_name = 'mySchema'`,
       },
     );
   });
@@ -382,7 +402,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-        duckdb: 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = \'myTable\' and schema_name = \'main\'',
+        duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+                (select count(*) from duckdb_constraints where col.database_oid = database_oid
+                    and col.schema_oid = schema_oid and col.table_oid = table_oid
+                    and array_contains(constraint_column_names, col.column_name)
+                    and constraint_type='PRIMARY KEY') > 0 as is_primary_key from duckdb_columns() col
+                  where col.table_name = 'myTable' and col.schema_name = 'main'`,
       },
     );
   });
@@ -460,7 +485,12 @@ describe('QueryGenerator#describeTableQuery', () => {
         ON QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = 'mySchema'
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
-      duckdb: 'SELECT column_name, data_type as column_type, is_nullable, column_default as default_value, comment FROM duckdb_columns() WHERE table_name = \'myTable\' and schema_name = \'mySchema\'',
+      duckdb: `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+                (select count(*) from duckdb_constraints where col.database_oid = database_oid
+                    and col.schema_oid = schema_oid and col.table_oid = table_oid
+                    and array_contains(constraint_column_names, col.column_name)
+                    and constraint_type='PRIMARY KEY') > 0 as is_primary_key from duckdb_columns() col
+                where col.table_name = 'myTable' and col.schema_name = 'mySchema'`,
     });
   });
 
