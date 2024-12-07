@@ -52,7 +52,6 @@ export class DuckDbQuery extends AbstractQuery {
       return new UniqueConstraintError({ message: `Validation error: ${err.message}`, cause: err} );
     }
 
-
     return new DatabaseError(err);
   }
 
@@ -154,19 +153,16 @@ export class DuckDbQuery extends AbstractQuery {
       return [result, rowsUpdated];
     }
 
-    if (this.isShowOrDescribeQuery() || this.sql.includes('FROM duckdb_columns()')) {
+    if (this.isShowOrDescribeQuery() || this.sql.includes('from duckdb_columns()')) {
       const describeResult = {};
       for (const column of data) {
         describeResult[column.column_name] = {
           type: column.column_type,
-          allowNull: column.null === 'YES',
+          allowNull: column.null === 'YES' || column.is_nullable,
           defaultValue: column.default || null,
-          primaryKey: column.key === 'PRI' || false,
+          primaryKey: column.key === 'PRI' || column.is_primary_key || false,
           unique: false,
         };
-        if (column.comment?.includes('PRIMARY KEY')) {
-          describeResult[column.column_name].primaryKey = true;
-        }
       }
 
       return describeResult;

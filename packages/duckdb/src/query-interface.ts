@@ -1,6 +1,6 @@
 import {
     AbstractQueryInterface,
-    AttributeOptions, CreateSavepointOptions,
+    AttributeOptions, CreateSavepointOptions, DropSchemaOptions,
     Model, NormalizedAttributeOptions,
     QiOptionsWithReplacements,
     QiUpsertOptions,
@@ -139,5 +139,12 @@ export class DuckDbQueryInterface<
 
     async _rollbackSavepoint(_transaction: Transaction, _options: RollbackSavepointOptions): Promise<void> {
         // no-op
+    }
+
+    async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
+        if (schema !== 'main') {
+            // main schema cannot be dropped
+            return super.dropSchema(schema, options);
+        }
     }
 }

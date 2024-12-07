@@ -39,7 +39,14 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `DESCRIBE ${this.quoteTable(tableName)}`;
+    const table = this.extractTableDetails(tableName);
+
+    return `select col.column_name, col.data_type as column_type, col.is_nullable, col.column_default as default_value,
+        (select count(*) from duckdb_constraints where col.database_oid = database_oid and col.schema_oid = schema_oid
+         and col.table_oid = table_oid and array_contains(constraint_column_names, col.column_name)
+         and constraint_type='PRIMARY KEY') > 0 as is_primary_key
+         from duckdb_columns() col
+         where col.table_name = '${table.tableName}' and col.schema_name = '${table.schema}'`;
   }
 
   // copied from sqlite
