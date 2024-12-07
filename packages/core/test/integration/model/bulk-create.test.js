@@ -170,6 +170,7 @@ describe('Model', () => {
           logging(sql) {
             switch (dialectName) {
               case 'postgres':
+              case 'duckdb':
               case 'ibmi': {
                 expect(sql).to.include(
                   'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
@@ -468,82 +469,86 @@ describe('Model', () => {
       });
     }
 
-    if (dialect.supports.inserts.ignoreDuplicates || dialect.supports.inserts.onConflictDoNothing) {
-      it('should support the ignoreDuplicates option', async function () {
-        const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' },
-        ];
+    if (dialect.supports.constraints.unique) {
+      if (dialect.supports.inserts.ignoreDuplicates || dialect.supports.inserts.onConflictDoNothing) {
+        it('should support the ignoreDuplicates option', async function () {
+          const data = [
+            {uniqueName: 'Peter', secretValue: '42'},
+            {uniqueName: 'Paul', secretValue: '23'},
+          ];
 
-        await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
-        data.push({ uniqueName: 'Michael', secretValue: '26' });
+          await this.User.bulkCreate(data, {fields: ['uniqueName', 'secretValue']});
+          data.push({uniqueName: 'Michael', secretValue: '26'});
 
-        await this.User.bulkCreate(data, {
-          fields: ['uniqueName', 'secretValue'],
-          ignoreDuplicates: true,
-        });
-        const users = await this.User.findAll({ order: ['id'] });
-        expect(users.length).to.equal(3);
-        expect(users[0].uniqueName).to.equal('Peter');
-        expect(users[0].secretValue).to.equal('42');
-        expect(users[1].uniqueName).to.equal('Paul');
-        expect(users[1].secretValue).to.equal('23');
-        expect(users[2].uniqueName).to.equal('Michael');
-        expect(users[2].secretValue).to.equal('26');
-      });
-    } else {
-      it('should throw an error when the ignoreDuplicates option is passed', async function () {
-        const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' },
-        ];
-
-        await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
-        data.push({ uniqueName: 'Michael', secretValue: '26' });
-
-        try {
           await this.User.bulkCreate(data, {
             fields: ['uniqueName', 'secretValue'],
             ignoreDuplicates: true,
           });
-        } catch (error) {
-          expect(error.message).to.equal(
-            `${dialectName} does not support the ignoreDuplicates option.`,
-          );
-        }
-      });
+          const users = await this.User.findAll({order: ['id']});
+          expect(users.length).to.equal(3);
+          expect(users[0].uniqueName).to.equal('Peter');
+          expect(users[0].secretValue).to.equal('42');
+          expect(users[1].uniqueName).to.equal('Paul');
+          expect(users[1].secretValue).to.equal('23');
+          expect(users[2].uniqueName).to.equal('Michael');
+          expect(users[2].secretValue).to.equal('26');
+        });
+      } else {
+        it('should throw an error when the ignoreDuplicates option is passed', async function () {
+          const data = [
+            {uniqueName: 'Peter', secretValue: '42'},
+            {uniqueName: 'Paul', secretValue: '23'},
+          ];
+
+          await this.User.bulkCreate(data, {fields: ['uniqueName', 'secretValue']});
+          data.push({uniqueName: 'Michael', secretValue: '26'});
+
+          try {
+            await this.User.bulkCreate(data, {
+              fields: ['uniqueName', 'secretValue'],
+              ignoreDuplicates: true,
+            });
+          } catch (error) {
+            expect(error.message).to.equal(
+                `${dialectName} does not support the ignoreDuplicates option.`,
+            );
+          }
+        });
+      }
     }
 
     if (dialect.supports.inserts.updateOnDuplicate) {
       describe('updateOnDuplicate', () => {
-        it('should support the updateOnDuplicate option', async function () {
-          const data = [
-            { uniqueName: 'Peter', secretValue: '42' },
-            { uniqueName: 'Paul', secretValue: '23' },
-          ];
+        if (dialect.supports.constraints.unique) {
+          it('should support the updateOnDuplicate option', async function () {
+            const data = [
+              {uniqueName: 'Peter', secretValue: '42'},
+              {uniqueName: 'Paul', secretValue: '23'},
+            ];
 
-          await this.User.bulkCreate(data, {
-            fields: ['uniqueName', 'secretValue'],
-            updateOnDuplicate: ['secretValue'],
+            await this.User.bulkCreate(data, {
+              fields: ['uniqueName', 'secretValue'],
+              updateOnDuplicate: ['secretValue'],
+            });
+            const new_data = [
+              {uniqueName: 'Peter', secretValue: '43'},
+              {uniqueName: 'Paul', secretValue: '24'},
+              {uniqueName: 'Michael', secretValue: '26'},
+            ];
+            await this.User.bulkCreate(new_data, {
+              fields: ['uniqueName', 'secretValue'],
+              updateOnDuplicate: ['secretValue'],
+            });
+            const users = await this.User.findAll({order: ['id']});
+            expect(users.length).to.equal(3);
+            expect(users[0].uniqueName).to.equal('Peter');
+            expect(users[0].secretValue).to.equal('43');
+            expect(users[1].uniqueName).to.equal('Paul');
+            expect(users[1].secretValue).to.equal('24');
+            expect(users[2].uniqueName).to.equal('Michael');
+            expect(users[2].secretValue).to.equal('26');
           });
-          const new_data = [
-            { uniqueName: 'Peter', secretValue: '43' },
-            { uniqueName: 'Paul', secretValue: '24' },
-            { uniqueName: 'Michael', secretValue: '26' },
-          ];
-          await this.User.bulkCreate(new_data, {
-            fields: ['uniqueName', 'secretValue'],
-            updateOnDuplicate: ['secretValue'],
-          });
-          const users = await this.User.findAll({ order: ['id'] });
-          expect(users.length).to.equal(3);
-          expect(users[0].uniqueName).to.equal('Peter');
-          expect(users[0].secretValue).to.equal('43');
-          expect(users[1].uniqueName).to.equal('Paul');
-          expect(users[1].secretValue).to.equal('24');
-          expect(users[2].uniqueName).to.equal('Michael');
-          expect(users[2].secretValue).to.equal('26');
-        });
+        }
 
         describe('should support the updateOnDuplicate option with primary keys', () => {
           it('when the primary key column names and model field names are the same', async function () {
@@ -604,47 +609,49 @@ describe('Model', () => {
             expect(cars[2].color).to.equal('Blue');
           });
 
-          it('when the primary key column names and model field names are different and have unique constraints', async function () {
-            const Person = this.customSequelize.define(
-              'Person',
-              {
-                emailAddress: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  primaryKey: true,
-                  unique: true,
-                  field: 'email_address',
-                },
-                name: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  field: 'name',
-                },
-              },
-              {},
-            );
+          if (dialect.supports.constraints.unique) {
+            it('when the primary key column names and model field names are different and have unique constraints', async function () {
+              const Person = this.customSequelize.define(
+                  'Person',
+                  {
+                    emailAddress: {
+                      type: DataTypes.STRING,
+                      allowNull: false,
+                      primaryKey: true,
+                      unique: true,
+                      field: 'email_address',
+                    },
+                    name: {
+                      type: DataTypes.STRING,
+                      allowNull: false,
+                      field: 'name',
+                    },
+                  },
+                  {},
+              );
 
-            await Person.sync({ force: true });
-            const inserts = [{ emailAddress: 'a@example.com', name: 'Alice' }];
-            const people0 = await Person.bulkCreate(inserts);
-            expect(people0.length).to.equal(1);
-            expect(people0[0].emailAddress).to.equal('a@example.com');
-            expect(people0[0].name).to.equal('Alice');
+              await Person.sync({force: true});
+              const inserts = [{emailAddress: 'a@example.com', name: 'Alice'}];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(1);
+              expect(people0[0].emailAddress).to.equal('a@example.com');
+              expect(people0[0].name).to.equal('Alice');
 
-            const updates = [
-              { emailAddress: 'a@example.com', name: 'CHANGED NAME' },
-              { emailAddress: 'b@example.com', name: 'Bob' },
-            ];
+              const updates = [
+                {emailAddress: 'a@example.com', name: 'CHANGED NAME'},
+                {emailAddress: 'b@example.com', name: 'Bob'},
+              ];
 
-            const people = await Person.bulkCreate(updates, {
-              updateOnDuplicate: ['emailAddress', 'name'],
+              const people = await Person.bulkCreate(updates, {
+                updateOnDuplicate: ['emailAddress', 'name'],
+              });
+              expect(people.length).to.equal(2);
+              expect(people[0].emailAddress).to.equal('a@example.com');
+              expect(people[0].name).to.equal('CHANGED NAME');
+              expect(people[1].emailAddress).to.equal('b@example.com');
+              expect(people[1].name).to.equal('Bob');
             });
-            expect(people.length).to.equal(2);
-            expect(people[0].emailAddress).to.equal('a@example.com');
-            expect(people[0].name).to.equal('CHANGED NAME');
-            expect(people[1].emailAddress).to.equal('b@example.com');
-            expect(people[1].name).to.equal('Bob');
-          });
+          }
 
           it('when the composite primary key column names and model field names are different', async function () {
             const Person = this.customSequelize.define(
@@ -696,123 +703,125 @@ describe('Model', () => {
             expect(people[1].name).to.equal('Bob');
           });
 
-          it('when the primary key column names and model field names are different and have composite unique constraints', async function () {
-            const Person = this.customSequelize.define(
-              'Person',
-              {
-                id: {
-                  type: DataTypes.INTEGER,
-                  allowNull: false,
-                  primaryKey: true,
-                  field: 'id',
-                },
-                systemId: {
-                  type: DataTypes.INTEGER,
-                  allowNull: false,
-                  unique: 'system_id_system_unique',
-                  field: 'system_id',
-                },
-                system: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  unique: 'system_id_system_unique',
-                  field: 'system',
-                },
-                name: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  field: 'name',
-                },
-              },
-              {},
-            );
-
-            await Person.sync({ force: true });
-            const inserts = [{ id: 1, systemId: 1, system: 'system1', name: 'Alice' }];
-            const people0 = await Person.bulkCreate(inserts);
-            expect(people0.length).to.equal(1);
-            expect(people0[0].systemId).to.equal(1);
-            expect(people0[0].system).to.equal('system1');
-            expect(people0[0].name).to.equal('Alice');
-
-            const updates = [
-              { id: 1, systemId: 1, system: 'system1', name: 'CHANGED NAME' },
-              { id: 2, systemId: 1, system: 'system2', name: 'Bob' },
-            ];
-
-            const people = await Person.bulkCreate(updates, {
-              updateOnDuplicate: ['systemId', 'system', 'name'],
-            });
-            expect(people.length).to.equal(2);
-            expect(people[0].systemId).to.equal(1);
-            expect(people[0].system).to.equal('system1');
-            expect(people[0].name).to.equal('CHANGED NAME');
-            expect(people[1].systemId).to.equal(1);
-            expect(people[1].system).to.equal('system2');
-            expect(people[1].name).to.equal('Bob');
-          });
-
-          it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function () {
-            const Person = this.customSequelize.define(
-              'Person',
-              {
-                id: {
-                  type: DataTypes.INTEGER,
-                  allowNull: false,
-                  autoIncrement: true,
-                  primaryKey: true,
-                  field: 'id',
-                },
-                systemId: {
-                  type: DataTypes.INTEGER,
-                  allowNull: false,
-                  field: 'system_id',
-                },
-                system: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  field: 'system',
-                },
-                name: {
-                  type: DataTypes.STRING,
-                  allowNull: false,
-                  field: 'name',
-                },
-              },
-              {
-                indexes: [
-                  {
-                    unique: true,
-                    fields: ['system_id', 'system'],
+          if (dialect.supports.constraints.unique) {
+            it('when the primary key column names and model field names are different and have composite unique constraints', async function () {
+              const Person = this.customSequelize.define(
+                'Person',
+                {
+                  id: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                    primaryKey: true,
+                    field: 'id',
                   },
-                ],
-              },
-            );
+                  systemId: {
+                    type: DataTypes.INTEGER,
+                    allowNull: false,
+                    unique: 'system_id_system_unique',
+                    field: 'system_id',
+                  },
+                  system: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                    unique: 'system_id_system_unique',
+                    field: 'system',
+                  },
+                  name: {
+                    type: DataTypes.STRING,
+                    allowNull: false,
+                    field: 'name',
+                  },
+                },
+                {},
+              );
 
-            await Person.sync({ force: true });
-            const inserts = [{ systemId: 1, system: 'system1', name: 'Alice' }];
-            const people0 = await Person.bulkCreate(inserts);
-            expect(people0.length).to.equal(1);
-            expect(people0[0].systemId).to.equal(1);
-            expect(people0[0].system).to.equal('system1');
-            expect(people0[0].name).to.equal('Alice');
+              await Person.sync({ force: true });
+              const inserts = [{ id: 1, systemId: 1, system: 'system1', name: 'Alice' }];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(1);
+              expect(people0[0].systemId).to.equal(1);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
 
-            const updates = [
-              { systemId: 1, system: 'system1', name: 'CHANGED NAME' },
-              { systemId: 1, system: 'system2', name: 'Bob' },
-            ];
+              const updates = [
+                { id: 1, systemId: 1, system: 'system1', name: 'CHANGED NAME' },
+                { id: 2, systemId: 1, system: 'system2', name: 'Bob' },
+              ];
 
-            const people = await Person.bulkCreate(updates, {
-              updateOnDuplicate: ['systemId', 'system', 'name'],
+              const people = await Person.bulkCreate(updates, {
+                updateOnDuplicate: ['systemId', 'system', 'name'],
+              });
+              expect(people.length).to.equal(2);
+              expect(people[0].systemId).to.equal(1);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('CHANGED NAME');
+              expect(people[1].systemId).to.equal(1);
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Bob');
             });
-            expect(people.length).to.equal(2);
-            expect(people[0].systemId).to.equal(1);
-            expect(people[0].system).to.equal('system1');
-            expect(people[0].name).to.equal('CHANGED NAME');
-            expect(people[1].systemId).to.equal(1);
-            expect(people[1].system).to.equal('system2');
-            expect(people[1].name).to.equal('Bob');
-          });
+
+            it('[#12516] when the primary key column names and model field names are different and have composite unique index constraints', async function () {
+              const Person = this.customSequelize.define(
+                  'Person',
+                  {
+                    id: {
+                      type: DataTypes.INTEGER,
+                      allowNull: false,
+                      autoIncrement: true,
+                      primaryKey: true,
+                      field: 'id',
+                    },
+                    systemId: {
+                      type: DataTypes.INTEGER,
+                      allowNull: false,
+                      field: 'system_id',
+                    },
+                    system: {
+                      type: DataTypes.STRING,
+                      allowNull: false,
+                      field: 'system',
+                    },
+                    name: {
+                      type: DataTypes.STRING,
+                      allowNull: false,
+                      field: 'name',
+                    },
+                  },
+                  {
+                    indexes: [
+                      {
+                        unique: true,
+                        fields: ['system_id', 'system'],
+                      },
+                    ],
+                  },
+              );
+
+              await Person.sync({force: true});
+              const inserts = [{systemId: 1, system: 'system1', name: 'Alice'}];
+              const people0 = await Person.bulkCreate(inserts);
+              expect(people0.length).to.equal(1);
+              expect(people0[0].systemId).to.equal(1);
+              expect(people0[0].system).to.equal('system1');
+              expect(people0[0].name).to.equal('Alice');
+
+              const updates = [
+                {systemId: 1, system: 'system1', name: 'CHANGED NAME'},
+                {systemId: 1, system: 'system2', name: 'Bob'},
+              ];
+
+              const people = await Person.bulkCreate(updates, {
+                updateOnDuplicate: ['systemId', 'system', 'name'],
+              });
+              expect(people.length).to.equal(2);
+              expect(people[0].systemId).to.equal(1);
+              expect(people[0].system).to.equal('system1');
+              expect(people[0].name).to.equal('CHANGED NAME');
+              expect(people[1].systemId).to.equal(1);
+              expect(people[1].system).to.equal('system2');
+              expect(people[1].name).to.equal('Bob');
+            });
+          }
         });
 
         it('should reject for non array updateOnDuplicate option', async function () {
