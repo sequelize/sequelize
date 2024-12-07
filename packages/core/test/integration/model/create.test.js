@@ -82,106 +82,108 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    it('should error correctly when defaults contain a unique key', async function () {
-      const User = this.customSequelize.define('user', {
-        objectId: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-        username: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-      });
-
-      await User.sync({ force: true });
-
-      await User.create({
-        username: 'gottlieb',
-      });
-
-      await expect(
-        User.findOrCreate({
-          where: {
-            objectId: 'asdasdasd',
+    if (current.dialect.supports.constraints.unique) {
+      it('should error correctly when defaults contain a unique key', async function () {
+        const User = this.customSequelize.define('user', {
+          objectId: {
+            type: DataTypes.STRING,
+            unique: true,
           },
-          defaults: {
-            username: 'gottlieb',
-          },
-        }),
-      ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
-    });
-
-    it('should error correctly when defaults contain a unique key and a non-existent field', async function () {
-      const User = this.customSequelize.define('user', {
-        objectId: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-        username: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-      });
-
-      await User.sync({ force: true });
-
-      await User.create({
-        username: 'gottlieb',
-      });
-
-      await expect(
-        User.findOrCreate({
-          where: {
-            objectId: 'asdasdasd',
-          },
-          defaults: {
-            username: 'gottlieb',
-            foo: 'bar', // field that's not a defined attribute
-            bar: 121,
-          },
-        }),
-      ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
-    });
-
-    it('should error correctly when defaults contain a unique key and the where clause is complex', async function () {
-      const User = this.customSequelize.define('user', {
-        objectId: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-        username: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-      });
-
-      await User.sync({ force: true });
-      await User.create({ username: 'gottlieb' });
-
-      try {
-        await User.findOrCreate({
-          where: {
-            [Op.or]: [
-              {
-                objectId: 'asdasdasd1',
-              },
-              {
-                objectId: 'asdasdasd2',
-              },
-            ],
-          },
-          defaults: {
-            username: 'gottlieb',
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
           },
         });
-      } catch (error) {
-        expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        if (dialectName !== 'ibmi') {
-          expect(error.errors[0].path).to.be.a('string', 'username');
+
+        await User.sync({force: true});
+
+        await User.create({
+          username: 'gottlieb',
+        });
+
+        await expect(
+            User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd',
+              },
+              defaults: {
+                username: 'gottlieb',
+              },
+            }),
+        ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+
+      it('should error correctly when defaults contain a unique key and a non-existent field', async function () {
+        const User = this.customSequelize.define('user', {
+          objectId: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+        });
+
+        await User.sync({force: true});
+
+        await User.create({
+          username: 'gottlieb',
+        });
+
+        await expect(
+            User.findOrCreate({
+              where: {
+                objectId: 'asdasdasd',
+              },
+              defaults: {
+                username: 'gottlieb',
+                foo: 'bar', // field that's not a defined attribute
+                bar: 121,
+              },
+            }),
+        ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      });
+
+      it('should error correctly when defaults contain a unique key and the where clause is complex', async function () {
+        const User = this.customSequelize.define('user', {
+          objectId: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+          username: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+        });
+
+        await User.sync({force: true});
+        await User.create({username: 'gottlieb'});
+
+        try {
+          await User.findOrCreate({
+            where: {
+              [Op.or]: [
+                {
+                  objectId: 'asdasdasd1',
+                },
+                {
+                  objectId: 'asdasdasd2',
+                },
+              ],
+            },
+            defaults: {
+              username: 'gottlieb',
+            },
+          });
+        } catch (error) {
+          expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
+          if (dialectName !== 'ibmi') {
+            expect(error.errors[0].path).to.be.a('string', 'username');
+          }
         }
-      }
-    });
+      });
+    }
 
     it('should work with empty uuid primary key in where', async function () {
       const User = this.customSequelize.define('User', {
@@ -467,14 +469,136 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    describe('several concurrent calls', () => {
-      if (current.dialect.supports.transactions) {
-        it('works with a transaction', async function () {
-          const transaction = await this.customSequelize.startUnmanagedTransaction();
+    if (current.dialect.supports.constraints.unique) {
+      describe('several concurrent calls', () => {
+        if (current.dialect.supports.transactions) {
+          it('works with a transaction', async function () {
+            const transaction = await this.customSequelize.startUnmanagedTransaction();
+
+            const [first, second] = await Promise.all([
+              this.User.findOrCreate({where: {uniqueName: 'winner'}, transaction}),
+              this.User.findOrCreate({where: {uniqueName: 'winner'}, transaction}),
+            ]);
+
+            const firstInstance = first[0];
+            const firstCreated = first[1];
+            const secondInstance = second[0];
+            const secondCreated = second[1];
+
+            // Depending on execution order and MAGIC either the first OR the second call should return true
+            expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
+
+            expect(firstInstance).to.be.ok;
+            expect(secondInstance).to.be.ok;
+
+            expect(firstInstance.id).to.equal(secondInstance.id);
+
+            await transaction.commit();
+          });
+        }
+
+        it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
+          if (['sqlite3', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
+            return;
+          }
+
+          const User = this.customSequelize.define('user', {
+            username: {
+              type: DataTypes.STRING,
+              unique: true,
+              columnName: 'user_name',
+            },
+          });
+
+          User.beforeCreate(instance => {
+            instance.username += ' h.';
+          });
+
+          const spy = sinon.spy();
+
+          const names = ['mick', 'mick', 'mick', 'mick', 'mick', 'mick', 'mick'];
+
+          await User.sync({force: true});
+
+          await Promise.all(
+              names.map(async username => {
+                try {
+                  return await User.findOrCreate({where: {username}});
+                } catch (error) {
+                  spy();
+                  expect(error.message).to.equal(
+                      `user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`,
+                  );
+                }
+              }),
+          );
+
+          expect(spy).to.have.been.called;
+        });
+
+        it('should error correctly when defaults contain a unique key without a transaction', async function () {
+          if (dialectName === 'sqlite3') {
+            return;
+          }
+
+          const User = this.customSequelize.define('user', {
+            objectId: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+            username: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+          });
+
+          await User.sync({force: true});
+
+          await User.create({
+            username: 'gottlieb',
+          });
+
+          return Promise.all([
+            (async () => {
+              const error = await expect(
+                  User.findOrCreate({
+                    where: {
+                      objectId: 'asdasdasd',
+                    },
+                    defaults: {
+                      username: 'gottlieb',
+                    },
+                  }),
+              ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+
+              expect(error.fields).to.be.ok;
+            })(),
+            (async () => {
+              const error = await expect(
+                  User.findOrCreate({
+                    where: {
+                      objectId: 'asdasdasd',
+                    },
+                    defaults: {
+                      username: 'gottlieb',
+                    },
+                  }),
+              ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+
+              expect(error.fields).to.be.ok;
+            })(),
+          ]);
+        });
+
+        it('works without a transaction', async function () {
+          // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
+          if (dialectName === 'sqlite3') {
+            return;
+          }
 
           const [first, second] = await Promise.all([
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
-            this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
+            this.User.findOrCreate({where: {uniqueName: 'winner'}}),
+            this.User.findOrCreate({where: {uniqueName: 'winner'}}),
           ]);
 
           const firstInstance = first[0];
@@ -489,172 +613,54 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           expect(secondInstance).to.be.ok;
 
           expect(firstInstance.id).to.equal(secondInstance.id);
-
-          await transaction.commit();
         });
-      }
-
-      it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-        if (['sqlite3', 'mssql', 'db2', 'ibmi'].includes(dialectName)) {
-          return;
-        }
-
-        const User = this.customSequelize.define('user', {
-          username: {
-            type: DataTypes.STRING,
-            unique: true,
-            columnName: 'user_name',
-          },
-        });
-
-        User.beforeCreate(instance => {
-          instance.username += ' h.';
-        });
-
-        const spy = sinon.spy();
-
-        const names = ['mick', 'mick', 'mick', 'mick', 'mick', 'mick', 'mick'];
-
-        await User.sync({ force: true });
-
-        await Promise.all(
-          names.map(async username => {
-            try {
-              return await User.findOrCreate({ where: { username } });
-            } catch (error) {
-              spy();
-              expect(error.message).to.equal(
-                `user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`,
-              );
-            }
-          }),
-        );
-
-        expect(spy).to.have.been.called;
       });
-
-      it('should error correctly when defaults contain a unique key without a transaction', async function () {
-        if (dialectName === 'sqlite3') {
-          return;
-        }
-
-        const User = this.customSequelize.define('user', {
-          objectId: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-          username: {
-            type: DataTypes.STRING,
-            unique: true,
-          },
-        });
-
-        await User.sync({ force: true });
-
-        await User.create({
-          username: 'gottlieb',
-        });
-
-        return Promise.all([
-          (async () => {
-            const error = await expect(
-              User.findOrCreate({
-                where: {
-                  objectId: 'asdasdasd',
-                },
-                defaults: {
-                  username: 'gottlieb',
-                },
-              }),
-            ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-
-            expect(error.fields).to.be.ok;
-          })(),
-          (async () => {
-            const error = await expect(
-              User.findOrCreate({
-                where: {
-                  objectId: 'asdasdasd',
-                },
-                defaults: {
-                  username: 'gottlieb',
-                },
-              }),
-            ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
-
-            expect(error.fields).to.be.ok;
-          })(),
-        ]);
-      });
-
-      it('works without a transaction', async function () {
-        // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
-        if (dialectName === 'sqlite3') {
-          return;
-        }
-
-        const [first, second] = await Promise.all([
-          this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-          this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-        ]);
-
-        const firstInstance = first[0];
-        const firstCreated = first[1];
-        const secondInstance = second[0];
-        const secondCreated = second[1];
-
-        // Depending on execution order and MAGIC either the first OR the second call should return true
-        expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
-
-        expect(firstInstance).to.be.ok;
-        expect(secondInstance).to.be.ok;
-
-        expect(firstInstance.id).to.equal(secondInstance.id);
-      });
-    });
+    }
   });
 
   // TODO: move to own suite
-  describe('findCreateFind', () => {
-    if (dialectName !== 'sqlite3') {
-      it('should work with multiple concurrent calls', async function () {
-        const [[instance1, created1], [instance2, created2], [instance3, created3]] =
-          await Promise.all([
-            this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-            this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-            this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
-          ]);
-
-        // All instances are the same
-        expect(instance1.id).to.equal(instance2.id);
-        expect(instance2.id).to.equal(instance3.id);
-
-        // Only one of the createdN values is true
-        expect(Boolean(created1 ^ created2 ^ created3)).to.be.true;
-      });
-
-      if (current.dialect.supports.transactions) {
-        it('should work with multiple concurrent calls within a transaction', async function () {
-          const t = await this.customSequelize.startUnmanagedTransaction();
+  if (current.dialect.supports.constraints.unique) {
+    describe('findCreateFind', () => {
+      if (dialectName !== 'sqlite3') {
+        it('should work with multiple concurrent calls', async function () {
           const [[instance1, created1], [instance2, created2], [instance3, created3]] =
-            await Promise.all([
-              this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
-              this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
-              this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
-            ]);
-
-          await t.commit();
+              await Promise.all([
+                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
+                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
+                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
+              ]);
 
           // All instances are the same
-          expect(instance1.id).to.equal(1);
-          expect(instance2.id).to.equal(1);
-          expect(instance3.id).to.equal(1);
+          expect(instance1.id).to.equal(instance2.id);
+          expect(instance2.id).to.equal(instance3.id);
+
           // Only one of the createdN values is true
           expect(Boolean(created1 ^ created2 ^ created3)).to.be.true;
         });
+
+        if (current.dialect.supports.transactions) {
+          it('should work with multiple concurrent calls within a transaction', async function () {
+            const t = await this.customSequelize.startUnmanagedTransaction();
+            const [[instance1, created1], [instance2, created2], [instance3, created3]] =
+                await Promise.all([
+                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
+                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
+                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
+                ]);
+
+            await t.commit();
+
+            // All instances are the same
+            expect(instance1.id).to.equal(1);
+            expect(instance2.id).to.equal(1);
+            expect(instance3.id).to.equal(1);
+            // Only one of the createdN values is true
+            expect(Boolean(created1 ^ created2 ^ created3)).to.be.true;
+          });
+        }
       }
-    }
-  });
+    });
+  }
 
   describe('create', () => {
     it('works with multiple non-integer primary keys with a default value', async function () {
