@@ -1288,137 +1288,139 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.Author.sync();
     });
 
-    it('uses an existing dao factory and references the author table', async function () {
-      const authorIdColumn = {
-        type: DataTypes.INTEGER,
-        references: { model: this.Author, key: 'id' },
-      };
+    if (dialect.supports.constraints.foreignKey) {
+        it('uses an existing dao factory and references the author table', async function () {
+            const authorIdColumn = {
+                type: DataTypes.INTEGER,
+                references: {model: this.Author, key: 'id'},
+            };
 
-      const Post = this.sequelize.define('post', {
-        title: DataTypes.STRING,
-        authorId: authorIdColumn,
-      });
+            const Post = this.sequelize.define('post', {
+                title: DataTypes.STRING,
+                authorId: authorIdColumn,
+            });
 
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+            this.Author.hasMany(Post);
+            Post.belongsTo(this.Author);
 
-      // The posts table gets dropped in the before filter.
-      await Post.sync();
+            // The posts table gets dropped in the before filter.
+            await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
-        constraintType: 'FOREIGN KEY',
-      });
+            const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
+                constraintType: 'FOREIGN KEY',
+            });
 
-      expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
-      expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
-    });
+            expect(foreignKeys.length).to.eq(1);
+            expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
+            expect(foreignKeys[0].referencedTableName).to.eq('authors');
+            expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+        });
 
-    it('uses a table name as a string and references the author table', async function () {
-      const authorIdColumn = {
-        type: DataTypes.INTEGER,
-        references: { table: 'authors', key: 'id' },
-      };
+        it('uses a table name as a string and references the author table', async function () {
+            const authorIdColumn = {
+                type: DataTypes.INTEGER,
+                references: {table: 'authors', key: 'id'},
+            };
 
-      const Post = this.sequelize.define('post', {
-        title: DataTypes.STRING,
-        authorId: authorIdColumn,
-      });
+            const Post = this.sequelize.define('post', {
+                title: DataTypes.STRING,
+                authorId: authorIdColumn,
+            });
 
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+            this.Author.hasMany(Post);
+            Post.belongsTo(this.Author);
 
-      // The posts table gets dropped in the before filter.
-      await Post.sync();
+            // The posts table gets dropped in the before filter.
+            await Post.sync();
 
-      const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
-        constraintType: 'FOREIGN KEY',
-      });
+            const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
+                constraintType: 'FOREIGN KEY',
+            });
 
-      expect(foreignKeys.length).to.eq(1);
-      expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
-      expect(foreignKeys[0].referencedTableName).to.eq('authors');
-      expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
-    });
+            expect(foreignKeys.length).to.eq(1);
+            expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
+            expect(foreignKeys[0].referencedTableName).to.eq('authors');
+            expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+        });
 
-    it('throws an error if the referenced table name is invalid', async function () {
-      const Post = this.sequelize.define('post', {
-        title: DataTypes.STRING,
-        authorId: DataTypes.INTEGER,
-      });
+        it('throws an error if the referenced table name is invalid', async function () {
+            const Post = this.sequelize.define('post', {
+                title: DataTypes.STRING,
+                authorId: DataTypes.INTEGER,
+            });
 
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+            this.Author.hasMany(Post);
+            Post.belongsTo(this.Author);
 
-      // force Post.authorId to reference a table that does not exist
-      Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
-      Post.modelDefinition.refreshAttributes();
+            // force Post.authorId to reference a table that does not exist
+            Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
+            Post.modelDefinition.refreshAttributes();
 
-      try {
-        // The posts table gets dropped in the before filter.
-        await Post.sync();
-        if (dialectName === 'sqlite3') {
-          // sorry ... but sqlite is too stupid to understand whats going on ...
-          expect(1).to.equal(1);
-        } else {
-          // the parser should not end up here ...
-          expect(2).to.equal(1);
-        }
-      } catch (error) {
-        switch (dialectName) {
-          case 'mysql': {
-            expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+            try {
+                // The posts table gets dropped in the before filter.
+                await Post.sync();
+                if (dialectName === 'sqlite3') {
+                    // sorry ... but sqlite is too stupid to understand whats going on ...
+                    expect(1).to.equal(1);
+                } else {
+                    // the parser should not end up here ...
+                    expect(2).to.equal(1);
+                }
+            } catch (error) {
+                switch (dialectName) {
+                    case 'mysql': {
+                        expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'sqlite3': {
-            // the parser should not end up here ... see above
-            expect(1).to.equal(2);
+                    case 'sqlite3': {
+                        // the parser should not end up here ... see above
+                        expect(1).to.equal(2);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'mariadb': {
-            expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
+                    case 'mariadb': {
+                        expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'postgres': {
-            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+                    case 'postgres': {
+                        expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'mssql': {
-            expect(error).to.be.instanceOf(AggregateError);
-            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
+                    case 'mssql': {
+                        expect(error).to.be.instanceOf(AggregateError);
+                        expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'db2': {
-            expect(error.message).to.match(/ is an undefined name/);
+                    case 'db2': {
+                        expect(error.message).to.match(/ is an undefined name/);
 
-            break;
-          }
+                        break;
+                    }
 
-          case 'ibmi': {
-            expect(error.message).to.match(
-              /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
-            );
+                    case 'ibmi': {
+                        expect(error.message).to.match(
+                            /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
+                        );
 
-            break;
-          }
+                        break;
+                    }
 
-          default: {
-            throw new Error('Undefined dialect!');
-          }
-        }
-      }
-    });
+                    default: {
+                        throw new Error('Undefined dialect!');
+                    }
+                }
+            }
+        });
+    }
 
     it('works with comments', async function () {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
