@@ -433,115 +433,117 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
-  it('adds missing unique columns to existing tables', async () => {
-    const User1 = sequelize.define('User', {}, { timestamps: false });
-
-    // create without the unique index
-    await User1.sync({ force: true });
-    await User1.create({ id: 1 });
-
-    const out1 = await getNonPrimaryIndexes(User1);
-    expect(out1).to.have.length(0);
-
-    // replace model (to emulate code changes)
-    const User2 = sequelize.define(
-      'User',
-      {
-        email: {
-          type: DataTypes.STRING,
-          unique: true,
-        },
-      },
-      {
-        timestamps: false,
-      },
-    );
-
-    // alter to add the unique index
-    await User2.sync({ alter: true });
-
-    // db2 had a bug which re-created the table in some circumstances.
-    // this ensures the table is not recreated, but altered.
-    const existingData = await User2.findAll();
-    expect(existingData).to.have.length(1);
-
-    const out2 = await getNonPrimaryIndexes(User1);
-    expect(out2).to.have.length(1);
-    expect(out2[0].name).to.eq('users_email_unique');
-    expect(getIndexFields(out2[0])).to.deep.eq(['email']);
-    expect(out2[0].unique).to.eq(true, 'index should not be unique');
-  });
-
-  const SCHEMA_ONE = 'schema_one';
-  const SCHEMA_TWO = 'schema_two';
-
   // DuckDB dialect does not support indexes
-  if (sequelize.dialect.supports.schemas && sequelize.dialect.name !== 'duckdb') {
-    it('can create two identically named indexes in different schemas', async () => {
-      await Promise.all([sequelize.createSchema(SCHEMA_ONE), sequelize.createSchema(SCHEMA_TWO)]);
+  if (sequelize.dialect.name !== 'duckdb') {
+    it('adds missing unique columns to existing tables', async () => {
+      const User1 = sequelize.define('User', {}, {timestamps: false});
 
-      const User = sequelize.define(
-        'User1',
-        {
-          name: DataTypes.STRING,
-        },
-        {
-          schema: SCHEMA_ONE,
-          indexes: [
-            {
-              name: 'test_slug_idx',
-              fields: ['name'],
+      // create without the unique index
+      await User1.sync({force: true});
+      await User1.create({id: 1});
+
+      const out1 = await getNonPrimaryIndexes(User1);
+      expect(out1).to.have.length(0);
+
+      // replace model (to emulate code changes)
+      const User2 = sequelize.define(
+          'User',
+          {
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
             },
-          ],
-        },
+          },
+          {
+            timestamps: false,
+          },
       );
 
-      const Task = sequelize.define(
-        'Task2',
-        {
-          name: DataTypes.STRING,
-        },
-        {
-          schema: SCHEMA_TWO,
-          indexes: [
-            {
-              name: 'test_slug_idx',
-              fields: ['name'],
-            },
-          ],
-        },
-      );
+      // alter to add the unique index
+      await User2.sync({alter: true});
 
-      await User.sync({ force: true });
-      await Task.sync({ force: true });
+      // db2 had a bug which re-created the table in some circumstances.
+      // this ensures the table is not recreated, but altered.
+      const existingData = await User2.findAll();
+      expect(existingData).to.have.length(1);
 
-      const [userIndexes, taskIndexes] = await Promise.all([
-        getNonPrimaryIndexes(User),
-        getNonPrimaryIndexes(Task),
-      ]);
-
-      expect(userIndexes).to.have.length(1);
-      expect(taskIndexes).to.have.length(1);
-
-      expect(userIndexes[0].name).to.eq('test_slug_idx');
-      expect(taskIndexes[0].name).to.eq('test_slug_idx');
+      const out2 = await getNonPrimaryIndexes(User1);
+      expect(out2).to.have.length(1);
+      expect(out2[0].name).to.eq('users_email_unique');
+      expect(getIndexFields(out2[0])).to.deep.eq(['email']);
+      expect(out2[0].unique).to.eq(true, 'index should not be unique');
     });
 
-    it('supports creating two identically named tables in different schemas', async () => {
-      await sequelize.queryInterface.createSchema('custom_schema');
+    const SCHEMA_ONE = 'schema_one';
+    const SCHEMA_TWO = 'schema_two';
 
-      const Model1 = sequelize.define(
-        'A1',
-        {},
-        { schema: 'custom_schema', tableName: 'a', timestamps: false },
-      );
-      const Model2 = sequelize.define('A2', {}, { tableName: 'a', timestamps: false });
+    if (sequelize.dialect.supports.schemas) {
+      it('can create two identically named indexes in different schemas', async () => {
+        await Promise.all([sequelize.createSchema(SCHEMA_ONE), sequelize.createSchema(SCHEMA_TWO)]);
 
-      await sequelize.sync({ force: true });
+        const User = sequelize.define(
+            'User1',
+            {
+              name: DataTypes.STRING,
+            },
+            {
+              schema: SCHEMA_ONE,
+              indexes: [
+                {
+                  name: 'test_slug_idx',
+                  fields: ['name'],
+                },
+              ],
+            },
+        );
 
-      await Model1.create({ id: 1 });
-      await Model2.create({ id: 2 });
-    });
+        const Task = sequelize.define(
+            'Task2',
+            {
+              name: DataTypes.STRING,
+            },
+            {
+              schema: SCHEMA_TWO,
+              indexes: [
+                {
+                  name: 'test_slug_idx',
+                  fields: ['name'],
+                },
+              ],
+            },
+        );
+
+        await User.sync({force: true});
+        await Task.sync({force: true});
+
+        const [userIndexes, taskIndexes] = await Promise.all([
+          getNonPrimaryIndexes(User),
+          getNonPrimaryIndexes(Task),
+        ]);
+
+        expect(userIndexes).to.have.length(1);
+        expect(taskIndexes).to.have.length(1);
+
+        expect(userIndexes[0].name).to.eq('test_slug_idx');
+        expect(taskIndexes[0].name).to.eq('test_slug_idx');
+      });
+
+      it('supports creating two identically named tables in different schemas', async () => {
+        await sequelize.queryInterface.createSchema('custom_schema');
+
+        const Model1 = sequelize.define(
+            'A1',
+            {},
+            {schema: 'custom_schema', tableName: 'a', timestamps: false},
+        );
+        const Model2 = sequelize.define('A2', {}, {tableName: 'a', timestamps: false});
+
+        await sequelize.sync({force: true});
+
+        await Model1.create({id: 1});
+        await Model2.create({id: 2});
+      });
+    }
   }
 
   it('defaults to schema provided to sync() for references #11276', async function () {
@@ -576,36 +578,38 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(user).to.be.ok;
   });
 
-  it('supports creating tables with cyclic associations', async () => {
-    const A = sequelize.define('A', {}, { timestamps: false });
-    const B = sequelize.define('B', {}, { timestamps: false });
+  if (sequelize.dialect.supports.constraints.foreignKey) {
+    it('supports creating tables with cyclic associations', async () => {
+      const A = sequelize.define('A', {}, {timestamps: false});
+      const B = sequelize.define('B', {}, {timestamps: false});
 
-    // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
-    const mssqlConstraints =
-      dialect === 'mssql' ? { onDelete: 'NO ACTION', onUpdate: 'NO ACTION' } : null;
+      // mssql refuses cyclic references unless ON DELETE and ON UPDATE is set to NO ACTION
+      const mssqlConstraints =
+          dialect === 'mssql' ? {onDelete: 'NO ACTION', onUpdate: 'NO ACTION'} : null;
 
-    // These models both have a foreign key that references the other model.
-    // Sequelize should be able to create them.
-    A.belongsTo(B, { foreignKey: { allowNull: false, ...mssqlConstraints } });
-    B.belongsTo(A, { foreignKey: { allowNull: false, ...mssqlConstraints } });
+      // These models both have a foreign key that references the other model.
+      // Sequelize should be able to create them.
+      A.belongsTo(B, {foreignKey: {allowNull: false, ...mssqlConstraints}});
+      B.belongsTo(A, {foreignKey: {allowNull: false, ...mssqlConstraints}});
 
-    await sequelize.sync();
+      await sequelize.sync();
 
-    const [aFks, bFks] = await Promise.all([
-      sequelize.queryInterface.showConstraints(A, { constraintType: 'FOREIGN KEY' }),
-      sequelize.queryInterface.showConstraints(B, { constraintType: 'FOREIGN KEY' }),
-    ]);
+      const [aFks, bFks] = await Promise.all([
+        sequelize.queryInterface.showConstraints(A, {constraintType: 'FOREIGN KEY'}),
+        sequelize.queryInterface.showConstraints(B, {constraintType: 'FOREIGN KEY'}),
+      ]);
 
-    expect(aFks.length).to.eq(1);
-    expect(aFks[0].referencedTableName).to.eq('Bs');
-    expect(aFks[0].referencedColumnNames).to.deep.eq(['id']);
-    expect(aFks[0].columnNames).to.deep.eq(['bId']);
+      expect(aFks.length).to.eq(1);
+      expect(aFks[0].referencedTableName).to.eq('Bs');
+      expect(aFks[0].referencedColumnNames).to.deep.eq(['id']);
+      expect(aFks[0].columnNames).to.deep.eq(['bId']);
 
-    expect(bFks.length).to.eq(1);
-    expect(bFks[0].referencedTableName).to.eq('As');
-    expect(bFks[0].referencedColumnNames).to.deep.eq(['id']);
-    expect(bFks[0].columnNames).to.deep.eq(['aId']);
-  });
+      expect(bFks.length).to.eq(1);
+      expect(bFks[0].referencedTableName).to.eq('As');
+      expect(bFks[0].referencedColumnNames).to.deep.eq(['id']);
+      expect(bFks[0].columnNames).to.deep.eq(['aId']);
+    });
+  }
 
   // TODO: sqlite3's foreign_key_list pragma does not return the DEFERRABLE status of the column
   //  so sync({ alter: true }) cannot know whether the column must be updated.
