@@ -5,6 +5,7 @@ import type { DuckDbDialect } from './dialect.js';
 const TECHNICAL_SCHEMAS = Object.freeze([
   'information_schema',
   'pg_catalog',
+  'main',
 ]);
 
 export class DuckDbQueryGeneratorInternal<
