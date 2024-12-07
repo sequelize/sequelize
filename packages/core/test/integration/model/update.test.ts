@@ -345,7 +345,8 @@ describe('Model.update', () => {
       expect(account.email).to.equal('email 1');
     });
 
-    if (sequelize.dialect.supports.returnValues) {
+    // In DuckDB dialect, RETURNING is only supported on INSERT
+    if (sequelize.dialect.supports.returnValues && sequelize.dialect.name !== 'duckdb') {
       it('should return the updated record', async () => {
         const { User } = vars;
 

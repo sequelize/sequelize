@@ -110,14 +110,23 @@ export class DuckDbQuery extends AbstractQuery {
 
   // TBD: comment better; no longer async
   processResults(data) {
-    // TBD: where should metadata come from?
-    const metadata = {};
+    // this is not amazing since row count can be larger than Number but Sequelize expects a Number...
+    let rowsUpdated = 0;
+    if (Array.isArray(data)) {
+      if (data.length > 0 && Object.hasOwn(data[0], 'Count')) {
+        // Update or Delete query
+        rowsUpdated = Number(data[0].Count);
+      } else {
+        // Upsert query with RETURNING clause will return rows
+        rowsUpdated = data.length;
+      }
+    }
+
     let result = this.instance;
 
-    if (this.isInsertQuery(data, metadata) || this.isUpsertQuery()) {
+    if (this.isInsertQuery(data, {}) || this.isUpsertQuery()) {
 
-      this.handleInsertQuery(data, metadata);
-
+      this.handleInsertQuery(data, {});
       const modelDefinition = this.model?.modelDefinition;
 
       if (!this.instance) {
@@ -138,12 +147,12 @@ export class DuckDbQuery extends AbstractQuery {
         }
       }
 
-      // Second value should be whether or not the row was inserted, but there is no way to know
-      return [result, null];
+      // Second value for upsert should be whether the row was inserted, but there is no way to know
+      return this.isUpsertQuery() ? [result, null] : [result, rowsUpdated];
     }
 
     if (this.isUpdateQuery()) {
-      return [result, metadata];
+      return [result, rowsUpdated];
     }
 
     if (this.isShowOrDescribeQuery() || this.sql.includes('FROM duckdb_columns()')) {
@@ -165,7 +174,7 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isRawQuery()) {
-      return [data, data];
+      return [data, rowsUpdated];
     }
 
     if (this.isShowConstraintsQuery() || this.isShowIndexesQuery()) {
@@ -174,13 +183,12 @@ export class DuckDbQuery extends AbstractQuery {
       return data;
     }
 
-    // TBD: return number of rows updated
     if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
-      // this is not amazing since the result can be larger than Number,
-      // but Sequelize expects a Number...
-      return Number(data[0].Count);
+      // TBD: check what format is expected to be returned - just the row count?
+      return rowsUpdated;
     }
 
-    return [data, data];
+    // TBD: is fallback needed?
+    return [data, rowsUpdated];
   }
 }
