@@ -88,14 +88,17 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       expect(table).to.not.have.property('manager');
     });
 
-    it('should be able to remove a column with primaryKey', async () => {
-      await queryInterface.removeColumn('users', 'manager');
-      const table0 = await queryInterface.describeTable('users');
-      expect(table0).to.not.have.property('manager');
-      await queryInterface.removeColumn('users', 'id');
-      const table = await queryInterface.describeTable('users');
-      expect(table).to.not.have.property('id');
-    });
+    // DuckDB does not support altering constraints, therefore dropping a column under constraint
+    if (sequelize.dialect.name !== 'duckdb') {
+      it('should be able to remove a column with primaryKey', async () => {
+        await queryInterface.removeColumn('users', 'manager');
+        const table0 = await queryInterface.describeTable('users');
+        expect(table0).to.not.have.property('manager');
+        await queryInterface.removeColumn('users', 'id');
+        const table = await queryInterface.describeTable('users');
+        expect(table).to.not.have.property('id');
+      });
+    }
 
     // From MSSQL documentation on ALTER COLUMN:
     //    The modified column cannot be any one of the following:

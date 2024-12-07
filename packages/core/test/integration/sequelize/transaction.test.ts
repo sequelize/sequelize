@@ -567,7 +567,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
   });
 
-  if (getTestDialect() !== 'sqlite3' && getTestDialect() !== 'db2') {
+  if (getTestDialect() !== 'sqlite3' && getTestDialect() !== 'db2' && getTestDialect() !== 'duckdb') {
     it('works for long running transactions', async () => {
       const sequelize2 = await createSingleTransactionalTestSequelizeInstance(sequelize);
 
