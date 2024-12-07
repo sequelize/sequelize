@@ -2289,17 +2289,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/select@npm:^4.0.0, @inquirer/select@npm:^4.0.1":
-  version: 4.0.2
-  resolution: "@inquirer/select@npm:4.0.2"
+  version: 4.0.3
+  resolution: "@inquirer/select@npm:4.0.3"
   dependencies:
-    "@inquirer/core": "npm:^10.1.0"
+    "@inquirer/core": "npm:^10.1.1"
     "@inquirer/figures": "npm:^1.0.8"
     "@inquirer/type": "npm:^3.0.1"
     ansi-escapes: "npm:^4.3.2"
     yoctocolors-cjs: "npm:^2.1.2"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/abd23ba234c3489e76e96c444f97bb00913bdd3f278e2e3f4b060dfdd4c53e0ef78c0a8a3b303a111d35399e4dd366f2b23fb3e213d1b55ae10c02336e921445
+  checksum: 10c0/7c8d7b2e4aed99e2bb826ba11717190b80aaf2c90999203b0b1bae26104cc03613bdd6de58440a6b3a254c93d2882de103be9972bb71b3d85ce9f62da21deac7
   languageName: node
   linkType: hard
 
