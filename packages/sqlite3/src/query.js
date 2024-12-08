@@ -118,6 +118,10 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
+    if (this.sql.includes('PRAGMA INDEX_XINFO')) {
+      return results;
+    }
+
     if (this.sql.includes('PRAGMA TABLE_INFO')) {
       // this is the sqlite way of getting the metadata of a table
       const result = {};
@@ -305,23 +309,29 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   async handleShowIndexesQuery(data) {
+    const tableName = this.sql.match(/(?:`|"|\[)(.*)(?:`|"|\])/)[1];
+
     // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
     return Promise.all(
       data.reverse().map(async item => {
-        item.fields = [];
-        item.primary = false;
-        item.unique = Boolean(item.unique);
-        item.constraintName = item.name;
-        const columns = await this.run(`PRAGMA INDEX_INFO(\`${item.name}\`)`);
-        for (const column of columns) {
-          item.fields[column.seqno] = {
-            attribute: column.name,
+        const fields = [];
+        const columns = await this.run(`PRAGMA INDEX_XINFO(\`${item.name}\`)`);
+        for (const column of columns.filter(c => c.key === 1 && c.name !== null)) {
+          fields[column.seqno] = {
+            name: column.name,
             length: undefined,
-            order: undefined,
+            order: column.desc ? 'DESC' : 'ASC',
+            collate: undefined,
           };
         }
 
-        return item;
+        return {
+          tableName,
+          name: item.name,
+          fields,
+          primary: false,
+          unique: Boolean(item.unique),
+        };
       }),
     );
   }
