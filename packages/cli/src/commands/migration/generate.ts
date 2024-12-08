@@ -18,6 +18,9 @@ export class GenerateMigration extends SequelizeCommand<(typeof GenerateMigratio
       summary: 'A short name for the migration file',
       default: 'unnamed',
     }),
+    legacyTimestamp: Flags.boolean({
+      summary: 'When enabled, use the legacy timestamp format from earlier versions of the CLI',
+    }),
   };
 
   static summary = 'Generates a new migration file';
@@ -26,16 +29,18 @@ export class GenerateMigration extends SequelizeCommand<(typeof GenerateMigratio
     `<%= config.bin %> <%= command.id %>`,
     `<%= config.bin %> <%= command.id %> --format=sql`,
     `<%= config.bin %> <%= command.id %> --name="create users table"`,
+    `<%= config.bin %> <%= command.id %> --legacyTimestamp`,
   ];
 
   async run(): Promise<{ path: string }> {
-    const { format, name: migrationName } = this.flags;
+    const { format, name: migrationName, legacyTimestamp } = this.flags;
     const { migrationFolder } = config;
 
     const migrationPath = await generateMigration({
       format: format as SupportedMigrationFormat,
       migrationName,
       migrationFolder,
+      legacyTimestamp,
     });
 
     if (format === 'sql') {
