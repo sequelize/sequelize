@@ -6,7 +6,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
 } from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js";
-import {difference} from "lodash";
+import { difference } from "lodash";
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
@@ -41,7 +41,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
         const sequence_name = table_prefix + '_' + attr + '_seq';
 
         if (dataType.includes('AUTOINCREMENT')) {
-          // TBD: is if not exists needed if table cleans up correctly?
           sequence_sql = 'CREATE SEQUENCE IF NOT EXISTS ' + this.quoteIdentifier(sequence_name) + ' START 1; ';
           // this could be done in attributesToSQL but better keep it with sequence_name generation in case it changes
           dataType = dataType.replace('AUTOINCREMENT', `DEFAULT nextval('${sequence_name}')`)
@@ -57,8 +56,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     }
 
     let attrStr = attrArray.join(', ');
-    // foreign keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
-    // but a hint is useful for describe tests
     if (primaryKeys.length) {
       attrStr += `, PRIMARY KEY (${primaryKeys.join(', ')})`;
     }
@@ -96,29 +93,11 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
           // will be replaced with a PRIMARY KEY comment in createTableQuery
           sql += ' PRIMARY KEY';
         }
-        /*
-        // foreign keys are trouble because duckdb does not support adding/removing them,
-        // so integration tests end up very unhappy -- constraints can't get dropped,
-        // but tables can't get dropped while constraints exist.
-        if (attribute.references) {
-          const referencesTable = this.quoteTable(attribute.references.table);
 
-          let referencesKey;
-          if (attribute.references.key) {
-            referencesKey = this.quoteIdentifier(attribute.references.key);
-          } else {
-            referencesKey = this.quoteIdentifier('id');
-          }
-
-          sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
-        }
-        */
         result[columnName] = sql;
       } else {
         result[columnName] = attribute;
       }
-
-
 
     }
 
@@ -185,7 +164,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
 
-      let definition = fields[attributeName];
+      const definition = fields[attributeName];
       let attrSql = '';
 
 
@@ -194,7 +173,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
             `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
         );
 
-        //definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
       } else if (definition.includes('NOT NULL')) {
         // adding/removing constraints in ALTER TABLE is not supported
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition.replace('NOT NULL', '')}`);

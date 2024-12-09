@@ -19,9 +19,11 @@ export class DuckDbQueryGeneratorInternal<
     if (options.limit != null) {
       fragment += ` LIMIT ${this.queryGenerator.escape(options.limit, options)}`;
     }
+
     if (options.offset) {
       fragment += ` OFFSET ${this.queryGenerator.escape(options.offset, options)}`;
     }
+
     return fragment;
   }
 }

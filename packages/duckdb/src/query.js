@@ -68,6 +68,7 @@ export class DuckDbQuery extends AbstractQuery {
         }
       }
     }
+
     return data;
   }
 

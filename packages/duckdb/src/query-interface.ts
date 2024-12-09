@@ -130,7 +130,6 @@ export class DuckDbQueryInterface<
         return results[0];
     }
 
-
     // Override private methods for savepoints for now since DuckDB does not support savepoints.
     // The alternative is or to gate the calls in transaction.ts on `this.sequelize.dialect.supports.savepoints`
     async _createSavepoint(_transaction: Transaction, _options: CreateSavepointOptions): Promise<void> {

@@ -27,7 +27,6 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     );
   }
 
-  // TODO: supports what?
   static supports = AbstractDialect.extendSupport({
     DEFAULT: true,
     'DEFAULT VALUES': true,
@@ -98,7 +97,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
     truncate: {
       restartIdentity: false,
     },
-    returnValues: 'returning',  // TBD: this is overachieving and returning everything rather than just IDs
+    returnValues: 'returning',
     schemas: true,
     isolationLevels: false,
     bulkDefault: true,
@@ -122,11 +121,9 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
 
   readonly Query = DuckDbQuery;
   readonly connectionManager: DuckDbConnectionManager;
-  readonly dataTypesDocumentationUrl = 'https://motherduck.com/docs';
   readonly queryGenerator: DuckDbQueryGenerator;
   readonly queryInterface: DuckDbQueryInterface;
 
-  // TBD: options useful?
   constructor(sequelize: Sequelize, options: DuckDbDialectOptions) {
     super({
       identifierDelimiter: '"',
