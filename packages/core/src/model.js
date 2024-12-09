@@ -1025,6 +1025,9 @@ ${associationOwner._getAssociationDebugList()}`);
         return association.options?.foreignKey?.keys?.length > 0;
       })
       .filter(association => {
+        return association.options?.foreignKeyConstraints !== false;
+      })
+      .filter(association => {
         return association.associationType === 'BelongsTo';
       });
 
@@ -1034,9 +1037,11 @@ ${associationOwner._getAssociationDebugList()}`);
       const sourceKeyFields = foreignKey.keys.map(k => k.sourceKey);
       const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
       const modelKeysMatch = isEqual(sourceKeyFields, targetKeyFields);
-      const constraintName = modelKeysMatch
-        ? `${tableName.tableName}_${sourceKeyFields.join('_')}_fkey`
-        : `${tableName.tableName}_${sourceKeyFields.join('_')}_${association.target.modelDefinition.table.tableName}_${targetKeyFields.join('_')}_fkey`;
+      const constraintName =
+        foreignKey.constraintName ||
+        (modelKeysMatch
+          ? `${tableName.tableName}_${sourceKeyFields.join('_')}_fkey`
+          : `${tableName.tableName}_${sourceKeyFields.join('_')}_${association.target.modelDefinition.table.tableName}_${targetKeyFields.join('_')}_fkey`);
 
       if (
         !existingConstraints.some(constraint => constraint.constraintName === constraintName) &&
@@ -1658,8 +1663,8 @@ ${associationOwner._getAssociationDebugList()}`);
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    *
-   * @param  {number|bigint|string|Buffer|object}      param The value of the desired instance's primary key.
-   * @param  {object}                                  [options] find options
+   * @param  {number|bigint|string|Buffer}      param The value of the desired instance's primary key.
+   * @param  {object}                           [options] find options
    * @returns {Promise<Model|null>}
    */
   static async findByPk(param, options) {
@@ -1670,24 +1675,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     options = cloneDeep(options) ?? {};
 
-    const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
-    if (hasCompositeKey && !isPlainObject(param)) {
-      throw new TypeError(
-        `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }`,
-      );
-    } else if (hasCompositeKey && isPlainObject(param)) {
-      // composite primary key support
-      options.where = {};
-      for (const pkMetadata of Object.values(this.primaryKeys)) {
-        if (param[pkMetadata.columnName] !== undefined) {
-          options.where[pkMetadata.columnName] = param[pkMetadata.columnName];
-        }
-      }
-
-      if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
-        throw new TypeError('Primary key mismatch. Please pass all primary keys');
-      }
-    } else if (
+    if (
       typeof param === 'number' ||
       typeof param === 'bigint' ||
       typeof param === 'string' ||
@@ -2643,7 +2631,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 !instance ||
                 (key === model.primaryKeyAttribute &&
                   instance.get(model.primaryKeyAttribute) &&
-                  ['mysql', 'mariadb', 'sqlite3'].includes(dialect))
+                  ['mysql', 'mariadb'].includes(dialect))
               ) {
                 // The query.js for these DBs is blind, it autoincrements the
                 // primarykey value, even if it was set manually. Also, it can
@@ -4054,6 +4042,19 @@ Instead of specifying a Model, either:
     }
 
     if (this.isNewRecord === true) {
+      if (primaryKeyAttribute && primaryKeyAttribute.autoIncrement) {
+        // Some dialects do not support returning the last inserted ID.
+        // To overcome this limitation, we check if the dialect implements getNextPrimaryKeyValue,
+        // so we get the next ID before the insert.
+        const nextPrimaryKey = await this.constructor.queryInterface.getNextPrimaryKeyValue(
+          this.constructor.table.tableName,
+          primaryKeyName,
+        );
+        if (nextPrimaryKey) {
+          this.set(primaryKeyName, nextPrimaryKey);
+        }
+      }
+
       if (createdAtAttr && !options.fields.includes(createdAtAttr)) {
         options.fields.push(createdAtAttr);
       }
