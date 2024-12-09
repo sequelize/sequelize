@@ -291,6 +291,11 @@ export interface ForeignKeyOptions<ForeignKey extends string>
    * @deprecated
    */
   fieldName?: string;
+
+  /**
+   * Name to give the constraint in the database
+   */
+  constraintName?: string;
 }
 
 export type NormalizedAssociationOptions<ForeignKey extends string> =
