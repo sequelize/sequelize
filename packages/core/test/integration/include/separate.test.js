@@ -100,6 +100,7 @@ if (current.dialect.supports.groupedLimit) {
             unique: true,
           },
         });
+
         const Task = this.sequelize.define('Task', {
           title: DataTypes.STRING,
         });
@@ -159,24 +160,38 @@ if (current.dialect.supports.groupedLimit) {
       });
 
       it('should run a hasMany association with limit in a separate query', async function () {
-        const User = this.sequelize.define('User', {});
-        const Task = this.sequelize.define('Task', {
+        const User = this.sequelize.define('User', {
           userId: {
             type: DataTypes.INTEGER,
-            field: 'user_id',
+            autoIncrement: true,
+            primaryKey: true,
+          },
+          companyId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
           },
         });
+
+        const Task = this.sequelize.define('Task', {});
+
         const sqlSpy = sinon.spy();
 
-        User.Tasks = User.hasMany(Task, { as: 'tasks', foreignKey: 'userId' });
+        User.Tasks = User.hasMany(Task, {
+          as: 'tasks',
+          foreignKey: { keys: ['userId', 'companyId'] },
+        });
 
         await this.sequelize.sync({ force: true });
 
         await Promise.all([
           User.create(
             {
-              id: 1,
-              tasks: [{}, {}, {}],
+              companyId: 1,
+              tasks: [
+                { userId: 1, companyId: 1 },
+                { userId: 1, companyId: 1 },
+                { userId: 1, companyId: 1 },
+              ],
             },
             {
               include: [User.Tasks],
@@ -184,8 +199,13 @@ if (current.dialect.supports.groupedLimit) {
           ),
           User.create(
             {
-              id: 2,
-              tasks: [{}, {}, {}, {}],
+              companyId: 2,
+              tasks: [
+                { userId: 2, companyId: 2 },
+                { userId: 2, companyId: 2 },
+                { userId: 2, companyId: 2 },
+                { userId: 2, companyId: 2 },
+              ],
             },
             {
               include: [User.Tasks],
@@ -195,7 +215,7 @@ if (current.dialect.supports.groupedLimit) {
 
         const users = await User.findAll({
           include: [{ association: User.Tasks, limit: 2 }],
-          order: [['id', 'ASC']],
+          order: [['userId', 'ASC']],
           logging: sqlSpy,
         });
 

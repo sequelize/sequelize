@@ -8,6 +8,7 @@ import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
+import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
@@ -1127,6 +1128,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (typeof options.groupedLimit.on === 'string') {
           whereKey = options.groupedLimit.on;
         } else if (options.groupedLimit.on instanceof HasManyAssociation) {
+          // TODO: revisit this whether we still need this or not
+
           whereKey = options.groupedLimit.on.identifierField;
         }
 
@@ -1207,34 +1210,67 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
+        let tablesStr;
+        if (options.groupedLimit.values && Array.isArray(options.groupedLimit.values)) {
+          tablesStr = `(${options.groupedLimit.values
+            .map(value => {
+              let groupWhere;
+              if (whereKey) {
+                groupWhere = {
+                  [whereKey]: value,
+                };
+              }
+
+              if (include) {
+                groupWhere = {
+                  [options.groupedLimit.on.foreignIdentifierField]: value,
+                };
+              }
+
+              return spliceStr(
+                baseQuery,
+                splicePos,
+                placeholder.length,
+                this.whereItemsQuery(groupWhere, { ...options, mainAlias: groupedTableName }),
+              );
+            })
+            .join(this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')})`;
+        } else {
+          const valueKeys = Object.keys(omit(options.groupedLimit, ['on', 'should', 'limit']));
+
+          // TODO: check if all the arrays have the same length
+          const firstLength = options.groupedLimit[valueKeys[0]].length;
+          const whereSplices = [];
+          for (let i = 0; i < firstLength; i++) {
+            const groupWhere = {};
+            for (const key of valueKeys) {
+              groupWhere[key] = options.groupedLimit[key][i];
+
+              whereSplices.push(
+                spliceStr(
+                  baseQuery,
+                  splicePos,
+                  placeholder.length,
+                  this.whereItemsQuery(
+                    { [Op.and]: groupWhere },
+                    { ...options, mainAlias: groupedTableName },
+                  ),
+                ),
+              );
+            }
+
+            tablesStr = `(${whereSplices.join(
+              this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
+            )})`;
+          }
+        }
+
         mainQueryItems.push(
           this.selectFromTableFragment(
             options,
             mainTable.model,
             attributes.main,
-            `(${options.groupedLimit.values
-              .map(value => {
-                let groupWhere;
-                if (whereKey) {
-                  groupWhere = {
-                    [whereKey]: value,
-                  };
-                }
-
-                if (include) {
-                  groupWhere = {
-                    [options.groupedLimit.on.foreignIdentifierField]: value,
-                  };
-                }
-
-                return spliceStr(
-                  baseQuery,
-                  splicePos,
-                  placeholder.length,
-                  this.whereItemsQuery(groupWhere, { ...options, mainAlias: groupedTableName }),
-                );
-              })
-              .join(this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')})`,
+            tablesStr,
             mainTable.quotedAs,
           ),
         );
@@ -1717,24 +1753,39 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     /* Attributes for the left side */
     const left = association.source;
     const leftAttributes = left.modelDefinition.attributes;
+    const conditions = [];
 
-    const attrNameLeft =
-      association instanceof BelongsToAssociation
-        ? association.foreignKey
-        : association.sourceKeyAttribute;
-    const columnNameLeft =
-      association instanceof BelongsToAssociation
-        ? association.identifierField
-        : leftAttributes.get(association.sourceKeyAttribute).columnName;
     let asLeft;
     /* Attributes for the right side */
     const right = include.model;
     const rightAttributes = right.modelDefinition.attributes;
     const tableRight = right.table;
-    const fieldRight =
-      association instanceof BelongsToAssociation
-        ? rightAttributes.get(association.targetKey).columnName
-        : association.identifierField;
+
+    if (include.association.foreignKeys?.length > 0) {
+      for (const fKey of include.association.foreignKeys) {
+        const attrNameLeft =
+          association instanceof BelongsToAssociation ? fKey.targetKey : fKey.sourceKey;
+        const columnNameLeft = leftAttributes.get(fKey.sourceKey).columnName;
+        const fieldRight = rightAttributes.get(fKey.targetKey).columnName;
+        conditions.push({ attrNameLeft, columnNameLeft, fieldRight });
+      }
+    } else {
+      const attrNameLeft =
+        association instanceof BelongsToAssociation
+          ? association.foreignKey
+          : association.sourceKeyAttribute;
+      const columnNameLeft =
+        association instanceof BelongsToAssociation
+          ? association.identifierField
+          : leftAttributes.get(association.sourceKeyAttribute).columnName;
+
+      const fieldRight =
+        association instanceof BelongsToAssociation
+          ? rightAttributes.get(association.targetKey).columnName
+          : association.identifierField;
+      conditions.push({ attrNameLeft, columnNameLeft, fieldRight });
+    }
+
     let asRight = include.as;
 
     while (($parent = ($parent && $parent.parent) || include.parent) && $parent.association) {
@@ -1751,43 +1802,51 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       asRight = `${asLeft}->${asRight}`;
     }
 
+    let joinOn = '';
+
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
-    let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
     const subqueryAttributes = [];
-
-    if (
-      (topLevelInfo.options.groupedLimit && parentIsTop) ||
-      (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
-    ) {
-      if (parentIsTop) {
-        // The main model attributes is not aliased to a prefix
-        const tableName = parent.as || parent.model.name;
-        const quotedTableName = this.quoteTable(tableName);
-
-        // Check for potential aliased JOIN condition
-        joinOn =
-          this._getAliasForField(tableName, attrNameLeft, topLevelInfo.options) ||
-          `${quotedTableName}.${this.quoteIdentifier(attrNameLeft)}`;
-
-        if (topLevelInfo.subQuery) {
-          const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(columnNameLeft)}`;
-          subqueryAttributes.push(
-            dbIdentifier !== joinOn
-              ? `${dbIdentifier} AS ${this.quoteIdentifier(attrNameLeft)}`
-              : dbIdentifier,
-          );
-        }
-      } else {
-        const joinSource = `${asLeft.replaceAll('->', '.')}.${attrNameLeft}`;
-
-        // Check for potential aliased JOIN condition
-        joinOn =
-          this._getAliasForField(asLeft, joinSource, topLevelInfo.options) ||
-          this.quoteIdentifier(joinSource);
+    for (const condition of conditions) {
+      if (joinOn?.length > 0) {
+        joinOn += ' AND ';
       }
-    }
 
-    joinOn += ` = ${this.quoteIdentifier(asRight)}.${this.quoteIdentifier(fieldRight)}`;
+      joinOn += `${this.quoteTable(asLeft)}.${this.quoteIdentifier(condition.columnNameLeft)}`;
+
+      if (
+        (topLevelInfo.options.groupedLimit && parentIsTop) ||
+        (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
+      ) {
+        if (parentIsTop) {
+          // The main model attributes is not aliased to a prefix
+          const tableName = parent.as || parent.model.name;
+          const quotedTableName = this.quoteTable(tableName);
+
+          // Check for potential aliased JOIN condition
+          joinOn =
+            this._getAliasForField(tableName, condition.attrNameLeft, topLevelInfo.options) ||
+            `${quotedTableName}.${this.quoteIdentifier(condition.attrNameLeft)}`;
+
+          if (topLevelInfo.subQuery) {
+            const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(condition.columnNameLeft)}`;
+            subqueryAttributes.push(
+              dbIdentifier !== joinOn
+                ? `${dbIdentifier} AS ${this.quoteIdentifier(condition.attrNameLeft)}`
+                : dbIdentifier,
+            );
+          }
+        } else {
+          const joinSource = `${asLeft.replaceAll('->', '.')}.${condition.attrNameLeft}`;
+
+          // Check for potential aliased JOIN condition
+          joinOn =
+            this._getAliasForField(asLeft, joinSource, topLevelInfo.options) ||
+            this.quoteIdentifier(joinSource);
+        }
+      }
+
+      joinOn += ` = ${this.quoteIdentifier(asRight)}.${this.quoteIdentifier(condition.fieldRight)}`;
+    }
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {

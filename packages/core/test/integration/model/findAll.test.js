@@ -878,6 +878,69 @@ The following associations are defined on "Worker": "ToDos"`);
         });
       });
 
+      describe('include using composite foreign keys', () => {
+        beforeEach(async function () {
+          this.Company = this.sequelize.define(
+            'company',
+            {
+              companyId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+              },
+              externalId: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+              },
+              name: DataTypes.STRING,
+            },
+            {
+              tableName: 'company',
+            },
+          );
+
+          this.Employee = this.sequelize.define('employee', {
+            employeeId: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            firstName: DataTypes.STRING,
+            lastName: DataTypes.STRING,
+          });
+
+          this.Employee.belongsTo(this.Company, {
+            as: 'company',
+            foreignKey: { keys: ['companyId', 'externalId'] },
+          });
+
+          await this.sequelize.sync({ force: true });
+
+          this.shellCompany = await this.Company.create({
+            externalId: 'SHELL',
+            name: 'Dollar Corp.',
+          });
+
+          await this.Employee.create({
+            companyId: this.shellCompany.companyId,
+            externalId: this.shellCompany.externalId,
+            firstName: 'Bob',
+            lastName: 'Becket',
+          });
+        });
+
+        it('include the association', async function () {
+          const bob = await this.Employee.findOne({
+            where: { firstName: 'Bob' },
+            include: [{ all: true }],
+          });
+
+          expect(bob).to.exist;
+          expect(bob.firstName).to.equal('Bob');
+          expect(bob.company.name).to.equal('Dollar Corp.');
+        });
+      });
+
       describe('include all', () => {
         beforeEach(async function () {
           this.Continent = this.sequelize.define('continent', { name: DataTypes.STRING });
