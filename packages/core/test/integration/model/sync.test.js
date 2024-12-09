@@ -164,6 +164,45 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync({ alter: true });
   });
 
+  it('should use constraintName provided for composite fk constraints when provided', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, {
+      foreignKey: {
+        keys: ['userId', 'tenantId'],
+        constraintName: 'tribute_to_the_best_constraint_in_the_world',
+      },
+    });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'tribute_to_the_best_constraint_in_the_world',
+    );
+    expect(constraint.columnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedColumnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedTableName).to.eq('Users');
+  });
+
   it('should properly add composite fk constraint using shorthand when columns are equal', async () => {
     const User = sequelize.define('User', {
       userId: {
