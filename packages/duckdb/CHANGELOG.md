@@ -5,4 +5,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # Current
 
-- initial commit
+- initial dialect commit

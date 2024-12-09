@@ -1330,6 +1330,7 @@ describe('DataTypes', () => {
       const record0 = await record1.update({
         dateAttr: null,
       });
+
       const record = await record0.reload();
       expect(record.dateAttr).to.be.eql(null);
     });
@@ -1348,7 +1349,7 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
-        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
     });
   });
 

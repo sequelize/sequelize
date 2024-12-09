@@ -4,7 +4,6 @@ import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/ab
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import NodeUtil from 'node:util';
 
-
 export class BOOLEAN extends BaseTypes.BOOLEAN {
   toSql(): string {
     return 'BOOLEAN';
