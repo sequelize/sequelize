@@ -67,6 +67,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
           required: true,
         },
       ],
+      order: ['title'],
     });
 
     expect(tasks.length).to.equal(2);
@@ -142,6 +143,7 @@ describe(Support.getTestDialectTeaser('Multiple Level Filters'), () => {
           required: true,
         },
       ],
+      order: ['title'],
     });
 
     expect(tasks.length).to.equal(2);

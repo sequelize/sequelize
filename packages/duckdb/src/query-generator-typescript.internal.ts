@@ -35,7 +35,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       sql += ` WHERE schema_name = ${this.escape(options.schema)}`;
     }
 
-    return sql;
+    return `${sql} ORDER BY table_name`;
   }
 
   describeTableQuery(tableName: TableOrModel) {
