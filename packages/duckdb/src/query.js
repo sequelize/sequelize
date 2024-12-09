@@ -75,10 +75,10 @@ export class DuckDbQuery extends AbstractQuery {
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
     let dataPromise;
     if (parameters) {
-      // TODO: move this into overrides
+      // for some reason implementing toBindableValue on BigInt does not work to do this conversion
       const convertedParameters = parameters.map(p => {
         if (isBigInt(p)) {
-          // TBD: BigInt binds as null in duckdb-node. check if Neo does better.
+          // BigInt binds as null in duckdb-node
           return p.toString();
         }
 
@@ -108,7 +108,7 @@ export class DuckDbQuery extends AbstractQuery {
     });
   }
 
-  // TBD: comment better; no longer async
+  // Converts non-SELECT query results to a format expected by the framework.
   processResults(data) {
     // this is not amazing since row count can be larger than Number but Sequelize expects a Number...
     let rowsUpdated = 0;

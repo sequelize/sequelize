@@ -60,7 +60,6 @@ export class DatabaseCache {
 
     async closeConnection(connection: DuckDbConnection): Promise<void> {
         if (connection.closed) {
-            // TBD; figure out why sequelize double closes connections
             return;
         }
 

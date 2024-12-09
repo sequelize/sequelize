@@ -41,7 +41,7 @@ export class DuckDbQueryInterface<
         this.#internalQueryInterface = internalQueryInterface;
     }
 
-    // a copy of the one in core, except conflict columns do not get updated
+    // A copy of the one in core, except conflict columns do not get updated
     // to work around DuckDB's overly strict unique constraint enforcement
     async upsert<M extends Model>(tableName: TableName, insertValues: object, updateValues: object, where: object,
             inputOptions: QiUpsertOptions<M>): Promise<object> {
@@ -110,7 +110,6 @@ export class DuckDbQueryInterface<
         return this.sequelize.queryRaw(query, options);
     }
 
-    // TBD: upsert and bulk insert can probably hijack the query and modify return fields before delegating to super
     async bulkInsert(tableName: TableName, records: object[], inputOptions?: QiOptionsWithReplacements,
                      attributes?: Record<string, AttributeOptions>): Promise<object | number> {
 

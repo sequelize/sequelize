@@ -12,7 +12,6 @@ const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript
 
 export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
-    // TBD: Remove exclusion in query-interface.js and add comment-on logic
     if (options) {
       rejectInvalidOptions(
           'createTableQuery',

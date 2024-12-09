@@ -172,7 +172,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
         hex = `0${hex}`;
       }
 
-      escaped += element ? `\\x${hex}` : '\\x00';;
+      escaped += element ? `\\x${hex}` : '\\x00';
     }
 
     return `'${escaped}'::BLOB`;
