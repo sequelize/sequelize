@@ -14,7 +14,7 @@ describe('QueryGenerator#listTablesQuery', () => {
       mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
       postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema !~ E'^pg_' AND table_schema NOT IN ('information_schema', 'tiger', 'tiger_data', 'topology') ORDER BY table_schema, table_name`,
       snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables()',
+      duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables() ORDER BY table_name',
     });
   });
 
@@ -28,7 +28,7 @@ describe('QueryGenerator#listTablesQuery', () => {
       mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'mySchema' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
       postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema = 'mySchema' ORDER BY table_schema, table_name`,
       snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'mySchema' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables() WHERE schema_name = \'mySchema\'',
+      duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables() WHERE schema_name = \'mySchema\' ORDER BY table_name',
     });
   });
 
@@ -44,7 +44,7 @@ describe('QueryGenerator#listTablesQuery', () => {
         mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'sequelize_test' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
         postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema = 'public' ORDER BY table_schema, table_name`,
         snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA = 'PUBLIC' ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-          duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables() WHERE schema_name = \'main\'',
+          duckdb: 'SELECT table_name as tableName, schema_name as schema FROM duckdb_tables() WHERE schema_name = \'main\' ORDER BY table_name',
       },
     );
   });
