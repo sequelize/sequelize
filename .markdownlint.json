@@ -1,38 +1,59 @@
-{
-  "default": false,
-  "ul-style": true,
-  "list-indent": true,
-  "ul-start-left": true,
-  "ul-indent": true,
-  "no-trailing-spaces": true,
-  "no-hard-tabs": true,
-  "no-reversed-links": true,
-  "no-multiple-blanks": true,
-  "no-missing-space-atx": true,
-  "no-multiple-space-atx": true,
-  "no-missing-space-closed-atx": true,
-  "no-multiple-space-closed-atx": true,
-  "blanks-around-headings": true,
-  "heading-start-left": true,
-  "no-duplicate-heading": {
-    "siblings_only": true
+ module.exports = {
+  root: true,
+  extends: [
+    'eslint:recommended',
+    'plugin:prettier/recommended', // Integrates Prettier for code formatting
+  ],
+  plugins: ['prettier'],
+  rules: {
+    // General code style rules
+    'prettier/prettier': 'error',
+    'no-trailing-spaces': 'error', // Disallow trailing whitespace
+    'no-mixed-spaces-and-tabs': 'error', // Disallow mixed spaces and tabs
+    'no-multiple-empty-lines': ['error', { max: 1, maxEOF: 1 }], // Avoid multiple blank lines
+    'space-infix-ops': 'error', // Require spaces around operators
+    'indent': ['error', 2], // Indent with 2 spaces
+    'no-multi-spaces': 'error', // Disallow multiple spaces
+    'no-duplicate-imports': 'error', // Prevent duplicate imports
+    'prefer-const': 'error', // Suggest using const over let
+    'no-console': 'warn', // Allow console but warn on usage
+    'no-empty-function': 'error', // Disallow empty functions
+    'no-debugger': 'warn', // Allow debugger but warn
+    'arrow-spacing': ['error', { before: true, after: true }], // Enforce spaces before and after arrow functions
+    'semi': ['error', 'always'], // Enforce semicolons
+    'quotes': ['error', 'single'], // Enforce single quotes for strings
+    'brace-style': ['error', '1tbs'], // Enforce 1 true brace style for code blocks
+    'object-curly-spacing': ['error', 'always'], // Ensure spacing inside curly braces
+    'eol-last': 'error', // Ensure newline at end of file
   },
-  "single-h1": {
-    "level": 1
-  },
-  "no-multiple-space-blockquote": true,
-  "ol-prefix": {
-    "style": "one_or_ordered"
-  },
-  "list-marker-space": true,
-  "blanks-around-fences": true,
-  "blanks-around-lists": true,
-  "no-bare-urls": true,
-  "hr-style": true,
-  "no-space-in-emphasis": true,
-  "no-space-in-code": true,
-  "no-space-in-links": true,
-  "fenced-code-language": true,
-  "no-empty-links": true,
-  "no-alt-text": true
-}
+  overrides: [
+    {
+      files: ['*.md'],
+      plugins: ['markdown'], // Enable markdown linting
+      rules: {
+        'markdown/ul-style': 'warn',
+        'markdown/list-indent': 'warn',
+        'markdown/no-multiple-blanks': 'warn',
+        'markdown/heading-start-left': 'warn',
+        'markdown/no-missing-space-atx': 'warn',
+        'markdown/no-multiple-space-atx': 'warn',
+        'markdown/blanks-around-headings': 'warn',
+        'markdown/no-duplicate-heading': ['warn', { siblings_only: true }],
+        'markdown/single-h1': ['warn', { level: 1 }],
+        'markdown/no-multiple-space-blockquote': 'warn',
+        'markdown/ol-prefix': ['warn', { style: 'one_or_ordered' }],
+        'markdown/list-marker-space': 'warn',
+        'markdown/blanks-around-fences': 'warn',
+        'markdown/blanks-around-lists': 'warn',
+        'markdown/no-bare-urls': 'warn',
+        'markdown/hr-style': 'warn',
+        'markdown/no-space-in-emphasis': 'warn',
+        'markdown/no-space-in-code': 'warn',
+        'markdown/no-space-in-links': 'warn',
+        'markdown/fenced-code-language': 'warn',
+        'markdown/no-empty-links': 'warn',
+        'markdown/no-alt-text': 'warn',
+      },
+    },
+  ],
+};
