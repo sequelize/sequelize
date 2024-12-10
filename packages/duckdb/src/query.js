@@ -60,7 +60,7 @@ export class DuckDbQuery extends AbstractQuery {
     return new DatabaseError(err);
   }
 
-  // This is slow and terrible, but Sequelize really wants untyped string values when used without a model
+  // Sequelize really wants untyped string values when used without a model
   postprocessData(data, model) {
     if (!model) {
       // Sequelize really wants plan text data in the absence of a model
