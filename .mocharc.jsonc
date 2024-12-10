@@ -1,4 +1,4 @@
-{
+ {
   "require": "ts-node/register",
   "loader": "ts-node/esm",
   "extensions": ["js", "ts"],
@@ -9,7 +9,6 @@
   "exit": true,
   "inline-diffs": true,
   "full-trace": true,
-  // Globals added as per https://github.com/sequelize/sequelize/pull/17206#discussion_r1538541573
   "globals": [
     "__extends",
     "__assign",
