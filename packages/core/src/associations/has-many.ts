@@ -364,11 +364,13 @@ export class HasManyAssociation<
       const key = [];
       for (const fk of this.foreignKeys) {
         const value = instance.get(fk.targetKey, { raw: true });
-        key.push(value);
+        if (value !== undefined) {
+          key.push(value);
+        }
       }
 
       const resultKey = key.join('&');
-      result.get(resultKey)!.push(instance);
+      result.get(resultKey)?.push(instance);
     }
 
     return result;
