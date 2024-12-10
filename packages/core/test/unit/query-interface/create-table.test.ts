@@ -40,6 +40,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      duckdb: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID, PRIMARY KEY ("id"));',
     });
   });
 
@@ -93,6 +94,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      duckdb: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID, PRIMARY KEY ("id"));',
     });
   });
 
@@ -113,7 +115,7 @@ describe('QueryInterface#createTable', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
-      postgres: `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
+      'postgres duckdb': `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",

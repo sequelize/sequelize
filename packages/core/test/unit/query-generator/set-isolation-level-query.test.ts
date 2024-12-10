@@ -16,7 +16,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
       sqlite3: new Error(
         `The ${IsolationLevel.READ_COMMITTED} isolation level is not supported by ${dialect.name}.`,
       ),
-      snowflake: notSupportedError,
+      'snowflake duckdb': notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
   });
@@ -25,7 +25,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.READ_UNCOMMITTED), {
       default: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
       sqlite3: 'PRAGMA read_uncommitted = 1',
-      snowflake: notSupportedError,
+      'snowflake duckdb': notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
   });
@@ -36,7 +36,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
       sqlite3: new Error(
         `The ${IsolationLevel.REPEATABLE_READ} isolation level is not supported by ${dialect.name}.`,
       ),
-      snowflake: notSupportedError,
+      'snowflake duckdb': notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
   });
@@ -45,7 +45,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.SERIALIZABLE), {
       default: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
       sqlite3: 'PRAGMA read_uncommitted = 0',
-      snowflake: notSupportedError,
+      'snowflake duckdb': notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
   });
