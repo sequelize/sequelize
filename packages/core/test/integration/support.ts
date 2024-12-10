@@ -286,7 +286,7 @@ ${[...allSequelizeInstances]
 
 async function clearDatabaseInternal(customSequelize: Sequelize) {
   const qi = customSequelize.queryInterface;
-  await qi.dropAllTables();
+  await qi.dropAllTables(customSequelize.dialect.supports.dropTable);
   resetSequelizeInstance(customSequelize);
 
   if (qi.dropAllEnums) {
