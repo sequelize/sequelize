@@ -9,5 +9,20 @@
         "type": "time-permitting"
       }
     }
-  ]
+  ],
+  "packageSupport": {
+    "node": {
+      "supported": ">=14.0.0",
+      "deprecated": "<12.0.0"
+    },
+    "sequelize": {
+      "supported": "^6.0.0",
+      "deprecated": "<6.0.0"
+    },
+    "express": {
+      "supported": "^4.0.0",
+      "deprecated": "<4.0.0"
+    }
+  }
 }
+
