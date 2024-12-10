@@ -2,10 +2,7 @@ import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-
 import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import type { DuckDbDialect } from './dialect.js';
 
-const TECHNICAL_SCHEMAS = Object.freeze([
-  'information_schema',
-  'pg_catalog',
-]);
+const TECHNICAL_SCHEMAS = Object.freeze(['information_schema', 'pg_catalog']);
 
 export class DuckDbQueryGeneratorInternal<
   Dialect extends DuckDbDialect = DuckDbDialect,
@@ -15,7 +12,7 @@ export class DuckDbQueryGeneratorInternal<
   }
 
   addLimitAndOffset(options: AddLimitOffsetOptions) {
-    let fragment = "";
+    let fragment = '';
     if (options.limit != null) {
       fragment += ` LIMIT ${this.queryGenerator.escape(options.limit, options)}`;
     }

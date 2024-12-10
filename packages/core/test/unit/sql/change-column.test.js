@@ -56,7 +56,7 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
       snowflake:
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
-      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT ;'
+      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT ;',
     });
   });
 
@@ -86,7 +86,7 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
       snowflake:
         'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
-      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE INTEGER;'
+      duckdb: 'ALTER TABLE "users" ALTER COLUMN "level_id" TYPE INTEGER;',
     });
   });
 });

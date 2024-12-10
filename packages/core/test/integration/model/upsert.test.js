@@ -84,27 +84,27 @@ describe('Model', () => {
       });
 
       if (sequelize.dialect.supports.constraints.unique) {
-          it('works with upsert on a composite key', async function () {
-              const [, created0] = await this.User.upsert({foo: 'baz', bar: 19, username: 'john'});
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created0).to.be.null;
-              } else {
-                  expect(created0).to.be.true;
-              }
+        it('works with upsert on a composite key', async function () {
+          const [, created0] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created0).to.be.null;
+          } else {
+            expect(created0).to.be.true;
+          }
 
-              this.clock.tick(1000);
-              const [, created] = await this.User.upsert({foo: 'baz', bar: 19, username: 'doe'});
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created).to.be.null;
-              } else {
-                  expect(created).to.be.false;
-              }
+          this.clock.tick(1000);
+          const [, created] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created).to.be.null;
+          } else {
+            expect(created).to.be.false;
+          }
 
-              const user = await this.User.findOne({where: {foo: 'baz', bar: 19}});
-              expect(user.createdAt).to.be.ok;
-              expect(user.username).to.equal('doe');
-              expect(user.updatedAt).to.be.afterTime(user.createdAt);
-          });
+          const user = await this.User.findOne({ where: { foo: 'baz', bar: 19 } });
+          expect(user.createdAt).to.be.ok;
+          expect(user.username).to.equal('doe');
+          expect(user.updatedAt).to.be.afterTime(user.createdAt);
+        });
       }
 
       it('should work with UUIDs wth default values', async function () {
@@ -394,143 +394,147 @@ describe('Model', () => {
 
       // DuckDB dialect does not support unique indexes, so the upserts will result in insert, not update
       if (dialectName !== 'duckdb') {
-          it('works when two separate uniqueKeys are passed', async function () {
-              const User = this.sequelize.define('User', {
-                  username: {
-                      type: DataTypes.STRING,
-                      unique: true,
-                  },
-                  email: {
-                      type: DataTypes.STRING,
-                      unique: true,
-                  },
-                  city: {
-                      type: DataTypes.STRING,
-                  },
-              });
-              await User.sync({force: true});
-              const [, created0] = await User.upsert({
-                  username: 'user1',
-                  email: 'user1@domain.ext',
-                  city: 'City',
-              });
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created0).to.be.null;
-              } else {
-                  expect(created0).to.be.ok;
-              }
-
-              const [, created] = await User.upsert({
-                  username: 'user1',
-                  email: 'user1@domain.ext',
-                  city: 'New City',
-              });
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created).to.be.null;
-              } else {
-                  expect(created).to.be.false;
-              }
-
-              const user = await User.findOne({
-                  where: {username: 'user1', email: 'user1@domain.ext'},
-              });
-              expect(user.createdAt).to.be.ok;
-              expect(user.city).to.equal('New City');
+        it('works when two separate uniqueKeys are passed', async function () {
+          const User = this.sequelize.define('User', {
+            username: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+            email: {
+              type: DataTypes.STRING,
+              unique: true,
+            },
+            city: {
+              type: DataTypes.STRING,
+            },
           });
-
-          it('works when indexes are created via indexes array', async function () {
-              const User = this.sequelize.define(
-                  'User',
-                  {
-                      username: DataTypes.STRING,
-                      email: DataTypes.STRING,
-                      city: DataTypes.STRING,
-                  },
-                  {
-                      indexes: [
-                          {
-                              unique: true,
-                              fields: ['username'],
-                          },
-                          {
-                              unique: true,
-                              fields: ['email'],
-                          },
-                      ],
-                  },
-              );
-
-              await User.sync({force: true});
-              const [, created0] = await User.upsert({
-                  username: 'user1',
-                  email: 'user1@domain.ext',
-                  city: 'City',
-              });
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created0).to.be.null;
-              } else {
-                  expect(created0).to.be.ok;
-              }
-
-              const [, created] = await User.upsert({
-                  username: 'user1',
-                  email: 'user1@domain.ext',
-                  city: 'New City',
-              });
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created).to.be.null;
-              } else {
-                  expect(created).to.be.false;
-              }
-
-              const user = await User.findOne({
-                  where: {username: 'user1', email: 'user1@domain.ext'},
-              });
-              expect(user.createdAt).to.be.ok;
-              expect(user.city).to.equal('New City');
+          await User.sync({ force: true });
+          const [, created0] = await User.upsert({
+            username: 'user1',
+            email: 'user1@domain.ext',
+            city: 'City',
           });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created0).to.be.null;
+          } else {
+            expect(created0).to.be.ok;
+          }
 
-          it('works when composite indexes are created via indexes array', async () => {
-              const User = sequelize.define(
-                  'User',
-                  {
-                      name: DataTypes.STRING,
-                      address: DataTypes.STRING,
-                      city: DataTypes.STRING,
-                  },
-                  {
-                      indexes: [
-                          {
-                              unique: 'users_name_address',
-                              fields: ['name', 'address'],
-                          },
-                      ],
-                  },
-              );
-
-              await User.sync({force: true});
-              const [, created0] = await User.upsert({name: 'user1', address: 'address', city: 'City'});
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created0).to.be.null;
-              } else {
-                  expect(created0).to.be.ok;
-              }
-
-              const [, created] = await User.upsert({
-                  name: 'user1',
-                  address: 'address',
-                  city: 'New City',
-              });
-              if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
-                  expect(created).to.be.null;
-              } else {
-                  expect(created).not.to.be.ok;
-              }
-
-              const user = await User.findOne({where: {name: 'user1', address: 'address'}});
-              expect(user.createdAt).to.be.ok;
-              expect(user.city).to.equal('New City');
+          const [, created] = await User.upsert({
+            username: 'user1',
+            email: 'user1@domain.ext',
+            city: 'New City',
           });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created).to.be.null;
+          } else {
+            expect(created).to.be.false;
+          }
+
+          const user = await User.findOne({
+            where: { username: 'user1', email: 'user1@domain.ext' },
+          });
+          expect(user.createdAt).to.be.ok;
+          expect(user.city).to.equal('New City');
+        });
+
+        it('works when indexes are created via indexes array', async function () {
+          const User = this.sequelize.define(
+            'User',
+            {
+              username: DataTypes.STRING,
+              email: DataTypes.STRING,
+              city: DataTypes.STRING,
+            },
+            {
+              indexes: [
+                {
+                  unique: true,
+                  fields: ['username'],
+                },
+                {
+                  unique: true,
+                  fields: ['email'],
+                },
+              ],
+            },
+          );
+
+          await User.sync({ force: true });
+          const [, created0] = await User.upsert({
+            username: 'user1',
+            email: 'user1@domain.ext',
+            city: 'City',
+          });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created0).to.be.null;
+          } else {
+            expect(created0).to.be.ok;
+          }
+
+          const [, created] = await User.upsert({
+            username: 'user1',
+            email: 'user1@domain.ext',
+            city: 'New City',
+          });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created).to.be.null;
+          } else {
+            expect(created).to.be.false;
+          }
+
+          const user = await User.findOne({
+            where: { username: 'user1', email: 'user1@domain.ext' },
+          });
+          expect(user.createdAt).to.be.ok;
+          expect(user.city).to.equal('New City');
+        });
+
+        it('works when composite indexes are created via indexes array', async () => {
+          const User = sequelize.define(
+            'User',
+            {
+              name: DataTypes.STRING,
+              address: DataTypes.STRING,
+              city: DataTypes.STRING,
+            },
+            {
+              indexes: [
+                {
+                  unique: 'users_name_address',
+                  fields: ['name', 'address'],
+                },
+              ],
+            },
+          );
+
+          await User.sync({ force: true });
+          const [, created0] = await User.upsert({
+            name: 'user1',
+            address: 'address',
+            city: 'City',
+          });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created0).to.be.null;
+          } else {
+            expect(created0).to.be.ok;
+          }
+
+          const [, created] = await User.upsert({
+            name: 'user1',
+            address: 'address',
+            city: 'New City',
+          });
+          if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
+            expect(created).to.be.null;
+          } else {
+            expect(created).not.to.be.ok;
+          }
+
+          const user = await User.findOne({ where: { name: 'user1', address: 'address' } });
+          expect(user.createdAt).to.be.ok;
+          expect(user.city).to.equal('New City');
+        });
       }
 
       if (dialectName === 'mssql') {

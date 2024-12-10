@@ -110,19 +110,19 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           await this.User.create(payload);
 
           await expect(
-              this.sequelize.query(
-                  `
+            this.sequelize.query(
+              `
           INSERT INTO ${qq(this.User.tableName)} (${qq('username')},${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `,
-                  {
-                    bind: payload,
-                    logging: spy,
-                    retry: {
-                      max: 3,
-                      match: [/Validation/],
-                    },
-                  },
-              ),
+              {
+                bind: payload,
+                logging: spy,
+                retry: {
+                  max: 3,
+                  match: [/Validation/],
+                },
+              },
+            ),
           ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
           expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialectName) ? 1 : 3);
         });
@@ -524,16 +524,16 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             let query;
             if (['db2', 'ibmi'].includes(dialectName)) {
               query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${qq(
-              'createdAt',
-            )}, ${qq(
-              'updatedAt',
-            )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+                'createdAt',
+              )}, ${qq(
+                'updatedAt',
+              )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
             } else {
               query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq(
-              'createdAt',
-            )}, ${qq(
-              'updatedAt',
-            )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+                'createdAt',
+              )}, ${qq(
+                'updatedAt',
+              )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
             }
 
             let error = null;
@@ -558,16 +558,16 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               let query;
               if (['db2', 'ibmi'].includes(dialectName)) {
                 query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+                  'createdAt',
+                )}, ${qq(
+                  'updatedAt',
+                )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
               } else {
                 query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+                  'createdAt',
+                )}, ${qq(
+                  'updatedAt',
+                )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
               }
 
               await this.sequelize.query(query);

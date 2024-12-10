@@ -453,7 +453,8 @@ Caused by: "undefined" cannot be escaped`),
             db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
             snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
             mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
-            duckdb: '"binaryAttr" IN (\'\\x53\\x65\\x71\\x75\\x65\\x27\\x6c\\x69\\x7a\\x65\\x31\'::BLOB, \'\\x53\\x65\\x71\\x75\\x65\\x6c\\x69\\x7a\\x65\\x32\'::BLOB)',
+            duckdb:
+              "\"binaryAttr\" IN ('\\x53\\x65\\x71\\x75\\x65\\x27\\x6c\\x69\\x7a\\x65\\x31'::BLOB, '\\x53\\x65\\x71\\x75\\x65\\x6c\\x69\\x7a\\x65\\x32'::BLOB)",
           },
         );
       });

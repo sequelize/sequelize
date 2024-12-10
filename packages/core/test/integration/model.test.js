@@ -251,143 +251,143 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (dialect.supports.constraints.unique) {
-        it('allows unique on column with field aliases', async function () {
-            const User = this.sequelize.define('UserWithUniqueFieldAlias', {
-                userName: {type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name'},
-            });
-
-            await User.sync({force: true});
-            const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
-                index => !index.primary,
-            );
-
-            expect(indexes).to.have.length(1);
-            const index = indexes[0];
-            expect(index.primary).to.equal(false);
-            expect(index.unique).to.equal(true);
-            expect(index.name).to.equal('user_name_unique');
-
-            switch (dialectName) {
-                case 'mariadb':
-                case 'mysql': {
-                    expect(index.fields).to.deep.equal([
-                        {attribute: 'user_name', length: undefined, order: 'ASC'},
-                    ]);
-                    expect(index.type).to.equal('BTREE');
-
-                    break;
-                }
-
-                case 'postgres': {
-                    expect(index.fields).to.deep.equal([
-                        {attribute: 'user_name', collate: undefined, order: undefined, length: undefined},
-                    ]);
-
-                    break;
-                }
-
-                case 'db2':
-                case 'mssql': {
-                    expect(index.fields).to.deep.equal([
-                        {attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC'},
-                    ]);
-
-                    break;
-                }
-
-                case 'sqlite3':
-                default: {
-                    expect(index.fields).to.deep.equal([
-                        {attribute: 'user_name', length: undefined, order: undefined},
-                    ]);
-
-                    break;
-                }
-            }
+      it('allows unique on column with field aliases', async function () {
+        const User = this.sequelize.define('UserWithUniqueFieldAlias', {
+          userName: { type: DataTypes.STRING, unique: 'user_name_unique', columnName: 'user_name' },
         });
 
-        if (dialectName !== 'ibmi') {
-            it('allows us to customize the error message for unique constraint', async function () {
-                const User = this.sequelize.define('UserWithUniqueUsername', {
-                    username: {
-                        type: DataTypes.STRING,
-                        unique: {name: 'user_and_email', msg: 'User and email must be unique'},
-                    },
-                    email: {type: DataTypes.STRING, unique: 'user_and_email'},
-                });
+        await User.sync({ force: true });
+        const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
+          index => !index.primary,
+        );
 
-                await User.sync({force: true});
+        expect(indexes).to.have.length(1);
+        const index = indexes[0];
+        expect(index.primary).to.equal(false);
+        expect(index.unique).to.equal(true);
+        expect(index.name).to.equal('user_name_unique');
 
-                try {
-                    await Promise.all([
-                        User.create({username: 'tobi', email: 'tobi@tobi.me'}),
-                        User.create({username: 'tobi', email: 'tobi@tobi.me'}),
-                    ]);
-                } catch (error) {
-                    if (!(error instanceof Sequelize.UniqueConstraintError)) {
-                        throw error;
-                    }
+        switch (dialectName) {
+          case 'mariadb':
+          case 'mysql': {
+            expect(index.fields).to.deep.equal([
+              { attribute: 'user_name', length: undefined, order: 'ASC' },
+            ]);
+            expect(index.type).to.equal('BTREE');
 
-                    expect(error.message).to.equal('User and email must be unique');
-                }
-            });
+            break;
+          }
 
-            // If you use migrations to create unique indexes that have explicit names and/or contain fields
-            // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
-            it('allows us to map the customized error message with unique constraint name', async function () {
-                // Fake migration style index creation with explicit index definition
-                let User = this.sequelize.define(
-                    'UserWithUniqueUsername',
-                    {
-                        user_id: {type: DataTypes.INTEGER},
-                        email: {type: DataTypes.STRING},
-                    },
-                    {
-                        indexes: [
-                            {
-                                name: 'user_and_email_index',
-                                msg: 'User and email must be unique',
-                                unique: true,
-                                method: 'BTREE',
-                                fields: [
-                                    'user_id',
-                                    {
-                                        attribute: 'email',
-                                        collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
-                                        order: 'DESC',
-                                        length: 5,
-                                    },
-                                ],
-                            },
-                        ],
-                    },
-                );
+          case 'postgres': {
+            expect(index.fields).to.deep.equal([
+              { attribute: 'user_name', collate: undefined, order: undefined, length: undefined },
+            ]);
 
-                await User.sync({force: true});
+            break;
+          }
 
-                // Redefine the model to use the index in database and override error message
-                User = this.sequelize.define('UserWithUniqueUsername', {
-                    user_id: {
-                        type: DataTypes.INTEGER,
-                        unique: {name: 'user_and_email_index', msg: 'User and email must be unique'},
-                    },
-                    email: {type: DataTypes.STRING, unique: 'user_and_email_index'},
-                });
+          case 'db2':
+          case 'mssql': {
+            expect(index.fields).to.deep.equal([
+              { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' },
+            ]);
 
-                try {
-                    await Promise.all([
-                        User.create({user_id: 1, email: 'tobi@tobi.me'}),
-                        User.create({user_id: 1, email: 'tobi@tobi.me'}),
-                    ]);
-                } catch (error) {
-                    if (!(error instanceof Sequelize.UniqueConstraintError)) {
-                        throw error;
-                    }
+            break;
+          }
 
-                    expect(error.message).to.equal('User and email must be unique');
-                }
-            });
+          case 'sqlite3':
+          default: {
+            expect(index.fields).to.deep.equal([
+              { attribute: 'user_name', length: undefined, order: undefined },
+            ]);
+
+            break;
+          }
         }
+      });
+
+      if (dialectName !== 'ibmi') {
+        it('allows us to customize the error message for unique constraint', async function () {
+          const User = this.sequelize.define('UserWithUniqueUsername', {
+            username: {
+              type: DataTypes.STRING,
+              unique: { name: 'user_and_email', msg: 'User and email must be unique' },
+            },
+            email: { type: DataTypes.STRING, unique: 'user_and_email' },
+          });
+
+          await User.sync({ force: true });
+
+          try {
+            await Promise.all([
+              User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
+              User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
+            ]);
+          } catch (error) {
+            if (!(error instanceof Sequelize.UniqueConstraintError)) {
+              throw error;
+            }
+
+            expect(error.message).to.equal('User and email must be unique');
+          }
+        });
+
+        // If you use migrations to create unique indexes that have explicit names and/or contain fields
+        // that have underscore in their name. Then sequelize must use the index name to map the custom message to the error thrown from db.
+        it('allows us to map the customized error message with unique constraint name', async function () {
+          // Fake migration style index creation with explicit index definition
+          let User = this.sequelize.define(
+            'UserWithUniqueUsername',
+            {
+              user_id: { type: DataTypes.INTEGER },
+              email: { type: DataTypes.STRING },
+            },
+            {
+              indexes: [
+                {
+                  name: 'user_and_email_index',
+                  msg: 'User and email must be unique',
+                  unique: true,
+                  method: 'BTREE',
+                  fields: [
+                    'user_id',
+                    {
+                      attribute: 'email',
+                      collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+                      order: 'DESC',
+                      length: 5,
+                    },
+                  ],
+                },
+              ],
+            },
+          );
+
+          await User.sync({ force: true });
+
+          // Redefine the model to use the index in database and override error message
+          User = this.sequelize.define('UserWithUniqueUsername', {
+            user_id: {
+              type: DataTypes.INTEGER,
+              unique: { name: 'user_and_email_index', msg: 'User and email must be unique' },
+            },
+            email: { type: DataTypes.STRING, unique: 'user_and_email_index' },
+          });
+
+          try {
+            await Promise.all([
+              User.create({ user_id: 1, email: 'tobi@tobi.me' }),
+              User.create({ user_id: 1, email: 'tobi@tobi.me' }),
+            ]);
+          } catch (error) {
+            if (!(error instanceof Sequelize.UniqueConstraintError)) {
+              throw error;
+            }
+
+            expect(error.message).to.equal('User and email must be unique');
+          }
+        });
+      }
     }
 
     describe('descending indices (MySQL specific)', () => {
@@ -487,13 +487,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 attribute: 'fieldA',
                 collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
                 order:
-                    dialectName === 'ibmi'
-                        ? ''
-                        : // MySQL doesn't support DESC indexes (will throw)
-                          // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-                        dialectName === 'mysql' || dialectName === 'mariadb'
-                            ? 'ASC'
-                            : `DESC`,
+                  dialectName === 'ibmi'
+                    ? ''
+                    : // MySQL doesn't support DESC indexes (will throw)
+                      // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+                      dialectName === 'mysql' || dialectName === 'mariadb'
+                      ? 'ASC'
+                      : `DESC`,
                 length: 5,
               },
             ],
@@ -502,31 +502,31 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
           indices.push(
-              {
-                type: 'FULLTEXT',
-                fields: ['fieldC'],
-                concurrently: true,
-              },
-              {
-                type: 'FULLTEXT',
-                fields: ['fieldD'],
-              },
+            {
+              type: 'FULLTEXT',
+              fields: ['fieldC'],
+              concurrently: true,
+            },
+            {
+              type: 'FULLTEXT',
+              fields: ['fieldD'],
+            },
           );
         }
 
         const modelOptions = ['mariadb', 'mysql'].includes(dialectName)
-            ? {indexes: indices, engine: 'MyISAM'}
-            : {indexes: indices};
+          ? { indexes: indices, engine: 'MyISAM' }
+          : { indexes: indices };
 
         const Model = this.sequelize.define(
-            'model',
-            {
-              fieldA: DataTypes.STRING,
-              fieldB: DataTypes.INTEGER,
-              fieldC: DataTypes.STRING,
-              fieldD: DataTypes.STRING,
-            },
-            modelOptions,
+          'model',
+          {
+            fieldA: DataTypes.STRING,
+            fieldB: DataTypes.INTEGER,
+            fieldC: DataTypes.STRING,
+            fieldD: DataTypes.STRING,
+          },
+          modelOptions,
         );
 
         await this.sequelize.sync();
@@ -544,12 +544,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             idx2 = args[1];
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldB', length: undefined, order: undefined},
-              {attribute: 'fieldA', length: undefined, order: undefined},
+              { attribute: 'fieldB', length: undefined, order: undefined },
+              { attribute: 'fieldA', length: undefined, order: undefined },
             ]);
 
             expect(idx2.fields).to.deep.equal([
-              {attribute: 'fieldC', length: undefined, order: undefined},
+              { attribute: 'fieldC', length: undefined, order: undefined },
             ]);
 
             break;
@@ -559,8 +559,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             idx1 = args[1];
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
-              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
+              { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
             ]);
 
             break;
@@ -570,8 +570,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             idx1 = args[0];
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldA', length: undefined, order: undefined, collate: undefined},
-              {attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
+              { attribute: 'fieldA', length: undefined, order: undefined, collate: undefined },
+              { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
             ]);
 
             break;
@@ -581,8 +581,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             idx1 = args[0];
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined},
-              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined},
+              { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
             ]);
 
             break;
@@ -596,16 +596,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             idx3 = args[2];
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldB', length: undefined, order: undefined, collate: undefined},
-              {attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US'},
+              { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
+              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' },
             ]);
 
             expect(idx2.fields).to.deep.equal([
-              {attribute: 'fieldC', length: undefined, order: undefined, collate: undefined},
+              { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined },
             ]);
 
             expect(idx3.fields).to.deep.equal([
-              {attribute: 'fieldD', length: undefined, order: undefined, collate: undefined},
+              { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
             ]);
 
             break;
@@ -623,7 +623,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(idx2.type).to.equal('FULLTEXT');
 
             expect(idx1.fields).to.deep.equal([
-              {attribute: 'fieldB', length: undefined, order: 'ASC'},
+              { attribute: 'fieldB', length: undefined, order: 'ASC' },
               // length is a bigint, which is why it's returned as a string
               {
                 attribute: 'fieldA',
@@ -634,7 +634,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]);
 
             expect(idx2.fields).to.deep.equal([
-              {attribute: 'fieldC', length: undefined, order: null},
+              { attribute: 'fieldC', length: undefined, order: null },
             ]);
           }
         }
@@ -1017,7 +1017,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
-            } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)) {
+            } else if (
+              ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)
+            ) {
               test++;
               expect(sql).to.not.contain('special');
             }
@@ -1036,7 +1038,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
                 expect(sql).to.contain('special');
-              } else if (['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)) {
+              } else if (
+                ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'duckdb'].includes(dialectName)
+              ) {
                 test++;
                 expect(sql).to.contain('special');
               }
@@ -1055,61 +1059,61 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (dialect.supports.constraints.foreignKey) {
         it('should be able to reference a table with a schema set', async function () {
           const UserPub = this.sequelize.define(
-              'UserPub',
-              {
-                username: DataTypes.STRING,
-              },
-              {schema: 'prefix'},
+            'UserPub',
+            {
+              username: DataTypes.STRING,
+            },
+            { schema: 'prefix' },
           );
 
           const ItemPub = this.sequelize.define(
-              'ItemPub',
-              {
-                name: DataTypes.STRING,
-              },
-              {schema: 'prefix'},
+            'ItemPub',
+            {
+              name: DataTypes.STRING,
+            },
+            { schema: 'prefix' },
           );
 
-          UserPub.hasMany(ItemPub, {foreignKeyConstraints: true});
+          UserPub.hasMany(ItemPub, { foreignKeyConstraints: true });
 
           await this.sequelize.queryInterface.createSchema('prefix');
 
           let test = false;
 
-          await UserPub.sync({force: true});
+          await UserPub.sync({ force: true });
           await ItemPub.sync({
             force: true,
             logging: afterLodash(
-                2,
-                once(sql => {
-                  test = true;
-                  switch (dialectName) {
-                    case 'postgres':
-                    case 'db2':
-                    case 'ibmi': {
-                      expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
+              2,
+              once(sql => {
+                test = true;
+                switch (dialectName) {
+                  case 'postgres':
+                  case 'db2':
+                  case 'ibmi': {
+                    expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
-                      break;
-                    }
-
-                    case 'mssql': {
-                      expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
-
-                      break;
-                    }
-
-                    case 'mysql':
-                    case 'mariadb': {
-                      expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
-
-                      break;
-                    }
-
-                    default: {
-                      expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
-                    }
+                    break;
                   }
-                }),
+
+                  case 'mssql': {
+                    expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
+
+                    break;
+                  }
+
+                  case 'mysql':
+                  case 'mariadb': {
+                    expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
+
+                    break;
+                  }
+
+                  default: {
+                    expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
+                  }
+                }
+              }),
             ),
           });
 
@@ -1289,137 +1293,137 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (dialect.supports.constraints.foreignKey) {
-        it('uses an existing dao factory and references the author table', async function () {
-            const authorIdColumn = {
-                type: DataTypes.INTEGER,
-                references: {model: this.Author, key: 'id'},
-            };
+      it('uses an existing dao factory and references the author table', async function () {
+        const authorIdColumn = {
+          type: DataTypes.INTEGER,
+          references: { model: this.Author, key: 'id' },
+        };
 
-            const Post = this.sequelize.define('post', {
-                title: DataTypes.STRING,
-                authorId: authorIdColumn,
-            });
-
-            this.Author.hasMany(Post);
-            Post.belongsTo(this.Author);
-
-            // The posts table gets dropped in the before filter.
-            await Post.sync();
-
-            const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
-                constraintType: 'FOREIGN KEY',
-            });
-
-            expect(foreignKeys.length).to.eq(1);
-            expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
-            expect(foreignKeys[0].referencedTableName).to.eq('authors');
-            expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+        const Post = this.sequelize.define('post', {
+          title: DataTypes.STRING,
+          authorId: authorIdColumn,
         });
 
-        it('uses a table name as a string and references the author table', async function () {
-            const authorIdColumn = {
-                type: DataTypes.INTEGER,
-                references: {table: 'authors', key: 'id'},
-            };
+        this.Author.hasMany(Post);
+        Post.belongsTo(this.Author);
 
-            const Post = this.sequelize.define('post', {
-                title: DataTypes.STRING,
-                authorId: authorIdColumn,
-            });
+        // The posts table gets dropped in the before filter.
+        await Post.sync();
 
-            this.Author.hasMany(Post);
-            Post.belongsTo(this.Author);
-
-            // The posts table gets dropped in the before filter.
-            await Post.sync();
-
-            const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
-                constraintType: 'FOREIGN KEY',
-            });
-
-            expect(foreignKeys.length).to.eq(1);
-            expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
-            expect(foreignKeys[0].referencedTableName).to.eq('authors');
-            expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+        const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
+          constraintType: 'FOREIGN KEY',
         });
 
-        it('throws an error if the referenced table name is invalid', async function () {
-            const Post = this.sequelize.define('post', {
-                title: DataTypes.STRING,
-                authorId: DataTypes.INTEGER,
-            });
+        expect(foreignKeys.length).to.eq(1);
+        expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
+        expect(foreignKeys[0].referencedTableName).to.eq('authors');
+        expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+      });
 
-            this.Author.hasMany(Post);
-            Post.belongsTo(this.Author);
+      it('uses a table name as a string and references the author table', async function () {
+        const authorIdColumn = {
+          type: DataTypes.INTEGER,
+          references: { table: 'authors', key: 'id' },
+        };
 
-            // force Post.authorId to reference a table that does not exist
-            Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
-            Post.modelDefinition.refreshAttributes();
+        const Post = this.sequelize.define('post', {
+          title: DataTypes.STRING,
+          authorId: authorIdColumn,
+        });
 
-            try {
-                // The posts table gets dropped in the before filter.
-                await Post.sync();
-                if (dialectName === 'sqlite3') {
-                    // sorry ... but sqlite is too stupid to understand whats going on ...
-                    expect(1).to.equal(1);
-                } else {
-                    // the parser should not end up here ...
-                    expect(2).to.equal(1);
-                }
-            } catch (error) {
-                switch (dialectName) {
-                    case 'mysql': {
-                        expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+        this.Author.hasMany(Post);
+        Post.belongsTo(this.Author);
 
-                        break;
-                    }
+        // The posts table gets dropped in the before filter.
+        await Post.sync();
 
-                    case 'sqlite3': {
-                        // the parser should not end up here ... see above
-                        expect(1).to.equal(2);
+        const foreignKeys = await this.sequelize.queryInterface.showConstraints(Post, {
+          constraintType: 'FOREIGN KEY',
+        });
 
-                        break;
-                    }
+        expect(foreignKeys.length).to.eq(1);
+        expect(foreignKeys[0].columnNames).to.deep.eq(['authorId']);
+        expect(foreignKeys[0].referencedTableName).to.eq('authors');
+        expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
+      });
 
-                    case 'mariadb': {
-                        expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
+      it('throws an error if the referenced table name is invalid', async function () {
+        const Post = this.sequelize.define('post', {
+          title: DataTypes.STRING,
+          authorId: DataTypes.INTEGER,
+        });
 
-                        break;
-                    }
+        this.Author.hasMany(Post);
+        Post.belongsTo(this.Author);
 
-                    case 'postgres': {
-                        expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+        // force Post.authorId to reference a table that does not exist
+        Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
+        Post.modelDefinition.refreshAttributes();
 
-                        break;
-                    }
+        try {
+          // The posts table gets dropped in the before filter.
+          await Post.sync();
+          if (dialectName === 'sqlite3') {
+            // sorry ... but sqlite is too stupid to understand whats going on ...
+            expect(1).to.equal(1);
+          } else {
+            // the parser should not end up here ...
+            expect(2).to.equal(1);
+          }
+        } catch (error) {
+          switch (dialectName) {
+            case 'mysql': {
+              expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
-                    case 'mssql': {
-                        expect(error).to.be.instanceOf(AggregateError);
-                        expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
-
-                        break;
-                    }
-
-                    case 'db2': {
-                        expect(error.message).to.match(/ is an undefined name/);
-
-                        break;
-                    }
-
-                    case 'ibmi': {
-                        expect(error.message).to.match(
-                            /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
-                        );
-
-                        break;
-                    }
-
-                    default: {
-                        throw new Error('Undefined dialect!');
-                    }
-                }
+              break;
             }
-        });
+
+            case 'sqlite3': {
+              // the parser should not end up here ... see above
+              expect(1).to.equal(2);
+
+              break;
+            }
+
+            case 'mariadb': {
+              expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
+
+              break;
+            }
+
+            case 'postgres': {
+              expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+
+              break;
+            }
+
+            case 'mssql': {
+              expect(error).to.be.instanceOf(AggregateError);
+              expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
+
+              break;
+            }
+
+            case 'db2': {
+              expect(error.message).to.match(/ is an undefined name/);
+
+              break;
+            }
+
+            case 'ibmi': {
+              expect(error.message).to.match(
+                /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
+              );
+
+              break;
+            }
+
+            default: {
+              throw new Error('Undefined dialect!');
+            }
+          }
+        }
+      });
     }
 
     it('works with comments', async function () {

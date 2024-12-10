@@ -20,9 +20,11 @@ describe('QueryGenerator#createSchemaQuery', () => {
     expectsql(() => queryGenerator.createSchemaQuery('mySchema', { authorization: 'myUser' }), {
       default: 'CREATE SCHEMA [mySchema] AUTHORIZATION [myUser]',
       sqlite3: notSupportedError,
-      'mariadb mysql snowflake duckdb': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
-        'authorization',
-      ]),
+      'mariadb mysql snowflake duckdb': buildInvalidOptionReceivedError(
+        'createSchemaQuery',
+        dialectName,
+        ['authorization'],
+      ),
     });
   });
 
@@ -129,7 +131,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
           'collate',
           'comment',
           'replace',
-          ]),
+        ]),
       },
     );
   });

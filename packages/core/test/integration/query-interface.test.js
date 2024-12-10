@@ -126,24 +126,24 @@ describe('QueryInterface', () => {
         it('works with schemas', async function () {
           await this.sequelize.createSchema('schema');
           await this.queryInterface.createTable(
-              'table',
-              {
-                name: {
-                  type: DataTypes.STRING,
-                },
-                isAdmin: {
-                  type: DataTypes.STRING,
-                },
+            'table',
+            {
+              name: {
+                type: DataTypes.STRING,
               },
-              {
-                schema: 'schema',
+              isAdmin: {
+                type: DataTypes.STRING,
               },
+            },
+            {
+              schema: 'schema',
+            },
           );
           await this.queryInterface.addIndex(
-              {schema: 'schema', tableName: 'table'},
-              ['name', 'isAdmin'],
-              null,
-              'schema_table',
+            { schema: 'schema', tableName: 'table' },
+            ['name', 'isAdmin'],
+            null,
+            'schema_table',
           );
           const indexes = await this.queryInterface.showIndex({
             schema: 'schema',

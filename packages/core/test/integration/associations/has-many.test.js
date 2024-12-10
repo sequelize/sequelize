@@ -1042,16 +1042,16 @@ describe('HasMany', () => {
     describe('foreign key constraints', () => {
       describe('1:m', () => {
         it('sets null by default', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
           User.hasMany(Task);
 
-          await this.sequelize.sync({force: true});
+          await this.sequelize.sync({ force: true });
 
           const [user, task0] = await Promise.all([
-            User.create({username: 'foo'}),
-            Task.create({title: 'task'}),
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
           ]);
 
           await user.setTasks([task0]);
@@ -1061,31 +1061,31 @@ describe('HasMany', () => {
         });
 
         it('sets to CASCADE if allowNull: false', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, {foreignKey: {allowNull: false}}); // defaults to CASCADE
+          User.hasMany(Task, { foreignKey: { allowNull: false } }); // defaults to CASCADE
 
-          await this.sequelize.sync({force: true});
+          await this.sequelize.sync({ force: true });
 
-          const user = await User.create({username: 'foo'});
-          await Task.create({title: 'task', userId: user.id});
+          const user = await User.create({ username: 'foo' });
+          await Task.create({ title: 'task', userId: user.id });
           await user.destroy();
           const tasks = await Task.findAll();
           expect(tasks).to.be.empty;
         });
 
         it('should be possible to remove all constraints', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, {foreignKeyConstraints: false});
+          User.hasMany(Task, { foreignKeyConstraints: false });
 
-          await this.sequelize.sync({force: true});
+          await this.sequelize.sync({ force: true });
 
           const [user, task0] = await Promise.all([
-            User.create({username: 'foo'}),
-            Task.create({title: 'task'}),
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
           ]);
 
           const task = task0;
@@ -1096,16 +1096,16 @@ describe('HasMany', () => {
         });
 
         it('can cascade deletes', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          User.hasMany(Task, {foreignKey: {onDelete: 'cascade'}});
+          User.hasMany(Task, { foreignKey: { onDelete: 'cascade' } });
 
-          await this.sequelize.sync({force: true});
+          await this.sequelize.sync({ force: true });
 
           const [user, task] = await Promise.all([
-            User.create({username: 'foo'}),
-            Task.create({title: 'task'}),
+            User.create({ username: 'foo' }),
+            Task.create({ title: 'task' }),
           ]);
 
           await user.setTasks([task]);
@@ -1117,16 +1117,16 @@ describe('HasMany', () => {
         // NOTE: mssql does not support changing an autoincrement primary key
         if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
           it('can cascade updates', async function () {
-            const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-            const User = this.sequelize.define('User', {username: DataTypes.STRING});
+            const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+            const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-            User.hasMany(Task, {foreignKey: {onUpdate: 'cascade'}});
+            User.hasMany(Task, { foreignKey: { onUpdate: 'cascade' } });
 
-            await this.sequelize.sync({force: true});
+            await this.sequelize.sync({ force: true });
 
             const [user0, task] = await Promise.all([
-              User.create({username: 'foo'}),
-              Task.create({title: 'task'}),
+              User.create({ username: 'foo' }),
+              Task.create({ title: 'task' }),
             ]);
 
             await user0.setTasks([task]);
@@ -1136,7 +1136,12 @@ describe('HasMany', () => {
             // `WHERE` clause
 
             const tableName = User.table;
-            await user.sequelize.queryInterface.update(user, tableName, {id: 999}, {id: user.id});
+            await user.sequelize.queryInterface.update(
+              user,
+              tableName,
+              { id: 999 },
+              { id: user.id },
+            );
             const tasks = await Task.findAll();
             expect(tasks).to.have.length(1);
             expect(tasks[0].userId).to.equal(999);
@@ -1145,17 +1150,17 @@ describe('HasMany', () => {
 
         if (current.dialect.supports.constraints.restrict) {
           it('can restrict deletes', async function () {
-            const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-            const User = this.sequelize.define('User', {username: DataTypes.STRING});
+            const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+            const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-            User.hasMany(Task, {foreignKey: {onDelete: 'restrict'}});
+            User.hasMany(Task, { foreignKey: { onDelete: 'restrict' } });
 
             let tasks;
-            await this.sequelize.sync({force: true});
+            await this.sequelize.sync({ force: true });
 
             const [user, task] = await Promise.all([
-              User.create({username: 'foo'}),
-              Task.create({title: 'task'}),
+              User.create({ username: 'foo' }),
+              Task.create({ title: 'task' }),
             ]);
 
             await user.setTasks([task]);
@@ -1175,17 +1180,17 @@ describe('HasMany', () => {
           });
 
           it('can restrict updates', async function () {
-            const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-            const User = this.sequelize.define('User', {username: DataTypes.STRING});
+            const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+            const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-            User.hasMany(Task, {foreignKey: {onUpdate: 'restrict'}});
+            User.hasMany(Task, { foreignKey: { onUpdate: 'restrict' } });
 
             let tasks;
-            await this.sequelize.sync({force: true});
+            await this.sequelize.sync({ force: true });
 
             const [user0, task] = await Promise.all([
-              User.create({username: 'foo'}),
-              Task.create({title: 'task'}),
+              User.create({ username: 'foo' }),
+              Task.create({ title: 'task' }),
             ]);
 
             await user0.setTasks([task]);
@@ -1198,10 +1203,10 @@ describe('HasMany', () => {
 
             try {
               tasks = await user.sequelize.queryInterface.update(
-                  user,
-                  tableName,
-                  {id: 999},
-                  {id: user.id},
+                user,
+                tableName,
+                { id: 999 },
+                { id: user.id },
               );
             } catch (error) {
               if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {

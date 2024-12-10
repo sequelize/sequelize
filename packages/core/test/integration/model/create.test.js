@@ -95,21 +95,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await User.sync({force: true});
+        await User.sync({ force: true });
 
         await User.create({
           username: 'gottlieb',
         });
 
         await expect(
-            User.findOrCreate({
-              where: {
-                objectId: 'asdasdasd',
-              },
-              defaults: {
-                username: 'gottlieb',
-              },
-            }),
+          User.findOrCreate({
+            where: {
+              objectId: 'asdasdasd',
+            },
+            defaults: {
+              username: 'gottlieb',
+            },
+          }),
         ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
       });
 
@@ -125,23 +125,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await User.sync({force: true});
+        await User.sync({ force: true });
 
         await User.create({
           username: 'gottlieb',
         });
 
         await expect(
-            User.findOrCreate({
-              where: {
-                objectId: 'asdasdasd',
-              },
-              defaults: {
-                username: 'gottlieb',
-                foo: 'bar', // field that's not a defined attribute
-                bar: 121,
-              },
-            }),
+          User.findOrCreate({
+            where: {
+              objectId: 'asdasdasd',
+            },
+            defaults: {
+              username: 'gottlieb',
+              foo: 'bar', // field that's not a defined attribute
+              bar: 121,
+            },
+          }),
         ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
       });
 
@@ -157,8 +157,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await User.sync({force: true});
-        await User.create({username: 'gottlieb'});
+        await User.sync({ force: true });
+        await User.create({ username: 'gottlieb' });
 
         try {
           await User.findOrCreate({
@@ -476,8 +476,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             const transaction = await this.customSequelize.startUnmanagedTransaction();
 
             const [first, second] = await Promise.all([
-              this.User.findOrCreate({where: {uniqueName: 'winner'}, transaction}),
-              this.User.findOrCreate({where: {uniqueName: 'winner'}, transaction}),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
             ]);
 
             const firstInstance = first[0];
@@ -518,19 +518,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           const names = ['mick', 'mick', 'mick', 'mick', 'mick', 'mick', 'mick'];
 
-          await User.sync({force: true});
+          await User.sync({ force: true });
 
           await Promise.all(
-              names.map(async username => {
-                try {
-                  return await User.findOrCreate({where: {username}});
-                } catch (error) {
-                  spy();
-                  expect(error.message).to.equal(
-                      `user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`,
-                  );
-                }
-              }),
+            names.map(async username => {
+              try {
+                return await User.findOrCreate({ where: { username } });
+              } catch (error) {
+                spy();
+                expect(error.message).to.equal(
+                  `user#findOrCreate: value used for username was not equal for both the find and the create calls, 'mick' vs 'mick h.'`,
+                );
+              }
+            }),
           );
 
           expect(spy).to.have.been.called;
@@ -552,7 +552,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           });
 
-          await User.sync({force: true});
+          await User.sync({ force: true });
 
           await User.create({
             username: 'gottlieb',
@@ -561,28 +561,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return Promise.all([
             (async () => {
               const error = await expect(
-                  User.findOrCreate({
-                    where: {
-                      objectId: 'asdasdasd',
-                    },
-                    defaults: {
-                      username: 'gottlieb',
-                    },
-                  }),
+                User.findOrCreate({
+                  where: {
+                    objectId: 'asdasdasd',
+                  },
+                  defaults: {
+                    username: 'gottlieb',
+                  },
+                }),
               ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
               expect(error.fields).to.be.ok;
             })(),
             (async () => {
               const error = await expect(
-                  User.findOrCreate({
-                    where: {
-                      objectId: 'asdasdasd',
-                    },
-                    defaults: {
-                      username: 'gottlieb',
-                    },
-                  }),
+                User.findOrCreate({
+                  where: {
+                    objectId: 'asdasdasd',
+                  },
+                  defaults: {
+                    username: 'gottlieb',
+                  },
+                }),
               ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
 
               expect(error.fields).to.be.ok;
@@ -597,8 +597,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           const [first, second] = await Promise.all([
-            this.User.findOrCreate({where: {uniqueName: 'winner'}}),
-            this.User.findOrCreate({where: {uniqueName: 'winner'}}),
+            this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
+            this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
           ]);
 
           const firstInstance = first[0];
@@ -624,11 +624,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       if (dialectName !== 'sqlite3') {
         it('should work with multiple concurrent calls', async function () {
           const [[instance1, created1], [instance2, created2], [instance3, created3]] =
-              await Promise.all([
-                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
-                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
-                this.User.findCreateFind({where: {uniqueName: 'winner'}}),
-              ]);
+            await Promise.all([
+              this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+              this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+              this.User.findCreateFind({ where: { uniqueName: 'winner' } }),
+            ]);
 
           // All instances are the same
           expect(instance1.id).to.equal(instance2.id);
@@ -642,11 +642,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with multiple concurrent calls within a transaction', async function () {
             const t = await this.customSequelize.startUnmanagedTransaction();
             const [[instance1, created1], [instance2, created2], [instance3, created3]] =
-                await Promise.all([
-                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
-                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
-                  this.User.findCreateFind({transaction: t, where: {uniqueName: 'winner'}}),
-                ]);
+              await Promise.all([
+                this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
+                this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
+                this.User.findCreateFind({ transaction: t, where: { uniqueName: 'winner' } }),
+              ]);
 
             await t.commit();
 

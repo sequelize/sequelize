@@ -1,12 +1,9 @@
 'use strict';
 
-import isObject from "lodash/isObject";
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import {
-  CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS
-} from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js";
-import { difference } from "lodash";
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import isObject from 'lodash/isObject';
 
 const { DuckDbQueryGeneratorTypeScript } = require('./query-generator-typescript.internal');
 
@@ -14,11 +11,11 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
-          'createTableQuery',
-          this.dialect,
-          CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-          {},
-          options,
+        'createTableQuery',
+        this.dialect,
+        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        {},
+        options,
       );
     }
 
@@ -34,15 +31,13 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
 
-        const table_prefix = table
-            .replaceAll('"', '')
-            .replaceAll('.', '_');
-        const sequence_name = table_prefix + '_' + attr + '_seq';
+        const table_prefix = table.replaceAll('"', '').replaceAll('.', '_');
+        const sequence_name = `${table_prefix}_${attr}_seq`;
 
         if (dataType.includes('AUTOINCREMENT')) {
-          sequence_sql = 'CREATE SEQUENCE IF NOT EXISTS ' + this.quoteIdentifier(sequence_name) + ' START 1; ';
+          sequence_sql = `CREATE SEQUENCE IF NOT EXISTS ${this.quoteIdentifier(sequence_name)} START 1; `;
           // this could be done in attributesToSQL but better keep it with sequence_name generation in case it changes
-          dataType = dataType.replace('AUTOINCREMENT', `DEFAULT nextval('${sequence_name}')`)
+          dataType = dataType.replace('AUTOINCREMENT', `DEFAULT nextval('${sequence_name}')`);
         }
 
         if (dataType.includes(' PRIMARY KEY')) {
@@ -97,7 +92,6 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
       } else {
         result[columnName] = attribute;
       }
-
     }
 
     return result;
@@ -114,10 +108,9 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   }
 
   updateQuery(tableName, values, where, options, columnDefinitions) {
-
     if (options?.returning) {
-    // RETURNING in an UPDATE query in the presence of unique constraints triggers duckdb constraint violation
-    // See https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
+      // RETURNING in an UPDATE query in the presence of unique constraints triggers duckdb constraint violation
+      // See https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       options.returning = false;
     }
 
@@ -125,22 +118,27 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
   }
 
   arithmeticQuery(
+    operator,
+    tableName,
+    where,
+    incrementAmountsByAttribute,
+    extraAttributesToBeUpdated,
+    options,
+  ) {
+    const query = super.arithmeticQuery(
       operator,
       tableName,
       where,
       incrementAmountsByAttribute,
       extraAttributesToBeUpdated,
       options,
-  ) {
-    const query = super.arithmeticQuery( operator, tableName,
-        where, incrementAmountsByAttribute, extraAttributesToBeUpdated, options);
+    );
 
     // "returning" triggers DuckDB overeager unique indexes check
     return query.replace('RETURNING *', '');
   }
 
   addColumnQuery(table, key, dataType, options) {
-
     const attributes = {};
     attributes[key] = dataType;
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
@@ -162,19 +160,18 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
     const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
 
     for (const attributeName in attributes) {
-
       const definition = fields[attributeName];
       let attrSql = '';
 
-
       if (definition.includes('DEFAULT')) {
         attrSql += query(
-            `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
+          `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
         );
-
       } else if (definition.includes('NOT NULL')) {
         // adding/removing constraints in ALTER TABLE is not supported
-        attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition.replace('NOT NULL', '')}`);
+        attrSql += query(
+          `${this.quoteIdentifier(attributeName)} TYPE ${definition.replace('NOT NULL', '')}`,
+        );
       } else {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
@@ -190,7 +187,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       attrString.push(
-          `${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(attributeName)}`,
+        `${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(attributeName)}`,
       );
     }
 

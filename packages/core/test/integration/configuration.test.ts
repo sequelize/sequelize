@@ -90,7 +90,7 @@ describe('Configuration', () => {
   // See https://github.com/sequelize/sequelize/issues/17240
   it.skip('throws ConnectionRefusedError when we have the wrong credentials', async () => {
     // The following dialects do not have credentials
-    if (dialectName === 'sqlite3' || dialectName === 'duckdb' ) {
+    if (dialectName === 'sqlite3' || dialectName === 'duckdb') {
       return;
     }
 

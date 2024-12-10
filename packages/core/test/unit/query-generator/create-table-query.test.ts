@@ -389,7 +389,8 @@ describe('QueryGenerator#createTableQuery', () => {
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
       snowflake:
         'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL);',
-      duckdb: 'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\'));'
+      duckdb:
+        'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\'));',
     });
   });
 
@@ -458,7 +459,8 @@ describe('QueryGenerator#createTableQuery', () => {
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
         snowflake:
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL, PRIMARY KEY ("myColumn"));',
-        duckdb: 'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\'), PRIMARY KEY ("myColumn"));',
+        duckdb:
+          'CREATE SEQUENCE IF NOT EXISTS "myTable_myColumn_seq" START 1; CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT nextval(\'myTable_myColumn_seq\'), PRIMARY KEY ("myColumn"));',
       },
     );
   });

@@ -1,10 +1,8 @@
 'use strict';
 
-import {
-  AbstractQuery, DatabaseError, UniqueConstraintError,
-} from '@sequelize/core';
+import { AbstractQuery, DatabaseError, UniqueConstraintError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { isBigInt } from "@sequelize/utils";
+import { isBigInt } from '@sequelize/utils';
 
 const debug = logger.debugContext('sql:duckdb');
 
@@ -17,28 +15,33 @@ export class DuckDbQuery extends AbstractQuery {
     this.sql = sql;
     const complete = this._logQuery(sql, debug, parameters);
 
-    if (sql.startsWith("DROP TABLE")) {
-      const sequence_prefix = sql.match(/^DROP TABLE IF EXISTS "([^ ]+)"/)[1]
-          .replaceAll('.', '_')
-          .replaceAll('"', '');
+    if (sql.startsWith('DROP TABLE')) {
+      const sequence_prefix = sql
+        .match(/^DROP TABLE IF EXISTS "([^ ]+)"/)[1]
+        .replaceAll('.', '_')
+        .replaceAll('"', '');
 
       const sequences = [];
       // clean up all the table's sequences
-      sequences.push(this.connection.all(
-          "SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)",
-          sequence_prefix
-      ).then(seqResult => {
-        return seqResult;
-      }));
+      sequences.push(
+        this.connection
+          .all(
+            'SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)',
+            sequence_prefix,
+          )
+          .then(seqResult => {
+            return seqResult;
+          }),
+      );
 
       return Promise.all(
-        sequences.map(seqPromise => seqPromise.then(sequence => {
-          if (sequence && sequence.length > 0 && "sequence_name" in sequence[0]) {
-            return this.connection.all("DROP SEQUENCE " + sequence[0].sequence_name + " CASCADE");
-          }
-
-          return Promise.resolve();
-        }))
+        sequences.map(seqPromise =>
+          seqPromise.then(sequence => {
+            if (sequence && sequence.length > 0 && 'sequence_name' in sequence[0]) {
+              return this.connection.all(`DROP SEQUENCE ${sequence[0].sequence_name} CASCADE`);
+            }
+          }),
+        ),
       ).then(() => this.runQueryInternal(sql, parameters, complete));
     }
 
@@ -46,10 +49,12 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   formatError(err) {
-    if (err.errorType === 'Constraint' &&
-        (err.message.includes("Duplicate key") || err.message.includes("duplicate key"))) {
+    if (
+      err.errorType === 'Constraint' &&
+      (err.message.includes('Duplicate key') || err.message.includes('duplicate key'))
+    ) {
       // retry 'properly bind parameters on extra retries' test has a hardcoded condition with "Validation"
-      return new UniqueConstraintError({ message: `Validation error: ${err.message}`, cause: err} );
+      return new UniqueConstraintError({ message: `Validation error: ${err.message}`, cause: err });
     }
 
     return new DatabaseError(err);
@@ -64,7 +69,6 @@ export class DuckDbQuery extends AbstractQuery {
           if (data[i][key] instanceof Date) {
             data[i][key] = data[i][key].toISOString();
           }
-
         }
       }
     }
@@ -90,22 +94,28 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isSelectQuery()) {
-      return dataPromise.then(data => {
-        loggingCompleteCallback();
+      return dataPromise.then(
+        data => {
+          loggingCompleteCallback();
 
-        return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
-      }, error => {
-        throw this.formatError(error);
-      });
+          return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
+        },
+        error => {
+          throw this.formatError(error);
+        },
+      );
     }
 
-    return dataPromise.then(data => {
-      loggingCompleteCallback();
+    return dataPromise.then(
+      data => {
+        loggingCompleteCallback();
 
-      return this.processResults(data);
-    }, error => {
-      throw this.formatError(error)
-    });
+        return this.processResults(data);
+      },
+      error => {
+        throw this.formatError(error);
+      },
+    );
   }
 
   // Converts non-SELECT query results to a format expected by the framework.
@@ -125,7 +135,6 @@ export class DuckDbQuery extends AbstractQuery {
     let result = this.instance;
 
     if (this.isInsertQuery(data, {}) || this.isUpsertQuery()) {
-
       this.handleInsertQuery(data, {});
       const modelDefinition = this.model?.modelDefinition;
 
@@ -137,7 +146,9 @@ export class DuckDbQuery extends AbstractQuery {
         for (const column of Object.keys(data[0])) {
           const modelColumn = modelDefinition.columns.get(column);
           if (modelColumn) {
-            const val = data[0][column] ? modelColumn.type.parseDatabaseValue(data[0][column]) : data[0][column];
+            const val = data[0][column]
+              ? modelColumn.type.parseDatabaseValue(data[0][column])
+              : data[0][column];
             this.instance.set(modelColumn.attributeName, val, {
               raw: true,
               comesFromDatabase: true,

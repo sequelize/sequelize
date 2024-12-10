@@ -1,15 +1,15 @@
 import { DataTypes, Op, cast, fn } from '@sequelize/core';
 import { expect } from 'chai';
+import fs from 'node:fs';
+import { DUCKDB_DATABASES_DIR } from '../config/config';
 import { beforeAll2, getTestDialectTeaser, sequelize, setResetMode } from './support';
-import { DUCKDB_DATABASES_DIR } from "../config/config";
-import fs from "node:fs";
 
 const dialectName = sequelize.dialect.name;
 
 describe(getTestDialectTeaser('fn()'), () => {
   setResetMode('none');
 
-  if (dialectName === "duckdb") {
+  if (dialectName === 'duckdb') {
     fs.mkdirSync(DUCKDB_DATABASES_DIR);
   }
 
@@ -83,13 +83,24 @@ describe(getTestDialectTeaser('fn()'), () => {
 
       // These values are returned as strings
       // See https://github.com/sequelize/sequelize/issues/10533#issuecomment-1254141892 for more details
-      expect(airplane.get('count')).to.equal(arithmeticAsNumber ? 3 : arithmeticAsBigint ? BigInt(3) : '3');
-      expect(airplane.get('count-engines')).to.equal(arithmeticAsNumber ? 1 : arithmeticAsBigint ? BigInt(1) : '1');
-      expect(airplane.get('count-engines-wings')).to.equal(arithmeticAsNumber ? 2 : arithmeticAsBigint ? BigInt(2) : '2');
+      expect(airplane.get('count')).to.equal(
+        arithmeticAsNumber ? 3 : arithmeticAsBigint ? BigInt(3) : '3',
+      );
+      expect(airplane.get('count-engines')).to.equal(
+        arithmeticAsNumber ? 1 : arithmeticAsBigint ? BigInt(1) : '1',
+      );
+      expect(airplane.get('count-engines-wings')).to.equal(
+        arithmeticAsNumber ? 2 : arithmeticAsBigint ? BigInt(2) : '2',
+      );
     });
   }
 
-  if (dialectName !== 'mssql' && dialectName !== 'postgres' && dialectName !== 'duckdb' && dialectName !== 'ibmi') {
+  if (
+    dialectName !== 'mssql' &&
+    dialectName !== 'postgres' &&
+    dialectName !== 'duckdb' &&
+    dialectName !== 'ibmi'
+  ) {
     it('accepts condition object (auto casting)', async () => {
       const [airplane] = await vars.Airplane.findAll({
         attributes: [

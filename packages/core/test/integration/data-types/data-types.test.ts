@@ -297,9 +297,9 @@ describe('DataTypes', () => {
     if (dialect.name !== 'duckdb') {
       it('throws if the string is too long', async () => {
         await expect(
-            vars.User.create({
-              charAttr: '1'.repeat(21),
-            }),
+          vars.User.create({
+            charAttr: '1'.repeat(21),
+          }),
         ).to.be.rejected;
       });
     }
@@ -1208,9 +1208,9 @@ describe('DataTypes', () => {
             ? '2022-01-01 00:00:00.000 +00:00'
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
-                : dialect.name === 'duckdb'
-                  ? '2022-01-01T00:00:00.000Z'
-                    : '2022-01-01 00:00:00+00',
+              : dialect.name === 'duckdb'
+                ? '2022-01-01T00:00:00.000Z'
+                : '2022-01-01 00:00:00+00',
       );
     });
   });

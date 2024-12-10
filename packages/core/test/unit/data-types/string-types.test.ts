@@ -151,7 +151,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
     testDataTypeSql('CHAR', DataTypes.CHAR, {
       default: 'CHAR(255)',
-      'sqlite3': charNotSupportedError,
+      sqlite3: charNotSupportedError,
       duckdb: 'VARCHAR',
     });
 

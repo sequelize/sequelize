@@ -1,7 +1,7 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { BaseError } from '@sequelize/core';
-import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import NodeUtil from 'node:util';
 
 export class BOOLEAN extends BaseTypes.BOOLEAN {
@@ -42,9 +42,10 @@ export class TINYINT extends BaseTypes.TINYINT {
 
   toSql(): string {
     if (this.options.length && this.options.length > 1) {
-        return this.options.unsigned ? 'USMALLINT' :  'SMALLINT';
+      return this.options.unsigned ? 'USMALLINT' : 'SMALLINT';
     }
-    return this.options.unsigned? 'UTINYINT' : 'TINYINT';
+
+    return this.options.unsigned ? 'UTINYINT' : 'TINYINT';
   }
 }
 
@@ -55,9 +56,10 @@ export class SMALLINT extends BaseTypes.SMALLINT {
 
   toSql(): string {
     if (this.options.length && this.options.length > 2) {
-      return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
+      return this.options.unsigned ? 'UINTEGER' : 'INTEGER';
     }
-    return this.options.unsigned ? 'USMALLINT' :  'SMALLINT';
+
+    return this.options.unsigned ? 'USMALLINT' : 'SMALLINT';
   }
 }
 
@@ -67,7 +69,7 @@ export class MEDIUMINT extends BaseTypes.MEDIUMINT {
   }
 
   toSql(): string {
-    return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
+    return this.options.unsigned ? 'UINTEGER' : 'INTEGER';
   }
 }
 
@@ -77,7 +79,7 @@ export class INTEGER extends BaseTypes.INTEGER {
   }
 
   toSql(): string {
-    return this.options.unsigned ? 'UINTEGER' :  'INTEGER';
+    return this.options.unsigned ? 'UINTEGER' : 'INTEGER';
   }
 }
 
@@ -167,7 +169,6 @@ export class BLOB extends BaseTypes.BLOB {
 }
 
 export class JSON extends BaseTypes.JSON {
-
   toSql(): string {
     return 'JSON';
   }
@@ -179,7 +180,7 @@ export class JSON extends BaseTypes.JSON {
 
     if (typeof value !== 'string') {
       throw new Error(
-          `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
+        `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
       );
     }
 
@@ -187,8 +188,8 @@ export class JSON extends BaseTypes.JSON {
       return globalThis.JSON.parse(value);
     } catch (error) {
       throw new BaseError(
-          `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
-          { cause: error },
+        `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
+        { cause: error },
       );
     }
   }

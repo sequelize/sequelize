@@ -258,7 +258,7 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
       duckdb:
-          'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
+        'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
     });
   });
 });

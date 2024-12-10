@@ -265,7 +265,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               comment: 'FooBar',
             });
 
-            const describedTable2 = await this.queryInterface.describeTable({tableName: 'users'});
+            const describedTable2 = await this.queryInterface.describeTable({ tableName: 'users' });
             expect(describedTable2.level_id.comment).to.equal('FooBar');
           });
         }

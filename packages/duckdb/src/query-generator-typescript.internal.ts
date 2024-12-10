@@ -1,16 +1,20 @@
-import {
-  AbstractQueryGenerator, ListSchemasQueryOptions,
-  ListTablesQueryOptions, TruncateTableQueryOptions,
-  ShowConstraintsQueryOptions, StartTransactionQueryOptions, TableName,
-  TableOrModel, RenameTableQueryOptions
+import type {
+  ListSchemasQueryOptions,
+  ListTablesQueryOptions,
+  RenameTableQueryOptions,
+  ShowConstraintsQueryOptions,
+  StartTransactionQueryOptions,
+  TableOrModel,
+  TruncateTableQueryOptions,
 } from '@sequelize/core';
-import { DuckDbQueryGeneratorInternal } from "./query-generator.internal";
-import { DuckDbDialect } from "./dialect";
-import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { AbstractQueryGenerator } from '@sequelize/core';
 import {
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import type { DuckDbDialect } from './dialect';
+import { DuckDbQueryGeneratorInternal } from './query-generator.internal';
 
 export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: DuckDbQueryGeneratorInternal;
@@ -103,7 +107,6 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions): string {
-
     const schemasToSkip = [...this.#internals.getTechnicalSchemaNames()];
     if (options && Array.isArray(options?.skip)) {
       schemasToSkip.push(...options.skip);
@@ -111,31 +114,35 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return `SELECT schema_name as schema FROM duckdb_schemas()
         WHERE database_name = current_database()
-        AND schema_name NOT IN (${schemasToSkip.map((schema) => this.escape(schema)).join(", ")})`;
+        AND schema_name NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`;
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
     if (options) {
       rejectInvalidOptions(
-          'truncateTableQuery',
-          this.dialect,
-          TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-          {},
-          options,
+        'truncateTableQuery',
+        this.dialect,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        {},
+        options,
       );
     }
 
-    return  `TRUNCATE ${this.quoteTable(tableName)}`;
+    return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
-  renameTableQuery(beforeTableName: TableOrModel, afterTableName: TableOrModel, options?: RenameTableQueryOptions): string {
+  renameTableQuery(
+    beforeTableName: TableOrModel,
+    afterTableName: TableOrModel,
+    options?: RenameTableQueryOptions,
+  ): string {
     if (options) {
       rejectInvalidOptions(
-          'renameTableQuery',
-          this.dialect,
-          RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-          {},
-          options,
+        'renameTableQuery',
+        this.dialect,
+        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        {},
+        options,
       );
     }
 
@@ -143,7 +150,7 @@ export class DuckDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const afterTable = this.extractTableDetails(afterTableName);
     if (beforeTable.schema !== afterTable.schema) {
       throw new Error(
-          `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
+        `Moving tables between schemas is not supported by ${this.dialect.name} dialect.`,
       );
     }
 

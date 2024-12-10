@@ -315,7 +315,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
         expect: {
           'mariadb mysql': 'MEDIUMINT UNSIGNED',
           'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
-          'duckdb': 'UINTEGER',
+          duckdb: 'UINTEGER',
         },
       },
       {
@@ -418,7 +418,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'sqlite3 snowflake': 'INTEGER',
       'mysql mariadb': 'INTEGER UNSIGNED',
       'ibmi postgres db2 mssql': 'BIGINT',
-      'duckdb': 'UINTEGER',
+      duckdb: 'UINTEGER',
     });
 
     testDataTypeSql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
@@ -440,7 +440,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'mysql mariadb': 'INTEGER(11) UNSIGNED',
       'sqlite3 snowflake': 'INTEGER',
       'ibmi postgres db2 mssql': 'BIGINT',
-      'duckdb': 'UINTEGER',
+      duckdb: 'UINTEGER',
     });
 
     testDataTypeSql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {

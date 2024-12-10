@@ -116,7 +116,12 @@ describe('Pool', () => {
           connection = attachMSSQLUniqueId(connection);
         }
 
-        if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3' || dialectName === 'duckdb') {
+        if (
+          dialectName === 'db2' ||
+          dialectName === 'mariadb' ||
+          dialectName === 'sqlite3' ||
+          dialectName === 'duckdb'
+        ) {
           await sequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');

@@ -1,19 +1,17 @@
-import * as DataTypes from './_internal/data-types-overrides';
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type { DuckDbConnectionOptions } from "./connection-manager";
-import { DuckDbQuery } from "./query";
-import { DuckDbConnectionManager } from "./connection-manager";
-import { DuckDbQueryGenerator } from "./query-generator";
-import { DuckDbQueryInterface } from "./query-interface";
-import { getSynchronizedTypeKeys } from "@sequelize/utils";
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import * as DataTypes from './_internal/data-types-overrides';
+import type { DuckDbConnectionOptions } from './connection-manager';
+import { DuckDbConnectionManager } from './connection-manager';
+import { DuckDbQuery } from './query';
+import { DuckDbQueryGenerator } from './query-generator';
+import { DuckDbQueryInterface } from './query-interface';
 
-export interface DuckDbDialectOptions {
-}
+export interface DuckDbDialectOptions {}
 
-const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<DuckDbDialectOptions>({
-});
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<DuckDbDialectOptions>({});
 
 const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<DuckDbConnectionOptions>({
   database: undefined,
@@ -68,7 +66,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       check: false,
       foreignKey: false, // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       foreignKeyChecksDisableable: false,
-      primaryKey: false,  // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
+      primaryKey: false, // Disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
       onUpdate: false,
       add: false,
       remove: false,
@@ -132,7 +130,7 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
       minimumDatabaseVersion: '0.10.2',
       dataTypesDocumentationUrl: 'https://duckdb.org/docs/sql/data_types/overview.html',
       dataTypeOverrides: DataTypes,
-      name: "duckdb",
+      name: 'duckdb',
     });
     this.connectionManager = new DuckDbConnectionManager(this);
     this.queryGenerator = new DuckDbQueryGenerator(this);
@@ -160,12 +158,11 @@ export class DuckDbDialect extends AbstractDialect<DuckDbDialectOptions, DuckDbC
   }
 
   escapeString(value: string): string {
-    return "'" + value.replaceAll('\0', '\\0')
-        .replaceAll("'", "''") + "'";
+    return `'${value.replaceAll('\0', '\\0').replaceAll("'", "''")}'`;
   }
 
   escapeBuffer(buffer: Buffer): string {
-    let escaped = "";
+    let escaped = '';
     for (const element of buffer) {
       let hex = element.toString(16);
       if (hex.length < 2) {

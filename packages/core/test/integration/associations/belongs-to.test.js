@@ -261,12 +261,12 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         await this.sequelize.sync({ force: true });
         await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(
-            Sequelize.ForeignKeyConstraintError,
+          Sequelize.ForeignKeyConstraintError,
         );
         const task = await Task.create({ title: 'task' });
 
         await expect(
-            Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
+          Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
         ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
       });
     }
@@ -586,15 +586,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   if (current.dialect.supports.constraints.foreignKey) {
     describe('foreign key constraints', () => {
       it('are enabled by default', async function () {
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-        const User = this.sequelize.define('User', {username: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
         Task.belongsTo(User); // defaults to SET NULL
 
-        await this.sequelize.sync({force: true});
+        await this.sequelize.sync({ force: true });
 
-        const user = await User.create({username: 'foo'});
-        const task = await Task.create({title: 'task'});
+        const user = await User.create({ username: 'foo' });
+        const task = await Task.create({ title: 'task' });
         await task.setUser(user);
         await user.destroy();
         await task.reload();
@@ -602,14 +602,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       it('should be possible to disable them', async function () {
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-        const User = this.sequelize.define('User', {username: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, {foreignKeyConstraints: false});
+        Task.belongsTo(User, { foreignKeyConstraints: false });
 
-        await this.sequelize.sync({force: true});
-        const user = await User.create({username: 'foo'});
-        const task = await Task.create({title: 'task'});
+        await this.sequelize.sync({ force: true });
+        const user = await User.create({ username: 'foo' });
+        const task = await Task.create({ title: 'task' });
         await task.setUser(user);
         await user.destroy();
         await task.reload();
@@ -617,14 +617,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       it('can cascade deletes', async function () {
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-        const User = this.sequelize.define('User', {username: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+        const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-        Task.belongsTo(User, {foreignKey: {onDelete: 'cascade'}});
+        Task.belongsTo(User, { foreignKey: { onDelete: 'cascade' } });
 
-        await this.sequelize.sync({force: true});
-        const user = await User.create({username: 'foo'});
-        const task = await Task.create({title: 'task'});
+        await this.sequelize.sync({ force: true });
+        const user = await User.create({ username: 'foo' });
+        const task = await Task.create({ title: 'task' });
         await task.setUser(user);
         await user.destroy();
         const tasks = await Task.findAll();
@@ -633,31 +633,31 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       if (current.dialect.supports.constraints.restrict) {
         it('can restrict deletes', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          Task.belongsTo(User, {foreignKey: {onDelete: 'restrict'}});
+          Task.belongsTo(User, { foreignKey: { onDelete: 'restrict' } });
 
-          await this.sequelize.sync({force: true});
-          const user = await User.create({username: 'foo'});
-          const task = await Task.create({title: 'task'});
+          await this.sequelize.sync({ force: true });
+          const user = await User.create({ username: 'foo' });
+          const task = await Task.create({ title: 'task' });
           await task.setUser(user);
           await expect(user.destroy()).to.eventually.be.rejectedWith(
-              Sequelize.ForeignKeyConstraintError,
+            Sequelize.ForeignKeyConstraintError,
           );
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
         });
 
         it('can restrict updates', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          Task.belongsTo(User, {foreignKey: {onUpdate: 'restrict'}});
+          Task.belongsTo(User, { foreignKey: { onUpdate: 'restrict' } });
 
-          await this.sequelize.sync({force: true});
-          const user = await User.create({username: 'foo'});
-          const task = await Task.create({title: 'task'});
+          await this.sequelize.sync({ force: true });
+          const user = await User.create({ username: 'foo' });
+          const task = await Task.create({ title: 'task' });
           await task.setUser(user);
 
           // Changing the id of a DAO requires a little dance since
@@ -667,7 +667,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           const tableName = User.table;
 
           await expect(
-              user.sequelize.queryInterface.update(user, tableName, {id: 999}, {id: user.id}),
+            user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
           ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
 
           // Should fail due to FK restriction
@@ -680,14 +680,14 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       // NOTE: mssql does not support changing an autoincrement primary key
       if (!['mssql', 'db2', 'ibmi'].includes(dialect)) {
         it('can cascade updates', async function () {
-          const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
-          const User = this.sequelize.define('User', {username: DataTypes.STRING});
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          const User = this.sequelize.define('User', { username: DataTypes.STRING });
 
-          Task.belongsTo(User, {foreignKey: {onUpdate: 'cascade'}});
+          Task.belongsTo(User, { foreignKey: { onUpdate: 'cascade' } });
 
-          await this.sequelize.sync({force: true});
-          const user = await User.create({username: 'foo'});
-          const task = await Task.create({title: 'task'});
+          await this.sequelize.sync({ force: true });
+          const user = await User.create({ username: 'foo' });
+          const task = await Task.create({ title: 'task' });
           await task.setUser(user);
 
           // Changing the id of a DAO requires a little dance since
@@ -695,7 +695,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           // `WHERE` clause
 
           const tableName = User.table;
-          await user.sequelize.queryInterface.update(user, tableName, {id: 999}, {id: user.id});
+          await user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id });
           const tasks = await Task.findAll();
           expect(tasks).to.have.length(1);
           expect(tasks[0].userId).to.equal(999);
@@ -728,18 +728,18 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
     if (current.dialect.supports.constraints.foreignKey) {
       it('should support a non-primary key as the association column on a target without a primary key', async function () {
         const User = this.sequelize.define('User', {
-          username: {type: DataTypes.STRING, unique: true},
+          username: { type: DataTypes.STRING, unique: true },
         });
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         User.removeAttribute('id');
-        Task.belongsTo(User, {foreignKey: 'user_name', targetKey: 'username'});
+        Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-        await this.sequelize.sync({force: true});
-        const newUser = await User.create({username: 'bob'});
-        const newTask = await Task.create({title: 'some task'});
+        await this.sequelize.sync({ force: true });
+        const newUser = await User.create({ username: 'bob' });
+        const newTask = await Task.create({ title: 'some task' });
         await newTask.setUser(newUser);
-        const foundTask = await Task.findOne({where: {title: 'some task'}});
+        const foundTask = await Task.findOne({ where: { title: 'some task' } });
         const foundUser = await foundTask.getUser();
         await expect(foundUser.username).to.equal('bob');
         const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, {
@@ -764,13 +764,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           title: DataTypes.STRING,
         });
 
-        Task.belongsTo(User, {foreignKey: 'user_name', targetKey: 'username'});
+        Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-        await this.sequelize.sync({force: true});
-        const newUser = await User.create({username: 'bob'});
-        const newTask = await Task.create({title: 'some task'});
+        await this.sequelize.sync({ force: true });
+        const newUser = await User.create({ username: 'bob' });
+        const newTask = await Task.create({ title: 'some task' });
         await newTask.setUser(newUser);
-        const foundTask = await Task.findOne({where: {title: 'some task'}});
+        const foundTask = await Task.findOne({ where: { title: 'some task' } });
         const foundUser = await foundTask.getUser();
         await expect(foundUser.username).to.equal('bob');
         const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, {
@@ -791,16 +791,16 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             unique: true,
           },
         });
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
         User.removeAttribute('id');
-        Task.belongsTo(User, {foreignKey: 'user_name', targetKey: 'username'});
+        Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-        await this.sequelize.sync({force: true});
-        const newUser = await User.create({username: 'bob'});
-        const newTask = await Task.create({title: 'some task'});
+        await this.sequelize.sync({ force: true });
+        const newUser = await User.create({ username: 'bob' });
+        const newTask = await Task.create({ title: 'some task' });
         await newTask.setUser(newUser);
-        const foundTask = await Task.findOne({where: {title: 'some task'}});
+        const foundTask = await Task.findOne({ where: { title: 'some task' } });
         const foundUser = await foundTask.getUser();
         await expect(foundUser.username).to.equal('bob');
         const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, {
@@ -831,15 +831,15 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             primaryKey: true,
           },
         });
-        const Task = this.sequelize.define('Task', {title: DataTypes.STRING});
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
 
-        Task.belongsTo(User, {foreignKey: 'user_name', targetKey: 'username'});
+        Task.belongsTo(User, { foreignKey: 'user_name', targetKey: 'username' });
 
-        await this.sequelize.sync({force: true});
-        const newUser = await User.create({username: 'bob', age: 18, weight: 40});
-        const newTask = await Task.create({title: 'some task'});
+        await this.sequelize.sync({ force: true });
+        const newUser = await User.create({ username: 'bob', age: 18, weight: 40 });
+        const newTask = await Task.create({ title: 'some task' });
         await newTask.setUser(newUser);
-        const foundTask = await Task.findOne({where: {title: 'some task'}});
+        const foundTask = await Task.findOne({ where: { title: 'some task' } });
         const foundUser = await foundTask.getUser();
         await expect(foundUser.username).to.equal('bob');
         const foreignKeysDescriptions = await this.sequelize.queryInterface.showConstraints(Task, {

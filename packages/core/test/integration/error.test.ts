@@ -421,8 +421,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             },
           });
 
-          const record = {first_name: 'jan', last_name: 'meier'};
-          await sequelize.sync({force: true});
+          const record = { first_name: 'jan', last_name: 'meier' };
+          await sequelize.sync({ force: true });
           await User.create(record);
 
           try {
@@ -450,11 +450,11 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             },
           });
 
-          await sequelize.sync({force: true});
-          await User.create({name: 'jan'});
+          await sequelize.sync({ force: true });
+          await User.create({ name: 'jan' });
 
           try {
-            await User.create({name: 'jan'});
+            await User.create({ name: 'jan' });
           } catch (error) {
             if (!(error instanceof UniqueConstraintError)) {
               throw error;
@@ -468,38 +468,38 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
         it('Works when unique keys are not defined in sequelize', async () => {
           let User = sequelize.define(
-              'user',
-              {
-                name: {
-                  type: DataTypes.STRING,
-                  unique: 'unique \n unique',
-                },
+            'user',
+            {
+              name: {
+                type: DataTypes.STRING,
+                unique: 'unique \n unique',
               },
-              {timestamps: false},
+            },
+            { timestamps: false },
           );
 
-          await sequelize.sync({force: true});
+          await sequelize.sync({ force: true });
           // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
           User = sequelize.define(
-              'user',
-              {
-                name: DataTypes.STRING,
-              },
-              {timestamps: false},
+            'user',
+            {
+              name: DataTypes.STRING,
+            },
+            { timestamps: false },
           );
 
-          await User.create({name: 'jan'});
+          await User.create({ name: 'jan' });
           // It should work even though the unique key is not defined in the model
-          await expect(User.create({name: 'jan'})).to.be.rejectedWith(UniqueConstraintError);
+          await expect(User.create({ name: 'jan' })).to.be.rejectedWith(UniqueConstraintError);
 
           // And when the model is not passed at all
           if (['db2', 'ibmi'].includes(dialect)) {
             await expect(
-                sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
+              sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
             ).to.be.rejectedWith(UniqueConstraintError);
           } else {
             await expect(
-                sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
+              sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
             ).to.be.rejectedWith(UniqueConstraintError);
           }
         });
@@ -507,28 +507,28 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
       it('adds parent and sql properties', async () => {
         const User = sequelize.define(
-            'user',
-            {
-              name: {
-                type: DataTypes.STRING,
-                unique: 'unique',
-              },
+          'user',
+          {
+            name: {
+              type: DataTypes.STRING,
+              unique: 'unique',
             },
-            {timestamps: false},
+          },
+          { timestamps: false },
         );
 
-        await sequelize.sync({force: true});
-        await User.create({name: 'jan'});
+        await sequelize.sync({ force: true });
+        await User.create({ name: 'jan' });
         // Unique key
-        const error0 = await expect(User.create({name: 'jan'})).to.be.rejected;
+        const error0 = await expect(User.create({ name: 'jan' })).to.be.rejected;
         expect(error0).to.be.instanceOf(UniqueConstraintError);
         expect(error0).to.have.property('parent');
         expect(error0).to.have.property('original');
         expect(error0).to.have.property('sql');
 
-        await User.create({id: 2, name: 'jon'});
+        await User.create({ id: 2, name: 'jon' });
         // Primary key
-        const error = await expect(User.create({id: 2, name: 'jon'})).to.be.rejected;
+        const error = await expect(User.create({ id: 2, name: 'jon' })).to.be.rejected;
         expect(error).to.be.instanceOf(UniqueConstraintError);
         expect(error).to.have.property('parent');
         expect(error).to.have.property('original');
@@ -679,7 +679,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'duckdb':
             expect(error.cause.message).to.equal(
-                'Constraint Error: PRIMARY KEY or UNIQUE constraint violated: duplicate key "foo"',
+              'Constraint Error: PRIMARY KEY or UNIQUE constraint violated: duplicate key "foo"',
             );
             break;
 
@@ -694,13 +694,13 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     if (sequelize.dialect.supports.constraints.foreignKey) {
       it('should throw a foreign key constraint error when deleting a parent row that has assocated child rows', async () => {
         await queryInterface.createTable('Users', {
-          id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           username: DataTypes.STRING,
         });
 
         await queryInterface.createTable('Tasks', {
           title: DataTypes.STRING,
-          userId: {type: DataTypes.INTEGER, allowNull: false},
+          userId: { type: DataTypes.INTEGER, allowNull: false },
         });
 
         await queryInterface.addConstraint('Tasks', {
@@ -713,8 +713,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           },
         });
 
-        await queryInterface.bulkInsert('Users', [{username: 'foo'}]);
-        await queryInterface.bulkInsert('Tasks', [{title: 'task', userId: 1}]);
+        await queryInterface.bulkInsert('Users', [{ username: 'foo' }]);
+        await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
         try {
           await queryInterface.bulkDelete('Users');
         } catch (error) {
@@ -731,7 +731,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Tasks');
               expect(error.fields).to.be.null;
               expect(error.cause.message).to.contain(
-                  'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
+                'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
               );
               break;
 
@@ -739,7 +739,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('dbo.Tasks');
               expect(error.fields).to.deep.equal(['userId']);
               expect(error.cause.message).to.equal(
-                  'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
+                'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
               );
               break;
 
@@ -747,7 +747,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Users');
               expect(error.fields).to.be.null;
               expect(error.cause.message).to.equal(
-                  'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
+                'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
               );
               break;
 
@@ -755,7 +755,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.be.undefined;
               expect(error.fields).to.be.undefined;
               expect(error.cause.message).to.equal(
-                  'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+                'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
               );
               break;
 
@@ -763,7 +763,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Users');
               expect(error.fields).to.deep.equal(['userId']);
               expect(error.cause.message).to.contain(
-                  'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+                'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
               );
           }
         }
@@ -773,13 +773,13 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
     if (sequelize.dialect.supports.constraints.add) {
       it('should throw a foreign key constraint error when inserting a child row that has invalid parent row', async () => {
         await queryInterface.createTable('Users', {
-          id: {type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true},
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
           username: DataTypes.STRING,
         });
 
         await queryInterface.createTable('Tasks', {
           title: DataTypes.STRING,
-          userId: {type: DataTypes.INTEGER, allowNull: false},
+          userId: { type: DataTypes.INTEGER, allowNull: false },
         });
 
         await queryInterface.addConstraint('Tasks', {
@@ -793,7 +793,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         });
 
         try {
-          await queryInterface.bulkInsert('Tasks', [{title: 'task', userId: 1}]);
+          await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
         } catch (error) {
           expect(error).to.be.instanceOf(ForeignKeyConstraintError);
           assert(error instanceof ForeignKeyConstraintError);
@@ -808,7 +808,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Tasks');
               expect(error.fields).to.be.null;
               expect(error.cause.message).to.contain(
-                  'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
+                'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
               );
               break;
 
@@ -816,7 +816,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('dbo.Users');
               expect(error.fields).to.deep.equal(['id']);
               expect(error.cause.message).to.equal(
-                  'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
+                'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
               );
               break;
 
@@ -824,7 +824,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Tasks');
               expect(error.fields).to.be.null;
               expect(error.cause.message).to.equal(
-                  'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
+                'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
               );
               break;
 
@@ -832,7 +832,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.be.undefined;
               expect(error.fields).to.be.undefined;
               expect(error.cause.message).to.equal(
-                  'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+                'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
               );
               break;
 
@@ -840,7 +840,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               expect(error.table).to.equal('Users');
               expect(error.fields).to.deep.equal(['userId']);
               expect(error.cause.message).to.contain(
-                  'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+                'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
               );
           }
         }
@@ -849,7 +849,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       if (sequelize.dialect.supports.constraints.unique) {
         it('should throw an unknown constranit error for duplicate constraint names', async () => {
           await queryInterface.createTable('Users', {
-            id: {type: DataTypes.INTEGER, allowNull: false},
+            id: { type: DataTypes.INTEGER, allowNull: false },
             username: DataTypes.STRING,
           });
 
@@ -871,10 +871,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
               assert(error instanceof AggregateError);
               expect(error.errors).to.have.length(3);
               expect(error.errors[0].message).to.equal(
-                  "There is already an object named 'unique_constraint' in the database.",
+                "There is already an object named 'unique_constraint' in the database.",
               );
               expect(error.errors[1].message).to.equal(
-                  'Could not create constraint or index. See previous errors.',
+                'Could not create constraint or index. See previous errors.',
               );
               assert(error.errors[2] instanceof UnknownConstraintError);
               expect(error.errors[2].constraint).to.equal('unique_constraint');

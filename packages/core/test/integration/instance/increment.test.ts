@@ -83,7 +83,10 @@ describe('Model#increment', () => {
     });
 
     // In DuckDB dialect, RETURNING is only supported on INSERT
-    if (sequelize.dialect.supports.returnValues === 'returning' && sequelize.dialect.name !== 'duckdb') {
+    if (
+      sequelize.dialect.supports.returnValues === 'returning' &&
+      sequelize.dialect.name !== 'duckdb'
+    ) {
       it('supports returning', async () => {
         const user1 = await vars.User.findByPk(1, { rejectOnEmpty: true });
         await user1.increment('integer1', { by: 2 });

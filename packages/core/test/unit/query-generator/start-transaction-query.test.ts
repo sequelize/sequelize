@@ -94,11 +94,10 @@ describe('QueryGenerator#startTransactionQuery', () => {
           ['readOnly'],
         ),
         'db2 ibmi mssql': notSupportedError,
-        'duckdb': buildInvalidOptionReceivedError(
-            'startTransactionQuery',
-            dialect.name,
-            ['readOnly', 'transactionType'],
-        ),
+        duckdb: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, [
+          'readOnly',
+          'transactionType',
+        ]),
       },
     );
   });

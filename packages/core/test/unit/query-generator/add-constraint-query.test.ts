@@ -478,7 +478,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
             { type: 'UNIQUE', fields: ['username'] },
           ),
         {
-           'sqlite3 duckdb': notSupportedError,
+          'sqlite3 duckdb': notSupportedError,
         },
       );
     });
