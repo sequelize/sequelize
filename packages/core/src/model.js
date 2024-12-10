@@ -965,7 +965,7 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
-    const existingIndexes = await this.queryInterface.showIndex(tableName, options);
+    const existingIndexes = await this.queryInterface.showIndexes(tableName, options);
     const missingIndexes = this.getIndexes()
       .filter(item1 => !existingIndexes.some(item2 => item1.name === item2.name))
       .sort((index1, index2) => {
@@ -984,8 +984,7 @@ ${associationOwner._getAssociationDebugList()}`);
       });
 
     for (const index of missingIndexes) {
-      // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
-      await this.queryInterface.addIndex(tableName, index, options);
+      await this.queryInterface.addIndex(tableName, { ...options, ...index });
     }
 
     if (options.hooks) {

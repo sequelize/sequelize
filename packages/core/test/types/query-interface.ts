@@ -162,11 +162,11 @@ async function test() {
   );
 
   // This example will create the index person_firstname_lastname
-  await queryInterface.addIndex('Person', ['firstname', 'lastname']);
-  await queryInterface.addIndex({ schema: '<schema>', tableName: 'Person' }, [
-    'firstname',
-    'lastname',
-  ]);
+  await queryInterface.addIndex('Person', { fields: ['firstname', 'lastname'] });
+  await queryInterface.addIndex(
+    { schema: '<schema>', tableName: 'Person' },
+    { fields: ['firstname', 'lastname'] },
+  );
 
   // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
   // Possible options:
@@ -174,7 +174,8 @@ async function test() {
   // - parser: For FULLTEXT columns set your parser
   // - indexType: Set a type for the index, e.g. BTREE. See the documentation of the used dialect
   // - logging: A function that receives the sql query, e.g. console.log
-  await queryInterface.addIndex('Person', ['firstname', 'lastname'], {
+  await queryInterface.addIndex('Person', {
+    fields: ['firstname', 'lastname'],
     name: 'SuperDuperIndex',
     type: 'UNIQUE',
   });
@@ -222,13 +223,13 @@ async function test() {
     ifExists: true,
   });
 
-  const indexes = await queryInterface.showIndex('Person');
+  const indexes = await queryInterface.showIndexes('Person');
   indexes.map(index => ({
     name: index.name,
     table: index.tableName,
     unique: index.unique,
     primary: index.primary,
-    fields: index.fields.map(field => field.attribute),
+    fields: index.fields.map(field => field.name),
     type: index.type,
   }));
 
