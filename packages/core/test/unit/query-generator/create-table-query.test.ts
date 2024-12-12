@@ -409,6 +409,8 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+      snowflake:
+        'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL);',
     });
   });
 
@@ -479,6 +481,8 @@ describe('QueryGenerator#createTableQuery', () => {
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
         oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT,PRIMARY KEY ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+        snowflake:
+          'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL, PRIMARY KEY ("myColumn"));',
       },
     );
   });

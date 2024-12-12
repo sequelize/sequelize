@@ -3942,6 +3942,19 @@ Instead of specifying a Model, either:
     }
 
     if (this.isNewRecord === true) {
+      if (primaryKeyAttribute && primaryKeyAttribute.autoIncrement) {
+        // Some dialects do not support returning the last inserted ID.
+        // To overcome this limitation, we check if the dialect implements getNextPrimaryKeyValue,
+        // so we get the next ID before the insert.
+        const nextPrimaryKey = await this.constructor.queryInterface.getNextPrimaryKeyValue(
+          this.constructor.table.tableName,
+          primaryKeyName,
+        );
+        if (nextPrimaryKey) {
+          this.set(primaryKeyName, nextPrimaryKey);
+        }
+      }
+
       if (createdAtAttr && !options.fields.includes(createdAtAttr)) {
         options.fields.push(createdAtAttr);
       }
