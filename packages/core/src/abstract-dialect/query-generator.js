@@ -1251,7 +1251,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             model,
           },
           model,
-        ).replace(/;$/, '')}) ${this.getAliasToken()} sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.#internals.getAliasToken()} sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
         mainQueryItems.push(
@@ -1438,7 +1438,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         modelName: model && model.name,
         as: mainTable.quotedAs,
       });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.getAliasToken()} ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.#internals.getAliasToken()} ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -2334,7 +2334,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (options.groupedLimit) {
-      fragment += ` ${this.getAliasToken()} ${mainTableAs}`;
+      fragment += ` ${this.#internals.getAliasToken()} ${mainTableAs}`;
     }
 
     return fragment;
