@@ -19,7 +19,7 @@
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "sideEffects": false,
-  "homepage": "https://sequelize.org",
+  "homepage": "https://sequelize.org/docs/v7/databases/oracle/",
   "license": "MIT",
   "name": "@sequelize/oracle",
   "repository": "https://github.com/sequelize/sequelize",
@@ -41,9 +41,9 @@
     "@sequelize/utils": "workspace:*",
     "@types/oracledb": "^6.3",
     "dayjs": "^1.11.10",
-    "lodash": "4.17.21",
-    "oracledb": "6.5",
-    "semver": "7.6.0"
+    "lodash": "^4.17.21",
+    "oracledb": "^6.5",
+    "semver": "^7.6.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",

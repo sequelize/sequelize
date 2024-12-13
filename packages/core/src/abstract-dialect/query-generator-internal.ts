@@ -351,4 +351,12 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   addLimitAndOffset(_options: AddLimitOffsetOptions): string {
     throw new Error(`addLimitAndOffset has not been implemented in ${this.dialect.name}.`);
   }
+
+  /**
+   * Returns the alias token 'AS' after `FROM` clause.
+   *
+   */
+  getAliasToken() {
+    return 'AS';
+  }
 }

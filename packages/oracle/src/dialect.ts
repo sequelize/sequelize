@@ -3,14 +3,9 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
-import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import {
-  BOOLEAN_CONNECTION_OPTION_NAMES,
-  CONNECTION_OPTION_NAMES,
-  NUMBER_CONNECTION_OPTION_NAMES,
-  STRING_CONNECTION_OPTION_NAMES,
-} from './_internal/connection-options.js';
+import { EMPTY_ARRAY } from '@sequelize/utils';
+import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
 import { OracleConnectionManager } from './connection-manager';
 import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
@@ -91,8 +86,6 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   readonly queryGenerator: OracleQueryGenerator;
   readonly queryInterface: OracleQueryInterface;
   readonly Query = OracleQuery;
-  readonly dataTypesDocumentationUrl =
-    'https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/Data-Types.html';
 
   constructor(sequelize: Sequelize, options: OracleDialectOptions) {
     super({
@@ -111,19 +104,10 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     this.queryInterface = new OracleQueryInterface(this);
   }
 
-  parseConnectionUrl(url: string): OracleConnectionOptions {
-    return parseCommonConnectionUrlOptions<OracleConnectionOptions>({
-      url,
-      allowedProtocols: ['oracle'],
-      hostname: 'host',
-      port: 'port',
-      pathname: 'database',
-      username: 'user',
-      password: 'password',
-      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
-      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
-      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
-    });
+  parseConnectionUrl(): OracleConnectionOptions {
+    throw new Error(
+      'The "url" option is not supported by the Oracle dialect. Instead, please use the "connectionString" option.',
+    );
   }
 
   getDefaultSchema(): string {
@@ -132,10 +116,6 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
 
   createBindCollector() {
     return createNamedParamBindCollector(':');
-  }
-
-  static getDefaultPort(): number {
-    return 1521;
   }
 
   escapeString(val: string): string {
@@ -206,7 +186,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   }
 
   static getSupportedOptions() {
-    return [];
+    return EMPTY_ARRAY;
   }
 
   static getSupportedConnectionOptions() {
