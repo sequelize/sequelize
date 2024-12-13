@@ -47,4 +47,8 @@ export class OracleQueryGeneratorInternal<
 
     return `CAST(${castSql} AS ${targetSql})`;
   }
+
+  getAliasToken(): string {
+    return '';
+  }
 }

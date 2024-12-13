@@ -180,10 +180,6 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return `ALTER TABLE ${this.quoteTable(beforeTableName)} RENAME TO ${this.quoteTable(renamedTable)}`;
   }
 
-  getAliasToken(): string {
-    return '';
-  }
-
   removeColumnQuery(
     tableName: TableOrModel,
     attributeName: string,
