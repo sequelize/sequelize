@@ -1,3 +1,4 @@
+import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import {
   DataTypes,
   IsolationLevel,
