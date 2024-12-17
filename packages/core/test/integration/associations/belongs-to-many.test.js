@@ -2324,6 +2324,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('supports transactions when updating a through model', async function () {
+        if (dialect === 'hana') {
+          // HANA doesn't have a real SERIALIZABLE isolation mode.
+          // It's mapped to REPEATABLE READ and the transaction serialization error is expected here.
+          return;
+        }
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
           this.sequelize,
         );
