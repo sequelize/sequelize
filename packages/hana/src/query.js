@@ -1,10 +1,5 @@
-import { result } from 'lodash';
 import { find } from '@sequelize/utils';
-
-const { promisify } = require('node:util');
-
 import * as PromiseModule from '@sap/hana-client/extension/Promise.js';
-
 import {
   AbstractQuery,
   DatabaseError,
@@ -40,13 +35,8 @@ export class HanaQuery extends AbstractQuery {
 
     const { connection } = this;
 
-    // const exec = promisify(cb => connection.exec(sql, cb));
-
-
     console.log('before run', sql);
     console.log('parameters', parameters);
-    // // const result = await exec(sql);
-    // return result;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -58,256 +48,13 @@ export class HanaQuery extends AbstractQuery {
       }
     }
 
-//return this._runCallback(sql, parametersEscaped, connection, complete);
-//return this._runSync(sql, parametersEscaped, connection, complete);
-//return this._runSyncPromise(sql, parametersEscaped, connection, complete);
-return this._runPromise(sql, parametersEscaped, connection, complete);
-
-/*
-    return new Promise((resolve, reject) => {
-      const stmt = connection.prepare(sql);
-      stmt.exec(parametersEscaped, (err, resultSet, arg2, arg3, arg4)=> {
-        console.log('stmt.getColumnInfo()', stmt.getColumnInfo())
-        console.log('resultSet arg2, arg3, arg4', resultSet, arg2, arg3, arg4)
-        if(err) {
-          console.log('error executing SQL statement:', sql, parametersEscaped)
-          console.log('error run hana connection.exec', err)
-          reject( this.formatError(err));
-          return;
-        }
-        complete();
-//        const resulColumnInfo = resultSet.getColumnInfo();
-        const resulColumnInfo = stmt.getColumnInfo();
-
-//        const rows = [];
-//        while (resultSet.next()) {
-//          rows.push(resultSet.getValues());
-//        }
-        const rows = resultSet;
-        console.log('connection preparedStmt.exec succeed', rows)
-        const parsedRows = [];
-        for(const row of rows) {
-          const parsedRow = {};
-          for(const columnName in row) {
-            const columnInfo = resulColumnInfo.find(x => x.columnName === columnName);
-            if(!columnInfo) {
-              throw new Error('the column info is empty:' + columnInfo); // todo dazhuang use sequelize error
-            }
-            const { nativeTypeName } = columnInfo;//console.log('columnInfo', columnInfo)
-            let value = row[columnName];
-            const parse = this.sequelize.dialect.getParserForDatabaseDataType(nativeTypeName);
-            if(value !== null && parse) {
-//              console.log('parse not null, nativeTypeName:', nativeTypeName, 'columnInfo:', columnInfo )
-              value = parse(value);
-            }
-            parsedRow[columnName] = value;
-          }
-          parsedRows.push(parsedRow);
-        }
-
-//        setTimeout(() => {
-
-        resolve( this.formatResults(parsedRows));
-
-//        }, 0)
-
-      });
-    });
-*/
-
-    const stmt = connection.prepare(sql);
-//    const resultSet = stmt.execQuery(parametersEscaped);
-    let result = null;
-    try {
-      result = stmt.exec(parametersEscaped);
-      console.log('sync stmt.exec result', result)
-    } catch ( e ) {
-      console.error('prepared stmt exec failed', sql, e);
-      return this.formatError(e);
-    }
-    complete();
-//    const resulColumnInfo = resultSet.getColumnInfo();
-    const resulColumnInfo = stmt.getColumnInfo();
-
-//    const rows = [];
-//    while (resultSet.next()) {
-//      rows.push(resultSet.getValues());
-//    }
-    const rows = result;
-    console.log('connection preparedStmt.exec succeed', rows)
-    const parsedRows = [];
-    if( this.isInsertQuery(result, resulColumnInfo) && Array.isArray(result))
-    for(const row of rows) {
-      const parsedRow = {};
-      for(const columnName in row) {
-        const columnInfo = resulColumnInfo.find(x => x.columnName === columnName);
-        if(!columnInfo) {
-          throw new Error('the column info is empty:' + columnInfo); // todo dazhuang use sequelize error
-        }
-        const { nativeTypeName } = columnInfo;
-        let value = row[columnName];
-        const parse = this.sequelize.dialect.getParserForDatabaseDataType(nativeTypeName);
-        if(value !== null && parse) {
-          value = parse(value);
-        }
-        parsedRow[columnName] = value;
-      }
-      parsedRows.push(parsedRow);
-    }
-
-    return this.formatResults(result, resulColumnInfo);
-
-
-    // console.log('result xxxx', result);
-    // return [];
-
-/*
-    return new Promise((resolve, reject) => {
-      connection.exec(sql, parametersEscaped, (err, result)=> {
-      // stmt.execQuery(parametersEscaped, (err, result)=> {
-        if(err) {
-          console.log('error executing SQL statement:', sql, parametersEscaped)
-          console.log('error run hana connection.exec', err)
-          reject(this.formatError(err));
-          return;
-        }
-        console.log('connection.exec succeed', result)
-        // todo check whether return only first row
-        // if (result.length === 1) {
-        //   resolve(result[0])
-        // }
-        // resolve(result)
-        complete();
-        resolve(this.formatResults(result));
-      })
-    });
-*/
-  }
-
-  async _runCallback(sql, parameters, connection, complete) {
-    return new Promise((resolve, reject) => {
-//      const stmt = connection.prepare(sql);
-      let stmt = null;
-      try {
-        stmt = connection.prepare(sql);
-      } catch(error) {
-        console.log('error thrown by prepare', error)
-        error.sql = sql;
-        reject( this.formatError(error));
-        return;
-      }
-
-      stmt.exec(parameters, {}, (error, result, arg2, arg3, arg4)=> {
-//        console.log('stmt.getColumnInfo()', stmt.getColumnInfo())
-        console.log('result arg2, arg3, arg4', result, arg2, arg3, arg4)
-        if(error) {
-          console.log('error executing SQL statement:', sql, parameters)
-          console.log('error run hana connection.exec', error)
-          error.sql = sql;
-          reject( this.formatError(error));
-          return;
-        }
-        complete();
-        const resulColumnInfo = stmt.getColumnInfo();
-
-        console.log('connection preparedStmt.exec succeed', result)
-        const parsedRows = [];
-        if(Array.isArray(result)) {
-          const rows = result;
-          for(const row of rows) {
-            const parsedRow = {};
-            for(const columnName in row) {
-              const columnInfo = resulColumnInfo.find(x => x.columnName === columnName);
-              if(!columnInfo) {
-                throw new Error('the column info is empty:' + columnInfo); // todo dazhuang use sequelize error
-              }
-              const { nativeTypeName } = columnInfo;//console.log('columnInfo', columnInfo)
-              let value = row[columnName];
-              const parse = this.sequelize.dialect.getParserForDatabaseDataType(nativeTypeName);
-              if(value !== null && parse) {
-  //              console.log('parse not null, nativeTypeName:', nativeTypeName, 'columnInfo:', columnInfo )
-                value = parse(value);
-              }
-              parsedRow[columnName] = value;
-            }
-            parsedRows.push(parsedRow);
-          }
-        }
-
-        if(Array.isArray(result)) {
-
-        }
-        const data = Array.isArray(result) ? parsedRows : result;
-
-        resolve( this.formatResults(data));
-      });
-    });
-  }
-
-  _runSync(sql, parameters, connection, complete) {
-    const stmt = connection.prepare(sql);
-//    const timeoutSecond = 10;
-//    stmt.setTimeout(timeoutSecond);
-    let result = null;
-    try {
-      result = stmt.exec(parameters, { communicationTimeout: 40000 });
-      console.log('sync stmt.exec result', result)
-    } catch ( e ) {
-      console.error('prepared stmt exec failed', sql, e);
-      return this.formatError(e);
-    }
-    complete();
-    const resulColumnInfo = stmt.getColumnInfo();
-
-    const rows = result;
-    console.log('connection preparedStmt.exec succeed', rows)
-    const parsedRows = [];
-
-    return this.formatResults(result, resulColumnInfo);
-  }
-
-  _runSyncPromise(sql, parameters, connection, complete) {
-    return new Promise((resolve, reject) => {
-      const stmt = connection.prepare(sql);
-    //    const timeoutSecond = 10;
-    //    stmt.setTimeout(timeoutSecond);
-      let result = null;
-      try {
-        result = stmt.exec(parameters, { communicationTimeout: 40000 });
-        console.log('sync stmt.exec result', result)
-      } catch ( e ) {
-        console.error('prepared stmt exec failed', sql, e);
-//        return this.formatError(e);
-        reject( this.formatError(e));
-      }
-      complete();
-      const resulColumnInfo = stmt.getColumnInfo();
-
-      const rows = result;
-      console.log('connection preparedStmt.exec succeed', rows)
-      const parsedRows = [];
-
-//      return this.formatResults(result, resulColumnInfo);
-      resolve(this.formatResults(result, resulColumnInfo));
-    });
+    return this._runPromise(sql, parametersEscaped, connection, complete);
   }
 
   async _runPromise(sql, parameters, connection, complete) {
-
-    try{
-//      const stmt = connection.prepare(sql);
-      let stmt = null;
-      try {
-        stmt = await PromiseModule.prepare(connection, sql);
-      } catch(error) {
-        // todo  remove redundant try-catch-throw, which is for testing
-        console.log('error thrown by prepare', error)
-        throw error;
-      }
-
+    try {
+      const stmt = await PromiseModule.prepare(connection, sql);
       const result = await PromiseModule.exec(stmt, parameters, {});
-//      const resultSet = await PromiseModule.execQuery(stmt, parameters, {});
-//      const result = this._getResultFromResultSet(resultSet);
       complete();
       const resulColumnInfo = stmt.getColumnInfo();
 
@@ -359,14 +106,6 @@ return this._runPromise(sql, parametersEscaped, connection, complete);
       error.sql = sql;
       throw this.formatError(error);
     }
-  }
-
-  _getResultFromResultSet(resultSet) {
-    const rows = [];
-    while (resultSet.next()) {
-      rows.push(resultSet.getValues());
-    }
-    return rows;
   }
 
   formatResults(data, columnInfo, currentIdentityValue) {
