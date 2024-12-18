@@ -115,6 +115,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           break;
         case 'ibmi':
         case 'db2':
+        case 'duckdb':
           assertVal = 'VARCHAR';
           break;
       }
@@ -140,6 +141,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       switch (dialect) {
         case 'postgres':
         case 'db2':
+        case 'duckdb':
           assertVal = 'BOOLEAN';
           break;
         case 'sqlite3':
