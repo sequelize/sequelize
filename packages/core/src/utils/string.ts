@@ -46,7 +46,7 @@ export function pluralize(str: string): string {
 }
 
 type NameIndexIndex = {
-  fields: Array<{ name: string; attribute: string }>;
+  fields: Array<{ name: string }>;
   name: string;
 };
 
@@ -75,29 +75,29 @@ export function generateIndexName(tableName: TableName, index: IndexOptions): st
   }
 
   if (!index.fields) {
-    throw new Error(`Index on table ${tableName} has not fields:
+    throw new Error(`Index on table ${tableName} has no fields:
 ${NodeUtil.inspect(index)}`);
   }
 
-  const fields = index.fields.map(field => {
-    if (typeof field === 'string') {
-      return field;
+  const columns = index.fields.map(column => {
+    if (typeof column === 'string') {
+      return column;
     }
 
-    if (field instanceof BaseSqlExpression) {
+    if (column instanceof BaseSqlExpression) {
       throw new Error(
-        `Index on table ${tableName} uses Sequelize's ${field.constructor.name} as one of its fields. You need to name this index manually.`,
+        `Index on table ${tableName} uses Sequelize's ${column.constructor.name} as one of its fields. You need to name this index manually.`,
       );
     }
 
-    if ('attribute' in field) {
+    if ('attribute' in column) {
       throw new Error('Property "attribute" in IndexField has been renamed to "name"');
     }
 
-    return field.name;
+    return column.name;
   });
 
-  let out = `${tableName}_${fields.join('_')}`;
+  let out = `${tableName}_${columns.join('_')}`;
 
   if (index.unique) {
     out += '_unique';

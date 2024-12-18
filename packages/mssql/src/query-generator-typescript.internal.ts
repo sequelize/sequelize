@@ -6,7 +6,6 @@ import type {
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
@@ -16,14 +15,12 @@ import { AbstractQueryGenerator } from '@sequelize/core';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { randomBytes } from 'node:crypto';
 import type { MsSqlDialect } from './dialect.js';
 import { MsSqlQueryGeneratorInternal } from './query-generator.internal.js';
@@ -31,7 +28,6 @@ import { MsSqlQueryGeneratorInternal } from './query-generator.internal.js';
 const CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'collate',
 ]);
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -248,54 +244,25 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
-    const objectId = table?.schema ? `${table.schema}.${table.tableName}` : `${table.tableName}`;
 
     return joinSQLFragments([
-      'SELECT',
-      'I.[name] AS [index_name],',
-      'I.[type_desc] AS [index_type],',
-      'C.[name] AS [column_name],',
-      'IC.[is_descending_key],',
-      'IC.[is_included_column],',
-      'I.[is_unique],',
-      'I.[is_primary_key],',
-      'I.[is_unique_constraint]',
-      'FROM sys.indexes I',
-      'INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id',
-      'INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id',
-      `WHERE I.[object_id] = OBJECT_ID(${this.escape(objectId)}) ORDER BY I.[name];`,
-    ]);
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    let indexName: string;
-    if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
-    }
-
-    return joinSQLFragments([
-      'DROP INDEX',
-      options?.ifExists ? 'IF EXISTS' : '',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
+      `SELECT S.[name] AS [schema_name],`,
+      `T.[name] AS [table_name],`,
+      `I.[name] AS [index_name],`,
+      `I.[type_desc] AS [index_type],`,
+      `C.[name] AS [column_name],`,
+      `IC.[is_descending_key],`,
+      `IC.[is_included_column],`,
+      `I.[is_unique],`,
+      `I.[is_primary_key],`,
+      `I.[is_unique_constraint]`,
+      `FROM sys.indexes I`,
+      `INNER JOIN sys.tables T ON I.object_id = T.object_id`,
+      `INNER JOIN sys.schemas S ON s.schema_id = T.schema_id`,
+      `INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id`,
+      `INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id`,
+      `WHERE S.[name] = ${this.escape(table.schema)} AND T.[name] = ${this.escape(table.tableName)}`,
+      `ORDER BY I.[name];`,
     ]);
   }
 
