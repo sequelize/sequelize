@@ -2,7 +2,7 @@ services:
   hana-latest:
     container_name: sequelize-hana-latest
     image: saplabs/hanaexpress:latest
-    hostname: 3bff6b50f2f1
+    hostname: 6e2689d9964c
 
     ports:
       - "39013:39013"

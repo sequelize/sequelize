@@ -1,8 +1,8 @@
 services:
   hana-latest:
     container_name: sequelize-hana-oldest
-    image: saplabs/hanaexpress:latest
-    hostname: 3bff6b50f2f1
+    image: saplabs/hanaexpress:2.00.076.00.20240701.1
+    hostname: 6e2689d9964c
 
     ports:
       - "39013:39013"
