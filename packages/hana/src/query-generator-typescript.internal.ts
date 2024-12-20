@@ -1,4 +1,5 @@
 import type {
+  CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
   DropTableQueryOptions,
   Expression,
@@ -17,13 +18,14 @@ import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-y
 import type {
   EscapeOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import { AbstractQueryGenerator, Op } from '@sequelize/core';
+import { AbstractQueryGenerator, Literal, Op } from '@sequelize/core';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import {
+  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
@@ -50,6 +52,31 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     super(dialect, internals);
 
     this.#internals = internals;
+  }
+
+  createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string {
+    if (!this.dialect.supports.schemas) {
+      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+    }
+
+    if (options) {
+      rejectInvalidOptions(
+        'createSchemaQuery',
+        this.dialect,
+        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.createSchema,
+        options,
+      );
+    }
+
+    return joinSQLFragments([
+      'CREATE',
+      'SCHEMA',
+      this.quoteIdentifier(schemaName),
+      options?.authorization
+        ? `OWNED BY ${options.authorization instanceof Literal ? this.#internals.formatLiteral(options.authorization) : this.quoteIdentifier(options.authorization)}`
+        : '',
+    ]);
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {

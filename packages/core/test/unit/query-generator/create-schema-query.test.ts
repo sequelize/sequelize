@@ -23,6 +23,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
       'mariadb mysql snowflake': buildInvalidOptionReceivedError('createSchemaQuery', dialectName, [
         'authorization',
       ]),
+      hana: 'CREATE SCHEMA "mySchema" OWNED BY "myUser"',
     });
   });
 
@@ -37,6 +38,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
           dialectName,
           ['authorization'],
         ),
+        hana: 'CREATE SCHEMA "mySchema" OWNED BY CURRENT USER',// will fail
       },
     );
   });

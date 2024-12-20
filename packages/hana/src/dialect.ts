@@ -178,6 +178,21 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       //   changeSchema: true,
       //   changeSchemaAndTable: true,
       // },
+      createSchema: {
+        authorization: true,
+//         charset: false,
+//         collate: false,
+//         comment: false,
+//         ifNotExists: false,
+//         replace: false,
+      },
+//       dropSchema: {
+//         cascade: false,
+//         ifExists: false,
+//       },
+      delete: {
+        limit: false,
+      },
     },
   );
 
