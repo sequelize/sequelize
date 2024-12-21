@@ -10,7 +10,6 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { inspect } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
 
@@ -295,39 +294,35 @@ export class MariaDbQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    let currItem;
-    const result = [];
-
+    const indexes = new Map();
     for (const item of data) {
-      if (!currItem || currItem.name !== item.Key_name) {
-        currItem = {
-          primary: item.Key_name === 'PRIMARY',
-          fields: [],
-          name: item.Key_name,
+      const idx = indexes.get(item.Key_name);
+      if (idx) {
+        idx.fields.push({
+          name: item.Column_name,
+          length: item.Sub_part || undefined,
+          order: item.Collation === 'A' ? 'ASC' : item.Collation === 'D' ? 'DESC' : undefined,
+          collate: undefined,
+        });
+      } else {
+        indexes.set(item.Key_name, {
           tableName: item.Table,
+          name: item.Key_name,
+          using: item.Index_type,
+          fields: [
+            {
+              name: item.Column_name,
+              length: item.Sub_part || undefined,
+              order: item.Collation === 'A' ? 'ASC' : item.Collation === 'D' ? 'DESC' : undefined,
+              collate: undefined,
+            },
+          ],
+          primary: item.Key_name === 'PRIMARY',
           unique: item.Non_unique !== '1',
-          type: item.Index_type,
-        };
-        result.push(currItem);
+        });
       }
-
-      currItem.fields[item.Seq_in_index - 1] = {
-        attribute: item.Column_name,
-        length: item.Sub_part || undefined,
-        order:
-          item.Collation === 'A'
-            ? 'ASC'
-            : item.Collation === 'D'
-              ? 'DESC'
-              : // Not sorted
-                item.Collation === null
-                ? null
-                : (() => {
-                    throw new Error(`Unknown index collation ${inspect(item.Collation)}`);
-                  })(),
-      };
     }
 
-    return result;
+    return [...indexes.values()];
   }
 }
