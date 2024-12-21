@@ -355,7 +355,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         db2: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND();',
         mariadb: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
         mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
-        postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
+        'postgres duckdb': 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
         snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
         sqlite3: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
       },
