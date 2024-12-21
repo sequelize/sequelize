@@ -24,11 +24,19 @@ import type {
   NormalizedAttributeReferencesOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
+import { TEMPORAL_SECRET, TemporalTableType } from './temporal-tables.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
+
+export interface TemporalAttributes {
+  applicationPeriodRowStart?: string;
+  applicationPeriodRowEnd?: string;
+  systemPeriodRowStart?: string;
+  systemPeriodRowEnd?: string;
+}
 
 export interface TimestampAttributes {
   createdAt?: string;
@@ -93,6 +101,11 @@ export class ModelDefinition<M extends Model = Model> {
    * List of attributes that cannot be modified by the user (read-only)
    */
   readonly readOnlyAttributeNames = new SetView(this.#readOnlyAttributeNames);
+
+  /**
+   * Records which attributes are the different built-in temporal attributes
+   */
+  readonly temporalAttributeNames: TemporalAttributes = Object.create(null);
 
   /**
    * Records which attributes are the different built-in timestamp attributes
@@ -291,6 +304,65 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       }
     }
 
+    // setup name of temporal attributes
+    if (this.options.temporalTableType) {
+      if (
+        (this.options.temporalTableType === TemporalTableType.APPLICATION_PERIOD &&
+          this.sequelize.dialect.supports.temporalTables.applicationPeriod) ||
+        (this.options.temporalTableType === TemporalTableType.BITEMPORAL &&
+          this.sequelize.dialect.supports.temporalTables.biTemporal)
+      ) {
+        for (const key of ['applicationPeriodRowStart', 'applicationPeriodRowEnd'] as const) {
+          if (typeof this.options[key] !== 'string') {
+            throw new Error(
+              `Value for "${key}" option must be a string, got ${typeof this.options[key]}`,
+            );
+          }
+
+          if (this.options[key] === '') {
+            throw new Error(`Value for "${key}" option cannot be an empty string`);
+          }
+
+          this.temporalAttributeNames.applicationPeriodRowStart =
+            this.options.applicationPeriodRowStart!;
+          this.temporalAttributeNames.applicationPeriodRowEnd =
+            this.options.applicationPeriodRowEnd!;
+          this.#readOnlyAttributeNames.add(this.temporalAttributeNames.applicationPeriodRowStart);
+          this.#readOnlyAttributeNames.add(this.temporalAttributeNames.applicationPeriodRowEnd);
+        }
+      }
+
+      if (
+        (this.options.temporalTableType === TemporalTableType.SYSTEM_PERIOD &&
+          this.sequelize.dialect.supports.temporalTables.systemPeriod) ||
+        (this.options.temporalTableType === TemporalTableType.BITEMPORAL &&
+          this.sequelize.dialect.supports.temporalTables.biTemporal)
+      ) {
+        for (const key of ['systemPeriodRowStart', 'systemPeriodRowEnd'] as const) {
+          if (!['undefined', 'string'].includes(typeof this.options[key])) {
+            throw new Error(
+              `Value for "${key}" option must be a string, got ${typeof this.options[key]}`,
+            );
+          }
+
+          if (this.options[key] === '') {
+            throw new Error(`Value for "${key}" option cannot be an empty string`);
+          }
+
+          this.temporalAttributeNames.systemPeriodRowStart =
+            typeof this.options.systemPeriodRowStart === 'string'
+              ? this.options.systemPeriodRowStart
+              : 'SysStartTime';
+          this.temporalAttributeNames.systemPeriodRowEnd =
+            typeof this.options.systemPeriodRowEnd === 'string'
+              ? this.options.systemPeriodRowEnd
+              : 'SysEndTime';
+          this.#readOnlyAttributeNames.add(this.temporalAttributeNames.systemPeriodRowStart);
+          this.#readOnlyAttributeNames.add(this.temporalAttributeNames.systemPeriodRowEnd);
+        }
+      }
+    }
+
     // setup names of timestamp attributes
     if (this.options.timestamps) {
       for (const key of ['createdAt', 'updatedAt', 'deletedAt'] as const) {
@@ -362,7 +434,27 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       this.rawAttributes[attributeName] = rawAttribute;
     }
 
-    // add timestamp & version last for a clean attribute order
+    // add temporal, timestamp & version last for a clean attribute order
+
+    if (this.temporalAttributeNames.applicationPeriodRowStart) {
+      this.#addTimestampAttribute(
+        this.temporalAttributeNames.applicationPeriodRowStart,
+        false,
+        true,
+      );
+    }
+
+    if (this.temporalAttributeNames.applicationPeriodRowEnd) {
+      this.#addTimestampAttribute(this.temporalAttributeNames.applicationPeriodRowEnd, false, true);
+    }
+
+    if (this.temporalAttributeNames.systemPeriodRowStart) {
+      this.#addTimestampAttribute(this.temporalAttributeNames.systemPeriodRowStart, false, true);
+    }
+
+    if (this.temporalAttributeNames.systemPeriodRowEnd) {
+      this.#addTimestampAttribute(this.temporalAttributeNames.systemPeriodRowEnd, false, true);
+    }
 
     if (this.timestampAttributeNames.createdAt) {
       this.#addTimestampAttribute(this.timestampAttributeNames.createdAt, false);
@@ -410,7 +502,7 @@ The "version" attribute is managed automatically by Sequelize, and its nullabili
     this.refreshAttributes();
   }
 
-  #addTimestampAttribute(attributeName: string, allowNull: boolean) {
+  #addTimestampAttribute(attributeName: string, allowNull: boolean, temporal = false) {
     const existingAttribute: AttributeOptions<M> | undefined = this.rawAttributes[attributeName];
 
     if (existingAttribute?.type && !(existingAttribute.type instanceof DataTypes.DATE)) {
@@ -442,6 +534,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
       ...this.rawAttributes[attributeName],
       allowNull,
       _autoGenerated: true,
+      [TEMPORAL_SECRET]: temporal,
     };
   }
 
