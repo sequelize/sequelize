@@ -2938,9 +2938,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.0.37":
-  version: 4.0.37
-  resolution: "@oclif/core@npm:4.0.37"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@oclif/core@npm:4.2.0"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.3.2"
@@ -2960,7 +2960,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/a48a6f1dfe3b094b4dffd660026ae39bb1c556567430adf216a1c9061999ee555bca020d39e0dae41e0961e683f12058db594cf2252ed853275077fb8a3acb2d
+  checksum: 10c0/fa65bf21616051b651e837e677a8db8e904f0c15e548b19c03c76375bd63308c8831d1d64fb8aa43251a99146bcc52831971c44a510b1ae0591929f7652d0d86
   languageName: node
   linkType: hard
 
@@ -2985,17 +2985,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-warn-if-update-available@npm:^3.1.21":
-  version: 3.1.21
-  resolution: "@oclif/plugin-warn-if-update-available@npm:3.1.21"
+"@oclif/plugin-warn-if-update-available@npm:^3.1.28":
+  version: 3.1.28
+  resolution: "@oclif/plugin-warn-if-update-available@npm:3.1.28"
   dependencies:
     "@oclif/core": "npm:^4"
-    ansis: "npm:^3.3.1"
-    debug: "npm:^4.3.5"
+    ansis: "npm:^3.4.0"
+    debug: "npm:^4.4.0"
     http-call: "npm:^5.2.2"
     lodash: "npm:^4.17.21"
-    registry-auth-token: "npm:^5.0.2"
-  checksum: 10c0/b765ef8c0c07657c82ac4000f1e5985bfbb78a63e57bfce7666334fdec5cf54f85d4defe63c47a4707d1928223d75dc811ed472c8ffb557c4086a1ecb88e2628
+    registry-auth-token: "npm:^5.0.3"
+  checksum: 10c0/d3f1d2449bc37290de53a4b4f5232a371ecdbde9c48a9597cf12afc35642fd3fd11ef1d786ef05a251f547ad22835296eb7b2ac7d012a4f14bce9f3e7d97e735
   languageName: node
   linkType: hard
 
@@ -3229,7 +3229,7 @@ __metadata:
     concurrently: "npm:9.1.0"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.0.1"
-    oclif: "npm:4.17.0"
+    oclif: "npm:4.17.2"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.22.4"
   bin:
@@ -5077,7 +5077,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.2.0, ansis@npm:^3.3.1, ansis@npm:^3.3.2":
+"ansis@npm:^3.2.0, ansis@npm:^3.3.1, ansis@npm:^3.3.2, ansis@npm:^3.4.0":
   version: 3.4.0
   resolution: "ansis@npm:3.4.0"
   checksum: 10c0/e2e5324fcdfed83e96c0b3e9a15d44acce9819404fe87b2bb4ff453e0822a85aee49f3626c2ff430dd9ab5cbb0b7d55801f89dd67599bb7eca0e765519994446
@@ -12366,19 +12366,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.17.0":
-  version: 4.17.0
-  resolution: "oclif@npm:4.17.0"
+"oclif@npm:4.17.2":
+  version: 4.17.2
+  resolution: "oclif@npm:4.17.2"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.699.0"
     "@aws-sdk/client-s3": "npm:^3.712.0"
     "@inquirer/confirm": "npm:^3.1.22"
     "@inquirer/input": "npm:^2.2.4"
     "@inquirer/select": "npm:^2.5.0"
-    "@oclif/core": "npm:^4.0.37"
+    "@oclif/core": "npm:^4.2.0"
     "@oclif/plugin-help": "npm:^6.2.17"
     "@oclif/plugin-not-found": "npm:^3.2.30"
-    "@oclif/plugin-warn-if-update-available": "npm:^3.1.21"
+    "@oclif/plugin-warn-if-update-available": "npm:^3.1.28"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
     change-case: "npm:^4"
@@ -12396,7 +12396,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/4716ea81cda0ecb8a36de6cfb873a7530155b04b5882f732a8d68e0707e1006ff4dc557889308a734a242dc247a626950b3bae6592c35ad61dc83690a512f0db
+  checksum: 10c0/caeebc174f53304e6c1d9d39264139577a6919df75af99b987f3ec8392c8fe5d585f21a8c289d65a40cf84e6f7a461b01e47543ea940ed6b43b4d042f53ddaab
   languageName: node
   linkType: hard
 
@@ -13765,12 +13765,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"registry-auth-token@npm:^5.0.2":
-  version: 5.0.2
-  resolution: "registry-auth-token@npm:5.0.2"
+"registry-auth-token@npm:^5.0.3":
+  version: 5.0.3
+  resolution: "registry-auth-token@npm:5.0.3"
   dependencies:
     "@pnpm/npm-conf": "npm:^2.1.0"
-  checksum: 10c0/20fc2225681cc54ae7304b31ebad5a708063b1949593f02dfe5fb402bc1fc28890cecec6497ea396ba86d6cca8a8480715926dfef8cf1f2f11e6f6cc0a1b4bde
+  checksum: 10c0/f92313032fae7dca787aa878cc7fa8499ee5da960802777f6b9f168a5d8f24a97fcfa0cf30a604bcf38b050a5db5f034b1e2fec18a3326f41822a6aff9514c85
   languageName: node
   linkType: hard
 
