@@ -631,7 +631,7 @@ if (dialect === 'snowflake') {
               { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
             ],
           ],
-          expectation: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
+          expectation: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000+00:00'),('bar','2012-03-27 10:01:55.000+00:00');`,
         },
         {
           arguments: [
