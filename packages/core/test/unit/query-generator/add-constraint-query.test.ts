@@ -561,7 +561,7 @@ describe('QueryGenerator#addConstraintQuery', () => {
         {
           default: `ALTER TABLE [myTable] ADD CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
           sqlite3: notSupportedError,
-          'db2 ibmi': onUpdateNotSupportedError,
+          'db2 ibmi oracle': onUpdateNotSupportedError,
         },
       );
     });
