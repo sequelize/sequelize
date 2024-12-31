@@ -47,11 +47,11 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     alterColumn: {
       unique: false,
     },
-    index: {
-      collate: false,
-      using: false,
-      where: true,
+    addIndex: {
+      expression: true,
       include: true,
+      schemaQuoted: true,
+      where: true,
     },
     constraints: {
       onUpdate: false,
