@@ -9367,9 +9367,9 @@ __metadata:
   linkType: hard
 
 "inflection@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "inflection@npm:3.0.0"
-  checksum: 10c0/6f7016bc4d037fb8f07c8707edc622772d26467e97af02341fb5b891ca35cde7968726dd5c9b18275202aed17b169e053bc6ed1b3adf541c800c4ffa20236d7c
+  version: 3.0.1
+  resolution: "inflection@npm:3.0.1"
+  checksum: 10c0/80fe70db2b55579a15fcd595660c30a7f355577a120bc6e914747ed962b8f89b48a44496bb689b79b5bb4e7b035e21793753a95065beb46536e5ebe25118b4fe
   languageName: node
   linkType: hard
 
