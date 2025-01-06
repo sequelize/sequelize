@@ -299,9 +299,12 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     let primaryKey = 'id';
     let primaryKeyGeneratedByDb = true;
     for (const columnName in valueHash) {
-      const modelAttribute = find(Object.values(modelAttributes), attribute => {
-        return attribute.columnName === columnName;
-      });
+      let modelAttribute = null;
+      if (modelAttributes) {
+        modelAttribute = find(Object.values(modelAttributes), attribute => {
+          return attribute.columnName === columnName;
+        });
+      }
 
       if (modelAttribute) {
         if (modelAttribute.primaryKey) {
@@ -339,7 +342,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
         const value = valueHash[key] ?? null;
         // fields.push(this.quoteIdentifier(key));
 
-        if (modelAttributes[key] && modelAttributes[key].autoIncrement === true && value == null) {
+        if (modelAttributes?.[key] && modelAttributes[key].autoIncrement === true && value == null) {
           continue;
         }
 
@@ -353,7 +356,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
           */
           const bind = Object.create(null);
           const dummyOption = {
-            type: options.type,
+            type: options?.type,
             bindParam: this.bindParam(bind),
           };
           const dummyEscaped = this.escape(value, dummyOption);
@@ -370,7 +373,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     for(let index = parameterList.length - 1; index >= 0; index--) {
       const parameterMatch = parameterList[index];
       const columnName = columnNames[index];
-      const modelAttribute = modelAttributes[columnName];
+      const modelAttribute = modelAttributes?.[columnName];
       const type =
         modelAttribute?.type ??
         (typeof valueHash[columnName] === 'boolean' ? 'BOOLEAN' : 'NVARCHAR(5000)');
