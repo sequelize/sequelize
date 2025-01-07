@@ -186,10 +186,10 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
 //         ifNotExists: false,
 //         replace: false,
       },
-//       dropSchema: {
-//         cascade: false,
+      dropSchema: {
+        cascade: true,
 //         ifExists: false,
-//       },
+      },
       delete: {
         limit: false,
       },
