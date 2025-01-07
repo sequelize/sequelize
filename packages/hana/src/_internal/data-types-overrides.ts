@@ -69,6 +69,8 @@ export class NOW extends BaseTypes.NOW {
 export class TINYINT extends BaseTypes.TINYINT {
   toSql(): string {
     if (this.options.unsigned) {
+      // TINYINT is unsigned integer, different from SMALLINT, INTEGER, BIGINT
+      // https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/numeric-data-types
       return 'TINYINT';
     }
 
