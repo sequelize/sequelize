@@ -188,7 +188,7 @@ describe('DataTypes.JSON', () => {
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite3: 'TEXT',
-    hana: 'NCLOB',
+    hana: 'NVARCHAR(5000)',
   });
 
   describe('escape', () => {
