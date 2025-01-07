@@ -126,7 +126,7 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       //   REAL: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
       //   DOUBLE: { NaN: false, infinity: false, zerofill: false, unsigned: false, scaleAndPrecision: false },
       //   DECIMAL: { constrained: true, unconstrained: false, NaN: false, infinity: false, zerofill: false, unsigned: false },
-        //DECIMAL: { unconstrained: true, omitScale: true }, // todo dazhuang  check omitScale
+        DECIMAL: { unconstrained: true },
       //   CIDR: false,
       //   MACADDR: false,
       //   INET: false,
