@@ -79,7 +79,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     const primaryKeys = [];
     const foreignKeys = {};
     const attrStr = [];
-    let columnComments = '';
 
     const quotedTable = this.quoteTable(tableName);
 
@@ -95,10 +94,8 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       let commentClause = '';
       const commentIndex = dataType.indexOf('COMMENT ');
       if (commentIndex !== -1) {
-        commentClause = dataType.slice(commentIndex);
         const commentText = dataType.slice(commentIndex + 8);
-        const escapedCommentText = this.escape(commentText);
-        columnComments += ` COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${escapedCommentText};`;
+        commentClause = ` COMMENT ${this.escape(commentText)}`;
 
         // remove comment related substring from dataType
         dataType = dataType.slice(0, commentIndex);
