@@ -100,8 +100,8 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       //     ifExists: false,
       //   },
       // },
-      // index: {
-      //   collate: true,
+      index: {
+        collate: false,
       //   length: false,
       //   parser: false,
       //   concurrently: false,
@@ -111,7 +111,7 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       //   operator: false,
       //   where: false,
       //   include: false,
-      // },
+      },
       // groupedLimit: true,
       // indexViaAlter: false,
       // alterColumn: {
