@@ -563,7 +563,7 @@ END;`
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
     }
 
     return template;
