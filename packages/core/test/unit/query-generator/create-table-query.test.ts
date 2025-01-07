@@ -11,13 +11,25 @@ const dialectName = getTestDialect();
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
+  const hanaIfNotExistsWrapper = (sql: string, tableName: string, schema: string) => `
+    DO BEGIN DECLARE table_count INTEGER;
+      SELECT COUNT(*) INTO table_count FROM TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}';
+      IF :table_count = 0 THEN
+        ${sql}
+      END IF;
+    END;
+  `;
+
   it('produces a query to create a table', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" DATE);',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -29,7 +41,10 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
-      hana: 'CREATE COLUMN TABLE "MyModels" ("myColumn" DATE);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "MyModels" ("myColumn" DATE);',
+        'MyModels', 'SYSTEM',
+      ),
     });
   });
 
@@ -42,7 +57,10 @@ describe('QueryGenerator#createTableQuery', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
-      hana: 'CREATE COLUMN TABLE "MyModels" ("myColumn" DATE);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "MyModels" ("myColumn" DATE);',
+        'MyModels', 'SYSTEM',
+      ),
     });
   });
 
@@ -59,7 +77,10 @@ describe('QueryGenerator#createTableQuery', () => {
         mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
         sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
-        hana: 'CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE);',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE);',
+          'myTable', 'mySchema',
+        ),
       },
     );
   });
@@ -75,7 +96,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE);',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" DATE);',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -91,7 +115,10 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
-      hana: 'CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE);',
+        'myTable', 'mySchema',
+      ),
     });
   });
 
@@ -121,7 +148,10 @@ describe('QueryGenerator#createTableQuery', () => {
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT);`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT);',// TEXT is support on on-premise, not HANA cloud
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT);',
+          'myTable', 'SYSTEM',
+        ), // TEXT is supported on on-premise, not HANA cloud
       },
     );
   });
@@ -134,7 +164,10 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"));',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"));',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -153,7 +186,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',
+          'myTable', 'SYSTEM',
+        ), // TEXT is supported on on-premise, not HANA cloud
       },
     );
   });
@@ -170,7 +206,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'snowflake db2':
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -191,7 +230,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'snowflake db2':
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), PRIMARY KEY ("myColumn")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -216,7 +258,10 @@ describe('QueryGenerator#createTableQuery', () => {
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id") COMMENT Foo);',
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id") COMMENT Foo); END`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo', FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -228,7 +273,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE NOT NULL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE NOT NULL); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE NOT NULL);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" DATE NOT NULL);',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -249,7 +297,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE COMMENT Foo);',
         db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
-        hana: `CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE); COMMENT ON COLUMN "mySchema"."myTable"."myColumn" IS 'Foo';`
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT 'Foo');`,
+          'myTable', 'mySchema',
+        ),
       },
     );
   });
@@ -273,7 +324,10 @@ describe('QueryGenerator#createTableQuery', () => {
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [secondColumn];`,
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn"; -- 'Foo Bar', TableName = "myTable", ColumnName = "secondColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar); END`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo'; COMMENT ON COLUMN "myTable"."secondColumn" IS 'Foo Bar';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo', "secondColumn" DATE COMMENT 'Foo Bar');`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -292,7 +346,10 @@ describe('QueryGenerator#createTableQuery', () => {
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo COMMENT Bar');`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -312,7 +369,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo PRIMARY KEY);',
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo PRIMARY KEY';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo PRIMARY KEY');`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -331,7 +391,10 @@ describe('QueryGenerator#createTableQuery', () => {
           "CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo) ENGINE=InnoDB COMMENT 'Bar';",
         postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
         snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE) COMMENT 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo') COMMENT 'Bar';`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -346,7 +409,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" "public"."enum_myTable_myColumn");',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] ENUM("foo", "bar"));`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" ENUM("foo", "bar")); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" NVARCHAR(255));',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" NVARCHAR(255));',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -364,7 +430,10 @@ describe('QueryGenerator#createTableQuery', () => {
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER, `secondColumn` BIGINT, `thirdColumn` SMALLINT) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, [secondColumn] BIGINT, [thirdColumn] SMALLINT);`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT);',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, "secondColumn" BIGINT, "thirdColumn" SMALLINT);',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -385,8 +454,10 @@ describe('QueryGenerator#createTableQuery', () => {
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL, "secondColumn" BIGSERIAL, "thirdColumn" SMALLSERIAL);',
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL, [secondColumn] BIGINT SERIAL, [thirdColumn] SMALLINT SERIAL);`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL); END`,
-        hana:
-          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL UNIQUE, "secondColumn" BIGINT GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL UNIQUE, "thirdColumn" SMALLINT GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL UNIQUE);',
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER SERIAL, "secondColumn" BIGINT SERIAL, "thirdColumn" SMALLINT SERIAL);`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -399,7 +470,10 @@ describe('QueryGenerator#createTableQuery', () => {
       postgres: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" SERIAL);',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER SERIAL NOT NULL);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1) NOT NULL UNIQUE);',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER SERIAL NOT NULL);',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -410,7 +484,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1));',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1));',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -423,7 +500,10 @@ describe('QueryGenerator#createTableQuery', () => {
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER, PRIMARY KEY ([myColumn]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn")); END`,
-      hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn"));',
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, PRIMARY KEY ("myColumn"));',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -442,7 +522,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',
+          'myTable', 'SYSTEM',
+        ), // TEXT is supported on on-premise, not HANA cloud
       },
     );
   });
@@ -463,7 +546,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER NOT NULL, `secondColumn` INTEGER NOT NULL, `thirdColumn` TEXT NOT NULL, PRIMARY KEY (`secondColumn`, `thirdColumn`));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn"));',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER NOT NULL, "secondColumn" INTEGER NOT NULL, "thirdColumn" TEXT, PRIMARY KEY ("secondColumn", "thirdColumn"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -480,7 +566,10 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1), PRIMARY KEY ("myColumn"));',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER GENERATED BY DEFAULT AS IDENTITY (START WITH 1 INCREMENT BY 1), PRIMARY KEY ("myColumn"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -496,6 +585,10 @@ describe('QueryGenerator#createTableQuery', () => {
         mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED, PRIMARY KEY ([myColumn]));`,
         sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn")); END`,
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED, PRIMARY KEY ("myColumn"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -507,6 +600,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER(5) UNSIGNED) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER(5) UNSIGNED);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED); END`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER(5) UNSIGNED);',
+        'myTable', 'SYSTEM',
+      ),
     });
   });
 
@@ -522,7 +619,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'snowflake db2':
           'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER REFERENCES "Bar" ("id")); END`,
-        hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+        hana: hanaIfNotExistsWrapper(
+          'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -586,7 +686,10 @@ describe('QueryGenerator#createTableQuery', () => {
           "CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB COMMENT 'Foo';",
         postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Foo';`,
         snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
-        hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
+        hana: hanaIfNotExistsWrapper(
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE) COMMENT 'Foo';`,
+          'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -634,7 +737,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn")); END`,
-          hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+          hana: hanaIfNotExistsWrapper(
+            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
+            'myTable', 'SYSTEM',
+          ), // TEXT is supported on on-premise, not HANA cloud
         },
       );
     });
@@ -658,7 +764,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "myIndex" ("myColumn", "secondColumn"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn")); END`,
-          hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+          hana: hanaIfNotExistsWrapper(
+            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
+            'myTable', 'SYSTEM',
+          ), // TEXT is supported on on-premise, not HANA cloud
         },
       );
     });
@@ -682,7 +791,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, UNIQUE "uniq_myTable_myColumn" ("myColumn"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn")); END`,
-          hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn"));',
+          hana: hanaIfNotExistsWrapper(
+            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, CONSTRAINT "uniq_myTable_myColumn" UNIQUE ("myColumn"));',
+            'myTable', 'SYSTEM',
+          ),
         },
       );
     });
@@ -706,8 +818,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-          hana:
-            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+          hana: hanaIfNotExistsWrapper(
+            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
+            'myTable', 'SYSTEM',
+          ), // TEXT is supported on on-premise, not HANA cloud
         },
       );
     });
@@ -731,7 +845,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn")); END`,
-          hana: 'CREATE COLUMN TABLE "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',// TEXT is support on on-premise, not HANA cloud
+          hana: hanaIfNotExistsWrapper(
+            'CREATE COLUMN TABLE "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
+            'myTable', 'SYSTEM',
+          ), // TEXT is supported on on-premise, not HANA cloud
         },
       );
     });
@@ -755,7 +872,10 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn")); END`,
-          hana: `CREATE COLUMN TABLE "myTable" ("myColumn" DATE , "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));`,
+          hana: hanaIfNotExistsWrapper(
+            `CREATE COLUMN TABLE "myTable" ("myColumn" DATE , "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));`,
+            'myTable', 'SYSTEM',
+          ),
         },
       );
     });
