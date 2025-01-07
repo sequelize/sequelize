@@ -11,7 +11,7 @@ describe('QueryGenerator#rollbackTransactionQuery', () => {
   it('should generate a query for rolling back a transaction', () => {
     expectsql(() => queryGenerator.rollbackTransactionQuery(), {
       default: 'ROLLBACK',
-      'db2 ibmi mssql': notSupportedError,
+      'db2 ibmi mssql hana': notSupportedError,
     });
   });
 });

@@ -11,7 +11,7 @@ describe('QueryGenerator#commitTransactionQuery', () => {
   it('should generate a query for committing a transaction', () => {
     expectsql(() => queryGenerator.commitTransactionQuery(), {
       default: 'COMMIT',
-      'db2 ibmi mssql': notSupportedError,
+      'db2 ibmi mssql hana': notSupportedError,
     });
   });
 });
