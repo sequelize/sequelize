@@ -259,7 +259,7 @@ describe('QueryGenerator#createTableQuery', () => {
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")); -- 'Foo', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id") COMMENT Foo); END`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo', FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));`,
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT Foo, FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));`,
           'myTable', 'SYSTEM',
         ),
       },
@@ -298,7 +298,7 @@ describe('QueryGenerator#createTableQuery', () => {
         db2: `CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("myColumn" DATE); -- 'Foo', TableName = "mySchema"."myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo); END`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT 'Foo');`,
+          `CREATE COLUMN TABLE "mySchema"."myTable" ("myColumn" DATE COMMENT Foo);`,
           'myTable', 'mySchema',
         ),
       },
@@ -325,7 +325,7 @@ describe('QueryGenerator#createTableQuery', () => {
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" DATE); -- 'Foo', TableName = "myTable", ColumnName = "myColumn"; -- 'Foo Bar', TableName = "myTable", ColumnName = "secondColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar); END`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo', "secondColumn" DATE COMMENT 'Foo Bar');`,
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT Foo, "secondColumn" DATE COMMENT Foo Bar);`,
           'myTable', 'SYSTEM',
         ),
       },
@@ -347,7 +347,7 @@ describe('QueryGenerator#createTableQuery', () => {
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo COMMENT Bar');`,
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar);`,
           'myTable', 'SYSTEM',
         ),
       },
@@ -370,7 +370,7 @@ describe('QueryGenerator#createTableQuery', () => {
         db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo PRIMARY KEY', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo, PRIMARY KEY ("myColumn")); END`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo PRIMARY KEY');`,
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT Foo PRIMARY KEY);`,
           'myTable', 'SYSTEM',
         ),
       },
@@ -392,7 +392,7 @@ describe('QueryGenerator#createTableQuery', () => {
         postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON TABLE "myTable" IS 'Bar'; COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
         snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
         hana: hanaIfNotExistsWrapper(
-          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT 'Foo') COMMENT 'Bar';`,
+          `CREATE COLUMN TABLE "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
           'myTable', 'SYSTEM',
         ),
       },
