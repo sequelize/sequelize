@@ -5,6 +5,22 @@ import { beforeAll2, expectsql, sequelize } from '../../support';
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
+  const hanaReturnIdWrapper = (sql: string, parameters: string, primaryKey: string) => `
+    DO (${parameters})
+    BEGIN
+      DECLARE CURRENT_IDENTITY_VALUE_RESULT BIGINT;
+      ${sql}
+      SELECT CURRENT_IDENTITY_VALUE() INTO CURRENT_IDENTITY_VALUE_RESULT FROM DUMMY;
+      IF
+        -2147483648 <= :CURRENT_IDENTITY_VALUE_RESULT AND :CURRENT_IDENTITY_VALUE_RESULT <= 2147483647
+      THEN
+        SELECT TO_INTEGER(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      ELSE
+        SELECT TO_BIGINT(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      END IF;
+    END;
+  `;
+
   const vars = beforeAll2(() => {
     const User = sequelize.define(
       'User',
@@ -39,6 +55,10 @@ describe('QueryGenerator#insertQuery', () => {
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'))`,
+      hana: hanaReturnIdWrapper(
+        `INSERT INTO "Users" ("firstName") VALUES ('Zoe');`,
+        '', 'id',
+      ),
     });
     expect(bind).to.deep.eq({});
   });
@@ -56,6 +76,12 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
+      hana: hanaReturnIdWrapper(
+        // todo dazhuang  check wrong parameter list
+        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:username,:undefined);`,
+        'IN firstName NVARCHAR(5000) => $sequelize_1, IN username NVARCHAR(5000) => $lastName, IN undefined NVARCHAR(5000) => $sequelize_2',
+        'id',
+      ),
     });
 
     expect(bind).to.deep.eq({
@@ -78,6 +104,12 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
+      hana: hanaReturnIdWrapper(
+        // todo dazhuang  check wrong parameter list
+        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:username,:undefined);`,
+        'IN firstName NVARCHAR(5000) => $sequelize_1, IN username NVARCHAR(5000) => $1, IN undefined NVARCHAR(5000) => $sequelize_2',
+        'id',
+      ),
     });
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
@@ -106,6 +138,10 @@ describe('QueryGenerator#insertQuery', () => {
       mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
+      hana: hanaReturnIdWrapper(
+        `INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',:firstName,'jd');`,
+        'IN firstName NVARCHAR(5000) => $1', 'id',
+      ),
     });
     expect(bind).to.be.undefined;
   });
@@ -157,6 +193,10 @@ describe('QueryGenerator#insertQuery', () => {
           'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        hana: hanaReturnIdWrapper(
+          `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
+          'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+        ),
       });
     });
 
@@ -185,6 +225,10 @@ describe('QueryGenerator#insertQuery', () => {
         // TODO: should only select specified columns
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        hana: hanaReturnIdWrapper(
+          `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
+          'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+        ),
       });
     });
 
@@ -216,6 +260,10 @@ describe('QueryGenerator#insertQuery', () => {
           // TODO: should only select specified columns
           db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+          hana: hanaReturnIdWrapper(
+            `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
+            'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+          ),
         },
       );
     });
@@ -229,6 +277,10 @@ describe('QueryGenerator#insertQuery', () => {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+          hana: hanaReturnIdWrapper(
+            `INSERT INTO "myTable" ("birthday") VALUES (:birthday);`,
+            'IN birthday NVARCHAR(5000) => $sequelize_1', 'id',
+          ),
         },
         bind: {
           mysql: {
@@ -270,6 +322,10 @@ describe('QueryGenerator#insertQuery', () => {
             'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
+          hana: hanaReturnIdWrapper(
+            `INSERT INTO "myTable" ("positive","negative") VALUES (:positive,:negative);`,
+            'IN positive BOOLEAN => $sequelize_1, IN negative BOOLEAN => $sequelize_2', 'id',
+          ),
         },
         bind: {
           sqlite3: {
@@ -322,6 +378,10 @@ describe('QueryGenerator#insertQuery', () => {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
         'db2 ibmi':
           'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
+        hana: hanaReturnIdWrapper(
+          `INSERT INTO "myTable" ("value","name") VALUES (:value,:name);`,
+          'IN value NVARCHAR(5000) => $sequelize_1, IN name NVARCHAR(5000) => $sequelize_2', 'id',
+        ),
       });
 
       expect(bind).to.deep.eq({
