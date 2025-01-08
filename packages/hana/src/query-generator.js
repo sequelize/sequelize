@@ -94,8 +94,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
       let commentClause = '';
       const commentIndex = dataType.indexOf('COMMENT ');
       if (commentIndex !== -1) {
-        const commentText = dataType.slice(commentIndex + 8);
-        commentClause = ` COMMENT ${this.escape(commentText)}`;
+        commentClause = dataType.slice(commentIndex);
 
         // remove comment related substring from dataType
         dataType = dataType.slice(0, commentIndex);
