@@ -38,7 +38,7 @@ describe('QueryInterface#listTables', () => {
           const sql = [
             'DO BEGIN',
             'DECLARE view_count INTEGER;',
-            `SELECT COUNT(*) INTO view_count FROM VIEWS`,
+            `SELECT COUNT(*) INTO view_count FROM SYS.VIEWS`,
             `WHERE VIEW_NAME = 'V_FAIL' AND SCHEMA_NAME = CURRENT_SCHEMA;`,
             'IF :view_count > 0 THEN',
             `  EXEC 'DROP VIEW V_Fail';`,
