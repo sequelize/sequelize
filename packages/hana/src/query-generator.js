@@ -182,7 +182,7 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     return joinSQLFragments([
       'DO BEGIN',
       'DECLARE table_count INTEGER;',
-      `SELECT COUNT(*) INTO table_count FROM TABLES`,
+      `SELECT COUNT(*) INTO table_count FROM SYS.TABLES`,
       `WHERE TABLE_NAME = ${this.escape(tableDetails.tableName)} AND SCHEMA_NAME = ${
         tableDetails.schema ? this.escape(tableDetails.schema) : 'CURRENT_SCHEMA'
       };`,

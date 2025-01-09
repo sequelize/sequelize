@@ -9,7 +9,7 @@ describe('QueryGenerator#dropTableQuery', () => {
 
   const hanaIfExistsWrapper = (sql: string, tableName: string, schema: string) => `
     DO BEGIN DECLARE table_count INTEGER;
-      SELECT COUNT(*) INTO table_count FROM TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}';
+      SELECT COUNT(*) INTO table_count FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}';
       IF :table_count > 0 THEN
         ${sql};
       END IF;
