@@ -10,6 +10,16 @@ describe('QueryInterface#createTable', () => {
     sinon.restore();
   });
 
+  const hanaIfNotExistsWrapper = (sql: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF NOT EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sql}
+      END IF;
+    END;
+  `;
+
   it('supports sql.uuidV4 default values', async () => {
     const localSequelize =
       dialect.name === 'postgres'
@@ -40,6 +50,10 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table', 'SYSTEM',
+      ),
     });
   });
 
@@ -93,6 +107,10 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table', 'SYSTEM',
+      ),
     });
   });
 
