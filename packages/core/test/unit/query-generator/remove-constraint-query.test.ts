@@ -9,6 +9,20 @@ const notSupportedError = new Error(
 describe('QueryGenerator#removeConstraintQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
+  const hanaIfExistsWrapper = (sql: string, constraintName: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF EXISTS (
+        SELECT * FROM SYS.CONSTRAINTS
+        WHERE CONSTRAINT_NAME = '${constraintName}' AND TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+        UNION ALL
+        SELECT * FROM SYS.REFERENTIAL_CONSTRAINTS
+        WHERE CONSTRAINT_NAME = '${constraintName}' AND TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sql};
+      END IF;
+    END;
+  `;
+
   it('generates a query that drops a constraint', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint]',
@@ -27,6 +41,10 @@ describe('QueryGenerator#removeConstraintQuery', () => {
           dialect.name,
           ['ifExists'],
         ),
+        hana: hanaIfExistsWrapper(
+          'ALTER TABLE "myTable" DROP CONSTRAINT "myConstraint"',
+          'myConstraint', 'myTable', 'SYSTEM'
+        )
       },
     );
   });

@@ -11,6 +11,7 @@ import type {
 import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
+  RemoveConstraintQueryOptions,
   RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
 } from '@sequelize/core';
@@ -195,6 +196,46 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'END IF;',
       'END;',
     ]);
+  }
+
+  removeConstraintQuery(
+    tableName: TableOrModel,
+    constraintName: string,
+    options?: RemoveConstraintQueryOptions,
+  ) {
+    const ifExists = options?.ifExists;
+    let optionsWithoutIfExists = null;
+    if (ifExists) {
+      optionsWithoutIfExists = Object.assign({}, options);
+      delete optionsWithoutIfExists.ifExists;
+    } else {
+      optionsWithoutIfExists = options;
+    }
+
+    const removeSql = super.removeConstraintQuery(tableName, constraintName, optionsWithoutIfExists);
+
+    if (ifExists) {
+      const table = this.extractTableDetails(tableName);
+      return joinSQLFragments([
+        'DO BEGIN',
+        '  IF EXISTS (',
+        '    SELECT * FROM SYS.CONSTRAINTS',
+        `    WHERE CONSTRAINT_NAME = ${this.escape(constraintName)}`,
+        `      AND TABLE_NAME = ${this.escape(table.tableName)}`,
+        `      AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+        '    UNION ALL',
+        '    SELECT * FROM SYS.REFERENTIAL_CONSTRAINTS',
+        `    WHERE CONSTRAINT_NAME = ${this.escape(constraintName)}`,
+        `      AND TABLE_NAME = ${this.escape(table.tableName)}`,
+        `      AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+        '  ) THEN',
+        `    ${removeSql};`,
+        '  END IF;',
+        'END;',
+      ]);
+    }
+
+    return removeSql;
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
