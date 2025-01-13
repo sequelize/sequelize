@@ -204,6 +204,11 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_2: false,
           sequelize_3: 2,
         },
+        hana: {
+          sequelize_1: true,
+          sequelize_2: false,
+          sequelize_3: 2,
+        },
       },
     });
   });
