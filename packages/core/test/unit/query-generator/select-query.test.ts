@@ -90,6 +90,7 @@ describe('QueryGenerator#selectQuery', () => {
         'mariadb mysql':
           'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
         'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+        'hana': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 9223372036854775807 OFFSET 1;',
       });
     });
 
