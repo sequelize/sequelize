@@ -135,6 +135,10 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
+      hana: hanaIfNotExistsWrapper(
+        `CREATE COLUMN TABLE "table" ("json" NVARCHAR(5000) DEFAULT 'null');`,
+        'table', 'SYSTEM',
+      ),
     });
   });
 });
