@@ -425,8 +425,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   versionQuery() {
-    return `SELECT "VALUE" AS "version" FROM SYS.M_SYSTEM_OVERVIEW `
-      + `WHERE "SECTION" = 'System' and "NAME" = 'Version';`;
+    return `SELECT "VALUE" AS "version" FROM SYS.M_SYSTEM_OVERVIEW WHERE "SECTION" = 'System' AND "NAME" = 'Version'`;
   }
 
   tableExistsQuery(tableName: TableOrModel): string {
