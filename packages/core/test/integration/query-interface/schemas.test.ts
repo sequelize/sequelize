@@ -50,6 +50,18 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
           `DROP ROLE IF EXISTS "myUser"; CREATE ROLE "myUser" WITH LOGIN PASSWORD 'Password12!' CREATEDB`,
         );
         await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
+      } else if (dialect.name === 'hana') {
+        const [result] = await sequelize.query<{ user_count: string }>(
+          `SELECT COUNT(*) as "user_count" FROM SYS.USERS WHERE USER_NAME = 'MYUSER'`,
+          { type: QueryTypes.SELECT },
+        );
+        if (Number(result.user_count) === 0) {
+          await sequelize.query(
+            // user name cannot be quoted in CREATE USER statement
+            `CREATE USER myUser PASSWORD "Password12!"`
+          );
+        }
+        await queryInterface.createSchema(testSchema, { authorization: 'myUser'.toUpperCase() });
       } else {
         await queryInterface.createSchema(testSchema, { authorization: sql`CURRENT_USER` });
       }
@@ -69,6 +81,12 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
           { type: QueryTypes.SELECT },
         );
         expect(result.OWNER).to.equal('CURRENT_USER');
+      } else if (dialect.name === 'hana') {
+        const [result] = await sequelize.query<{ SCHEMA_OWNER: string }>(
+          `SELECT SCHEMA_OWNER FROM SYS.SCHEMAS WHERE SCHEMA_NAME = '${testSchema}'`,
+          { type: QueryTypes.SELECT },
+        );
+        expect(result.SCHEMA_OWNER).to.equal('myUser'.toUpperCase());
       }
 
       await queryInterface.dropSchema(testSchema);
@@ -77,6 +95,9 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
         await sequelize.query('DROP LOGIN [myUser]');
       } else if (dialect.name === 'postgres') {
         await sequelize.query('DROP ROLE "myUser"');
+      } else if (dialect.name === 'hana') {
+        // user name cannot be quoted in DROP USER statement
+        await sequelize.query('DROP USER MYUSER');
       }
     });
   }
