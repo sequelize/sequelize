@@ -12,9 +12,10 @@ describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const hanaIfNotExistsWrapper = (sql: string, tableName: string, schema: string) => `
-    DO BEGIN DECLARE table_count INTEGER;
-      SELECT COUNT(*) INTO table_count FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}';
-      IF :table_count = 0 THEN
+    DO BEGIN
+      IF NOT EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
         ${sql}
       END IF;
     END;
