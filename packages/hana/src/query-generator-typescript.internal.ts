@@ -188,12 +188,13 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'DO BEGIN',
-      'DECLARE table_count INTEGER;',
-      `SELECT COUNT(*) INTO table_count FROM SYS.TABLES`,
-      `WHERE TABLE_NAME = ${this.escape(table.tableName)} AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'};`,
-      'IF :table_count > 0 THEN',
-      `  ${dropSql};`,
-      'END IF;',
+      '  IF EXISTS (',
+      '    SELECT * FROM SYS.TABLES',
+      `    WHERE TABLE_NAME = ${this.escape(table.tableName)}`,
+      `      AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+      '  ) THEN',
+      `    ${dropSql};`,
+      '  END IF;',
       'END;',
     ]);
   }
