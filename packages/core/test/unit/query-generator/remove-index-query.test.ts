@@ -10,12 +10,23 @@ const notImplementedError = new Error(
 describe('QueryGenerator#removeIndexQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
+  const hanaIfExistsWrapper = (sql: string, indexName: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF EXISTS (
+        SELECT * FROM SYS.INDEXES
+        WHERE INDEX_NAME = '${indexName}' AND TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sql};
+      END IF;
+    END;
+  `;
+
   it('produces a DROP INDEX query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [myTable]`,
       sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
+      'db2 hana': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
       snowflake: notImplementedError,
     });
@@ -26,7 +37,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       default: `DROP INDEX [my_table_foo_bar] ON [myTable]`,
       sqlite3: 'DROP INDEX `my_table_foo_bar`',
       ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "my_table_foo_bar"`,
+      'db2 hana': `DROP INDEX "my_table_foo_bar"`,
       postgres: `DROP INDEX "public"."my_table_foo_bar"`,
       snowflake: notImplementedError,
     });
@@ -57,6 +68,10 @@ describe('QueryGenerator#removeIndexQuery', () => {
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'ifExists',
         ]),
+        hana: hanaIfExistsWrapper(
+          'DROP INDEX "user_foo_bar"',
+          'user_foo_bar', 'myTable', 'SYSTEM',
+        ),
       },
     );
   });
@@ -144,7 +159,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
       sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
+      'db2 hana': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
       snowflake: notImplementedError,
     });
@@ -158,7 +173,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
       sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
+      'db2 hana': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
       snowflake: notImplementedError,
     });
@@ -176,7 +191,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         sqlite3: 'DROP INDEX `user_foo_bar`',
         postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-        db2: `DROP INDEX "user_foo_bar"`,
+        'db2 hana': `DROP INDEX "user_foo_bar"`,
         snowflake: notImplementedError,
       },
     );
@@ -193,7 +208,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         default: `DROP INDEX [user_foo_bar] ON [myTable]`,
         sqlite3: 'DROP INDEX `user_foo_bar`',
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-        db2: `DROP INDEX "user_foo_bar"`,
+        'db2 hana': `DROP INDEX "user_foo_bar"`,
         postgres: `DROP INDEX "public"."user_foo_bar"`,
         snowflake: notImplementedError,
       },
@@ -209,7 +224,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       sqlite3: 'DROP INDEX `user_foo_bar`',
       postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: 'DROP INDEX "user_foo_bar"',
+      'db2 hana': 'DROP INDEX "user_foo_bar"',
       snowflake: notImplementedError,
     });
   });

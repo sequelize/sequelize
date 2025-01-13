@@ -38,7 +38,7 @@ const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions
   'cascade',
 ]);
 
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>();
+const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -378,7 +378,25 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       indexName = indexNameOrAttributes;
     }
 
-    return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
+    const dropSql = `DROP INDEX ${this.quoteIdentifier(indexName)}`;
+
+    if (options?.ifExists) {
+      const table = this.extractTableDetails(tableName);
+      return joinSQLFragments([
+        'DO BEGIN',
+        '  IF EXISTS (',
+        '    SELECT * FROM SYS.INDEXES',
+        `    WHERE INDEX_NAME = ${this.escape(indexName)}`,
+        `      AND TABLE_NAME = ${this.escape(table.tableName)}`,
+        `      AND SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+        '  ) THEN',
+        `    ${dropSql};`,
+        '  END IF;',
+        'END;',
+      ]);
+    }
+
+    return dropSql;
   }
 
   jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
