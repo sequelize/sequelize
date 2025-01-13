@@ -13,6 +13,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
+      hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -25,6 +26,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'MyModels' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
+      hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -38,6 +40,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'MyModels' AND TABLE_SCHEMA = CURRENT SCHEMA`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
+      hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -48,6 +51,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = 'mySchema'`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
+      hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'mySchema' AND TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -64,6 +68,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
         ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = CURRENT SCHEMA`,
         mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
         sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
+        hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'myTable'`,
       },
     );
   });
@@ -78,6 +83,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       ibmi: `SELECT TABLE_NAME FROM QSYS2.SYSTABLES WHERE TABLE_NAME = 'myTable' AND TABLE_SCHEMA = 'mySchema'`,
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
+      hana: `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = 'mySchema' AND TABLE_NAME = 'myTable'`,
     });
   });
 
