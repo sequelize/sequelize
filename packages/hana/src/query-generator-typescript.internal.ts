@@ -7,6 +7,7 @@ import type {
   RenameTableQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
+  TruncateTableQueryOptions,
 } from '@sequelize/core';
 import type {
   ListSchemasQueryOptions,
@@ -29,6 +30,7 @@ import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type { HanaDialect } from './dialect.js';
 import { HanaQueryGeneratorInternal } from './query-generator.internal.js';
@@ -159,6 +161,20 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
         ? `${this.quoteIdentifier(afterTable.schema)}.${this.quoteIdentifier(afterTable.tableName)}`
         : this.quoteTable(afterTableName),
     ]);
+  }
+
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
+    if (options) {
+      rejectInvalidOptions(
+        'truncateTableQuery',
+        this.dialect,
+        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+        EMPTY_SET,
+        options,
+      );
+    }
+
+    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
 
   dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {

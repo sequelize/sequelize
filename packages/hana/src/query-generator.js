@@ -259,10 +259,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     ]);
   }
 
-  truncateTableQuery(tableName) {
-    return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
-  }
-
   removeColumnQuery(tableName, columnName, options) {
     if (options) {
       rejectInvalidOptions(
