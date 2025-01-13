@@ -351,10 +351,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     // `SELECT * FROM SYS.INDEXES WHERE SCHEMA_NAME ='${}' and TABLE_NAME = '' ${this.quoteTable(tableName)}`;
   }
 
-  getToggleForeignKeyChecksQuery(enable: boolean): string {
-    return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
-  }
-
   removeIndexQuery(
     tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
