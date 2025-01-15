@@ -20,6 +20,22 @@ describe('QueryInterface#insert', () => {
     sinon.restore();
   });
 
+  const hanaReturnIdWrapper = (sql: string, parameters: string, primaryKey: string) => `
+    DO (${parameters})
+    BEGIN
+      DECLARE CURRENT_IDENTITY_VALUE_RESULT BIGINT;
+      ${sql}
+      SELECT CURRENT_IDENTITY_VALUE() INTO CURRENT_IDENTITY_VALUE_RESULT FROM DUMMY;
+      IF
+        -2147483648 <= :CURRENT_IDENTITY_VALUE_RESULT AND :CURRENT_IDENTITY_VALUE_RESULT <= 2147483647
+      THEN
+        SELECT TO_INTEGER(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      ELSE
+        SELECT TO_BIGINT(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      END IF;
+    END;
+  `;
+
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
     const { User } = vars;
@@ -47,6 +63,10 @@ describe('QueryInterface#insert', () => {
       mssql: `INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[:data] VALUES ($sequelize_1);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+      hana: hanaReturnIdWrapper(
+        'INSERT INTO "Users" ("firstName") VALUES (:firstName);',
+        'IN firstName NVARCHAR(5000) => $sequelize_1', 'id',
+      ),
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: 'Zoe',
