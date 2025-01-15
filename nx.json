@@ -11,24 +11,19 @@
   },
   "targetDefaults": {
     "build": {
+      "cache": true,
       "dependsOn": ["^build"],
       "inputs": ["prod", "^prod"],
       "outputs": ["{projectRoot}/lib"]
     },
     "test-typings": {
+      "cache": true,
       "inputs": ["default", "^prod"]
     },
     "test-unit": {
+      "cache": true,
       "dependsOn": ["build"],
       "inputs": ["default", "^prod"]
-    }
-  },
-  "tasksRunnerOptions": {
-    "default": {
-      "runner": "nx/tasks-runners/default",
-      "options": {
-        "cacheableOperations": ["build", "test-typings", "test-unit"]
-      }
     }
   },
   "workspaceLayout": {
