@@ -13,7 +13,7 @@ docker compose -p oraclexedb up -d
 # Wait until Oracle DB is set up and docker state is healthy
 ./../../wait-until-healthy.sh oraclexedb
 
-sleep 300s
+sleep 30s
 
 # Moving privileges.sql to docker container
 docker cp ../privileges.sql oraclexedb:/opt/oracle/.
