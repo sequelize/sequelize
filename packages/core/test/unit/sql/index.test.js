@@ -138,6 +138,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
           mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
           mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+          hana: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         },
       );
     });
