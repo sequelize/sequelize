@@ -12,6 +12,22 @@ const dialect = current.dialect;
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
+  const hanaReturnIdWrapper = (sql, parameters, primaryKey) => `
+    DO (${parameters})
+    BEGIN
+      DECLARE CURRENT_IDENTITY_VALUE_RESULT BIGINT;
+      ${sql}
+      SELECT CURRENT_IDENTITY_VALUE() INTO CURRENT_IDENTITY_VALUE_RESULT FROM DUMMY;
+      IF
+        -2147483648 <= :CURRENT_IDENTITY_VALUE_RESULT AND :CURRENT_IDENTITY_VALUE_RESULT <= 2147483647
+      THEN
+        SELECT TO_INTEGER(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      ELSE
+        SELECT TO_BIGINT(:CURRENT_IDENTITY_VALUE_RESULT) as "${primaryKey}" FROM DUMMY;
+      END IF;
+    END;
+  `;
+
   describe('insert', () => {
     it('with temp table for trigger', () => {
       const User = Support.sequelize.define(
@@ -43,7 +59,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-            hana: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            hana: hanaReturnIdWrapper(
+              'INSERT INTO "users" ("user_name") VALUES (:user_name);',
+              'IN user_name NVARCHAR(5000) => $sequelize_1', 'id',
+            ),
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
           bind: { sequelize_1: 'triggertest' },
@@ -212,7 +231,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
-            hana: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            hana: hanaReturnIdWrapper(
+              'INSERT INTO "users" ("date") VALUES (:date);',
+              'IN date TIMESTAMP => $sequelize_1', 'id',
+            ),
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -257,7 +279,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
-            hana: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
+            hana: hanaReturnIdWrapper(
+              'INSERT INTO "users" ("date") VALUES (:date);',
+              'IN date TIMESTAMP => $sequelize_1', 'id',
+            ),
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -298,7 +323,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
           snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
           mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
-          hana: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+          hana: hanaReturnIdWrapper(
+            'INSERT INTO "users" ("user_name") VALUES (:user_name);',
+            'IN user_name NVARCHAR(5000) => $sequelize_1', 'id',
+          ),
           default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
         },
         bind: {
@@ -362,7 +390,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           sqlite3:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
-          hana: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+          hana: `INSERT INTO "users" ("user_name","pass_word") (SELECT 'testuser','12345' FROM DUMMY);`,
         },
       );
     });
@@ -386,7 +414,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            hana: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+            hana: 'INSERT INTO "ms" ("id") (SELECT 0 FROM DUMMY UNION ALL SELECT NULL FROM DUMMY);',
             default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
           },
         },
