@@ -615,6 +615,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           break;
         }
 
+        case 'hana': {
+          primary = args[0];
+          idx1 = args[1];
+          idx2 = args[2];
+          idx3 = args[3];
+
+          expect(primary.primary).to.be.ok;
+
+          // BTREE is only applicable to row store tables.
+          // in this test, `method: 'BTREE',` is not used in the sql
+          // because of https://github.com/sequelize/sequelize/issues/17433
+          const columnTableDefaultInvertedIndexType = 'INVERTED VALUE';
+          expect(idx1.type).to.equal(columnTableDefaultInvertedIndexType);
+          expect(idx2.type).to.equal('FULLTEXT');
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC' },
+            { attribute: 'fieldA', length: undefined, order: 'DESC' },
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: 'ASC' },
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: 'ASC' },
+          ]);
+
+          break;
+        }
+
         default: {
           // And finally mysql returns the primary first, and then the rest in the order they were defined
           primary = args[0];
