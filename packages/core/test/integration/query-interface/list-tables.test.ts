@@ -37,12 +37,12 @@ describe('QueryInterface#listTables', () => {
           // HANA does not support DROP VIEW IF EXISTS
           const sql = [
             'DO BEGIN',
-            'DECLARE view_count INTEGER;',
-            `SELECT COUNT(*) INTO view_count FROM SYS.VIEWS`,
-            `WHERE VIEW_NAME = 'V_FAIL' AND SCHEMA_NAME = CURRENT_SCHEMA;`,
-            'IF :view_count > 0 THEN',
-            `  EXEC 'DROP VIEW V_Fail';`,
-            'END IF;',
+            '  IF EXISTS (',
+            '    SELECT * FROM SYS.VIEWS',
+            `    WHERE VIEW_NAME = 'V_FAIL' AND SCHEMA_NAME = CURRENT_SCHEMA`,
+            '  ) THEN',
+            `    EXEC 'DROP VIEW V_Fail';`,
+            '  END IF;',
             'END;',
           ].join(' ');
           await sequelize.queryRaw(sql);
