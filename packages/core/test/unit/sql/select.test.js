@@ -15,6 +15,8 @@ const sql = current.queryGenerator;
 const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
 const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
 
+const dialectName = Support.getTestDialect();
+
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
@@ -836,6 +838,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('w/o filters', () => {
+        if (dialectName === 'hana') {
+          // HANA does not support correlated subquery with ORDER BY
+          // https://github.com/sequelize/sequelize/pull/17354
+          // TODO restore this test for hana after the PR is merged
+          return;
+        }
+
         const { User } = vars;
 
         expectsql(
@@ -882,6 +891,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('w/ nested column filter', () => {
+        if (dialectName === 'hana') {
+          // HANA does not support correlated subquery with ORDER BY
+          // https://github.com/sequelize/sequelize/pull/17354
+          // TODO restore this test for hana after the PR is merged
+          return;
+        }
+
         const { User } = vars;
 
         expectsql(
@@ -931,6 +947,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include w/ subQuery + nested filter + paging', () => {
+      if (dialectName === 'hana') {
+        // HANA does not support correlated subquery with ORDER BY
+        // https://github.com/sequelize/sequelize/pull/17354
+        // TODO restore this test for hana after the PR is merged
+        return;
+      }
+
       const User = Support.sequelize.define('User', {
         scopeId: DataTypes.INTEGER,
       });
