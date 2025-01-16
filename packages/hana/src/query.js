@@ -69,11 +69,10 @@ export class HanaQuery extends AbstractQuery {
             if(!columnInfo) {
               throw new Error('the column info is empty:' + columnInfo); // todo dazhuang use sequelize error
             }
-            const { nativeTypeName } = columnInfo;//console.log('columnInfo', columnInfo)
+            const { nativeTypeName } = columnInfo;
             let value = row[columnName];
             const parse = this.sequelize.dialect.getParserForDatabaseDataType(nativeTypeName);
             if(value !== null && parse) {
-//              console.log('parse not null, nativeTypeName:', nativeTypeName, 'columnInfo:', columnInfo )
               value = parse(value);
             }
             parsedRow[columnName] = value;
@@ -191,7 +190,6 @@ export class HanaQuery extends AbstractQuery {
     const errCode = err.code;
 
     switch (errCode) {
-      // todo format error from DB query
       case ERR_SQL_MANY_PRIMARY_KEY: {
         const match = err.message.match(
           /cannot have more than one primary key: (.*)/
@@ -299,14 +297,6 @@ export class HanaQuery extends AbstractQuery {
             ? 'DESC'
             : undefined,
       });
-//      result.push({
-//        primary: row.constraint === 'PRIMARY KEY',
-//        fields: ['first', 'second'], // todo
-//        name: row.name,
-//        tableName: row.tableName,
-//        unique: row.constraint === 'PRIMARY KEY' || row.constraint.includes('UNIQUE'), // todo check if use sys.constraint
-//        type: row.type,
-//      });
     }
     return result;
   }
