@@ -1,4 +1,3 @@
-import { table } from 'console';
 import {
   attributeTypeToSql,
   normalizeDataType,
@@ -9,7 +8,6 @@ import { EMPTY_OBJECT } from '@sequelize/core/_non-semver-use-at-your-own-risk_/
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-  CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
@@ -38,26 +36,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 
     this.#internals = internals;
   }
-  // createSchemaQuery(schemaName, options) {
-  //   // https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/create-schema-statement-data-definition
-  //   if (options) {
-  //     rejectInvalidOptions(
-  //       'createSchemaQuery',
-  //       this.dialect,
-  //       CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  //       CREATE_SCHEMA_QUERY_SUPPORTED_OPTIONS,
-  //       options,
-  //     );
-  //   }
-
-  //   return `CREATE SCHEMA ${this.quoteIdentifier(schemaName)};`;
-  // }
-
-  // dropSchemaQuery(schemaName) {
-  //   // https://help.sap.com/docs/HANA_SERVICE_CF/7c78579ce9b14a669c1f3295b0d8ca16/20d7891d751910149164f0d4ca73639d.html
-  //   // https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/drop-schema-statement-data-definition
-  //   return `DROP SCHEMA ${this.quoteIdentifier(schemaName)};`;
-  // }
 
   createTableQuery(tableName, attributes, options) {
     if (options) {
