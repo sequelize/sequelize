@@ -1,20 +1,16 @@
-import {
-  AbstractQueryInterface,
+import type {
   CommitTransactionOptions,
-  CreateTableAttributes,
-  CreationAttributes,
-  Model,
-  QueryInterfaceCreateTableOptions,
   RollbackTransactionOptions,
   StartTransactionOptions,
-  TableName,
+} from '@sequelize/core';
+import {
+  AbstractQueryInterface,
   Transaction,
-  QiDropTableOptions
 } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
-import type { HanaDialect } from './dialect.js';
-import { HanaConnection } from './connection-manager.js';
 import { promisify } from 'node:util';
+import type { HanaConnection } from './connection-manager.js';
+import type { HanaDialect } from './dialect.js';
 
 export class HanaQueryInterfaceTypescript<
   Dialect extends HanaDialect = HanaDialect,
@@ -38,16 +34,8 @@ export class HanaQueryInterfaceTypescript<
 
     const queryOptions = { ...options, transaction, supportsSearchPath: false };
 
-    // options = { ...options, transaction: transaction.parent || transaction };
-    // options.transaction.name = transaction.parent ? transaction.name : undefined;
-//     const sql = this.queryGenerator.startTransactionQuery(options);
-    console.log('_startTransaction options', options)
-//     console.log('_startTransaction sql', sql)
-
     const connection = transaction.getConnection() as HanaConnection;
     connection.setAutoCommit(false);
-
-//     await this.sequelize.queryRaw(sql, options);
 
     if (queryOptions.isolationLevel) {
       await transaction.setIsolationLevel(queryOptions.isolationLevel);
@@ -56,7 +44,7 @@ export class HanaQueryInterfaceTypescript<
 
   async _commitTransaction(
     transaction: Transaction,
-    options: CommitTransactionOptions,
+    _options: CommitTransactionOptions,
   ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to commit a transaction without the transaction object.');
@@ -69,32 +57,15 @@ export class HanaQueryInterfaceTypescript<
     } finally {
       connection.setAutoCommit(true);
     }
-
-    // return result;
   }
 
   async _rollbackTransaction(
     transaction: Transaction,
-    options: RollbackTransactionOptions,
+    _options: RollbackTransactionOptions,
   ): Promise<void> {
     if (!transaction || !(transaction instanceof Transaction)) {
       throw new Error('Unable to rollback a transaction without transaction object!');
     }
-
-    // options = {
-    //   ...options,
-    //   transaction: transaction.parent || transaction,
-    //   supportsSearchPath: false,
-    //   completesTransaction: true,
-    // };
-    // options.transaction.name = transaction.parent ? transaction.name : undefined;
-//     const sql = this.queryGenerator.rollbackTransactionQuery();
-    console.log('_rollbackTransaction options', options)
-//     console.log('_rollbackTransaction sql', sql)
-//     const promise = this.sequelize.queryRaw(sql && 'ROLLBACK', options);
-
-    // transaction.finished = 'rollback';
-//     const result = await promise;
 
     const connection = transaction.getConnection() as HanaConnection;
     const rollback = promisify(connection.rollback.bind(connection));
@@ -103,15 +74,5 @@ export class HanaQueryInterfaceTypescript<
     } finally {
       connection.setAutoCommit(true);
     }
-
-    // return result;
   }
-
-//   async fetchDatabaseVersion(options?: FetchDatabaseVersionOptions): Promise<string> {
-//     const payload = await this.#internalQueryInterface.fetchDatabaseVersionRaw<{
-//       server_version: string;
-//     }>(options);
-//
-//     return payload.server_version;
-//   }
 }
