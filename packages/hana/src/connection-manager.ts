@@ -1,11 +1,10 @@
-import assert from 'node:assert';
-import { promisify } from 'node:util';
-import dayjs from 'dayjs';
 import type {
   Connection,
-  createConnection as hanaCreateConnection,
-} from '@sap/hana-client'
+} from '@sap/hana-client';
+import * as HanaClient from '@sap/hana-client';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
+  AbstractConnectionManager,
   AccessDeniedError,
   ConnectionError,
   ConnectionRefusedError,
@@ -13,13 +12,11 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '@sequelize/core';
-import type { AbstractConnection, ConnectionOptions, Sequelize } from '@sequelize/core';
+import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import { AbstractConnectionManager } from '@sequelize/core';
-import type { AbstractDialect } from '@sequelize/core';
-import * as HanaClient from '@sap/hana-client';
+import assert from 'node:assert';
+import { promisify } from 'node:util';
 import type { HanaDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:hana');
@@ -86,11 +83,11 @@ export interface HanaTypeCastValue {
 }
 
 /**
- * MySQL Connection Manager
+ * HANA Connection Manager
  *
  * Get connections, validate and disconnect them.
- * AbstractConnectionManager pooling use it to handle MySQL specific connections
- * Use https://github.com/sidorares/node-mysql2 to connect with MySQL server
+ * AbstractConnectionManager pooling use it to handle HANA specific connections
+ * Use https://www.npmjs.com/package/@sap/hana-client to connect with HANA server
  *
  * @private
  */
@@ -132,7 +129,7 @@ export class HanaConnectionManager extends AbstractConnectionManager<
 
     const typeCast: ((field: any, next: () => void) => any) = (field, next) => this.#typecast(field, next);
     const connectionConfig: HanaConnectionOptions = {
-      ...config
+      ...config,
     };
 
     try {
@@ -149,8 +146,8 @@ export class HanaConnectionManager extends AbstractConnectionManager<
       }
 
       const sql = 'SELECT CURRENT_CONNECTION FROM DUMMY;';
-      const result: { CURRENT_CONNECTION: number }[] = connection.exec(sql);
-      const connectionId = result[0]['CURRENT_CONNECTION'];
+      const result: Array<{ CURRENT_CONNECTION: number }> = connection.exec(sql);
+      const connectionId = result[0].CURRENT_CONNECTION;
 
       connection.id = connectionId;
 
@@ -211,7 +208,7 @@ async function createConnection(
         reject(new ConnectionError(error));
       }
       console.log('connected hana')
-      resolve(connection)
+      resolve(connection);
     });
 
     // const errorHandler = (e: unknown) => {

@@ -9,7 +9,6 @@ import type { HanaDialect } from '../dialect.js';
  * @param dialect
  */
 export function registerHanaDbDataTypeParsers(dialect: HanaDialect) {
-  //todo dazhuang
   // LONGDATE is a synonym of TIMESTAMP. ResultSet.getColumnInfo() returns LONGDATE, not TIMESTAMP.
   dialect.registerDataTypeParser(['LONGDATE'], (value: unknown) => {
     // values are returned as UTC, but the UTC Offset is left unspecified.
