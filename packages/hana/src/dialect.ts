@@ -75,7 +75,7 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       //   type: false,
       // },
       // migrations: true,
-      // upserts: true,
+      upserts: false,
       // inserts: {
       //   ignoreDuplicates: '',
       //   updateOnDuplicate: false,

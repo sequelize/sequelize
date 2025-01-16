@@ -283,8 +283,11 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
     console.log('------insert query-------', query.query)
-    if (options.type === 'UPSERT') {
-      query.query = query.query.replace(/^INSERT INTO/, 'UPSERT');
+    if (options?.type === 'UPSERT') {
+      // for passing integration test: 'Model Hook integration' 'Model.upsert'
+      // HANA's sequelize.dialect.supports.upserts is false, but the test still runs on HANA
+      // see https://github.com/sequelize/sequelize/issues/17631
+      query.query = query.query.replace(/^INSERT INTO/, 'UPSERT').replace(/;$/, ' WITH PRIMARY KEY;');
     }
 
     let primaryKey = 'id';
