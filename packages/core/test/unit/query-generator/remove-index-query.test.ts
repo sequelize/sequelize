@@ -104,6 +104,11 @@ describe('QueryGenerator#removeIndexQuery', () => {
           dialect.name,
           ['cascade'],
         ),
+        'hana': buildInvalidOptionReceivedError(
+          'removeIndexQuery',
+          dialect.name,
+          ['cascade'],
+        ),
       },
     );
   });
@@ -124,6 +129,11 @@ describe('QueryGenerator#removeIndexQuery', () => {
           'ifExists',
         ]),
         'ibmi mariadb mssql sqlite3': buildInvalidOptionReceivedError(
+          'removeIndexQuery',
+          dialect.name,
+          ['concurrently'],
+        ),
+        'hana': buildInvalidOptionReceivedError(
           'removeIndexQuery',
           dialect.name,
           ['concurrently'],

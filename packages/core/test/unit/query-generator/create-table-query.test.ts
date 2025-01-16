@@ -152,7 +152,7 @@ describe('QueryGenerator#createTableQuery', () => {
         hana: hanaIfNotExistsWrapper(
           'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT);',
           'myTable', 'SYSTEM',
-        ), // TEXT is supported on on-premise, not HANA cloud
+        ), // TEXT is supported on on-premise, not HANA Cloud
       },
     );
   });
@@ -190,7 +190,7 @@ describe('QueryGenerator#createTableQuery', () => {
         hana: hanaIfNotExistsWrapper(
           'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',
           'myTable', 'SYSTEM',
-        ), // TEXT is supported on on-premise, not HANA cloud
+        ), // TEXT is supported on on-premise, not HANA Cloud
       },
     );
   });
@@ -526,7 +526,7 @@ describe('QueryGenerator#createTableQuery', () => {
         hana: hanaIfNotExistsWrapper(
           'CREATE COLUMN TABLE "myTable" ("myColumn" INTEGER, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn"));',
           'myTable', 'SYSTEM',
-        ), // TEXT is supported on on-premise, not HANA cloud
+        ), // TEXT is supported on on-premise, not HANA Cloud
       },
     );
   });
@@ -741,7 +741,7 @@ describe('QueryGenerator#createTableQuery', () => {
           hana: hanaIfNotExistsWrapper(
             'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
             'myTable', 'SYSTEM',
-          ), // TEXT is supported on on-premise, not HANA cloud
+          ), // TEXT is supported on on-premise, not HANA Cloud
         },
       );
     });
@@ -768,7 +768,7 @@ describe('QueryGenerator#createTableQuery', () => {
           hana: hanaIfNotExistsWrapper(
             'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "myIndex" UNIQUE ("myColumn", "secondColumn"));',
             'myTable', 'SYSTEM',
-          ), // TEXT is supported on on-premise, not HANA cloud
+          ), // TEXT is supported on on-premise, not HANA Cloud
         },
       );
     });
@@ -822,7 +822,7 @@ describe('QueryGenerator#createTableQuery', () => {
           hana: hanaIfNotExistsWrapper(
             'CREATE COLUMN TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn", "secondColumn"));',
             'myTable', 'SYSTEM',
-          ), // TEXT is supported on on-premise, not HANA cloud
+          ), // TEXT is supported on on-premise, not HANA Cloud
         },
       );
     });
@@ -849,7 +849,7 @@ describe('QueryGenerator#createTableQuery', () => {
           hana: hanaIfNotExistsWrapper(
             'CREATE COLUMN TABLE "myTable" ("myColumn" DATE NOT NULL, "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"));',
             'myTable', 'SYSTEM',
-          ), // TEXT is supported on on-premise, not HANA cloud
+          ), // TEXT is supported on on-premise, not HANA Cloud
         },
       );
     });
