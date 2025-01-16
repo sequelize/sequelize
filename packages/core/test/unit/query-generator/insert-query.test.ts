@@ -77,9 +77,8 @@ describe('QueryGenerator#insertQuery', () => {
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
       hana: hanaReturnIdWrapper(
-        // todo dazhuang  check wrong parameter list
-        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:username,:undefined);`,
-        'IN firstName NVARCHAR(5000) => $sequelize_1, IN username NVARCHAR(5000) => $lastName, IN undefined NVARCHAR(5000) => $sequelize_2',
+        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:lastName,:username);`,
+        'IN firstName NVARCHAR(5000) => $sequelize_1, IN lastName NVARCHAR(5000) => $lastName, IN username NVARCHAR(5000) => $sequelize_2',
         'id',
       ),
     });
@@ -105,9 +104,8 @@ describe('QueryGenerator#insertQuery', () => {
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
       hana: hanaReturnIdWrapper(
-        // todo dazhuang  check wrong parameter list
-        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:username,:undefined);`,
-        'IN firstName NVARCHAR(5000) => $sequelize_1, IN username NVARCHAR(5000) => $1, IN undefined NVARCHAR(5000) => $sequelize_2',
+        `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:firstName,:lastName,:username);`,
+        'IN firstName NVARCHAR(5000) => $sequelize_1, IN lastName NVARCHAR(5000) => $1, IN username NVARCHAR(5000) => $sequelize_2',
         'id',
       ),
     });

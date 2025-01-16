@@ -4,7 +4,6 @@ import {
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
-import { Literal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/literal.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_OBJECT } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
@@ -357,22 +356,9 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
           if (valueStringHasDollarSequelizeParameter) {
             foundParameter = true;
           } else {
-            if (value instanceof Literal && options?.bind) {
-              if (Array.isArray(options.bind)) {
-                if (/^\$\d+$/.test(dummyEscaped)) {
-                  // found $1, $2, ...
-                  foundParameter = true;
-                }
-              } else {
-                const match = dummyEscaped.match(/^\$(\w+)$/);
-                if (match) {
-                  const parameterName = match[1];
-                  if (Object.hasOwn(options.bind, parameterName)) {
-                    // found $sequelize_1, $sequelize_2, ...
-                    foundParameter = true;
-                  }
-                }
-              }
+            if (/^\$(\w+)$/.test(dummyEscaped)) {
+              // found $sequelize_1, $sequelize_2, ... or $1, $2, ...
+              foundParameter = true;
             }
           }
           if (!foundParameter) {
