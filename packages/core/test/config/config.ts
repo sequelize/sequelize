@@ -165,7 +165,7 @@ export const CONFIG: DialectConfigs = {
     password: env.SEQ_HANA_PW || env.SEQ_PW || 'HXEHana1',
     host: env.HANA_PORT_39017_TCP_ADDR || env.SEQ_HANA_HOST || env.SEQ_HOST || '127.0.0.1',
     port: parseSafeInteger.orThrow(
-      env.HAAN_PORT_39017_TCP_PORT || env.SEQ_HANA_PORT || env.SEQ_PORT || 39_017,
+      env.HANA_PORT_39017_TCP_PORT || env.SEQ_HANA_PORT || env.SEQ_PORT || 39_017,
     ),
     pool: {
       max: Number(env.SEQ_HANA_POOL_MAX || env.SEQ_POOL_MAX || 5),
