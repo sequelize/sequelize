@@ -27,49 +27,14 @@ export interface HanaConnection extends Connection, AbstractConnection {
   id: number;
 }
 
-interface HanaClientConnectionOptions {
-  // serverNode: string;
+export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions, any> {
   host?: string;
   port?: number;
-  // uid: string;
-  // pwd: string;
-
-  database?: string;
+  database?: string; // can be 'HXE' for HANA Express; not tenant database name
   username?: string;
   password?: string;
   hanaSchema?: string; // `schema` is used by sequelize
 }
-
-export interface HanaConnectionOptions
-  extends Omit<
-    // HanaClient.ConnectionOptions,
-    HanaClientConnectionOptions,
-
-    //todo dazhuang  need to check following options
-
-    // The user cannot modify these options:
-    // This option is currently a global Sequelize option
-    | 'timezone'
-    // Conflicts with our own features
-    | 'nestTables'
-    // We provide our own placeholders.
-    // TODO: should we use named placeholders for mysql?
-    | 'namedPlaceholders'
-    // We provide our own pool
-    | 'pool'
-    // Our code expects specific response formats, setting any of the following option would break Sequelize
-    | 'typeCast'
-    | 'bigNumberStrings'
-    | 'supportBigNumbers'
-    | 'dateStrings'
-    | 'decimalNumbers'
-    | 'rowsAsArray'
-    | 'stringifyObjects'
-    | 'queryFormat'
-    | 'Promise'
-    // We provide our own "url" implementation
-    | 'uri'
-  > {}
 
 export interface HanaTypeCastValue {
   type: string;
@@ -116,7 +81,7 @@ export class HanaConnectionManager extends AbstractConnectionManager<
   }
 
   /**
-   * Connect with MySQL database based on config, Handle any errors in connection
+   * Connect with HANA database based on config, Handle any errors in connection
    * Set the pool handlers on connection.error
    * Also set proper timezone once connection is connected.
    *
@@ -177,9 +142,8 @@ export class HanaConnectionManager extends AbstractConnectionManager<
   }
 
   async disconnect(connection: HanaConnection) {
-    // @ts-expect-error -- undeclared var
-    if (connection._closing) {
-      debug('connection tried to disconnect but was already at CLOSED state');
+    if (!this.validate(connection)) {
+      debug('Tried to disconnect, but connection was already closed.');
 
       return;
     }
@@ -204,31 +168,10 @@ async function createConnection(
       pwd: config.password,
     }, (error) => {
       if (error) {
-        console.log('error connecting hana', error)
         reject(new ConnectionError(error));
       }
-      console.log('connected hana')
+
       resolve(connection);
     });
-
-    // const errorHandler = (e: unknown) => {
-    //   // clean up connect & error event if there is error
-    //   connection.removeListener('connect', connectHandler);
-    //   connection.removeListener('error', connectHandler);
-    //   reject(e);
-    // };
-
-    // const connectHandler = () => {
-    //   // clean up error event if connected
-    //   connection.removeListener('error', errorHandler);
-    //   resolve(connection);
-    // };
-
-    // // don't use connection.once for error event handling here
-    // // mysql2 emit error two times in case handshake was failed
-    // // first error is protocol_lost and second is timeout
-    // // if we will use `once.error` node process will crash on 2nd error emit
-    // connection.on('error', errorHandler);
-    // connection.once('connect', connectHandler);
   });
 }

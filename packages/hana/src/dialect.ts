@@ -6,7 +6,8 @@ import type {
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { registerHanaDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
-import { HanaConnectionManager, HanaClientModule, HanaConnectionOptions } from './connection-manager.js';
+import type { HanaClientModule, HanaConnectionOptions } from './connection-manager.js';
+import { HanaConnectionManager } from './connection-manager.js';
 import { HanaQueryGenerator } from './query-generator.js';
 import { HanaQueryInterface } from './query-interface.js';
 import { HanaQuery } from './query.js';
@@ -222,10 +223,12 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
   createBindCollector(): BindCollector {
     return createUnspecifiedOrderedBindCollector();
   }
+
   getDefaultSchema(): string {
     if (this.sequelize.options.replication.write.hanaSchema) {
       return this.sequelize.options.replication.write.hanaSchema;
     }
+
     return this.sequelize.options.replication.write.username?.toUpperCase() ?? '';
   }
 
