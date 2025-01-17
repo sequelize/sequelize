@@ -3,7 +3,7 @@ import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-y
 import type { HanaDialect } from './dialect.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
-  'SYS',
+  'PUBLIC', 'SYS',
 ]);
 
 export class HanaQueryGeneratorInternal<

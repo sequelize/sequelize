@@ -14,7 +14,7 @@ describe('QueryGenerator#listTablesQuery', () => {
       mariadb: `SELECT TABLE_NAME AS \`tableName\`, TABLE_SCHEMA AS \`schema\` FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('MYSQL', 'INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'mysql', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
       postgres: `SELECT table_name AS "tableName", table_schema AS "schema" FROM information_schema.tables WHERE table_type = 'BASE TABLE' AND table_name != 'spatial_ref_sys' AND table_schema !~ E'^pg_' AND table_schema NOT IN ('information_schema', 'tiger', 'tiger_data', 'topology') ORDER BY table_schema, table_name`,
       snowflake: `SELECT TABLE_NAME AS "tableName", TABLE_SCHEMA AS "schema" FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_SCHEMA NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys') ORDER BY TABLE_SCHEMA, TABLE_NAME`,
-      hana: `SELECT TABLE_NAME AS "tableName", SCHEMA_NAME AS "schema" FROM SYS.TABLES WHERE SCHEMA_NAME NOT LIKE '_SYS%' AND SCHEMA_NAME NOT IN ('SYS') ORDER BY SCHEMA_NAME, TABLE_NAME`,
+      hana: `SELECT TABLE_NAME AS "tableName", SCHEMA_NAME AS "schema" FROM SYS.TABLES WHERE SCHEMA_NAME NOT LIKE '_SYS%' AND SCHEMA_NAME NOT IN ('PUBLIC', 'SYS') ORDER BY SCHEMA_NAME, TABLE_NAME`,
     });
   });
 
