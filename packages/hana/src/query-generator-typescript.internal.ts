@@ -1,44 +1,37 @@
 import type {
   CreateSchemaQueryOptions,
-  DropSchemaQueryOptions,
   DropTableQueryOptions,
   Expression,
-  IsolationLevel,
-  RenameTableQueryOptions,
-  StartTransactionQueryOptions,
-  TableOrModel,
-  TruncateTableQueryOptions,
-} from '@sequelize/core';
-import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   RemoveConstraintQueryOptions,
   RemoveIndexQueryOptions,
+  RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  TableOrModel,
+  TruncateTableQueryOptions,
 } from '@sequelize/core';
-import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
+import {
+  AbstractQueryGenerator,
+  IsolationLevel,
+  Literal,
+} from '@sequelize/core';
 import type {
   EscapeOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import { AbstractQueryGenerator, Literal, Op } from '@sequelize/core';
-import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
-import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
-import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+  DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
+import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { HanaDialect } from './dialect.js';
 import { HanaQueryGeneratorInternal } from './query-generator.internal.js';
-import { DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-
-const DROP_SCHEMA_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropSchemaQueryOptions>([
-  'cascade',
-]);
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
@@ -58,10 +51,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createSchemaQuery(schemaName: string, options?: CreateSchemaQueryOptions): string {
-    if (!this.dialect.supports.schemas) {
-      throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
-    }
-
     if (options) {
       rejectInvalidOptions(
         'createSchemaQuery',
@@ -92,7 +81,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT SCHEMA_NAME AS "schema"',
       'FROM SYS.SCHEMAS',
-      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME != 'PUBLIC' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
+      `WHERE SCHEMA_NAME NOT LIKE '_SYS%'`,
       `AND SCHEMA_NAME NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
     ]);
   }
@@ -126,15 +115,16 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
-    //"SELECT * FROM SYS.TABLES WHERE SCHEMA_NAME != 'SYS' and SCHEMA_NAME NOT LIKE '_SYS%'"
     return joinSQLFragments([
       'SELECT TABLE_NAME AS "tableName",',
       'SCHEMA_NAME AS "schema"',
       'FROM SYS.TABLES',
-      `WHERE SCHEMA_NAME != 'SYS' AND SCHEMA_NAME NOT LIKE '_SYS%'`,
       options?.schema
-        ? `AND SCHEMA_NAME = ${this.escape(options.schema)}`
-        : `AND SCHEMA_NAME NOT IN (${this.#internals.getTechnicalSchemaNames().map(schema => this.escape(schema)).join(', ')})`,
+        ? `WHERE SCHEMA_NAME = ${this.escape(options.schema)}`
+        : `WHERE SCHEMA_NAME NOT LIKE '_SYS%' AND SCHEMA_NAME NOT IN (${this.#internals
+            .getTechnicalSchemaNames()
+            .map(schema => this.escape(schema))
+            .join(', ')})`,
       'ORDER BY SCHEMA_NAME, TABLE_NAME',
     ]);
   }
@@ -178,18 +168,12 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {
-    const DROP_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof DropTableQueryOptions>();
-
-    if (this.dialect.supports.dropTable.cascade) {
-      DROP_TABLE_QUERY_SUPPORTED_OPTIONS.add('cascade');
-    }
-
     if (options) {
       rejectInvalidOptions(
         'dropTableQuery',
         this.dialect,
         DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        DROP_TABLE_QUERY_SUPPORTED_OPTIONS,
+        this.dialect.supports.dropTable,
         options,
       );
     }
@@ -233,6 +217,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (ifExists) {
       const table = this.extractTableDetails(tableName);
+
       return joinSQLFragments([
         'DO BEGIN',
         '  IF EXISTS (',
@@ -256,8 +241,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
-    const table = this.extractTableDetails(tableName);
-
     if (options?.constraintType === 'FOREIGN KEY') {
       return this._showReferentialConstraintsQuery(tableName, options);
     } else if (options?.constraintType) {
@@ -354,7 +337,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName",',
       'SYS.INDEX_COLUMNS.POSITION AS "position",',
       'SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"',
-
       'FROM SYS.INDEXES',
       'INNER JOIN SYS.INDEX_COLUMNS',
       'ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME',
@@ -363,8 +345,6 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `WHERE SYS.INDEXES.SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
       `AND SYS.INDEXES.TABLE_NAME = ${this.escape(table.tableName)}`,
     ]);
-
-    // `SELECT * FROM SYS.INDEXES WHERE SCHEMA_NAME ='${}' and TABLE_NAME = '' ${this.quoteTable(tableName)}`;
   }
 
   removeIndexQuery(
@@ -394,6 +374,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (options?.ifExists) {
       const table = this.extractTableDetails(tableName);
+
       return joinSQLFragments([
         'DO BEGIN',
         '  IF EXISTS (',
@@ -435,8 +416,10 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
-    if (!this.dialect.supports.isolationLevels) {
-      throw new Error(`Isolation levels are not supported by ${this.dialect.name}.`);
+    if (isolationLevel === IsolationLevel.READ_UNCOMMITTED) {
+      throw new Error(
+        `The ${isolationLevel} isolation level is not supported by ${this.dialect.name}.`,
+      );
     }
 
     // hana dialect.supports.connectionTransactionMethods is true,

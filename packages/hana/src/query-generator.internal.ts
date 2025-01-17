@@ -2,7 +2,6 @@ import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-
 import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import type { HanaDialect } from './dialect.js';
 
-const TECHNICAL_DATABASE_NAMES = Object.freeze(['hana']);
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
   'SYS',
 ]);
@@ -10,10 +9,6 @@ const TECHNICAL_SCHEMA_NAMES = Object.freeze([
 export class HanaQueryGeneratorInternal<
   Dialect extends HanaDialect = HanaDialect,
 > extends AbstractQueryGeneratorInternal<Dialect> {
-  getTechnicalDatabaseNames() {
-    return TECHNICAL_DATABASE_NAMES;
-  }
-
   getTechnicalSchemaNames() {
     return TECHNICAL_SCHEMA_NAMES;
   }
