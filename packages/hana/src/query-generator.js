@@ -412,14 +412,6 @@ END;`
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (
-          this.dialect.supports.bulkDefault
-          && serials[key] === true
-        ) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
-        }
-
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
           // bindParam // TODO: support bind params
