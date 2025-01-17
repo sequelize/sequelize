@@ -23,6 +23,7 @@ export class HanaQueryGeneratorInternal<
       if (options.limit == null) {
         fragment += ` LIMIT 9223372036854775807`;
       }
+
       fragment += ` OFFSET ${this.queryGenerator.escape(options.offset, options)}`;
     }
 

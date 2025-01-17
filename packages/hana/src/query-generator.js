@@ -296,7 +296,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
     for (const key in valueHash) {
       if (Object.hasOwn(valueHash, key)) {
         const value = valueHash[key] ?? null;
-        // fields.push(this.quoteIdentifier(key));
 
         if (modelAttributes?.[key] && modelAttributes[key].autoIncrement === true && value == null) {
           continue;
