@@ -36,11 +36,6 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<HanaDialectOptions>({
   showWarnings: undefined,
 });
 
-const numericOptions: SupportableNumericOptions = {
-  zerofill: false,
-  unsigned: false,
-};
-
 export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnectionOptions> {
   static supports = AbstractDialect.extendSupport(
     {
