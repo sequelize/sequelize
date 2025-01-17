@@ -6,7 +6,6 @@ type StringConnectionOptions = PickByType<HanaConnectionOptions, string>;
 
 const STRING_CONNECTION_OPTION_MAP = {
   host: undefined,
-  // port: undefined,
   database: undefined,
   username: undefined,
   password: undefined,
