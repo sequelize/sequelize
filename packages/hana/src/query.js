@@ -1,4 +1,3 @@
-import { find } from '@sequelize/utils';
 import * as PromiseModule from '@sap/hana-client/extension/Promise.js';
 import {
   AbstractQuery,
@@ -10,6 +9,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { find } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
 
@@ -41,8 +41,8 @@ export class HanaQuery extends AbstractQuery {
     const complete = this._logQuery(sql, debug, parameters);
 
     const parametersEscaped = [];
-    if(Array.isArray(parameters)) {
-      for(const param of parameters) {
+    if (Array.isArray(parameters)) {
+      for (const param of parameters) {
         const value = stringifyIfBigint(param);
         parametersEscaped.push(value);
       }
@@ -60,23 +60,22 @@ export class HanaQuery extends AbstractQuery {
 
       console.log('connection preparedStmt.exec succeed', result)
       const parsedRows = [];
-      if(Array.isArray(result)) {
+      if (Array.isArray(result)) {
         const rows = result;
-        for(const row of rows) {
+        for (const row of rows) {
           const parsedRow = {};
-          for(const columnName in row) {
+          for (const columnName in row) {
             const columnInfo = resulColumnInfo.find(x => x.columnName === columnName);
-            if(!columnInfo) {
-              throw new Error('the column info is empty:' + columnInfo); // todo dazhuang use sequelize error
-            }
             const { nativeTypeName } = columnInfo;
             let value = row[columnName];
             const parse = this.sequelize.dialect.getParserForDatabaseDataType(nativeTypeName);
-            if(value !== null && parse) {
+            if (value !== null && parse) {
               value = parse(value);
             }
+
             parsedRow[columnName] = value;
           }
+
           parsedRows.push(parsedRow);
         }
       }
@@ -84,14 +83,14 @@ export class HanaQuery extends AbstractQuery {
       const data = Array.isArray(result) ? parsedRows : result;
 
       let batchInsertCurrentIdentityValue = undefined;
-      if(this.isBulkInsertQuery()) {
+      if (this.isBulkInsertQuery()) {
         const identitySql = 'SELECT CURRENT_IDENTITY_VALUE() as "id" FROM DUMMY;';
-        try{
+        try {
           const identityStmt = await PromiseModule.prepare(connection, identitySql);
           const identityResult = await PromiseModule.exec(identityStmt, [], {});
           console.log('identityResult', identityResult);
           batchInsertCurrentIdentityValue = identityResult[0].id;
-        } catch(error) {
+        } catch (error) {
           console.log('error thrown by prepare', error)
           error.sql = sql;
           throw this.formatError(error);
@@ -99,7 +98,7 @@ export class HanaQuery extends AbstractQuery {
       }
 
       return this.formatResults(data, undefined, batchInsertCurrentIdentityValue);
-    } catch(error) {
+    } catch (error) {
       console.log('error executing SQL statement:', sql, parameters)
       console.log('error run hana connection.exec', error)
       error.sql = sql;
@@ -124,6 +123,7 @@ export class HanaQuery extends AbstractQuery {
           comment: _result.Comments,
         };
       }
+
       return result;
     }
 
@@ -141,11 +141,12 @@ export class HanaQuery extends AbstractQuery {
         ) {
           const result = [];
           const startId = currentIdentityValue - affectedRows + 1;
-          for(let i = 0; i < data; i++) {
+          for (let i = 0; i < data; i++) {
             result.push({
               [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: startId + i
             });
           }
+
           return [result, affectedRows];
         }
       }
@@ -195,12 +196,14 @@ export class HanaQuery extends AbstractQuery {
           /cannot have more than one primary key: (.*)/
         );
         const table = match[1];
+
         return new UnknownConstraintError({
           message: err.message,
           table,
           cause: err,
         });
       }
+
       case ERR_SQL_UNIQUE_VIOLATED: {
         const indexMatch = err.message.match(
           /Index\((.*)\) with error: unique constraint violation/
@@ -220,6 +223,7 @@ export class HanaQuery extends AbstractQuery {
           if (uniqueKey.msg) {
             message = uniqueKey.msg;
           }
+
           fields = zipObject(uniqueKey.fields, values);
         } else {
           fields[fieldKey] = fieldVal;
@@ -241,9 +245,11 @@ export class HanaQuery extends AbstractQuery {
 
         return new UniqueConstraintError({ message, errors, cause: err, fields });
       }
+
       case ERR_SQL_INV_OBJ_NAME: {
         const constraint = undefined;
         const table = undefined;
+
         return new UnknownConstraintError({
           message: err.message,
           constraint,
@@ -251,8 +257,10 @@ export class HanaQuery extends AbstractQuery {
           cause: err,
         });
       }
+
       case ERR_SQL_FK_NOT_FOUND: {
         const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
+
         return new ForeignKeyConstraintError({
           table,
           fields: undefined,
@@ -260,14 +268,17 @@ export class HanaQuery extends AbstractQuery {
           cause: err,
         });
       }
+
       case ERR_SQL_FK_ON_UPDATE_DELETE_FAILED: {
         const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
+
         return new ForeignKeyConstraintError({
           table,
           fields: null,
           cause: err,
         });
       }
+
       default:
         return new DatabaseError(err);
     }
@@ -275,9 +286,9 @@ export class HanaQuery extends AbstractQuery {
 
   handleShowIndexesQuery(data) {
     const result = [];
-    for(const row of data) {
+    for (const row of data) {
       let index = result.find(x => x.name === row.name);
-      if(index === undefined) {
+      if (index === undefined) {
         index = {
           primary: row.constraint === 'PRIMARY KEY',
           fields: [],
@@ -288,6 +299,7 @@ export class HanaQuery extends AbstractQuery {
         };
         result.push(index);
       }
+
       index.fields.push({
         attribute: row.columnName,
         length: undefined,
@@ -298,6 +310,7 @@ export class HanaQuery extends AbstractQuery {
             : undefined,
       });
     }
+
     return result;
   }
 
@@ -308,6 +321,7 @@ export class HanaQuery extends AbstractQuery {
         return true;
       }
     }
+
     return false;
   }
 }
