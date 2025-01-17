@@ -412,7 +412,11 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
   tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
-    return `SELECT TABLE_NAME FROM "SYS"."TABLES" WHERE SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'} AND TABLE_NAME = ${this.escape(table.tableName)}`;
+    return joinSQLFragments([
+      'SELECT TABLE_NAME FROM SYS.TABLES',
+      `WHERE SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
+      `  AND TABLE_NAME = ${this.escape(table.tableName)}`
+    ]);
   }
 
   setIsolationLevelQuery(isolationLevel: IsolationLevel): string {
