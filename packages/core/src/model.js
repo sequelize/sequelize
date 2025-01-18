@@ -2468,7 +2468,10 @@ ${associationOwner._getAssociationDebugList()}`);
           });
 
           if (options.conflictAttributes) {
-            if (!Array.isArray(options.conflictAttributes) || options.conflictAttributes.length === 0) {
+            if (
+              !Array.isArray(options.conflictAttributes) ||
+              options.conflictAttributes.length === 0
+            ) {
               throw new Error('conflictAttributes option must be a non-empty array.');
             }
 
