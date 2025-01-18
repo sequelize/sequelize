@@ -2508,6 +2508,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 : Object.values(model.primaryKeys).map(x => x.field);
           }
         }
+
         if (!options.updateOnDuplicate && options.conflictAttributes) {
           logger.warn('conflictAttributes option is ignored because updateOnDuplicate is not set');
         }
