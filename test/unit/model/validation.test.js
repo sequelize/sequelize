@@ -378,7 +378,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .and.with.property(0)
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
-              type: 'Validation error',
+              type: 'validation error',
               path: 'age',
               value: 'jan',
               instance: null,
@@ -396,7 +396,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .and.with.property(0)
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
-              type: 'Validation error',
+              type: 'validation error',
               path: 'age',
               value: 4.5,
               instance: null,
@@ -416,7 +416,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .and.with.property(0)
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
-              type: 'Validation error',
+              type: 'validation error',
               path: 'age',
               value: 'jan',
               instance: null,
@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
             .and.with.property(0)
             .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
             .and.include({
-              type: 'Validation error',
+              type: 'validation error',
               path: 'age',
               value: 4.5,
               instance: null,

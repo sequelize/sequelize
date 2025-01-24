@@ -1109,7 +1109,7 @@ class QueryGenerator {
             && ['number', 'boolean'].includes(typeof value)) {
           value = String(Number(value));
         }
-              
+
         this.validate(value, field, options);
 
         if (field.type.stringify) {
@@ -1176,7 +1176,7 @@ class QueryGenerator {
         if (error instanceof sequelizeError.ValidationError) {
           error.errors.push(new sequelizeError.ValidationErrorItem(
             error.message,
-            'Validation error',
+            'validation error',
             field.fieldName,
             value,
             null,
