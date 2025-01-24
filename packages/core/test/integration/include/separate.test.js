@@ -163,7 +163,6 @@ if (current.dialect.supports.groupedLimit) {
         const User = this.sequelize.define('User', {
           userId: {
             type: DataTypes.INTEGER,
-            autoIncrement: true,
             primaryKey: true,
           },
           companyId: {
@@ -186,6 +185,7 @@ if (current.dialect.supports.groupedLimit) {
         await Promise.all([
           User.create(
             {
+              userId: 1,
               companyId: 1,
               tasks: [
                 { userId: 1, companyId: 1 },
@@ -199,6 +199,7 @@ if (current.dialect.supports.groupedLimit) {
           ),
           User.create(
             {
+              userId: 2,
               companyId: 2,
               tasks: [
                 { userId: 2, companyId: 2 },

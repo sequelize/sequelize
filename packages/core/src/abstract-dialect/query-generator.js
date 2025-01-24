@@ -2179,22 +2179,37 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       );
     } else {
       const isBelongsTo = topAssociation.associationType === 'BelongsTo';
-      const sourceField = isBelongsTo
-        ? topAssociation.identifierField
-        : topAssociation.sourceKeyField || topParent.model.primaryKeyField;
-      const targetField = isBelongsTo
-        ? topAssociation.sourceKeyField || topInclude.model.primaryKeyField
-        : topAssociation.identifierField;
+      const hasCompositeReference = topAssociation.foreignKeys?.length > 1;
+      const sourceFields = isBelongsTo
+        ? [topAssociation.identifierField]
+        : hasCompositeReference
+          ? topAssociation.foreignKeys.map(fk => fk.sourceKey)
+          : [topAssociation.sourceKeyField || topParent.model.primaryKeyField];
 
-      const join = [
-        `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(targetField)}`,
-        `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
-      ].join(' = ');
+      const targetFields = isBelongsTo
+        ? [topAssociation.sourceKeyField || topInclude.model.primaryKeyField]
+        : hasCompositeReference
+          ? topAssociation.foreignKeys.map(fk => fk.targetKey)
+          : [topAssociation.identifierField];
+
+      const join = hasCompositeReference
+        ? topAssociation.foreignKeys
+            .map(fk => {
+              return [
+                `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(fk.targetKey)}`,
+                `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(fk.sourceKey)}`,
+              ].join(' = ');
+            })
+            .join(' AND ')
+        : [
+            `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(targetFields[0])}`,
+            `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceFields[0])}`,
+          ].join(' = ');
 
       query = this.selectQuery(
         topInclude.model.table,
         {
-          attributes: [targetField],
+          attributes: [targetFields[0]],
           include: _validateIncludedElements(topInclude).include,
           model: topInclude.model,
           where: {

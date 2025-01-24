@@ -886,7 +886,6 @@ The following associations are defined on "Worker": "ToDos"`);
               companyId: {
                 type: DataTypes.INTEGER,
                 primaryKey: true,
-                autoIncrement: true,
               },
               externalId: {
                 type: DataTypes.STRING,
@@ -917,6 +916,7 @@ The following associations are defined on "Worker": "ToDos"`);
           await this.sequelize.sync({ force: true });
 
           this.shellCompany = await this.Company.create({
+            companyId: 1,
             externalId: 'SHELL',
             name: 'Dollar Corp.',
           });

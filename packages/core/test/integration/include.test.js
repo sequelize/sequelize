@@ -107,12 +107,11 @@ Instead of specifying a Model, either:
       expect(user).to.be.ok;
     });
 
-    it('supports a belongsTo assocication using composite foreign key', async function () {
+    it('supports a belongsTo association using composite foreign key', async function () {
       const Company = this.sequelize.define('Company', {
         companyId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
         },
         externalId: {
           type: DataTypes.STRING,
@@ -127,7 +126,11 @@ Instead of specifying a Model, either:
         foreignKey: { keys: ['companyId', 'externalId'] },
       });
       await this.sequelize.sync({ force: true });
-      this.company = await Company.create({ externalId: 'Ext1', name: 'Test Company' });
+      this.company = await Company.create({
+        companyId: 1,
+        externalId: 'Ext1',
+        name: 'Test Company',
+      });
       await User.create({ companyId: this.company.companyId, externalId: this.company.externalId });
 
       const user = await User.findOne({ include: [Company] });
