@@ -30,7 +30,7 @@ export interface HanaConnection extends Connection, AbstractConnection {
 export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions, any> {
   host?: string;
   port?: number;
-  database?: string; // can be 'HXE' for HANA Express; not tenant database name
+  database?: string;
   username?: string;
   password?: string;
   hanaSchema?: string; // `schema` is used by sequelize
