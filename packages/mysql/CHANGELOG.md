@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+**Note:** Version bump only for package @sequelize/mysql
+
+# [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
+
+### Bug Fixes
+
+- **mysql:** update mysql2 to ^3.11.2 ([#17498](https://github.com/sequelize/sequelize/issues/17498)) ([18ce1b0](https://github.com/sequelize/sequelize/commit/18ce1b0c5c0f237c17f91647217d769cb194da78))
+
+# [7.0.0-alpha.42](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.41...v7.0.0-alpha.42) (2024-09-13)
+
+**Note:** Version bump only for package @sequelize/mysql
+
 # [7.0.0-alpha.41](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.40...v7.0.0-alpha.41) (2024-05-17)
 
 ### Bug Fixes

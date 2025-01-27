@@ -31,15 +31,14 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.41",
+  "version": "7.0.0-alpha.44",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/snowflake-sdk": "^1.6.23",
     "lodash": "^4.17.21",
-    "snowflake-sdk": "^1.10.0"
+    "snowflake-sdk": "^2.0.0"
   }
 }

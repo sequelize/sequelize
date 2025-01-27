@@ -2115,7 +2115,7 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: (value: unknown) => boolean;
+        [name: string]: ((this: M) => void) | ((this: M, callback: (err: unknown) => void) => void);
       }
     | undefined;
 
@@ -2579,7 +2579,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Finds the minimum value of field
@@ -2588,7 +2588,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Retrieves the sum of field
@@ -2597,7 +2597,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<number>;
+  ): Promise<number | null>;
 
   /**
    * Builds a new model instance.
