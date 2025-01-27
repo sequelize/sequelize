@@ -42,7 +42,7 @@ export class IBMiQueryInterface<
     }
 
     const connection = transaction.getConnection() as IBMiConnection;
-    // await connection.beginTransaction();
+    await connection.beginTransaction();
     if (options.isolationLevel) {
       await transaction.setIsolationLevel(options.isolationLevel);
     }
@@ -57,7 +57,7 @@ export class IBMiQueryInterface<
     }
 
     const connection = transaction.getConnection() as IBMiConnection;
-    // await connection.commit();
+    await connection.commit();
   }
 
   async _rollbackTransaction(
@@ -69,7 +69,7 @@ export class IBMiQueryInterface<
     }
 
     const connection = transaction.getConnection() as IBMiConnection;
-    // await connection.rollback();
+    await connection.rollback();
   }
 
   async _setIsolationLevel(
@@ -84,6 +84,6 @@ export class IBMiQueryInterface<
 
     const level = this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel);
     const connection = transaction.getConnection() as IBMiConnection;
-    // await connection.setIsolationLevel(level);
+    await connection.setIsolationLevel(level);
   }
 }

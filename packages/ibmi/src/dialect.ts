@@ -26,8 +26,8 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<IbmiDialectOptions>({
 });
 
 const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
-  // connectionTimeout: undefined,
-  // loginTimeout: undefined,
+  connectionTimeout: undefined,
+  loginTimeout: undefined,
   username: undefined,
   system: undefined,
   odbcConnectionString: undefined,

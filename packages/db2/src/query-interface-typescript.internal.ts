@@ -98,7 +98,7 @@ export class Db2QueryInterfaceTypeScript<
     }
 
     const connection = transaction.getConnection() as Db2Connection;
-    // await connection.commitTransaction();
+    await connection.commitTransaction();
   }
 
   async _rollbackTransaction(
@@ -110,7 +110,7 @@ export class Db2QueryInterfaceTypeScript<
     }
 
     const connection = transaction.getConnection() as Db2Connection;
-    // await connection.rollbackTransaction();
+    await connection.rollbackTransaction();
   }
 
   async _setIsolationLevel(
@@ -125,7 +125,7 @@ export class Db2QueryInterfaceTypeScript<
 
     const level = this.#internalQueryInterface.parseIsolationLevel(options.isolationLevel);
     const connection = transaction.getConnection() as Db2Connection;
-    // connection.setIsolationLevel(level);
+    connection.setIsolationLevel(level);
   }
 
   async _startTransaction(
@@ -147,7 +147,7 @@ export class Db2QueryInterfaceTypeScript<
     }
 
     const connection = transaction.getConnection() as Db2Connection;
-    // await connection.beginTransaction();
+    await connection.beginTransaction();
     if (options.isolationLevel) {
       await transaction.setIsolationLevel(options.isolationLevel);
     }
