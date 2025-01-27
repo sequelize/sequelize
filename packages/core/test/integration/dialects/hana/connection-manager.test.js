@@ -8,20 +8,14 @@ const dialect = Support.getTestDialect();
 
 if (dialect === 'hana') {
   describe('[HANA Specific] Connection Manager', async () => {
-    console.log('HANA dummy test');
-    expect(true).to.be.ok;
+    it('should acquire a valid connection with connection ID', async () => {
+      const sequelize = Support.createSingleTestSequelizeInstance();
+      const pool = sequelize.pool;
 
-    const sequelize = Support.createSingleTestSequelizeInstance({
-      keepDefaultTimezone: true,
-      pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 }
+      const connection = await pool.acquire();
+      expect(sequelize.dialect.connectionManager.validate(connection)).to.be.ok;
+      expect(connection.id).to.be.ok;
+      pool.release(connection);
     });
-    const pool = sequelize.pool;
-    const cm = sequelize.dialect.connectionManager;
-
-    await sequelize.sync();
-
-    const connection = await pool.acquire();
-    expect(cm.validate(connection)).to.be.ok;
-    pool.release(connection);
   });
 }
