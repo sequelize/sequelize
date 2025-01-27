@@ -36,17 +36,6 @@ export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions
   hanaSchema?: string; // `schema` is used by sequelize
 }
 
-export interface HanaTypeCastValue {
-  type: string;
-  length: number;
-  db: string;
-  table: string;
-  name: string;
-  string(): string;
-  buffer(): Buffer;
-  geometry(): unknown;
-}
-
 /**
  * HANA Connection Manager
  *
@@ -67,23 +56,9 @@ export class HanaConnectionManager extends AbstractConnectionManager<
     this.#lib = this.dialect.options.hanaClientModule ?? HanaClient;
   }
 
-  #typecast(field: HanaTypeCastValue, next: () => void): unknown {
-    const dataParser = this.dialect.getParserForDatabaseDataType(field.type);
-    if (dataParser) {
-      const value = dataParser(field);
-
-      if (value !== undefined) {
-        return value;
-      }
-    }
-
-    return next();
-  }
-
   /**
    * Connect with HANA database based on config, Handle any errors in connection
    * Set the pool handlers on connection.error
-   * Also set proper timezone once connection is connected.
    *
    * @param config
    * @returns
@@ -92,7 +67,6 @@ export class HanaConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions<HanaDialect>): Promise<HanaConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
-    const typeCast: ((field: any, next: () => void) => any) = (field, next) => this.#typecast(field, next);
     const connectionConfig: HanaConnectionOptions = {
       ...config,
     };
@@ -101,14 +75,6 @@ export class HanaConnectionManager extends AbstractConnectionManager<
       const connection: HanaConnection = await createConnection(this.#lib, connectionConfig);
 
       debug('connection acquired');
-
-      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
-        // set timezone for this connection
-        // but named timezone are not directly supported in mysql, so get its offset first
-        let tzOffset = this.sequelize.options.timezone;
-        // tzOffset = tzOffset.includes('/') ? dayjs.tz(undefined, tzOffset).format('Z') : tzOffset;
-        // await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
-      }
 
       const sql = 'SELECT CURRENT_CONNECTION FROM DUMMY;';
       const result: Array<{ CURRENT_CONNECTION: number }> = connection.exec(sql);
