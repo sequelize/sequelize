@@ -252,7 +252,6 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
 
   insertQuery(table, valueHash, modelAttributes, options) {
     const query = super.insertQuery(table, valueHash, modelAttributes, options);
-    console.log('------insert query-------', query.query)
     if (options?.type === 'UPSERT') {
       // for passing integration test: 'Model Hook integration' 'Model.upsert'
       // HANA's sequelize.dialect.supports.upserts is false, but the test still runs on HANA

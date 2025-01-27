@@ -35,9 +35,6 @@ export class HanaQuery extends AbstractQuery {
 
     const { connection } = this;
 
-    console.log('before run', sql);
-    console.log('parameters', parameters);
-
     const complete = this._logQuery(sql, debug, parameters);
 
     const parametersEscaped = [];
@@ -58,7 +55,6 @@ export class HanaQuery extends AbstractQuery {
       complete();
       const resulColumnInfo = stmt.getColumnInfo();
 
-      console.log('connection preparedStmt.exec succeed', result)
       const parsedRows = [];
       if (Array.isArray(result)) {
         const rows = result;
@@ -88,10 +84,8 @@ export class HanaQuery extends AbstractQuery {
         try {
           const identityStmt = await PromiseModule.prepare(connection, identitySql);
           const identityResult = await PromiseModule.exec(identityStmt, [], {});
-          console.log('identityResult', identityResult);
           batchInsertCurrentIdentityValue = identityResult[0].id;
         } catch (error) {
-          console.log('error thrown by prepare', error)
           error.sql = sql;
           throw this.formatError(error);
         }
@@ -99,8 +93,6 @@ export class HanaQuery extends AbstractQuery {
 
       return this.formatResults(data, undefined, batchInsertCurrentIdentityValue);
     } catch (error) {
-      console.log('error executing SQL statement:', sql, parameters)
-      console.log('error run hana connection.exec', error)
       error.sql = sql;
       throw this.formatError(error);
     }
