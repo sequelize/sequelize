@@ -191,8 +191,14 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
 }
 
 export function conformIndex(index: IndexOptions): IndexOptions {
+  if ('method' in index) {
+    throw new Error('Property "method" for index definition has been renamed to "using".');
+  }
+
   if (!index.fields) {
-    throw new Error('Missing "fields" property for index definition');
+    throw new Error(
+      `Property "fields" for index definition requires an array with at least one value. Received: ${NodeUtil.inspect(index.fields)}`,
+    );
   }
 
   index = { ...index };

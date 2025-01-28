@@ -703,40 +703,25 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
   }
 
   #addIndex(index: IndexOptions): void {
-    index = this.#nameIndex(conformIndex(index));
-
-    if (typeof index.fields?.[0] === 'string') {
-      const column = this.columns.get(index.fields[0])?.attributeName;
-
-      if (column) {
-        // @ts-expect-error -- TODO: remove this 'column'. It does not work with composite indexes, and is only used by db2. On top of that, it's named "column" but is actually an attribute name.
-        index.column = column;
-      }
-    }
-
-    const existingIndex = this.#indexes.find(i => i.name === index.name);
+    const namedIndex = this.#nameIndex(conformIndex(index));
+    const existingIndex = this.#indexes.find(i => i.name === namedIndex.name);
     if (existingIndex == null) {
-      this.#indexes.push(index);
+      this.#indexes.push(namedIndex);
 
       return;
     }
 
-    for (const key of Object.keys(index) as Array<keyof IndexOptions>) {
-      if (index[key] === undefined) {
-        continue;
-      }
-
-      // @ts-expect-error -- TODO: remove this 'column'. It does not work with composite indexes, and is only used by db2 which should use fields instead.
-      if (key === 'column') {
+    for (const key of Object.keys(namedIndex) as Array<keyof IndexOptions>) {
+      if (namedIndex[key] === undefined) {
         continue;
       }
 
       // TODO: rename "fields" to columnNames
       if (key === 'fields') {
         if (existingIndex.fields == null) {
-          existingIndex.fields = index.fields!;
+          existingIndex.fields = namedIndex.fields;
         } else {
-          existingIndex.fields = [...existingIndex.fields, ...index.fields!];
+          existingIndex.fields = [...existingIndex.fields, ...namedIndex.fields];
         }
 
         continue;
@@ -744,12 +729,12 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
       if (existingIndex[key] === undefined) {
         // @ts-expect-error -- same type
-        existingIndex[key] = index[key];
+        existingIndex[key] = namedIndex[key];
       }
 
-      if (existingIndex[key] !== index[key]) {
+      if (existingIndex[key] !== namedIndex[key]) {
         throw new Error(
-          `Index "${index.name}" has conflicting options: "${key}" was defined with different values ${NodeUtil.inspect(existingIndex[key])} and ${NodeUtil.inspect(index[key])}.`,
+          `Index "${namedIndex.name}" has conflicting options: "${key}" was defined with different values ${NodeUtil.inspect(existingIndex[key])} and ${NodeUtil.inspect(namedIndex[key])}.`,
         );
       }
     }

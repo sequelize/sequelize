@@ -2387,8 +2387,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             {
               name: 'username_unique',
               unique: true,
-              method: 'BTREE',
               fields: ['username'],
+              ...(current.dialect.supports.addIndex.using && { using: 'BTREE' }),
             },
           ],
         },
@@ -2400,8 +2400,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           indexes: [
             {
               name: 'title_index',
-              method: 'BTREE',
               fields: ['title'],
+              ...(current.dialect.supports.addIndex.using && { using: 'BTREE' }),
             },
           ],
         },
