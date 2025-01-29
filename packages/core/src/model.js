@@ -1556,61 +1556,6 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   *
-   * @param  {number|bigint|string|Buffer|object}      param The value of the desired instance's primary key.
-   * @param  {object}                                  [options] find options
-   * @returns {Promise<Model|null>}
-   */
-  static async findByPk(param, options) {
-    // return Promise resolved with null if no arguments are passed
-    if (param == null) {
-      return null;
-    }
-
-    options = cloneDeep(options) ?? {};
-
-    const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
-    if (hasCompositeKey && !isPlainObject(param)) {
-      throw new TypeError(
-        `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }`,
-      );
-    } else if (hasCompositeKey && isPlainObject(param)) {
-      // composite primary key support
-      options.where = {};
-      for (const pkMetadata of Object.values(this.primaryKeys)) {
-        if (param[pkMetadata.columnName] !== undefined) {
-          options.where[pkMetadata.columnName] = param[pkMetadata.columnName];
-        }
-      }
-
-      if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
-        throw new TypeError('Primary key mismatch. Please pass all primary keys');
-      }
-    } else if (
-      typeof param === 'number' ||
-      typeof param === 'bigint' ||
-      typeof param === 'string' ||
-      Buffer.isBuffer(param)
-    ) {
-      options.where = {
-        // TODO: support composite primary keys
-        [this.primaryKeyAttribute]: param,
-      };
-    } else {
-      throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
-    }
-
-    // Bypass a possible overloaded findOne
-    return await Model.findOne.call(this, options);
-  }
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
