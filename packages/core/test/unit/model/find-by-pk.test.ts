@@ -1,4 +1,4 @@
-import { DataTypes, Model, Sequelize } from '@sequelize/core';
+import { DataTypes, Model } from '@sequelize/core';
 
 import { getTestDialectTeaser, sequelize } from '../../support';
 
