@@ -28,11 +28,12 @@ describe(getTestDialectTeaser('Model'), () => {
         },
       });
       testModel.findOne = sinon.stub();
-      sinon.spy(Sequelize.Model, 'findOne');
+
+      sinon.spy(Model, 'findOne');
 
       await testModel.findByPk(1);
       testModel.findOne.should.not.have.been.called;
-      Sequelize.Model.findOne.should.have.been.called;
+      Model.findOne.should.have.been.called;
     });
 
     it('should use composite primary key when querying table has one', async () => {
@@ -47,7 +48,7 @@ describe(getTestDialectTeaser('Model'), () => {
         },
       });
 
-      const findOneSpy = sinon.spy(Sequelize.Model, 'findOne');
+      const findOneSpy = sinon.spy(Model, 'findOne');
       await testModel.findByPk({ pk1: 1, pk2: 2 });
       findOneSpy.should.have.been.calledWithMatch({
         where: { pk1: 1, pk2: 2 },
