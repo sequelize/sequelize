@@ -1,4 +1,6 @@
 import type { PartialBy } from '@sequelize/utils';
+import cloneDeep from 'lodash/cloneDeep';
+import isPlainObject from 'lodash/isPlainObject';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -6,7 +8,8 @@ import type {
   AttributeOptions,
   Attributes,
   BrandedKeysOf,
-  BuiltModelOptions, FindByPkOptions,
+  BuiltModelOptions,
+  FindByPkOptions,
   ForeignKeyBrand,
   IndexOptions,
   InitOptions,
@@ -37,8 +40,6 @@ import type { DestroyOptions } from './model.js';
 import { Model } from './model.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
-import cloneDeep from 'lodash/cloneDeep';
-import isPlainObject from 'lodash/isPlainObject';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**

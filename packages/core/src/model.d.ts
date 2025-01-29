@@ -965,8 +965,7 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
-export interface FindByPkOptions<M extends Model>
-  extends FindOptions<Attributes<M>> {}
+export interface FindByPkOptions<M extends Model> extends FindOptions<Attributes<M>> {}
 
 export interface NonNullFindByPkOptions<M extends Model>
   extends NonNullFindOptions<Attributes<M>> {}
