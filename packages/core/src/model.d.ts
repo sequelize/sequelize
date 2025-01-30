@@ -2115,9 +2115,7 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: 
-          | ((this: CreationAttributes<M> & ExtractMethods<M>) => void)
-          | ((this: CreationAttributes<M> & ExtractMethods<M>, callback: (err: unknown) => void) => void);
+        [name: string]: ((this: CreationAttributes<M> & ExtractMethods<M>, callback?: (err: unknown) => void) => void);
       }
     | undefined;
 
