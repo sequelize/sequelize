@@ -2147,7 +2147,7 @@ export type BuiltModelOptions<M extends Model = Model> = Omit<
     InitOptions<M>,
     'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'
   >,
-  'name'
+  'name' | 'sequelize'
 > & { name: BuiltModelName };
 
 /**
