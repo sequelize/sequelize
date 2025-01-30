@@ -18,6 +18,7 @@ import type {
   NormalizedAttributeOptions,
   Sequelize,
   TableNameWithSchema,
+  WhereOptions,
 } from '.';
 import { isDecoratedModel } from './decorators/shared/model.js';
 import {
@@ -468,7 +469,7 @@ export class ModelTypeScript {
     }
 
     options = cloneDeep(options) ?? {};
-    const where = Object.create(null);
+
     const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
     if (hasCompositeKey && !isPlainObject(param)) {
       throw new TypeError(
@@ -476,7 +477,7 @@ export class ModelTypeScript {
       );
     } else if (hasCompositeKey && isPlainObject(param)) {
       const params = param as Record<string, unknown>;
-
+      const where: WhereOptions = {};
       for (const pkColumn of Object.values(this.primaryKeys).map(pk => pk.columnName)) {
         if (params[pkColumn] !== undefined) {
           where[pkColumn] = params[pkColumn];
@@ -494,8 +495,10 @@ export class ModelTypeScript {
       typeof param === 'string' ||
       Buffer.isBuffer(param)
     ) {
-      const primaryKey = [...this.modelDefinition.primaryKeysAttributeNames][0];
-      where[primaryKey] = param;
+      options.where = {
+        // @ts-expect-error -- attribute could be null
+        [this.primaryKeyAttribute]: param,
+      };
     } else {
       throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
     }
