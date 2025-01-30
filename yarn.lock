@@ -5019,9 +5019,9 @@ __metadata:
   linkType: hard
 
 "ansis@npm:^3.2.0, ansis@npm:^3.3.1, ansis@npm:^3.3.2, ansis@npm:^3.4.0":
-  version: 3.4.0
-  resolution: "ansis@npm:3.4.0"
-  checksum: 10c0/e2e5324fcdfed83e96c0b3e9a15d44acce9819404fe87b2bb4ff453e0822a85aee49f3626c2ff430dd9ab5cbb0b7d55801f89dd67599bb7eca0e765519994446
+  version: 3.10.0
+  resolution: "ansis@npm:3.10.0"
+  checksum: 10c0/1b2e76adbea239d3ccaf9020c65e535365b40c71f11e35109b11d8753cf19bb2ade9faf0962bfa8839e449d1ccdb02c875c22a76ec2bbdbf8b53f7c181d1bc76
   languageName: node
   linkType: hard
 
