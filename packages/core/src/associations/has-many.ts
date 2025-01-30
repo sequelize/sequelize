@@ -26,6 +26,7 @@ import { removeUndefined } from '../utils/object.js';
 import type {
   Association,
   AssociationOptions,
+  CompositeForeignKeysOptions,
   MultiAssociationAccessors,
   MultiAssociationOptions,
 } from './base';
@@ -70,9 +71,16 @@ export class HasManyAssociation<
 > {
   accessors: MultiAssociationAccessors;
 
+  /**
+   * @deprecated use {@link foreignKeys}
+   */
   get foreignKey(): TargetKey {
     return this.inverse.foreignKey;
   }
+
+  // get foreignKeys(): CompositeForeignKeysOptions[] {
+  //   return this.foreignKeys;
+  // }
 
   /**
    * The column name of the foreign key (on the target model)
@@ -99,10 +107,12 @@ export class HasManyAssociation<
   }
 
   get sourceKeyField(): string {
-    return this.inverse.targetKeyField;
+    return this.inverse.targetKeyField(this.inverse.targetKey);
   }
 
   readonly inverse: BelongsToAssociation<T, S, TargetKey, SourceKey>;
+
+  readonly foreignKeys: CompositeForeignKeysOptions[];
 
   constructor(
     secret: symbol,
@@ -148,6 +158,18 @@ export class HasManyAssociation<
         }),
         this,
       );
+
+    const foreignKeys = this.inverse.options?.foreignKey?.keys || [];
+
+    if (foreignKeys.length === 0) {
+      this.foreignKeys = [
+        { sourceKey: this.inverse.targetKey, targetKey: this.inverse.foreignKey },
+      ];
+    } else {
+      this.foreignKeys = this.inverse.options.foreignKey.keys!.map(k => {
+        return { sourceKey: k.targetKey, targetKey: k.sourceKey };
+      });
+    }
 
     // Get singular and plural names
     // try to uppercase the first letter, unless the model forbids it
@@ -268,26 +290,37 @@ export class HasManyAssociation<
       Object.assign(where, this.scope);
     }
 
-    let values;
+    const values = {};
     if (instances.length > 1) {
-      values = instances.map(instance => instance.get(this.sourceKey, { raw: true }));
+      for (const foreignKey of this.foreignKeys) {
+        // @ts-expect-error -- sourceKey is a string value
+        values[foreignKey.targetKey] = instances.map(instance =>
+          instance.get(foreignKey.sourceKey, { raw: true }),
+        );
+      }
 
       if (findOptions.limit && instances.length > 1) {
         findOptions.groupedLimit = {
           limit: findOptions.limit,
           on: this, // association
-          values,
+          ...values,
         };
 
         delete findOptions.limit;
       } else {
-        where[this.foreignKey] = {
-          [Op.in]: values,
-        };
+        for (const foreignKey of this.foreignKeys) {
+          where[foreignKey.targetKey] = {
+            // @ts-expect-error -- foreignKey can be used as a string value
+            [Op.in]: values[foreignKey.targetKey],
+          };
+        }
+
         delete findOptions.groupedLimit;
       }
     } else {
-      where[this.foreignKey] = instances[0].get(this.sourceKey, { raw: true });
+      for (const foreignKey of this.foreignKeys) {
+        where[foreignKey.targetKey] = instances[0].get(foreignKey.sourceKey, { raw: true });
+      }
     }
 
     findOptions.where = findOptions.where ? { [Op.and]: [where, findOptions.where] } : where;
@@ -315,13 +348,29 @@ export class HasManyAssociation<
     }
 
     const result = new Map<any, T[]>();
+
     for (const instance of instances) {
-      result.set(instance.get(this.sourceKey, { raw: true }), []);
+      const key = [];
+      for (const fk of this.foreignKeys) {
+        const value = instance.get(fk.sourceKey, { raw: true });
+        key.push(value);
+      }
+
+      const resultKey = key.join('&');
+      result.set(resultKey, []);
     }
 
     for (const instance of results) {
-      const value = instance.get(this.foreignKey, { raw: true });
-      result.get(value)!.push(instance);
+      const key = [];
+      for (const fk of this.foreignKeys) {
+        const value = instance.get(fk.targetKey, { raw: true });
+        if (value !== undefined) {
+          key.push(value);
+        }
+      }
+
+      const resultKey = key.join('&');
+      result.get(resultKey)?.push(instance);
     }
 
     return result;
