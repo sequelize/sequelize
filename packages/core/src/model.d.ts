@@ -2115,7 +2115,10 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: ((this: CreationAttributes<M> & ExtractMethods<M>, callback?: (err: unknown) => void) => void);
+        [name: string]: (
+          this: CreationAttributes<M> & ExtractMethods<M>,
+          callback?: (err: unknown) => void,
+        ) => void;
       }
     | undefined;
 
@@ -3472,5 +3475,6 @@ export type Attributes<M extends Model> = M['_attributes'];
 
 export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;
 
-export type ExtractMethods<M extends Model> =
-    { [K in keyof M as M[K] extends Function ? K : never]: M[K] };
+export type ExtractMethods<M extends Model> = {
+  [K in keyof M as M[K] extends Function ? K : never]: M[K];
+};
