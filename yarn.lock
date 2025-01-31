@@ -2064,17 +2064,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/checkbox@npm:^4.0.0, @inquirer/checkbox@npm:^4.0.3":
-  version: 4.0.6
-  resolution: "@inquirer/checkbox@npm:4.0.6"
+  version: 4.0.7
+  resolution: "@inquirer/checkbox@npm:4.0.7"
   dependencies:
-    "@inquirer/core": "npm:^10.1.4"
-    "@inquirer/figures": "npm:^1.0.9"
-    "@inquirer/type": "npm:^3.0.2"
+    "@inquirer/core": "npm:^10.1.5"
+    "@inquirer/figures": "npm:^1.0.10"
+    "@inquirer/type": "npm:^3.0.3"
     ansi-escapes: "npm:^4.3.2"
     yoctocolors-cjs: "npm:^2.1.2"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/919e3c5d652f1ccd9d5e8e9678e63981a968ba4a0dffe9d9409d94a1951b398218f7dfb05e57aefcb3c3c1d61ac2333160e370b0ff4632ada7a92ebe07a2ca72
+  checksum: 10c0/8ebca08b75492525ad770bb9c3c7cbbf44f08f5d7d3ebf75dc73bf9d0c16f562dea6e744f3258ed996d416c0f1d86149bb5d155716f7a05547a445cd77497575
   languageName: node
   linkType: hard
 
@@ -2089,31 +2089,30 @@ __metadata:
   linkType: hard
 
 "@inquirer/confirm@npm:^5.0.0, @inquirer/confirm@npm:^5.1.0":
-  version: 5.1.3
-  resolution: "@inquirer/confirm@npm:5.1.3"
+  version: 5.1.4
+  resolution: "@inquirer/confirm@npm:5.1.4"
   dependencies:
-    "@inquirer/core": "npm:^10.1.4"
-    "@inquirer/type": "npm:^3.0.2"
+    "@inquirer/core": "npm:^10.1.5"
+    "@inquirer/type": "npm:^3.0.3"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/ddbca429ebb3a8bf1d10928f4ab0c8eedbf3f74f85ed64c6b26a830f0fbbab5fa964b9ef2eb2c57a10b9afc9ca3921a12e4659f5a83069078cd1a7ce3d0d126d
+  checksum: 10c0/35ec178aee930875a7c85de596d457530635d2cd487a84844b6eee1f818e62474fdd137c80e9c6dc7b54a017fe0f0d917f797583b7f333b2141fcfe56f0d3890
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^10.1.1, @inquirer/core@npm:^10.1.4":
-  version: 10.1.4
-  resolution: "@inquirer/core@npm:10.1.4"
+"@inquirer/core@npm:^10.1.1, @inquirer/core@npm:^10.1.5":
+  version: 10.1.5
+  resolution: "@inquirer/core@npm:10.1.5"
   dependencies:
-    "@inquirer/figures": "npm:^1.0.9"
-    "@inquirer/type": "npm:^3.0.2"
+    "@inquirer/figures": "npm:^1.0.10"
+    "@inquirer/type": "npm:^3.0.3"
     ansi-escapes: "npm:^4.3.2"
     cli-width: "npm:^4.1.0"
     mute-stream: "npm:^2.0.0"
     signal-exit: "npm:^4.1.0"
-    strip-ansi: "npm:^6.0.1"
     wrap-ansi: "npm:^6.2.0"
     yoctocolors-cjs: "npm:^2.1.2"
-  checksum: 10c0/4e6c51713c79a0b22381a08a2d11c37f2d696597d01bdecd7b3482889e53e4ac279c55d663a365798ad52becc37052b571bc3ec85ee8a10054c681d9248b88d3
+  checksum: 10c0/b759481dc9364886b1f76307955e37f1f7cf308141453efb07c30c8ed513e0f1d4eb756c74f764e71a91927cb4fe6f0f49d702a8aeb32bcf19c208d056cf4ff8
   languageName: node
   linkType: hard
 
@@ -2164,10 +2163,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/figures@npm:^1.0.5, @inquirer/figures@npm:^1.0.8, @inquirer/figures@npm:^1.0.9":
-  version: 1.0.9
-  resolution: "@inquirer/figures@npm:1.0.9"
-  checksum: 10c0/21e1a7c902b2b77f126617b501e0fe0d703fae680a9df472afdae18a3e079756aee85690cef595a14e91d18630118f4a3893aab6832b9232fefc6ab31c804a68
+"@inquirer/figures@npm:^1.0.10, @inquirer/figures@npm:^1.0.5, @inquirer/figures@npm:^1.0.8":
+  version: 1.0.10
+  resolution: "@inquirer/figures@npm:1.0.10"
+  checksum: 10c0/013b0eef03706d5ff8847c1ab1a12643edfb3d1902a5353bfe626999bc3b46653f8317d011a9dd4e831d3f2bfef3da84104a1fda4db0de0f4938122f5c70362e
   languageName: node
   linkType: hard
 
@@ -2182,14 +2181,14 @@ __metadata:
   linkType: hard
 
 "@inquirer/input@npm:^4.0.0, @inquirer/input@npm:^4.1.0":
-  version: 4.1.3
-  resolution: "@inquirer/input@npm:4.1.3"
+  version: 4.1.4
+  resolution: "@inquirer/input@npm:4.1.4"
   dependencies:
-    "@inquirer/core": "npm:^10.1.4"
-    "@inquirer/type": "npm:^3.0.2"
+    "@inquirer/core": "npm:^10.1.5"
+    "@inquirer/type": "npm:^3.0.3"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/251468b9596fcbff286d0817da7408f2a78230c1f84de23361e6362a8a91e5bf4c42c04f4971a8fe751eb0afc4ab1cef0d3766742fd4e693b4b0cbcc72aa8d97
+  checksum: 10c0/c522f4e8be9de81015530ac35273ed211a47a3ff9e697c25fde85332cb9bc8758484522dc5b530e3c95d90334e581ad5601767146ba15e32e4b51a55f2839275
   languageName: node
   linkType: hard
 
@@ -2279,17 +2278,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/select@npm:^4.0.0, @inquirer/select@npm:^4.0.3":
-  version: 4.0.6
-  resolution: "@inquirer/select@npm:4.0.6"
+  version: 4.0.7
+  resolution: "@inquirer/select@npm:4.0.7"
   dependencies:
-    "@inquirer/core": "npm:^10.1.4"
-    "@inquirer/figures": "npm:^1.0.9"
-    "@inquirer/type": "npm:^3.0.2"
+    "@inquirer/core": "npm:^10.1.5"
+    "@inquirer/figures": "npm:^1.0.10"
+    "@inquirer/type": "npm:^3.0.3"
     ansi-escapes: "npm:^4.3.2"
     yoctocolors-cjs: "npm:^2.1.2"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/5346007a5f62ff88f36c219b625d6031ba12fea6849b38aab1d3ed1219387004bf1c3a44aeec47a3988c9aeb1934a8a06509fe9e00f39135fa22113a01e1cc37
+  checksum: 10c0/3e7a613f61b09eaa2b80fab23eccafc3852dcf7e18a10e9918a9747b71d6a3f039a3b356176f76c84ad70b05ff9f2fdba13961b80db845c8d322d4b06fc43ef6
   languageName: node
   linkType: hard
 
@@ -2302,12 +2301,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/type@npm:^3.0.1, @inquirer/type@npm:^3.0.2":
-  version: 3.0.2
-  resolution: "@inquirer/type@npm:3.0.2"
+"@inquirer/type@npm:^3.0.1, @inquirer/type@npm:^3.0.3":
+  version: 3.0.3
+  resolution: "@inquirer/type@npm:3.0.3"
   peerDependencies:
     "@types/node": ">=18"
-  checksum: 10c0/fe348db2977fff92cad0ade05b36ec40714326fccd4a174be31663f8923729b4276f1736d892a449627d7fb03235ff44e8aac5aa72b09036d993593b813ef313
+  checksum: 10c0/01a9b33aa88a47d3756fca6fae3d1a1bab88b8bdb5033ab8c3446963593be54173873f9fa63f6ea04c100bf950e88b62643042c5393ac3363d201be33c0b3eca
   languageName: node
   linkType: hard
 
@@ -2822,72 +2821,72 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-darwin-arm64@npm:20.3.3"
+"@nx/nx-darwin-arm64@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-darwin-arm64@npm:20.4.0"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-darwin-x64@npm:20.3.3"
+"@nx/nx-darwin-x64@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-darwin-x64@npm:20.4.0"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-freebsd-x64@npm:20.3.3"
+"@nx/nx-freebsd-x64@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-freebsd-x64@npm:20.4.0"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:20.3.3"
+"@nx/nx-linux-arm-gnueabihf@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:20.4.0"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-linux-arm64-gnu@npm:20.3.3"
+"@nx/nx-linux-arm64-gnu@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-linux-arm64-gnu@npm:20.4.0"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-linux-arm64-musl@npm:20.3.3"
+"@nx/nx-linux-arm64-musl@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-linux-arm64-musl@npm:20.4.0"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-linux-x64-gnu@npm:20.3.3"
+"@nx/nx-linux-x64-gnu@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-linux-x64-gnu@npm:20.4.0"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-linux-x64-musl@npm:20.3.3"
+"@nx/nx-linux-x64-musl@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-linux-x64-musl@npm:20.4.0"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-win32-arm64-msvc@npm:20.3.3"
+"@nx/nx-win32-arm64-msvc@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-win32-arm64-msvc@npm:20.4.0"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:20.3.3":
-  version: 20.3.3
-  resolution: "@nx/nx-win32-x64-msvc@npm:20.3.3"
+"@nx/nx-win32-x64-msvc@npm:20.4.0":
+  version: 20.4.0
+  resolution: "@nx/nx-win32-x64-msvc@npm:20.4.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -3236,7 +3235,7 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.12"
-    "@types/lodash": "npm:4.17.14"
+    "@types/lodash": "npm:4.17.15"
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.5.8"
     "@types/sinon": "npm:17.0.3"
@@ -3328,9 +3327,9 @@ __metadata:
     "@rushstack/eslint-patch": "npm:1.10.5"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/lodash": "npm:4.17.14"
+    "@types/lodash": "npm:4.17.15"
     "@types/mocha": "npm:10.0.10"
-    "@types/node": "npm:22.10.10"
+    "@types/node": "npm:22.12.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.2"
     cross-env: "npm:7.0.3"
@@ -3347,7 +3346,7 @@ __metadata:
     mocha: "npm:11.1.0"
     node-gyp: "npm:11.0.0"
     node-hook: "npm:1.0.0"
-    nx: "npm:20.3.3"
+    nx: "npm:20.4.0"
     prettier: "npm:3.3.3"
     prettier-plugin-organize-imports: "npm:4.1.0"
     source-map-support: "npm:0.5.21"
@@ -4387,10 +4386,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:*, @types/lodash@npm:4.17.14, @types/lodash@npm:^4.17.0":
-  version: 4.17.14
-  resolution: "@types/lodash@npm:4.17.14"
-  checksum: 10c0/343c6f722e0b39969036a885ad5aad6578479ead83987128c9b994e6b7f2fb9808244d802d4d332396bb09096f720a6c7060de16a492f5460e06a44560360322
+"@types/lodash@npm:*, @types/lodash@npm:4.17.15, @types/lodash@npm:^4.17.0":
+  version: 4.17.15
+  resolution: "@types/lodash@npm:4.17.15"
+  checksum: 10c0/2eb2dc6d231f5fb4603d176c08c8d7af688f574d09af47466a179cd7812d9f64144ba74bb32ca014570ffdc544eedc51b7a5657212bad083b6eecbd72223f9bb
   languageName: node
   linkType: hard
 
@@ -4441,12 +4440,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:22.10.10, @types/node@npm:>=18, @types/node@npm:^22.5.2, @types/node@npm:^22.5.4":
-  version: 22.10.10
-  resolution: "@types/node@npm:22.10.10"
+"@types/node@npm:*, @types/node@npm:22.12.0, @types/node@npm:>=18, @types/node@npm:^22.5.2, @types/node@npm:^22.5.4":
+  version: 22.12.0
+  resolution: "@types/node@npm:22.12.0"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10c0/3425772d4513cd5dbdd87c00acda088113c03a97445f84f6a89744c60a66990b56c9d3a7213d09d57b6b944ae8ff45f985565e0c1846726112588e33a22dd12b
+  checksum: 10c0/be220706732d95db2ed1c441c1e64cab90bf9a47519ce6f4c79cc5a9ec9d5c517131a149a9ac30afac1a30103e67e3a00d453ba7c1b0141608a3a7ba6397c303
   languageName: node
   linkType: hard
 
@@ -12426,21 +12425,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:20.3.3, nx@npm:>=17.1.2 < 21":
-  version: 20.3.3
-  resolution: "nx@npm:20.3.3"
+"nx@npm:20.4.0, nx@npm:>=17.1.2 < 21":
+  version: 20.4.0
+  resolution: "nx@npm:20.4.0"
   dependencies:
     "@napi-rs/wasm-runtime": "npm:0.2.4"
-    "@nx/nx-darwin-arm64": "npm:20.3.3"
-    "@nx/nx-darwin-x64": "npm:20.3.3"
-    "@nx/nx-freebsd-x64": "npm:20.3.3"
-    "@nx/nx-linux-arm-gnueabihf": "npm:20.3.3"
-    "@nx/nx-linux-arm64-gnu": "npm:20.3.3"
-    "@nx/nx-linux-arm64-musl": "npm:20.3.3"
-    "@nx/nx-linux-x64-gnu": "npm:20.3.3"
-    "@nx/nx-linux-x64-musl": "npm:20.3.3"
-    "@nx/nx-win32-arm64-msvc": "npm:20.3.3"
-    "@nx/nx-win32-x64-msvc": "npm:20.3.3"
+    "@nx/nx-darwin-arm64": "npm:20.4.0"
+    "@nx/nx-darwin-x64": "npm:20.4.0"
+    "@nx/nx-freebsd-x64": "npm:20.4.0"
+    "@nx/nx-linux-arm-gnueabihf": "npm:20.4.0"
+    "@nx/nx-linux-arm64-gnu": "npm:20.4.0"
+    "@nx/nx-linux-arm64-musl": "npm:20.4.0"
+    "@nx/nx-linux-x64-gnu": "npm:20.4.0"
+    "@nx/nx-linux-x64-musl": "npm:20.4.0"
+    "@nx/nx-win32-arm64-msvc": "npm:20.4.0"
+    "@nx/nx-win32-x64-msvc": "npm:20.4.0"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.2"
     "@zkochan/js-yaml": "npm:0.0.7"
@@ -12506,7 +12505,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 10c0/72bd639082e0bd8c839e53f4276f72693bcb71613fb235ee732c44412458b9e59b332d0a64751521e54360ac6622af3591eaab26132d1c702ef5863e2355ace1
+  checksum: 10c0/8d4116e50f2ae1d8f34632df3a2a06483ca82efaac15fe2c4d30e49bc0ca2cdfd4ab9ce06a2564209a7e13f022b020832aaf9f03f12d44cb0e152f49f3e61196
   languageName: node
   linkType: hard
 
@@ -14446,11 +14445,11 @@ __metadata:
   linkType: hard
 
 "semver@npm:^7.0.0, semver@npm:^7.1.1, semver@npm:^7.3, semver@npm:^7.3.4, semver@npm:^7.3.5, semver@npm:^7.3.7, semver@npm:^7.3.8, semver@npm:^7.5.3, semver@npm:^7.5.4, semver@npm:^7.6.0, semver@npm:^7.6.2, semver@npm:^7.6.3":
-  version: 7.6.3
-  resolution: "semver@npm:7.6.3"
+  version: 7.7.0
+  resolution: "semver@npm:7.7.0"
   bin:
     semver: bin/semver.js
-  checksum: 10c0/88f33e148b210c153873cb08cfe1e281d518aaa9a666d4d148add6560db5cd3c582f3a08ccb91f38d5f379ead256da9931234ed122057f40bb5766e65e58adaf
+  checksum: 10c0/bcd1c03209b4be7d8ca86c976a0410beba7d4ec1d49d846a4be154b958db1ff5eaee50760c1d4f4070b19dee3236b8672d3e09642c53ea23740398bba2538a2d
   languageName: node
   linkType: hard
 
