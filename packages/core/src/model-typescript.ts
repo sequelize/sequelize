@@ -18,7 +18,6 @@ import type {
   NormalizedAttributeOptions,
   Sequelize,
   TableNameWithSchema,
-  WhereOptions,
 } from '.';
 import { isDecoratedModel } from './decorators/shared/model.js';
 import {
@@ -462,13 +461,14 @@ export class ModelTypeScript {
     this: ModelStatic<M>,
     param: number | bigint | string | Buffer | object,
     options?: FindByPkOptions<Attributes<M>>,
-  ): Promise<ModelTypeScript | null> {
+  ): Promise<Model | null> {
     // return Promise resolved with null if no arguments are passed
     if (param == null) {
       return null;
     }
 
     options = cloneDeep(options) ?? {};
+    const where = Object.create(null);
 
     const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
     if (hasCompositeKey && !isPlainObject(param)) {
@@ -477,7 +477,6 @@ export class ModelTypeScript {
       );
     } else if (hasCompositeKey && isPlainObject(param)) {
       const params = param as Record<string, unknown>;
-      const where: WhereOptions = {};
       for (const pkColumn of Object.values(this.primaryKeys).map(pk => pk.columnName)) {
         if (params[pkColumn] !== undefined) {
           where[pkColumn] = params[pkColumn];
@@ -487,21 +486,21 @@ export class ModelTypeScript {
       if (Object.keys(this.primaryKeys).length !== Object.keys(where).length) {
         throw new TypeError('Primary key mismatch. Please pass all primary keys');
       }
-
-      options.where = where;
     } else if (
       typeof param === 'number' ||
       typeof param === 'bigint' ||
       typeof param === 'string' ||
       Buffer.isBuffer(param)
     ) {
-      options.where = {
-        // @ts-expect-error -- attribute could be null
-        [this.primaryKeyAttribute]: param,
-      };
+      const pk = this.primaryKeyAttribute;
+      if (pk !== null) {
+        where[pk] = param;
+      }
     } else {
       throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
     }
+
+    options.where = where;
 
     // Bypass a possible overloaded findOne
     return Model.findOne.call(this, options);
