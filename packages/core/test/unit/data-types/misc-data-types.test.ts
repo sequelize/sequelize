@@ -52,7 +52,7 @@ describe('DataTypes.ENUM', () => {
 
     expectsql(enumType.toSql(), {
       postgres: '"public"."enum_Users_anEnum"',
-      'mysql mariadb': `ENUM('value 1', 'value 2')`,
+      'mysql mariadb duckdb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
       mssql: `NVARCHAR(255)`,
       sqlite3: 'TEXT',
@@ -184,7 +184,7 @@ describe('DataTypes.JSON', () => {
     ),
 
     // All dialects must support DataTypes.JSON. If your dialect does not have a native JSON type, use an as-big-as-possible text type instead.
-    'mariadb mysql postgres': 'JSON',
+    'mariadb mysql postgres duckdb': 'JSON',
     // SQL server supports JSON functions, but it is stored as a string with a ISJSON constraint.
     mssql: 'NVARCHAR(MAX)',
     sqlite3: 'TEXT',
