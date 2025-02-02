@@ -1,23 +1,23 @@
-'use strict';
+import { DataTypes, Model } from '@sequelize/core';
 
-const Support = require('../../support');
+import { getTestDialectTeaser, sequelize } from '../../support';
 
-const current = Support.sequelize;
-const sinon = require('sinon');
-const { DataTypes, Sequelize } = require('@sequelize/core');
-const { expect } = require('chai');
+import { expect } from 'chai';
 
-describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('method findByPk', () => {
-    beforeEach(function () {
-      this.stub = sinon.stub(Sequelize.Model, 'findAll').resolves();
+import sinon from 'sinon';
+
+describe(getTestDialectTeaser('Model'), () => {
+  describe('findByPk', () => {
+    beforeEach(() => {
+      sinon.stub(Model, 'findAll').resolves();
     });
+
     afterEach(() => {
       sinon.restore();
     });
 
     it('should call internal findOne() method if findOne() is overridden', async () => {
-      const Model = current.define('model', {
+      const testModel = sequelize.define('model', {
         unique1: {
           type: DataTypes.INTEGER,
           unique: 'unique',
@@ -27,16 +27,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           unique: 'unique',
         },
       });
-      Model.findOne = sinon.stub();
-      sinon.spy(Sequelize.Model, 'findOne');
+      testModel.findOne = sinon.stub();
 
-      await Model.findByPk(1);
-      Model.findOne.should.not.have.been.called;
-      Sequelize.Model.findOne.should.have.been.called;
+      sinon.spy(Model, 'findOne');
+
+      await testModel.findByPk(1);
+      testModel.findOne.should.not.have.been.called;
+      Model.findOne.should.have.been.called;
     });
 
     it('should use composite primary key when querying table has one', async () => {
-      const Model = current.define('model', {
+      const testModel = sequelize.define('model', {
         pk1: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -47,17 +48,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      sinon.stub(Model, 'findOne');
-      const findOneSpy = sinon.spy(Sequelize.Model, 'findOne');
-
-      await Model.findByPk({ pk1: 1, pk2: 2 });
+      const findOneSpy = sinon.spy(Model, 'findOne');
+      await testModel.findByPk({ pk1: 1, pk2: 2 });
       findOneSpy.should.have.been.calledWithMatch({
         where: { pk1: 1, pk2: 2 },
       });
     });
 
     it('should throw error if composite primary key args not match key', async () => {
-      const Model = current.define('model', {
+      const testModel = sequelize.define('model', {
         pk1: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -68,11 +67,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Model.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(TypeError);
+      await expect(testModel.findByPk({ pk1: 1 })).to.eventually.be.rejectedWith(TypeError);
     });
 
     it('should throw error if wrong type passed and model has composite primary key', async () => {
-      const Model = current.define('model', {
+      const testModel = sequelize.define('model', {
         pk1: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -83,7 +82,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         },
       });
 
-      expect(Model.findByPk(1)).to.eventually.be.rejectedWith(TypeError);
+      await expect(testModel.findByPk(1)).to.eventually.be.rejectedWith(TypeError);
     });
   });
 });
