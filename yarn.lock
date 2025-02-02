@@ -3401,9 +3401,9 @@ __metadata:
     "@rushstack/eslint-patch": "npm:1.10.4"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/lodash": "npm:4.17.10"
-    "@types/mocha": "npm:10.0.9"
-    "@types/node": "npm:20.16.11"
+    "@types/lodash": "npm:4.17.15"
+    "@types/mocha": "npm:10.0.10"
+    "@types/node": "npm:22.13.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.0.1"
     cross-env: "npm:7.0.3"
@@ -4521,12 +4521,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18, @types/node@npm:^22.5.2, @types/node@npm:^22.5.4":
-  version: 22.12.0
-  resolution: "@types/node@npm:22.12.0"
+"@types/node@npm:*, @types/node@npm:22.13.0, @types/node@npm:>=18, @types/node@npm:^22.5.2, @types/node@npm:^22.5.4":
+  version: 22.13.0
+  resolution: "@types/node@npm:22.13.0"
   dependencies:
     undici-types: "npm:~6.20.0"
-  checksum: 10c0/be220706732d95db2ed1c441c1e64cab90bf9a47519ce6f4c79cc5a9ec9d5c517131a149a9ac30afac1a30103e67e3a00d453ba7c1b0141608a3a7ba6397c303
+  checksum: 10c0/9cf6358b2863ae7bf9588ca1cc3d87f6a6289c3880e95a046a188760666870e2c12502df8b0a473bec8aa8ffee85e025d60382a6104b10f197120793235b2c22
   languageName: node
   linkType: hard
 
