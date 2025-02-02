@@ -492,7 +492,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           // Update should not succeed before transaction has committed
           User.update({ age: 25 }, { where: { name: 'John Doe' } }).then(() => {
             expect(transactionSpy).to.have.been.called;
-            expect(transaction.finished).to.equal('commit');
+            expect(transaction.getFinished()).to.equal('commit');
           }),
 
           delay(4000)
