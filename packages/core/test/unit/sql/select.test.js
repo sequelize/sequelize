@@ -976,7 +976,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               `SELECT "User".* FROM ` +
               `(SELECT "User"."name", "User"."age", "User"."id", "postaliasname"."id" AS "postaliasname.id", "postaliasname"."title" AS "postaliasname.title" FROM "User" "User" ` +
               `INNER JOIN "Post" "postaliasname" ON "User"."id" = "postaliasname"."user_id" ` +
-              `WHERE (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) "User";`,
+              `WHERE EXISTS (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id")) "User";`,
           },
         );
       });
@@ -1019,7 +1019,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               `SELECT "User".* FROM ` +
               `(SELECT "User"."name", "User"."age", "User"."id", "postaliasname"."id" AS "postaliasname.id", "postaliasname"."title" AS "postaliasname.title" FROM "User" "User" ` +
               `INNER JOIN "Post" "postaliasname" ON "User"."id" = "postaliasname"."user_id" ` +
-              `WHERE "postaliasname"."title" = 'test' AND (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY) IS NOT NULL) "User";`,
+              `WHERE "postaliasname"."title" = 'test' AND EXISTS (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id") "User";`,
           },
         );
       });
@@ -1113,7 +1113,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `SELECT "Company"."name", "Company"."public", "Company"."id" FROM "Company" "Company" ` +
             `INNER JOIN "Users" "Users" ON "Company"."id" = "Users"."companyId" ` +
             `INNER JOIN "Professions" "Users->profession" ON "Users"."professionId" = "Users->profession"."id" ` +
-            `WHERE ("Company"."scopeId" IN (42) AND "Users->profession"."name" = 'test') AND (` +
+            `WHERE ("Company"."scopeId" IN (42) AND "Users->profession"."name" = 'test') AND EXISTS (` +
             `SELECT "Users"."companyId" FROM "Users" "Users" ` +
             `INNER JOIN "Professions" "profession" ON "Users"."professionId" = "profession"."id" ` +
             `WHERE "Users"."companyId" = "Company"."id" ORDER BY "Users"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY` +
