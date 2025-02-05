@@ -1019,7 +1019,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               `SELECT "User".* FROM ` +
               `(SELECT "User"."name", "User"."age", "User"."id", "postaliasname"."id" AS "postaliasname.id", "postaliasname"."title" AS "postaliasname.title" FROM "User" "User" ` +
               `INNER JOIN "Post" "postaliasname" ON "User"."id" = "postaliasname"."user_id" ` +
-              `WHERE "postaliasname"."title" = 'test' AND EXISTS (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id" ORDER BY "postaliasname"."id") "User";`,
+              `WHERE "postaliasname"."title" = 'test' AND EXISTS (SELECT "user_id" FROM "Post" "postaliasname" WHERE "postaliasname"."user_id" = "User"."id")) "User";`,
           },
         );
       });
@@ -1116,8 +1116,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             `WHERE ("Company"."scopeId" IN (42) AND "Users->profession"."name" = 'test') AND EXISTS (` +
             `SELECT "Users"."companyId" FROM "Users" "Users" ` +
             `INNER JOIN "Professions" "profession" ON "Users"."professionId" = "profession"."id" ` +
-            `WHERE "Users"."companyId" = "Company"."id" ORDER BY "Users"."id" OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY` +
-            `) IS NOT NULL ORDER BY "Company"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) "Company";`,
+            `WHERE "Users"."companyId" = "Company"."id"` +
+            `) ORDER BY "Company"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY) "Company";`,
         },
       );
     });
