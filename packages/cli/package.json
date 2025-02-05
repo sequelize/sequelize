@@ -22,7 +22,7 @@
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
     "concurrently": "9.1.2",
-    "mocha": "11.0.1",
+    "mocha": "11.1.0",
     "oclif": "4.17.4",
     "rimraf": "5.0.10"
   },
@@ -72,7 +72,7 @@
   },
   "type": "module",
   "types": "lib/index.d.ts",
-  "version": "7.0.0-alpha.43",
+  "version": "7.0.0-alpha.44",
   "publishConfig": {
     "access": "public"
   }

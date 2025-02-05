@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+### Bug Fixes
+
+- **snowflake:** automatically fetch last inserted row ID when using AUTOINCREMENT pk ([#17626](https://github.com/sequelize/sequelize/issues/17626)) ([d2e3b6e](https://github.com/sequelize/sequelize/commit/d2e3b6e44f9ed3d85c67f07e76e02c59dc76177a))
+
 # [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
 
 ### Bug Fixes

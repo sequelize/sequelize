@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         }),
       ).to.eventually.be.rejected;
 
-      expect(t.finished).to.equal('rollback');
+      expect(t.getFinished()).to.equal('rollback');
     });
 
     it('supports automatically rolling back with a rejection', async function () {
@@ -101,7 +101,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         }),
       ).to.eventually.be.rejected;
 
-      expect(t.finished).to.equal('rollback');
+      expect(t.getFinished()).to.equal('rollback');
     });
 
     it('runs afterCommit & afterTransaction hooks when a transaction is committed', async function () {
@@ -374,7 +374,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.finished) {
+          if (!transaction.getFinished()) {
             await transaction.rollback();
             throw error;
           }
@@ -431,7 +431,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.finished) {
+          if (!transaction.getFinished()) {
             await transaction.rollback();
             throw error;
           }
@@ -457,7 +457,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.finished) {
+          if (!transaction.getFinished()) {
             await transaction.rollback();
             throw error;
           }
@@ -483,7 +483,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.finished) {
+          if (!transaction.getFinished()) {
             await transaction.rollback();
             throw error;
           }
@@ -765,8 +765,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
           expect(t2AttemptData.reason.message).to.include(
             'Deadlock found when trying to get lock; try restarting transaction',
           );
-          expect(t1.finished).to.equal('commit');
-          expect(t2.finished).to.equal('rollback');
+          expect(t1.getFinished()).to.equal('commit');
+          expect(t2.getFinished()).to.equal('rollback');
 
           const expectedExecutionOrder = [
             'Begin attempt to update via T2',
@@ -1231,8 +1231,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
           expect(t1AttemptData.isFulfilled).to.be.true;
           expect(t2AttemptData.isFulfilled).to.be.true;
-          expect(t1.finished).to.equal('commit');
-          expect(t2.finished).to.equal('commit');
+          expect(t1.getFinished()).to.equal('commit');
+          expect(t2.getFinished()).to.equal('commit');
 
           const expectedExecutionOrder = [
             'Begin attempt to update via T2',
