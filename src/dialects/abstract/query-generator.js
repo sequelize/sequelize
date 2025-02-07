@@ -1109,7 +1109,7 @@ class QueryGenerator {
             && ['number', 'boolean'].includes(typeof value)) {
           value = String(Number(value));
         }
-              
+
         this.validate(value, field, options);
 
         if (field.type.stringify) {
