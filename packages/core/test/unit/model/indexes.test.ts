@@ -17,7 +17,6 @@ describe('Model indexes', () => {
 
       expect(Model.getIndexes()).to.deep.eq([
         {
-          column: 'eventData',
           fields: ['data'],
           using: 'gin',
           name: 'events_data',
@@ -89,7 +88,6 @@ describe('Model indexes', () => {
 
     expect(User.getIndexes()).to.deep.eq([
       {
-        column: 'name',
         fields: ['name'],
         name: 'users_name',
       },
@@ -168,13 +166,11 @@ describe('Model indexes', () => {
     expect(User.getIndexes()).to.deep.eq([
       {
         fields: ['firstName'],
-        column: 'firstName',
         unique: true,
         name: 'users_first_name_unique',
       },
       {
         fields: ['firstName'],
-        column: 'firstName',
         name: 'users_first_name',
       },
     ]);
