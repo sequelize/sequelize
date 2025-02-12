@@ -1536,6 +1536,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.keysEscaped = true;
 
+    // Index hints should not be passed down to any include subqueries
+    if (topLevelInfo.options && topLevelInfo.options.indexHints) {
+      delete topLevelInfo.options.indexHints;
+    }
+
     if (
       topLevelInfo.names.name !== parentTableName.externalAs &&
       topLevelInfo.names.as !== parentTableName.externalAs
