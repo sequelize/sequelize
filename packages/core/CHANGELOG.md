@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+### Bug Fixes
+
+- **core:** adjust Model.sum|min|max return type to include null ([#17527](https://github.com/sequelize/sequelize/issues/17527)) ([5135e83](https://github.com/sequelize/sequelize/commit/5135e8305789d438f636e366c453db04f6560db5))
+- **core:** Improve type declaration for model validation functions ([#17586](https://github.com/sequelize/sequelize/issues/17586)) ([78fd0ea](https://github.com/sequelize/sequelize/commit/78fd0ea8dbf46748815d90b24d698908f5169ffd))
+- **snowflake:** automatically fetch last inserted row ID when using AUTOINCREMENT pk ([#17626](https://github.com/sequelize/sequelize/issues/17626)) ([d2e3b6e](https://github.com/sequelize/sequelize/commit/d2e3b6e44f9ed3d85c67f07e76e02c59dc76177a))
+- update broken link to lock docs ([#17563](https://github.com/sequelize/sequelize/issues/17563)) ([3754bda](https://github.com/sequelize/sequelize/commit/3754bda7f54822d7da8c7c4cfb742d0d6924e97a))
+- update prettier to v3.3.3 ([#17534](https://github.com/sequelize/sequelize/issues/17534)) ([7d2e72e](https://github.com/sequelize/sequelize/commit/7d2e72e84da08075a631fc43bf69d909649fc297))
+
+### Features
+
+- replace correlated subquery with EXISTS ([#17354](https://github.com/sequelize/sequelize/issues/17354)) ([4491353](https://github.com/sequelize/sequelize/commit/4491353eaf50067589a7958b28af7572d1c411ff))
+
 # [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
 
 ### Bug Fixes
