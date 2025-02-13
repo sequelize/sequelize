@@ -207,6 +207,7 @@ export const SUPPORTED_DIALECTS = Object.freeze([
   'db2',
   'snowflake',
   'ibmi',
+  'oracle',
 ] as const);
 
 // DO NOT MAKE THIS CLASS PUBLIC!
