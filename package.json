@@ -91,7 +91,7 @@
     "node-gyp": "11.1.0",
     "node-hook": "1.0.0",
     "nx": "20.4.3",
-    "prettier": "3.3.3",
+    "prettier": "3.5.1",
     "prettier-plugin-organize-imports": "4.1.0",
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
