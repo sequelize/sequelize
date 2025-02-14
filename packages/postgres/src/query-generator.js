@@ -223,19 +223,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let type;
     if (
       attribute.type instanceof DataTypes.ENUM ||
-      (attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM)
+      (attribute.type instanceof DataTypes.ARRAY &&
+        attribute.type.options.type instanceof DataTypes.ENUM)
     ) {
-      const enumType = attribute.type.type || attribute.type;
+      const enumType = attribute.type.options.type || attribute.type;
       const values = enumType.options.values;
 
-      if (Array.isArray(values) && values.length > 0) {
-        type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
+      type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
 
-        if (attribute.type instanceof DataTypes.ARRAY) {
-          type += '[]';
-        }
-      } else {
-        throw new Error("Values for ENUM haven't been defined.");
+      if (attribute.type instanceof DataTypes.ARRAY) {
+        type += '[]';
       }
     }
 
@@ -272,12 +269,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (attribute.references) {
       let schema;
 
-      if (options.schema) {
+      if (options?.schema) {
         schema = options.schema;
       } else if (
         (!attribute.references.table || typeof attribute.references.table === 'string') &&
-        options.table &&
-        options.table.schema
+        options?.table?.schema
       ) {
         schema = options.table.schema;
       }
@@ -286,7 +282,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
       let referencesKey;
 
-      if (!options.withoutForeignKeyConstraints) {
+      if (!options?.withoutForeignKeyConstraints) {
         if (attribute.references.key) {
           referencesKey = this.quoteIdentifiers(attribute.references.key);
         } else {
@@ -311,7 +307,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (attribute.comment && typeof attribute.comment === 'string') {
       if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        const quotedAttr = this.quoteIdentifier(options.key);
+        const quotedAttr = this.quoteIdentifier(attribute.key);
         const escapedCommentText = this.escape(attribute.comment);
         sql += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
       } else {
@@ -325,11 +321,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+      result[attribute.field || key] = this.attributeToSQL({ key, ...attribute }, options);
     }
 
     return result;
@@ -368,11 +364,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     const paramList = this._expandFunctionParamList(params);
-    const variableList =
-      options && options.variables ? this._expandFunctionVariableList(options.variables) : '';
+    const variableList = options?.variables
+      ? this._expandFunctionVariableList(options.variables)
+      : '';
     const expandedOptionsArray = this.expandOptions(optionsArray);
 
-    const statement = options && options.force ? 'CREATE OR REPLACE FUNCTION' : 'CREATE FUNCTION';
+    const statement = options?.force ? 'CREATE OR REPLACE FUNCTION' : 'CREATE FUNCTION';
 
     return `${statement} ${functionName}(${paramList}) RETURNS ${returnType} AS $func$ ${variableList} BEGIN ${body} END; $func$ language '${language}'${expandedOptionsArray};`;
   }
