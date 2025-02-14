@@ -90,6 +90,7 @@ describe('QueryGenerator#selectQuery', () => {
         'mariadb mysql':
           'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
         'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 1 ROWS;`,
       });
     });
 
@@ -110,6 +111,7 @@ describe('QueryGenerator#selectQuery', () => {
         default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;',
         mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
       });
     });
 
@@ -130,6 +132,7 @@ describe('QueryGenerator#selectQuery', () => {
       expectsql(sql, {
         default: 'SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET 1;',
         'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 1 ROWS FETCH NEXT 10 ROWS ONLY;`,
       });
     });
 
@@ -151,6 +154,7 @@ describe('QueryGenerator#selectQuery', () => {
         default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10;`,
         mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 10 ROWS ONLY;`,
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;`,
       });
     });
 
@@ -169,6 +173,7 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         default: `SELECT [id] FROM [Users] AS [User];`,
+        oracle: `SELECT "id" FROM "Users" "User";`,
       });
     });
 
@@ -190,6 +195,7 @@ describe('QueryGenerator#selectQuery', () => {
           default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 0;`,
           mssql: new Error(`LIMIT 0 is not supported by ${dialectName} dialect.`),
           'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT 0 ROWS ONLY;`,
+          oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id";`,
         },
       );
     });
@@ -214,6 +220,7 @@ describe('QueryGenerator#selectQuery', () => {
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
         'mariadb mysql':
           "SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT '\\';DELETE FROM user';",
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
       });
     });
 
@@ -238,6 +245,7 @@ describe('QueryGenerator#selectQuery', () => {
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
         'mariadb mysql':
           "SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET '\\';DELETE FROM user';",
+        oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
       });
     });
   });
@@ -259,6 +267,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      oracle: `SELECT "id" FROM "Projects" "Project" WHERE "Project"."duration" = 9007199254740993;`,
     });
   });
 
@@ -276,6 +285,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
+      oracle: `SELECT "id", CAST("createdAt" AS VARCHAR) AS "createdAt" FROM "Users" "User";`,
     });
   });
 
@@ -294,6 +304,7 @@ describe('QueryGenerator#selectQuery', () => {
 
     expectsql(sql, {
       default: `SELECT [id] FROM [Users] AS [User];`,
+      oracle: `SELECT "id" FROM "Users" "User";`,
     });
   });
 
@@ -314,6 +325,7 @@ describe('QueryGenerator#selectQuery', () => {
       default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
       'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
       mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
+      oracle: `SELECT "id" FROM "Users" "User" WHERE "User"."username" = 'foo'';DROP TABLE mySchema.myTable;';`,
     });
   });
 
@@ -337,6 +349,7 @@ describe('QueryGenerator#selectQuery', () => {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
         'sqlite3 mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        oracle: `SELECT json_value("data",'$."email"') AS "email" FROM "Users" "User";`,
       });
     });
   }
@@ -411,6 +424,16 @@ describe('QueryGenerator#selectQuery', () => {
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
         `,
+        oracle: `
+          SELECT uppercase('id') AS "id", 'id2'
+          FROM "Users" "User"
+          WHERE "User"."username" = 'repl1' OR "User"."username" = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          GROUP BY 'the group'
+          HAVING "User"."username" = 'repl1' 
+          ORDER BY 'repl2' 
+          OFFSET 'repl4' ROWS
+          FETCH NEXT 'repl3' ROWS ONLY;
+        `,
       });
     });
 
@@ -435,6 +458,7 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         default: `SELECT id FROM [Users] AS [User] WHERE id = ':id';`,
+        oracle: `SELECT id FROM "Users" "User" WHERE id = ':id';`,
       });
     });
 
@@ -516,6 +540,19 @@ describe('QueryGenerator#selectQuery', () => {
           LEFT OUTER JOIN "Users" AS "projects->owner"
             ON "projects"."ownerId" = "projects->owner"."id"
         `,
+        oracle: `
+          SELECT
+          "User"."id",
+          "projects"."id" AS "projects.id",
+          'repl1', 'repl1' AS "projects.id2",
+          "projects->owner"."id" AS "projects.owner.id",
+          'repl2'
+          FROM "Users" "User"
+          INNER JOIN "Projects" "projects"
+            ON 'on' AND 'where' 
+          LEFT OUTER JOIN "Users" "projects->owner"
+            ON "projects"."ownerId" = "projects->owner"."id";
+        `,
       });
     });
 
@@ -576,6 +613,21 @@ describe('QueryGenerator#selectQuery', () => {
             AND N'where'
           )
           ON [Project].[id] = [contributors->ProjectContributor].[projectId];
+        `,
+        oracle: `
+          SELECT
+            "Project"."id",
+            "contributors"."id" AS "contributors.id",
+            "contributors->ProjectContributor"."userId" AS "contributors.ProjectContributor.userId",
+            "contributors->ProjectContributor"."projectId" AS "contributors.ProjectContributor.projectId"
+            FROM "Projects" "Project"
+            LEFT OUTER JOIN (
+              "ProjectContributors" "contributors->ProjectContributor"
+              INNER JOIN "Users" "contributors"
+              ON "contributors"."id" = "contributors->ProjectContributor"."userId"
+              AND 'where'
+            )
+          ON "Project"."id" = "contributors->ProjectContributor"."projectId";
         `,
       });
     });
@@ -705,6 +757,26 @@ describe('QueryGenerator#selectQuery', () => {
               ON "projects"."ownerId" = "projects->owner"."id"
             ORDER BY 'order'
         `,
+        oracle: `
+        SELECT
+          "User".*,
+          "projects"."id" AS "projects.id",
+          'repl1',
+          'repl1' AS "projects.id2",
+          "projects->owner"."id" AS "projects.owner.id",
+          'repl2' FROM (
+            SELECT "User"."id"
+            FROM "Users" "User"
+            ORDER BY 'order'
+            OFFSET 'offset' ROWS
+            FETCH NEXT 'limit' ROWS ONLY
+          ) "User"
+          INNER JOIN "Projects" "projects" 
+            ON 'on' AND 'where'
+          LEFT OUTER JOIN "Users" "projects->owner"
+            ON "projects"."ownerId" = "projects->owner"."id"
+          ORDER BY 'order';
+        `,
       });
     });
 
@@ -783,6 +855,20 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
             [a].* AS [col_a_all],
             * AS [col_all]
           FROM [Users] AS [User];`,
+        oracle: `
+        SELECT 
+          "count(*)" AS "count",
+          ".*",
+          "*", 
+          count(*) AS "literal_count",
+          count('*') AS "fn_count_str",
+          count(*) AS "fn_count_col",
+          count(*) AS "fn_count_lit", 
+          "a"."b" AS "col_a_b", 
+          "a".* AS "col_a_all",
+          * AS "col_all"
+          FROM "Users" "User";
+        `,
       });
     });
 
@@ -802,6 +888,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       expectsql(sql, {
         default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
+        oracle: `SELECT *, YEAR("createdAt") AS "creationYear" FROM "Users" "User" GROUP BY "creationYear", "title" HAVING "User"."creationYear" > 2002;`,
       });
     });
   });
@@ -937,6 +1024,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
 
       expectsql(sql, {
         default: `SELECT 1 AS [_0] FROM [Users] AS [User] GROUP BY [_0] ORDER BY [_0];`,
+        oracle: `SELECT 1 AS "_0" FROM "Users" "User" GROUP BY "_0" ORDER BY "_0";`,
       });
     });
   });
