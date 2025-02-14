@@ -769,26 +769,7 @@ export type OrderItem =
   | Literal
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-    ]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-      string,
-    ];
+  | [...OrderItemAssociation[], OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
