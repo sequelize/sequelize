@@ -1,4 +1,4 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -66,7 +66,25 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
-  it('does not generate extra bind params with bindParams: false', async () => {
+  it('throws an error if the bindParam option is used', () => {
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.updateQuery(
+        User.table,
+        {
+          firstName: 'John',
+          lastName: literal('$1'),
+          username: 'jd',
+        },
+        literal('first_name = $2'),
+        // @ts-expect-error -- intentionally testing deprecated option
+        { bindParam: false },
+      );
+    }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
+  });
+
+  it('does not generate extra bind params with parameterStyle: REPLACEMENT', async () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.updateQuery(
@@ -78,7 +96,7 @@ describe('QueryGenerator#updateQuery', () => {
       },
       literal('first_name = $2'),
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 
