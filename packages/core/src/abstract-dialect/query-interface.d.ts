@@ -1,6 +1,5 @@
-import type { SetRequired } from 'type-fest';
+import type { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { Col } from '../expression-builders/col.js';
-import type { Fn } from '../expression-builders/fn.js';
 import type { Literal } from '../expression-builders/literal.js';
 import type {
   AttributeOptions,
@@ -17,7 +16,7 @@ import type { DataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { AddColumnQueryOptions } from './query-generator.js';
-import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator.types.js';
+import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -113,7 +112,7 @@ export interface IndexOptions {
   name?: string;
 
   /** For FULLTEXT columns set your parser */
-  parser?: string | null;
+  parser?: string | undefined;
 
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
@@ -143,11 +142,11 @@ export interface IndexOptions {
    * The fields to index.
    */
   // TODO: rename to "columns"
-  fields?: Array<string | IndexField | Fn | Literal>;
+  fields: Array<string | IndexField | BaseSqlExpression>;
 
   /**
    * The method to create the index by (`USING` statement in SQL).
-   * BTREE and HASH are supported by mysql and postgres.
+   * BTREE and HASH are supported by MariaDB, MySQL and Postgres.
    * Postgres additionally supports GIST, SPGIST, BRIN and GIN.
    */
   using?: IndexMethod;
@@ -170,38 +169,13 @@ export interface IndexOptions {
   /**
    * Non-key columns to be added to the lead level of the nonclustered index.
    */
-  include?: Literal | Array<string | Literal>;
+  include?: BaseSqlExpression | Array<string | BaseSqlExpression>;
 }
-
-export interface QueryInterfaceIndexOptions
-  extends IndexOptions,
-    Omit<QiOptionsWithReplacements, 'type'> {}
-
-export interface QueryInterfaceRemoveIndexOptions
-  extends QueryInterfaceIndexOptions,
-    RemoveIndexQueryOptions {}
 
 export interface FunctionParam {
   type: string;
   name?: string;
   direction?: string;
-}
-
-export interface IndexFieldDescription {
-  attribute: string;
-  length: number | undefined;
-  order: 'DESC' | 'ASC';
-  collate: string | undefined;
-}
-
-export interface IndexDescription {
-  primary: boolean;
-  fields: IndexFieldDescription[];
-  includes: string[] | undefined;
-  name: string;
-  tableName: string | undefined;
-  unique: boolean;
-  type: string | undefined;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}
@@ -281,45 +255,6 @@ export class AbstractQueryInterface<
     attrNameAfter: string,
     options?: QiOptionsWithReplacements,
   ): Promise<void>;
-
-  /**
-   * Adds a new index to a table
-   */
-  addIndex(
-    tableName: TableOrModel,
-    attributes: string[],
-    options?: QueryInterfaceIndexOptions,
-    rawTablename?: string,
-  ): Promise<void>;
-  addIndex(
-    tableName: TableOrModel,
-    options: SetRequired<QueryInterfaceIndexOptions, 'fields'>,
-    rawTablename?: string,
-  ): Promise<void>;
-
-  /**
-   * Removes an index of a table
-   */
-  removeIndex(
-    tableName: TableName,
-    indexName: string,
-    options?: QueryInterfaceRemoveIndexOptions,
-  ): Promise<void>;
-  removeIndex(
-    tableName: TableName,
-    attributes: string[],
-    options?: QueryInterfaceRemoveIndexOptions,
-  ): Promise<void>;
-
-  /**
-   * Shows the index of a table
-   */
-  showIndex(tableName: TableOrModel, options?: QueryRawOptions): Promise<IndexDescription[]>;
-
-  /**
-   * Put a name to an index
-   */
-  nameIndexes(indexes: string[], rawTablename: string): Promise<void>;
 
   /**
    * Inserts a new record
