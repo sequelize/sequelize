@@ -2064,10 +2064,10 @@ __metadata:
   linkType: hard
 
 "@inquirer/checkbox@npm:^4.0.0, @inquirer/checkbox@npm:^4.0.3":
-  version: 4.1.1
-  resolution: "@inquirer/checkbox@npm:4.1.1"
+  version: 4.1.2
+  resolution: "@inquirer/checkbox@npm:4.1.2"
   dependencies:
-    "@inquirer/core": "npm:^10.1.6"
+    "@inquirer/core": "npm:^10.1.7"
     "@inquirer/figures": "npm:^1.0.10"
     "@inquirer/type": "npm:^3.0.4"
     ansi-escapes: "npm:^4.3.2"
@@ -2077,7 +2077,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/4a5fe6aa4cf57c9ea7e865088d384b8b6f1ab953f65f59aa74214b2386093fbc44f15ec364d9980416c67aa4d47eba2699d1b30adc694f63cc8ed0e63517ce31
+  checksum: 10c0/5edd83063cf6f828ca2400561c857f1869382d431d584b009d3cd04a5f12fb1a4887fe4c9bd4c93f7f68e07a75e00aabdf85c58f2964eff356ac55dd52d01cee
   languageName: node
   linkType: hard
 
