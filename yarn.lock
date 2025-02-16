@@ -2192,17 +2192,17 @@ __metadata:
   linkType: hard
 
 "@inquirer/input@npm:^4.0.0, @inquirer/input@npm:^4.1.0":
-  version: 4.1.5
-  resolution: "@inquirer/input@npm:4.1.5"
+  version: 4.1.6
+  resolution: "@inquirer/input@npm:4.1.6"
   dependencies:
-    "@inquirer/core": "npm:^10.1.6"
+    "@inquirer/core": "npm:^10.1.7"
     "@inquirer/type": "npm:^3.0.4"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/e67e192f96ea195786414e4bdc4b7d44c45a5d37422fda50d6710072f9b4a1d5e07744149112fd6a3c127b192ad33642e99c9b54e33b3ec59ef1c070253fe5dc
+  checksum: 10c0/b1df056e4855e2617f0c4000a09978902b8c65ec757ecfb59b1ac02c303dedc6c5e2fd677ceeabe02d18b97be2011bcbcd20ac9ed55d7c3371ef3e2a00814740
   languageName: node
   linkType: hard
 
