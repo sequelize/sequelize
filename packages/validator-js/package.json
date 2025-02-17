@@ -1,6 +1,6 @@
 {
   "name": "@sequelize/validator.js",
-  "version": "7.0.0-alpha.44",
+  "version": "7.0.0-alpha.45",
   "description": "Integration between validator.js and Sequelize",
   "funding": [
     {

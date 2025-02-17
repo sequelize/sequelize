@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
+
+### Bug Fixes
+
+- add call for new maintainers to README ([#17700](https://github.com/sequelize/sequelize/issues/17700)) ([ee3c7d3](https://github.com/sequelize/sequelize/commit/ee3c7d376ee8dfe4729aa623aad1ab0e1b8d6775))
+- **core:** Adjust model validator types yet again ([#17689](https://github.com/sequelize/sequelize/issues/17689)) ([942b086](https://github.com/sequelize/sequelize/commit/942b086ee91e37e4870602abf800c4f70e878b3f))
+- **core:** Further improve type declaration for model validation functions ([#17686](https://github.com/sequelize/sequelize/issues/17686)) ([351b809](https://github.com/sequelize/sequelize/commit/351b8095932b6f7c81d4a4bf0564ba9cf1ea774e))
+- **core:** stop index hints from incorrectly being passed down to associations ([#17559](https://github.com/sequelize/sequelize/issues/17559)) ([38162da](https://github.com/sequelize/sequelize/commit/38162daa3ae0580fb971eae2b3ec0aea0958ae2a))
+- update type definition for orderItem to use variadic type ([#17714](https://github.com/sequelize/sequelize/issues/17714)) ([1b61756](https://github.com/sequelize/sequelize/commit/1b617565410edd214624b672a979f2d511e65f22))
+
+### Features
+
+- findByPk composite key support ([#17393](https://github.com/sequelize/sequelize/issues/17393)) ([afc9c0b](https://github.com/sequelize/sequelize/commit/afc9c0b1d5e665e84d3f259368d972ced5b4aba1))
+
 # [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
 
 ### Bug Fixes
