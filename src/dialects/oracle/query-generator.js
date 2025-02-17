@@ -504,6 +504,7 @@ export class OracleQueryGenerator extends AbstractQueryGenerator {
    * @param {string} attributeName The name of the attribute which would get altered
    */
   _modifyQuery(definition, table, attributeName) {
+    definition = definition.startsWith('BLOB') ? definition.replace('BLOB ', '') : definition;
     const query = Utils.joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
