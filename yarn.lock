@@ -2448,9 +2448,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@lerna/create@npm:8.1.9":
-  version: 8.1.9
-  resolution: "@lerna/create@npm:8.1.9"
+"@lerna/create@npm:8.2.0":
+  version: 8.2.0
+  resolution: "@lerna/create@npm:8.2.0"
   dependencies:
     "@npmcli/arborist": "npm:7.5.4"
     "@npmcli/package-json": "npm:5.2.0"
@@ -2510,7 +2510,6 @@ __metadata:
     slash: "npm:^3.0.0"
     ssri: "npm:^10.0.6"
     string-width: "npm:^4.2.3"
-    strip-ansi: "npm:^6.0.1"
     strong-log-transformer: "npm:2.1.0"
     tar: "npm:6.2.1"
     temp-dir: "npm:1.0.0"
@@ -2523,7 +2522,7 @@ __metadata:
     write-pkg: "npm:4.0.0"
     yargs: "npm:17.7.2"
     yargs-parser: "npm:21.1.1"
-  checksum: 10c0/f050e79c0bd982c6fdf9b7347275a94cc80f7a6599094f1cf114c10d5373c21afac9bd1a5c0b2ca400e6aaf18da883c384dfd6e5c84a186a2c09c912bf9b2238
+  checksum: 10c0/6da8d2ec143246f2ca47dfce07cf9bd86175b66b4612aad3ddcf3f215044388d5b85a886a35a2357843e56d5e2960e9a6ac3b36c795a83fe4eeb64cd961dd288
   languageName: node
   linkType: hard
 
@@ -3359,7 +3358,7 @@ __metadata:
     eslint-plugin-mocha: "npm:10.5.0"
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
-    lerna: "npm:8.1.9"
+    lerna: "npm:8.2.0"
     lint-staged: "npm:15.4.3"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.44.0"
@@ -10491,11 +10490,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lerna@npm:8.1.9":
-  version: 8.1.9
-  resolution: "lerna@npm:8.1.9"
+"lerna@npm:8.2.0":
+  version: 8.2.0
+  resolution: "lerna@npm:8.2.0"
   dependencies:
-    "@lerna/create": "npm:8.1.9"
+    "@lerna/create": "npm:8.2.0"
     "@npmcli/arborist": "npm:7.5.4"
     "@npmcli/package-json": "npm:5.2.0"
     "@npmcli/run-script": "npm:8.1.0"
@@ -10562,7 +10561,6 @@ __metadata:
     slash: "npm:3.0.0"
     ssri: "npm:^10.0.6"
     string-width: "npm:^4.2.3"
-    strip-ansi: "npm:^6.0.1"
     strong-log-transformer: "npm:2.1.0"
     tar: "npm:6.2.1"
     temp-dir: "npm:1.0.0"
@@ -10578,7 +10576,7 @@ __metadata:
     yargs-parser: "npm:21.1.1"
   bin:
     lerna: dist/cli.js
-  checksum: 10c0/e3362d66324f5ee9606dbdb332a6b09eeb2df6378177e36a1bbcf532927d921beb4d25dbcc717c4adf3a7dcd67e0bcee67bedf81fdbe7e78bbecce310358d762
+  checksum: 10c0/60e2bc71877d7b04881854484f8ceec5a198e8114d11be757be866b28f66fa65cae1b94f53e802f10f031234522fe2a771afa0e9bf58f5eb14bfeedc9592a123
   languageName: node
   linkType: hard
 
