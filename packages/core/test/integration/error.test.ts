@@ -776,7 +776,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.equal('Users');
             expect(error.fields).to.be.null;
             expect(error.cause.message).to.contain(
-              'foreign key constraint violation: TrexColumnUpdate failed on table',
+              'foreign key constraint violation:',
             );
             break;
 
@@ -859,7 +859,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.equal('Tasks');
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.contain(
-              'foreign key constraint violation: TrexColumnUpdate failed on table',
+              'foreign key constraint violation:',
             );
             break;
 

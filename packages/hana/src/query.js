@@ -251,7 +251,7 @@ export class HanaQuery extends AbstractQuery {
       }
 
       case ERR_SQL_FK_NOT_FOUND: {
-        const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
+        const table = err.message.match(/failed on table '(.*):(.*)'/)?.[2];
 
         return new ForeignKeyConstraintError({
           table,
@@ -262,7 +262,7 @@ export class HanaQuery extends AbstractQuery {
       }
 
       case ERR_SQL_FK_ON_UPDATE_DELETE_FAILED: {
-        const table = err.message.match(/TrexColumnUpdate failed on table '(.*):(.*)'/)?.[2];
+        const table = err.message.match(/failed on table '(.*):(.*)'/)?.[2];
 
         return new ForeignKeyConstraintError({
           table,
