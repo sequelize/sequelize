@@ -95,20 +95,11 @@ export class SnowflakeDialect extends AbstractDialect<
       // https://stackoverflow.com/questions/54828745/how-to-migrate-on-conflict-do-nothing-from-postgresql-to-snowflake
       // updateOnDuplicate: true
     },
-    index: {
-      collate: false,
-      length: true,
-      parser: true,
-      type: true,
-      using: 1,
-    },
     constraints: {
       deferrable: true,
       check: false,
       removeOptions: { cascade: true },
     },
-    indexViaAlter: true,
-    indexHints: true,
     upserts: false,
     schemas: true,
     multiDatabases: true,
