@@ -1,5 +1,6 @@
 'use strict';
 
+import { ParameterStyle } from '@sequelize/core';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -8,6 +9,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import isObject from 'lodash/isObject';
@@ -123,14 +125,23 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options ||= {};
     defaults(options, this.options);
+    if (options.bindParam) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = Object.create(null);
     const values = [];
-    const bind = Object.create(null);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
     let suffix = '';
+    let bind;
+    let bindParam;
+    const parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
 
     if (options.returning) {
       const returnValues = this.generateReturnValues(attributes, options);
@@ -175,7 +186,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     }
 
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 

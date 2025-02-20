@@ -1,6 +1,6 @@
 'use strict';
 
-import { DataTypes, Op } from '@sequelize/core';
+import { DataTypes, Op, ParameterStyle } from '@sequelize/core';
 import {
   attributeTypeToSql,
   normalizeDataType,
@@ -13,6 +13,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -358,10 +359,16 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
+    let bind;
+    let bindParam;
+    const parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     const modelAttributeMap = {};
     const values = [];
-    const bind = {};
-    const bindParam = options.bindParam || this.bindParam(bind);
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
 
     if (attributes) {
       each(attributes, (attribute, key) => {
@@ -390,7 +397,12 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     query = `UPDATE (SELECT * FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY) SET ${values.join(',')}`;
     query = `SELECT * FROM FINAL TABLE (${query});`;
 
-    return { query, bind };
+    const result = { query };
+    if (parameterStyle === ParameterStyle.BIND) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
