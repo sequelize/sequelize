@@ -2563,7 +2563,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T | null>;
+  ): Promise<T>;
 
   /**
    * Finds the minimum value of field
@@ -2572,7 +2572,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T | null>;
+  ): Promise<T>;
 
   /**
    * Retrieves the sum of field
@@ -2581,7 +2581,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<number | null>;
+  ): Promise<number>;
 
   /**
    * Builds a new model instance.
