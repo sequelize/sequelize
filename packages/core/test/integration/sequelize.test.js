@@ -124,7 +124,7 @@ const badAddressConfig = {
     system: 'bad-address',
   },
   hana: {
-    port: 9999
+    host: 'bad-address',
   },
 };
 
@@ -165,7 +165,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               error.message.includes('Login failed for user') ||
               error.message.includes('A communication error has been detected') ||
               error.message.includes('must be > 0 and < 65536') ||
-              error.message.includes('Error connecting to the database'),
+              error.message.includes('Error connecting to the database') ||
+              error.message.includes('Connection failed'),
           ).to.be.ok;
         });
       });
