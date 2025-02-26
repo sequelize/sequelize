@@ -57,7 +57,7 @@ jobs:
         oracle-version: [18, 23]
         node-version: [10, 18]
     name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DIALECT: oracle
       SEQ_ORACLE_USER: sequelizetest
@@ -90,7 +90,7 @@ jobs:
       matrix:
         node-version: [10, 18]
     name: DB2 (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DIALECT: db2
       SEQ_DB: testdb
@@ -119,7 +119,7 @@ jobs:
       matrix:
         node-version: [10, 18]
     name: SQLite (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DIALECT: sqlite
     steps:
@@ -142,7 +142,7 @@ jobs:
         minify-aliases: [true, false]
         native: [true, false]
     name: Postgres ${{ matrix.postgres-version }}${{ matrix.native && ' (native)' || '' }} (Node ${{ matrix.node-version }})${{ matrix.minify-aliases && ' (minified aliases)' || '' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     services:
       postgres:
         image: sushantdhiman/postgres:${{ matrix.postgres-version }}
@@ -210,7 +210,7 @@ jobs:
             dialect: mariadb
             node-version: 18
     name: ${{ matrix.name }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     services:
       mysql:
         image: ${{ matrix.image }}
@@ -244,7 +244,7 @@ jobs:
         node-version: [10, 18]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     services:
       mssql:
         image: mcr.microsoft.com/mssql/server:${{ matrix.mssql-version }}-latest
@@ -282,7 +282,7 @@ jobs:
       matrix:
         node-version: [10, 18]
     name: SNOWFLAKE (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     env:
       DIALECT: snowflake
     steps:
