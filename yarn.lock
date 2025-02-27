@@ -3232,12 +3232,12 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
-    ansis: "npm:^3.2.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.1.0"
     oclif: "npm:4.17.4"
+    picocolors: "npm:^1.1.1"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.22.4"
   bin:
@@ -3260,7 +3260,6 @@ __metadata:
     "@types/sinon": "npm:17.0.3"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/validator": "npm:^13.11.9"
-    ansis: "npm:^3.2.0"
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
@@ -3282,6 +3281,7 @@ __metadata:
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
     p-timeout: "npm:4.1.0"
+    picocolors: "npm:^1.1.1"
     retry-as-promised: "npm:^7.0.4"
     rimraf: "npm:5.0.10"
     semver: "npm:^7.3"
@@ -5037,7 +5037,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.2.0, ansis@npm:^3.3.1, ansis@npm:^3.3.2, ansis@npm:^3.4.0":
+"ansis@npm:^3.3.1, ansis@npm:^3.3.2, ansis@npm:^3.4.0":
   version: 3.4.0
   resolution: "ansis@npm:3.4.0"
   checksum: 10c0/e2e5324fcdfed83e96c0b3e9a15d44acce9819404fe87b2bb4ff453e0822a85aee49f3626c2ff430dd9ab5cbb0b7d55801f89dd67599bb7eca0e765519994446
@@ -13415,6 +13415,13 @@ __metadata:
   version: 1.0.0
   resolution: "picocolors@npm:1.0.0"
   checksum: 10c0/20a5b249e331c14479d94ec6817a182fd7a5680debae82705747b2db7ec50009a5f6648d0621c561b0572703f84dbef0858abcbd5856d3c5511426afcb1961f7
+  languageName: node
+  linkType: hard
+
+"picocolors@npm:^1.1.1":
+  version: 1.1.1
+  resolution: "picocolors@npm:1.1.1"
+  checksum: 10c0/e2e3e8170ab9d7c7421969adaa7e1b31434f789afb9b3f115f6b96d91945041ac3ceb02e9ec6fe6510ff036bcc0bf91e69a1772edc0b707e12b19c0f2d6bcf58
   languageName: node
   linkType: hard
 

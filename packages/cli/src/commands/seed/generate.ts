@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core';
-import { green } from 'ansis';
+import pc from "picocolors"
 import { config } from '../../_internal/config.js';
 import { SequelizeCommand } from '../../_internal/sequelize-command.js';
 import type { SupportedSeedFormat } from '../../api/generate-seed.js';
@@ -39,9 +39,9 @@ export class GenerateSeed extends SequelizeCommand<(typeof GenerateSeed)['flags'
     });
 
     if (format === 'sql') {
-      this.log(`SQL seed files generated in ${green(seedPath)}`);
+      this.log(`SQL seed files generated in ${pc.green(seedPath)}`);
     } else {
-      this.log(`Seed file generated at ${green(seedPath)}`);
+      this.log(`Seed file generated at ${pc.green(seedPath)}`);
     }
 
     // JSON output

@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core';
-import { green } from 'ansis';
+import pc from "picocolors"
 import { config } from '../../_internal/config.js';
 import { SequelizeCommand } from '../../_internal/sequelize-command.js';
 import type { SupportedMigrationFormat } from '../../api/generate-migration.js';
@@ -39,9 +39,9 @@ export class GenerateMigration extends SequelizeCommand<(typeof GenerateMigratio
     });
 
     if (format === 'sql') {
-      this.log(`SQL migration files generated in ${green(migrationPath)}`);
+      this.log(`SQL migration files generated in ${pc.green(migrationPath)}`);
     } else {
-      this.log(`Migration file generated at ${green(migrationPath)}`);
+      this.log(`Migration file generated at ${pc.green(migrationPath)}`);
     }
 
     // JSON output

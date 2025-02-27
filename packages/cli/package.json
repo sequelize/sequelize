@@ -11,8 +11,8 @@
     "@oclif/core": "^3.26.0",
     "@oclif/plugin-help": "^6.0.20",
     "@sequelize/utils": "workspace:*",
-    "ansis": "^3.2.0",
     "cosmiconfig": "^9.0.0",
+    "picocolors": "^1.1.1",
     "zod": "^3.22.4"
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
