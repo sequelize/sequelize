@@ -178,6 +178,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       });
 
+      it('should work with enums (6)', async function() {
+        await this.queryInterface.createTable('SomeTable', {
+          someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
+        });
+
+        await this.queryInterface.changeColumn('SomeTable', 'someEnum', {
+          type: DataTypes.ENUM('value1', 'value2', 'value3', 'value4')
+        });
+
+        const table = await this.queryInterface.describeTable('SomeTable');
+        if (dialect.includes('postgres')) {
+          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3', 'value4']);
+        }
+      });
+
       it('should work with multiple enums', async function() {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
