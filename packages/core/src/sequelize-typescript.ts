@@ -11,8 +11,8 @@ import {
   map,
   splitObject,
 } from '@sequelize/utils';
-import pc from "picocolors"
 import { AsyncLocalStorage } from 'node:async_hooks';
+import pc from 'picocolors';
 import semver from 'semver';
 import type {
   Connection,

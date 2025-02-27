@@ -1,5 +1,5 @@
 import { Flags } from '@oclif/core';
-import pc from "picocolors"
+import pc from 'picocolors';
 import { config } from '../../_internal/config.js';
 import { SequelizeCommand } from '../../_internal/sequelize-command.js';
 import type { SupportedSeedFormat } from '../../api/generate-seed.js';
