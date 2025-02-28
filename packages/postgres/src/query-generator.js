@@ -180,7 +180,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
             definition.slice(commentPos);
         } else {
           // If no COMMENT clause is found, append the USING clause at the end
-          definition += ` ${  usingClause}`;
+          definition += ` ${usingClause}`;
         }
       }
 
