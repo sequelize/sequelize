@@ -166,7 +166,22 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           /^ENUM\(.+\)/,
           this.pgEnumName(tableName, attributeName, { schema: false }),
         );
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        // Find the position of "; COMMENT"
+        const commentPos = definition.indexOf("; COMMENT");
+        const usingClause = `USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(
+          tableName,
+          attributeName
+        )})`
+        if (commentPos !== -1) {
+          // Insert the USING clause before the "; COMMENT"
+          definition =
+            definition.slice(0, commentPos) +
+            usingClause +
+            definition.slice(commentPos);
+        } else {
+          // If no COMMENT clause is found, append the USING clause at the end
+          definition += ` ${  usingClause}`;
+        }
       }
 
       if (/UNIQUE;*$/.test(definition)) {
