@@ -521,14 +521,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     return query;
   }
 
-  addIndexQuery(tableName, attributes, options, rawTablename) {
-    if ('include' in attributes && !attributes.unique) {
-      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
-    }
-
-    return super.addIndexQuery(tableName, attributes, options, rawTablename);
-  }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {
