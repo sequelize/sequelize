@@ -63,18 +63,21 @@ export class MariaDbDialect extends AbstractDialect<
       ignoreDuplicates: ' IGNORE',
       updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
     },
-    index: {
-      collate: false,
+    addIndex: {
+      ifNotExists: true,
       length: true,
       parser: true,
+      using: true,
       type: true,
-      using: 1,
+    },
+    removeIndex: {
+      ifExists: true,
+      on: true,
     },
     constraints: {
       foreignKeyChecksDisableable: true,
       removeOptions: { ifExists: true },
     },
-    indexViaAlter: true,
     indexHints: true,
     dataTypes: {
       COLLATE_BINARY: true,

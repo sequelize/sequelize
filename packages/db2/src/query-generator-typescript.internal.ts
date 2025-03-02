@@ -1,9 +1,9 @@
 import type {
+  AddIndexQueryOptions,
   ConstraintType,
   DropSchemaQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
@@ -12,14 +12,12 @@ import type {
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import {
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { randomBytes } from 'node:crypto';
 import type { Db2Dialect } from './dialect.js';
 import { Db2QueryGeneratorInternal } from './query-generator.internal.js';
@@ -193,49 +191,31 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+    if ('include' in options && !options.unique && options.type?.toLowerCase() !== 'unique') {
+      throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
+    }
+
+    return super.addIndexQuery(tableOrModel, options);
+  }
+
   showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT',
-      'i.INDNAME AS "name",',
+      'SELECT i.TABSCHEMA AS "schema",',
       'i.TABNAME AS "tableName",',
+      'i.INDNAME AS "name",',
       'i.UNIQUERULE AS "keyType",',
-      'i.INDEXTYPE AS "type",',
       'c.COLNAME AS "columnName",',
-      'c.COLORDER AS "columnOrder"',
+      'c.COLORDER AS "columnOrder",',
+      'c.TEXT AS "expression"',
       'FROM SYSCAT.INDEXES i',
       'INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA',
       `WHERE TABNAME = ${this.escape(table.tableName)}`,
       `AND TABSCHEMA = ${this.escape(table.schema)}`,
       'ORDER BY i.INDNAME, c.COLSEQ;',
     ]);
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
-
-    let indexName: string;
-    if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
-    }
-
-    return `DROP INDEX ${this.quoteIdentifier(indexName)}`;
   }
 
   versionQuery() {

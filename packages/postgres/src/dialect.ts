@@ -90,13 +90,20 @@ export class PostgresDialect extends AbstractDialect<
       deferrable: true,
       removeOptions: { cascade: true, ifExists: true },
     },
-    index: {
+    addIndex: {
+      collate: true,
       concurrently: true,
-      using: 2,
-      where: true,
-      functionBased: true,
-      operator: true,
+      expression: true,
+      ifNotExists: true,
       include: true,
+      operator: true,
+      using: true,
+      where: true,
+    },
+    removeIndex: {
+      cascade: true,
+      concurrently: true,
+      ifExists: true,
     },
     inserts: {
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',

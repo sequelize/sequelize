@@ -52,10 +52,14 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
       conflictFields: true,
       onConflictWhere: true,
     },
-    index: {
-      using: false,
+    addIndex: {
+      collate: true,
+      expression: true,
+      ifNotExists: true,
       where: true,
-      functionBased: true,
+    },
+    removeIndex: {
+      ifExists: true,
     },
     startTransaction: {
       useBegin: true,

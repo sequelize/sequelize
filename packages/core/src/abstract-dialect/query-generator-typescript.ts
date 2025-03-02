@@ -36,12 +36,14 @@ import {
   extractTableIdentifier,
   isModelStatic,
 } from '../utils/model-utils.js';
+import { generateIndexName } from '../utils/string.js';
 import type { BindParamOptions, DataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
+  AddIndexQueryOptions,
   BulkDeleteQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
@@ -65,6 +67,16 @@ import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
 
+export const ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof AddIndexQueryOptions>([
+  'concurrently',
+  'ifNotExists',
+  'include',
+  'operator',
+  'parser',
+  'type',
+  'using',
+  'where',
+]);
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
   'collate',
@@ -443,16 +455,189 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  showIndexesQuery(_tableName: TableOrModel): string {
-    throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
+  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+    rejectInvalidOptions(
+      'addIndexQuery',
+      this.dialect,
+      ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.addIndex,
+      options,
+    );
+
+    const table = this.extractTableDetails(tableOrModel);
+    const indexOptions = { ...options };
+    if (!Array.isArray(indexOptions.fields) || indexOptions.fields.length < 0) {
+      throw new Error(
+        `Property "fields" for addIndex requires an array with at least one value. Received: ${NodeUtil.inspect(indexOptions.fields)}`,
+      );
+    }
+
+    if ('method' in indexOptions) {
+      throw new Error('Property "method" for addIndex has been renamed to "using".');
+    }
+
+    const columnSql = indexOptions.fields.map(column => {
+      if (typeof column === 'string') {
+        column = { name: column };
+      }
+
+      if (column instanceof BaseSqlExpression) {
+        if (!this.dialect.supports.addIndex.expression) {
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support expression/function-based indexes.`,
+          );
+        }
+
+        return this.formatSqlExpression(column);
+      }
+
+      if ('attribute' in column) {
+        throw new Error('Property "attribute" for addIndex fields has been renamed to "name".');
+      }
+
+      if (!column.name) {
+        throw new Error(`The following index column has no name: ${NodeUtil.inspect(column)}`);
+      }
+
+      let result = this.quoteIdentifier(column.name);
+
+      if (column.collate) {
+        if (!this.dialect.supports.addIndex.collate) {
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support collate on index fields.`,
+          );
+        }
+
+        result += ` COLLATE ${this.quoteIdentifier(column.collate)}`;
+      }
+
+      const operator = column.operator || indexOptions.operator;
+      if (operator) {
+        if (!this.dialect.supports.addIndex.operator) {
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support operator on index fields.`,
+          );
+        }
+
+        result += ` ${operator}`;
+      }
+
+      if (column.length && column.length > 0) {
+        if (!this.dialect.supports.addIndex.length) {
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support length on index fields.`,
+          );
+        }
+
+        result += `(${column.length})`;
+      }
+
+      if (column.order) {
+        result += ` ${column.order}`;
+      }
+
+      return result;
+    });
+
+    indexOptions.prefix = indexOptions.prefix || table.tableName;
+    if (indexOptions.prefix && typeof indexOptions.prefix === 'string') {
+      indexOptions.prefix = indexOptions.prefix.replaceAll('.', '_');
+    }
+
+    if (indexOptions.type && indexOptions.type.toLowerCase() === 'unique') {
+      indexOptions.unique = true;
+      delete indexOptions.type;
+    }
+
+    let includeSql: string | undefined;
+    if (indexOptions.include) {
+      if (indexOptions.include instanceof BaseSqlExpression) {
+        includeSql = `INCLUDE ${this.formatSqlExpression(indexOptions.include)}`;
+      } else if (Array.isArray(indexOptions.include)) {
+        includeSql = `INCLUDE (${indexOptions.include.map(column => (column instanceof BaseSqlExpression ? this.formatSqlExpression(column) : this.quoteIdentifier(column))).join(', ')})`;
+      } else {
+        throw new TypeError(
+          'The include option for indexes must be an array or an sql expression.',
+        );
+      }
+    }
+
+    // The index will be incorrectly scoped if we don't specify the schema name,
+    // which will cause it to error if another schema contains a table that uses an index with an identical name
+    const quotedIndexName =
+      table.schema && this.dialect.supports.addIndex.schemaQuoted
+        ? // 'quoteTable' isn't the best name: it quotes any identifier.
+          // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+          this.quoteTable({
+            schema: table.schema,
+            tableName: options.name || generateIndexName(table, indexOptions),
+          })
+        : this.quoteIdentifier(options.name || generateIndexName(table, indexOptions));
+
+    return joinSQLFragments([
+      'CREATE',
+      indexOptions.unique ? 'UNIQUE' : '',
+      indexOptions.type ? `${indexOptions.type} INDEX` : 'INDEX',
+      indexOptions.concurrently ? 'CONCURRENTLY' : '',
+      indexOptions.ifNotExists ? 'IF NOT EXISTS' : '',
+      quotedIndexName,
+      indexOptions.using ? `USING ${indexOptions.using}` : '',
+      `ON ${this.quoteTable(tableOrModel)}`,
+      `(${columnSql.join(', ')})`,
+      indexOptions.parser ? `WITH PARSER ${indexOptions.parser}` : '',
+      indexOptions.include ? includeSql : '',
+      indexOptions.where ? this.whereQuery(indexOptions.where) : '',
+    ]);
   }
 
   removeIndexQuery(
-    _tableName: TableOrModel,
-    _indexNameOrAttributes: string | string[],
-    _options?: RemoveIndexQueryOptions,
-  ): string {
-    throw new Error(`removeIndexQuery has not been implemented in ${this.dialect.name}.`);
+    tableOrModel: TableOrModel,
+    indexNameOrAttributes: string | string[],
+    options?: RemoveIndexQueryOptions,
+  ) {
+    if (options) {
+      rejectInvalidOptions(
+        'removeIndexQuery',
+        this.dialect,
+        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+        this.dialect.supports.removeIndex,
+        options,
+      );
+
+      if (options.cascade && options.concurrently) {
+        throw new Error(
+          `Cannot specify both concurrently and cascade options in removeIndexQuery.`,
+        );
+      }
+    }
+
+    let indexName;
+    const table = this.extractTableDetails(tableOrModel);
+    if (Array.isArray(indexNameOrAttributes)) {
+      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
+    } else {
+      indexName = indexNameOrAttributes;
+    }
+
+    const quotedIndexName = table.schema
+      ? // 'quoteTable' isn't the best name: it quotes any identifier.
+        // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+        this.quoteTable({ schema: table.schema, tableName: indexName })
+      : this.quoteIdentifier(indexName);
+
+    return joinSQLFragments([
+      'DROP INDEX',
+      options?.concurrently ? 'CONCURRENTLY' : '',
+      options?.ifExists ? 'IF EXISTS' : '',
+      this.dialect.supports.removeIndex.on
+        ? `${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableOrModel)}`
+        : quotedIndexName,
+      options?.cascade ? 'CASCADE' : '',
+    ]);
+  }
+
+  showIndexesQuery(_tableName: TableOrModel): string {
+    throw new Error(`showIndexesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   /**

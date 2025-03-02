@@ -26,7 +26,6 @@ import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>([
   'restartIdentity',
 ]);
@@ -96,10 +95,6 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableOrModel) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
-  }
-
   getToggleForeignKeyChecksQuery(enable: boolean): string {
     return `PRAGMA foreign_keys = ${enable ? 'ON' : 'OFF'}`;
   }
@@ -122,7 +117,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableName: TableOrModel,
+    tableOrModel: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -131,14 +126,14 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'removeIndexQuery',
         this.dialect,
         REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+        this.dialect.supports.removeIndex,
         options,
       );
     }
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
+      const table = this.extractTableDetails(tableOrModel);
       indexName = generateIndexName(table, { fields: indexNameOrAttributes });
     } else {
       indexName = indexNameOrAttributes;
@@ -149,6 +144,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.ifExists ? 'IF EXISTS' : '',
       this.quoteIdentifier(indexName),
     ]);
+  }
+
+  showIndexesQuery(tableName: TableOrModel) {
+    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
   }
 
   // SQLite does not support renaming columns. The following is a workaround.

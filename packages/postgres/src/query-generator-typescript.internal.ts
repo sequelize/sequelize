@@ -1,10 +1,10 @@
 import type {
+  AddIndexQueryOptions,
   CreateDatabaseQueryOptions,
   Expression,
   ListDatabasesQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
@@ -12,10 +12,15 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import {
+  ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { inspect } from '@sequelize/utils';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
 import { PostgresQueryGeneratorInternal } from './query-generator.internal.js';
@@ -203,46 +208,117 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
+  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+    rejectInvalidOptions(
+      'addIndexQuery',
+      this.dialect,
+      ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.addIndex,
+      options,
+    );
+
+    const table = this.extractTableDetails(tableOrModel);
+    const indexOptions = { ...options };
+    if (!Array.isArray(indexOptions.fields) || indexOptions.fields.length < 0) {
+      throw new Error(
+        `Property "fields" for addIndex requires an array with at least one value. Received: ${inspect(indexOptions.fields)}`,
+      );
+    }
+
+    if ('method' in indexOptions) {
+      throw new Error('Property "method" for addIndex has been renamed to "using".');
+    }
+
+    const columnSql = indexOptions.fields.map(column => {
+      if (typeof column === 'string') {
+        column = { name: column };
+      }
+
+      if (column instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(column);
+      }
+
+      if ('attribute' in column) {
+        throw new Error('Property "attribute" for addIndex fields has been renamed to "name".');
+      }
+
+      if (!column.name) {
+        throw new Error(`The following index column has no name: ${inspect(column)}`);
+      }
+
+      let result = this.quoteIdentifier(column.name);
+
+      if (column.collate) {
+        result += ` COLLATE ${this.quoteIdentifier(column.collate)}`;
+      }
+
+      const operator = column.operator || indexOptions.operator;
+      if (operator) {
+        result += ` ${operator}`;
+      }
+
+      if (column.length) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support length on index fields.`,
+        );
+      }
+
+      if (column.order) {
+        result += ` ${column.order}`;
+      }
+
+      return result;
+    });
+
+    indexOptions.prefix = indexOptions.prefix || table.tableName;
+    if (indexOptions.prefix && typeof indexOptions.prefix === 'string') {
+      indexOptions.prefix = indexOptions.prefix.replaceAll('.', '_');
+    }
+
+    if (indexOptions.type && indexOptions.type.toLowerCase() === 'unique') {
+      indexOptions.unique = true;
+      delete indexOptions.type;
+    }
+
+    let includeSql: string | undefined;
+    if (indexOptions.include) {
+      if (indexOptions.include instanceof BaseSqlExpression) {
+        includeSql = `INCLUDE ${this.formatSqlExpression(indexOptions.include)}`;
+      } else if (Array.isArray(indexOptions.include)) {
+        includeSql = `INCLUDE (${indexOptions.include.map(column => (column instanceof BaseSqlExpression ? this.formatSqlExpression(column) : this.quoteIdentifier(column))).join(', ')})`;
+      } else {
+        throw new TypeError(
+          'The include option for indexes must be an array or an sql expression.',
+        );
+      }
+    }
+
+    return joinSQLFragments([
+      'CREATE',
+      indexOptions.unique ? 'UNIQUE INDEX' : 'INDEX',
+      indexOptions.concurrently ? 'CONCURRENTLY' : '',
+      indexOptions.ifNotExists ? 'IF NOT EXISTS' : '',
+      this.quoteIdentifier(options.name || generateIndexName(table, indexOptions)),
+      `ON ${this.quoteTable(tableOrModel)}`,
+      indexOptions.using ? `USING ${indexOptions.using}` : '',
+      `(${columnSql.join(', ')})`,
+      indexOptions.include ? includeSql : '',
+      indexOptions.where ? this.whereQuery(indexOptions.where) : '',
+    ]);
+  }
+
   showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     // TODO [>=6]: refactor the query to use pg_indexes
     return joinSQLFragments([
-      'SELECT i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,',
+      'SELECT s.nspname as schema, t.relname as "tableName", i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,',
       'ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,',
       'pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
       'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND',
       `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
       `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
-      'GROUP BY i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;',
-    ]);
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options?.cascade && options?.concurrently) {
-      throw new Error(
-        `Cannot specify both concurrently and cascade options in removeIndexQuery for ${this.dialect.name} dialect`,
-      );
-    }
-
-    let indexName;
-    const table = this.extractTableDetails(tableName);
-    if (Array.isArray(indexNameOrAttributes)) {
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
-    }
-
-    return joinSQLFragments([
-      'DROP INDEX',
-      options?.concurrently ? 'CONCURRENTLY' : '',
-      options?.ifExists ? 'IF EXISTS' : '',
-      `${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(indexName)}`,
-      options?.cascade ? 'CASCADE' : '',
+      'GROUP BY s.nspname, t.relname, i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;',
     ]);
   }
 
