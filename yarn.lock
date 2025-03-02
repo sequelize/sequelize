@@ -2506,7 +2506,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-not-found@npm:^3.2.32":
+"@oclif/plugin-not-found@npm:^3.2.44":
   version: 3.2.44
   resolution: "@oclif/plugin-not-found@npm:3.2.44"
   dependencies:
@@ -2755,7 +2755,7 @@ __metadata:
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.1.0"
-    oclif: "npm:4.17.33"
+    oclif: "npm:4.17.34"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.22.4"
   bin:
@@ -12176,9 +12176,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.17.33":
-  version: 4.17.33
-  resolution: "oclif@npm:4.17.33"
+"oclif@npm:4.17.34":
+  version: 4.17.34
+  resolution: "oclif@npm:4.17.34"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.758.0"
     "@aws-sdk/client-s3": "npm:^3.749.0"
@@ -12187,7 +12187,7 @@ __metadata:
     "@inquirer/select": "npm:^2.5.0"
     "@oclif/core": "npm:^4.2.8"
     "@oclif/plugin-help": "npm:^6.2.25"
-    "@oclif/plugin-not-found": "npm:^3.2.32"
+    "@oclif/plugin-not-found": "npm:^3.2.44"
     "@oclif/plugin-warn-if-update-available": "npm:^3.1.31"
     async-retry: "npm:^1.3.3"
     chalk: "npm:^4"
@@ -12206,7 +12206,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/2d946a18f2f45edf816b68359f594216e0c4b475127d4b70cde32b1889e02cbacde81bac47cc751158f7a97fe09322db6ad5fa4e26534598f2a1d3a5d92f8b3b
+  checksum: 10c0/9f5069c6711cd1d0c7870687c70f2f0b8282d30ac234e9fce74ba46240625e93cc2accf0b437a5c48a3069eaba8ff378af006488b2f32d6cc9a6c554c659ec83
   languageName: node
   linkType: hard
 
