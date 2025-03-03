@@ -97,7 +97,8 @@ ${NodeUtil.inspect(index)}`);
     return column.name;
   });
 
-  let out = `${tableName}_${columns.join('_')}`;
+  let out = index.prefix ? `${index.prefix}_` : '';
+  out += `${tableName}_${columns.join('_')}`;
 
   if (index.unique) {
     out += '_unique';

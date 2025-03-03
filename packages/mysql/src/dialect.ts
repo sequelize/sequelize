@@ -62,8 +62,8 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
     },
     addIndex: {
       length: true,
+      method: true,
       parser: true,
-      using: true,
       type: true,
     },
     removeIndex: {

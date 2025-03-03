@@ -157,12 +157,12 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  addIndexQuery(_tableOrModel: TableOrModel, _options: AddIndexQueryOptions): string {
+  addIndexQuery(_tableName: TableOrModel, _options: AddIndexQueryOptions): string {
     throw new Error(`Indexes are not supported by the ${this.dialect.name} dialect.`);
   }
 
   removeIndexQuery(
-    _tableOrModel: TableOrModel,
+    _tableName: TableOrModel,
     _indexNameOrAttributes: string | string[],
     _options?: RemoveIndexQueryOptions,
   ): string {

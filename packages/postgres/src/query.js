@@ -131,71 +131,37 @@ export class PostgresQuery extends AbstractQuery {
     }
 
     if (this.isShowIndexesQuery()) {
-      for (const row of rows) {
-        let attributes;
-        if (/include \(([^]*)\)/gi.test(row.definition)) {
-          attributes = /on .*? (?:using .*?\s)?\(([^]*)\) include \(([^]*)\)/gi
-            .exec(row.definition)[1]
-            .split(',');
-        } else {
-          attributes = /on .*? (?:using .*?\s)?\(([^]*)\)/gi.exec(row.definition)[1].split(',');
+      const indexes = new Map();
+      for (const item of rows) {
+        const index = indexes.get(item.index_name) || {
+          tableName: item.table_name,
+          schema: item.table_schema,
+          name: item.index_name,
+          method: item.index_method,
+          unique: item.is_unique,
+          primary: item.is_primary_key,
+          expression: item.where_clause ?? item.index_expression,
+          fields: [],
+          includes: [],
+        };
+
+        if (item.is_attribute_column) {
+          index.fields.push({
+            name: item.column_name,
+            order: `${item.column_sort_order} ${item.column_nulls_order}`,
+            collate: item.column_collate,
+            operator: item.column_operator,
+          });
         }
 
-        // Map column index in table to column name
-        const columns = zipObject(
-          row.column_indexes,
-          this.sequelize.queryGenerator.fromArray(row.column_names),
-        );
-        delete row.column_indexes;
-        delete row.column_names;
+        if (item.is_included_column) {
+          index.includes.push(item.column_name);
+        }
 
-        let field;
-        let attribute;
-
-        // Indkey is the order of attributes in the index, specified by a string of attribute indexes
-        row.fields = row.index_fields
-          .map((indKey, index) => {
-            field = columns[indKey];
-            // for functional indices indKey = 0
-            if (!field) {
-              return null;
-            }
-
-            attribute = attributes[index];
-
-            return {
-              attribute: field,
-              collate: /COLLATE "(.*?)"/.test(attribute)
-                ? /COLLATE "(.*?)"/.exec(attribute)[1]
-                : undefined,
-              order: attribute.includes('DESC')
-                ? 'DESC'
-                : attribute.includes('ASC')
-                  ? 'ASC'
-                  : undefined,
-              length: undefined,
-            };
-          })
-          .filter(n => n !== null);
-
-        row.includes = row.include_fields
-          .map(indKey => {
-            field = columns[indKey];
-            // for functional indices indKey = 0
-            if (!field) {
-              return null;
-            }
-
-            return field;
-          })
-          .filter(n => n !== null);
-        delete row.columns;
-        delete row.definition;
-        delete row.index_fields;
-        delete row.include_fields;
+        indexes.set(item.index_name, index);
       }
 
-      return rows;
+      return [...indexes.values()];
     }
 
     if (this.isSelectQuery()) {

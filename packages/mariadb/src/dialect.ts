@@ -66,8 +66,8 @@ export class MariaDbDialect extends AbstractDialect<
     addIndex: {
       ifNotExists: true,
       length: true,
+      method: true,
       parser: true,
-      using: true,
       type: true,
     },
     removeIndex: {

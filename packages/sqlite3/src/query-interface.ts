@@ -105,7 +105,7 @@ export class SqliteQueryInterface<
       for (const index of indexes) {
         for (const field of index.fields) {
           if (index.unique !== undefined) {
-            data[field.attribute].unique = index.unique;
+            data[field.name].unique = index.unique;
           }
         }
       }
