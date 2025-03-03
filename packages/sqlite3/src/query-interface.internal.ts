@@ -62,8 +62,8 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             }
 
             for (const field of index.fields) {
-              if (columns[field.attribute]) {
-                columns[field.attribute].unique = true;
+              if (columns[field.name]) {
+                columns[field.name].unique = true;
               }
             }
           }
@@ -100,7 +100,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
                 ...index,
                 type: undefined,
                 transaction,
-                fields: index.fields.map(field => field.attribute),
+                fields: index.fields.map(field => field.name),
               });
             }),
           );

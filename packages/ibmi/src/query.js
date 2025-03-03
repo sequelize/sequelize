@@ -166,36 +166,32 @@ export class IBMiQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    const indexes = Object.create(null);
+    const indexes = new Map();
+    for (const item of data) {
+      const index = indexes.get(item.name) || {
+        tableName: item.tableName,
+        schema: item.schema,
+        name: item.name,
+        unique: item.keyType === 'UNIQUE',
+        primary: item.keyType === 'PRIMARY KEY',
+        expression: undefined,
+        fields: [],
+        includes: item.include ? item.include.split(',') : [],
+      };
 
-    data.forEach(item => {
-      if (Object.hasOwn(indexes, item.NAME)) {
-        indexes[item.NAME].fields.push({
-          attribute: item.COLUMN_NAME,
-          length: undefined,
-          order: undefined,
-          collate: undefined,
-        });
+      if (item.is_expression) {
+        index.expression = item.expression;
       } else {
-        indexes[item.NAME] = {
-          primary: item.CONSTRAINT_TYPE === 'PRIMARY KEY',
-          fields: [
-            {
-              attribute: item.COLUMN_NAME,
-              length: undefined,
-              order: undefined,
-              collate: undefined,
-            },
-          ],
-          name: item.NAME,
-          tableName: item.TABLE_NAME,
-          unique: item.CONSTRAINT_TYPE === 'PRIMARY KEY' || item.CONSTRAINT_TYPE === 'UNIQUE',
-          type: item.CONSTRAINT_TYPE,
-        };
+        index.fields.push({
+          name: item.columnName,
+          order: item.columnOrder === 'D' ? 'DESC' : item.columnOrder === 'A' ? 'ASC' : undefined,
+        });
       }
-    });
 
-    return Object.values(indexes);
+      indexes.set(item.name, index);
+    }
+
+    return [...indexes.values()];
   }
 
   formatError(err) {

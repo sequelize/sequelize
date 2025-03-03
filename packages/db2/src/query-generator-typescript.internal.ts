@@ -191,30 +191,33 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+  addIndexQuery(tableName: TableOrModel, options: AddIndexQueryOptions): string {
     if ('include' in options && !options.unique && options.type?.toLowerCase() !== 'unique') {
       throw new Error('DB2 does not support non-unique indexes with INCLUDE syntax.');
     }
 
-    return super.addIndexQuery(tableOrModel, options);
+    return super.addIndexQuery(tableName, options);
   }
 
   showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT i.TABSCHEMA AS "schema",',
+      'SELECT',
       'i.TABNAME AS "tableName",',
+      'i.TABSCHEMA AS "schema",',
       'i.INDNAME AS "name",',
+      'i.INDEXTYPE AS "type",',
       'i.UNIQUERULE AS "keyType",',
       'c.COLNAME AS "columnName",',
       'c.COLORDER AS "columnOrder",',
+      'c.COLLATIONNAME AS "columnCollation",',
       'c.TEXT AS "expression"',
       'FROM SYSCAT.INDEXES i',
       'INNER JOIN SYSCAT.INDEXCOLUSE c ON i.INDNAME = c.INDNAME AND i.INDSCHEMA = c.INDSCHEMA',
       `WHERE TABNAME = ${this.escape(table.tableName)}`,
       `AND TABSCHEMA = ${this.escape(table.schema)}`,
-      'ORDER BY i.INDNAME, c.COLSEQ;',
+      'ORDER BY i.INDNAME, c.COLSEQ',
     ]);
   }
 

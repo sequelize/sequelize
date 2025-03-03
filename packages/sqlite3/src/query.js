@@ -54,7 +54,7 @@ export class SqliteQuery extends AbstractQuery {
     return ret;
   }
 
-  _handleQueryResponse(metaData, results) {
+  async _handleQueryResponse(metaData, results) {
     if (this.isInsertQuery() || this.isUpdateQuery() || this.isUpsertQuery()) {
       if (this.instance && this.instance.dataValues) {
         // If we are creating an instance, and we get no rows, the create failed but did not throw.
@@ -114,7 +114,8 @@ export class SqliteQuery extends AbstractQuery {
       return this.handleShowIndexesQuery(results);
     }
 
-    if (this.sql.includes('PRAGMA INDEX_INFO')) {
+    // SQLite's PRAGMA INDEX_LIST does not return the index columns, so we need to run a separate query
+    if (this.sql.includes('PRAGMA INDEX_INFO') || this.sql.includes('PRAGMA INDEX_XINFO')) {
       return results;
     }
 
@@ -308,20 +309,22 @@ export class SqliteQuery extends AbstractQuery {
     // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
     return Promise.all(
       data.reverse().map(async item => {
-        item.fields = [];
-        item.primary = false;
-        item.unique = Boolean(item.unique);
-        item.constraintName = item.name;
-        const columns = await this.run(`PRAGMA INDEX_INFO(\`${item.name}\`)`);
-        for (const column of columns) {
-          item.fields[column.seqno] = {
-            attribute: column.name,
-            length: undefined,
-            order: undefined,
-          };
+        const columns = [];
+        const columnDetails = await this.run(`PRAGMA INDEX_XINFO(\`${item.name}\`)`);
+        const keyColumns = columnDetails.filter(column => column.key === 1);
+        for (const column of keyColumns) {
+          columns.push({
+            name: column.name,
+            order: column.desc ? 'DESC' : 'ASC',
+          });
         }
 
-        return item;
+        return {
+          name: item.name,
+          unique: Boolean(item.unique),
+          primary: item.origin === 'pk',
+          fields: columns,
+        };
       }),
     );
   }

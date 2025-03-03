@@ -71,10 +71,10 @@ export const ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof AddIndexQueryOp
   'concurrently',
   'ifNotExists',
   'include',
+  'method',
   'operator',
   'parser',
   'type',
-  'using',
   'where',
 ]);
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
@@ -455,7 +455,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`showConstraintsQuery has not been implemented in ${this.dialect.name}.`);
   }
 
-  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+  addIndexQuery(tableName: TableOrModel, options: AddIndexQueryOptions): string {
     rejectInvalidOptions(
       'addIndexQuery',
       this.dialect,
@@ -464,18 +464,21 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       options,
     );
 
-    const table = this.extractTableDetails(tableOrModel);
-    const indexOptions = { ...options };
-    if (!Array.isArray(indexOptions.fields) || indexOptions.fields.length < 0) {
+    if (!Array.isArray(options.fields) || options.fields.length < 0) {
       throw new Error(
-        `Property "fields" for addIndex requires an array with at least one value. Received: ${NodeUtil.inspect(indexOptions.fields)}`,
+        `Property "fields" for addIndex requires an array with at least one value. Received: ${NodeUtil.inspect(options.fields)}`,
       );
     }
 
-    if ('method' in indexOptions) {
-      throw new Error('Property "method" for addIndex has been renamed to "using".');
+    if ('using' in options) {
+      throw new Error('Property "using" for addIndex has been renamed to "method".');
     }
 
+    if ('name' in options && 'prefix' in options) {
+      throw new Error('Properties "name" and "prefix" are mutually exclusive in addIndex.');
+    }
+
+    const indexOptions = { fields: [], ...options };
     const columnSql = indexOptions.fields.map(column => {
       if (typeof column === 'string') {
         column = { name: column };
@@ -539,9 +542,10 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       return result;
     });
 
-    indexOptions.prefix = indexOptions.prefix || table.tableName;
     if (indexOptions.prefix && typeof indexOptions.prefix === 'string') {
       indexOptions.prefix = indexOptions.prefix.replaceAll('.', '_');
+    } else {
+      delete indexOptions.prefix;
     }
 
     if (indexOptions.type && indexOptions.type.toLowerCase() === 'unique') {
@@ -554,7 +558,20 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       if (indexOptions.include instanceof BaseSqlExpression) {
         includeSql = `INCLUDE ${this.formatSqlExpression(indexOptions.include)}`;
       } else if (Array.isArray(indexOptions.include)) {
-        includeSql = `INCLUDE (${indexOptions.include.map(column => (column instanceof BaseSqlExpression ? this.formatSqlExpression(column) : this.quoteIdentifier(column))).join(', ')})`;
+        const columns = indexOptions.include.map(column => {
+          if (typeof column === 'string') {
+            return this.quoteIdentifier(column);
+          }
+
+          if (column instanceof BaseSqlExpression) {
+            return this.formatSqlExpression(column);
+          }
+
+          throw new Error(
+            `The include option for indexes must be an array of strings or sql expressions.`,
+          );
+        });
+        includeSql = `INCLUDE (${columns.join(', ')})`;
       } else {
         throw new TypeError(
           'The include option for indexes must be an array or an sql expression.',
@@ -562,17 +579,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       }
     }
 
-    // The index will be incorrectly scoped if we don't specify the schema name,
-    // which will cause it to error if another schema contains a table that uses an index with an identical name
+    const table = this.extractTableDetails(tableName);
+    indexOptions.name = indexOptions.name || generateIndexName(table, indexOptions);
+
     const quotedIndexName =
       table.schema && this.dialect.supports.addIndex.schemaQuoted
-        ? // 'quoteTable' isn't the best name: it quotes any identifier.
-          // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
-          this.quoteTable({
-            schema: table.schema,
-            tableName: options.name || generateIndexName(table, indexOptions),
-          })
-        : this.quoteIdentifier(options.name || generateIndexName(table, indexOptions));
+        ? this.quoteTable({ schema: table.schema, tableName: indexOptions.name })
+        : this.quoteIdentifier(indexOptions.name);
 
     return joinSQLFragments([
       'CREATE',
@@ -581,8 +594,8 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       indexOptions.concurrently ? 'CONCURRENTLY' : '',
       indexOptions.ifNotExists ? 'IF NOT EXISTS' : '',
       quotedIndexName,
-      indexOptions.using ? `USING ${indexOptions.using}` : '',
-      `ON ${this.quoteTable(tableOrModel)}`,
+      indexOptions.method ? `USING ${indexOptions.method}` : '',
+      `ON ${this.quoteTable(tableName)}`,
       `(${columnSql.join(', ')})`,
       indexOptions.parser ? `WITH PARSER ${indexOptions.parser}` : '',
       indexOptions.include ? includeSql : '',
@@ -591,7 +604,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   removeIndexQuery(
-    tableOrModel: TableOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -612,7 +625,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     let indexName;
-    const table = this.extractTableDetails(tableOrModel);
+    const table = this.extractTableDetails(tableName);
     if (Array.isArray(indexNameOrAttributes)) {
       indexName = generateIndexName(table, { fields: indexNameOrAttributes });
     } else {
@@ -620,9 +633,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     const quotedIndexName = table.schema
-      ? // 'quoteTable' isn't the best name: it quotes any identifier.
-        // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
-        this.quoteTable({ schema: table.schema, tableName: indexName })
+      ? this.quoteTable({ schema: table.schema, tableName: indexName })
       : this.quoteIdentifier(indexName);
 
     return joinSQLFragments([
@@ -630,7 +641,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       options?.concurrently ? 'CONCURRENTLY' : '',
       options?.ifExists ? 'IF EXISTS' : '',
       this.dialect.supports.removeIndex.on
-        ? `${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableOrModel)}`
+        ? `${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`
         : quotedIndexName,
       options?.cascade ? 'CASCADE' : '',
     ]);

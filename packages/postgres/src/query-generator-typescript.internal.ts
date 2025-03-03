@@ -208,7 +208,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  addIndexQuery(tableOrModel: TableOrModel, options: AddIndexQueryOptions): string {
+  addIndexQuery(tableName: TableOrModel, options: AddIndexQueryOptions): string {
     rejectInvalidOptions(
       'addIndexQuery',
       this.dialect,
@@ -217,18 +217,21 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options,
     );
 
-    const table = this.extractTableDetails(tableOrModel);
-    const indexOptions = { ...options };
-    if (!Array.isArray(indexOptions.fields) || indexOptions.fields.length < 0) {
+    if (!Array.isArray(options.fields) || options.fields.length < 0) {
       throw new Error(
-        `Property "fields" for addIndex requires an array with at least one value. Received: ${inspect(indexOptions.fields)}`,
+        `Property "fields" for addIndex requires an array with at least one value. Received: ${inspect(options.fields)}`,
       );
     }
 
-    if ('method' in indexOptions) {
-      throw new Error('Property "method" for addIndex has been renamed to "using".');
+    if ('using' in options) {
+      throw new Error('Property "using" for addIndex has been renamed to "method".');
     }
 
+    if ('name' in options && 'prefix' in options) {
+      throw new Error('Properties "name" and "prefix" are mutually exclusive in addIndex.');
+    }
+
+    const indexOptions = { fields: [], ...options };
     const columnSql = indexOptions.fields.map(column => {
       if (typeof column === 'string') {
         column = { name: column };
@@ -270,9 +273,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return result;
     });
 
-    indexOptions.prefix = indexOptions.prefix || table.tableName;
     if (indexOptions.prefix && typeof indexOptions.prefix === 'string') {
       indexOptions.prefix = indexOptions.prefix.replaceAll('.', '_');
+    } else {
+      delete indexOptions.prefix;
     }
 
     if (indexOptions.type && indexOptions.type.toLowerCase() === 'unique') {
@@ -285,7 +289,20 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       if (indexOptions.include instanceof BaseSqlExpression) {
         includeSql = `INCLUDE ${this.formatSqlExpression(indexOptions.include)}`;
       } else if (Array.isArray(indexOptions.include)) {
-        includeSql = `INCLUDE (${indexOptions.include.map(column => (column instanceof BaseSqlExpression ? this.formatSqlExpression(column) : this.quoteIdentifier(column))).join(', ')})`;
+        const columns = indexOptions.include.map(column => {
+          if (typeof column === 'string') {
+            return this.quoteIdentifier(column);
+          }
+
+          if (column instanceof BaseSqlExpression) {
+            return this.formatSqlExpression(column);
+          }
+
+          throw new Error(
+            `The include option for indexes must be an array of strings or sql expressions.`,
+          );
+        });
+        includeSql = `INCLUDE (${columns.join(', ')})`;
       } else {
         throw new TypeError(
           'The include option for indexes must be an array or an sql expression.',
@@ -293,14 +310,17 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       }
     }
 
+    const table = this.extractTableDetails(tableName);
+    indexOptions.name = indexOptions.name || generateIndexName(table, indexOptions);
+
     return joinSQLFragments([
       'CREATE',
       indexOptions.unique ? 'UNIQUE INDEX' : 'INDEX',
       indexOptions.concurrently ? 'CONCURRENTLY' : '',
       indexOptions.ifNotExists ? 'IF NOT EXISTS' : '',
-      this.quoteIdentifier(options.name || generateIndexName(table, indexOptions)),
-      `ON ${this.quoteTable(tableOrModel)}`,
-      indexOptions.using ? `USING ${indexOptions.using}` : '',
+      this.quoteIdentifier(indexOptions.name),
+      `ON ${this.quoteTable(tableName)}`,
+      indexOptions.method ? `USING ${indexOptions.method}` : '',
       `(${columnSql.join(', ')})`,
       indexOptions.include ? includeSql : '',
       indexOptions.where ? this.whereQuery(indexOptions.where) : '',
@@ -310,15 +330,47 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   showIndexesQuery(tableName: TableOrModel) {
     const table = this.extractTableDetails(tableName);
 
-    // TODO [>=6]: refactor the query to use pg_indexes
     return joinSQLFragments([
-      'SELECT s.nspname as schema, t.relname as "tableName", i.relname AS name, ix.indisprimary AS primary, ix.indisunique AS unique, ix.indkey[:ix.indnkeyatts-1] AS index_fields,',
-      'ix.indkey[ix.indnkeyatts:] AS include_fields, array_agg(a.attnum) as column_indexes, array_agg(a.attname) AS column_names,',
-      'pg_get_indexdef(ix.indexrelid) AS definition FROM pg_class t, pg_class i, pg_index ix, pg_attribute a , pg_namespace s',
-      'WHERE t.oid = ix.indrelid AND i.oid = ix.indexrelid AND a.attrelid = t.oid AND',
-      `t.relkind = 'r' and t.relname = ${this.escape(table.tableName)}`,
-      `AND s.oid = t.relnamespace AND s.nspname = ${this.escape(table.schema)}`,
-      'GROUP BY s.nspname, t.relname, i.relname, ix.indexrelid, ix.indisprimary, ix.indisunique, ix.indkey, ix.indnkeyatts ORDER BY i.relname;',
+      'SELECT',
+      'n.nspname AS table_schema,',
+      't.relname AS table_name,',
+      'i.indexname AS index_name,',
+      // Add index method information
+      'am.amname AS index_method,',
+      // Add index type information
+      'pg_index.indisprimary AS is_primary_key,',
+      'pg_index.indisunique AS is_unique,',
+      // Add WHERE clause for partial indexes
+      'pg_get_expr(pg_index.indpred, t.oid) AS where_clause,',
+      // Add expression info for expression indexes
+      'pg_get_expr(pg_index.indexprs, t.oid) AS index_expression,',
+      // Add column information
+      'a.attname AS column_name,',
+      // Add collation information
+      'coll.collname AS column_collate,',
+      // Add operator class information
+      'op.opcname AS column_operator,',
+      // Store array_position as a computed column to avoid repeated calculations
+      'array_position(pg_index.indkey, a.attnum) AS position_in_index,',
+      // Add sort order information using the position_in_index
+      "CASE WHEN (pg_index.indoption[array_position(pg_index.indkey, a.attnum)] & 1) = 1 THEN 'DESC' ELSE 'ASC' END AS column_sort_order,",
+      "CASE WHEN (pg_index.indoption[array_position(pg_index.indkey, a.attnum)] & 2) = 2 THEN 'NULLS FIRST' ELSE 'NULLS LAST' END AS column_nulls_order,",
+      // Determine if column is a key or included column
+      'CASE WHEN array_position(pg_index.indkey, a.attnum) < pg_index.indnkeyatts THEN true ELSE false END AS is_attribute_column,',
+      'CASE WHEN array_position(pg_index.indkey, a.attnum, indnkeyatts) >= pg_index.indnkeyatts THEN true ELSE false END AS is_included_column,',
+      'i.indexdef AS definition',
+      'FROM pg_indexes i',
+      'JOIN pg_namespace n ON i.schemaname = n.nspname',
+      'JOIN pg_class t ON i.tablename = t.relname AND t.relnamespace = n.oid',
+      'JOIN pg_class idx ON idx.relname = i.indexname AND idx.relnamespace = n.oid',
+      'JOIN pg_am am ON idx.relam = am.oid',
+      'JOIN pg_index ON pg_index.indexrelid = idx.oid',
+      'LEFT JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(pg_index.indkey)',
+      'LEFT JOIN pg_opclass op ON op.oid = pg_index.indclass[array_position(pg_index.indkey, a.attnum)]',
+      'LEFT JOIN pg_collation coll ON coll.oid = pg_index.indcollation[array_position(pg_index.indkey, a.attnum)]',
+      `WHERE i.tablename = ${this.escape(table.tableName)}`,
+      `AND i.schemaname = ${this.escape(table.schema)}`,
+      'ORDER BY i.indexname, position_in_index',
     ]);
   }
 

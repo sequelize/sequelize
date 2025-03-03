@@ -117,7 +117,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   removeIndexQuery(
-    tableOrModel: TableOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
@@ -133,7 +133,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableOrModel);
+      const table = this.extractTableDetails(tableName);
       indexName = generateIndexName(table, { fields: indexNameOrAttributes });
     } else {
       indexName = indexNameOrAttributes;

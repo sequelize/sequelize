@@ -612,7 +612,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
           for (const index of indexes) {
             const jsonbIndexDefaults =
-              rawAttribute.type instanceof DataTypes.JSONB ? { using: 'gin' } : undefined;
+              rawAttribute.type instanceof DataTypes.JSONB ? { method: 'gin' } : undefined;
 
             if (!index) {
               continue;

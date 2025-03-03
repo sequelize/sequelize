@@ -393,46 +393,31 @@ export class MsSqlQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    // Group by index name, and collect all fields
-    const indexes = data.reduce((acc, curr) => {
-      if (acc.has(curr.index_name)) {
-        const index = acc.get(curr.index_name);
-        if (curr.is_included_column) {
-          index.includes.push(curr.column_name);
-        } else {
-          index.fields.push({
-            attribute: curr.column_name,
-            length: undefined,
-            order: curr.is_descending_key ? 'DESC' : 'ASC',
-            collate: undefined,
-          });
-        }
+    const indexes = new Map();
+    for (const item of data) {
+      const index = indexes.get(item.index_name) || {
+        tableName: item.table_name,
+        schema: item.table_schema,
+        name: item.index_name,
+        type: item.index_type,
+        unique: item.is_unique,
+        primary: item.is_primary_key,
+        fields: [],
+        includes: [],
+      };
 
-        return acc;
+      if (item.is_included_column) {
+        index.includes.push(item.column_name);
+      } else {
+        index.fields.push({
+          name: item.column_name,
+          order: item.is_descending_key ? 'DESC' : 'ASC',
+        });
       }
 
-      acc.set(curr.index_name, {
-        primary: curr.is_primary_key,
-        fields: curr.is_included_column
-          ? []
-          : [
-              {
-                attribute: curr.column_name,
-                length: undefined,
-                order: curr.is_descending_key ? 'DESC' : 'ASC',
-                collate: undefined,
-              },
-            ],
-        includes: curr.is_included_column ? [curr.column_name] : [],
-        name: curr.index_name,
-        tableName: undefined,
-        unique: curr.is_unique,
-        type: null,
-      });
+      indexes.set(item.index_name, index);
+    }
 
-      return acc;
-    }, new Map());
-
-    return Array.from(indexes.values());
+    return [...indexes.values()];
   }
 }
