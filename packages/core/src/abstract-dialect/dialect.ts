@@ -142,11 +142,11 @@ export type DialectSupports = {
     ifNotExists: boolean;
     include: boolean;
     length: boolean;
+    method: boolean;
     operator: boolean;
     parser: boolean;
     schemaQuoted: boolean;
     type: boolean;
-    using: boolean;
     where: boolean;
   };
   removeIndex: {
@@ -382,11 +382,11 @@ export abstract class AbstractDialect<
       ifNotExists: false,
       include: false,
       length: false,
+      method: false,
       operator: false,
       parser: false,
       schemaQuoted: false,
       type: false,
-      using: false,
       where: false,
     },
     removeIndex: {

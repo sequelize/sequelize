@@ -112,8 +112,10 @@ export interface IndexOptions {
    */
   name?: string;
 
-  /** For FULLTEXT columns set your parser */
-  parser?: string | null;
+  /**
+   * For FULLTEXT columns set your parser
+   */
+  parser?: string;
 
   /**
    * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
@@ -150,7 +152,7 @@ export interface IndexOptions {
    * BTREE and HASH are supported by mysql and postgres.
    * Postgres additionally supports GIST, SPGIST, BRIN and GIN.
    */
-  using?: IndexMethod;
+  method?: IndexMethod | undefined;
 
   /**
    * Index operator type. Postgres only
@@ -188,20 +190,24 @@ export interface FunctionParam {
 }
 
 export interface IndexFieldDescription {
-  attribute: string;
-  length: number | undefined;
-  order: 'DESC' | 'ASC';
-  collate: string | undefined;
+  name: string;
+  order: 'DESC' | 'ASC' | undefined;
+  length?: number | undefined;
+  collate?: string | undefined;
+  operator?: string | undefined;
 }
 
 export interface IndexDescription {
-  primary: boolean;
-  fields: IndexFieldDescription[];
-  includes: string[] | undefined;
+  tableName?: string | undefined;
+  schema?: string | undefined;
   name: string;
-  tableName: string | undefined;
+  type?: string | undefined;
+  method?: string | undefined;
   unique: boolean;
-  type: string | undefined;
+  primary: boolean;
+  expression?: string | undefined;
+  fields: IndexFieldDescription[];
+  includes?: string[] | undefined;
 }
 
 export interface AddColumnOptions extends AddColumnQueryOptions, QueryRawOptions, Replaceable {}

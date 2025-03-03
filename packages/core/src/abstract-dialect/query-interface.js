@@ -287,7 +287,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {Array}   options.fields   List of attributes to add index on
    * @param {boolean} [options.concurrently] Pass CONCURRENT so other operations run while the index is created
    * @param {boolean} [options.unique] Create a unique index
-   * @param {string}  [options.using]  Useful for GIN indexes
+   * @param {string}  [options.method]  Useful for GIN indexes
    * @param {string}  [options.operator] Index operator
    * @param {string}  [options.type]   Type of index, available options are UNIQUE|FULLTEXT|SPATIAL
    * @param {string}  [options.name]   Name of the index. Default is <table>_<attr1>_<attr2>

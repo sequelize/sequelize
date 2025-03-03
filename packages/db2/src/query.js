@@ -392,46 +392,35 @@ export class Db2Query extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    const indexes = data.reduce((acc, curr) => {
-      if (acc.has(curr.name)) {
-        const index = acc.get(curr.name);
-        if (curr.columnOrder === 'I') {
-          index.includes.push(curr.columnName);
-        } else {
-          index.fields.push({
-            attribute: curr.columnName,
-            length: undefined,
-            order: curr.columnOrder === 'D' ? 'DESC' : curr.columnOrder === 'A' ? 'ASC' : undefined,
-            collate: undefined,
-          });
-        }
+    const indexes = new Map();
+    for (const item of data) {
+      const index = indexes.get(item.name) || {
+        tableName: item.tableName,
+        schema: item.schema,
+        name: item.name,
+        type: item.type,
+        unique: item.keyType === 'U',
+        primary: item.keyType === 'P',
+        expression: undefined,
+        fields: [],
+        includes: [],
+      };
 
-        return acc;
+      if (item.columnOrder === 'I') {
+        index.includes.push(item.columnName);
+      } else if (item.expression) {
+        index.expression = item.expression;
+      } else {
+        index.fields.push({
+          name: item.columnName,
+          order: item.columnOrder === 'D' ? 'DESC' : item.columnOrder === 'A' ? 'ASC' : undefined,
+          collate: item.columnCollation,
+        });
       }
 
-      acc.set(curr.name, {
-        primary: curr.keyType === 'P',
-        fields:
-          curr.columnOrder === 'I'
-            ? []
-            : [
-                {
-                  attribute: curr.columnName,
-                  length: undefined,
-                  order: curr.columnOrder === 'D' ? 'DESC' : 'ASC',
-                  collate: undefined,
-                },
-              ],
-        includes: curr.columnOrder === 'I' ? [curr.columnName] : [],
-        name: curr.name,
-        tableName: curr.tableName,
-        unique: curr.keyType === 'U',
-        type: curr.type,
-      });
+      indexes.set(item.name, index);
+    }
 
-      return acc;
-    }, new Map());
-
-    return Array.from(indexes.values());
+    return [...indexes.values()];
   }
 }
