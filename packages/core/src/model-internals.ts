@@ -1,6 +1,6 @@
 import { cloneDeepPlainValues, freezeDescendants } from '@sequelize/utils';
 import NodeUtil from 'node:util';
-import type { IndexOptions } from './abstract-dialect/query-interface.js';
+import type { IndexOptions } from './abstract-dialect/query-interface.types';
 import type { WhereAttributeHash } from './abstract-dialect/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
 import type { Attributes, Filterable, Model, Transactionable } from './model';
@@ -191,13 +191,19 @@ export function setTransactionFromCls(options: Transactionable, sequelize: Seque
 }
 
 export function conformIndex(index: IndexOptions): IndexOptions {
-  if ('method' in index) {
-    throw new Error('Property "method" for index definition has been renamed to "using".');
+  if (!Array.isArray(index.fields) || index.fields.length < 0) {
+    throw new Error(
+      `Property "fields" for the index definition requires an array with at least one value. Received: ${NodeUtil.inspect(index.fields)}`,
+    );
   }
 
-  if (!index.fields) {
+  if ('using' in index) {
+    throw new Error('Property "using" in the index definition has been renamed to "method".');
+  }
+
+  if ('name' in index && 'prefix' in index) {
     throw new Error(
-      `Property "fields" for index definition requires an array with at least one value. Received: ${NodeUtil.inspect(index.fields)}`,
+      'Properties "name" and "prefix" are mutually exclusive in in the index definition.',
     );
   }
 

@@ -320,6 +320,7 @@ export class SqliteQuery extends AbstractQuery {
         }
 
         return {
+          tableName: '',
           name: item.name,
           unique: Boolean(item.unique),
           primary: item.origin === 'pk',

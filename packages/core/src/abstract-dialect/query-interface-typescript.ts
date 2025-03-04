@@ -777,11 +777,11 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   /**
    * Add an index to a table
    *
-   * @param tableOrModel
+   * @param tableName
    * @param options
    */
-  async addIndex(tableOrModel: TableOrModel, options: QiAddIndexOptions): Promise<void> {
-    const sql = this.queryGenerator.addIndexQuery(tableOrModel, options);
+  async addIndex(tableName: TableOrModel, options: QiAddIndexOptions): Promise<void> {
+    const sql = this.queryGenerator.addIndexQuery(tableName, options);
 
     await this.sequelize.queryRaw(sql, {
       ...options,
@@ -793,16 +793,16 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   /**
    * Remove an index from a table
    *
-   * @param tableOrModel
+   * @param tableName
    * @param indexNameOrAttributes
    * @param options
    */
   async removeIndex(
-    tableOrModel: TableOrModel,
+    tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
     options?: QiRemoveIndexOptions,
   ): Promise<void> {
-    const sql = this.queryGenerator.removeIndexQuery(tableOrModel, indexNameOrAttributes, options);
+    const sql = this.queryGenerator.removeIndexQuery(tableName, indexNameOrAttributes, options);
 
     await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.RAW });
   }
@@ -810,14 +810,14 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   /**
    * Show indexes on a table
    *
-   * @param tableOrModel
+   * @param tableName
    * @param options
    */
   async showIndexes(
-    tableOrModel: TableOrModel,
+    tableName: TableOrModel,
     options?: QueryRawOptions,
   ): Promise<IndexDescription[]> {
-    const sql = this.queryGenerator.showIndexesQuery(tableOrModel);
+    const sql = this.queryGenerator.showIndexesQuery(tableName);
 
     return this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
   }
