@@ -73,8 +73,8 @@ export class BelongsToAssociation<
   /**
    * The column name of the foreign key
    */
-  // TODO: rename to foreignKeyColumnName
-  identifierField: string;
+
+  foreignKeyColumnName: string;
 
   /**
    * The name of the attribute the foreign key points to.
@@ -166,7 +166,7 @@ export class BelongsToAssociation<
       // TODO: fix this
       this.targetKey = null as any;
       this.foreignKey = null as any;
-      this.identifierField = null as any;
+      this.foreignKeyColumnName = '';
 
       const foreignKeyAttributeOptions = options.foreignKey;
       this.foreignKeys = foreignKeyAttributeOptions.keys as CompositeForeignKeysOptions[];
@@ -204,7 +204,7 @@ export class BelongsToAssociation<
         assert(typeof this.options?.foreignKey === 'object');
 
         foreignKeyAttributeOptions = this.options.foreignKey;
-        foreignKey = this.options.foreignKey.name || this.options.foreignKey.fieldName;
+        foreignKey = this.options.foreignKey.name;
       } else if (this.options?.foreignKey) {
         foreignKey = this.options.foreignKey;
       }
@@ -272,7 +272,7 @@ export class BelongsToAssociation<
         [this.foreignKey]: newForeignKeyAttribute,
       });
 
-      this.identifierField = getColumnName(this.source.getAttributes()[this.foreignKey]);
+      this.foreignKeyColumnName = getColumnName(this.source.getAttributes()[this.foreignKey]);
     }
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it
