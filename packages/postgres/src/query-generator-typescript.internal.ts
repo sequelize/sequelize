@@ -231,7 +231,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       throw new Error('Properties "name" and "prefix" are mutually exclusive in addIndex.');
     }
 
-    const indexOptions = { fields: [], ...options };
+    const indexOptions = { ...options };
     const columnSql = indexOptions.fields.map(column => {
       if (typeof column === 'string') {
         column = { name: column };

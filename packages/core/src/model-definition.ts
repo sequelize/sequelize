@@ -4,7 +4,8 @@ import omit from 'lodash/omit';
 import NodeUtil from 'node:util';
 import { isDataTypeClass } from './abstract-dialect/data-types-utils.js';
 import { AbstractDataType } from './abstract-dialect/data-types.js';
-import type { IndexOptions, TableNameWithSchema } from './abstract-dialect/query-interface.js';
+import type { TableNameWithSchema } from './abstract-dialect/query-interface.js';
+import type { IndexOptions } from './abstract-dialect/query-interface.types.js';
 import type { Association } from './associations/index.js';
 import * as DataTypes from './data-types.js';
 import { BaseError } from './errors/index.js';
@@ -625,8 +626,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
                 ...jsonbIndexDefaults,
               });
             } else {
-              // @ts-expect-error -- forbidden property
-              if (index.fields) {
+              if ('fields' in index) {
                 throw new Error(
                   '"fields" cannot be specified for indexes defined on attributes. Use the "indexes" option on the table definition instead. You can also customize how this attribute is part of the index by specifying the "attribute" option on the index.',
                 );

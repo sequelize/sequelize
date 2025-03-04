@@ -1,7 +1,8 @@
 import * as _inflection from 'inflection';
 import lowerFirst from 'lodash/lowerFirst';
 import NodeUtil from 'node:util';
-import type { IndexOptions, TableName } from '../abstract-dialect/query-interface.js';
+import type { TableName } from '../abstract-dialect/query-interface.js';
+import type { IndexOptions } from '../abstract-dialect/query-interface.types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 
 /* Inflection */
