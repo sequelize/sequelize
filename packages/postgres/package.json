@@ -21,7 +21,7 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "sequelize-postgres-papandreou",
+  "name": "@sequelize/postgres",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
     "build": "../../build-packages.mjs postgres",
@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@sequelize/core": "7.0.0-alpha.44-patch2",
+    "@sequelize/core": "7.0.0-alpha.45",
     "@sequelize/utils": "7.0.0-alpha.44",
     "@types/pg": "^8.11.4",
     "lodash": "^4.17.21",
