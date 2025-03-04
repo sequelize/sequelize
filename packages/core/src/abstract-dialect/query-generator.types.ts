@@ -6,8 +6,8 @@ import type { ModelDefinition } from '../model-definition.js';
 import type { TableHints } from '../table-hints';
 import type { TransactionType } from '../transaction';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
-import type { IndexOptions, TableName } from './query-interface.js';
-import type { ConstraintType } from './query-interface.types';
+import type { TableName } from './query-interface.js';
+import type { ConstraintType, IndexOptions } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;

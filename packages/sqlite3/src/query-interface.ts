@@ -5,6 +5,7 @@ import type {
   ConstraintType,
   DataType,
   DescribeTableOptions,
+  IndexDescription,
   QiDropAllTablesOptions,
   QueryRawOptions,
   RemoveColumnOptions,
@@ -456,6 +457,16 @@ export class SqliteQueryInterface<
     }
 
     return constraintData;
+  }
+
+  async showIndexes(
+    tableName: TableOrModel,
+    options?: QueryRawOptions,
+  ): Promise<IndexDescription[]> {
+    const indexes = await super.showIndexes(tableName, options);
+    const table = this.queryGenerator.extractTableDetails(tableName);
+
+    return indexes.map(index => ({ ...index, tableName: table.tableName }));
   }
 
   /**
