@@ -281,15 +281,31 @@ export interface ForeignKeyOptions<ForeignKey extends string>
   name?: ForeignKey;
 
   /**
+   * The pairs of the foreign key attributes used for composite foreign keys.
+   */
+  keys?: ForeignKey[] | CompositeForeignKeysOptions[];
+
+  /**
    * Alias of {@link ForeignKeyOptions#name}.
    *
    * @deprecated
    */
   fieldName?: string;
+
+  /**
+   * Name to give the constraint in the database
+   */
+  constraintName?: string;
 }
 
 export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
+
+/** Foreign Key Options */
+export type CompositeForeignKeysOptions = {
+  sourceKey: string;
+  targetKey: string;
+};
 
 /**
  * Options provided when associating models

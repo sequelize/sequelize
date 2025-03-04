@@ -1,7 +1,10 @@
+import isArray from 'lodash/isArray';
+import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
 import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
+import some from 'lodash/some';
 import assert from 'node:assert';
 import NodeUtils from 'node:util';
 import type { Class } from 'type-fest';
@@ -16,6 +19,7 @@ import type { OmitConstructors } from '../utils/types.js';
 import type {
   Association,
   AssociationOptions,
+  CompositeForeignKeysOptions,
   ForeignKeyOptions,
   NormalizedAssociationOptions,
 } from './base';
@@ -156,8 +160,8 @@ function getAssociationsIncompatibilityStatus(
     return IncompatibilityStatus.DIFFERENT_TARGETS;
   }
 
-  const opts1 = omit(existingAssociation.options as any, 'inverse');
-  const opts2 = omit(newOptions, 'inverse');
+  const opts1 = omit(existingAssociation.options as any, 'inverse', 'foreignKeys');
+  const opts2 = omit(newOptions, 'inverse', 'foreignKeys');
   if (!isEqual(opts1, opts2)) {
     return IncompatibilityStatus.DIFFERENT_OPTIONS;
   }
@@ -287,6 +291,8 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
     );
   }
 
+  // TODO: make sure both foreignKey.name and foreignKey.keys are not used at the same time
+
   const isMultiAssociation = associationType.isMultiAssociation;
 
   let name: { singular: string; plural: string };
@@ -324,13 +330,33 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
 export function normalizeForeignKeyOptions<T extends string>(
   foreignKey: AssociationOptions<T>['foreignKey'],
 ): ForeignKeyOptions<any> {
-  return typeof foreignKey === 'string'
-    ? { name: foreignKey }
-    : removeUndefined({
-        ...foreignKey,
-        name: foreignKey?.name ?? foreignKey?.fieldName,
-        fieldName: undefined,
-      });
+  if (typeof foreignKey === 'string') {
+    return { name: foreignKey };
+  }
+
+  const compositeFKOptions = normalizeCompositeForeignKeyOptions(foreignKey);
+
+  return removeUndefined({
+    ...foreignKey,
+    name: foreignKey?.name ?? foreignKey?.columnName,
+    keys: compositeFKOptions?.length === 0 ? undefined : compositeFKOptions,
+    fieldName: undefined,
+  });
+}
+
+// Update the option normalization logic to turn `foreignKey` and `targetKey` into `foreignKeys`,
+export function normalizeCompositeForeignKeyOptions<T extends string>(
+  foreignKey: AssociationOptions<T>['foreignKey'],
+): CompositeForeignKeysOptions[] {
+  // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
+  if (isArray(foreignKey?.keys) && !some(foreignKey?.keys, isEmpty)) {
+    // @ts-expect-error -- foreignKeys is not in the AssociationOptions type
+    return foreignKey.keys.map(fk => {
+      return typeof fk === 'string' ? { sourceKey: fk, targetKey: fk } : fk;
+    });
+  }
+
+  return [];
 }
 
 export type MaybeForwardedModelStatic<M extends Model = Model> =

@@ -705,7 +705,8 @@ ${associationOwner._getAssociationDebugList()}`);
       if (
         options.attributes &&
         options.attributes.length > 0 &&
-        !flattenDepth(options.attributes, 2).includes(association.sourceKey)
+        !flattenDepth(options.attributes, 2).includes(association.sourceKey) &&
+        association.sourceKey !== null
       ) {
         options.attributes.push(association.sourceKey);
       }
@@ -713,7 +714,8 @@ ${associationOwner._getAssociationDebugList()}`);
       if (
         include.attributes &&
         include.attributes.length > 0 &&
-        !flattenDepth(include.attributes, 2).includes(association.foreignKey)
+        !flattenDepth(include.attributes, 2).includes(association.foreignKey) &&
+        association.foreignKey !== null
       ) {
         include.attributes.push(association.foreignKey);
       }
@@ -920,6 +922,16 @@ ${associationOwner._getAssociationDebugList()}`);
 
           const currentAttribute = columnDefs[columnName];
           if (!currentAttribute) {
+            const foreignKeyConstraints = foreignKeyReferences.filter(fk =>
+              fk.columnNames.includes(columnName),
+            );
+            for (const fk of foreignKeyConstraints) {
+              if (!removedConstraints[fk.constraintName]) {
+                await this.queryInterface.removeConstraint(tableName, fk.constraintName, options);
+                removedConstraints[fk.constraintName] = true;
+              }
+            }
+
             await this.queryInterface.removeColumn(tableName, columnName, options);
             continue;
           }
@@ -963,6 +975,21 @@ ${associationOwner._getAssociationDebugList()}`);
           await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
         }
       }
+
+      for (const columnName in physicalAttributes) {
+        if (Object.hasOwn(physicalAttributes, columnName)) {
+          continue;
+        }
+
+        if (!columns[columnName] && !columns[physicalAttributes[columnName].field]) {
+          await this.queryInterface.addColumn(
+            tableName,
+            physicalAttributes[columnName].field || columnName,
+            physicalAttributes[columnName],
+            options,
+          );
+        }
+      }
     }
 
     const existingIndexes = await this.queryInterface.showIndex(tableName, options);
@@ -986,6 +1013,53 @@ ${associationOwner._getAssociationDebugList()}`);
     for (const index of missingIndexes) {
       // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
       await this.queryInterface.addIndex(tableName, index, options);
+    }
+
+    const existingConstraints = await this.queryInterface.showConstraints(tableName, {
+      ...options,
+      constraintType: 'FOREIGN KEY',
+    });
+
+    const associations = Object.values(this.modelDefinition.associations)
+      .filter(association => {
+        return association.options?.foreignKey?.keys?.length > 0;
+      })
+      .filter(association => {
+        return association.options?.foreignKeyConstraints !== false;
+      })
+      .filter(association => {
+        return association.associationType === 'BelongsTo';
+      });
+
+    const createdForeignKeysFromAssociations = new Set();
+    for (const association of associations) {
+      const foreignKey = association.options.foreignKey;
+      const sourceKeyFields = foreignKey.keys.map(k => k.sourceKey);
+      const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
+      const modelKeysMatch = isEqual(sourceKeyFields, targetKeyFields);
+      const constraintName =
+        foreignKey.constraintName ||
+        (modelKeysMatch
+          ? `${tableName.tableName}_${sourceKeyFields.join('_')}_fkey`
+          : `${tableName.tableName}_${sourceKeyFields.join('_')}_${association.target.modelDefinition.table.tableName}_${targetKeyFields.join('_')}_fkey`);
+
+      if (
+        !existingConstraints.some(constraint => constraint.constraintName === constraintName) &&
+        !createdForeignKeysFromAssociations.has(constraintName)
+      ) {
+        await this.queryInterface.addConstraint(tableName.tableName, {
+          fields: sourceKeyFields,
+          type: 'FOREIGN KEY',
+          name: constraintName,
+          references: {
+            table: association.target.modelDefinition.table,
+            fields: targetKeyFields,
+          },
+          onDelete: foreignKey.onDelete,
+          onUpdate: foreignKey.onUpdate,
+        });
+        createdForeignKeysFromAssociations.add(constraintName);
+      }
     }
 
     if (options.hooks) {
@@ -1544,15 +1618,96 @@ ${associationOwner._getAssociationDebugList()}`);
           ...omit(include, ['parent', 'association', 'as', 'originalAttributes']),
         });
 
+        const mapKeys = map.keys();
+
+        // TODO: maybe use some other approach to add composite-keys to the map and check
+        let isComposite = false;
+        for (const key of mapKeys) {
+          if (key.includes('&')) {
+            isComposite = true;
+            break;
+          }
+        }
+
         for (const result of results) {
-          result.set(include.association.as, map.get(result.get(include.association.sourceKey)), {
-            raw: true,
-          });
+          if (isComposite) {
+            const mapKeyValues = [];
+            const fKeys = include.association.foreignKeys;
+            for (const fKey of fKeys) {
+              mapKeyValues.push(result[fKey.sourceKey]);
+            }
+
+            const mapKey = mapKeyValues.join('&');
+            result.set(include.association.as, map.get(mapKey), { raw: true });
+          } else {
+            result.set(
+              include.association.as,
+              map.get(`${result.get(include.association.sourceKey)}`),
+              {
+                raw: true,
+              },
+            );
+          }
         }
       }),
     );
 
     return original;
+  }
+
+  /**
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
+   *
+   * @param  {number|bigint|string|Buffer|object}      param The value of the desired instance's primary key.
+   * @param  {object}                                  [options] find options
+   * @returns {Promise<Model|null>}
+   */
+  static async findByPk(param, options) {
+    // return Promise resolved with null if no arguments are passed
+    if (param == null) {
+      return null;
+    }
+
+    options = cloneDeep(options) ?? {};
+
+    const hasCompositeKey = Object.keys(this.primaryKeys).length > 1;
+    if (hasCompositeKey && !isPlainObject(param)) {
+      throw new TypeError(
+        `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }`,
+      );
+    } else if (hasCompositeKey && isPlainObject(param)) {
+      // composite primary key support
+      options.where = {};
+      for (const pkMetadata of Object.values(this.primaryKeys)) {
+        if (param[pkMetadata.columnName] !== undefined) {
+          options.where[pkMetadata.columnName] = param[pkMetadata.columnName];
+        }
+      }
+
+      if (Object.keys(this.primaryKeys).length !== Object.keys(options.where).length) {
+        throw new TypeError('Primary key mismatch. Please pass all primary keys');
+      }
+    } else if (
+      typeof param === 'number' ||
+      typeof param === 'bigint' ||
+      typeof param === 'string' ||
+      Buffer.isBuffer(param)
+    ) {
+      options.where = {
+        // TODO: support composite primary keys
+        [this.primaryKeyAttribute]: param,
+      };
+    } else {
+      throw new TypeError(`Argument passed to findByPk is invalid: ${param}`);
+    }
+
+    // Bypass a possible overloaded findOne
+    return await Model.findOne.call(this, options);
   }
 
   /**
