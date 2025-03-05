@@ -33,10 +33,13 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
@@ -57,10 +60,13 @@ describe('QueryInterface#bulkInsert', () => {
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
@@ -91,14 +97,15 @@ describe('QueryInterface#bulkInsert', () => {
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
+      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);'),
       'mysql mariadb sqlite3': toMatchSql(
-        "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
+        'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1);',
       ),
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
       // TODO: db2 should use the same system as ibmi
+      db2: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       ibmi: toMatchSql(
-        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
+        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
       ),
     });
   });

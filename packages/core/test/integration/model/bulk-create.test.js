@@ -192,10 +192,18 @@ describe('Model', () => {
                 break;
               }
 
-              default: {
-                // mysql, sqlite3
+              case 'sqlite3': {
                 expect(sql).to.include(
-                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL',
+                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES ($sequelize_1',
+                );
+
+                break;
+              }
+
+              default: {
+                // mysql
+                expect(sql).to.include(
+                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (?',
                 );
               }
             }

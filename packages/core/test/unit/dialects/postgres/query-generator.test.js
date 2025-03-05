@@ -560,16 +560,35 @@ if (dialect.startsWith('postgres')) {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation:
-            'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT DO NOTHING;',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2) ON CONFLICT DO NOTHING;',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { returning: true }],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING *;',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2) RETURNING *;',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -577,8 +596,14 @@ if (dialect.startsWith('postgres')) {
             [{ name: 'foo' }, { name: 'bar' }],
             { returning: ['id', 'sentToId'] },
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') RETURNING "id", "sentToId";',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2) RETURNING "id", "sentToId";',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -586,13 +611,24 @@ if (dialect.startsWith('postgres')) {
             [{ name: 'foo' }, { name: 'bar' }],
             { ignoreDuplicates: true, returning: true },
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT DO NOTHING RETURNING *;',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2) ON CONFLICT DO NOTHING RETURNING *;',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation:
-            "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: "foo';DROP TABLE myTable;",
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -608,8 +644,16 @@ if (dialect.startsWith('postgres')) {
               },
             ],
           ],
-          expectation:
-            "INSERT INTO \"myTable\" (\"name\",\"birthday\") VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","birthday") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: '2011-03-27 10:01:55.000 +00:00',
+              sequelize_3: 'bar',
+              sequelize_4: '2012-03-27 10:01:55.000 +00:00',
+            },
+          },
         },
         {
           arguments: [
@@ -619,7 +663,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', foo: 2 },
             ],
           ],
-          expectation: 'INSERT INTO "myTable" ("name","foo") VALUES (\'foo\',1),(\'bar\',2);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: 'bar',
+              sequelize_4: 2,
+            },
+          },
         },
         {
           arguments: [
@@ -629,8 +682,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","nullValue") VALUES (\'foo\',NULL),(\'bar\',NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: null,
+            },
+          },
         },
         {
           arguments: [
@@ -640,8 +701,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","nullValue") VALUES (\'foo\',NULL),(\'bar\',NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: null,
+            },
+          },
           context: { options: { omitNull: false } },
         },
         {
@@ -652,8 +721,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","nullValue") VALUES (\'foo\',NULL),(\'bar\',NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: null,
+            },
+          },
           context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         },
         {
@@ -664,8 +741,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: undefined },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","nullValue") VALUES (\'foo\',NULL),(\'bar\',NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","nullValue") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: null,
+            },
+          },
           context: { options: { omitNull: true } }, // Note: As above
         },
         {
@@ -673,7 +758,14 @@ if (dialect.startsWith('postgres')) {
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
           ],
-          expectation: 'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          expectation: {
+            query:
+              'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -683,16 +775,28 @@ if (dialect.startsWith('postgres')) {
               { name: JSON.stringify({ info: 'Look ma another " quote' }) },
             ],
           ],
-          expectation:
-            'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'{"info":"Look ma a \\" quote"}\'),(\'{"info":"Look ma another \\" quote"}\');',
+          expectation: {
+            query:
+              'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: '{"info":"Look ma a \\" quote"}',
+              sequelize_2: '{"info":"Look ma another \\" quote"}',
+            },
+          },
         },
         {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }],
           ],
-          expectation:
-            'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'\';DROP TABLE mySchema.myTable;\'),(\'bar\');',
+          expectation: {
+            query:
+              'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: "foo';DROP TABLE mySchema.myTable;",
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -700,19 +804,37 @@ if (dialect.startsWith('postgres')) {
             [{ name: 'foo' }, { name: 'bar' }],
             { updateOnDuplicate: ['name'], upsertKeys: ['name'] },
           ],
-          expectation:
-            'INSERT INTO "mySchema"."myTable" ("name") VALUES (\'foo\'),(\'bar\') ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name";',
+          expectation: {
+            query:
+              'INSERT INTO "mySchema"."myTable" ("name") VALUES ($sequelize_1),($sequelize_2) ON CONFLICT ("name") DO UPDATE SET "name"=EXCLUDED."name";',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
 
         // Variants when quoteIdentifiers is false
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO myTable (name) VALUES ('foo'),('bar');",
+          expectation: {
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation: "INSERT INTO myTable (name) VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          expectation: {
+            query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: "foo';DROP TABLE myTable;",
+              sequelize_2: 'bar',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -729,8 +851,16 @@ if (dialect.startsWith('postgres')) {
               },
             ],
           ],
-          expectation:
-            "INSERT INTO myTable (name,birthday) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+          expectation: {
+            query:
+              'INSERT INTO myTable (name,birthday) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: '2011-03-27 10:01:55.000 +00:00',
+              sequelize_3: 'bar',
+              sequelize_4: '2012-03-27 10:01:55.000 +00:00',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -741,7 +871,16 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', foo: 2 },
             ],
           ],
-          expectation: "INSERT INTO myTable (name,foo) VALUES ('foo',1),('bar',2);",
+          expectation: {
+            query:
+              'INSERT INTO myTable (name,foo) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: 'bar',
+              sequelize_4: 2,
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -752,7 +891,15 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation: `INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);`,
+          expectation: {
+            query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: null,
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -763,7 +910,10 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation: `INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);`,
+          expectation: {
+            query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
+            bind: { sequelize_1: 'foo', sequelize_2: null, sequelize_3: 'bar', sequelize_4: null },
+          },
           context: { options: { quoteIdentifiers: false, omitNull: false } },
         },
         {
@@ -774,7 +924,10 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation: `INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);`,
+          expectation: {
+            query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
+            bind: { sequelize_1: 'foo', sequelize_2: null, sequelize_3: 'bar', sequelize_4: null },
+          },
           context: { options: { omitNull: true, quoteIdentifiers: false } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         },
         {
@@ -785,7 +938,10 @@ if (dialect.startsWith('postgres')) {
               { name: 'bar', nullValue: undefined },
             ],
           ],
-          expectation: `INSERT INTO myTable (name,nullValue) VALUES ('foo',NULL),('bar',NULL);`,
+          expectation: {
+            query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
+            bind: { sequelize_1: 'foo', sequelize_2: null, sequelize_3: 'bar', sequelize_4: null },
+          },
           context: { options: { omitNull: true, quoteIdentifiers: false } }, // Note: As above
         },
         {
@@ -793,7 +949,13 @@ if (dialect.startsWith('postgres')) {
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
           ],
-          expectation: `INSERT INTO mySchema.myTable (name) VALUES ('foo'),('bar');`,
+          expectation: {
+            query: `INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);`,
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -804,8 +966,13 @@ if (dialect.startsWith('postgres')) {
               { name: JSON.stringify({ info: 'Look ma another " quote' }) },
             ],
           ],
-          expectation:
-            'INSERT INTO mySchema.myTable (name) VALUES (\'{"info":"Look ma a \\" quote"}\'),(\'{"info":"Look ma another \\" quote"}\');',
+          expectation: {
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: '{"info":"Look ma a \\" quote"}',
+              sequelize_2: '{"info":"Look ma another \\" quote"}',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
         {
@@ -813,8 +980,13 @@ if (dialect.startsWith('postgres')) {
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }],
           ],
-          expectation:
-            "INSERT INTO mySchema.myTable (name) VALUES ('foo'';DROP TABLE mySchema.myTable;'),('bar');",
+          expectation: {
+            query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: "foo';DROP TABLE mySchema.myTable;",
+              sequelize_2: 'bar',
+            },
+          },
           context: { options: { quoteIdentifiers: false } },
         },
       ],
