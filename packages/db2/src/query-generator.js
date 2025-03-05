@@ -343,7 +343,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     const generatedQuery = template(allQueries.join(';'), this._templateSettings)(replacements);
 
-    return generatedQuery;
+    return { query: generatedQuery };
   }
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
