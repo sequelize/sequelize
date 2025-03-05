@@ -12985,9 +12985,9 @@ __metadata:
   linkType: hard
 
 "postgres-array@npm:^3.0.2, postgres-array@npm:~3.0.1":
-  version: 3.0.2
-  resolution: "postgres-array@npm:3.0.2"
-  checksum: 10c0/644aa071f67a66a59f641f8e623887d2b915bc102a32643e2aa8b54c11acd343c5ad97831ea444dd37bd4b921ba35add4aa2cb0c6b76700a8252c2324aeba5b4
+  version: 3.0.3
+  resolution: "postgres-array@npm:3.0.3"
+  checksum: 10c0/16a4300e29c9817ffe3dc9f9fd7eb5c9b20b43dda2ab623e9317cef3286588354c9868ab0578b9e0e767a8386dc5e2e37c36fb96f8341538e93195d088d2ca50
   languageName: node
   linkType: hard
 
