@@ -124,19 +124,19 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_2: 2,
         },
         snowflake: {
-          sequelize_1: '2011-03-27 10:01:55.000',
+          sequelize_1: '2011-03-27 10:01:55.000+00:00',
           sequelize_2: 2,
         },
         sqlite3: {
-          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_1: '2011-03-27 10:01:55.000+00:00',
           sequelize_2: 2,
         },
         postgres: {
-          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_1: '2011-03-27 10:01:55.000+00:00',
           sequelize_2: 2,
         },
         mssql: {
-          sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_1: '2011-03-27 10:01:55.000+00:00',
           sequelize_2: 2,
         },
       },
