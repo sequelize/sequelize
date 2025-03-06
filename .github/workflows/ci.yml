@@ -285,7 +285,7 @@ jobs:
       matrix:
         node-version: [18, 20]
     name: mssql oldest (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [unit-test, test-typings]
     env:
       DIALECT: mssql
