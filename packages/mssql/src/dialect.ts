@@ -113,14 +113,14 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
       },
       options,
       dataTypesDocumentationUrl:
-        'https://msdn.microsoft.com/en-us/library/ms187752%28v=sql.110%29.aspx',
-      // SQL Server 2017 Express (version 14), minimum supported version, all the way
+        'https://learn.microsoft.com/en-us/sql/t-sql/data-types/data-types-transact-sql?view=sql-server-ver15',
+      // SQL Server 2019 Express (version 15), minimum supported version, all the way
       // up to the most recent version. When increasing this version, remember to
       // update also the minimum version in the documentation at
       //   https://github.com/sequelize/website/blob/main/docs/other-topics/dialect-specific-things.md
       // and set the relevant years for the mssql Docker images in the ci.yml file at
       //   .github/workflows/ci.yml
-      minimumDatabaseVersion: '14.0.1000',
+      minimumDatabaseVersion: '15.0.2000',
     });
 
     this.connectionManager = new MsSqlConnectionManager(this);
