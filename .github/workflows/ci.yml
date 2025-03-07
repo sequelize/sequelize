@@ -64,6 +64,11 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Resolve incompatibities
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y systemd
+          sudo sysctl kernel.dmesg_restrict=0
       - run: yarn start-mssql-oldest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
