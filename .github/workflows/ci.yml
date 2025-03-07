@@ -49,7 +49,7 @@ jobs:
       matrix:
         node-version: [18, 20]
     name: mssql oldest (Node ${{ matrix.node-version }})
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     needs: install-and-build
     env:
       DIALECT: mssql
@@ -64,6 +64,32 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Install dependencies for newer glibc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget build-essential
+      - name: Download and install glibc 2.32
+        run: |
+          GLIBC_VERSION=2.32
+          GLIBC_DOWNLOAD_URL=http://ftp.gnu.org/gnu/libc/glibc-${GLIBC_VERSION}.tar.gz
+
+          # Download glibc source
+          wget ${GLIBC_DOWNLOAD_URL} -O /tmp/glibc-${GLIBC_VERSION}.tar.gz
+          tar -xvzf /tmp/glibc-${GLIBC_VERSION}.tar.gz -C /tmp
+
+          # Build and install glibc
+          mkdir /tmp/glibc-${GLIBC_VERSION}/build
+          cd /tmp/glibc-${GLIBC_VERSION}/build
+          ../configure --prefix=/opt/glibc-${GLIBC_VERSION} --disable-werror
+          make -j$(nproc)
+          sudo make install
+
+          # Add new glibc to the environment variables
+          echo "/opt/glibc-${GLIBC_VERSION}/lib" | sudo tee -a /etc/ld.so.conf.d/glibc-${GLIBC_VERSION}.conf
+          sudo ldconfig
+      - name: Check glibc version
+        run: |
+          ldd --version
       - run: yarn start-mssql-oldest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
