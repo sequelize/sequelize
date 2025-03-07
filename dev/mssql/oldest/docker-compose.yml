@@ -29,6 +29,11 @@ services:
       interval: 3s
       timeout: 1s
       retries: 10
+    cap_add:
+      - SYS_PTRACE
+      - SYSLOG
+    ulimits:
+      memlock: -1
 
 networks:
   default:
