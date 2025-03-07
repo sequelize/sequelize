@@ -30,6 +30,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      - name: Set Db2 clidriver version
+        run: yarn config set clidriver v11.5.9
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
@@ -64,21 +66,6 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      # The following step needs to be removed once we can update to ubuntu-22.04
-      - name: Install glibc 2.32 from pre-built binaries
-        run: |
-          GLIBC_VERSION=2.32
-          GLIBC_DOWNLOAD_URL=http://ftp.debian.org/debian/pool/main/g/glibc/glibc_${GLIBC_VERSION}-0ubuntu1_amd64.deb
-
-          # Download the pre-built glibc binary
-          wget ${GLIBC_DOWNLOAD_URL} -O /tmp/glibc_${GLIBC_VERSION}.deb
-          
-          # Install glibc package
-          sudo dpkg -i /tmp/glibc_${GLIBC_VERSION}.deb
-          sudo apt-get -f install  # Fix any broken dependencies
-      - name: Check glibc version
-        run: |
-          ldd --version
       - run: yarn start-mssql-oldest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
