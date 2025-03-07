@@ -13,6 +13,17 @@ services:
     security_opt:
       - seccomp:unconfined
     privileged: true
+    sysctls:
+      kernel.unprivileged_userns_clone: "1"
+      net.ipv4.ip_unprivileged_port_start: "0"
+    cap_add:
+      - SYS_PTRACE
+      - SYSLOG
+    ulimits:
+      memlock: -1
+      nofile:
+        soft: 65535
+        hard: 65535
     healthcheck:
       test:
         [
@@ -32,11 +43,6 @@ services:
       interval: 3s
       timeout: 1s
       retries: 10
-    cap_add:
-      - SYS_PTRACE
-      - SYSLOG
-    ulimits:
-      memlock: -1
 
 networks:
   default:
