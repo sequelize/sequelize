@@ -10,6 +10,9 @@ services:
       - 22019:1433
     volumes:
       - mssql-oldest:/var/opt/mssql
+    security_opt:
+      - seccomp:unconfined
+    privileged: true
     healthcheck:
       test:
         [
