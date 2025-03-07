@@ -7,6 +7,8 @@ docker compose -p sequelize-mssql-oldest up -d
 
 ./../../wait-until-healthy.sh sequelize-mssql-oldest
 
+docker logs sequelize-mssql-oldest
+
 docker exec sequelize-mssql-oldest \
   /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
 
