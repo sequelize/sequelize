@@ -5,7 +5,7 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 docker compose -p sequelize-mssql-oldest down --remove-orphans
 docker compose -p sequelize-mssql-oldest up -d
 
-./../../wait-until-healthy.sh sequelize-mssql-oldest
+sleep 10
 
 docker logs sequelize-mssql-oldest
 
