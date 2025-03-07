@@ -14,7 +14,6 @@ services:
       - seccomp:unconfined
     privileged: true
     sysctls:
-      kernel.unprivileged_userns_clone: "1"
       net.ipv4.ip_unprivileged_port_start: "0"
     cap_add:
       - SYS_PTRACE
