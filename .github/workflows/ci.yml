@@ -30,10 +30,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - name: Set Db2 clidriver version
-        run: yarn config set clidriver v11.5.9
       - name: Install dependencies
         run: yarn install --immutable
+      - name: Set Db2 clidriver version
+        run: yarn config set clidriver v11.5.9
       - name: Build sequelize
         run: yarn build
       - name: Reset NX cache

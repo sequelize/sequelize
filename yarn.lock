@@ -2813,7 +2813,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/ibm_db": "npm:^3.0.0"
     dayjs: "npm:^1.11.10"
-    ibm_db: "npm:^3.2.3"
+    ibm_db: "npm:^3.3.0"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -4368,10 +4368,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"adm-zip@npm:^0.5.10":
-  version: 0.5.10
-  resolution: "adm-zip@npm:0.5.10"
-  checksum: 10c0/1f391a4e02940688b6ca6d4b3ea96cc82a9dbe1596671d7dbc052f9a53ed2efa6ba9ba253f032ea16e70081f22d6ddd1af2d65d6be700853cdee9c2fc925c20e
+"adm-zip@npm:^0.5.16":
+  version: 0.5.16
+  resolution: "adm-zip@npm:0.5.16"
+  checksum: 10c0/6f10119d4570c7ba76dcf428abb8d3f69e63f92e51f700a542b43d4c0130373dd2ddfc8f85059f12d4a843703a90c3970cfd17876844b4f3f48bf042bfa6b49f
   languageName: node
   linkType: hard
 
@@ -4880,7 +4880,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.2, axios@npm:^1.7.4, axios@npm:^1.7.7":
+"axios@npm:^1.7.4, axios@npm:^1.7.7":
   version: 1.7.9
   resolution: "axios@npm:1.7.9"
   dependencies:
@@ -8730,20 +8730,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^3.2.3":
-  version: 3.2.4
-  resolution: "ibm_db@npm:3.2.4"
+"ibm_db@npm:^3.3.0":
+  version: 3.3.0
+  resolution: "ibm_db@npm:3.3.0"
   dependencies:
-    adm-zip: "npm:^0.5.10"
-    axios: "npm:^1.6.2"
+    adm-zip: "npm:^0.5.16"
+    axios: "npm:^1.7.4"
     big-integer: "npm:^1.6.51"
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
     lodash: "npm:^4.17.21"
-    nan: "npm:^2.18.0"
+    nan: "npm:^2.22.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/0c7599ee02d6bb257b491fd72aa5ef3a0090f47321fd375d602fc6c0fa1420551db1a260835c715e77b29e265f3230c5e27987358f19e87a6dbc579c6460f2cf
+  checksum: 10c0/46305113b8428703bb3cc05f13ea1f64bae0de80a3293fbf8c13c9ee7a9eef288962c47eec58230af698559c7dc3505f26c6e514b99275d0a0e045232e1468e0
   languageName: node
   linkType: hard
 
@@ -11431,12 +11431,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.18.0":
-  version: 2.19.0
-  resolution: "nan@npm:2.19.0"
+"nan@npm:^2.22.0":
+  version: 2.22.2
+  resolution: "nan@npm:2.22.2"
   dependencies:
     node-gyp: "npm:latest"
-  checksum: 10c0/b8d05d75f92ee9d94affa50d0aa41b6c698254c848529452d7ab67c2e0d160a83f563bfe2cbd53e077944eceb48c757f83c93634c7c9ff404c9ec1ed4e5ced1a
+  checksum: 10c0/971f963b8120631880fa47a389c71b00cadc1c1b00ef8f147782a3f4387d4fc8195d0695911272d57438c11562fb27b24c4ae5f8c05d5e4eeb4478ba51bb73c5
   languageName: node
   linkType: hard
 
