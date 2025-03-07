@@ -94,7 +94,7 @@ export interface NormalizedReplicationOptions<Dialect extends AbstractDialect> {
   write: ConnectionOptions<Dialect>;
 }
 
-export type DialectName = (typeof SUPPORTED_DIALECTS)[number];
+export type DialectName = string; // Allows support for custom dialects
 
 export interface LegacyDialectOptions {
   [key: string]: any;
