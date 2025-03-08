@@ -1,3 +1,4 @@
+import { intersperse } from '@sequelize/utils';
 import { attribute } from './attribute.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 import { cast } from './cast.js';
@@ -31,11 +32,29 @@ export function sql(rawSql: TemplateStringsArray, ...values: unknown[]): Literal
     if (i < values.length) {
       const value = values[i];
 
-      arg.push(value instanceof BaseSqlExpression ? value : new Value(value));
+      arg.push(wrapValue(value));
     }
   }
 
   return new Literal(arg);
+}
+
+function wrapValue(value: unknown): BaseSqlExpression {
+  return value instanceof BaseSqlExpression ? value : new Value(value);
+}
+
+/**
+ * A version of {@link Array#join}, but for SQL expressions.
+ * Using {@link Array#join} directly would not work, because the end result would be a string, not a SQL expression.
+ *
+ * @param parts The parts to join. Each part can be a SQL expression, or a value to escape.
+ * @param separator A raw SQL string, or a SQL expression to separate each pair of adjacent elements of the array.
+ * @returns A SQL expression representing the concatenation of all parts, interspersed with the separator.
+ */
+function joinSql(parts: unknown[], separator: string | BaseSqlExpression) {
+  const escapedParts = parts.map(wrapValue);
+
+  return new Literal(separator ? intersperse(escapedParts, separator) : escapedParts);
 }
 
 // The following builders are not listed here for the following reasons:
@@ -54,3 +73,4 @@ sql.where = where;
 sql.uuidV4 = SqlUuidV4.build();
 sql.uuidV1 = SqlUuidV1.build();
 sql.unquote = Unquote.build.bind(Unquote);
+sql.join = joinSql;
