@@ -7,6 +7,7 @@
   ],
   "automergeStrategy": "squash",
   "automergeType": "branch",
+  "branchConcurrentLimit": 1,
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "platformAutomerge": true,
@@ -16,6 +17,7 @@
       "automerge": true
     }
   ],
+  "rangeStrategy": "bump",
   "labels": ["no-autoupdate"],
   "postUpdateOptions": ["yarnDedupeHighest"]
 }
