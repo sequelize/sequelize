@@ -1,5 +1,5 @@
 import type { RequiredBy } from '@sequelize/utils';
-import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, isString, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -752,7 +752,15 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (piece instanceof Identifier) {
-      return this.quoteIdentifier(piece.value);
+      return piece.values
+        .map(value => {
+          if (isString(value)) {
+            return this.quoteIdentifier(value);
+          }
+
+          return this.quoteTable(value);
+        })
+        .join('.');
     }
 
     if (piece instanceof Cast) {
