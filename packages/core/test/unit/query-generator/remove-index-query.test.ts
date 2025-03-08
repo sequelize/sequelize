@@ -2,10 +2,7 @@ import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
-
-const notImplementedError = new Error(
-  `removeIndexQuery has not been implemented in ${dialect.name}.`,
-);
+const notSupportedError = new Error(`Indexes are not supported by the ${dialect.name} dialect.`);
 
 describe('QueryGenerator#removeIndexQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -13,22 +10,16 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [myTable]`,
-      sqlite3: 'DROP INDEX `user_foo_bar`',
-      ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      snowflake: notSupportedError,
+      'db2 ibmi postgres sqlite3': `DROP INDEX [user_foo_bar]`,
     });
   });
 
   it('produces a DROP INDEX query from a table with attributes', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', ['foo', 'bar']), {
       default: `DROP INDEX [my_table_foo_bar] ON [myTable]`,
-      sqlite3: 'DROP INDEX `my_table_foo_bar`',
-      ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "my_table_foo_bar"`,
-      postgres: `DROP INDEX "public"."my_table_foo_bar"`,
-      snowflake: notImplementedError,
+      snowflake: notSupportedError,
+      'db2 ibmi postgres sqlite3': `DROP INDEX [my_table_foo_bar]`,
     });
   });
 
@@ -39,8 +30,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
         default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'concurrently',
         ]),
-        postgres: `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        postgres: `DROP INDEX CONCURRENTLY "user_foo_bar"`,
+        snowflake: notSupportedError,
       },
     );
   });
@@ -50,13 +41,11 @@ describe('QueryGenerator#removeIndexQuery', () => {
       () => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { ifExists: true }),
       {
         default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable]`,
-        sqlite3: 'DROP INDEX IF EXISTS `user_foo_bar`',
-        postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
-        ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
-        snowflake: notImplementedError,
+        snowflake: notSupportedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'ifExists',
         ]),
+        'ibmi postgres sqlite3': `DROP INDEX IF EXISTS [user_foo_bar]`,
       },
     );
   });
@@ -64,8 +53,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
   it('produces a DROP INDEX with CASCADE query from a table', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true }), {
       default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
-      postgres: `DROP INDEX "public"."user_foo_bar" CASCADE`,
-      snowflake: notImplementedError,
+      postgres: `DROP INDEX "user_foo_bar" CASCADE`,
+      snowflake: notSupportedError,
     });
   });
 
@@ -77,18 +66,13 @@ describe('QueryGenerator#removeIndexQuery', () => {
           ifExists: true,
         }),
       {
-        default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable] CASCADE`,
-        postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar" CASCADE`,
-        snowflake: notImplementedError,
+        default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
+        postgres: `DROP INDEX IF EXISTS "user_foo_bar" CASCADE`,
+        snowflake: notSupportedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'cascade',
           'ifExists',
         ]),
-        'ibmi mariadb mssql sqlite3': buildInvalidOptionReceivedError(
-          'removeIndexQuery',
-          dialect.name,
-          ['cascade'],
-        ),
       },
     );
   });
@@ -101,18 +85,15 @@ describe('QueryGenerator#removeIndexQuery', () => {
           ifExists: true,
         }),
       {
-        default: `DROP INDEX CONCURRENTLY IF EXISTS [user_foo_bar] ON [myTable]`,
-        postgres: `DROP INDEX CONCURRENTLY IF EXISTS "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
+          'concurrently',
+        ]),
+        postgres: `DROP INDEX CONCURRENTLY IF EXISTS "user_foo_bar"`,
+        snowflake: notSupportedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'concurrently',
           'ifExists',
         ]),
-        'ibmi mariadb mssql sqlite3': buildInvalidOptionReceivedError(
-          'removeIndexQuery',
-          dialect.name,
-          ['concurrently'],
-        ),
       },
     );
   });
@@ -130,9 +111,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
           'concurrently',
         ]),
         postgres: new Error(
-          `Cannot specify both concurrently and cascade options in removeIndexQuery for ${dialect.name} dialect`,
+          'Cannot specify both concurrently and cascade options in removeIndexQuery.',
         ),
-        snowflake: notImplementedError,
+        snowflake: notSupportedError,
       },
     );
   });
@@ -142,11 +123,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
     expectsql(() => queryGenerator.removeIndexQuery(MyModel, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
-      sqlite3: 'DROP INDEX `user_foo_bar`',
-      ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      snowflake: notSupportedError,
+      'db2 ibmi postgres sqlite3': `DROP INDEX [user_foo_bar]`,
     });
   });
 
@@ -156,11 +134,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
 
     expectsql(() => queryGenerator.removeIndexQuery(myDefinition, 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
-      sqlite3: 'DROP INDEX `user_foo_bar`',
-      ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
-      postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      snowflake: notSupportedError,
+      'db2 ibmi postgres sqlite3': `DROP INDEX [user_foo_bar]`,
     });
   });
 
@@ -174,10 +149,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
       {
         default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
         sqlite3: 'DROP INDEX `user_foo_bar`',
-        postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
-        ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-        db2: `DROP INDEX "user_foo_bar"`,
-        snowflake: notImplementedError,
+        snowflake: notSupportedError,
+        'db2 ibmi postgres': `DROP INDEX "mySchema"."user_foo_bar"`,
       },
     );
   });
@@ -191,11 +164,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
         ),
       {
         default: `DROP INDEX [user_foo_bar] ON [myTable]`,
-        sqlite3: 'DROP INDEX `user_foo_bar`',
-        ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-        db2: `DROP INDEX "user_foo_bar"`,
-        postgres: `DROP INDEX "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        snowflake: notSupportedError,
+        'db2 ibmi postgres sqlite3': `DROP INDEX [user_foo_bar]`,
       },
     );
   });
@@ -207,10 +177,8 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGeneratorSchema.removeIndexQuery('myTable', 'user_foo_bar'), {
       default: `DROP INDEX [user_foo_bar] ON [mySchema].[myTable]`,
       sqlite3: 'DROP INDEX `user_foo_bar`',
-      postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
-      ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: 'DROP INDEX "user_foo_bar"',
-      snowflake: notImplementedError,
+      snowflake: notSupportedError,
+      'db2 ibmi postgres': `DROP INDEX "mySchema"."user_foo_bar"`,
     });
   });
 });

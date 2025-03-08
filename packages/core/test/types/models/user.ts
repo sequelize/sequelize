@@ -73,7 +73,7 @@ User.init(
     indexes: [
       {
         fields: ['firstName'],
-        using: 'BTREE',
+        method: 'BTREE',
         name: 'firstNameIdx',
         concurrently: true,
       },
@@ -83,9 +83,9 @@ User.init(
 );
 
 User.afterSync(() => {
-  sequelize.queryInterface.addIndex(User.table, {
+  sequelize.queryInterface.addIndex(User, {
     fields: ['lastName'],
-    using: 'BTREE',
+    method: 'BTREE',
     name: 'lastNameIdx',
     concurrently: true,
   });

@@ -216,19 +216,16 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         fields: ['firstName', 'country'],
-        column: 'firstName',
         unique: true,
         name: 'firstName-country',
       },
       {
         fields: ['firstName', 'lastName'],
-        column: 'firstName',
         unique: true,
         name: 'firstName-lastName',
       },
       {
         fields: ['firstName'],
-        column: 'firstName',
         unique: true,
         name: 'users_first_name_unique',
       },
@@ -267,12 +264,10 @@ describe(`@Attribute legacy decorator`, () => {
     expect(User.getIndexes()).to.deep.equal([
       {
         fields: ['first_name'],
-        column: 'firstName',
         name: 'users_first_name',
       },
       {
         fields: ['first_name', 'country'],
-        column: 'firstName',
         name: 'firstName-country',
       },
       {
@@ -283,7 +278,6 @@ describe(`@Attribute legacy decorator`, () => {
             name: 'lastName',
           },
         ],
-        column: 'firstName',
         name: 'firstName-lastName',
       },
     ]);

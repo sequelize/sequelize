@@ -657,12 +657,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             );
             break;
 
-          case 'mysql':
-            expect(error.cause.message).to.match(
-              /Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/,
-            );
-            break;
-
           case 'postgres':
             expect(error.cause.message).to.equal(
               'duplicate key value violates unique constraint "users_username_unique"',
@@ -676,8 +670,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           default:
-            expect(error.cause.message).to.contain(
-              "Duplicate entry 'foo' for key 'users_username_unique'",
+            expect(error.cause.message).to.match(
+              /Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/,
             );
         }
       }

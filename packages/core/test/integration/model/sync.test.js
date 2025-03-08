@@ -705,11 +705,11 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
 });
 
 async function getNonPrimaryIndexes(model) {
-  return (await sequelize.queryInterface.showIndex(model.table))
-    .filter(r => !r.primary)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const indexes = await sequelize.queryInterface.showIndexes(model);
+
+  return indexes.filter(r => !r.primary).sort((a, b) => a.name.localeCompare(b.name));
 }
 
 function getIndexFields(index) {
-  return index.fields.map(field => field.attribute).sort();
+  return index.fields.map(field => field.name).sort();
 }

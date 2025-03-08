@@ -862,7 +862,8 @@ describe('Model', () => {
 
             // We don't want to create this index with the table, since we don't want our sequelize instance
             // to know it exists.  This prevents it from being inferred.
-            await this.customSequelize.queryInterface.addIndex('permissions', ['user_id'], {
+            await this.customSequelize.queryInterface.addIndex('permissions', {
+              fields: ['user_id'],
               unique: true,
             });
 

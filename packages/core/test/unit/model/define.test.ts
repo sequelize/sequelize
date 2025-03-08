@@ -116,7 +116,6 @@ describe('Model', () => {
       expect(User.getIndexes()).to.deep.equal([
         {
           fields: ['firstName'],
-          column: 'firstName',
           unique: true,
           name: 'users_first_name_unique',
         },
@@ -138,7 +137,6 @@ describe('Model', () => {
       expect(User.getIndexes()).to.deep.equal([
         {
           fields: ['firstName', 'lastName'],
-          column: 'firstName',
           unique: true,
           name: 'firstName-lastName',
         },
@@ -164,19 +162,16 @@ describe('Model', () => {
       expect(User.getIndexes()).to.deep.equal([
         {
           fields: ['firstName'],
-          column: 'firstName',
           unique: true,
           name: 'users_first_name_unique',
         },
         {
           fields: ['firstName', 'lastName'],
-          column: 'firstName',
           unique: true,
           name: 'firstName-lastName',
         },
         {
           fields: ['firstName', 'country'],
-          column: 'firstName',
           unique: true,
           name: 'firstName-country',
         },
