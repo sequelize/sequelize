@@ -51,7 +51,6 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
       expression: true,
       include: true,
       schemaQuoted: true,
-      where: true,
     },
     constraints: {
       onUpdate: false,

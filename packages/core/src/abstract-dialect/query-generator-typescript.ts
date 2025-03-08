@@ -539,6 +539,16 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
         result += ` ${column.order}`;
       }
 
+      if (column.nullOrder) {
+        if (!this.dialect.supports.addIndex.nullOrder) {
+          throw new Error(
+            `The ${this.dialect.name} dialect does not support nulls on index fields.`,
+          );
+        }
+
+        result += ` NULLS ${column.nullOrder}`;
+      }
+
       return result;
     });
 

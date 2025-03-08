@@ -147,7 +147,18 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showIndexesQuery(tableName: TableOrModel) {
-    return `PRAGMA INDEX_LIST(${this.quoteTable(tableName)})`;
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT tbl_name, name, sql',
+      'FROM sqlite_master',
+      `WHERE tbl_name = `,
+      this.escape(
+        table.schema ? `${table.schema}${table.delimiter}${table.tableName}` : table.tableName,
+      ),
+      `AND type = 'index'`,
+      'ORDER BY rootpage',
+    ]);
   }
 
   // SQLite does not support renaming columns. The following is a workaround.

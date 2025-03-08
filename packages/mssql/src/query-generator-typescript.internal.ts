@@ -254,6 +254,8 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'I.[is_unique],',
       'I.[is_primary_key],',
       'I.[is_unique_constraint],',
+      'I.[has_filter],',
+      'I.[filter_definition],',
       'C.[name] AS [column_name],',
       'IC.[is_descending_key],',
       'IC.[is_included_column]',

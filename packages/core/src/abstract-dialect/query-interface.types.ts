@@ -1,3 +1,4 @@
+import type { RequiredBy } from '@sequelize/utils';
 import type { Deferrable } from '../deferrable';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';
 import type { QueryRawOptions } from '../sequelize';
@@ -91,22 +92,27 @@ export interface IndexField {
   /**
    * Create a prefix index of length chars
    */
-  length?: number;
+  length?: number | undefined;
 
   /**
    * The direction the column should be sorted in
    */
-  order?: 'ASC' | 'DESC';
+  order?: 'ASC' | 'DESC' | undefined;
+
+  /**
+   * The nulls ordering for the column
+   */
+  nullOrder?: 'FIRST' | 'LAST' | undefined;
 
   /**
    * The collation (sort order) for the column
    */
-  collate?: string;
+  collate?: string | undefined;
 
   /**
    * Index operator type. Postgres only
    */
-  operator?: string;
+  operator?: string | undefined;
 }
 
 export interface IndexOptions {
@@ -178,14 +184,6 @@ export interface IndexOptions {
   include?: BaseSqlExpression | Array<string | BaseSqlExpression>;
 }
 
-export interface IndexFieldDescription {
-  name: string;
-  order: 'DESC' | 'ASC' | undefined;
-  length?: number | undefined;
-  collate?: string | undefined;
-  operator?: string | undefined;
-}
-
 export interface IndexDescription {
   tableName: string;
   schema?: string | undefined;
@@ -194,9 +192,9 @@ export interface IndexDescription {
   method?: string | undefined;
   unique: boolean;
   primary: boolean;
-  expression?: string | undefined;
-  fields: IndexFieldDescription[];
+  fields: Array<RequiredBy<IndexField, 'name' | 'order'> | string>;
   includes?: string[] | undefined;
+  where?: string | undefined;
 }
 
 /** Options accepted by {@link AbstractQueryInterface#createDatabase} */

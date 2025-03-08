@@ -137,18 +137,22 @@ export class PostgresQuery extends AbstractQuery {
           tableName: item.table_name,
           schema: item.table_schema,
           name: item.index_name,
-          method: item.index_method,
+          method: item.index_method?.toUpperCase(),
           unique: item.is_unique,
           primary: item.is_primary_key,
-          expression: item.where_clause ?? item.index_expression,
           fields: [],
           includes: [],
         };
 
+        if (item.where_clause) {
+          index.where = item.where_clause;
+        }
+
         if (item.is_attribute_column) {
           index.fields.push({
             name: item.column_name,
-            order: `${item.column_sort_order} ${item.column_nulls_order}`,
+            order: item.column_sort_order,
+            nullOrder: item.column_nulls_order,
             collate: item.column_collate,
             operator: item.column_operator,
           });
@@ -156,6 +160,10 @@ export class PostgresQuery extends AbstractQuery {
 
         if (item.is_included_column) {
           index.includes.push(item.column_name);
+        }
+
+        if (item.index_expression) {
+          index.fields.push(...item.index_expression.split(/,\s/));
         }
 
         indexes.set(item.index_name, index);

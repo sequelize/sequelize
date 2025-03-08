@@ -5,7 +5,6 @@ import type {
   ConstraintType,
   DataType,
   DescribeTableOptions,
-  IndexDescription,
   QiDropAllTablesOptions,
   QueryRawOptions,
   RemoveColumnOptions,
@@ -105,7 +104,7 @@ export class SqliteQueryInterface<
       const indexes = await this.showIndexes(tableName, options);
       for (const index of indexes) {
         for (const field of index.fields) {
-          if (index.unique !== undefined) {
+          if (typeof field !== 'string' && data[field.name]) {
             data[field.name].unique = index.unique;
           }
         }
@@ -457,16 +456,6 @@ export class SqliteQueryInterface<
     }
 
     return constraintData;
-  }
-
-  async showIndexes(
-    tableName: TableOrModel,
-    options?: QueryRawOptions,
-  ): Promise<IndexDescription[]> {
-    const indexes = await super.showIndexes(tableName, options);
-    const table = this.queryGenerator.extractTableDetails(tableName);
-
-    return indexes.map(index => ({ ...index, tableName: table.tableName }));
   }
 
   /**

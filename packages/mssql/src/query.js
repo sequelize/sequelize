@@ -406,6 +406,10 @@ export class MsSqlQuery extends AbstractQuery {
         includes: [],
       };
 
+      if (item.has_filter) {
+        index.where = item.filter_definition;
+      }
+
       if (item.is_included_column) {
         index.includes.push(item.column_name);
       } else {

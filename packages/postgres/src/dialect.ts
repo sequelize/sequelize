@@ -97,6 +97,7 @@ export class PostgresDialect extends AbstractDialect<
       ifNotExists: true,
       include: true,
       method: true,
+      nullOrder: true,
       operator: true,
       where: true,
     },
