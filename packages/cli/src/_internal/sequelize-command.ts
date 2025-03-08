@@ -23,7 +23,7 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
     }),
   };
 
-  protected declare flags: CommandFlags<Flags>;
+  declare protected flags: CommandFlags<Flags>;
 
   async init(): Promise<void> {
     await super.init();

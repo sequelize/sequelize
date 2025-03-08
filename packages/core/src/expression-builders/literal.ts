@@ -4,7 +4,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
  * Do not use me directly. Use {@link literal}
  */
 export class Literal extends BaseSqlExpression {
-  protected declare readonly [SQL_IDENTIFIER]: 'literal';
+  declare protected readonly [SQL_IDENTIFIER]: 'literal';
 
   readonly val: ReadonlyArray<string | BaseSqlExpression>;
 
