@@ -176,16 +176,29 @@ describe('sql.join', () => {
   it('joins parts with a separator', () => {
     const columns = ['a', 'b', 'c'];
 
-    const out = queryGenerator.escape(
-      sql`SELECT ${sql.join(
-        columns.map(col => sql.identifier(col)),
-        ', ',
-      )} FROM users`,
+    // SQL expression parts, string separator
+    expectsql(
+      queryGenerator.escape(
+        sql`SELECT ${sql.join(
+          columns.map(col => sql.identifier(col)),
+          ', ',
+        )} FROM users`,
+      ),
+      {
+        default: `SELECT [a], [b], [c] FROM users`,
+      },
     );
 
-    expectsql(out, {
-      default: `SELECT [a], [b], [c] FROM users`,
-    });
+    // string parts, SQL expression separator
+    expectsql(
+      queryGenerator.escape(
+        sql`SELECT a FROM users WHERE id IN (${sql.join(['id1', 'id2', 'id3'], sql`, `)}) FROM users`,
+      ),
+      {
+        default: `SELECT a FROM users WHERE id IN ('id1', 'id2', 'id3') FROM users`,
+        mssql: `SELECT a FROM users WHERE id IN (N'id1', N'id2', N'id3') FROM users`,
+      },
+    );
   });
 });
 
