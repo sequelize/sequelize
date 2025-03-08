@@ -32,7 +32,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.43",
+  "version": "7.0.0-alpha.45",
   "publishConfig": {
     "access": "public"
   },
@@ -45,10 +45,10 @@
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
-    "@types/mocha": "10.0.9",
-    "@types/sinon": "17.0.3",
+    "@types/mocha": "10.0.10",
+    "@types/sinon": "17.0.4",
     "chai": "4.5.0",
-    "mocha": "10.8.2",
+    "mocha": "11.1.0",
     "sinon": "18.0.1"
   }
 }

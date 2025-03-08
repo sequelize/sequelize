@@ -769,26 +769,7 @@ export type OrderItem =
   | Literal
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-    ]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-      string,
-    ];
+  | [...OrderItemAssociation[], OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -965,11 +946,11 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
-export interface FindByPkOptions<M extends Model>
-  extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+export interface FindByPkOptions<M extends Model> extends FindOptions<Attributes<M>> {}
 
 export interface NonNullFindByPkOptions<M extends Model>
-  extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
+  extends NonNullFindOptions<Attributes<M>> {}
+
 /**
  * Options for Model.count method
  */
@@ -2115,7 +2096,10 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: ((this: M) => void) | ((this: M, callback: (err: unknown) => void) => void);
+        [name: string]: (
+          this: CreationAttributes<M> & ExtractMethods<M>,
+          callback?: (err: unknown) => void,
+        ) => void;
       }
     | undefined;
 
@@ -2147,7 +2131,7 @@ export type BuiltModelOptions<M extends Model = Model> = Omit<
     InitOptions<M>,
     'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'
   >,
-  'name'
+  'name' | 'sequelize'
 > & { name: BuiltModelName };
 
 /**
@@ -3471,3 +3455,7 @@ export type CreationAttributes<M extends Model> = MakeNullishOptional<M['_creati
 export type Attributes<M extends Model> = M['_attributes'];
 
 export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;
+
+export type ExtractMethods<M extends Model> = {
+  [K in keyof M as M[K] extends Function ? K : never]: M[K];
+};

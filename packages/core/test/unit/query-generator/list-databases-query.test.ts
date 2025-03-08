@@ -1,4 +1,3 @@
-import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
@@ -13,7 +12,7 @@ describe('QueryGenerator#listDatabasesQuery', () => {
       default: notSupportedError,
       mssql: `SELECT [name] FROM sys.databases WHERE [name] NOT IN (N'master', N'model', N'msdb', N'tempdb')`,
       postgres: `SELECT datname AS "name" FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres')`,
-      snowflake: 'SHOW DATABASES',
+      snowflake: `SELECT DATABASE_NAME as "name", * FROM SNOWFLAKE.INFORMATION_SCHEMA.DATABASES WHERE "name" NOT IN ('SNOWFLAKE', 'SNOWFLAKE$GDS')`,
     });
   });
 
@@ -22,7 +21,7 @@ describe('QueryGenerator#listDatabasesQuery', () => {
       default: notSupportedError,
       mssql: `SELECT [name] FROM sys.databases WHERE [name] NOT IN (N'master', N'model', N'msdb', N'tempdb', N'sample_db')`,
       postgres: `SELECT datname AS "name" FROM pg_database WHERE datistemplate = false AND datname NOT IN ('postgres', 'sample_db')`,
-      snowflake: buildInvalidOptionReceivedError('listDatabasesQuery', 'snowflake', ['skip']),
+      snowflake: `SELECT DATABASE_NAME as "name", * FROM SNOWFLAKE.INFORMATION_SCHEMA.DATABASES WHERE "name" NOT IN ('SNOWFLAKE', 'SNOWFLAKE$GDS') AND UPPER("name") NOT IN (UPPER('sample_db'))`,
     });
   });
 });

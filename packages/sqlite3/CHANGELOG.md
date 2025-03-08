@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
+
+**Note:** Version bump only for package @sequelize/sqlite3
+
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+### Bug Fixes
+
+- update prettier to v3.3.3 ([#17534](https://github.com/sequelize/sequelize/issues/17534)) ([7d2e72e](https://github.com/sequelize/sequelize/commit/7d2e72e84da08075a631fc43bf69d909649fc297))
+
 # [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
 
 ### Bug Fixes
