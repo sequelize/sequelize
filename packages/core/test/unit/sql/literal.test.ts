@@ -211,14 +211,6 @@ describe('sql.identifier', () => {
     });
   });
 
-  it('accepts multiple strings', () => {
-    const out = queryGenerator.escape(sql.identifier('foo', 'bar'));
-
-    expectsql(out, {
-      default: `[foo].[bar]`,
-    });
-  });
-
   it('accepts table structures', () => {
     const out = queryGenerator.escape(sql.identifier({ schema: 'foo', tableName: 'bar' }));
 
@@ -261,6 +253,24 @@ describe('sql.identifier', () => {
     expectsql(out, {
       default: `[schema].[users]`,
       sqlite3: '`schema.users`',
+    });
+  });
+
+  it('accepts multiple parameters', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'table',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier('database', User, 'column'));
+
+    expectsql(out, {
+      default: `[database].[schema].[table].[column]`,
+      sqlite3: '`database`.`schema.table`.`column`',
     });
   });
 });
