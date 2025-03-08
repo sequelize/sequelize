@@ -343,9 +343,13 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     const checkTransaction = () => {
-      if (options.transaction && options.transaction.finished && !options[COMPLETES_TRANSACTION]) {
+      if (
+        options.transaction &&
+        options.transaction.getFinished() &&
+        !options[COMPLETES_TRANSACTION]
+      ) {
         const error = new Error(
-          `${options.transaction.finished} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`,
+          `${options.transaction.getFinished()} has been called on this transaction(${options.transaction.id}), you can no longer use it. (The rejected query is attached as the 'sql' property of this error)`,
         );
         error.sql = sql;
         throw error;

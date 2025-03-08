@@ -201,12 +201,13 @@ export class ModelDefinition<M extends Model = Model> {
 
     // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
+    const validate = {} satisfies ModelOptions<M>['validate'];
     this.options = mergeModelOptions<M>(
       // default options
       {
         noPrimaryKey: false,
         timestamps: true,
-        validate: {},
+        validate,
         freezeTableName: false,
         underscored: false,
         paranoid: false,
