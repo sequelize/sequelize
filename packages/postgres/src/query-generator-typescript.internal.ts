@@ -238,7 +238,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       }
 
       if (column instanceof BaseSqlExpression) {
-        return this.formatSqlExpression(column);
+        return `(${this.formatSqlExpression(column)})`;
       }
 
       if ('attribute' in column) {
@@ -268,6 +268,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
       if (column.order) {
         result += ` ${column.order}`;
+      }
+
+      if (column.nullOrder) {
+        result += ` NULLS ${column.nullOrder}`;
       }
 
       return result;
@@ -341,9 +345,9 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'pg_index.indisprimary AS is_primary_key,',
       'pg_index.indisunique AS is_unique,',
       // Add WHERE clause for partial indexes
-      'pg_get_expr(pg_index.indpred, t.oid) AS where_clause,',
+      'pg_get_expr(pg_index.indpred, t.oid, true) AS where_clause,',
       // Add expression info for expression indexes
-      'pg_get_expr(pg_index.indexprs, t.oid) AS index_expression,',
+      'pg_get_expr(pg_index.indexprs, t.oid, true) AS index_expression,',
       // Add column information
       'a.attname AS column_name,',
       // Add collation information
@@ -354,7 +358,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'array_position(pg_index.indkey, a.attnum) AS position_in_index,',
       // Add sort order information using the position_in_index
       "CASE WHEN (pg_index.indoption[array_position(pg_index.indkey, a.attnum)] & 1) = 1 THEN 'DESC' ELSE 'ASC' END AS column_sort_order,",
-      "CASE WHEN (pg_index.indoption[array_position(pg_index.indkey, a.attnum)] & 2) = 2 THEN 'NULLS FIRST' ELSE 'NULLS LAST' END AS column_nulls_order,",
+      "CASE WHEN (pg_index.indoption[array_position(pg_index.indkey, a.attnum)] & 2) = 2 THEN 'FIRST' ELSE 'LAST' END AS column_nulls_order,",
       // Determine if column is a key or included column
       'CASE WHEN array_position(pg_index.indkey, a.attnum) < pg_index.indnkeyatts THEN true ELSE false END AS is_attribute_column,',
       'CASE WHEN array_position(pg_index.indkey, a.attnum, indnkeyatts) >= pg_index.indnkeyatts THEN true ELSE false END AS is_included_column,',
