@@ -1,3 +1,4 @@
+import type { TableOrModel } from '../abstract-dialect/query-generator.types';
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
@@ -6,7 +7,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 export class Identifier extends BaseSqlExpression {
   protected declare readonly [SQL_IDENTIFIER]: 'identifier';
 
-  constructor(readonly value: string) {
+  constructor(readonly values: Array<string | TableOrModel>) {
     super();
   }
 }
@@ -16,7 +17,9 @@ export class Identifier extends BaseSqlExpression {
  * Unlike {@link attribute} and {@link col}, this identifier will be escaped as-is,
  * without mapping to a column name or any other transformation.
  *
- * @param value
+ * This method supports strings, table structures, model classes (which), and model definitions
+ *
+ * @param values The identifiers to escape. Automatically joins them with a period (`.`).
  * @example
  * ```ts
  * sequelize.query(sql`SELECT * FROM users WHERE ${identifier('firstName')} = 'John'`);
@@ -28,6 +31,6 @@ export class Identifier extends BaseSqlExpression {
  * SELECT * FROM users WHERE "firstName" = 'John'
  * ```
  */
-export function identifier(value: string): Identifier {
-  return new Identifier(value);
+export function identifier(...values: Array<string | TableOrModel>): Identifier {
+  return new Identifier(values);
 }

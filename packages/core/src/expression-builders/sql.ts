@@ -1,3 +1,4 @@
+import { intersperse } from '@sequelize/utils';
 import { attribute } from './attribute.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 import { cast } from './cast.js';
@@ -38,6 +39,18 @@ export function sql(rawSql: TemplateStringsArray, ...values: unknown[]): Literal
   return new Literal(arg);
 }
 
+/**
+ * A version of {@link Array#join}, but for SQL expressions.
+ * Using {@link Array#join} directly would not work, because the end result would be a string, not a SQL expression.
+ *
+ * @param parts The parts to join
+ * @param separator A string or SQL expression to separate each pair of adjacent elements of the array.
+ * @returns A SQL expression representing the concatenation of all parts, interspersed with the separator.
+ */
+function joinSql(parts: Array<string | BaseSqlExpression>, separator: string | BaseSqlExpression) {
+  return new Literal(separator ? intersperse(parts, separator) : parts);
+}
+
 // The following builders are not listed here for the following reasons:
 // - json(): deprecated & redundant with other builders
 // - value(): internal detail of the `sql` template tag function
@@ -54,3 +67,4 @@ sql.where = where;
 sql.uuidV4 = SqlUuidV4.build();
 sql.uuidV1 = SqlUuidV1.build();
 sql.unquote = Unquote.build.bind(Unquote);
+sql.join = joinSql;

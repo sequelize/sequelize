@@ -1,4 +1,4 @@
-import { Op, cast, fn, json, where } from '@sequelize/core';
+import { Op, cast, fn, json, sql, where } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -168,6 +168,86 @@ describe('fn', () => {
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,
       postgres: `concat(ARRAY['abc']::VARCHAR(255)[])`,
+    });
+  });
+});
+
+describe('sql.join', () => {
+  it('joins parts with a separator', () => {
+    const columns = ['a', 'b', 'c'];
+
+    const out = queryGenerator.escape(
+      sql`SELECT ${sql.join(
+        columns.map(col => sql.identifier(col)),
+        ', ',
+      )} FROM users`,
+    );
+
+    expectsql(out, {
+      default: `SELECT [a], [b], [c] FROM users`,
+    });
+  });
+});
+
+describe('sql.identifier', () => {
+  it('accepts strings', () => {
+    const out = queryGenerator.escape(sql.identifier('foo'));
+
+    expectsql(out, {
+      default: `[foo]`,
+    });
+  });
+
+  it('accepts multiple strings', () => {
+    const out = queryGenerator.escape(sql.identifier('foo', 'bar'));
+
+    expectsql(out, {
+      default: `[foo].[bar]`,
+    });
+  });
+
+  it('accepts table structures', () => {
+    const out = queryGenerator.escape(sql.identifier({ schema: 'foo', tableName: 'bar' }));
+
+    expectsql(out, {
+      default: `[foo].[bar]`,
+      sqlite3: '`foo.bar`',
+    });
+  });
+
+  it('accepts model classes', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'users',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier(User));
+
+    expectsql(out, {
+      default: `[schema].[users]`,
+      sqlite3: '`schema.users`',
+    });
+  });
+
+  it('accepts model definitions', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'users',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier(User.modelDefinition));
+
+    expectsql(out, {
+      default: `[schema].[users]`,
+      sqlite3: '`schema.users`',
     });
   });
 });
