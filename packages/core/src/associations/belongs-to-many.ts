@@ -131,7 +131,7 @@ export class BelongsToManyAssociation<
   /**
    * The name of the Foreign Key attribute, located on the through table, that points to the Target model.
    *
-   * Not to be confused with @link {BelongsToMany.foreignKey}, which points to the Source model instead.
+   * Not to be confused with {@link BelongsToMany.foreignKey}, which points to the Source model instead.
    */
   get otherKey(): string {
     return this.pairedWith.foreignKey;
