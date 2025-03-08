@@ -17,7 +17,7 @@ export class Identifier extends BaseSqlExpression {
  * Unlike {@link attribute} and {@link col}, this identifier will be escaped as-is,
  * without mapping to a column name or any other transformation.
  *
- * This method supports strings, table structures, model classes (which), and model definitions
+ * This method supports strings, table structures, model classes (in which case the identifiers will be the model schema & table name), and model definitions (same behavior as model classes)
  *
  * @param values The identifiers to escape. Automatically joins them with a period (`.`).
  * @example

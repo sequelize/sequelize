@@ -7,11 +7,11 @@ import { isFunction } from './predicates/is-function.js';
  * @param list The list
  * @param separator The value to insert between each element of the list, or a function that will produce each element to insert.
  */
-export function intersperse<Val, Sep>(
-  list: Val[],
-  separator: Sep | ((index: number) => Sep),
-): Array<Val | Sep> {
-  const res: Array<Val | Sep> = [];
+export function intersperse<Value, Separator>(
+  list: Value[],
+  separator: Separator | ((index: number) => Separator),
+): Array<Value | Separator> {
+  const res: Array<Value | Separator> = [];
 
   if (list.length === 0) {
     return res;
