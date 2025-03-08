@@ -10,24 +10,25 @@ services:
       - 22019:1433
     volumes:
       - mssql-oldest:/var/opt/mssql
-    security_opt:
-      - seccomp:unconfined
-    privileged: true
-    sysctls:
-      net.ipv4.ip_unprivileged_port_start: "0"
-    cap_add:
-      - SYS_PTRACE
-      - SYSLOG
-    ulimits:
-      memlock: -1
-      nofile:
-        soft: 65535
-        hard: 65535
+    # security_opt:
+    #   - seccomp:unconfined
+    # privileged: true
+    # sysctls:
+    #   net.ipv4.ip_unprivileged_port_start: "0"
+    # cap_add:
+    #   - SYS_PTRACE
+    #   - SYSLOG
+    # ulimits:
+    #   memlock: -1
+    #   nofile:
+    #     soft: 65535
+    #     hard: 65535
     healthcheck:
       test:
         [
           'CMD',
-          '/opt/mssql-tools/bin/sqlcmd',
+          '/opt/mssql-tools18/bin/sqlcmd',
+          '-C',
           '-S',
           'localhost',
           '-U',
