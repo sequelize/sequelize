@@ -7,11 +7,11 @@ on:
   merge_group:
   workflow_dispatch:
 
-# This configuration cancels previous runs if a new run is started on the same PR. Only one run at a time per PR.
-# This does not affect pushes to the v7 branch itself, only PRs.
-# from https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-a-fallback-value
+# workflow_ref includes the branch ref & the file name
+# which means a unique run per branch for push & pull_request
+# pull_request_target would use the ref of the target branch, which would not be suitable
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
+  group: '${{ github.workflow_ref }}'
   cancel-in-progress: true
 
 jobs:
