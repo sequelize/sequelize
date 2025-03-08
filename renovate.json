@@ -1,6 +1,6 @@
 {
   "extends": [
-    "config:base",
+    "config:recommended",
     ":maintainLockFilesWeekly",
     ":semanticCommitTypeAll(meta)",
     ":semanticCommitScopeDisabled"
