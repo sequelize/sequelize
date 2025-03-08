@@ -225,6 +225,10 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
         result += ` ${column.order}`;
       }
 
+      if (column.nullOrder) {
+        throw new Error(`The ${this.dialect.name} dialect does not support nulls on index fields.`);
+      }
+
       return result;
     });
 

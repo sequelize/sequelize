@@ -143,6 +143,7 @@ export type DialectSupports = {
     include: boolean;
     length: boolean;
     method: boolean;
+    nullOrder: boolean;
     operator: boolean;
     parser: boolean;
     schemaQuoted: boolean;
@@ -383,6 +384,7 @@ export abstract class AbstractDialect<
       include: false,
       length: false,
       method: false,
+      nullOrder: false,
       operator: false,
       parser: false,
       schemaQuoted: false,

@@ -174,7 +174,6 @@ export class IBMiQuery extends AbstractQuery {
         name: item.name,
         unique: item.keyType === 'UNIQUE',
         primary: item.keyType === 'PRIMARY KEY',
-        expression: undefined,
         fields: [],
         includes: item.include ? item.include.split(',') : [],
       };

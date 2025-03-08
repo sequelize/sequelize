@@ -1,5 +1,5 @@
 import type { QueryRawOptions, Sequelize, TableOrModel } from '@sequelize/core';
-import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode } from '@sequelize/core';
+import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode, sql } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { SqliteDialect } from './dialect.js';
@@ -62,14 +62,18 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             }
 
             for (const field of index.fields) {
-              if (columns[field.name]) {
+              if (typeof field !== 'string' && columns[field.name]) {
                 columns[field.name].unique = true;
               }
             }
           }
 
-          const sql = this.#queryGenerator._replaceTableQuery(tableName, columns);
-          await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
+          const replaceTableQuery = this.#queryGenerator._replaceTableQuery(tableName, columns);
+          await this.executeQueriesSequentially(replaceTableQuery, {
+            ...options,
+            transaction,
+            raw: true,
+          });
 
           // Run a foreign keys integrity check
           const foreignKeyCheckResult = await this.#sequelize.queryRaw(
@@ -99,8 +103,8 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               return this.#sequelize.queryInterface.addIndex(tableName, {
                 ...index,
                 type: undefined,
+                where: index.where ? sql.literal(index.where) : undefined,
                 transaction,
-                fields: index.fields.map(field => field.name),
               });
             }),
           );

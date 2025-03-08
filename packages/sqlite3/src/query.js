@@ -110,12 +110,8 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA INDEX_LIST')) {
-      return this.handleShowIndexesQuery(results);
-    }
-
     // SQLite's PRAGMA INDEX_LIST does not return the index columns, so we need to run a separate query
-    if (this.sql.includes('PRAGMA INDEX_INFO') || this.sql.includes('PRAGMA INDEX_XINFO')) {
+    if (this.sql.startsWith('PRAGMA INDEX_')) {
       return results;
     }
 
@@ -154,6 +150,10 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       return result;
+    }
+
+    if (this.isShowIndexesQuery()) {
+      return this.handleShowIndexesQuery(results);
     }
 
     if (this.isRawQuery()) {
@@ -306,28 +306,72 @@ export class SqliteQuery extends AbstractQuery {
   }
 
   async handleShowIndexesQuery(data) {
-    // Sqlite returns indexes so the one that was defined last is returned first. Lets reverse that!
-    return Promise.all(
-      data.reverse().map(async item => {
-        const columns = [];
-        const columnDetails = await this.run(`PRAGMA INDEX_XINFO(\`${item.name}\`)`);
-        const keyColumns = columnDetails.filter(column => column.key === 1);
+    const tables = new Set(data.map(item => item.tbl_name));
+    const indexList = [];
+    for (const table of tables) {
+      const indexesForTable = await this.run(`PRAGMA INDEX_LIST(\`${table}\`)`);
+      indexList.push(...indexesForTable.reverse());
+    }
+
+    const indexes = [];
+    for (const item of indexList) {
+      const indexData = data.find(i => i.name === item.name);
+      if (!indexData) {
+        throw new Error(`Index ${item.name} not found in data`);
+      }
+
+      const index = {
+        tableName: indexData.tbl_name,
+        name: indexData.name,
+        unique: item.unique === 1,
+        primary: item.origin === 'pk',
+        fields: [],
+      };
+
+      if (indexData.name.startsWith('sqlite_autoindex_')) {
+        const columnDetails = await this.run(`PRAGMA INDEX_XINFO(\`${indexData.name}\`)`);
+        const keyColumns = columnDetails.filter(column => column.key === 1 && column.cid !== -2);
         for (const column of keyColumns) {
-          columns.push({
+          index.fields.push({
             name: column.name,
             order: column.desc ? 'DESC' : 'ASC',
+            collate: undefined,
           });
         }
+      } else {
+        const regex = new RegExp(
+          `CREATE.*INDEX.*\`${indexData.name}\` ON.*\`${indexData.tbl_name}\` \\((.*)\\)(?: WHERE (.*))?`,
+          'si',
+        );
+        const match = regex.exec(indexData.sql);
+        if (match) {
+          const fields = match[1].split(/(?<=`|\)|\w), (?=`|\)|\w)/).map(field => field.trim());
+          for (const field of fields) {
+            const fieldMatch = field.match(
+              /^`((?:[^`]|``)*)`(?: COLLATE `((?:[^`]|``)*)`)?(?: (ASC|DESC))?$/is,
+            );
+            if (fieldMatch) {
+              const fieldName = fieldMatch[1];
+              const collate = fieldMatch[2];
+              const order = fieldMatch[3] || 'ASC';
+              index.fields.push({ name: fieldName, order, collate });
+            } else {
+              index.fields.push(field);
+            }
+          }
 
-        return {
-          tableName: '',
-          name: item.name,
-          unique: Boolean(item.unique),
-          primary: item.origin === 'pk',
-          fields: columns,
-        };
-      }),
-    );
+          if (match[2]) {
+            index.where = match[2];
+          }
+        } else {
+          throw new Error(`Could not parse index SQL: ${indexData.sql}`);
+        }
+      }
+
+      indexes.push(index);
+    }
+
+    return indexes;
   }
 
   getDatabaseMethod() {

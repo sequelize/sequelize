@@ -415,7 +415,6 @@ WHERE i.IID = '${match[1]}' AND i.TABNAME = '${match[3]}' AND i.TABSCHEMA = '${m
         type: item.type,
         unique: item.keyType === 'U',
         primary: item.keyType === 'P',
-        expression: undefined,
         fields: [],
         includes: [],
       };
@@ -423,12 +422,11 @@ WHERE i.IID = '${match[1]}' AND i.TABNAME = '${match[3]}' AND i.TABSCHEMA = '${m
       if (item.columnOrder === 'I') {
         index.includes.push(item.columnName);
       } else if (item.expression) {
-        index.expression = item.expression;
+        index.fields.push(item.expression);
       } else {
         index.fields.push({
           name: item.columnName,
           order: item.columnOrder === 'D' ? 'DESC' : item.columnOrder === 'A' ? 'ASC' : undefined,
-          collate: item.columnCollation,
         });
       }
 
