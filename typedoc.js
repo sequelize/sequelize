@@ -4,12 +4,6 @@ module.exports = {
   entryPoints: ['packages/core', 'packages/utils', 'packages/validator-js'],
   out: './.typedoc-build',
   readme: 'none',
-  plugin: [
-    'typedoc-plugin-missing-exports',
-    'typedoc-plugin-mdn-links',
-    'typedoc-plugin-carbon-ads',
-  ],
-  carbonPlacement: 'sequelizeorg',
-  carbonServe: 'CEAI627Y',
+  plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links'],
   treatWarningsAsErrors: true,
 };
