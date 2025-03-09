@@ -615,7 +615,7 @@ if (dialect === 'snowflake') {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
           expectation: {
             query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -625,7 +625,11 @@ if (dialect === 'snowflake') {
           },
         },
         {
-          arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
+          arguments: [
+            'myTable',
+            [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }],
+            { parameterStyle: 'bind' },
+          ],
           expectation: {
             query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -641,6 +645,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
               { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query: `INSERT INTO "myTable" ("name","birthday") VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
@@ -659,6 +664,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1 },
               { name: 'bar', foo: 2 },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -678,6 +684,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -699,6 +706,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -721,6 +729,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -743,6 +752,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: undefined },
               { name: 'bar', foo: 2, undefinedValue: undefined },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -767,6 +777,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', value: true },
               { name: 'bar', value: false },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -780,7 +791,11 @@ if (dialect === 'snowflake') {
           },
         },
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { ignoreDuplicates: true, parameterStyle: 'bind' },
+          ],
           expectation: {
             query: 'INSERT IGNORE INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -792,7 +807,7 @@ if (dialect === 'snowflake') {
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
           expectation: {
             query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -803,7 +818,11 @@ if (dialect === 'snowflake') {
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
+          arguments: [
+            'myTable',
+            [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }],
+            { parameterStyle: 'bind' },
+          ],
           expectation: {
             query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -820,6 +839,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1 },
               { name: 'bar', foo: 2 },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -840,6 +860,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -862,6 +883,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -884,6 +906,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -906,6 +929,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', foo: 1, nullValue: undefined },
               { name: 'bar', foo: 2, undefinedValue: undefined },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -930,6 +954,7 @@ if (dialect === 'snowflake') {
               { name: 'foo', value: true },
               { name: 'bar', value: false },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -944,7 +969,11 @@ if (dialect === 'snowflake') {
           context: { options: { quoteIdentifiers: false } },
         },
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { ignoreDuplicates: true, parameterStyle: 'bind' },
+          ],
           expectation: {
             query: 'INSERT IGNORE INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
             bind: {

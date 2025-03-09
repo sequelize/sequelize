@@ -35,6 +35,10 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
 }
 
+export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
+  parameterStyle?: 'replacement' | 'bind';
+}
+
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
   minifyAliases?: boolean;
 }
@@ -348,7 +352,7 @@ export class AbstractQueryInterface<
   bulkInsert(
     tableName: TableName,
     records: object[],
-    options?: QiOptionsWithReplacements,
+    options?: QiBulkInsertOptions,
     attributes?: Record<string, AttributeOptions>,
   ): Promise<object | number>;
 

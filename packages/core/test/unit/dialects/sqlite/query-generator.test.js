@@ -291,7 +291,7 @@ if (dialect === 'sqlite3') {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -301,7 +301,7 @@ if (dialect === 'sqlite3') {
           },
         },
         {
-          arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }]],
+          arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }], { parameterStyle: 'bind' }],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -323,6 +323,7 @@ if (dialect === 'sqlite3') {
                 birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
               },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -342,6 +343,7 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: null },
               { name: 'foo', value: 1 },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -361,6 +363,7 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: undefined },
               { name: 'bar', value: 2 },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -380,6 +383,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', value: true },
               { name: 'bar', value: false },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -399,6 +403,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', value: false },
               { name: 'bar', value: false },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -418,6 +423,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -439,6 +445,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -461,6 +468,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -483,6 +491,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
+            { parameterStyle: 'bind' },
           ],
           expectation: {
             query:
@@ -499,7 +508,11 @@ if (dialect === 'sqlite3') {
           context: { options: { omitNull: true } }, // Note: As above
         },
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { ignoreDuplicates: true, parameterStyle: 'bind' },
+          ],
           expectation: {
             query: 'INSERT OR IGNORE INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -512,7 +525,7 @@ if (dialect === 'sqlite3') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'], upsertKeys: ['name'] },
+            { updateOnDuplicate: ['name'], upsertKeys: ['name'], parameterStyle: 'bind' },
           ],
           expectation: {
             query:

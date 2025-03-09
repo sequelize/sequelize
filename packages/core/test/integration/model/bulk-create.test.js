@@ -167,6 +167,7 @@ describe('Model', () => {
           },
         ],
         {
+          parameterStyle: 'bind',
           logging(sql) {
             switch (dialectName) {
               case 'postgres':

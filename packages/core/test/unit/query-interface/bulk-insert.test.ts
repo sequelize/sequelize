@@ -26,7 +26,7 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users);
+    await sequelize.queryInterface.bulkInsert(User.table, users, { parameterStyle: 'bind' });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -53,7 +53,10 @@ describe('QueryInterface#bulkInsert', () => {
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
+    await sequelize.queryInterface.bulkInsert(User.table, users, {
+      transaction,
+      parameterStyle: 'bind',
+    });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -90,6 +93,7 @@ describe('QueryInterface#bulkInsert', () => {
         replacements: {
           injection: 'raw sql',
         },
+        parameterStyle: 'replacement',
       },
     );
 
@@ -97,15 +101,14 @@ describe('QueryInterface#bulkInsert', () => {
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
-      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);'),
+      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       'mysql mariadb sqlite3': toMatchSql(
-        'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1);',
+        "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
       ),
       mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
       // TODO: db2 should use the same system as ibmi
-      db2: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       ibmi: toMatchSql(
-        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
       ),
     });
   });

@@ -339,7 +339,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sql.bulkInsertQuery(
           User.table,
           [{ user_name: 'testuser', pass_word: '12345' }],
-          { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys },
+          {
+            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+            upsertKeys: primaryKeys,
+            parameterStyle: 'bind',
+          },
           User.fieldRawAttributesMap,
         ),
         {
@@ -371,7 +375,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       expectsql(
-        sql.bulkInsertQuery(M.table, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+        sql.bulkInsertQuery(
+          M.table,
+          [{ id: 0 }, { id: null }],
+          { parameterStyle: 'bind' },
+          M.fieldRawAttributesMap,
+        ),
         {
           query: {
             mssql:
@@ -433,6 +442,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
               upsertKeys: primaryKeys,
               conflictWhere: { deleted_at: null },
+              parameterStyle: 'bind',
             },
             User.fieldRawAttributesMap,
           );

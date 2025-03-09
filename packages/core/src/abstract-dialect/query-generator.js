@@ -292,6 +292,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const bind = Object.create(null);
     let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
 
+    // Require explicit opt-in to use bind parameters (for backwards compatibility)
+    // https://github.com/sequelize/sequelize/pull/17752#discussion_r1986317512
+    if (options.parameterStyle !== 'bind') {
+      bindParam = undefined;
+    }
+
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
       bindParam = undefined;
