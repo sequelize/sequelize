@@ -33,7 +33,7 @@ describe('QueryInterface#listTables', () => {
               throw error;
             }
           }
-        } else if (dialectName === 'hana'){
+        } else if (dialectName === 'hana') {
           // HANA does not support DROP VIEW IF EXISTS
           const sql = [
             'DO BEGIN',

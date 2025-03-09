@@ -145,7 +145,6 @@ export class BLOB extends BaseTypes.BLOB {
   }
 }
 
-
 export class JSON extends BaseTypes.JSON {
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {

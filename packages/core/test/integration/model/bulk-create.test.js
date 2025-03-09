@@ -437,6 +437,7 @@ describe('Model', () => {
         // https://sap.stackenterprise.co/questions/13539
         return;
       }
+
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);

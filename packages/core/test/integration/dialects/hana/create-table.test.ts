@@ -16,6 +16,7 @@ if (dialect === 'hana') {
       if (tableExists) {
         await queryInterface.dropTable(testTableName);
       }
+
       await sequelize.query(
         `CREATE ROW TABLE "${testTableName}" ("myColumn" INTEGER, PRIMARY KEY ("myColumn"))`,
       );

@@ -1748,7 +1748,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.sequelize.sync({ force: true });
       // in HANA Express 2.00.072.00.20231123.1, version 2.00.072.00.1690304772 (fa/hana2sp07)
       // there is a bug in HANA: inserting with big ID values hangs
-      const bigintValue = dialectName === 'hana' ? 2147483648n : 3415718944570971483n;
+      const bigintValue = dialectName === 'hana' ? 2_147_483_648n : 3_415_718_944_570_971_483n;
       await User.create({ id: `${bigintValue}`, username: 'u1' });
       const createdUsers = await User.bulkCreate([{ username: 'u2', id: `${bigintValue + 1n}` }]);
       expect(createdUsers[0].id.toString()).to.equal(`${bigintValue + 1n}`);

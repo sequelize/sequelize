@@ -122,6 +122,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           // hana does not support BLOB type comparison
           return;
         }
+
         const users = await this.User.findAll({
           where: {
             binary: [this.buf, this.buf],

@@ -418,7 +418,7 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return joinSQLFragments([
       'SELECT TABLE_NAME FROM SYS.TABLES',
       `WHERE SCHEMA_NAME = ${table.schema ? this.escape(table.schema) : 'CURRENT_SCHEMA'}`,
-      `  AND TABLE_NAME = ${this.escape(table.tableName)}`
+      `  AND TABLE_NAME = ${this.escape(table.tableName)}`,
     ]);
   }
 

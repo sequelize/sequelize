@@ -58,9 +58,10 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
         if (Number(result.user_count) === 0) {
           await sequelize.query(
             // user name cannot be quoted in CREATE USER statement
-            `CREATE USER myUser PASSWORD "Password12!"`
+            `CREATE USER myUser PASSWORD "Password12!"`,
           );
         }
+
         await queryInterface.createSchema(testSchema, { authorization: 'myUser'.toUpperCase() });
       } else {
         await queryInterface.createSchema(testSchema, { authorization: sql`CURRENT_USER` });

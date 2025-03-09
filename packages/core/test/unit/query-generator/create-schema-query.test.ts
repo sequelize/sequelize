@@ -38,7 +38,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
           dialectName,
           ['authorization'],
         ),
-        hana: 'CREATE SCHEMA "mySchema" OWNED BY CURRENT USER',// will fail
+        hana: 'CREATE SCHEMA "mySchema" OWNED BY CURRENT USER', // will fail
       },
     );
   });

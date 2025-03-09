@@ -19,7 +19,7 @@ const dialectName = dialect.name;
  * It does however support "jsonb = jsonb".
  */
 const dialectSupportsJsonEquality = [
-  'sqlite3', 'mysql', 'mariadb', 'mssql', 'hana'
+  'sqlite3', 'mysql', 'mariadb', 'mssql', 'hana',
 ].includes(dialectName);
 
 describe('JSON Manipulation', () => {

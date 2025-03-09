@@ -2329,6 +2329,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           // It's mapped to REPEATABLE READ and the transaction serialization error is expected here.
           return;
         }
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
           this.sequelize,
         );

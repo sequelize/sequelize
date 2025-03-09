@@ -1,7 +1,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type {
-  BindCollector, SupportableNumericOptions,
+  BindCollector,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';

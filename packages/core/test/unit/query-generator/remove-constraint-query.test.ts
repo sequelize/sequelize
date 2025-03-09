@@ -43,8 +43,8 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         ),
         hana: hanaIfExistsWrapper(
           'ALTER TABLE "myTable" DROP CONSTRAINT "myConstraint"',
-          'myConstraint', 'myTable', 'SYSTEM'
-        )
+          'myConstraint', 'myTable', 'SYSTEM',
+        ),
       },
     );
   });

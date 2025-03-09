@@ -141,6 +141,8 @@ export class HanaQuery extends AbstractQuery {
 
           return [result, affectedRows];
         }
+      } else {
+        // no-op
       }
     }
 
@@ -312,6 +314,8 @@ export class HanaQuery extends AbstractQuery {
       if (this.sql.toLowerCase().startsWith('insert into')) {
         return true;
       }
+
+      return false;
     }
 
     return false;

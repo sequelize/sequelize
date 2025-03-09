@@ -10,12 +10,12 @@ describe('QueryInterface#createTable', () => {
     sinon.restore();
   });
 
-  const hanaIfNotExistsWrapper = (sql: string, tableName: string, schema: string) => `
+  const hanaIfNotExistsWrapper = (sqlStatement: string, tableName: string, schema: string) => `
     DO BEGIN
       IF NOT EXISTS (
         SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
       ) THEN
-        ${sql}
+        ${sqlStatement}
       END IF;
     END;
   `;

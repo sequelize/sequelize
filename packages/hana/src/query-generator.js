@@ -318,12 +318,10 @@ export class HanaQueryGenerator extends HanaQueryGeneratorTypeScript {
           let foundParameter = false;
           if (valueStringHasDollarSequelizeParameter) {
             foundParameter = true;
-          } else {
+          } else if (/^\$(\w+)$/.test(dummyEscaped)) {
             // e.g., firstName: literal('$firstName'), firstName: literal('$1'),
-            if (/^\$(\w+)$/.test(dummyEscaped)) {
-              // found $sequelize_1, $sequelize_2, ... or $1, $2, ...
-              foundParameter = true;
-            }
+            // found $sequelize_1, $sequelize_2, ... or $1, $2, ...
+            foundParameter = true;
           }
 
           if (!foundParameter) {

@@ -4,6 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
+
 const dialect = Support.getTestDialect();
 
 if (dialect === 'hana') {

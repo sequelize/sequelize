@@ -26,6 +26,7 @@ describe('QueryInterface', () => {
         // cannot drop 'SYSTEM' schema in this test
         return;
       }
+
       await this.queryInterface.dropAllSchemas({
         skip: [this.sequelize.options.replication.write.database],
       });
@@ -260,6 +261,7 @@ describe('QueryInterface', () => {
           // In 2.00.072.00.1690304772, the bug still exists.
           return;
         }
+
         it('renames a column primary key autoIncrement column', async function () {
           const Fruits = this.sequelize.define(
             'Fruit',
