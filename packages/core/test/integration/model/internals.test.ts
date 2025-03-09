@@ -61,7 +61,6 @@ describe('setTransactionFromCls', () => {
       setTransactionFromCls(options, sequelize);
 
       expect(options.transaction).to.eq(null);
-      // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
       expect(options.connection).to.eq(undefined);
     });
   });
@@ -80,7 +79,6 @@ describe('setTransactionFromCls', () => {
 
         setTransactionFromCls(options, sequelize);
 
-        // eslint-disable-next-line unicorn/no-useless-undefined -- false positive.
         expect(options.transaction).to.eq(undefined);
         expect(options.connection).to.eq(connection);
       });

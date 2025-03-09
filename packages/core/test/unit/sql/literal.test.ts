@@ -1,4 +1,4 @@
-import { Op, cast, fn, json, where } from '@sequelize/core';
+import { Op, cast, fn, json, sql, where } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -168,6 +168,109 @@ describe('fn', () => {
     expectsql(out, {
       default: `concat(ARRAY['abc'])`,
       postgres: `concat(ARRAY['abc']::VARCHAR(255)[])`,
+    });
+  });
+});
+
+describe('sql.join', () => {
+  it('joins parts with a separator', () => {
+    const columns = ['a', 'b', 'c'];
+
+    // SQL expression parts, string separator
+    expectsql(
+      queryGenerator.escape(
+        sql`SELECT ${sql.join(
+          columns.map(col => sql.identifier(col)),
+          ', ',
+        )} FROM users`,
+      ),
+      {
+        default: `SELECT [a], [b], [c] FROM users`,
+      },
+    );
+
+    // string parts, SQL expression separator
+    expectsql(
+      queryGenerator.escape(
+        sql`SELECT a FROM users WHERE id IN (${sql.join(['id1', 'id2', 'id3'], sql`, `)}) FROM users`,
+      ),
+      {
+        default: `SELECT a FROM users WHERE id IN ('id1', 'id2', 'id3') FROM users`,
+        mssql: `SELECT a FROM users WHERE id IN (N'id1', N'id2', N'id3') FROM users`,
+      },
+    );
+  });
+});
+
+describe('sql.identifier', () => {
+  it('accepts strings', () => {
+    const out = queryGenerator.escape(sql.identifier('foo'));
+
+    expectsql(out, {
+      default: `[foo]`,
+    });
+  });
+
+  it('accepts table structures', () => {
+    const out = queryGenerator.escape(sql.identifier({ schema: 'foo', tableName: 'bar' }));
+
+    expectsql(out, {
+      default: `[foo].[bar]`,
+      sqlite3: '`foo.bar`',
+    });
+  });
+
+  it('accepts model classes', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'users',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier(User));
+
+    expectsql(out, {
+      default: `[schema].[users]`,
+      sqlite3: '`schema.users`',
+    });
+  });
+
+  it('accepts model definitions', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'users',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier(User.modelDefinition));
+
+    expectsql(out, {
+      default: `[schema].[users]`,
+      sqlite3: '`schema.users`',
+    });
+  });
+
+  it('accepts multiple parameters', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        schema: 'schema',
+        tableName: 'table',
+      },
+    );
+
+    const out = queryGenerator.escape(sql.identifier('database', User, 'column'));
+
+    expectsql(out, {
+      default: `[database].[schema].[table].[column]`,
+      sqlite3: '`database`.`schema.table`.`column`',
     });
   });
 });

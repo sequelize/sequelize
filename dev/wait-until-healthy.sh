@@ -8,6 +8,14 @@ fi
 for _ in {1..50}
 do
   state=$(docker inspect -f '{{ .State.Health.Status }}' $1 2>&1)
+  echo -ne "$state.\r"
+  sleep 1
+  echo -ne "$state..\r"
+  sleep 1
+  echo -ne "$state...\r"
+  sleep 1
+  echo -ne '\033[K'
+
   return_code=$?
   if [ ${return_code} -eq 0 ] && [ "$state" == "healthy" ]; then
     echo "$1 is healthy!"

@@ -40,14 +40,14 @@ export const ValidateAttribute = createRequiredAttributeOptionsDecorator<ColumnV
  * @example
  * ```ts
  * class User extends Model {
- *   @ValidateModel
+ *   @ModelValidator
  *   onValidate() {
  *     if (this.name !== VALID_NAME) {
  *       throw new Error(ERROR_MESSAGE);
  *     }
  *   }
  *
- *   @ValidateModel
+ *   @ModelValidator
  *   static onValidate(instance) {
  *     if (instance.name !== VALID_NAME) {
  *       throw new Error(ERROR_MESSAGE);

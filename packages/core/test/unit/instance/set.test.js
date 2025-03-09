@@ -88,6 +88,9 @@ describe('Model#set', () => {
       const stubCreate = sinon
         .stub(sequelize.queryInterface, 'insert')
         .callsFake(async instance => [instance, 1]);
+      const stubGetNextPrimaryKeyValue = sinon
+        .stub(sequelize.queryInterface, 'getNextPrimaryKeyValue')
+        .callsFake(async () => undefined);
       const User = sequelize.define('User', {
         phoneNumber: {
           type: DataTypes.STRING,
@@ -106,11 +109,12 @@ describe('Model#set', () => {
         },
       });
 
-      return { stubCreate, User };
+      return { stubCreate, stubGetNextPrimaryKeyValue, User };
     });
 
     after(() => {
       vars.stubCreate.restore();
+      vars.stubGetNextPrimaryKeyValue.restore();
     });
 
     it('does not set field to changed if field is set to the same value with custom setter using primitive value', async () => {

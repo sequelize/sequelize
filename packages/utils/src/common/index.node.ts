@@ -10,6 +10,7 @@ export * from './freeze-deep.js';
 export * from './get-immutable-pojo.js';
 export * from './get-synchronized-type-keys.js';
 export * from './inspect.js';
+export * from './intersperse.js';
 export * from './iterator-utils/combined-iterator.js';
 export * from './iterator-utils/count.js';
 export * from './iterator-utils/every.js';

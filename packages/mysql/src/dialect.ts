@@ -146,7 +146,7 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
   }
 
   getDefaultSchema(): string {
-    return (this.sequelize as Sequelize<MySqlDialect>).options.replication.write.database ?? '';
+    return this.sequelize.options.replication.write.database ?? '';
   }
 
   parseConnectionUrl(url: string): MySqlConnectionOptions {
