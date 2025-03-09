@@ -38,8 +38,8 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
-    "odbc": "^2.4.8"
+    "odbc": "^2.4.9"
   }
 }
