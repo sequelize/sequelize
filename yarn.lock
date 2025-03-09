@@ -1733,7 +1733,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/input@npm:^4.0.0, @inquirer/input@npm:^4.1.6":
+"@inquirer/input@npm:^4.1.6, @inquirer/input@npm:^4.1.7":
   version: 4.1.7
   resolution: "@inquirer/input@npm:4.1.7"
   dependencies:
@@ -2754,7 +2754,7 @@ __metadata:
   dependencies:
     "@inquirer/checkbox": "npm:^4.1.3"
     "@inquirer/confirm": "npm:^5.1.7"
-    "@inquirer/input": "npm:^4.0.0"
+    "@inquirer/input": "npm:^4.1.7"
     "@inquirer/select": "npm:^4.0.0"
     "@oclif/core": "npm:^3.26.0"
     "@oclif/plugin-help": "npm:^6.0.20"
