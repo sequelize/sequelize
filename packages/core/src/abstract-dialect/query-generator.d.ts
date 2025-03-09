@@ -11,6 +11,7 @@ import type {
   SearchPathable,
 } from '../model.js';
 import type { DataType } from './data-types.js';
+import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
 import type { TableOrModel } from './query-generator.types.js';
@@ -80,7 +81,9 @@ export interface AddColumnQueryOptions {
  * The implementation varies between SQL dialects, and is overridden by subclasses. You can access your dialect's version
  * through {@link Sequelize#queryGenerator}.
  */
-export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
+export class AbstractQueryGenerator<
+  Dialect extends AbstractDialect = AbstractDialect,
+> extends AbstractQueryGeneratorTypeScript<Dialect> {
   quoteIdentifiers(identifiers: string): string;
 
   selectQuery<M extends Model>(

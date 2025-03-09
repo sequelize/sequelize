@@ -6,7 +6,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
 import { JsonPath } from './json-path.js';
 
 /**
- * Unlike {@link Fn}, this class does not accept a function name.
+ * Unlike {@link sql.fn}, this class does not accept a function name.
  * It must instead be extended by a class that implements the {@link applyForDialect} method, in which
  * the function name is provided.
  *

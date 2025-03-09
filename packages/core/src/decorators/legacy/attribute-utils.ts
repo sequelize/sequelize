@@ -10,7 +10,7 @@ import {
   createOptionallyParameterizedPropertyDecorator,
   throwMustBeAttribute,
   throwMustBeInstanceProperty,
-  throwMustBeMethod,
+  throwMustBeModel,
 } from './decorator-utils.js';
 
 /**
@@ -75,7 +75,7 @@ function annotate(
   }
 
   if (!(target instanceof Model)) {
-    throwMustBeMethod(decoratorName, target, propertyName);
+    throwMustBeModel(decoratorName, target, propertyName);
   }
 
   options = { ...options };

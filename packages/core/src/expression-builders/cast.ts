@@ -6,10 +6,10 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
- * Do not use me directly. Use {@link cast}
+ * Do not use me directly. Use {@link sql.cast}
  */
 export class Cast extends BaseSqlExpression {
-  protected declare readonly [SQL_IDENTIFIER]: 'cast';
+  declare protected readonly [SQL_IDENTIFIER]: 'cast';
 
   constructor(
     readonly expression: Expression,

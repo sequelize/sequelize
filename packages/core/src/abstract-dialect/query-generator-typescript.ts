@@ -1,5 +1,5 @@
 import type { RequiredBy } from '@sequelize/utils';
-import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, isString, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -22,7 +22,8 @@ import { IndexHints } from '../index-hints.js';
 import type { ModelDefinition } from '../model-definition.js';
 import type { Attributes, Model, ModelStatic } from '../model.js';
 import { Op } from '../operators.js';
-import type { BindOrReplacements, Expression } from '../sequelize.js';
+import type { BindOrReplacements, Expression, Sequelize } from '../sequelize.js';
+import type { NormalizedOptions } from '../sequelize.types.js';
 import { bestGuessDataTypeOfVal } from '../sql-string.js';
 import { TableHints } from '../table-hints.js';
 import type { IsolationLevel } from '../transaction.js';
@@ -131,7 +132,7 @@ export interface EscapeOptions extends FormatWhereOptions {
 
 export interface FormatWhereOptions extends Bindable {
   /**
-   * These are used to inline replacements into the query, when one is found inside of a {@link Literal}.
+   * These are used to inline replacements into the query, when one is found inside of a {@link sql.literal}.
    */
   readonly replacements?: BindOrReplacements | undefined;
 
@@ -171,12 +172,12 @@ export interface Bindable {
  * This is a temporary class used to progressively migrate the AbstractQueryGenerator class to TypeScript by slowly moving its functions here.
  * Always use {@link AbstractQueryGenerator} instead.
  */
-export class AbstractQueryGeneratorTypeScript {
-  readonly dialect: AbstractDialect;
+export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = AbstractDialect> {
+  readonly dialect: Dialect;
   readonly #internals: AbstractQueryGeneratorInternal;
 
   constructor(
-    dialect: AbstractDialect,
+    dialect: Dialect,
     internals: AbstractQueryGeneratorInternal = new AbstractQueryGeneratorInternal(dialect),
   ) {
     this.dialect = dialect;
@@ -187,11 +188,11 @@ export class AbstractQueryGeneratorTypeScript {
     return this.#internals.whereSqlBuilder;
   }
 
-  protected get sequelize() {
+  protected get sequelize(): Sequelize<Dialect> {
     return this.dialect.sequelize;
   }
 
-  protected get options() {
+  protected get options(): NormalizedOptions<Dialect> {
     return this.sequelize.options;
   }
 
@@ -751,7 +752,15 @@ export class AbstractQueryGeneratorTypeScript {
     }
 
     if (piece instanceof Identifier) {
-      return this.quoteIdentifier(piece.value);
+      return piece.values
+        .map(value => {
+          if (isString(value)) {
+            return this.quoteIdentifier(value);
+          }
+
+          return this.quoteTable(value);
+        })
+        .join('.');
     }
 
     if (piece instanceof Cast) {

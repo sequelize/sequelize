@@ -94,4 +94,27 @@ describe('[MSSQL Specific] Connection Manager', () => {
     await instance.dialect.connectionManager.connect(config);
     expect(connectStub.called).to.equal(true);
   });
+
+  it('connectionManager.connect() should not fail with an instanceName but no port specified in config', async () => {
+    const connectStub = sinon.stub();
+    Connection = {
+      STATE: TediousConnection.prototype.STATE,
+      state: TediousConnection.prototype.STATE.INITIALIZED,
+      connect: connectStub,
+      once(event, cb) {
+        if (event === 'connect') {
+          setTimeout(() => {
+            cb();
+          }, 500);
+        }
+      },
+      removeListener: () => {},
+      on: () => {},
+    };
+
+    config.instanceName = 'INSTANCENAME';
+
+    await instance.dialect.connectionManager.connect(config);
+    expect(connectStub.called).to.equal(true);
+  });
 });

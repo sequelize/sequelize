@@ -150,7 +150,7 @@ export class MariaDbDialect extends AbstractDialect<
   }
 
   getDefaultSchema(): string {
-    return (this.sequelize as Sequelize<MariaDbDialect>).options.replication.write.database ?? '';
+    return this.sequelize.options.replication.write.database ?? '';
   }
 
   parseConnectionUrl(url: string): MariaDbConnectionOptions {

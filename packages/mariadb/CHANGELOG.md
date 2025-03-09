@@ -3,6 +3,31 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
+
+**Note:** Version bump only for package @sequelize/mariadb
+
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+**Note:** Version bump only for package @sequelize/mariadb
+
+# [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
+
+### Bug Fixes
+
+- **mariadb:** fix inefficient regular expression in error message ([#17508](https://github.com/sequelize/sequelize/issues/17508)) ([3f5250b](https://github.com/sequelize/sequelize/commit/3f5250b9741c265031e5e7307c2fe3e9cef56b48))
+- **mariadb:** update mariadb to v3.3.2 ([#17518](https://github.com/sequelize/sequelize/issues/17518)) ([3819cf5](https://github.com/sequelize/sequelize/commit/3819cf545f2a20a7db28dda649bb4881dd015b16))
+
+# [7.0.0-alpha.42](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.41...v7.0.0-alpha.42) (2024-09-13)
+
+**Note:** Version bump only for package @sequelize/mariadb
+
+# [7.0.0-alpha.41](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.40...v7.0.0-alpha.41) (2024-05-17)
+
+### Bug Fixes
+
+- set sequelize dialect type in query generator and interface ([#17285](https://github.com/sequelize/sequelize/issues/17285)) ([0227288](https://github.com/sequelize/sequelize/commit/0227288d1c6fcbf2d4f09e2efa50e4aeb9d435f2))
+
 # [7.0.0-alpha.40](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.39...v7.0.0-alpha.40) (2024-04-11)
 
 ### Bug Fixes

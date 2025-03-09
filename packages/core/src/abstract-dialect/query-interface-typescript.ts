@@ -74,7 +74,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       internalQueryInterface ?? new AbstractQueryInterfaceInternal(dialect);
   }
 
-  get sequelize(): Sequelize {
+  get sequelize(): Sequelize<Dialect> {
     return this.dialect.sequelize;
   }
 
