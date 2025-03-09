@@ -542,7 +542,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       if (column.nullOrder) {
         if (!this.dialect.supports.addIndex.nullOrder) {
           throw new Error(
-            `The ${this.dialect.name} dialect does not support nulls on index fields.`,
+            `The ${this.dialect.name} dialect does not support nullOrder on index fields.`,
           );
         }
 

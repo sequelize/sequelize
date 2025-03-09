@@ -1049,7 +1049,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
             'indexHints',
           ]),
-          'mariadb mysql snowflake':
+          'mariadb mysql':
             'SELECT [User].[id], [projects].[id] AS [projects.id] FROM [Users] AS [User] FORCE INDEX ([index_project_on_name]) LEFT OUTER JOIN [Projects] AS [projects] ON [User].[id] = [projects].[userId];',
         },
       );
