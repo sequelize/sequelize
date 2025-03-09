@@ -1,10 +1,10 @@
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Use {@link list} instead.
+ * Use {@link sql.list} instead.
  */
 export class List extends BaseSqlExpression {
-  protected declare readonly [SQL_IDENTIFIER]: 'list';
+  declare protected readonly [SQL_IDENTIFIER]: 'list';
 
   constructor(readonly values: unknown[]) {
     super();

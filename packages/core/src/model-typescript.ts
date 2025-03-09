@@ -1,4 +1,6 @@
 import type { PartialBy } from '@sequelize/utils';
+import { isPlainObject } from '@sequelize/utils';
+import { inspect } from 'node:util';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -7,11 +9,13 @@ import type {
   Attributes,
   BrandedKeysOf,
   BuiltModelOptions,
+  FindByPkOptions,
   ForeignKeyBrand,
   IndexOptions,
   InitOptions,
   ModelAttributes,
   ModelStatic,
+  NonNullFindByPkOptions,
   NormalizedAttributeOptions,
   Sequelize,
   TableNameWithSchema,
@@ -33,7 +37,9 @@ import {
 import { staticModelHooks } from './model-hooks.js';
 import type { ModelRepository } from './model-repository.js';
 import { getModelRepository } from './model-repository.js';
-import type { DestroyOptions, Model } from './model.js';
+import type { DestroyOptions } from './model.js';
+import { Model } from './model.js';
+import { and } from './sequelize.js';
 import { noModelTableName } from './utils/deprecations.js';
 import { getObjectFromMap } from './utils/object.js';
 
@@ -439,6 +445,92 @@ export class ModelTypeScript {
     options?: DestroyOptions<Attributes<M>>,
   ): Promise<number> {
     return this.modelRepository._UNSTABLE_destroy(instances, options);
+  }
+
+  /**
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
+   */
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
+  ): Promise<R | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: NonNullFindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: NonNullFindByPkOptions<M>,
+  ): Promise<M>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M>,
+  ): Promise<M | null>;
+
+  /**
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
+   *
+   * If the model has a composite primary key, pass an object with the primary key attributes.
+   *
+   * @param identifier The value of the desired instance's primary key.
+   * @param options find options
+   */
+  static async findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<Attributes<M>>,
+  ): Promise<Model | null> {
+    if (identifier == null) {
+      throw new Error(`${identifier} is not a valid primary key`);
+    }
+
+    const primaryKeyAttributeNames = this.modelDefinition.primaryKeysAttributeNames;
+    if (primaryKeyAttributeNames.size === 0) {
+      throw new Error(
+        `Model ${this.name} does not have a primary key attribute, so findByPk cannot be used`,
+      );
+    }
+
+    const pkWhere = Object.create(null);
+    if (primaryKeyAttributeNames.size === 1) {
+      pkWhere[primaryKeyAttributeNames.firstValue()!] = identifier;
+    } else {
+      if (!isPlainObject(identifier)) {
+        throw new TypeError(
+          `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }. Received: ${inspect(identifier)}`,
+        );
+      }
+
+      for (const attributeName of primaryKeyAttributeNames) {
+        if (identifier[attributeName] === undefined) {
+          throw new TypeError(
+            `Part of the composite primary key, ${attributeName}, is missing. Please pass all primary key attributes. Received: ${inspect(identifier)}`,
+          );
+        }
+
+        pkWhere[attributeName] = identifier[attributeName];
+      }
+    }
+
+    // Bypass a possible overloaded findOne
+    return Model.findOne.call(this, {
+      ...options,
+      where: options?.where ? and(options?.where, pkWhere) : pkWhere,
+    });
   }
 }
 
