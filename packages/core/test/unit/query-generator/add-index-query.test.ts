@@ -4,6 +4,9 @@ import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const notSupportedError = new Error(`Indexes are not supported by the ${dialect.name} dialect.`);
+const nullOrderNotSupportedError = new Error(
+  `The ${dialect.name} dialect does not support nullOrder on index fields.`,
+);
 const lengthNotSupportedError = new Error(
   `The ${dialect.name} dialect does not support length on index fields.`,
 );
@@ -37,7 +40,8 @@ describe('QueryGenerator#addIndexQuery', () => {
       {
         default: functionNotSupportedError,
         snowflake: notSupportedError,
-        'db2 ibmi postgres sqlite3': 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
+        postgres: 'CREATE INDEX "myindex" ON "table" ((UPPER("test")))',
+        'db2 ibmi sqlite3': 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
       },
     );
   });
@@ -76,6 +80,20 @@ describe('QueryGenerator#addIndexQuery', () => {
     );
   });
 
+  it('generates a query that adds an index with column null order', () => {
+    expectsql(
+      () =>
+        queryGenerator.addIndexQuery('table', {
+          fields: [{ name: 'column1', order: 'DESC', nullOrder: 'FIRST' }],
+        }),
+      {
+        default: nullOrderNotSupportedError,
+        postgres: 'CREATE INDEX "table_column1" ON "table" ("column1" DESC NULLS FIRST)',
+        snowflake: notSupportedError,
+      },
+    );
+  });
+
   it('generates a query that adds an index with column operator', () => {
     expectsql(
       () =>
@@ -90,12 +108,19 @@ describe('QueryGenerator#addIndexQuery', () => {
     );
   });
 
-  it('generates a query that adds an index with column collate, length, operator and order', () => {
+  it('generates a query that adds an index with column collate, length, operator, order and null order', () => {
     expectsql(
       () =>
         queryGenerator.addIndexQuery('table', {
           fields: [
-            { name: 'column', collate: 'en_US', length: 7, order: 'DESC', operator: 'inet_ops' },
+            {
+              name: 'column',
+              collate: 'en_US',
+              length: 7,
+              order: 'DESC',
+              operator: 'inet_ops',
+              nullOrder: 'FIRST',
+            },
           ],
         }),
       {
@@ -320,12 +345,12 @@ describe('QueryGenerator#addIndexQuery', () => {
     );
   });
 
-  it('generates a query that adds a index with using', () => {
+  it('generates a query that adds a index with a method', () => {
     expectsql(
       () =>
-        queryGenerator.addIndexQuery('table', { fields: ['column1', 'column2'], using: 'BTREE' }),
+        queryGenerator.addIndexQuery('table', { fields: ['column1', 'column2'], method: 'BTREE' }),
       {
-        default: buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['using']),
+        default: buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['method']),
         postgres:
           'CREATE INDEX "table_column1_column2" ON "table" USING BTREE ("column1", "column2")',
         snowflake: notSupportedError,
@@ -335,18 +360,18 @@ describe('QueryGenerator#addIndexQuery', () => {
     );
   });
 
-  it('generates a query that adds a index with operator and using', () => {
+  it('generates a query that adds a index with operator and method', () => {
     expectsql(
       () =>
         queryGenerator.addIndexQuery('table', {
           fields: ['column1', 'column2'],
           operator: 'inet_ops',
-          using: 'gist',
+          method: 'gist',
         }),
       {
         default: buildInvalidOptionReceivedError('addIndexQuery', dialect.name, [
           'operator',
-          'using',
+          'method',
         ]),
         postgres:
           'CREATE INDEX "table_column1_column2" ON "table" USING gist ("column1" inet_ops, "column2" inet_ops)',
@@ -365,7 +390,9 @@ describe('QueryGenerator#addIndexQuery', () => {
         default: `CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = 'public'`,
         mssql: "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'public'",
         snowflake: notSupportedError,
-        'mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['where']),
+        'db2 mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, [
+          'where',
+        ]),
       },
     );
 
@@ -384,7 +411,9 @@ describe('QueryGenerator#addIndexQuery', () => {
         mssql:
           "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'group' OR [type] = N'private'",
         snowflake: notSupportedError,
-        'mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['where']),
+        'db2 mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, [
+          'where',
+        ]),
       },
     );
 
@@ -401,7 +430,9 @@ describe('QueryGenerator#addIndexQuery', () => {
       {
         default: 'CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] IS NOT NULL',
         snowflake: notSupportedError,
-        'mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, ['where']),
+        'db2 mariadb mysql': buildInvalidOptionReceivedError('addIndexQuery', dialect.name, [
+          'where',
+        ]),
       },
     );
   });
