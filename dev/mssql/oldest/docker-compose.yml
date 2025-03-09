@@ -9,7 +9,7 @@ services:
     ports:
       - 22019:1433
     volumes:
-      - mssql-oldest:/var/opt/mssql
+      - mssql-oldest:/var/opt/mssql/data
     healthcheck:
       test:
         [
