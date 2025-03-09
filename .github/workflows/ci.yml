@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
-        run: yarn build
+        run: yarn build --scope=@sequelize/core
       - name: Reset NX cache
         run: yarn nx reset
       - name: Compress artifact
