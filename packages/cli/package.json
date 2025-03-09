@@ -8,7 +8,7 @@
     "@inquirer/confirm": "^5.1.7",
     "@inquirer/input": "^4.1.7",
     "@inquirer/select": "^4.0.10",
-    "@oclif/core": "^3.27.0",
+    "@oclif/core": "^4.2.9",
     "@oclif/plugin-help": "^6.2.26",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
@@ -17,7 +17,7 @@
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
-    "@oclif/test": "3.2.15",
+    "@oclif/test": "4.1.12",
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
