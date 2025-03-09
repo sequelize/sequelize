@@ -224,7 +224,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               type: sequelize.dialect.supports.startTransaction.transactionType
                 ? TransactionType.EXCLUSIVE
                 : undefined,
-              isolationLevel: IsolationLevel.READ_UNCOMMITTED,
+              isolationLevel:
+                dialectName === 'hana'
+                  ? IsolationLevel.REPEATABLE_READ
+                  : IsolationLevel.READ_UNCOMMITTED,
               constraintChecking: sequelize.dialect.supports.constraints.deferrable
                 ? ConstraintChecking.DEFERRED
                 : undefined,
@@ -293,7 +296,11 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         const { User, transactionSequelize } = vars;
 
         await transactionSequelize.transaction(async transaction => {
-          await transaction.setIsolationLevel(IsolationLevel.READ_UNCOMMITTED);
+          const level =
+            dialectName === 'hana'
+              ? IsolationLevel.REPEATABLE_READ
+              : IsolationLevel.READ_UNCOMMITTED;
+          await transaction.setIsolationLevel(level);
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
         });
 
@@ -340,7 +347,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow dirty reads with isolation level "READ UNCOMMITTED".
-    if (!['postgres', 'sqlite3'].includes(dialectName)) {
+    if (!['postgres', 'sqlite3', 'hana'].includes(dialectName)) {
       it('should allow dirty read with isolation level "READ UNCOMMITTED"', async () => {
         const { User, transactionSequelize } = vars;
         const t1 = await transactionSequelize.startUnmanagedTransaction({
@@ -427,7 +434,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // These dialects do not allow phantom reads with isolation level "REPEATABLE READ" as they use snapshot rather than locking.
-    if (['mariadb', 'mysql', 'postgres'].includes(dialectName)) {
+    if (['mariadb', 'mysql', 'postgres', 'hana'].includes(dialectName)) {
       it('should not read newly committed rows when using the REPEATABLE READ isolation level', async () => {
         const { User, transactionSequelize } = vars;
 
@@ -479,7 +486,7 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     }
 
     // PostgreSQL is excluded because it detects Serialization Failure on commit instead of acquiring locks on the read rows
-    if (!['postgres'].includes(dialectName)) {
+    if (!['postgres', 'hana'].includes(dialectName)) {
       it('should block updates after reading a row using SERIALIZABLE', async () => {
         const { User, transactionSequelize } = vars;
         const transactionSpy = sinon.spy();
@@ -590,6 +597,13 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           break;
         case 'mssql':
           query = "WAITFOR DELAY '00:00:02';";
+          break;
+        case 'hana':
+          query =
+            'DO BEGIN' +
+            '  USING SQLSCRIPT_SYNC AS SYNCLIB;' +
+            '  CALL SYNCLIB:SLEEP_SECONDS(2);' +
+            'END;';
           break;
         default:
           query = 'select sleep(2);';
