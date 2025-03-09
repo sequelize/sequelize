@@ -7,13 +7,4 @@ docker compose -p sequelize-hana-latest up -d
 
 ./../../wait-until-healthy.sh sequelize-hana-latest
 
-# TODO uncomment ts-node
-#DIALECT=hana ../../../node_modules/.bin/ts-node ../../check-connection.ts
-
-docker exec sequelize-hana-latest \
-  bash -c "source ~/.bashrc && HDB info"
-
-sleep 40
-
-docker exec sequelize-hana-latest \
-  bash -c "source ~/.bashrc && hdbsql -n 127.0.0.1:39013 -i 90 -d HXE -u system -p HXEHana1 'select 39013 from dummy;'"
+DIALECT=hana ../../../node_modules/.bin/ts-node ../../check-connection.ts

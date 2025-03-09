@@ -28,9 +28,7 @@ services:
     volumes:
       - /data/hxe:/hana/mounts
     healthcheck:
-      # test: ["CMD", "/bin/sh", "-c", "echo testing", "nc -z localhost 39013 -v"]
-      test: ["CMD", "/bin/bash", "-c", "source ~/.bashrc && HDB info"]
-      # test: ["CMD", "/bin/bash", "-c", "hdbsql", "-i90", "-dHXE", "-usystem", "-pHXEHana1", "'select 39013 from dummy;'"]
+      test: ["CMD", "/bin/bash", "-c", "source ~/.bashrc && hdbsql -i90 -dHXE -usystem -pHXEHana1 'SELECT 39013 FROM DUMMY;'"]
       interval: 3s
       timeout: 1s
       retries: 10
