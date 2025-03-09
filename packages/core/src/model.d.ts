@@ -84,6 +84,7 @@ export interface Transactionable {
    * Internal only
    *
    * @private
+   * @hidden
    */
   [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
