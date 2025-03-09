@@ -1500,6 +1500,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.keysEscaped = true;
 
+    // Index hints should not be passed down to any include subqueries
+    if (topLevelInfo.options && topLevelInfo.options.indexHints) {
+      delete topLevelInfo.options.indexHints;
+    }
+
     if (
       topLevelInfo.names.name !== parentTableName.externalAs &&
       topLevelInfo.names.as !== parentTableName.externalAs
@@ -2113,7 +2118,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               topInclude.through.where,
             ],
           },
-          limit: 1,
           includeIgnoreAttributes: false,
         },
         topInclude.through.model,
@@ -2141,7 +2145,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           where: {
             [Op.and]: [topInclude.where, new Literal(join)],
           },
-          limit: 1,
           tableAs: topInclude.as,
           includeIgnoreAttributes: false,
         },
@@ -2151,7 +2154,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.where = and(
       topLevelInfo.options.where,
-      new Literal(['(', query.replace(/;$/, ''), ')', 'IS NOT NULL'].join(' ')),
+      new Literal(['EXISTS (', query.replace(/;$/, ''), ')'].join(' ')),
     );
   }
 

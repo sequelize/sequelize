@@ -1888,7 +1888,7 @@ Caused by: "undefined" cannot be escaped`),
       //  postgres:, ^@
       //  snowflake, ibmi, db2: position()
       //  mssql: CHARINDEX()
-      //  sqlite: INSTR()
+      //  sqlite3: INSTR()
 
       testSql(
         {
@@ -2140,7 +2140,7 @@ Caused by: "undefined" cannot be escaped`),
       //  postgres:, position()
       //  snowflake, ibmi, db2: position()
       //  mssql: CHARINDEX()
-      //  sqlite: INSTR()
+      //  sqlite3: INSTR()
 
       testSql(
         {

@@ -769,26 +769,7 @@ export type OrderItem =
   | Literal
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-    ]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-      string,
-    ];
+  | [...OrderItemAssociation[], OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -965,11 +946,11 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
-export interface FindByPkOptions<M extends Model>
-  extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+export interface FindByPkOptions<M extends Model> extends FindOptions<Attributes<M>> {}
 
 export interface NonNullFindByPkOptions<M extends Model>
-  extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
+  extends NonNullFindOptions<Attributes<M>> {}
+
 /**
  * Options for Model.count method
  */
@@ -2115,7 +2096,10 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: (value: unknown) => boolean;
+        [name: string]: (
+          this: CreationAttributes<M> & ExtractMethods<M>,
+          callback?: (err: unknown) => void,
+        ) => void;
       }
     | undefined;
 
@@ -2147,7 +2131,7 @@ export type BuiltModelOptions<M extends Model = Model> = Omit<
     InitOptions<M>,
     'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'
   >,
-  'name'
+  'name' | 'sequelize'
 > & { name: BuiltModelName };
 
 /**
@@ -2434,35 +2418,6 @@ export abstract class Model<
   ): Promise<M[]>;
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   */
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
-  ): Promise<R | null>;
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true },
-  ): Promise<R>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M>,
-  ): Promise<M>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options?: FindByPkOptions<M>,
-  ): Promise<M | null>;
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
@@ -2579,7 +2534,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Finds the minimum value of field
@@ -2588,7 +2543,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Retrieves the sum of field
@@ -2597,7 +2552,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<number>;
+  ): Promise<number | null>;
 
   /**
    * Builds a new model instance.
@@ -3471,3 +3426,7 @@ export type CreationAttributes<M extends Model> = MakeNullishOptional<M['_creati
 export type Attributes<M extends Model> = M['_attributes'];
 
 export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;
+
+export type ExtractMethods<M extends Model> = {
+  [K in keyof M as M[K] extends Function ? K : never]: M[K];
+};
