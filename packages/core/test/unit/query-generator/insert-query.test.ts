@@ -55,10 +55,7 @@ describe('QueryGenerator#insertQuery', () => {
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'))`,
-      hana: hanaReturnIdWrapper(
-        `INSERT INTO "Users" ("firstName") VALUES ('Zoe');`,
-        '', 'id',
-      ),
+      hana: hanaReturnIdWrapper(`INSERT INTO "Users" ("firstName") VALUES ('Zoe');`, '', 'id'),
     });
     expect(bind).to.deep.eq({});
   });
@@ -138,7 +135,8 @@ describe('QueryGenerator#insertQuery', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
       hana: hanaReturnIdWrapper(
         `INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',:firstName,'jd');`,
-        'IN firstName NVARCHAR(5000) => $1', 'id',
+        'IN firstName NVARCHAR(5000) => $1',
+        'id',
       ),
     });
     expect(bind).to.be.undefined;
@@ -193,7 +191,8 @@ describe('QueryGenerator#insertQuery', () => {
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
         hana: hanaReturnIdWrapper(
           `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
-          'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+          'IN firstName NVARCHAR(255) => $sequelize_1',
+          'id',
         ),
       });
     });
@@ -225,7 +224,8 @@ describe('QueryGenerator#insertQuery', () => {
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
         hana: hanaReturnIdWrapper(
           `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
-          'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+          'IN firstName NVARCHAR(255) => $sequelize_1',
+          'id',
         ),
       });
     });
@@ -260,7 +260,8 @@ describe('QueryGenerator#insertQuery', () => {
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
           hana: hanaReturnIdWrapper(
             `INSERT INTO "Users" ("firstName") VALUES (:firstName);`,
-            'IN firstName NVARCHAR(255) => $sequelize_1', 'id',
+            'IN firstName NVARCHAR(255) => $sequelize_1',
+            'id',
           ),
         },
       );
@@ -277,7 +278,8 @@ describe('QueryGenerator#insertQuery', () => {
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
           hana: hanaReturnIdWrapper(
             `INSERT INTO "myTable" ("birthday") VALUES (:birthday);`,
-            'IN birthday NVARCHAR(5000) => $sequelize_1', 'id',
+            'IN birthday NVARCHAR(5000) => $sequelize_1',
+            'id',
           ),
         },
         bind: {
@@ -322,7 +324,8 @@ describe('QueryGenerator#insertQuery', () => {
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
           hana: hanaReturnIdWrapper(
             `INSERT INTO "myTable" ("positive","negative") VALUES (:positive,:negative);`,
-            'IN positive BOOLEAN => $sequelize_1, IN negative BOOLEAN => $sequelize_2', 'id',
+            'IN positive BOOLEAN => $sequelize_1, IN negative BOOLEAN => $sequelize_2',
+            'id',
           ),
         },
         bind: {
@@ -378,7 +381,8 @@ describe('QueryGenerator#insertQuery', () => {
           'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
         hana: hanaReturnIdWrapper(
           `INSERT INTO "myTable" ("value","name") VALUES (:value,:name);`,
-          'IN value NVARCHAR(5000) => $sequelize_1, IN name NVARCHAR(5000) => $sequelize_2', 'id',
+          'IN value NVARCHAR(5000) => $sequelize_1, IN name NVARCHAR(5000) => $sequelize_2',
+          'id',
         ),
       });
 

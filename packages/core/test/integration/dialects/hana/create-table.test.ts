@@ -1,9 +1,6 @@
 import { QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import {
-  getTestDialect,
-  sequelize,
-} from '../../support';
+import { getTestDialect, sequelize } from '../../support';
 
 const dialect = getTestDialect();
 const queryInterface = sequelize.queryInterface;
@@ -23,7 +20,7 @@ if (dialect === 'hana') {
 
       const [result] = await sequelize.query<{ TABLE_TYPE: string }>(
         `SELECT TABLE_TYPE FROM SYS.TABLES ` +
-        `WHERE SCHEMA_NAME = CURRENT_SCHEMA AND TABLE_NAME = '${testTableName}'`,
+          `WHERE SCHEMA_NAME = CURRENT_SCHEMA AND TABLE_NAME = '${testTableName}'`,
         { type: QueryTypes.SELECT },
       );
       expect(result.TABLE_TYPE).to.equal('ROW');

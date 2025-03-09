@@ -1,9 +1,5 @@
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import {
-  DataTypes,
-  IsolationLevel,
-  Model,
-} from '@sequelize/core';
+import { DataTypes, IsolationLevel, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import delay from 'delay';

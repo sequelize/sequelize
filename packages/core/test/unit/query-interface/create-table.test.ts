@@ -52,7 +52,8 @@ describe('QueryInterface#createTable', () => {
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
       hana: hanaIfNotExistsWrapper(
         'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
-        'table', 'SYSTEM',
+        'table',
+        'SYSTEM',
       ),
     });
   });
@@ -109,7 +110,8 @@ describe('QueryInterface#createTable', () => {
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
       hana: hanaIfNotExistsWrapper(
         'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
-        'table', 'SYSTEM',
+        'table',
+        'SYSTEM',
       ),
     });
   });
@@ -137,7 +139,8 @@ describe('QueryInterface#createTable', () => {
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
       hana: hanaIfNotExistsWrapper(
         `CREATE COLUMN TABLE "table" ("json" NVARCHAR(5000) DEFAULT 'null');`,
-        'table', 'SYSTEM',
+        'table',
+        'SYSTEM',
       ),
     });
   });

@@ -19,7 +19,9 @@ describe('QueryGenerator#dropSchemaQuery', () => {
   it('produces a DROP SCHEMA IF EXISTS query in supported dialects', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema', { ifExists: true }), {
       default: 'DROP SCHEMA IF EXISTS [mySchema]',
-      'db2 mssql hana': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['ifExists']),
+      'db2 mssql hana': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, [
+        'ifExists',
+      ]),
       sqlite3: notSupportedError,
     });
   });

@@ -3,10 +3,7 @@ import type {
   RollbackTransactionOptions,
   StartTransactionOptions,
 } from '@sequelize/core';
-import {
-  AbstractQueryInterface,
-  Transaction,
-} from '@sequelize/core';
+import { AbstractQueryInterface, Transaction } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import { promisify } from 'node:util';
 import type { HanaConnection } from './connection-manager.js';

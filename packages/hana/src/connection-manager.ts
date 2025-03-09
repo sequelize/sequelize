@@ -1,6 +1,4 @@
-import type {
-  Connection,
-} from '@sap/hana-client';
+import type { Connection } from '@sap/hana-client';
 import * as HanaClient from '@sap/hana-client';
 import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
@@ -35,89 +33,89 @@ export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions
   user?: string;
   password?: string;
   currentSchema?: string;
-  allowFetchWarnings?: boolean,
-  ca?: string,
-  cert?: string,
-  charset?: string,
-  connectionLifetime?: number,
-  dataTruncationError?: boolean,
-  key?: string,
-  maxPoolSize?: number,
-  maxPooledIdleTime?: number,
-  passphrase?: string,
-  pooling?: boolean,
-  poolingCheck?: boolean,
-  poolKey?: string,
-  resultSetArrayLimitMB?: number,
-  resultSetRowSetLimitKBValue?: number,
-  serverNode?: string,
-  spatialTypes?: boolean,
-  threadPoolKey?: string,
-  vectorOutputType?: string,
-  abapVarCharMode?: boolean,
-  allowLocalCompress?: boolean,
-  allowReconnectOnSelect?: boolean,
-  bindAddress?: string,
-  chopBlanks?: boolean,
-  chopBlanksInput?: boolean,
-  communicationTimeout?: number,
-  compress?: boolean,
-  connDownRollbackError?: boolean,
-  connectTimeout?: number,
-  cursorHoldabilityType?: string,
-  distribution?: string,
-  emptyTimestampIsNull?: boolean,
-  ignoreTopology?: boolean,
-  isoTimestampOutput?: string,
-  maxLazyDroppedStatements?: number,
-  networkGroup?: string,
-  nodeConnectTimeout?: number,
-  packetCaching?: boolean,
-  packetSize?: number,
-  packetSizeLimit?: number,
-  prefetch?: boolean,
-  proxyHostname?: string,
-  proxyHttp?: boolean,
-  proxyPassword?: string,
-  proxyPort?: number,
-  proxyScpAccount?: string,
-  proxyUserName?: string,
-  reconnect?: boolean,
-  resolveHostName?: string,
-  routeDirectExecute?: boolean,
-  secondarySessionFallback?: boolean,
-  sessionVariable?: string,
-  siteType?: string,
-  splitBatchCommands?: boolean,
-  statementCacheSize?: number,
-  statementRoutingFailureBackoff?: boolean,
-  statementRoutingWarnings?: boolean,
-  tcpKeepAliveCount?: number,
-  tcpKeepAliveIdle?: number,
-  tcpKeepAliveInterval?: number,
-  tcpUserTimeout?: number,
-  tcpQuickAck?: boolean,
-  tcpSynCnt?: number,
-  timestampPadding?: boolean,
-  traceFile?: string,
-  traceOptions?: string,
-  webSocketURL?: string,
-  cseKeyStorePassword?: string,
-  authenticationMethods?: string,
-  authenticationX509?: string,
-  authenticationX509Password?: string,
-  encrypt?: boolean,
-  sslCryptoProvider?: string,
-  sslHostNameInCertificate?: string,
-  sslKeyStore?: string,
-  sslMinProtocolVersion?: string,
-  sslMaxProtocolVersion?: string,
-  sslKeyStorePassword?: string,
-  sslSNIHostname?: string,
-  sslSNIRequest?: boolean,
-  sslTrustStore?: string,
-  sslUseDefaultTrustStore?: boolean,
-  sslValidateCertificate?: boolean,
+  allowFetchWarnings?: boolean;
+  ca?: string;
+  cert?: string;
+  charset?: string;
+  connectionLifetime?: number;
+  dataTruncationError?: boolean;
+  key?: string;
+  maxPoolSize?: number;
+  maxPooledIdleTime?: number;
+  passphrase?: string;
+  pooling?: boolean;
+  poolingCheck?: boolean;
+  poolKey?: string;
+  resultSetArrayLimitMB?: number;
+  resultSetRowSetLimitKBValue?: number;
+  serverNode?: string;
+  spatialTypes?: boolean;
+  threadPoolKey?: string;
+  vectorOutputType?: string;
+  abapVarCharMode?: boolean;
+  allowLocalCompress?: boolean;
+  allowReconnectOnSelect?: boolean;
+  bindAddress?: string;
+  chopBlanks?: boolean;
+  chopBlanksInput?: boolean;
+  communicationTimeout?: number;
+  compress?: boolean;
+  connDownRollbackError?: boolean;
+  connectTimeout?: number;
+  cursorHoldabilityType?: string;
+  distribution?: string;
+  emptyTimestampIsNull?: boolean;
+  ignoreTopology?: boolean;
+  isoTimestampOutput?: string;
+  maxLazyDroppedStatements?: number;
+  networkGroup?: string;
+  nodeConnectTimeout?: number;
+  packetCaching?: boolean;
+  packetSize?: number;
+  packetSizeLimit?: number;
+  prefetch?: boolean;
+  proxyHostname?: string;
+  proxyHttp?: boolean;
+  proxyPassword?: string;
+  proxyPort?: number;
+  proxyScpAccount?: string;
+  proxyUserName?: string;
+  reconnect?: boolean;
+  resolveHostName?: string;
+  routeDirectExecute?: boolean;
+  secondarySessionFallback?: boolean;
+  sessionVariable?: string;
+  siteType?: string;
+  splitBatchCommands?: boolean;
+  statementCacheSize?: number;
+  statementRoutingFailureBackoff?: boolean;
+  statementRoutingWarnings?: boolean;
+  tcpKeepAliveCount?: number;
+  tcpKeepAliveIdle?: number;
+  tcpKeepAliveInterval?: number;
+  tcpUserTimeout?: number;
+  tcpQuickAck?: boolean;
+  tcpSynCnt?: number;
+  timestampPadding?: boolean;
+  traceFile?: string;
+  traceOptions?: string;
+  webSocketURL?: string;
+  cseKeyStorePassword?: string;
+  authenticationMethods?: string;
+  authenticationX509?: string;
+  authenticationX509Password?: string;
+  encrypt?: boolean;
+  sslCryptoProvider?: string;
+  sslHostNameInCertificate?: string;
+  sslKeyStore?: string;
+  sslMinProtocolVersion?: string;
+  sslMaxProtocolVersion?: string;
+  sslKeyStorePassword?: string;
+  sslSNIHostname?: string;
+  sslSNIRequest?: boolean;
+  sslTrustStore?: string;
+  sslUseDefaultTrustStore?: boolean;
+  sslValidateCertificate?: boolean;
 }
 
 /**
@@ -129,10 +127,7 @@ export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions
  *
  * @private
  */
-export class HanaConnectionManager extends AbstractConnectionManager<
-  HanaDialect,
-  HanaConnection
-> {
+export class HanaConnectionManager extends AbstractConnectionManager<HanaDialect, HanaConnection> {
   readonly #lib: HanaClientModule;
 
   constructor(dialect: HanaDialect) {
@@ -198,7 +193,7 @@ export class HanaConnectionManager extends AbstractConnectionManager<
       return;
     }
 
-    await promisify(callback => connection.disconnect(error=>callback(error, null)))();
+    await promisify(callback => connection.disconnect(error => callback(error, null)))();
   }
 
   validate(connection: HanaConnection) {
@@ -212,7 +207,7 @@ async function createConnection(
 ): Promise<HanaConnection> {
   return new Promise((resolve, reject) => {
     const connection: HanaConnection = lib.createConnection(config) as HanaConnection;
-    connection.connect(config, (error) => {
+    connection.connect(config, error => {
       if (error) {
         reject(new ConnectionError(error));
       }

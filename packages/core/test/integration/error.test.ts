@@ -692,9 +692,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'hana':
-            expect(error.cause.message).to.match(
-              /unique constraint violated/,
-            );
+            expect(error.cause.message).to.match(/unique constraint violated/);
             break;
 
           default:
@@ -775,9 +773,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'hana':
             expect(error.table).to.equal('Users');
             expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain(
-              'foreign key constraint violation:',
-            );
+            expect(error.cause.message).to.contain('foreign key constraint violation:');
             break;
 
           default:
@@ -858,9 +854,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'hana':
             expect(error.table).to.equal('Tasks');
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.contain(
-              'foreign key constraint violation:',
-            );
+            expect(error.cause.message).to.contain('foreign key constraint violation:');
             break;
 
           default:

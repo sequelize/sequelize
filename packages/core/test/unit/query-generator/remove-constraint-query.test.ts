@@ -9,7 +9,12 @@ const notSupportedError = new Error(
 describe('QueryGenerator#removeConstraintQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const hanaIfExistsWrapper = (sql: string, constraintName: string, tableName: string, schema: string) => `
+  const hanaIfExistsWrapper = (
+    sql: string,
+    constraintName: string,
+    tableName: string,
+    schema: string,
+  ) => `
     DO BEGIN
       IF EXISTS (
         SELECT * FROM SYS.CONSTRAINTS
@@ -43,7 +48,9 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         ),
         hana: hanaIfExistsWrapper(
           'ALTER TABLE "myTable" DROP CONSTRAINT "myConstraint"',
-          'myConstraint', 'myTable', 'SYSTEM',
+          'myConstraint',
+          'myTable',
+          'SYSTEM',
         ),
       },
     );

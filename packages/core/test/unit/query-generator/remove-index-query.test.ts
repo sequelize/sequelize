@@ -10,7 +10,12 @@ const notImplementedError = new Error(
 describe('QueryGenerator#removeIndexQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  const hanaIfExistsWrapper = (sql: string, indexName: string, tableName: string, schema: string) => `
+  const hanaIfExistsWrapper = (
+    sql: string,
+    indexName: string,
+    tableName: string,
+    schema: string,
+  ) => `
     DO BEGIN
       IF EXISTS (
         SELECT * FROM SYS.INDEXES
@@ -68,10 +73,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'ifExists',
         ]),
-        hana: hanaIfExistsWrapper(
-          'DROP INDEX "user_foo_bar"',
-          'user_foo_bar', 'myTable', 'SYSTEM',
-        ),
+        hana: hanaIfExistsWrapper('DROP INDEX "user_foo_bar"', 'user_foo_bar', 'myTable', 'SYSTEM'),
       },
     );
   });
@@ -104,11 +106,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
           dialect.name,
           ['cascade'],
         ),
-        'hana': buildInvalidOptionReceivedError(
-          'removeIndexQuery',
-          dialect.name,
-          ['cascade'],
-        ),
+        hana: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
       },
     );
   });
@@ -133,11 +131,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
           dialect.name,
           ['concurrently'],
         ),
-        'hana': buildInvalidOptionReceivedError(
-          'removeIndexQuery',
-          dialect.name,
-          ['concurrently'],
-        ),
+        hana: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['concurrently']),
       },
     );
   });

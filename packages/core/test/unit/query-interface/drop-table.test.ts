@@ -29,10 +29,7 @@ describe('QueryInterface#dropTable', () => {
       const firstCall = stub.getCall(0);
       expectsql(firstCall.args[0], {
         default: 'DROP TABLE IF EXISTS [myTable] CASCADE',
-        hana: hanaIfExistsWrapper(
-          'DROP TABLE "myTable" CASCADE',
-          'myTable', 'SYSTEM',
-        ),
+        hana: hanaIfExistsWrapper('DROP TABLE "myTable" CASCADE', 'myTable', 'SYSTEM'),
       });
     } else {
       await expect(

@@ -11,14 +11,8 @@ import type {
   TableOrModel,
   TruncateTableQueryOptions,
 } from '@sequelize/core';
-import {
-  AbstractQueryGenerator,
-  IsolationLevel,
-  Literal,
-} from '@sequelize/core';
-import type {
-  EscapeOptions,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { AbstractQueryGenerator, IsolationLevel, Literal } from '@sequelize/core';
+import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -216,7 +210,11 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
       optionsWithoutIfExists = options;
     }
 
-    const removeSql = super.removeConstraintQuery(tableName, constraintName, optionsWithoutIfExists);
+    const removeSql = super.removeConstraintQuery(
+      tableName,
+      constraintName,
+      optionsWithoutIfExists,
+    );
 
     if (ifExists) {
       const table = this.extractTableDetails(tableName);
@@ -261,7 +259,10 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  _showNonReferentialConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
+  _showNonReferentialConstraintsQuery(
+    tableName: TableOrModel,
+    options?: ShowConstraintsQueryOptions,
+  ) {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
@@ -395,7 +396,11 @@ export class HanaQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return dropSql;
   }
 
-  jsonPathExtractionQuery(sqlExpression: string, path: ReadonlyArray<number | string>, unquote: boolean): string {
+  jsonPathExtractionQuery(
+    sqlExpression: string,
+    path: ReadonlyArray<number | string>,
+    unquote: boolean,
+  ): string {
     const extractQuery = `json_extract(${sqlExpression},${this.escape(buildJsonPath(path))})`;
     if (unquote) {
       return `json_unquote(${extractQuery})`;

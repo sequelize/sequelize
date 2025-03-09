@@ -106,9 +106,7 @@ describe('QueryInterface#bulkInsert', () => {
       ibmi: toMatchSql(
         `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
       ),
-      hana: toMatchSql(
-        `INSERT INTO "Users" ("firstName") (SELECT ':injection' FROM DUMMY);`,
-      ),
+      hana: toMatchSql(`INSERT INTO "Users" ("firstName") (SELECT ':injection' FROM DUMMY);`),
     });
   });
 });

@@ -224,9 +224,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
               type: sequelize.dialect.supports.startTransaction.transactionType
                 ? TransactionType.EXCLUSIVE
                 : undefined,
-              isolationLevel: dialectName === 'hana'
-                ? IsolationLevel.REPEATABLE_READ
-                : IsolationLevel.READ_UNCOMMITTED,
+              isolationLevel:
+                dialectName === 'hana'
+                  ? IsolationLevel.REPEATABLE_READ
+                  : IsolationLevel.READ_UNCOMMITTED,
               constraintChecking: sequelize.dialect.supports.constraints.deferrable
                 ? ConstraintChecking.DEFERRED
                 : undefined,
@@ -295,9 +296,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         const { User, transactionSequelize } = vars;
 
         await transactionSequelize.transaction(async transaction => {
-          const level = dialectName === 'hana'
-            ? IsolationLevel.REPEATABLE_READ
-            : IsolationLevel.READ_UNCOMMITTED;
+          const level =
+            dialectName === 'hana'
+              ? IsolationLevel.REPEATABLE_READ
+              : IsolationLevel.READ_UNCOMMITTED;
           await transaction.setIsolationLevel(level);
           await User.update({ age: 22 }, { where: { name: 'John Doe' }, transaction });
         });

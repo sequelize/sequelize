@@ -233,10 +233,11 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
           referencedTableSchema: defaultSchema,
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          updateAction:
-            ['mariadb', 'hana'].includes(dialectName)
-              ? 'RESTRICT'
-              : dialectName === 'sqlite3' ? '' : 'NO ACTION',
+          updateAction: ['mariadb', 'hana'].includes(dialectName)
+            ? 'RESTRICT'
+            : dialectName === 'sqlite3'
+              ? ''
+              : 'NO ACTION',
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),

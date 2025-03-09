@@ -110,7 +110,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
         const fromClause = dialect === 'hana' ? ' FROM DUMMY' : '';
 
-        return this.sequelize.query(`SELECT 1+1${fromClause}`, { transaction, type: QueryTypes.SELECT });
+        return this.sequelize.query(`SELECT 1+1${fromClause}`, {
+          transaction,
+          type: QueryTypes.SELECT,
+        });
       });
 
       expect(afterCommit).to.have.been.calledOnce;

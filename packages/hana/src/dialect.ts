@@ -1,17 +1,8 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
-import type {
-  BindCollector,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import type { BindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import { registerHanaDbDataTypeParsers } from './_internal/data-types-db.js';
-import * as DataTypes from './_internal/data-types-overrides.js';
-import type { HanaClientModule, HanaConnectionOptions } from './connection-manager.js';
-import { HanaConnectionManager } from './connection-manager.js';
-import { HanaQueryGenerator } from './query-generator.js';
-import { HanaQueryInterface } from './query-interface.js';
-import { HanaQuery } from './query.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import {
   BOOLEAN_CONNECTION_OPTION_NAMES,
@@ -19,6 +10,13 @@ import {
   NUMBER_CONNECTION_OPTION_NAMES,
   STRING_CONNECTION_OPTION_NAMES,
 } from './_internal/connection-options.js';
+import { registerHanaDbDataTypeParsers } from './_internal/data-types-db.js';
+import * as DataTypes from './_internal/data-types-overrides.js';
+import type { HanaClientModule, HanaConnectionOptions } from './connection-manager.js';
+import { HanaConnectionManager } from './connection-manager.js';
+import { HanaQueryGenerator } from './query-generator.js';
+import { HanaQueryInterface } from './query-interface.js';
+import { HanaQuery } from './query.js';
 
 export interface HanaDialectOptions {
   /**
@@ -43,40 +41,38 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<HanaDialectOptions>({
 });
 
 export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnectionOptions> {
-  static supports = AbstractDialect.extendSupport(
-    {
-      autoIncrement: {
-        defaultValue: false,
-      },
-      schemas: true,
-      connectionTransactionMethods: true,
-      upserts: false,
-      index: {
-        collate: false,
-        type: true,
-        using: false,
-      },
-      dataTypes: {
-        DECIMAL: { unconstrained: true },
-        JSON: true,
-        TIME: {
-          precision: false,
-        },
-      },
-      dropTable: {
-        cascade: true,
-      },
-      createSchema: {
-        authorization: true,
-      },
-      dropSchema: {
-        cascade: true,
-      },
-      delete: {
-        limit: false,
+  static supports = AbstractDialect.extendSupport({
+    autoIncrement: {
+      defaultValue: false,
+    },
+    schemas: true,
+    connectionTransactionMethods: true,
+    upserts: false,
+    index: {
+      collate: false,
+      type: true,
+      using: false,
+    },
+    dataTypes: {
+      DECIMAL: { unconstrained: true },
+      JSON: true,
+      TIME: {
+        precision: false,
       },
     },
-  );
+    dropTable: {
+      cascade: true,
+    },
+    createSchema: {
+      authorization: true,
+    },
+    dropSchema: {
+      cascade: true,
+    },
+    delete: {
+      limit: false,
+    },
+  });
 
   readonly connectionManager: HanaConnectionManager;
   readonly queryGenerator: HanaQueryGenerator;
@@ -90,7 +86,8 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
       dataTypeOverrides: DataTypes,
       minimumDatabaseVersion: '2.0.72',
       identifierDelimiter: '"',
-      dataTypesDocumentationUrl: 'https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/data-types',
+      dataTypesDocumentationUrl:
+        'https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/data-types',
       name: 'hana',
     });
 

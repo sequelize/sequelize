@@ -3414,7 +3414,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [worker, tasks0] = await Promise.all([
           dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create({}),
           Task.bulkCreate(
-            dialect === 'hana' ? [{ id: 1 }, { id: 2 }, { id: 3 }] : [{}, {}, {}]
+            dialect === 'hana' ? [{ id: 1 }, { id: 2 }, { id: 3 }] : [{}, {}, {}],
           ).then(() => {
             return Task.findAll();
           }),
@@ -3445,7 +3445,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           Task.bulkCreate(
             dialect === 'hana'
               ? [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]
-              : [{}, {}, {}, {}, {}]
+              : [{}, {}, {}, {}, {}],
           ).then(() => {
             return Task.findAll();
           }),

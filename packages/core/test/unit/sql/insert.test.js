@@ -63,7 +63,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
             hana: hanaReturnIdWrapper(
               'INSERT INTO "users" ("user_name") VALUES (:user_name);',
-              'IN user_name NVARCHAR(5000) => $sequelize_1', 'id',
+              'IN user_name NVARCHAR(5000) => $sequelize_1',
+              'id',
             ),
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
@@ -235,7 +236,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
             hana: hanaReturnIdWrapper(
               'INSERT INTO "users" ("date") VALUES (:date);',
-              'IN date TIMESTAMP => $sequelize_1', 'id',
+              'IN date TIMESTAMP => $sequelize_1',
+              'id',
             ),
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
@@ -283,7 +285,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
             hana: hanaReturnIdWrapper(
               'INSERT INTO "users" ("date") VALUES (:date);',
-              'IN date TIMESTAMP => $sequelize_1', 'id',
+              'IN date TIMESTAMP => $sequelize_1',
+              'id',
             ),
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
@@ -327,7 +330,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
           hana: hanaReturnIdWrapper(
             'INSERT INTO "users" ("user_name") VALUES (:user_name);',
-            'IN user_name NVARCHAR(5000) => $sequelize_1', 'id',
+            'IN user_name NVARCHAR(5000) => $sequelize_1',
+            'id',
           ),
           default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
         },

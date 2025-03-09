@@ -3,11 +3,16 @@ import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-y
 import type { HanaDialect } from './dialect.js';
 
 const TECHNICAL_SCHEMA_NAMES = Object.freeze([
-  'PUBLIC', 'SYS',
-//   'SYSTEM', // SYSTEM is technical schema on HANA Cloud, but leads to error on HANA express
-  'PAL_CONTENT', 'PAL_ML_TRACK', 'PAL_ANNS_CONTENT', 'PAL_STEM_TFIDF',
+  'PUBLIC',
+  'SYS',
+  //   'SYSTEM', // SYSTEM is technical schema on HANA Cloud, but leads to error on HANA express
+  'PAL_CONTENT',
+  'PAL_ML_TRACK',
+  'PAL_ANNS_CONTENT',
+  'PAL_STEM_TFIDF',
   'SAP_PA_APL',
-  'BROKER_PO_USER', 'BROKER_USER',
+  'BROKER_PO_USER',
+  'BROKER_USER',
 ]);
 
 export class HanaQueryGeneratorInternal<

@@ -1,14 +1,19 @@
-import NodeUtil from 'node:util';
-import maxBy from 'lodash/maxBy.js';
 import type { AbstractDialect } from '@sequelize/core';
+import { BaseError } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
-import { BaseError } from '@sequelize/core';
+import maxBy from 'lodash/maxBy.js';
+import NodeUtil from 'node:util';
 
-function removeUnsupportedIntegerOptions(dataType: BaseTypes.BaseIntegerDataType, dialect: AbstractDialect) {
+function removeUnsupportedIntegerOptions(
+  dataType: BaseTypes.BaseIntegerDataType,
+  dialect: AbstractDialect,
+) {
   if (dataType.options.length != null) {
     // this option only makes sense for zerofill
-    dialect.warnDataTypeIssue(`${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`);
+    dialect.warnDataTypeIssue(
+      `${dialect.name} does not support ${dataType.getDataTypeId()} with length specified. This options is ignored.`,
+    );
 
     delete dataType.options.length;
   }
@@ -135,7 +140,9 @@ export class BLOB extends BaseTypes.BLOB {
     super._checkOptionSupport(dialect);
 
     if (this.options.length) {
-      dialect.warnDataTypeIssue(`${dialect.name} does not support '${this.getDataTypeId()}' with length. This option will be ignored.`);
+      dialect.warnDataTypeIssue(
+        `${dialect.name} does not support '${this.getDataTypeId()}' with length. This option will be ignored.`,
+      );
       delete this.options.length;
     }
   }
@@ -148,13 +155,18 @@ export class BLOB extends BaseTypes.BLOB {
 export class JSON extends BaseTypes.JSON {
   parseDatabaseValue(value: unknown): unknown {
     if (typeof value !== 'string') {
-      throw new BaseError(`DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`);
+      throw new BaseError(
+        `DataTypes.JSON received a non-string value from the database, which it cannot parse: ${NodeUtil.inspect(value)}.`,
+      );
     }
 
     try {
       return globalThis.JSON.parse(value);
     } catch (error) {
-      throw new BaseError(`DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`, { cause: error });
+      throw new BaseError(
+        `DataTypes.JSON received a value from the database that it not valid JSON: ${NodeUtil.inspect(value)}.`,
+        { cause: error },
+      );
     }
   }
 

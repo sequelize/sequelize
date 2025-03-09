@@ -5,21 +5,21 @@ services:
     hostname: 6e2689d9964c
 
     ports:
-      - "39013:39013"
-      - "39017:39017"
-      - "39041-39045:39041-39045"
-      - "1128-1129:1128-1129"
-      - "59013-59014:59013-59014"
+      - '39013:39013'
+      - '39017:39017'
+      - '39041-39045:39041-39045'
+      - '1128-1129:1128-1129'
+      - '59013-59014:59013-59014'
     ulimits:
-     nofile:
-       soft: 1048576
-       hard: 1048576
+      nofile:
+        soft: 1048576
+        hard: 1048576
     sysctls:
       - kernel.shmmax=1073741824
       - net.ipv4.ip_local_port_range=40000 60999
       - kernel.shmall=8388608
 
-    command: ["--passwords-url", "file:///hana/mounts/hxepassword.json", "--agree-to-sap-license"]
+    command: ['--passwords-url', 'file:///hana/mounts/hxepassword.json', '--agree-to-sap-license']
 
     environment:
       SEQ_HANA_USER: system
@@ -28,7 +28,13 @@ services:
     volumes:
       - /data/hxe:/hana/mounts
     healthcheck:
-      test: ["CMD", "/bin/bash", "-c", "source ~/.bashrc && hdbsql -i90 -dHXE -usystem -pHXEHana1 'SELECT 39013 FROM DUMMY;'"]
+      test:
+        [
+          'CMD',
+          '/bin/bash',
+          '-c',
+          "source ~/.bashrc && hdbsql -i90 -dHXE -usystem -pHXEHana1 'SELECT 39013 FROM DUMMY;'",
+        ]
       interval: 3s
       timeout: 1s
       retries: 10

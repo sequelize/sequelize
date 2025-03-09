@@ -66,7 +66,8 @@ describe('QueryInterface#insert', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
       hana: hanaReturnIdWrapper(
         'INSERT INTO "Users" ("firstName") VALUES (:firstName);',
-        'IN firstName NVARCHAR(5000) => $sequelize_1', 'id',
+        'IN firstName NVARCHAR(5000) => $sequelize_1',
+        'id',
       ),
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -122,7 +123,8 @@ describe('QueryInterface#insert', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
       hana: hanaReturnIdWrapper(
         'INSERT INTO "Users" ("firstName","lastName") VALUES (:firstName,:lastName);',
-        'IN firstName NVARCHAR(5000) => $firstName, IN lastName NVARCHAR(5000) => $sequelize_1', 'id',
+        'IN firstName NVARCHAR(5000) => $firstName, IN lastName NVARCHAR(5000) => $sequelize_1',
+        'id',
       ),
     });
 
@@ -156,7 +158,8 @@ describe('QueryInterface#insert', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
       hana: hanaReturnIdWrapper(
         'INSERT INTO "Users" ("firstName","lastName") VALUES (:firstName,:lastName);',
-        'IN firstName NVARCHAR(5000) => $1, IN lastName NVARCHAR(5000) => $sequelize_1', 'id',
+        'IN firstName NVARCHAR(5000) => $1, IN lastName NVARCHAR(5000) => $sequelize_1',
+        'id',
       ),
     });
 

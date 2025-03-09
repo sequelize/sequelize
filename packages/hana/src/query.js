@@ -135,7 +135,7 @@ export class HanaQuery extends AbstractQuery {
           const startId = currentIdentityValue - affectedRows + 1;
           for (let i = 0; i < data; i++) {
             result.push({
-              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: startId + i
+              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: startId + i,
             });
           }
 
@@ -154,7 +154,10 @@ export class HanaQuery extends AbstractQuery {
             const record = data[0][key];
 
             const attributes = this.model.modelDefinition.attributes;
-            const attr = find(attributes.values(), attribute => attribute.attributeName === key || attribute.columnName === key);
+            const attr = find(
+              attributes.values(),
+              attribute => attribute.attributeName === key || attribute.columnName === key,
+            );
 
             this.instance.dataValues[attr?.attributeName || key] = record;
           }
@@ -162,14 +165,11 @@ export class HanaQuery extends AbstractQuery {
       }
 
       if (this.isUpsertQuery()) {
-        return [
-          this.instance,
-          null,
-        ];
+        return [this.instance, null];
       }
 
       return [
-        this.instance || data && (this.options.plain && data[0] || data) || undefined,
+        this.instance || (data && ((this.options.plain && data[0]) || data)) || undefined,
         affectedRows,
       ];
     }
@@ -186,9 +186,7 @@ export class HanaQuery extends AbstractQuery {
 
     switch (errCode) {
       case ERR_SQL_MANY_PRIMARY_KEY: {
-        const match = err.message.match(
-          /cannot have more than one primary key: (.*)/
-        );
+        const match = err.message.match(/cannot have more than one primary key: (.*)/);
         const table = match[1];
 
         return new UnknownConstraintError({
@@ -200,7 +198,7 @@ export class HanaQuery extends AbstractQuery {
 
       case ERR_SQL_UNIQUE_VIOLATED: {
         const indexMatch = err.message.match(
-          /Index\((.*)\) with error: unique constraint violation/
+          /Index\((.*)\) with error: unique constraint violation/,
         );
         const columnMatch = err.message.match(/column='([^']*)'/);
         const valueMatch = err.message.match(/value='([^']*)'/);
@@ -297,11 +295,12 @@ export class HanaQuery extends AbstractQuery {
       index.fields.push({
         attribute: row.columnName,
         length: undefined,
-        order: row.ascendingOrder === 'TRUE'
-          ? 'ASC'
-          : row.ascendingOrder === 'FALSE'
-            ? 'DESC'
-            : undefined,
+        order:
+          row.ascendingOrder === 'TRUE'
+            ? 'ASC'
+            : row.ascendingOrder === 'FALSE'
+              ? 'DESC'
+              : undefined,
       });
     }
 
