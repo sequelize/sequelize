@@ -229,7 +229,7 @@ async function test() {
     table: index.tableName,
     unique: index.unique,
     primary: index.primary,
-    fields: index.fields.map(field => field.name),
+    fields: index.fields.map(field => (typeof field === 'string' ? field : field.name)),
     type: index.type,
   }));
 
