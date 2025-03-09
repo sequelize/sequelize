@@ -1848,7 +1848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^4.0.0, @inquirer/select@npm:^4.0.9":
+"@inquirer/select@npm:^4.0.10, @inquirer/select@npm:^4.0.9":
   version: 4.0.10
   resolution: "@inquirer/select@npm:4.0.10"
   dependencies:
@@ -2755,7 +2755,7 @@ __metadata:
     "@inquirer/checkbox": "npm:^4.1.3"
     "@inquirer/confirm": "npm:^5.1.7"
     "@inquirer/input": "npm:^4.1.7"
-    "@inquirer/select": "npm:^4.0.0"
+    "@inquirer/select": "npm:^4.0.10"
     "@oclif/core": "npm:^3.26.0"
     "@oclif/plugin-help": "npm:^6.0.20"
     "@oclif/test": "npm:3.2.15"
