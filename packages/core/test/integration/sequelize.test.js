@@ -62,7 +62,7 @@ const badUsernameConfig = {
     account: 'bad_account',
   },
   hana: {
-    username: 'bad_user',
+    user: 'bad_user',
   },
 };
 
