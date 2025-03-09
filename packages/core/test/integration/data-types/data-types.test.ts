@@ -1600,7 +1600,8 @@ describe('DataTypes', () => {
 
         await expect(
           vars.User.create({
-            // @ts-expect-error -- intentionally testing invalid input
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
+            // @ts-ignore -- intentionally testing invalid input
             attr: new Uint16Array([49, 50, 51, 52]),
           }),
         ).to.be.rejectedWith(
