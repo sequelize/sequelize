@@ -9,7 +9,7 @@ import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Do not use me directly. Use {@link where}
+ * Do not use me directly. Use {@link sql.where}
  */
 export class Where<Operator extends keyof WhereOperators = typeof Op.eq> extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'where';
@@ -78,7 +78,7 @@ If you wish to use custom operators not provided by Sequelize, you can use the "
  * A way of writing an SQL binary operator, or more complex where conditions.
  *
  * This solution is slightly more verbose than the POJO syntax, but allows any value on the left hand side of the operator (unlike the POJO syntax which only accepts attribute names).
- * For instance, either the left or right hand side of the operator can be {@link fn}, {@link col}, {@link literal} etc.
+ * For instance, either the left or right hand side of the operator can be {@link sql.fn}, {@link sql.col}, {@link sql.literal} etc.
  *
  * If your left operand is an attribute name, using the regular POJO syntax (`{ where: { attrName: value }}`) syntax is usually more convenient.
  *

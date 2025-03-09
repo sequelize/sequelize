@@ -6,4 +6,5 @@ module.exports = {
   readme: 'none',
   plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links'],
   treatWarningsAsErrors: true,
+  highlightLanguages: ['typescript', 'sql', 'javascript', 'shellscript'],
 };

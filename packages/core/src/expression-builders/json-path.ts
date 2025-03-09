@@ -2,7 +2,7 @@ import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Do not use me directly. Use {@link jsonPath}.
+ * Do not use me directly. Use {@link sql.jsonPath}.
  */
 export class JsonPath extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'jsonPath';
@@ -17,7 +17,7 @@ export class JsonPath extends BaseSqlExpression {
 
 /**
  * Use this to access nested properties in a JSON column.
- * You can also use the dot notation with {@link Attribute}, but this works with any values, not just attributes.
+ * You can also use the dot notation with {@link sql.attribute}, but this works with any values, not just attributes.
  *
  * @param expression The expression to access the property on.
  * @param path The path to the property. If a number is used, it will be treated as an array index, otherwise as a key.

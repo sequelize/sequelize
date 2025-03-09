@@ -1,7 +1,7 @@
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Do not use me directly. Use {@link literal}
+ * Do not use me directly. Use {@link sql.literal}
  */
 export class Literal extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'literal';

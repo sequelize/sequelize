@@ -1757,7 +1757,7 @@ export interface AttributeOptions<M extends Model = Model> {
   columnName?: string | undefined;
 
   /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   * A literal default value, a JavaScript function, or an SQL function (using {@link sql.fn})
    */
   defaultValue?: unknown | undefined;
 

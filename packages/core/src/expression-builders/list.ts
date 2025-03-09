@@ -1,7 +1,7 @@
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Use {@link list} instead.
+ * Use {@link sql.list} instead.
  */
 export class List extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'list';
