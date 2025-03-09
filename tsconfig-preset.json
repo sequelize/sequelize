@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "allowJs": false,
+    "declaration": true,
+    "sourceRoot": "",
+    "outDir": "./lib",
+    "strict": true,
+    "rootDir": "./src",
+    "types": ["node", "mocha", "chai"],
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "checkJs": false,
+    "stripInternal": true,
+    "exactOptionalPropertyTypes": true
+  },
+  "ts-node": {
+    "transpileOnly": true
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "plugins": ["prettier-plugin-organize-imports"],
+  "bracketSameLine": true,
+  "printWidth": 100,
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "overrides": [
+    {
+      "files": [".mocharc.jsonc"],
+      "options": {
+        "trailingComma": "none"
+      }
+    }
+  ]
+}

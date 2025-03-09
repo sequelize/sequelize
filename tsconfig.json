@@ -1,22 +1,9 @@
 {
+  "extends": "./tsconfig-preset.json",
   "compilerOptions": {
-    "target": "esnext",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "allowJs": false,
-    "declaration": true,
-    "emitDeclarationOnly": true,
-    "sourceRoot": "",
-    "outDir": "./types",
-    "strict": true,
-    "baseUrl": "./",
-    "rootDir": "./src",
-    "types": ["node"],
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "checkJs": false,
-    "exactOptionalPropertyTypes": true
+    "rootDir": ".",
+    "noEmit": true,
+    "experimentalDecorators": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./**/*.ts"]
 }

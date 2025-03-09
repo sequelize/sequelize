@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/nx/schemas/nx-schema.json",
+  "namedInputs": {
+    "default": ["{projectRoot}/**/*"],
+    "prod": [
+      "{projectRoot}/src/**/*",
+      "{projectRoot}/package.json",
+      "{projectRoot}/tsconfig.json",
+      "!{projectRoot}/src/**/*.test.ts"
+    ]
+  },
+  "targetDefaults": {
+    "build": {
+      "cache": true,
+      "dependsOn": ["^build"],
+      "inputs": ["prod", "^prod"],
+      "outputs": ["{projectRoot}/lib"]
+    },
+    "test-typings": {
+      "cache": true,
+      "inputs": ["default", "^prod"]
+    },
+    "test-unit": {
+      "cache": true,
+      "dependsOn": ["build"],
+      "inputs": ["default", "^prod"]
+    }
+  },
+  "workspaceLayout": {
+    "libsDir": "packages"
+  }
+}

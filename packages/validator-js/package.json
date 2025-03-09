@@ -1,0 +1,59 @@
+{
+  "name": "@sequelize/validator.js",
+  "version": "7.0.0-alpha.45",
+  "description": "Integration between validator.js and Sequelize",
+  "funding": [
+    {
+      "type": "opencollective",
+      "url": "https://opencollective.com/sequelize"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:sequelize/sequelize.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sequelize/sequelize/issues"
+  },
+  "scripts": {
+    "test-typings": "tsc --noEmit",
+    "test-unit": "yarn mocha \"test/**/*.test.[tj]s\"",
+    "mocha": "mocha -r ../../test/register-esbuild.js",
+    "build": "../../build-packages.mjs validator-js"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./lib/index.d.mts",
+        "default": "./lib/index.mjs"
+      },
+      "require": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "type": "commonjs",
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@sequelize/core": "workspace:*",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@sequelize/sqlite3": "workspace:*",
+    "@types/chai": "4.3.20",
+    "@types/chai-as-promised": "7.1.8",
+    "chai": "4.5.0",
+    "chai-as-promised": "7.1.2",
+    "mocha": "11.1.0"
+  }
+}

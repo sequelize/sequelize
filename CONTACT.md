@@ -11,4 +11,4 @@ You can use the information below to contact maintainers directly. We will try t
 
 ## Via Slack
 
-Most of the team is also reachable privately through [our Slack](https://sequelize-slack.herokuapp.com/)
+Most of the team is also reachable privately through [our Slack](https://sequelize.org/slack)

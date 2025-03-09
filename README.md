@@ -1,10 +1,7 @@
-<p align="center">
-  <img src="logo.svg" width="100" alt="Sequelize logo" />
-  <h1 align="center"><a href="https://sequelize.org">Sequelize</a></h1>
-</p>
+<p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
+<h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
 [![npm version](https://badgen.net/npm/v/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
-[![Build Status](https://github.com/sequelize/sequelize/workflows/CI/badge.svg)](https://github.com/sequelize/sequelize/actions?query=workflow%3ACI)
 [![npm downloads](https://badgen.net/npm/dm/@sequelize/core)](https://www.npmjs.com/package/@sequelize/core)
 [![contributors](https://img.shields.io/github/contributors/sequelize/sequelize)](https://github.com/sequelize/sequelize/graphs/contributors)
 [![Open Collective](https://img.shields.io/opencollective/backers/sequelize)](https://opencollective.com/sequelize#section-contributors)
@@ -16,6 +13,27 @@
 Sequelize is an easy-to-use and promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite), [DB2](https://en.wikipedia.org/wiki/IBM_Db2_Family), [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server), [Snowflake](https://www.snowflake.com/), [Oracle DB](https://www.oracle.com/database/) and [Db2 for IBM i](https://www.ibm.com/support/pages/db2-ibm-i). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
 Would you like to contribute? Read [our contribution guidelines](./CONTRIBUTING.md) to know more. There are many ways to help! 😃
+
+## 🚀 Seeking New Maintainers for Sequelize! 🚀
+
+We're looking for new maintainers to help finalize and release the next major version of Sequelize! If you're passionate about open-source and database ORMs, we'd love to have you onboard.
+
+### 💰 Funding Available
+
+We distribute **$2,500 per quarter** among maintainers and have additional funds for full-time contributions.
+
+### 🛠️ What You’ll Work On
+
+- Finalizing and releasing Sequelize’s next major version
+- Improving TypeScript support and database integrations
+- Fixing critical issues and shaping the ORM’s future
+
+### 🤝 How to Get Involved
+
+Interested? Join our Slack and reach out to **@WikiRik** or **@sdepold**:  
+➡️ **[sequelize.org/slack](https://sequelize.org/slack)**
+
+We’d love to have you on board! 🚀
 
 ## :computer: Getting Started
 
@@ -43,14 +61,12 @@ Please find upgrade information to major versions here:
 - [Databases Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
-- [Slack Inviter](http://sequelize-slack.herokuapp.com/)
+- [Slack](https://sequelize.org/slack)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/sequelize.js)
 
 ### :wrench: Tools
 
 - [CLI](https://github.com/sequelize/cli)
-- [With TypeScript](https://sequelize.org/docs/v7/other-topics/typescript)
-- [Enhanced TypeScript with decorators](https://github.com/RobinBuschmann/sequelize-typescript)
 - [For GraphQL](https://github.com/mickhansen/graphql-sequelize)
 - [For CockroachDB](https://github.com/cockroachdb/sequelize-cockroachdb)
 - [Awesome Sequelize](https://sequelize.org/docs/v7/other-topics/resources/)

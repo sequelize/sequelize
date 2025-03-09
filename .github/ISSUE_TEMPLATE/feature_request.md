@@ -1,9 +1,9 @@
 ---
-name: Feature request
+name: 🚀 Feature request
 about: Suggest an idea for this project
-title: ""
-labels: ""
-assignees: ""
+title: ''
+labels: ['type: feature', 'pending-approval']
+assignees: ''
 ---
 
 <!--
@@ -51,4 +51,4 @@ For general questions, please use one of these:
 
 <!-- do not delete this footer -->
 
-*Indicate your interest in the addition of this feature by adding the 👍 reaction. Comments such as "+1" will be removed.*
+_Indicate your interest in the addition of this feature by adding the 👍 reaction. Comments such as "+1" will be removed._
