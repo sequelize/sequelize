@@ -942,7 +942,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    *
    * ⚠️ You almost certainly want to use `quoteIdentifier` instead!
    * This method splits the identifier by "." into multiple identifiers, and has special meaning for "*".
-   * This behavior should never be the default and should be explicitly opted into by using {@link Col}.
+   * This behavior should never be the default and should be explicitly opted into by using {@link sql.col}.
    *
    * @param {string} identifiers
    *
