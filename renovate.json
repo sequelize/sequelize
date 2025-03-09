@@ -7,7 +7,7 @@
   ],
   "automergeStrategy": "squash",
   "automergeType": "branch",
-  "branchConcurrentLimit": 1,
+  "branchConcurrentLimit": 2,
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "platformAutomerge": true,
