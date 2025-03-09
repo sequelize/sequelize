@@ -61,7 +61,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA
         LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA
         WHERE i.TABLE_NAME = 'myTable' AND i.TABLE_SCHEMA = CURRENT SCHEMA
-        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`
+        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`,
     });
   });
 
@@ -122,7 +122,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA
         LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA
         WHERE i.TABLE_NAME = 'MyModels' AND i.TABLE_SCHEMA = CURRENT SCHEMA
-        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`
+        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`,
     });
   });
 
@@ -184,7 +184,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA
         LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA
         WHERE i.TABLE_NAME = 'MyModels' AND i.TABLE_SCHEMA = CURRENT SCHEMA
-        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`
+        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`,
     });
   });
 
@@ -243,7 +243,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA
         LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA
         WHERE i.TABLE_NAME = 'myTable' AND i.TABLE_SCHEMA = 'mySchema'
-        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`
+        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`,
     });
   });
 
@@ -371,7 +371,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA
         LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA
         WHERE i.TABLE_NAME = 'myTable' AND i.TABLE_SCHEMA = 'mySchema'
-        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`
+        ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION`,
     });
   });
 
@@ -389,7 +389,8 @@ describe('QueryGenerator#showIndexesQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite3: 'SELECT tbl_name, name, sql FROM sqlite_master WHERE tbl_name = \'mySchemacustommyTable\' AND type = \'index\' ORDER BY rootpage',
+        sqlite3:
+          "SELECT tbl_name, name, sql FROM sqlite_master WHERE tbl_name = 'mySchemacustommyTable' AND type = 'index' ORDER BY rootpage",
       },
     );
   });
