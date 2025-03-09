@@ -15,8 +15,6 @@ const sql = current.queryGenerator;
 const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
 const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
 
-const dialectName = Support.getTestDialect();
-
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
