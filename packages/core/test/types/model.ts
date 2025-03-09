@@ -148,7 +148,7 @@ MyModel.init(
     indexes: [
       {
         fields: ['foo'],
-        using: 'gin',
+        method: 'gin',
         operator: 'jsonb_path_ops',
       },
     ],
