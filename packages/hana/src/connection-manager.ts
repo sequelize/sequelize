@@ -28,12 +28,102 @@ export interface HanaConnection extends Connection, AbstractConnection {
 }
 
 export interface HanaConnectionOptions extends Omit<HanaClient.ConnectionOptions, any> {
+  // https://help.sap.com/docs/SAP_HANA_CLIENT/f1b440ded6144a54ada97ff95dac7adf/4fe9978ebac44f35b9369ef5a4a26f4c.html
   host?: string;
   port?: number;
   database?: string;
-  username?: string;
+  user?: string;
   password?: string;
-  hanaSchema?: string; // `schema` is used by sequelize
+  currentSchema?: string;
+  allowFetchWarnings?: boolean,
+  ca?: string,
+  cert?: string,
+  charset?: string,
+  connectionLifetime?: number,
+  // database?: string,
+  dataTruncationError?: boolean,
+  // host?: string,
+  key?: string,
+  maxPoolSize?: number,
+  maxPooledIdleTime?: number,
+  passphrase?: string,
+  pooling?: boolean,
+  poolingCheck?: boolean,
+  poolKey?: string,
+  // port?: number,
+  // password?: string,
+  resultSetArrayLimitMB?: number,
+  resultSetRowSetLimitKBValue?: number,
+  serverNode?: string,
+  spatialTypes?: boolean,
+  threadPoolKey?: string,
+  // user?: string,
+  vectorOutputType?: string,
+  abapVarCharMode?: boolean,
+  allowLocalCompress?: boolean,
+  allowReconnectOnSelect?: boolean,
+  bindAddress?: string,
+  chopBlanks?: boolean,
+  chopBlanksInput?: boolean,
+  communicationTimeout?: number,
+  compress?: boolean,
+  connDownRollbackError?: boolean,
+  connectTimeout?: number,
+  // currentSchema?: string,
+  cursorHoldabilityType?: string,
+  distribution?: string,
+  emptyTimestampIsNull?: boolean,
+  ignoreTopology?: boolean,
+  isoTimestampOutput?: string,
+  maxLazyDroppedStatements?: number,
+  networkGroup?: string,
+  nodeConnectTimeout?: number,
+  packetCaching?: boolean,
+  packetSize?: number,
+  packetSizeLimit?: number,
+  prefetch?: boolean,
+  proxyHostname?: string,
+  proxyHttp?: boolean,
+  proxyPassword?: string,
+  proxyPort?: number,
+  proxyScpAccount?: string,
+  proxyUserName?: string,
+  reconnect?: boolean,
+  resolveHostName?: string,
+  routeDirectExecute?: boolean,
+  secondarySessionFallback?: boolean,
+  sessionVariable?: string,
+  siteType?: string,
+  splitBatchCommands?: boolean,
+  statementCacheSize?: number,
+  statementRoutingFailureBackoff?: boolean,
+  statementRoutingWarnings?: boolean,
+  tcpKeepAliveCount?: number,
+  tcpKeepAliveIdle?: number,
+  tcpKeepAliveInterval?: number,
+  tcpUserTimeout?: number,
+  tcpQuickAck?: boolean,
+  tcpSynCnt?: number,
+  timestampPadding?: boolean,
+  traceFile?: string,
+  traceOptions?: string,
+  webSocketURL?: string,
+  cseKeyStorePassword?: string,
+  authenticationMethods?: string,
+  authenticationX509?: string,
+  authenticationX509Password?: string,
+  encrypt?: boolean,
+  sslCryptoProvider?: string,
+  sslHostNameInCertificate?: string,
+  sslKeyStore?: string,
+  sslMinProtocolVersion?: string,
+  sslMaxProtocolVersion?: string,
+  sslKeyStorePassword?: string,
+  sslSNIHostname?: string,
+  sslSNIRequest?: boolean,
+  sslTrustStore?: string,
+  sslUseDefaultTrustStore?: boolean,
+  sslValidateCertificate?: boolean,
 }
 
 /**
@@ -128,11 +218,7 @@ async function createConnection(
 ): Promise<HanaConnection> {
   return new Promise((resolve, reject) => {
     const connection: HanaConnection = lib.createConnection(config) as HanaConnection;
-    connection.connect({
-      serverNode: `${config.host}:${config.port}`,
-      uid: config.username,
-      pwd: config.password,
-    }, (error) => {
+    connection.connect(config, (error) => {
       if (error) {
         reject(new ConnectionError(error));
       }

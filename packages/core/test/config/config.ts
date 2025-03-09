@@ -161,7 +161,7 @@ export const CONFIG: DialectConfigs = {
   hana: {
     dialect: HanaDialect,
     database: env.SEQ_HANA_DB || env.SEQ_DB || 'HXE',
-    username: env.SEQ_HANA_USER || env.SEQ_USER || 'system',
+    user: env.SEQ_HANA_USER || env.SEQ_USER || 'system',
     password: env.SEQ_HANA_PW || env.SEQ_PW || 'HXEHana1',
     host: env.HANA_PORT_39017_TCP_ADDR || env.SEQ_HANA_HOST || env.SEQ_HOST || '127.0.0.1',
     port: parseSafeInteger.orThrow(

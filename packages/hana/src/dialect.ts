@@ -3,6 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import type {
   BindCollector, SupportableNumericOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
+import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { registerHanaDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
@@ -12,7 +13,12 @@ import { HanaQueryGenerator } from './query-generator.js';
 import { HanaQueryInterface } from './query-interface.js';
 import { HanaQuery } from './query.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
-import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
+import {
+  BOOLEAN_CONNECTION_OPTION_NAMES,
+  CONNECTION_OPTION_NAMES,
+  NUMBER_CONNECTION_OPTION_NAMES,
+  STRING_CONNECTION_OPTION_NAMES,
+} from './_internal/connection-options.js';
 
 export interface HanaDialectOptions {
   /**
@@ -100,11 +106,11 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
   }
 
   getDefaultSchema(): string {
-    if (this.sequelize.options.replication.write.hanaSchema) {
-      return this.sequelize.options.replication.write.hanaSchema;
+    if (this.sequelize.options.replication.write.currentSchema) {
+      return this.sequelize.options.replication.write.currentSchema;
     }
 
-    return this.sequelize.options.replication.write.username?.toUpperCase() ?? '';
+    return this.sequelize.options.replication.write.user?.toUpperCase() ?? '';
   }
 
   static getDefaultPort() {
@@ -112,7 +118,18 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
   }
 
   parseConnectionUrl(url: string): HanaConnectionOptions {
-    throw new Error('Method not implemented.');
+    return parseCommonConnectionUrlOptions<HanaConnectionOptions>({
+      url: new URL(url),
+      allowedProtocols: ['hana'],
+      hostname: 'host',
+      port: 'port',
+      pathname: 'database',
+      username: 'user',
+      password: 'password',
+      stringSearchParams: STRING_CONNECTION_OPTION_NAMES,
+      booleanSearchParams: BOOLEAN_CONNECTION_OPTION_NAMES,
+      numberSearchParams: NUMBER_CONNECTION_OPTION_NAMES,
+    });
   }
 
   static getSupportedOptions() {
