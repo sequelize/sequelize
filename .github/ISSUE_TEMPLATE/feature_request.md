@@ -3,6 +3,7 @@ name: 🚀 Feature request
 about: Suggest an idea for this project
 title: ''
 labels: ['type: feature', 'pending-approval']
+type: Feature
 assignees: ''
 ---
 
