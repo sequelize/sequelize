@@ -838,13 +838,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('w/o filters', () => {
-        if (dialectName === 'hana') {
-          // HANA does not support correlated subquery with ORDER BY
-          // https://github.com/sequelize/sequelize/pull/17354
-          // TODO restore this test for hana after the PR is merged
-          return;
-        }
-
         const { User } = vars;
 
         expectsql(
@@ -881,13 +874,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('w/ nested column filter', () => {
-        if (dialectName === 'hana') {
-          // HANA does not support correlated subquery with ORDER BY
-          // https://github.com/sequelize/sequelize/pull/17354
-          // TODO restore this test for hana after the PR is merged
-          return;
-        }
-
         const { User } = vars;
 
         expectsql(
@@ -927,13 +913,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include w/ subQuery + nested filter + paging', () => {
-      if (dialectName === 'hana') {
-        // HANA does not support correlated subquery with ORDER BY
-        // https://github.com/sequelize/sequelize/pull/17354
-        // TODO restore this test for hana after the PR is merged
-        return;
-      }
-
       const User = Support.sequelize.define('User', {
         scopeId: DataTypes.INTEGER,
       });
