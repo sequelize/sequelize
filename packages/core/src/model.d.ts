@@ -2418,35 +2418,6 @@ export abstract class Model<
   ): Promise<M[]>;
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   */
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
-  ): Promise<R | null>;
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true },
-  ): Promise<R>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M>,
-  ): Promise<M>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options?: FindByPkOptions<M>,
-  ): Promise<M | null>;
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
