@@ -344,12 +344,16 @@ if (dialect === 'db2') {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          },
         },
         {
           arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation:
-            "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          expectation: {
+            query:
+              "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          },
         },
         {
           arguments: [
@@ -359,7 +363,9 @@ if (dialect === 'db2') {
               { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
             ],
           ],
-          expectation: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
+          expectation: {
+            query: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
+          },
         },
         {
           arguments: [
@@ -369,7 +375,9 @@ if (dialect === 'db2') {
               { name: 'bar', foo: 2 },
             ],
           ],
-          expectation: 'INSERT INTO "myTable" ("name","foo") VALUES (\'foo\',1),(\'bar\',2);',
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","foo") VALUES (\'foo\',1),(\'bar\',2);',
+          },
         },
         {
           arguments: [
@@ -379,8 +387,10 @@ if (dialect === 'db2') {
               { name: 'bar', nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',NULL,NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',NULL,NULL);',
+          },
         },
         {
           arguments: [
@@ -390,8 +400,10 @@ if (dialect === 'db2') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          },
           context: { options: { omitNull: false } },
         },
         {
@@ -402,8 +414,10 @@ if (dialect === 'db2') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          },
           context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         },
         {
@@ -414,8 +428,10 @@ if (dialect === 'db2') {
               { name: 'bar', foo: 2, undefinedValue: undefined },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","foo","nullValue","undefinedValue") VALUES (\'foo\',1,NULL,NULL),(\'bar\',2,NULL,NULL);',
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue","undefinedValue") VALUES (\'foo\',1,NULL,NULL),(\'bar\',2,NULL,NULL);',
+          },
           context: { options: { omitNull: true } }, // Note: As above
         },
         {
@@ -426,12 +442,13 @@ if (dialect === 'db2') {
               { name: 'bar', value: false },
             ],
           ],
-          expectation:
-            'INSERT INTO "myTable" ("name","value") VALUES (\'foo\',true),(\'bar\',false);',
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","value") VALUES (\'foo\',true),(\'bar\',false);',
+          },
         },
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          expectation: { query: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');' },
         },
       ],
 

@@ -292,11 +292,23 @@ if (dialect === 'sqlite3') {
       bulkInsertQuery: [
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('''bar'''),('foo');",
+          expectation: {
+            query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: "'bar'",
+              sequelize_2: 'foo',
+            },
+          },
         },
         {
           arguments: [
@@ -312,8 +324,16 @@ if (dialect === 'sqlite3') {
               },
             ],
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000 +00:00'),('bar','2012-03-27 10:01:55.000 +00:00');",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`birthday`) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: '2011-03-27 10:01:55.000 +00:00',
+              sequelize_3: 'bar',
+              sequelize_4: '2012-03-27 10:01:55.000 +00:00',
+            },
+          },
         },
         {
           arguments: [
@@ -323,7 +343,16 @@ if (dialect === 'sqlite3') {
               { name: 'foo', value: 1 },
             ],
           ],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('foo',1);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'bar',
+              sequelize_2: null,
+              sequelize_3: 'foo',
+              sequelize_4: 1,
+            },
+          },
         },
         {
           arguments: [
@@ -333,7 +362,16 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: 2 },
             ],
           ],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('bar',NULL),('bar',2);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'bar',
+              sequelize_2: null,
+              sequelize_3: 'bar',
+              sequelize_4: 2,
+            },
+          },
         },
         {
           arguments: [
@@ -343,7 +381,16 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: false },
             ],
           ],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',1),('bar',0);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: 'bar',
+              sequelize_4: 0,
+            },
+          },
         },
         {
           arguments: [
@@ -353,7 +400,16 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: false },
             ],
           ],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',0),('bar',0);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`value`) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 0,
+              sequelize_3: 'bar',
+              sequelize_4: 0,
+            },
+          },
         },
         {
           arguments: [
@@ -363,8 +419,18 @@ if (dialect === 'sqlite3') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3),($sequelize_4,$sequelize_5,$sequelize_6);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: null,
+              sequelize_4: 'bar',
+              sequelize_5: 2,
+              sequelize_6: null,
+            },
+          },
         },
         {
           arguments: [
@@ -374,8 +440,18 @@ if (dialect === 'sqlite3') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3),($sequelize_4,$sequelize_5,$sequelize_6);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: null,
+              sequelize_4: 'bar',
+              sequelize_5: 2,
+              sequelize_6: null,
+            },
+          },
           context: { options: { omitNull: false } },
         },
         {
@@ -386,8 +462,18 @@ if (dialect === 'sqlite3') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3),($sequelize_4,$sequelize_5,$sequelize_6);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: null,
+              sequelize_4: 'bar',
+              sequelize_5: 2,
+              sequelize_6: null,
+            },
+          },
           context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
         },
         {
@@ -398,13 +484,29 @@ if (dialect === 'sqlite3') {
               { name: 'bar', foo: 2, nullValue: null },
             ],
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ($sequelize_1,$sequelize_2,$sequelize_3),($sequelize_4,$sequelize_5,$sequelize_6);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 1,
+              sequelize_3: null,
+              sequelize_4: 'bar',
+              sequelize_5: 2,
+              sequelize_6: null,
+            },
+          },
           context: { options: { omitNull: true } }, // Note: As above
         },
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: "INSERT OR IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');",
+          expectation: {
+            query: 'INSERT OR IGNORE INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
         {
           arguments: [
@@ -412,8 +514,14 @@ if (dialect === 'sqlite3') {
             [{ name: 'foo' }, { name: 'bar' }],
             { updateOnDuplicate: ['name'], upsertKeys: ['name'] },
           ],
-          expectation:
-            "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;",
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2) ON CONFLICT (`name`) DO UPDATE SET `name`=EXCLUDED.`name`;',
+            bind: {
+              sequelize_1: 'foo',
+              sequelize_2: 'bar',
+            },
+          },
         },
       ],
 
