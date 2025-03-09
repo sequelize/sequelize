@@ -61,7 +61,8 @@
     "sscce-postgres-native": "cross-env DIALECT=postgres-native yarn sscce",
     "sscce-sqlite3": "cross-env DIALECT=sqlite3 yarn sscce",
     "sscce-mssql": "cross-env DIALECT=mssql yarn sscce",
-    "sscce-db2": "cross-env DIALECT=db2 yarn sscce"
+    "sscce-db2": "cross-env DIALECT=db2 yarn sscce",
+    "sscce-hana": "cross-env DIALECT=hana yarn sscce"
   },
   "workspaces": [
     "packages/*"
