@@ -12,7 +12,7 @@ export enum IndexHints {
 }
 
 /**
- * An enum of operators to be used in {@link QueryGenerator} methods.
+ * An enum of operators to be used in {@link Sequelize#queryGenerator} methods.
  *
  * @property BIND
  * @property REPLACEMENT
