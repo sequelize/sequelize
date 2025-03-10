@@ -276,27 +276,21 @@ describe('Model.update', () => {
       }
     });
 
-    if (dialect.supports['LIMIT ON UPDATE']) {
-      it('supports limit clause', async () => {
-        const { User } = vars;
+    it('supports limit clause', async () => {
+      const { User } = vars;
 
-        await User.bulkCreate([
-          { username: 'Peter' },
-          { username: 'Peter' },
-          { username: 'Peter' },
-        ]);
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Peter' }, { username: 'Peter' }]);
 
-        const [affectedRows] = await User.update(
-          { username: 'Bob' },
-          {
-            where: {},
-            limit: 1,
-          },
-        );
+      const [affectedRows] = await User.update(
+        { username: 'Bob' },
+        {
+          where: {},
+          limit: 1,
+        },
+      );
 
-        expect(affectedRows).to.equal(1);
-      });
-    }
+      expect(affectedRows).to.equal(1);
+    });
 
     it('skips query if there is no data to update', async () => {
       const { User } = vars;
@@ -450,17 +444,12 @@ describe('Model.update', () => {
 
             expectsql(sqlQuery, {
               default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
-              sqlite3:
-                'UPDATE `users1` SET `secretValue`=$sequelize_1,`updatedAt`=$sequelize_2 WHERE `id` = $sequelize_3 RETURNING *',
-              postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3 RETURNING *`,
-              mysql: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
-              mariadb: 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
-              mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
-              db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
-              ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+              mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 WHERE [id] = @sequelize_3`,
+              postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3`,
+              'db2 ibmi': `SELECT COUNT(*) FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?)`,
+              'mariadb mysql': 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             });
           },
-          returning: [sql.col('*')],
         },
       );
       expect(test).to.be.true;
@@ -509,21 +498,11 @@ describe('Model.update', () => {
 
       await User.create({ username: 'jan' });
 
-      // TODO: Model.update should always throw an error if a virtual attributes are used (even if it has a setter, no access to it from static update)
-      await User.update(
-        {
-          username: 'kurt',
-          virtual: 'test',
-        },
-        {
-          where: {
-            username: 'jan',
-          },
-        },
-      );
-
+      await expect(
+        User.update({ username: 'kurt', virtual: 'test' }, { where: { username: 'jan' } }),
+      ).to.be.rejectedWith('Attribute "virtual" does not exist on model "User".');
       const user = await User.findOne({ rejectOnEmpty: true });
-      expect(user.username).to.equal('kurt');
+      expect(user.username).to.equal('jan');
       expect(user.virtual).to.not.equal('test');
     });
 
