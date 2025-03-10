@@ -1202,6 +1202,13 @@ export interface BulkCreateOptions<TAttributes = any>
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
   conflictAttributes?: Array<keyof TAttributes>;
+
+  /**
+   * Optional parameter to specify whether the generated query uses bind parameters or
+   * replacement (values are added directly as literals in the SQL statement)
+   * Defaults to 'replacement' for backwards compatibility:
+   */
+  parameterStyle?: 'replacement' | 'bind';
 }
 
 /**
