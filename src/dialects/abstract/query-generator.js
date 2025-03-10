@@ -1104,6 +1104,12 @@ class QueryGenerator {
         return this.handleSequelizeMethod(value);
       }
       if (field && field.type) {
+        if (field.type instanceof DataTypes.STRING
+            && ['mysql', 'mariadb'].includes(this.dialect)
+            && ['number', 'boolean'].includes(typeof value)) {
+          value = String(Number(value));
+        }
+              
         this.validate(value, field, options);
 
         if (field.type.stringify) {
