@@ -42,7 +42,9 @@ import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AddConstraintQueryOptions,
+  AddTemporalTableQueryOptions,
   BulkDeleteQueryOptions,
+  ChangeTemporalTableQueryOptions,
   CreateDatabaseQueryOptions,
   CreateSchemaQueryOptions,
   DropSchemaQueryOptions,
@@ -54,8 +56,11 @@ import type {
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   RemoveIndexQueryOptions,
+  RemoveTemporalTableQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
+  ShowTemporalPeriodsQueryOptions,
+  ShowTemporalTablesQueryOptions,
   StartTransactionQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
@@ -65,6 +70,20 @@ import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
 
+export const ADD_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<
+  keyof AddTemporalTableQueryOptions
+>([
+  'applicationPeriodRowEnd',
+  'applicationPeriodRowStart',
+  'historyRetentionPeriod',
+  'historyTable',
+  'systemPeriodRowEnd',
+  'systemPeriodRowStart',
+  'temporalTableType',
+]);
+export const CHANGE_TEMPORAL_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<
+  keyof ChangeTemporalTableQueryOptions
+>(['historyRetentionPeriod', 'historyTable', 'temporalTableType']);
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
   'collate',
@@ -86,6 +105,7 @@ export const DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropSchemaQue
 ]);
 export const DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof DropTableQueryOptions>([
   'cascade',
+  'dropHistoryTable',
 ]);
 export const LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListDatabasesQueryOptions>([
   'skip',
@@ -96,6 +116,7 @@ export const LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof ListTablesQue
 export const QUOTE_TABLE_SUPPORTABLE_OPTIONS = new Set<keyof QuoteTableOptions>([
   'indexHints',
   'tableHints',
+  'temporalTime',
 ]);
 export const REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof RemoveColumnQueryOptions>([
   'ifExists',
@@ -335,6 +356,63 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     _options?: TruncateTableQueryOptions,
   ): string | string[] {
     throw new Error(`truncateTableQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Add temporal table query
+   *
+   * @param _tableOrModel
+   * @param _options
+   */
+  addTemporalTableQuery(
+    _tableOrModel: TableOrModel,
+    _options: AddTemporalTableQueryOptions,
+  ): string[] {
+    throw new Error(`addTemporalTableQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Change temporal table query
+   *
+   * @param _tableOrModel
+   * @param _options
+   */
+  changeTemporalTableQuery(
+    _tableOrModel: TableOrModel,
+    _options: ChangeTemporalTableQueryOptions,
+  ): string {
+    throw new Error(`changeTemporalTableQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Remove temporal table query
+   *
+   * @param _tableOrModel
+   * @param _options
+   */
+  removeTemporalTableQuery(
+    _tableOrModel: TableOrModel,
+    _options: RemoveTemporalTableQueryOptions,
+  ): string[] {
+    throw new Error(`removeTemporalTableQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Show temporal periods query
+   *
+   * @param _options
+   */
+  showTemporalPeriodsQuery(_options?: ShowTemporalPeriodsQueryOptions): string {
+    throw new Error(`showTemporalPeriodsQuery has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Show temporal tables query
+   *
+   * @param _options
+   */
+  showTemporalTablesQuery(_options?: ShowTemporalTablesQueryOptions): string {
+    throw new Error(`showTemporalTablesQuery has not been implemented in ${this.dialect.name}.`);
   }
 
   removeColumnQuery(
@@ -622,6 +700,10 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
         {
           indexHints: this.dialect.supports.indexHints,
           tableHints: this.dialect.supports.tableHints,
+          temporalTime:
+            this.dialect.supports.temporalTables.applicationPeriod ||
+            this.dialect.supports.temporalTables.biTemporal ||
+            this.dialect.supports.temporalTables.systemPeriod,
         },
         options,
       );
@@ -658,6 +740,10 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
           : '';
 
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
+    }
+
+    if (options?.temporalTime) {
+      sql += ` ${this.#internals.formatTemporalTime(options.temporalTime)}`;
     }
 
     if (options?.alias) {
