@@ -446,7 +446,7 @@ describe('Model.update', () => {
               default: `UPDATE [users1] SET [secretValue]=$sequelize_1,[updatedAt]=$sequelize_2 WHERE [id] = $sequelize_3`,
               mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 WHERE [id] = @sequelize_3`,
               postgres: `UPDATE "users1" SET "secretValue"=$1,"updatedAt"=$2 WHERE "id" = $3`,
-              'db2 ibmi': `SELECT COUNT(*) FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?)`,
+              'db2 ibmi': `SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?)`,
               'mariadb mysql': 'UPDATE `users1` SET `secretValue`=?,`updatedAt`=? WHERE `id` = ?',
             });
           },

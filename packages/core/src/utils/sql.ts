@@ -586,5 +586,5 @@ export function getDb2IbmiSelectFromFinalTable(
     }
   }
 
-  return `SELECT COUNT(*) FROM FINAL TABLE (${query})`;
+  return `SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (${query})`;
 }

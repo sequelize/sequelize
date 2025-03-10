@@ -45,7 +45,7 @@ describe('QueryInterface#update', () => {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [firstName] = $sequelize_2',
       sqlite3: 'UPDATE `Users` SET `firstName`=$sequelize_1 WHERE `firstName` = $sequelize_2',
       'db2 ibmi':
-        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2)',
+        'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2)',
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: ':name',
@@ -99,7 +99,7 @@ describe('QueryInterface#update', () => {
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $id',
       'db2 ibmi':
-        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id)',
+        'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -129,7 +129,7 @@ describe('QueryInterface#update', () => {
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $1',
       'db2 ibmi':
-        'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1)',
+        'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1)',
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

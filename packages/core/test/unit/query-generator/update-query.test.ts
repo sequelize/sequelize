@@ -42,7 +42,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(queryGenerator.updateQuery('myTable', { status: 'bar' }), {
       query: {
         default: 'UPDATE [myTable] SET [status]=$sequelize_1',
-        'db2 ibmi': 'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
+        'db2 ibmi': 'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
@@ -53,7 +53,7 @@ describe('QueryGenerator#updateQuery', () => {
       query: {
         default: 'UPDATE [myTable] SET [status]=$sequelize_1 WHERE [id] = $sequelize_2',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
       },
       bind: { default: { sequelize_1: 'bar', sequelize_2: 2 } },
     });
@@ -71,7 +71,7 @@ describe('QueryGenerator#updateQuery', () => {
         sqlite3:
           'UPDATE `myTable` SET `status`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `myTable` WHERE `id` = $sequelize_2 LIMIT $sequelize_3)',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2 FETCH NEXT $sequelize_3 ROWS ONLY)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2 FETCH NEXT $sequelize_3 ROWS ONLY)',
         'mssql postgres snowflake': limitWithoutModelError,
       },
     );
@@ -93,7 +93,7 @@ describe('QueryGenerator#updateQuery', () => {
         sqlite3:
           'UPDATE `myTable` SET `status`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `myTable` WHERE `id` = $sequelize_2 LIMIT $sequelize_3 OFFSET $sequelize_4)',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2 OFFSET $sequelize_3 ROWS FETCH NEXT $sequelize_4 ROWS ONLY)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2 OFFSET $sequelize_3 ROWS FETCH NEXT $sequelize_4 ROWS ONLY)',
         'mssql postgres snowflake': limitWithoutModelError,
       },
     );
@@ -112,7 +112,7 @@ describe('QueryGenerator#updateQuery', () => {
           sqlite3:
             'UPDATE `Users` SET `first_name`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `id` = $sequelize_2 LIMIT $sequelize_3)',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2 FETCH NEXT $sequelize_3 ROWS ONLY)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2 FETCH NEXT $sequelize_3 ROWS ONLY)',
           'postgres snowflake':
             'UPDATE [Users] SET [first_name]=$sequelize_1 WHERE [id] IN (SELECT [id] FROM [Users] WHERE [id] = $sequelize_2 ORDER BY [id] LIMIT $sequelize_3)',
         },
@@ -143,7 +143,7 @@ describe('QueryGenerator#updateQuery', () => {
           sqlite3:
             'UPDATE `Users` SET `first_name`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `id` = $sequelize_2 LIMIT $sequelize_3 OFFSET $sequelize_4)',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2 OFFSET $sequelize_3 ROWS FETCH NEXT $sequelize_4 ROWS ONLY)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2 OFFSET $sequelize_3 ROWS FETCH NEXT $sequelize_4 ROWS ONLY)',
           'postgres snowflake':
             'UPDATE [Users] SET [first_name]=$sequelize_1 WHERE [id] IN (SELECT [id] FROM [Users] WHERE [id] = $sequelize_2 ORDER BY [id] LIMIT $sequelize_3 OFFSET $sequelize_4)',
         },
@@ -207,7 +207,7 @@ describe('QueryGenerator#updateQuery', () => {
         query: {
           default: 'UPDATE [myTable] SET [name]=$sequelize_1 WHERE [name] = $sequelize_2',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2)',
         },
         bind: { default: { sequelize_1: "foo';DROP TABLE myTable;", sequelize_2: 'foo' } },
       },
@@ -225,7 +225,7 @@ describe('QueryGenerator#updateQuery', () => {
         query: {
           default: 'UPDATE [myTable] SET [name]=UPPER([name]) WHERE [name] = $sequelize_1',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "name"=UPPER("name") WHERE "name" = $sequelize_1)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "name"=UPPER("name") WHERE "name" = $sequelize_1)',
         },
         bind: { default: { sequelize_1: 'foo' } },
       },
@@ -240,7 +240,7 @@ describe('QueryGenerator#updateQuery', () => {
           default:
             'UPDATE [myTable] SET [status]=$sequelize_1,[value]=$sequelize_2 WHERE [id] = $sequelize_3',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1,"value"=$sequelize_2 WHERE "id" = $sequelize_3)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1,"value"=$sequelize_2 WHERE "id" = $sequelize_3)',
         },
         bind: { default: { sequelize_1: 'bar', sequelize_2: null, sequelize_3: 2 } },
       },
@@ -258,7 +258,7 @@ describe('QueryGenerator#updateQuery', () => {
         query: {
           default: 'UPDATE [myTable] SET [status]=$sequelize_1 WHERE [id] = $sequelize_2',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
         },
         bind: { default: { sequelize_1: 'bar', sequelize_2: 2 } },
       },
@@ -281,7 +281,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(query, {
       default: `UPDATE [Users] SET [first_name]='Zoe' WHERE name = 'Zoe'`,
       mssql: `UPDATE [Users] SET [first_name]=N'Zoe' WHERE name = N'Zoe'`,
-      'db2 ibmi': `SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"='Zoe' WHERE name = 'Zoe')`,
+      'db2 ibmi': `SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"='Zoe' WHERE name = 'Zoe')`,
     });
     expect(bind).to.deep.eq({});
   });
@@ -291,7 +291,7 @@ describe('QueryGenerator#updateQuery', () => {
       query: {
         default: 'UPDATE [Users] SET [first_name]=$sequelize_1',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
@@ -308,7 +308,7 @@ describe('QueryGenerator#updateQuery', () => {
       query: {
         default: 'UPDATE [Users] SET [first_name]=$sequelize_1',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
@@ -319,7 +319,7 @@ describe('QueryGenerator#updateQuery', () => {
       query: {
         default: 'UPDATE [Users] SET [first_name]=$sequelize_1',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
@@ -333,7 +333,7 @@ describe('QueryGenerator#updateQuery', () => {
           default: 'UPDATE [mySchema].[myTable] SET [status]=$sequelize_1',
           sqlite3: 'UPDATE `mySchema.myTable` SET `status`=$sequelize_1',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "mySchema"."myTable" SET "status"=$sequelize_1)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "mySchema"."myTable" SET "status"=$sequelize_1)',
         },
         bind: { default: { sequelize_1: 'bar' } },
       },
@@ -350,7 +350,7 @@ describe('QueryGenerator#updateQuery', () => {
         query: {
           default: 'UPDATE [myTable] SET [status]=$sequelize_1',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
         },
         bind: { default: { sequelize_1: 'bar' } },
       },
@@ -366,7 +366,7 @@ describe('QueryGenerator#updateQuery', () => {
         default: 'UPDATE [mySchema].[myTable] SET [status]=$sequelize_1',
         sqlite3: 'UPDATE `mySchema.myTable` SET `status`=$sequelize_1',
         'db2 ibmi':
-          'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "mySchema"."myTable" SET "status"=$sequelize_1)',
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "mySchema"."myTable" SET "status"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
@@ -402,7 +402,7 @@ describe('QueryGenerator#updateQuery', () => {
         {
           default: 'UPDATE [myTable] SET [status]=$sequelize_1 WHERE [id] = $sequelize_2',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "id" = $sequelize_2)',
         },
       );
     });
@@ -522,7 +522,7 @@ describe('QueryGenerator#updateQuery', () => {
         {
           default: 'UPDATE [Users] SET [first_name]=$sequelize_1 WHERE [id] = $sequelize_2',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1 WHERE "id" = $sequelize_2)',
         },
       );
     });
@@ -649,7 +649,7 @@ describe('QueryGenerator#updateQuery', () => {
             default:
               'UPDATE [Users] SET [first_name]=$sequelize_1,[last_name]=$1,[username]=$sequelize_2',
             'db2 ibmi':
-              'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1,"last_name"=$1,"username"=$sequelize_2)',
+              'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"=$sequelize_1,"last_name"=$1,"username"=$sequelize_2)',
           },
           bind: { default: { sequelize_1: 'John', sequelize_2: 'jd' } },
         },
@@ -675,7 +675,7 @@ describe('QueryGenerator#updateQuery', () => {
       expectsql(query, {
         default: `UPDATE [Users] SET [first_name]='John',[last_name]=$1,[username]='jd' WHERE first_name = $2`,
         mssql: `UPDATE [Users] SET [first_name]=N'John',[last_name]=$1,[username]=N'jd' WHERE first_name = $2`,
-        'db2 ibmi': `SELECT COUNT(*) FROM FINAL TABLE (UPDATE "Users" SET "first_name"='John',"last_name"=$1,"username"='jd' WHERE first_name = $2)`,
+        'db2 ibmi': `SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "Users" SET "first_name"='John',"last_name"=$1,"username"='jd' WHERE first_name = $2)`,
       });
 
       expect(bind).to.be.undefined;
@@ -694,7 +694,7 @@ describe('QueryGenerator#updateQuery', () => {
         query: {
           default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2)',
         },
         bind: {
           mysql: {
@@ -748,7 +748,7 @@ describe('QueryGenerator#updateQuery', () => {
           default:
             'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
           'db2 ibmi':
-            'SELECT COUNT(*) FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3)',
+            'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3)',
         },
         bind: {
           sqlite3: {
