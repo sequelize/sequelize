@@ -42,7 +42,8 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(queryGenerator.updateQuery('myTable', { status: 'bar' }), {
       query: {
         default: 'UPDATE [myTable] SET [status]=$sequelize_1',
-        'db2 ibmi': 'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
+        'db2 ibmi':
+          'SELECT COUNT(*) AS AFFECTED_ROWS FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1)',
       },
       bind: { default: { sequelize_1: 'bar' } },
     });
