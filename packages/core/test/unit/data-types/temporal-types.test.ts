@@ -12,7 +12,7 @@ const nowDateOnly = nowString.slice(0, 10);
 describe('DataTypes.DATE', () => {
   describe('toSql', () => {
     testDataTypeSql('DATE', DataTypes.DATE, {
-      'db2 ibmi snowflake': 'TIMESTAMP',
+      'db2 ibmi snowflake hana': 'TIMESTAMP',
       postgres: 'TIMESTAMP WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
@@ -25,6 +25,7 @@ describe('DataTypes.DATE', () => {
       'mariadb mysql': 'DATETIME(0)',
       'db2 ibmi snowflake': 'TIMESTAMP(0)',
       sqlite3: 'TEXT',
+      hana: 'TIMESTAMP',
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
@@ -34,6 +35,7 @@ describe('DataTypes.DATE', () => {
       mariadb: 'DATETIME(6)',
       mysql: 'DATETIME(6)',
       sqlite3: 'TEXT',
+      hana: 'TIMESTAMP',
     });
   });
 
@@ -136,6 +138,8 @@ describe('DataTypes.TIME', () => {
       default: 'TIME(6)',
       db2: new Error(`db2 does not support the TIME(precision) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+      hana: new Error(`hana does not support the TIME(precision) data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       sqlite3: 'TEXT',
     });
   });
@@ -146,6 +150,7 @@ describe('DataTypes.NOW', () => {
     testDataTypeSql('NOW', DataTypes.NOW, {
       default: 'NOW',
       db2: 'CURRENT TIME',
+      hana: 'CURRENT_DATE',
       mssql: 'GETDATE()',
     });
   });

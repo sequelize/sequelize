@@ -84,9 +84,10 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           'DELETE FROM [Users] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           // 'COMMIT TRANSACTION;',
         ]),
-        db2: toMatchSql(
+        'db2 hana': toMatchSql(
           [
             // db2 transactions don't go through .queryRaw, they are called on the connection object
+            // hana transactions don't go through .queryRaw, they are called on the connection object
             // 'BEGIN TRANSACTION;',
             'SELECT [id], [ownerId], [createdAt], [updatedAt] FROM [Projects] AS [Project] WHERE [Project].[ownerId] IN (1);',
             'SELECT [id], [projectId], [createdAt], [updatedAt] FROM [Tasks] AS [Task] WHERE [Task].[projectId] IN (1);',

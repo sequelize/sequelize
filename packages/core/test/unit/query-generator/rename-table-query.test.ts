@@ -20,6 +20,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       default: 'ALTER TABLE [oldTable] RENAME TO [newTable]',
       mssql: `EXEC sp_rename '[oldTable]', N'newTable'`,
       'db2 ibmi': 'RENAME TABLE "oldTable" TO "newTable"',
+      hana: 'RENAME TABLE "oldTable" TO "SYSTEM"."newTable"',
     });
   });
 
@@ -31,6 +32,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       default: 'ALTER TABLE [oldModels] RENAME TO [newModels]',
       mssql: `EXEC sp_rename '[oldModels]', N'newModels'`,
       'db2 ibmi': 'RENAME TABLE "oldModels" TO "newModels"',
+      hana: 'RENAME TABLE "oldModels" TO "SYSTEM"."newModels"',
     });
   });
 
@@ -44,6 +46,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       default: 'ALTER TABLE [oldModels] RENAME TO [newModels]',
       mssql: `EXEC sp_rename '[oldModels]', N'newModels'`,
       'db2 ibmi': 'RENAME TABLE "oldModels" TO "newModels"',
+      hana: 'RENAME TABLE "oldModels" TO "SYSTEM"."newModels"',
     });
   });
 
@@ -77,6 +80,7 @@ describe('QueryGenerator#renameTableQuery', () => {
         'db2 ibmi': buildInvalidOptionReceivedError('renameTableQuery', dialect.name, [
           'changeSchema',
         ]),
+        hana: 'RENAME TABLE "oldSchema"."oldTable" TO "newSchema"."oldTable"',
       },
     );
   });
@@ -96,6 +100,7 @@ describe('QueryGenerator#renameTableQuery', () => {
           'changeSchema',
         ]),
         'mssql postgres': moveSchemaWithRenameNotSupportedError,
+        hana: 'RENAME TABLE "oldSchema"."oldTable" TO "newSchema"."newTable"',
       },
     );
   });
@@ -111,6 +116,7 @@ describe('QueryGenerator#renameTableQuery', () => {
         default: 'ALTER TABLE [oldTable] RENAME TO [newTable]',
         mssql: `EXEC sp_rename '[oldTable]', N'newTable'`,
         'db2 ibmi': 'RENAME TABLE "oldTable" TO "newTable"',
+        hana: 'RENAME TABLE "oldTable" TO "SYSTEM"."newTable"',
       },
     );
   });
@@ -125,6 +131,7 @@ describe('QueryGenerator#renameTableQuery', () => {
       sqlite3: 'ALTER TABLE `mySchema.oldTable` RENAME TO `mySchema.newTable`',
       postgres: `ALTER TABLE "mySchema"."oldTable" RENAME TO "newTable"`,
       'db2 ibmi': 'RENAME TABLE "mySchema"."oldTable" TO "newTable"',
+      hana: 'RENAME TABLE "mySchema"."oldTable" TO "mySchema"."newTable"',
     });
   });
 
