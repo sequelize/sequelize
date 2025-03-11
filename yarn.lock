@@ -2529,7 +2529,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.0.20, @oclif/plugin-help@npm:^6.2.25":
+"@oclif/plugin-help@npm:^6.2.25, @oclif/plugin-help@npm:^6.2.26":
   version: 6.2.26
   resolution: "@oclif/plugin-help@npm:6.2.26"
   dependencies:
@@ -2757,7 +2757,7 @@ __metadata:
     "@inquirer/input": "npm:^4.1.7"
     "@inquirer/select": "npm:^4.0.10"
     "@oclif/core": "npm:^3.27.0"
-    "@oclif/plugin-help": "npm:^6.0.20"
+    "@oclif/plugin-help": "npm:^6.2.26"
     "@oclif/test": "npm:3.2.15"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
