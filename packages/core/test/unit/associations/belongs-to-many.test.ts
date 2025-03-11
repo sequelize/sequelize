@@ -568,6 +568,21 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(attributes.aId.onDelete).to.eq('CASCADE');
       expect(attributes.bId.onDelete).to.eq('CASCADE');
     });
+
+    it('should throw an association error if we define foreignKey.name and foreignKey.keys', ()=>{
+      const A = sequelize.define('A');
+      const B = sequelize.define('B');
+
+      expect(() => {
+        A.belongsToMany(B, {
+          through: 'AB',
+          foreignKey: {
+            name: 'customName',
+            keys: ['aId'],
+          },
+        });
+      }).to.throw(AssociationError, 'Option "foreignKey.name" and "foreignKey.keys" cannot be used at the same time');
+    });
   });
 
   describe('source/target keys', () => {
