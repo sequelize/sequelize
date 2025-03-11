@@ -103,6 +103,8 @@ export abstract class Association<
 
   abstract foreignKey: ForeignKey;
 
+  abstract foreignKeys: CompositeForeignKeysOptions[];
+
   /**
    * A reference to the association that created this one.
    */

@@ -36,6 +36,7 @@ import type {
   Association,
   AssociationOptions,
   AssociationScope,
+  CompositeForeignKeysOptions,
   ForeignKeyOptions,
   MultiAssociationAccessors,
   MultiAssociationOptions,
@@ -122,6 +123,10 @@ export class BelongsToManyAssociation<
   TargetKey,
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
+
+  // TODO: add support for this
+  readonly foreignKeys: CompositeForeignKeysOptions[] = [];
+
   readonly accessors: MultiAssociationAccessors;
 
   get foreignKey(): string {
@@ -148,7 +153,7 @@ export class BelongsToManyAssociation<
    * The corresponding column name of {@link BelongsToManyAssociation#foreignKey}
    */
   get identifierField(): string {
-    return this.fromThroughToSource.identifierField;
+    return this.fromThroughToSource.foreignKeyColumnName;
   }
 
   /**
