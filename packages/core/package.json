@@ -48,7 +48,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@sequelize/utils": "7.0.0-alpha.44",
+    "@sequelize/utils": "workspace:*",
     "@types/debug": "^4.1.12",
     "@types/validator": "^13.11.9",
     "ansis": "^3.2.0",
