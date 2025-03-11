@@ -741,7 +741,6 @@ export type BindCollector = {
    *
    *
    * @param bindParameterName The name of the bind parameter
-   * @returns
    */
   collect(bindParameterName: string): string;
 
