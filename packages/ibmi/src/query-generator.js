@@ -337,18 +337,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     // remove the final semi-colon
-    let { bind, query } = super.bulkInsertQuery(
-      tableName,
-      fieldValueHashes,
-      options,
-      fieldMappedAttributes,
-    );
+    let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
     if (query.at(-1) === ';') {
       query = query.slice(0, -1);
       query = `SELECT * FROM FINAL TABLE (${query})`;
     }
 
-    return { bind, query };
+    return query;
   }
 
   // bindParam(bind) {

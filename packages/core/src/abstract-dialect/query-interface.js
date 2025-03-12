@@ -482,22 +482,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async bulkInsert(tableName, records, options, attributes) {
     options = { ...options, type: QueryTypes.INSERT };
 
-    if (options?.bind) {
-      assertNoReservedBind(options.bind);
-    }
-
-    const { bind, query } = this.queryGenerator.bulkInsertQuery(
-      tableName,
-      records,
-      options,
-      attributes,
-    );
+    const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacement;
-    options.bind = combineBinds(options.bind, bind);
+    delete options.replacements;
 
-    const results = await this.sequelize.queryRaw(query, options);
+    const results = await this.sequelize.queryRaw(sql, options);
 
     return results[0];
   }
