@@ -1695,7 +1695,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
       const result = await this.sequelize.query(queryCountAll);
 
-      const count = Number(result[0][0].count);
+      const count = Number(result[0][0].count || result[0][0].COUNT);
 
       return count;
     }
