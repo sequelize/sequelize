@@ -64,7 +64,11 @@ MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
   expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
 });
 
-MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.int'] }).then(({ count, rows }) => {
+MyModel.findAndCountAll({
+  include: OtherModel,
+  group: ['MyModel.int'],
+  countGroupedRows: true,
+}).then(({ count, rows }) => {
   expectTypeOf(count).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
   expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
 });
@@ -77,7 +81,7 @@ MyModel.count({ include: [MyModel], where: { $int$: [10, 120] } }).then(count =>
   expectTypeOf(count).toEqualTypeOf<number>();
 });
 
-MyModel.count({ group: 'type' }).then(result => {
+MyModel.count({ group: 'type', countGroupedRows: true }).then(result => {
   expectTypeOf(result).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });

@@ -4,7 +4,7 @@ import { expectTypeOf } from 'expect-type';
 class MyModel extends Model {}
 
 expectTypeOf(MyModel.count()).toEqualTypeOf<Promise<number>>();
-expectTypeOf(MyModel.count({ group: 'tag' })).toEqualTypeOf<
+expectTypeOf(MyModel.count({ group: 'tag', countGroupedRows: true })).toEqualTypeOf<
   Promise<Array<{ [key: string]: unknown; count: number }>>
 >();
 expectTypeOf(MyModel.count({ col: 'tag', distinct: true })).toEqualTypeOf<Promise<number>>();
