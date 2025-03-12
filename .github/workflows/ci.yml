@@ -64,10 +64,12 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
-      - name: Install Dependencies
+      - name: Check Missing Dependencies Early
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libcurl4
+          docker create --name temp_mssql mcr.microsoft.com/mssql/server:2017-latest
+          docker cp temp_mssql:/opt/mssql/bin/sqlservr ./sqlservr
+          ldd ./sqlservr | grep "not found" || echo "No missing dependencies"
+          docker rm temp_mssql
       - run: yarn start-mssql-oldest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
