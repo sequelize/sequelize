@@ -71,14 +71,14 @@ jobs:
           ldd ./sqlservr | grep "not found" || echo "No missing dependencies"
       - name: Install Missing Dependencies
         run: |
-          docker exec sequelize-mssql-oldest bash -c "
+          docker exec temp_mssql bash -c "
             apt-get update && apt-get install -y \
             libsss-nss-idmap0 \
             libldap-2.4-2
           "
       - name: Verify Dependencies Again
         run: |
-          docker exec sequelize-mssql-oldest ldd /opt/mssql/bin/sqlservr | grep 'not found' || echo "All dependencies resolved"
+          docker exec temp_mssql ldd /opt/mssql/bin/sqlservr | grep 'not found' || echo "All dependencies resolved"
           docker rm temp_mssql
       - run: yarn start-mssql-oldest
       - name: Integration Tests
