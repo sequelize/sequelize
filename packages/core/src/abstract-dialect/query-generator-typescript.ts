@@ -132,7 +132,7 @@ export interface EscapeOptions extends FormatWhereOptions {
 
 export interface FormatWhereOptions extends Bindable {
   /**
-   * These are used to inline replacements into the query, when one is found inside of a {@link Literal}.
+   * These are used to inline replacements into the query, when one is found inside of a {@link sql.literal}.
    */
   readonly replacements?: BindOrReplacements | undefined;
 
