@@ -69,15 +69,11 @@ jobs:
           docker create --name temp_mssql mcr.microsoft.com/mssql/server:2017-latest
           docker cp temp_mssql:/opt/mssql/bin/sqlservr ./sqlservr
           ldd ./sqlservr | grep "not found" || echo "No missing dependencies"
-      - name: Install Missing Dependencies
-        run: |
           docker exec temp_mssql bash -c "
             apt-get update && apt-get install -y \
             libsss-nss-idmap0 \
             libldap-2.4-2
           "
-      - name: Verify Dependencies Again
-        run: |
           docker exec temp_mssql ldd /opt/mssql/bin/sqlservr | grep 'not found' || echo "All dependencies resolved"
           docker rm temp_mssql
       - run: yarn start-mssql-oldest
