@@ -996,7 +996,10 @@ export interface CountOptions<TAttributes = any>
 /**
  * Options for Model.count when GROUP BY is used
  */
-export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>;
+export type CountWithOptions<TAttributes = any> = SetRequired<
+  CountOptions<TAttributes>,
+  'group' | 'countGroupedRows'
+>;
 
 export interface FindAndCountOptions<TAttributes = any>
   extends CountOptions<TAttributes>,
