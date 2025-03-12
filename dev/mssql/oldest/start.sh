@@ -7,6 +7,8 @@ docker compose -p sequelize-mssql-oldest up -d
 
 sleep 10
 
+docker exec sequelize-mssql-oldest ldd /opt/mssql/bin/sqlservr | grep "not found" || echo "No missing dependencies"
+
 docker logs sequelize-mssql-oldest
 
 docker exec sequelize-mssql-oldest \
