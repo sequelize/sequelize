@@ -27,7 +27,7 @@
     "rimraf": "5.0.10"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.20.7"
   },
   "exports": "./lib/index.js",
   "files": [
