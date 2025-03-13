@@ -1,11 +1,15 @@
 services:
   mssql-oldest:
     container_name: sequelize-mssql-oldest
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sequelize-mssql-oldest
     environment:
       ACCEPT_EULA: Y
       MSSQL_PID: Developer
       MSSQL_SA_PASSWORD: Password12!
+      MSSQL_ENABLE_HIGHPERF_LOGGING: 1
     ports:
       - 22019:1433
     volumes:
