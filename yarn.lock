@@ -2939,7 +2939,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.17.21"
-    snowflake-sdk: "npm:^2.0.2"
+    snowflake-sdk: "npm:^2.0.3"
   languageName: unknown
   linkType: soft
 
@@ -14127,9 +14127,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "snowflake-sdk@npm:2.0.2"
+"snowflake-sdk@npm:^2.0.3":
+  version: 2.0.3
+  resolution: "snowflake-sdk@npm:2.0.3"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.726.0"
     "@azure/storage-blob": "npm:12.26.x"
@@ -14163,7 +14163,7 @@ __metadata:
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/7871b5f8cafa55f43d3975418af8162731f17883aa81d405f768aa87b793dc3589347d4db4f244cfcf09219f62c4580cbfbab6cd94a8c5959410827a8693eaf2
+  checksum: 10c0/6155a8a5b7804c00c1d9f035441eb0dbb276f5c133f57c8f33fc80327501fe3f87a7f8a14a7f05a1ad759b936b6405b81a97d687ca7041a25e4a6c9405047d73
   languageName: node
   linkType: hard
 
