@@ -1,5 +1,5 @@
 import type { Attributes } from '@sequelize/core';
-import { cast, col } from '@sequelize/core';
+import { TemporalTimeQueryType, cast, col } from '@sequelize/core';
 import { expectTypeOf } from 'expect-type';
 import { User } from './models/user';
 
@@ -16,6 +16,15 @@ import { User } from './models/user';
 
   const rawUsers = await User.findAll({ raw: true });
   expectTypeOf(rawUsers).toEqualTypeOf<Array<Attributes<User>>>();
+
+  const changedUsers = await User.findAll({
+    temporalTime: {
+      type: 'SYSTEM_TIME',
+      period: TemporalTimeQueryType.CONTAINED_IN,
+      endDate: new Date(2022, 11, 1),
+      startDate: new Date(2022, 0, 1),
+    },
+  });
 
   interface CustomUser {
     foo: 'bar';
