@@ -28,8 +28,7 @@
       "import": {
         "types": "./lib/node/index.d.mts",
         "default": "./lib/node/index.mjs"
-      },
-      "types": "./lib/node/index.d.ts"
+      }
     }
   },
   "files": [
