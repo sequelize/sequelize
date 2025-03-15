@@ -2490,12 +2490,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.2.25, @oclif/plugin-help@npm:^6.2.26":
-  version: 6.2.26
-  resolution: "@oclif/plugin-help@npm:6.2.26"
+"@oclif/plugin-help@npm:^6.2.25, @oclif/plugin-help@npm:^6.2.27":
+  version: 6.2.27
+  resolution: "@oclif/plugin-help@npm:6.2.27"
   dependencies:
     "@oclif/core": "npm:^4"
-  checksum: 10c0/4e2c22b4476e2477377b128a5e4a20ca9deedbcd7f8f2579a3d62aedc1ba23d69176791e0af85c031eba5cca0433a204a732aa253e5fafd2459c7ebdef8d6888
+  checksum: 10c0/1c88b5c64550dad4d0dc1898cf12509498033d6b455013331ca4e623e75786d2492e9fdb53ae005c3bec72239de0c6a88530d3ba54f70d63c593c30c3070cda6
   languageName: node
   linkType: hard
 
@@ -2726,7 +2726,7 @@ __metadata:
     "@inquirer/input": "npm:^4.1.7"
     "@inquirer/select": "npm:^4.0.10"
     "@oclif/core": "npm:^4.2.10"
-    "@oclif/plugin-help": "npm:^6.2.26"
+    "@oclif/plugin-help": "npm:^6.2.27"
     "@oclif/test": "npm:4.1.12"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
