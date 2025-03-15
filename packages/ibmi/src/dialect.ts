@@ -71,6 +71,9 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       cascade: true,
       ifExists: true,
     },
+    update: {
+      returning: true,
+    },
   });
 
   readonly connectionManager: IBMiConnectionManager;

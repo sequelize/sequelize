@@ -24,6 +24,7 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
+import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -82,7 +83,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returningModelAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bindParam =
+      options.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -396,110 +398,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
-  }
-
-  /**
-   * Returns an update query
-   *
-   * @param {string} tableName
-   * @param {object} attrValueHash
-   * @param {object} where A hash with conditions (e.g. {name: 'foo'}) OR an ID as integer
-   * @param {object} options
-   * @param {object} columnDefinitions
-   *
-   * @private
-   */
-  updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
-    options ||= {};
-    defaults(options, this.options);
-
-    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
-
-    const values = [];
-    const bind = Object.create(null);
-    const modelAttributeMap = {};
-    let outputFragment = '';
-    let tmpTable = ''; // tmpTable declaration for trigger
-    let suffix = '';
-
-    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
-      // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
-    }
-
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
-
-    if (
-      this.dialect.supports['LIMIT ON UPDATE'] &&
-      options.limit &&
-      this.dialect.name !== 'mssql' &&
-      this.dialect.name !== 'db2'
-    ) {
-      // TODO: use bind parameter
-      suffix = ` LIMIT ${this.escape(options.limit, options)} `;
-    }
-
-    if (this.dialect.supports.returnValues && options.returning) {
-      const returnValues = this.generateReturnValues(columnDefinitions, options);
-
-      suffix += returnValues.returningFragment;
-      tmpTable = returnValues.tmpTable || '';
-      outputFragment = returnValues.outputFragment || '';
-
-      // ensure that the return output is properly mapped to model fields.
-      if (this.dialect.supports.returnValues !== 'output' && options.returning) {
-        options.mapToModel = true;
-      }
-    }
-
-    if (columnDefinitions) {
-      each(columnDefinitions, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
-    }
-
-    for (const key in attrValueHash) {
-      if (
-        modelAttributeMap &&
-        modelAttributeMap[key] &&
-        modelAttributeMap[key].autoIncrement === true &&
-        !this.dialect.supports.autoIncrement.update
-      ) {
-        // not allowed to update identity column
-        continue;
-      }
-
-      const value = attrValueHash[key] ?? null;
-
-      values.push(
-        `${this.quoteIdentifier(key)}=${this.escape(value, {
-          // model // TODO: receive modelDefinition instead of columnDefinitions
-          type: modelAttributeMap?.[key]?.type,
-          replacements: options.replacements,
-          bindParam,
-        })}`,
-      );
-    }
-
-    const whereOptions = { ...options, bindParam };
-
-    if (values.length === 0) {
-      return { query: '' };
-    }
-
-    const query =
-      `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
-
-    // Used by Postgres upsertQuery and calls to here with options.exception set to true
-    const result = { query };
-    if (options.bindParam !== false) {
-      result.bind = bind;
-    }
-
-    return result;
   }
 
   /**
@@ -963,18 +861,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  bindParam(bind) {
-    let i = 0;
-
-    return value => {
-      const bindName = `sequelize_${++i}`;
-
-      bind[bindName] = value;
-
-      return `$${bindName}`;
-    };
   }
 
   /*
