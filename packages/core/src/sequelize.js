@@ -593,10 +593,13 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
-      options,
-    );
+    const fromClause =
+      this.dialect.name === 'ibmi'
+        ? ' FROM SYSIBM.SYSDUMMY1'
+        : this.dialect.name === 'hana'
+          ? ' FROM DUMMY'
+          : '';
+    await this.query(`SELECT 1+1 AS result${fromClause}`, options);
   }
 
   /**

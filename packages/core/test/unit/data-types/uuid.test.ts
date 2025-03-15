@@ -13,7 +13,7 @@ describe('DataTypes.UUID', () => {
       db2: 'CHAR(36) FOR BIT DATA',
       mssql: 'UNIQUEIDENTIFIER',
       'mariadb mysql': 'CHAR(36) BINARY',
-      snowflake: 'VARCHAR(36)',
+      'snowflake hana': 'VARCHAR(36)',
       sqlite3: 'TEXT',
     });
   });

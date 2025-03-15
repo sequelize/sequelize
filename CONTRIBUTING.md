@@ -163,6 +163,7 @@ If you have Docker installed, use any of the following commands to start fresh l
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
 - `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.9.0)
+- `yarn start-hana-oldest` (for HANA Express 2.00.076) or `yarn start-hana-latest` (for HANA Express 2.00.076)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -228,6 +229,7 @@ Run it for the dialect of your choice using one of the following commands:
 - `npm run sscce-sqlite3` / `yarn sscce-sqlite3`
 - `npm run sscce-mssql` / `yarn sscce-mssql`
 - `npm run sscce-db2` / `yarn sscce-db2`
+- `npm run sscce-hana` / `yarn sscce-hana`
 
 _Note:_ First, you need to set up (once) the database instance for corresponding dialect, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended).
 
@@ -259,6 +261,7 @@ We use a simple conventional commits convention:
   - `db2`
   - `ibmi`
   - `snowflake`
+  - `hana`
 - If your changes impact more than one scope, simply omit the scope.
 
 Example:
