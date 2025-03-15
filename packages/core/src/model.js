@@ -1758,7 +1758,8 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
-    const countOptions = cloneDeep(options) ?? {};
+    const countOptions = cloneDeep(options);
+    this._injectScope(countOptions);
 
     if (countOptions.attributes) {
       countOptions.attributes = undefined;
