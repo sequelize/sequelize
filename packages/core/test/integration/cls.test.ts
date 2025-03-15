@@ -279,22 +279,20 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       },
     });
 
-    if (sequelize.dialect.supports.upserts) {
-      testHooks({
-        method: 'Model.upsert',
-        hooks: ['beforeUpsert', 'afterUpsert'],
-        optionPos: 1,
-        async execute(User) {
-          await User.upsert({
-            id: 1,
-            name: 'bob',
-          });
-        },
-        getModel() {
-          return vars.User;
-        },
-      });
-    }
+    testHooks({
+      method: 'Model.upsert',
+      hooks: ['beforeUpsert', 'afterUpsert'],
+      optionPos: 1,
+      async execute(User) {
+        await User.upsert({
+          id: 1,
+          name: 'bob',
+        });
+      },
+      getModel() {
+        return vars.User;
+      },
+    });
 
     testHooks({
       method: 'Model.destroy',
