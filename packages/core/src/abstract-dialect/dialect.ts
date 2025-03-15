@@ -135,20 +135,28 @@ export type DialectSupports = {
       ifExists: boolean;
     };
   };
-  index: {
+  addIndex: {
     collate: boolean;
-    length: boolean;
-    parser: boolean;
     concurrently: boolean;
-    type: boolean;
-    using: boolean | number;
-    functionBased: boolean;
-    operator: boolean;
-    where: boolean;
+    expression: boolean;
+    ifNotExists: boolean;
     include: boolean;
+    length: boolean;
+    method: boolean;
+    nullOrder: boolean;
+    operator: boolean;
+    parser: boolean;
+    schemaQuoted: boolean;
+    type: boolean;
+    where: boolean;
+  };
+  removeIndex: {
+    cascade: boolean;
+    concurrently: boolean;
+    ifExists: boolean;
+    on: boolean;
   };
   groupedLimit: boolean;
-  indexViaAlter: boolean;
   alterColumn: {
     /**
      * Can "ALTER TABLE x ALTER COLUMN y" add UNIQUE to the column in this dialect?
@@ -368,20 +376,28 @@ export abstract class AbstractDialect<
         ifExists: false,
       },
     },
-    index: {
-      collate: true,
-      length: false,
-      parser: false,
+    addIndex: {
+      collate: false,
       concurrently: false,
-      type: false,
-      using: true,
-      functionBased: false,
-      operator: false,
-      where: false,
+      expression: false,
+      ifNotExists: false,
       include: false,
+      length: false,
+      method: false,
+      nullOrder: false,
+      operator: false,
+      parser: false,
+      schemaQuoted: false,
+      type: false,
+      where: false,
+    },
+    removeIndex: {
+      cascade: false,
+      concurrently: false,
+      ifExists: false,
+      on: false,
     },
     groupedLimit: true,
-    indexViaAlter: false,
     alterColumn: {
       unique: true,
     },
