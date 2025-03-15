@@ -81,7 +81,7 @@ MyModel.count({ include: [MyModel], where: { $int$: [10, 120] } }).then(count =>
   expectTypeOf(count).toEqualTypeOf<number>();
 });
 
-MyModel.count({ group: 'type', countGroupedRows: true }).then(result => {
+MyModel.count({ group: 'type' }).then(result => {
   expectTypeOf(result).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
   expectTypeOf(result[0]).toMatchTypeOf<{ count: number }>();
 });
