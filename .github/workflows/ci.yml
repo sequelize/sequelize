@@ -64,6 +64,12 @@ jobs:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
+      - name: Force GitHub Actions to use cgroup v1
+        run: |
+          echo "Enabling cgroup v1..."
+          sudo mkdir -p /sys/fs/cgroup/memory
+          echo 2147483648 | sudo tee /sys/fs/cgroup/memory/memory.limit_in_bytes || true
+          sudo systemctl restart docker
       - run: yarn start-mssql-oldest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
