@@ -9,6 +9,17 @@ sleep 10
 
 docker logs sequelize-mssql-oldest
 
+LOG_DIR=$(docker cp sequelize-mssql-oldest:/var/opt/mssql/log . 2>/dev/null && ls -d ./log/core.sqlservr.*.d/log | sort -r | head -n 1)
+
+if [[ -n "$LOG_DIR" ]]; then
+  echo "Copying logs from: $LOG_DIR"
+  cp "$LOG_DIR/info.log" ./mssql-logs/info.log || echo "Failed to copy info.log"
+  cat ./mssql-logs/info.log || echo "Log file empty or missing"
+else
+  echo "No log directory found!"
+fi
+
+
 docker exec sequelize-mssql-oldest \
   /opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P "Password12!" -Q "CREATE DATABASE sequelize_test; ALTER DATABASE sequelize_test SET READ_COMMITTED_SNAPSHOT ON;"
 
