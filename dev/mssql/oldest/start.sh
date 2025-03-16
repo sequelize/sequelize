@@ -9,12 +9,27 @@ sleep 10
 
 docker logs sequelize-mssql-oldest
 
-LOG_DIR=$(docker cp sequelize-mssql-oldest:/var/opt/mssql/log . 2>/dev/null && ls -d ./log/core.sqlservr.*.d/log | sort -r | head -n 1)
+# Copy logs from the container (even if it's not running)
+docker cp sequelize-mssql-oldest:/var/opt/mssql/log . 2>/dev/null || echo "No logs found in container."
+
+# Find the latest MSSQL log directory
+LOG_DIR=$(ls -d ./log/core.sqlservr.*.d/log 2>/dev/null | sort -r | head -n 1 || echo "")
 
 if [[ -n "$LOG_DIR" ]]; then
   echo "Copying logs from: $LOG_DIR"
-  cp "$LOG_DIR/info.log" ./mssql-logs/info.log || echo "Failed to copy info.log"
-  cat ./mssql-logs/info.log || echo "Log file empty or missing"
+  mkdir -p ./mssql-logs  # Ensure the destination directory exists
+  cp "$LOG_DIR/info.log" ./mssql-logs/info.log 2>/dev/null || echo "info.log not found in $LOG_DIR"
+  
+  # Debugging: List files in the log directory
+  echo "Contents of $LOG_DIR:"
+  ls -lah "$LOG_DIR"
+
+  # Output log contents
+  if [[ -f "./mssql-logs/info.log" ]]; then
+    cat ./mssql-logs/info.log
+  else
+    echo "Log file empty or missing"
+  fi
 else
   echo "No log directory found!"
 fi
