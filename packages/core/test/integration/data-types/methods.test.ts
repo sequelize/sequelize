@@ -174,7 +174,7 @@ describe('DataType Methods', () => {
     });
 
     it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
-      if (!sequelize.dialect.supports.upserts) {
+      if (!dialect.supports.upserts) {
         return;
       }
 
