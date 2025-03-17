@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('returns false for upserted objects', async function () {
-      if (!dialect.supports.upserts) {
+      if (!Support.sequelize.dialect.supports.upserts) {
         return;
       }
 
