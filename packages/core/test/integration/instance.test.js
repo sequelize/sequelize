@@ -88,6 +88,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('returns false for upserted objects', async function () {
+      if (!sequelize.dialect.supports.upserts) {
+        return;
+      }
+
       // adding id here so MSSQL doesn't fail. It needs a primary key to upsert
       const [user] = await this.User.upsert({ id: 2, username: 'user' });
       expect(user.isNewRecord).to.not.be.ok;
