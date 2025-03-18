@@ -1,11 +1,16 @@
 services:
   mssql-oldest:
     container_name: sequelize-mssql-oldest
-    image: mcr.microsoft.com/mssql/server:2017-latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: sequelize-mssql-oldest
     environment:
       ACCEPT_EULA: Y
       MSSQL_PID: Developer
       MSSQL_SA_PASSWORD: Password12!
+      MSSQL_ENABLE_HIGHPERF_LOGGING: 1
+      MSSQL_DISABLE_MEMORY_LIMIT: 1
     ports:
       - 22019:1433
     volumes:
@@ -29,6 +34,11 @@ services:
       interval: 3s
       timeout: 1s
       retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 4g
+          cpus: '2'
 
 networks:
   default:
