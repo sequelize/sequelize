@@ -1775,7 +1775,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const countOptions = cloneDeep(options) ?? {};
 
-    if (countOptions.attributes) {
+    if (countOptions.attributes && !options.countGroupedRows) {
       countOptions.attributes = undefined;
     }
 
