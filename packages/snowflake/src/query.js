@@ -152,19 +152,17 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (this.isDescribeQuery()) {
       result = {};
-
+      
       for (const _result of data) {
-        result[_result.Field] = {
-          type: _result.Type.toUpperCase(),
-          allowNull: _result.Null === 'YES',
-          defaultValue: _result.Default,
-          primaryKey: _result.Key === 'PRI',
-          autoIncrement:
-            Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
-          comment: _result.Comment ? _result.Comment : null,
+        result[_result.name] = {
+          type: _result.type.toUpperCase(),
+          allowNull: _result['null?'].includes("Y"),
+          defaultValue: _result.default,
+          primaryKey: _result['primary key'].includes("Y"),
+          autoIncrement: _result.default !== null && _result.default.includes("_id_seq"),
+          comment: _result.comment ? _result.comment : null
         };
       }
-
       return result;
     }
 
