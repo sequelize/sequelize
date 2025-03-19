@@ -159,7 +159,7 @@ export class SnowflakeQuery extends AbstractQuery {
           allowNull: _result['null?'].includes("Y"),
           defaultValue: _result.default,
           primaryKey: _result['primary key'].includes("Y"),
-          autoIncrement: _result.default !== null && _result.default.includes("_id_seq"),
+          autoIncrement: _result.default !== null && _result.default.includes(".NEXTVAL"),
           comment: _result.comment ? _result.comment : null
         };
       }
