@@ -81,7 +81,8 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `SHOW FULL COLUMNS FROM ${this.quoteTable(tableName)};`;
+    const table = this.extractTableDetails(tableName);
+    return `DESCRIBE TABLE ${this.quoteIdentifier(table.schema)}.${this.quoteIdentifier(table.tableName)}`;
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
