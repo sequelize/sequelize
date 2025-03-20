@@ -148,7 +148,7 @@ export interface QueryRawOptions extends Logging, Transactionable, Poolable {
    * Either an object of named parameter bindings in the format `$param` or an array of unnamed
    * values to bind to `$1`, `$2`, etc in your SQL.
    */
-  bind?: BindOrReplacements;
+  bind?: BindOrReplacements | undefined;
 
   /**
    * A sequelize instance used to build the return instance
