@@ -7,7 +7,7 @@ import type { TableHints } from '../table-hints';
 import type { TransactionType } from '../transaction';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';
-import type { ConstraintType } from './query-interface.types';
+import type { ConstraintType, IndexOptions } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
@@ -169,6 +169,18 @@ export interface ShowConstraintsQueryOptions {
   constraintType?: ConstraintType;
 }
 
+// keep ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface AddIndexQueryOptions extends Omit<IndexOptions, 'msg'> {
+  ifNotExists?: boolean;
+}
+
+// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
+export interface RemoveIndexQueryOptions {
+  concurrently?: boolean;
+  ifExists?: boolean;
+  cascade?: boolean;
+}
+
 // keep START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface StartTransactionQueryOptions {
   readOnly?: boolean;
@@ -184,10 +196,3 @@ export interface QuoteTableOptions extends IndexHintable {
 export interface BulkDeleteQueryOptions<TAttributes = any>
   extends AddLimitOffsetOptions,
     Filterable<TAttributes> {}
-
-// keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
-export interface RemoveIndexQueryOptions {
-  concurrently?: boolean;
-  ifExists?: boolean;
-  cascade?: boolean;
-}
