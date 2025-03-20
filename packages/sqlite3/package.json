@@ -27,6 +27,7 @@
     "build": "../../build-packages.mjs sqlite3",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
@@ -40,5 +41,11 @@
     "@sequelize/utils": "workspace:*",
     "lodash": "^4.17.21",
     "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "chai": "4.5.0",
+    "mocha": "11.1.0"
   }
 }
