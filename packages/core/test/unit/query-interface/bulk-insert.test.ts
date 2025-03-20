@@ -26,17 +26,20 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users);
+    await sequelize.queryInterface.bulkInsert(User.table, users, { parameterStyle: 'bind' });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
@@ -50,17 +53,23 @@ describe('QueryInterface#bulkInsert', () => {
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
+    await sequelize.queryInterface.bulkInsert(User.table, users, {
+      transaction,
+      parameterStyle: 'bind',
+    });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
@@ -84,6 +93,7 @@ describe('QueryInterface#bulkInsert', () => {
         replacements: {
           injection: 'raw sql',
         },
+        parameterStyle: 'replacement',
       },
     );
 
