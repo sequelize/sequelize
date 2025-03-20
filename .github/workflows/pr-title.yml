@@ -31,6 +31,7 @@ jobs:
             cli
             core
             db2
+            hana
             ibmi
             mariadb
             mssql
