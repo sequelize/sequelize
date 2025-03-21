@@ -1688,8 +1688,9 @@ The following associations are defined on "Worker": "ToDos"`);
       expect(info.count).to.equal(1);
       expect(Array.isArray(info.rows)).to.be.ok;
       const row = info.rows[0];
-      // MySQL returns sum as string, other dialects return number
-      row.sum = Number(row.sum);
+      if (dialectName === 'mysql') {
+        row.sum = Number(row.sum);
+      }
       expect(info.rows).to.deep.equal([row]);
     });
   });
