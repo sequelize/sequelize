@@ -2871,7 +2871,7 @@ __metadata:
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.27.9"
     typedoc-plugin-mdn-links: "npm:5.0.1"
-    typedoc-plugin-missing-exports: "npm:3.1.0"
+    typedoc-plugin-missing-exports: "npm:4.0.0"
     typescript: "npm:5.8.2"
   languageName: unknown
   linkType: soft
@@ -15279,12 +15279,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-missing-exports@npm:3.1.0":
-  version: 3.1.0
-  resolution: "typedoc-plugin-missing-exports@npm:3.1.0"
+"typedoc-plugin-missing-exports@npm:4.0.0":
+  version: 4.0.0
+  resolution: "typedoc-plugin-missing-exports@npm:4.0.0"
   peerDependencies:
-    typedoc: 0.26.x || 0.27.x
-  checksum: 10c0/516964657833f3235f47e2faf7ebccc741ff32923d32af5c3adfdb9bc1fae94dd85885cb735db77d2605e501aee40d5fbe94e8e18ed965d0c1c0198234a7db44
+    typedoc: ^0.28.1
+  checksum: 10c0/2f17df442536df7f7dcbb083aab924c24c4004a14d92a392e80d2dacd5acc8ccc19b409d516df8ca5c91b9a578f84c04de008a8d30876a28f7f038c78d18dc8a
   languageName: node
   linkType: hard
 
