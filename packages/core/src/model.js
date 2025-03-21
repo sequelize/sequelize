@@ -71,6 +71,7 @@ import {
   mergeDefaults,
 } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
+import { removeTrailingSemicolon } from './utils/string.js';
 import { getComplexKeys } from './utils/where.js';
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1688,8 +1689,7 @@ ${associationOwner._getAssociationDebugList()}`);
     // counting grouped rows is not possible with `this.aggregate`
     // use a subquery to get the count
     if (options.group && options.countGroupedRows) {
-      // remove trailing semicolon for wrap query
-      const query = this.queryGenerator.selectQuery(this.getTableName(), options).slice(0, -1);
+      const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
 
       const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
 
