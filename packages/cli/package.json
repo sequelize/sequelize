@@ -72,7 +72,7 @@
   },
   "type": "module",
   "types": "lib/index.d.ts",
-  "version": "7.0.0-alpha.44",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   }
