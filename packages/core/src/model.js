@@ -71,6 +71,7 @@ import {
   mergeDefaults,
 } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
+import { removeTrailingSemicolon } from './utils/string.js';
 import { getComplexKeys } from './utils/where.js';
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1675,15 +1676,6 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.hooks.runAsync('beforeCount', options);
     }
 
-    let col = options.col || '*';
-    if (options.include) {
-      col = `${this.name}.${options.col || this.primaryKeyField}`;
-    }
-
-    if (options.distinct && col === '*') {
-      col = this.primaryKeyField;
-    }
-
     options.plain = !options.group;
     options.dataType = new DataTypes.INTEGER();
     options.includeIgnoreAttributes = false;
@@ -1693,6 +1685,29 @@ ${associationOwner._getAssociationDebugList()}`);
     options.limit = null;
     options.offset = null;
     options.order = null;
+
+    // counting grouped rows is not possible with `this.aggregate`
+    // use a subquery to get the count
+    if (options.group && options.countGroupedRows) {
+      const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
+
+      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
+
+      const result = await this.sequelize.query(queryCountAll);
+
+      const count = Number(result[0][0].count || result[0][0].COUNT);
+
+      return count;
+    }
+
+    let col = options.col || '*';
+    if (options.include) {
+      col = `${this.name}.${options.col || this.primaryKeyField}`;
+    }
+
+    if (options.distinct && col === '*') {
+      col = this.primaryKeyField;
+    }
 
     const result = await this.aggregate(col, 'count', options);
 
@@ -1760,7 +1775,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const countOptions = cloneDeep(options) ?? {};
 
-    if (countOptions.attributes) {
+    if (countOptions.attributes && !options.countGroupedRows) {
       countOptions.attributes = undefined;
     }
 

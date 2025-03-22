@@ -985,6 +985,12 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * Count number of records returned by group by
+   * Used in conjunction with `group`.
+   */
+  countGroupedRows?: boolean;
 }
 
 /**
@@ -2521,7 +2527,7 @@ export abstract class Model<
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
