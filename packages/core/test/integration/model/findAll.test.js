@@ -1691,6 +1691,7 @@ The following associations are defined on "Worker": "ToDos"`);
       if (dialectName === 'mysql') {
         row.sum = Number(row.sum);
       }
+
       expect(info.rows).to.deep.equal([row]);
     });
   });
