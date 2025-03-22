@@ -2531,7 +2531,7 @@ export abstract class Model<
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
+    options: SetRequired<FindAndCountOptions<Attributes<M>>, 'group'>,
   ): Promise<{ rows: M[]; count: GroupedCountResultItem[] }>;
 
   /**

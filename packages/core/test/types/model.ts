@@ -64,6 +64,11 @@ MyModel.findAndCountAll({ include: OtherModel }).then(({ count, rows }) => {
   expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
 });
 
+MyModel.findAndCountAll({ include: OtherModel, group: ['MyModel.int'] }).then(({ count, rows }) => {
+  expectTypeOf(count).toEqualTypeOf<Array<{ [key: string]: unknown; count: number }>>();
+  expectTypeOf(rows).toEqualTypeOf<MyModel[]>();
+});
+
 MyModel.findAndCountAll({
   include: OtherModel,
   group: ['MyModel.int'],
