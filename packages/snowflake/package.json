@@ -39,6 +39,6 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "lodash": "^4.17.21",
-    "snowflake-sdk": "^2.0.2"
+    "snowflake-sdk": "^2.0.3"
   }
 }
