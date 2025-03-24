@@ -2977,7 +2977,7 @@ __metadata:
     sinon: "npm:18.0.1"
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
-    type-fest: "npm:^4.37.0"
+    type-fest: "npm:^4.38.0"
     uuid: "npm:^11.1.0"
     validator: "npm:^13.12.0"
   languageName: unknown
@@ -15384,10 +15384,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.37.0":
-  version: 4.37.0
-  resolution: "type-fest@npm:4.37.0"
-  checksum: 10c0/5bad189f66fbe3431e5d36befa08cab6010e56be68b7467530b7ef94c3cf81ef775a8ac3047c8bbda4dd3159929285870357498d7bc1df062714f9c5c3a84926
+"type-fest@npm:^4.38.0":
+  version: 4.38.0
+  resolution: "type-fest@npm:4.38.0"
+  checksum: 10c0/db9990d682a08697cf8ae67ac3cdbca734c742c96615e8888401d7d54e376b390e6a5d3be25fe3b4b439e1bb88a7da461da678a614ece8caccd9c0a07dd2e5f4
   languageName: node
   linkType: hard
 
