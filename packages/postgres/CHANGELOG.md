@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.46](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.45...v7.0.0-alpha.46) (2025-03-22)
+
+### Bug Fixes
+
+- **postgres:** correct existing enum type matching ([#17576](https://github.com/sequelize/sequelize/issues/17576)) ([425d217](https://github.com/sequelize/sequelize/commit/425d21718af40f86015f6496ea6cf721cc61b981))
+- **postgres:** update to postgres 17 ([#17740](https://github.com/sequelize/sequelize/issues/17740)) ([b5c2b26](https://github.com/sequelize/sequelize/commit/b5c2b2667004b3b27e5634c677507f5593987938))
+
 # [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
 
 **Note:** Version bump only for package @sequelize/postgres
