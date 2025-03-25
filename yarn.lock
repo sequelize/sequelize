@@ -2979,7 +2979,7 @@ __metadata:
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.38.0"
     uuid: "npm:^11.1.0"
-    validator: "npm:^13.12.0"
+    validator: "npm:^13.15.0"
   languageName: unknown
   linkType: soft
 
@@ -15753,10 +15753,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.12.0":
-  version: 13.12.0
-  resolution: "validator@npm:13.12.0"
-  checksum: 10c0/21d48a7947c9e8498790550f56cd7971e0e3d724c73388226b109c1bac2728f4f88caddfc2f7ed4b076f9b0d004316263ac786a17e9c4edf075741200718cd32
+"validator@npm:^13.15.0":
+  version: 13.15.0
+  resolution: "validator@npm:13.15.0"
+  checksum: 10c0/0f13fd7031ac575e8d7828431da8ef5859bac6a38ee65e1d7fdd367dbf1c3d94d95182aecc3183f7fa7a30ff4474bf864d1aff54707620227a2cdbfd36d894c2
   languageName: node
   linkType: hard
 

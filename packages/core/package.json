@@ -65,7 +65,7 @@
     "toposort-class": "^1.0.1",
     "type-fest": "^4.38.0",
     "uuid": "^11.1.0",
-    "validator": "^13.12.0"
+    "validator": "^13.15.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
