@@ -27,11 +27,12 @@
     "build": "../../build-packages.mjs oracle",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.43",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   },
@@ -39,10 +40,10 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "@types/oracledb": "^6.3",
-    "dayjs": "^1.11.10",
+    "dayjs": "^1.11.13",
     "lodash": "^4.17.21",
     "oracledb": "^6.5",
-    "semver": "^7.6.0"
+    "semver": "^7.7.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",

@@ -3110,11 +3110,11 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/oracledb": "npm:^6.3"
     chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.10"
+    dayjs: "npm:^1.11.13"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.1.0"
     oracledb: "npm:^6.5"
-    semver: "npm:^7.6.0"
+    semver: "npm:^7.7.1"
   languageName: unknown
   linkType: soft
 
@@ -6331,7 +6331,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.10, dayjs@npm:^1.11.13":
+"dayjs@npm:^1.11.13":
   version: 1.11.13
   resolution: "dayjs@npm:1.11.13"
   checksum: 10c0/a3caf6ac8363c7dade9d1ee797848ddcf25c1ace68d9fe8678ecf8ba0675825430de5d793672ec87b24a69bf04a1544b176547b2539982275d5542a7955f35b7
