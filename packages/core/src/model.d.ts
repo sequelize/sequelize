@@ -84,6 +84,7 @@ export interface Transactionable {
    * Internal only
    *
    * @private
+   * @hidden
    */
   [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
@@ -769,26 +770,7 @@ export type OrderItem =
   | Literal
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-    ]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-      string,
-    ];
+  | [...OrderItemAssociation[], OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -1003,6 +985,12 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * Count number of records returned by group by
+   * Used in conjunction with `group`.
+   */
+  countGroupedRows?: boolean;
 }
 
 /**
@@ -1776,7 +1764,7 @@ export interface AttributeOptions<M extends Model = Model> {
   columnName?: string | undefined;
 
   /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   * A literal default value, a JavaScript function, or an SQL function (using {@link sql.fn})
    */
   defaultValue?: unknown | undefined;
 
@@ -2437,35 +2425,6 @@ export abstract class Model<
   ): Promise<M[]>;
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   */
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
-  ): Promise<R | null>;
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true },
-  ): Promise<R>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M>,
-  ): Promise<M>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options?: FindByPkOptions<M>,
-  ): Promise<M | null>;
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
@@ -2568,7 +2527,7 @@ export abstract class Model<
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,

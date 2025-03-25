@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, Oracle, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "7.0.0-alpha.44",
+  "version": "7.0.0-alpha.46",
   "funding": [
     {
       "type": "opencollective",
@@ -41,7 +41,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=18.20.7"
   },
   "files": [
     "lib"
@@ -50,31 +50,31 @@
   "dependencies": {
     "@sequelize/utils": "workspace:*",
     "@types/debug": "^4.1.12",
-    "@types/validator": "^13.11.9",
-    "ansis": "^3.2.0",
+    "@types/validator": "^13.12.2",
+    "ansis": "^3.17.0",
     "bnf-parser": "^3.1.6",
-    "dayjs": "^1.11.10",
-    "debug": "^4.3.4",
+    "dayjs": "^1.11.13",
+    "debug": "^4.4.0",
     "dottie": "^2.0.6",
-    "fast-glob": "^3.3.2",
-    "inflection": "^3.0.0",
+    "fast-glob": "^3.3.3",
+    "inflection": "^3.0.2",
     "lodash": "^4.17.21",
-    "retry-as-promised": "^7.0.4",
-    "semver": "^7.3",
+    "retry-as-promised": "^7.1.1",
+    "semver": "^7.7.1",
     "sequelize-pool": "^8.0.0",
     "toposort-class": "^1.0.1",
-    "type-fest": "^4.14.0",
-    "uuid": "^11.0.0",
-    "validator": "^13.11.0"
+    "type-fest": "^4.38.0",
+    "uuid": "^11.1.0",
+    "validator": "^13.12.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "1.0.0",
-    "@types/lodash": "4.17.15",
+    "@types/lodash": "4.17.16",
     "@types/mocha": "10.0.10",
     "@types/semver": "7.5.8",
-    "@types/sinon": "17.0.3",
+    "@types/sinon": "17.0.4",
     "@types/sinon-chai": "3.2.12",
     "chai": "4.5.0",
     "chai-as-promised": "7.1.2",

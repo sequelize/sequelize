@@ -180,6 +180,10 @@ if (dialect.name !== 'oracle') {
       });
 
       it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
+        if (!dialect.supports.upserts) {
+          return;
+        }
+
         // 'name' attr has a different name in the database
         const [out] = await models.User.upsert({ name: 'foo', id: 1234 }, { returning: true });
 

@@ -983,7 +983,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    *
    * ⚠️ You almost certainly want to use `quoteIdentifier` instead!
    * This method splits the identifier by "." into multiple identifiers, and has special meaning for "*".
-   * This behavior should never be the default and should be explicitly opted into by using {@link Col}.
+   * This behavior should never be the default and should be explicitly opted into by using {@link sql.col}.
    *
    * @param {string} identifiers
    *
@@ -1546,6 +1546,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     };
 
     topLevelInfo.options.keysEscaped = true;
+
+    // Index hints should not be passed down to any include subqueries
+    if (topLevelInfo.options && topLevelInfo.options.indexHints) {
+      delete topLevelInfo.options.indexHints;
+    }
 
     if (
       topLevelInfo.names.name !== parentTableName.externalAs &&

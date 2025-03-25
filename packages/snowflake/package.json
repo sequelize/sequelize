@@ -31,7 +31,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.44",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   },
@@ -39,6 +39,6 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "lodash": "^4.17.21",
-    "snowflake-sdk": "^2.0.0"
+    "snowflake-sdk": "^2.0.3"
   }
 }
