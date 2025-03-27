@@ -2944,7 +2944,7 @@ __metadata:
     "@types/debug": "npm:^4.1.12"
     "@types/lodash": "npm:4.17.16"
     "@types/mocha": "npm:10.0.10"
-    "@types/semver": "npm:7.5.8"
+    "@types/semver": "npm:7.7.0"
     "@types/sinon": "npm:17.0.4"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/validator": "npm:^13.12.3"
@@ -4186,10 +4186,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/semver@npm:7.5.8, @types/semver@npm:^7.3.12, @types/semver@npm:^7.5.0":
-  version: 7.5.8
-  resolution: "@types/semver@npm:7.5.8"
-  checksum: 10c0/8663ff927234d1c5fcc04b33062cb2b9fcfbe0f5f351ed26c4d1e1581657deebd506b41ff7fdf89e787e3d33ce05854bc01686379b89e9c49b564c4cfa988efa
+"@types/semver@npm:7.7.0, @types/semver@npm:^7.3.12, @types/semver@npm:^7.5.0":
+  version: 7.7.0
+  resolution: "@types/semver@npm:7.7.0"
+  checksum: 10c0/6b5f65f647474338abbd6ee91a6bbab434662ddb8fe39464edcbcfc96484d388baad9eb506dff217b6fc1727a88894930eb1f308617161ac0f376fe06be4e1ee
   languageName: node
   linkType: hard
 
