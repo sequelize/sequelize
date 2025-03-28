@@ -110,6 +110,8 @@ jobs:
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (core - snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+      - name: Unit tests (core - hana)
+        run: yarn lerna run test-unit-hana --scope=@sequelize/core
       - name: SQLite SSCCE
         run: yarn sscce-sqlite3
   test-win:
