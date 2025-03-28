@@ -1,7 +1,7 @@
 import type {
+  AddIndexQueryOptions,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   RenameTableQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
@@ -9,18 +9,18 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core';
 import {
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+  ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { inspect } from '@sequelize/utils';
 import type { IBMiDialect } from './dialect.js';
 import { IBMiQueryGeneratorInternal } from './query-generator.internal.js';
-
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -159,57 +159,176 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  showIndexesQuery(tableName: TableOrModel) {
-    const table = this.extractTableDetails(tableName);
+  addIndexQuery(tableName: TableOrModel, options: AddIndexQueryOptions): string {
+    rejectInvalidOptions(
+      'addIndexQuery',
+      this.dialect,
+      ADD_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.addIndex,
+      options,
+    );
 
-    // TODO [+odbc]: check if the query also works when capitalized (for consistency)
-    return joinSQLFragments([
-      'select QSYS2.SYSCSTCOL.CONSTRAINT_NAME as NAME, QSYS2.SYSCSTCOL.COLUMN_NAME, QSYS2.SYSCST.CONSTRAINT_TYPE, QSYS2.SYSCST.TABLE_SCHEMA,',
-      'QSYS2.SYSCST.TABLE_NAME from QSYS2.SYSCSTCOL left outer join QSYS2.SYSCST on QSYS2.SYSCSTCOL.TABLE_SCHEMA = QSYS2.SYSCST.TABLE_SCHEMA and',
-      'QSYS2.SYSCSTCOL.TABLE_NAME = QSYS2.SYSCST.TABLE_NAME and QSYS2.SYSCSTCOL.CONSTRAINT_NAME = QSYS2.SYSCST.CONSTRAINT_NAME where',
-      'QSYS2.SYSCSTCOL.TABLE_SCHEMA =',
-      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      `and QSYS2.SYSCSTCOL.TABLE_NAME = ${this.escape(table.tableName)} union select QSYS2.SYSKEYS.INDEX_NAME AS NAME,`,
-      `QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS`,
-      'left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA =',
-      table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA',
-      'and QSYS2.SYSINDEXES.TABLE_NAME =',
-      this.escape(table.tableName),
-    ]);
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
+    if (!Array.isArray(options.fields) || options.fields.length < 0) {
+      throw new Error(
+        `Property "fields" for addIndex requires an array with at least one value. Received: ${inspect(options.fields)}`,
       );
     }
 
-    let indexName: string;
-    if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
+    if ('using' in options) {
+      throw new Error('Property "using" for addIndex has been renamed to "method".');
     }
 
+    if ('name' in options && 'prefix' in options) {
+      throw new Error('Properties "name" and "prefix" are mutually exclusive in addIndex.');
+    }
+
+    const indexOptions = { ...options };
+    const columnSql = indexOptions.fields.map(column => {
+      if (typeof column === 'string') {
+        column = { name: column };
+      }
+
+      if (column instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(column);
+      }
+
+      if ('attribute' in column) {
+        throw new Error('Property "attribute" for addIndex fields has been renamed to "name".');
+      }
+
+      if (!column.name) {
+        throw new Error(`The following index column has no name: ${inspect(column)}`);
+      }
+
+      let result = this.quoteIdentifier(column.name);
+
+      if (column.collate) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support collate on index fields.`,
+        );
+      }
+
+      const operator = column.operator || indexOptions.operator;
+      if (operator) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support operator on index fields.`,
+        );
+      }
+
+      if (column.length) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support length on index fields.`,
+        );
+      }
+
+      if (column.order) {
+        result += ` ${column.order}`;
+      }
+
+      if (column.nullOrder) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support nullOrder on index fields.`,
+        );
+      }
+
+      return result;
+    });
+
+    if (indexOptions.prefix && typeof indexOptions.prefix === 'string') {
+      indexOptions.prefix = indexOptions.prefix.replaceAll('.', '_');
+    } else {
+      delete indexOptions.prefix;
+    }
+
+    if (indexOptions.type && indexOptions.type.toLowerCase() === 'unique') {
+      indexOptions.unique = true;
+      delete indexOptions.type;
+    }
+
+    const table = this.extractTableDetails(tableName);
+    indexOptions.name = indexOptions.name || generateIndexName(table, indexOptions);
+
+    // Although the function is 'addIndex', and the values are passed through
+    // the 'indexes' key of a table, Db2 for i doesn't allow REFERENCES to
+    // work against a UNIQUE INDEX, only a UNIQUE constraint.
+    if (indexOptions.unique) {
+      if (indexOptions.include) {
+        throw new Error('Db2 for i does not support unique indexes with INCLUDE syntax.');
+      }
+
+      return joinSQLFragments([
+        'BEGIN',
+        "DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891' BEGIN END;",
+        this.addConstraintQuery(table, {
+          fields: indexOptions.fields,
+          name: indexOptions.name,
+          type: 'UNIQUE',
+        }),
+        ';',
+        'END',
+      ]);
+    }
+
+    let includeSql: string | undefined;
+    if (indexOptions.include) {
+      if (indexOptions.include instanceof BaseSqlExpression) {
+        includeSql = `INCLUDE ${this.formatSqlExpression(indexOptions.include)}`;
+      } else if (Array.isArray(indexOptions.include)) {
+        const columns = indexOptions.include.map(column => {
+          if (typeof column === 'string') {
+            return this.quoteIdentifier(column);
+          }
+
+          if (column instanceof BaseSqlExpression) {
+            return this.formatSqlExpression(column);
+          }
+
+          throw new Error(
+            `The include option for indexes must be an array of strings or sql expressions.`,
+          );
+        });
+        includeSql = `INCLUDE (${columns.join(', ')})`;
+      } else {
+        throw new TypeError(
+          'The include option for indexes must be an array or an sql expression.',
+        );
+      }
+    }
+
+    const quotedIndexName = table.schema
+      ? this.quoteTable({ schema: table.schema, tableName: indexOptions.name })
+      : this.quoteIdentifier(indexOptions.name);
+
     return joinSQLFragments([
-      'BEGIN',
-      options?.ifExists
-        ? `IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = ${this.quoteIdentifier(indexName)}) THEN`
-        : '',
-      `DROP INDEX ${this.quoteIdentifier(indexName)};`,
-      'COMMIT;',
-      options?.ifExists ? 'END IF;' : '',
-      'END',
+      'CREATE INDEX',
+      quotedIndexName,
+      `ON ${this.quoteTable(tableName)}`,
+      `(${columnSql.join(', ')})`,
+      indexOptions.include ? includeSql : '',
+      indexOptions.where ? this.whereQuery(indexOptions.where) : '',
+    ]);
+  }
+
+  showIndexesQuery(tableName: TableOrModel) {
+    const table = this.extractTableDetails(tableName);
+
+    return joinSQLFragments([
+      'SELECT',
+      'i.TABLE_NAME AS "tableName",',
+      'i.TABLE_SCHEMA AS "schema",',
+      'i.INDEX_NAME AS "name",',
+      'c.CONSTRAINT_TYPE AS "keyType",',
+      'i.INCLUDE_EXPRESSION AS "include",',
+      'k.COLUMN_NAME AS "columnName",',
+      'k.ORDERING AS "columnOrder",',
+      'k.COLUMN_IS_EXPRESSION AS "is_expression",',
+      'k.KEY_EXPRESSION AS "expression"',
+      'FROM QSYS2.SYSINDEXES i',
+      'INNER JOIN QSYS2.SYSKEYS k ON i.INDEX_NAME = k.INDEX_NAME AND i.INDEX_SCHEMA = k.INDEX_SCHEMA',
+      'LEFT JOIN QSYS2.SYSCST c ON i.INDEX_NAME = c.CONSTRAINT_NAME AND i.INDEX_SCHEMA = c.CONSTRAINT_SCHEMA',
+      `WHERE i.TABLE_NAME = ${this.escape(table.tableName)}`,
+      `AND i.TABLE_SCHEMA = ${table.schema ? this.escape(table.schema) : 'CURRENT SCHEMA'}`,
+      'ORDER BY i.INDEX_NAME, k.ORDINAL_POSITION',
     ]);
   }
 
