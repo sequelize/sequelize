@@ -61,7 +61,7 @@
     "lodash": "^4.17.21",
     "retry-as-promised": "^7.1.1",
     "semver": "^7.7.1",
-    "sequelize-pool": "^8.0.0",
+    "sequelize-pool": "^8.0.1",
     "toposort-class": "^1.0.1",
     "type-fest": "^4.38.0",
     "uuid": "^11.1.0",

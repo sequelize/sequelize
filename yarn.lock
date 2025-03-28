@@ -2973,7 +2973,7 @@ __metadata:
     retry-as-promised: "npm:^7.1.1"
     rimraf: "npm:5.0.10"
     semver: "npm:^7.7.1"
-    sequelize-pool: "npm:^8.0.0"
+    sequelize-pool: "npm:^8.0.1"
     sinon: "npm:18.0.1"
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
@@ -14052,10 +14052,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sequelize-pool@npm:^8.0.0":
-  version: 8.0.0
-  resolution: "sequelize-pool@npm:8.0.0"
-  checksum: 10c0/9c6c36534982c530bff6cbcecb44b148d9795909c7f40f4f0ef599ff9c128388090fc186c4378d66ea3152dbff13c545a059f7813cf66b677348f5a49cace62d
+"sequelize-pool@npm:^8.0.1":
+  version: 8.0.1
+  resolution: "sequelize-pool@npm:8.0.1"
+  checksum: 10c0/1c0d9324931b4982ddbde0e5c6a50fc8a8e7b6d00ff69e493298c1600560d81408ea8646e2e96498dbfcb41c674cfae2f022339428c61f9293a682c6f6c464b2
   languageName: node
   linkType: hard
 
