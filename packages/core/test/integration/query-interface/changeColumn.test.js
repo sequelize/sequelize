@@ -94,9 +94,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
-    // MSSQL doesn't support using a modified column in a check constraint.
-    // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql
-    if (dialect !== 'mssql' && dialect !== 'db2') {
+    if (dialect !== 'db2') {
       it('should work with enums (case 1)', async function () {
         await this.queryInterface.createTable(
           {
@@ -153,6 +151,103 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           );
         });
       }
+    }
+
+    // SQlite doesnt allow altering a column default value
+    if (dialect !== 'sqlite3') {
+      it('should add default value to column', async function () {
+        await this.queryInterface.createTable(
+          {
+            tableName: 'Foos',
+          },
+          {
+            id: {
+              allowNull: false,
+              autoIncrement: true,
+              primaryKey: true,
+              type: DataTypes.INTEGER,
+            },
+            status: {
+              allowNull: false,
+              type: DataTypes.STRING,
+            },
+          },
+        );
+
+        await this.queryInterface.changeColumn('Foos', 'status', {
+          type: DataTypes.STRING,
+          defaultValue: 'active',
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+
+        expect(table.status.defaultValue).to.equal('active');
+      });
+
+      it('should change default value of column', async function () {
+        await this.queryInterface.createTable(
+          {
+            tableName: 'Foos',
+          },
+          {
+            id: {
+              allowNull: false,
+              autoIncrement: true,
+              primaryKey: true,
+              type: DataTypes.INTEGER,
+            },
+            status: {
+              allowNull: false,
+              type: DataTypes.STRING,
+              defaultValue: 'pending',
+            },
+          },
+        );
+
+        await this.queryInterface.changeColumn('Foos', 'status', {
+          type: DataTypes.STRING,
+          defaultValue: 'active',
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+
+        expect(table.status.defaultValue).to.equal('active');
+      });
+
+      it('should remove default value of column', async function () {
+        await this.queryInterface.createTable(
+          {
+            tableName: 'Foos',
+          },
+          {
+            id: {
+              allowNull: false,
+              autoIncrement: true,
+              primaryKey: true,
+              type: DataTypes.INTEGER,
+            },
+            status: {
+              allowNull: false,
+              type: DataTypes.STRING,
+              defaultValue: 'pending',
+            },
+          },
+        );
+
+        await this.queryInterface.changeColumn('Foos', 'status', {
+          type: DataTypes.STRING,
+        });
+
+        const table = await this.queryInterface.describeTable({
+          tableName: 'Foos',
+        });
+
+        expect(table.status.defaultValue).to.equal(null);
+      });
     }
 
     describe('should support foreign keys', () => {
