@@ -20,17 +20,17 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
   testDataTypeSql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
     default: 'REAL UNSIGNED',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres hana': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12)', DataTypes.REAL(11, 12), {
     default: 'REAL(11, 12)',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres hana': 'REAL',
   });
 
   testDataTypeSql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
     default: 'REAL(11, 12) UNSIGNED',
-    'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+    'sqlite3 snowflake ibmi db2 mssql postgres hana': 'REAL',
   });
 
   testDataTypeSql(
@@ -38,7 +38,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     DataTypes.REAL({ precision: 11, scale: 12 }).UNSIGNED,
     {
       default: 'REAL(11, 12) UNSIGNED',
-      'sqlite3 snowflake ibmi db2 mssql postgres': 'REAL',
+      'sqlite3 snowflake ibmi db2 mssql postgres hana': 'REAL',
     },
   );
 
@@ -65,7 +65,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
   testDataTypeSql('DOUBLE', DataTypes.DOUBLE, {
     default: 'DOUBLE PRECISION',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi hana': 'DOUBLE',
     sqlite3: 'REAL',
     snowflake: 'FLOAT',
   });
@@ -73,7 +73,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE.UNSIGNED', DataTypes.DOUBLE.UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION UNSIGNED',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi hana': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -81,7 +81,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE(11, 12)', DataTypes.DOUBLE(11, 12), {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12)',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi hana': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -89,7 +89,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
   testDataTypeSql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
     'mysql mariadb': 'DOUBLE PRECISION(11, 12) UNSIGNED',
     sqlite3: 'REAL',
-    'db2 ibmi': 'DOUBLE',
+    'db2 ibmi hana': 'DOUBLE',
     'postgres mssql': 'DOUBLE PRECISION',
     snowflake: 'FLOAT',
   });
@@ -133,25 +133,25 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     // FLOAT in snowflake is double-precision (no single-precision support), but single-precision is all others
     'mysql mariadb snowflake': 'FLOAT',
     // REAL in sqlite is double-precision (no single-precision support), but single-precision in all others
-    'postgres mssql sqlite3 db2 ibmi': 'REAL',
+    'postgres mssql sqlite3 db2 ibmi hana': 'REAL',
   });
 
   testDataTypeSql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
     'mysql mariadb': 'FLOAT UNSIGNED',
     snowflake: 'FLOAT',
-    'postgres mssql sqlite3 db2 ibmi': 'REAL',
+    'postgres mssql sqlite3 db2 ibmi hana': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
     'mysql mariadb': 'FLOAT(11, 12)',
     snowflake: 'FLOAT',
-    'postgres mssql sqlite3 db2 ibmi': 'REAL',
+    'postgres mssql sqlite3 db2 ibmi hana': 'REAL',
   });
 
   testDataTypeSql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
     'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
     snowflake: 'FLOAT',
-    'postgres mssql sqlite3 db2 ibmi': 'REAL',
+    'postgres mssql sqlite3 db2 ibmi hana': 'REAL',
   });
 
   testDataTypeSql(
@@ -160,7 +160,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     {
       'mysql mariadb': 'FLOAT(11, 12) UNSIGNED',
       snowflake: 'FLOAT',
-      'postgres mssql sqlite3 db2 ibmi': 'REAL',
+      'postgres mssql sqlite3 db2 ibmi hana': 'REAL',
     },
   );
 
@@ -224,7 +224,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       `${dialectName} does not support unconstrained DECIMAL types. Please specify the "precision" and "scale" options.`,
     ),
     sqlite3: unsupportedError,
-    postgres: 'DECIMAL',
+    'postgres hana': 'DECIMAL',
   });
 
   testDataTypeSql('DECIMAL(10, 2)', DataTypes.DECIMAL(10, 2), {
