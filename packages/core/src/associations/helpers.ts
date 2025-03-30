@@ -291,7 +291,7 @@ export function normalizeBaseAssociationOptions<T extends AssociationOptions<any
     );
   }
 
-  if ('foreignKey' in options && typeof options.foreignKey !== 'string'  && 'name' in options.foreignKey && 'keys' in options.foreignKey) {
+  if ('foreignKey' in options && typeof options.foreignKey !== 'string'  && 'name' in options.foreignKey && options.foreignKey.name !== undefined && 'keys' in options.foreignKey) {
     throw new AssociationError('Option "foreignKey.name" and "foreignKey.keys" cannot be used at the same time');
   }
 
