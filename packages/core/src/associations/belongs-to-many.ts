@@ -124,13 +124,14 @@ export class BelongsToManyAssociation<
   NormalizedBelongsToManyOptions<SourceKey, TargetKey, ThroughModel>
 > {
 
-  // TODO: add support for this
-  readonly foreignKeys: CompositeForeignKeysOptions[] = [];
-
   readonly accessors: MultiAssociationAccessors;
 
   get foreignKey(): string {
-    return this.fromSourceToThrough.foreignKey;
+    return this.fromSourceToThrough.foreignKeys[0].sourceKey;
+  }
+
+  get foreignKeys(): CompositeForeignKeysOptions[] {
+    return this.fromSourceToThrough.foreignKeys;
   }
 
   /**
@@ -140,6 +141,10 @@ export class BelongsToManyAssociation<
    */
   get otherKey(): string {
     return this.pairedWith.foreignKey;
+  }
+
+  get otherKeys(): CompositeForeignKeysOptions[] {
+    return this.pairedWith.foreignKeys;
   }
 
   /**
@@ -303,8 +308,15 @@ export class BelongsToManyAssociation<
     // this makes sure it's created
     this.pairedWith.pairedWith = this;
 
-    const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
+    const  sourceKey = options?.sourceKey ||  (source.primaryKeyAttribute as TargetKey);
 
+    const name = this.options.foreignKey?.keys && this.options.foreignKey.keys.length > 1 ? 
+    undefined :
+    this.options.foreignKey.name ||
+    (this.isSelfAssociation
+      ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
+      : camelize(`${this.source.options.name.singular}_${sourceKey}`));
+  
     this.fromSourceToThrough = HasManyAssociation.associate(
       AssociationSecret,
       this.source,
@@ -317,11 +329,7 @@ export class BelongsToManyAssociation<
         foreignKey: {
           ...this.options.foreignKey,
           allowNull: this.options.foreignKey.allowNull ?? false,
-          name:
-            this.options.foreignKey.name ||
-            (this.isSelfAssociation
-              ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
-              : camelize(`${this.source.options.name.singular}_${sourceKey}`)),
+          name,
         },
         sourceKey: this.options.sourceKey,
         foreignKeyConstraints: this.options.foreignKeyConstraints,
@@ -346,11 +354,7 @@ export class BelongsToManyAssociation<
         foreignKey: {
           ...this.options.foreignKey,
           allowNull: this.options.foreignKey.allowNull ?? false,
-          name:
-            this.options.foreignKey.name ||
-            (this.isSelfAssociation
-              ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
-              : camelize(`${this.source.options.name.singular}_${sourceKey}`)),
+          name,
         },
         sourceKey: this.options.sourceKey,
         foreignKeyConstraints: this.options.foreignKeyConstraints,
@@ -413,7 +417,7 @@ export class BelongsToManyAssociation<
         return;
       }
 
-      hasPrimaryKey = true;
+      hasPrimaryKey = true; 
     });
 
     if (!hasPrimaryKey) {
@@ -1162,6 +1166,8 @@ export interface BelongsToManyOptions<
    * target
    */
   otherKey?: AttributeNames<ThroughModel> | ForeignKeyOptions<AttributeNames<ThroughModel>>;
+
+  otherKeys?: Array<AttributeNames<ThroughModel>> | Array<ForeignKeyOptions<AttributeNames<ThroughModel>>>
 
   /**
    * The name of the attribute to use as the key for the association in the source table.

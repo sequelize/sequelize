@@ -585,6 +585,63 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     });
   });
 
+  describe.only('composite foreign keys', () => {
+
+   it('should infer composite foreign keys', () => {
+
+      const User = sequelize.define('User', {
+        userId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: false,
+        },
+        username: DataTypes.STRING,
+      });
+
+      const Place = sequelize.define('Place', {
+        placeId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: false,
+        },
+        name: DataTypes.STRING,
+      });
+
+      const Places = User.belongsToMany(Place, {
+        through: 'user_places',
+        foreignKey: {
+            keys: ['userId', 'tenantId'],
+        },
+        otherKey: {
+           keys: ['placeId', 'tenantId'],
+        },
+      });
+
+      const Users = Place.getAssociation('users') as BelongsToManyAssociation;
+      
+      expect(Places.foreignKeys[0].sourceKey).to.equal('userId');
+      expect(Places.foreignKeys[0].targetKey).to.equal('userId');
+      expect(Places.foreignKeys[1].sourceKey).to.equal('tenantId');
+      expect(Places.foreignKeys[1].targetKey).to.equal('tenantId');
+
+      expect(Users.foreignKeys[0].sourceKey).to.equal('placeId');
+      expect(Users.foreignKeys[0].targetKey).to.equal('placeId');
+      expect(Users.foreignKeys[1].sourceKey).to.equal('tenantId');
+      expect(Users.foreignKeys[1].targetKey).to.equal('tenantId');
+   });
+
+  });
+
   describe('source/target keys', () => {
     it('should infer targetKey from paired BTM relationship with a through string defined', () => {
       const User = sequelize.define('User', { user_id: DataTypes.UUID });
