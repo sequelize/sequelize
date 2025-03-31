@@ -200,6 +200,7 @@ Then, if you want to run tests for another dialect, assuming you've set it up as
 - `yarn lerna run test-postgres`
 - `yarn lerna run test-mssql`
 - `yarn lerna run test-db2`
+- `yarn lerna run test-hana`
 
 There are also the `test-unit-*` and `test-integration-*` sets of scripts (for example, `test-integration-postgres`).
 
