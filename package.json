@@ -82,7 +82,7 @@
     "chai": "4.5.0",
     "concurrently": "9.1.2",
     "cross-env": "7.0.3",
-    "esbuild": "0.25.1",
+    "esbuild": "0.25.2",
     "eslint": "8.57.1",
     "eslint-plugin-jsdoc": "48.11.0",
     "eslint-plugin-mocha": "10.5.0",
@@ -105,7 +105,7 @@
     "typedoc-plugin-missing-exports": "3.1.0",
     "typescript": "5.8.2"
   },
-  "packageManager": "yarn@4.7.0",
+  "packageManager": "yarn@4.8.1",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"
