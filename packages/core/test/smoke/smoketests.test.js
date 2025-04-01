@@ -38,8 +38,8 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
     it('gets all associated objects with all fields', async function () {
       const john = await this.User.findOne({ where: { username: 'John' } });
       const tasks = await john.getTasks();
-      for (const attr of Object.keys(tasks[0].getAttributes())) {
-        expect(tasks[0]).to.have.property(attr);
+      for (const attributeName of this.Task.modelDefinition.attributes.keys()) {
+        expect(tasks[0]).to.have.property(attributeName);
       }
     });
 
@@ -108,14 +108,18 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
           indexes: [
             {
               unique: true,
-              fields: ['UserUserSecondId', 'GroupGroupSecondId'],
+              fields: ['userUserSecondId', 'groupGroupSecondId'],
+              name: 'UserHasGroup_Second_Unique',
             },
           ],
         },
       );
 
-      User.belongsToMany(Group, { through: User_has_Group, sourceKey: 'userSecondId' });
-      Group.belongsToMany(User, { through: User_has_Group, sourceKey: 'groupSecondId' });
+      User.belongsToMany(Group, {
+        through: User_has_Group,
+        sourceKey: 'userSecondId',
+        targetKey: 'groupSecondId',
+      });
 
       await this.sequelize.sync({ force: true });
       const [user1, user2, group1, group2] = await Promise.all([
@@ -137,92 +141,92 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
       ]);
 
       expect(users.length).to.equal(2);
-      expect(users[0].Groups.length).to.equal(1);
-      expect(users[1].Groups.length).to.equal(1);
-      expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(users[0].groups.length).to.equal(1);
+      expect(users[1].groups.length).to.equal(1);
+      expect(users[0].groups[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(
+        expect(users[0].groups[0].User_has_Group.userUserSecondId).to.deep.equal(
           users[0].userSecondId,
         );
       } else {
-        expect(users[0].Groups[0].User_has_Group.UserUserSecondId).to.equal(users[0].userSecondId);
+        expect(users[0].groups[0].User_has_Group.userUserSecondId).to.equal(users[0].userSecondId);
       }
 
-      expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
-          users[0].Groups[0].groupSecondId,
+        expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.deep.equal(
+          users[0].groups[0].groupSecondId,
         );
       } else {
-        expect(users[0].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(
-          users[0].Groups[0].groupSecondId,
+        expect(users[0].groups[0].User_has_Group.groupGroupSecondId).to.equal(
+          users[0].groups[0].groupSecondId,
         );
       }
 
-      expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(users[1].groups[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.deep.equal(
+        expect(users[1].groups[0].User_has_Group.userUserSecondId).to.deep.equal(
           users[1].userSecondId,
         );
       } else {
-        expect(users[1].Groups[0].User_has_Group.UserUserSecondId).to.equal(users[1].userSecondId);
+        expect(users[1].groups[0].User_has_Group.userUserSecondId).to.equal(users[1].userSecondId);
       }
 
-      expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
-          users[1].Groups[0].groupSecondId,
+        expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.deep.equal(
+          users[1].groups[0].groupSecondId,
         );
       } else {
-        expect(users[1].Groups[0].User_has_Group.GroupGroupSecondId).to.equal(
-          users[1].Groups[0].groupSecondId,
+        expect(users[1].groups[0].User_has_Group.groupGroupSecondId).to.equal(
+          users[1].groups[0].groupSecondId,
         );
       }
 
       expect(groups.length).to.equal(2);
-      expect(groups[0].Users.length).to.equal(1);
-      expect(groups[1].Users.length).to.equal(1);
-      expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(groups[0].users.length).to.equal(1);
+      expect(groups[1].users.length).to.equal(1);
+      expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+        expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.deep.equal(
           groups[0].groupSecondId,
         );
       } else {
-        expect(groups[0].Users[0].User_has_Group.GroupGroupSecondId).to.equal(
+        expect(groups[0].users[0].User_has_Group.groupGroupSecondId).to.equal(
           groups[0].groupSecondId,
         );
       }
 
-      expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(groups[0].users[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(
-          groups[0].Users[0].userSecondId,
+        expect(groups[0].users[0].User_has_Group.userUserSecondId).to.deep.equal(
+          groups[0].users[0].userSecondId,
         );
       } else {
-        expect(groups[0].Users[0].User_has_Group.UserUserSecondId).to.equal(
-          groups[0].Users[0].userSecondId,
+        expect(groups[0].users[0].User_has_Group.userUserSecondId).to.equal(
+          groups[0].users[0].userSecondId,
         );
       }
 
-      expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.be.ok;
+      expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.deep.equal(
+        expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.deep.equal(
           groups[1].groupSecondId,
         );
       } else {
-        expect(groups[1].Users[0].User_has_Group.GroupGroupSecondId).to.equal(
+        expect(groups[1].users[0].User_has_Group.groupGroupSecondId).to.equal(
           groups[1].groupSecondId,
         );
       }
 
-      expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.be.ok;
+      expect(groups[1].users[0].User_has_Group.userUserSecondId).to.be.ok;
       if (dialect === 'db2') {
-        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.deep.equal(
-          groups[1].Users[0].userSecondId,
+        expect(groups[1].users[0].User_has_Group.userUserSecondId).to.deep.equal(
+          groups[1].users[0].userSecondId,
         );
       } else {
-        expect(groups[1].Users[0].User_has_Group.UserUserSecondId).to.equal(
-          groups[1].Users[0].userSecondId,
+        expect(groups[1].users[0].User_has_Group.userUserSecondId).to.equal(
+          groups[1].users[0].userSecondId,
         );
       }
     });
@@ -359,7 +363,6 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
       beforeEach(function () {
         this.B.belongsTo(this.A, { as: 'relation1' });
         this.A.belongsToMany(this.B, { as: 'relation2', through: 'AB' });
-        this.B.belongsToMany(this.A, { as: 'relation2', through: 'AB' });
 
         return this.sequelize.sync({ force: true });
       });
@@ -456,14 +459,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   });
 
   describe(Support.getTestDialectTeaser('Model'), () => {
-    before(function () {
-      this.clock = sinon.useFakeTimers();
-    });
-
-    after(function () {
-      this.clock.restore();
-    });
-
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {
         username: DataTypes.STRING,
