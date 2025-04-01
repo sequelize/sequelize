@@ -26,7 +26,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       intVal: DataTypes.INTEGER,
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
-      binary: DataTypes.BLOB,
+      ...(dialectName === 'oracle'
+        ? { binary: DataTypes.STRING(16, true) }
+        : { binary: DataTypes.BLOB }),
     });
 
     await this.User.sync({ force: true });
@@ -117,6 +119,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
+      // Oracle WHERE IN clause for BLOB isn't supported. Use `RAW` datatype.
       it('should not break when using smart syntax on binary fields', async function () {
         const users = await this.User.findAll({
           where: {
