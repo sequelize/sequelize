@@ -412,6 +412,7 @@ Caused by: "undefined" cannot be escaped`),
           db2: '"stringAttr" = \'here is a null char: \0\'',
           ibmi: '"stringAttr" = \'here is a null char: \0\'',
           sqlite3: "`stringAttr` = 'here is a null char: \0'",
+          hana: '"stringAttr" = \'here is a null char: \0\'',
         },
       );
 
@@ -423,7 +424,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-          'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+          'db2 snowflake ibmi hana': `"dateAttr" = '2013-01-01 00:00:00.000'`,
         },
       );
 
@@ -431,6 +432,7 @@ Caused by: "undefined" cannot be escaped`),
         testSql(
           { binaryAttr: Buffer.from('Sequelize') },
           {
+            default: `[binaryAttr] = X'53657175656c697a65'`,
             ibmi: `"binaryAttr" = BLOB(X'53657175656c697a65')`,
             postgres: `"binaryAttr" = '\\x53657175656c697a65'`,
             'sqlite3 mariadb mysql': "`binaryAttr` = X'53657175656c697a65'",
@@ -444,6 +446,7 @@ Caused by: "undefined" cannot be escaped`),
         testSql(
           { binaryAttr: [Buffer.from(`Seque'lize1`), Buffer.from('Sequelize2')] },
           {
+            default: `[binaryAttr] IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
             ibmi: `"binaryAttr" IN (BLOB(X'5365717565276c697a6531'), BLOB(X'53657175656c697a6532'))`,
             postgres: `"binaryAttr" IN ('\\x5365717565276c697a6531', '\\x53657175656c697a6532')`,
             'sqlite3 mariadb mysql':
@@ -570,7 +573,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
           mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-          'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+          'db2 ibmi snowflake hana': `"dateAttr" = '2021-01-01 00:00:00.000'`,
         },
       );
 
