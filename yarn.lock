@@ -3051,7 +3051,7 @@ __metadata:
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.44.0"
     mocha: "npm:11.1.0"
-    node-gyp: "npm:11.1.0"
+    node-gyp: "npm:11.2.0"
     node-hook: "npm:1.0.0"
     nx: "npm:20.7.0"
     prettier: "npm:3.5.3"
@@ -11709,23 +11709,23 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:11.1.0":
-  version: 11.1.0
-  resolution: "node-gyp@npm:11.1.0"
+"node-gyp@npm:11.2.0":
+  version: 11.2.0
+  resolution: "node-gyp@npm:11.2.0"
   dependencies:
     env-paths: "npm:^2.2.0"
     exponential-backoff: "npm:^3.1.1"
-    glob: "npm:^10.3.10"
     graceful-fs: "npm:^4.2.6"
     make-fetch-happen: "npm:^14.0.3"
     nopt: "npm:^8.0.0"
     proc-log: "npm:^5.0.0"
     semver: "npm:^7.3.5"
     tar: "npm:^7.4.3"
+    tinyglobby: "npm:^0.2.12"
     which: "npm:^5.0.0"
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 10c0/c38977ce502f1ea41ba2b8721bd5b49bc3d5b3f813eabfac8414082faf0620ccb5211e15c4daecc23ed9f5e3e9cc4da00e575a0bcfc2a95a069294f2afa1e0cd
+  checksum: 10c0/bd8d8c76b06be761239b0c8680f655f6a6e90b48e44d43415b11c16f7e8c15be346fba0cbf71588c7cdfb52c419d928a7d3db353afc1d952d19756237d8f10b9
   languageName: node
   linkType: hard
 
@@ -15095,7 +15095,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tinyglobby@npm:^0.2.9":
+"tinyglobby@npm:^0.2.12, tinyglobby@npm:^0.2.9":
   version: 0.2.12
   resolution: "tinyglobby@npm:0.2.12"
   dependencies:
