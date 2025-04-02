@@ -80,7 +80,7 @@ export class HanaQuery extends AbstractQuery {
 
       let batchInsertCurrentIdentityValue = undefined;
       if (this.isBulkInsertQuery()) {
-        const identitySql = 'SELECT CURRENT_IDENTITY_VALUE() as "id" FROM DUMMY;';
+        const identitySql = 'SELECT CURRENT_IDENTITY_VALUE() AS "id" FROM DUMMY;';
         try {
           const identityStmt = await PromiseModule.prepare(connection, identitySql);
           const identityResult = await PromiseModule.exec(identityStmt, [], {});

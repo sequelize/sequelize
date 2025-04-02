@@ -52,7 +52,7 @@ describe('QueryInterface#{create,drop,list}Schema', () => {
         await queryInterface.createSchema(testSchema, { authorization: 'myUser' });
       } else if (dialect.name === 'hana') {
         const [result] = await sequelize.query<{ user_count: string }>(
-          `SELECT COUNT(*) as "user_count" FROM SYS.USERS WHERE USER_NAME = 'MYUSER'`,
+          `SELECT COUNT(*) AS "user_count" FROM SYS.USERS WHERE USER_NAME = 'MYUSER'`,
           { type: QueryTypes.SELECT },
         );
         if (Number(result.user_count) === 0) {
