@@ -203,7 +203,6 @@ describe('QueryInterface#upsert', () => {
         WHEN NOT MATCHED THEN
           INSERT ("firstName", "lastName") VALUES($1, 'Doe');
       `,
-      hana: `UPSERT "Users" ("firstName","lastName") VALUES ($1,$sequelize_1);`,
     });
 
     // mssql does not generate any bind parameter
