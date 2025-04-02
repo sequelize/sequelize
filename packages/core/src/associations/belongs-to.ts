@@ -66,27 +66,22 @@ export class BelongsToAssociation<
     return this.foreignKey;
   }
 
-  foreignKey: SourceKey = null as any;
+  foreignKey: SourceKey;
 
   foreignKeys: CompositeForeignKeysOptions[] = [];
 
   /**
    * The column name of the foreign key
    */
-  foreignKeyColumnName: string = ''; 
+  // TODO: rename to foreignKeyColumnName
+  identifierField: string;
 
   /**
    * The name of the attribute the foreign key points to.
    * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOneAssociation.sourceKey}).
    * The {@link Association.foreignKey} is on the Source Model.
    */
-  targetKey: TargetKey = null as any;
-
-   /**
-   * The names of the attributes the foreign key points to.
-   * In belongsTo, this key is on the Target Model, instead of the Source Model  (unlike {@link HasOneAssociation.sourceKeys}).
-   * The {@link Association.foreignKeys} is on the Source Model.
-   */
+  targetKey: TargetKey;
 
   targetKeys: TargetKey[] = [];
 
@@ -167,6 +162,12 @@ export class BelongsToAssociation<
       isEmpty(options.foreignKey.name) &&
       !shouldHashPrimaryKey
     ) {
+      // Composite key flow
+      // TODO: fix this
+      this.targetKey = null as any;
+      this.foreignKey = null as any;
+      this.identifierField = null as any;
+
       const foreignKeyAttributeOptions = options.foreignKey;
       this.foreignKeys = foreignKeyAttributeOptions.keys as CompositeForeignKeysOptions[];
 
@@ -271,7 +272,7 @@ export class BelongsToAssociation<
         [this.foreignKey]: newForeignKeyAttribute,
       });
 
-      this.foreignKeyColumnName = getColumnName(this.source.getAttributes()[this.foreignKey]);
+      this.identifierField = getColumnName(this.source.getAttributes()[this.foreignKey]);
     }
 
     // Get singular name, trying to uppercase the first letter, unless the model forbids it

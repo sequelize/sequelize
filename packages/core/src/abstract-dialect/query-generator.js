@@ -1781,13 +1781,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           : association.sourceKeyAttribute;
       const columnNameLeft =
         association instanceof BelongsToAssociation
-          ? association.foreignKeyColumnName
+          ? association.identifierField
           : leftAttributes.get(association.sourceKeyAttribute).columnName;
 
       const fieldRight =
         association instanceof BelongsToAssociation
           ? rightAttributes.get(association.targetKey).columnName
-          : association.foreignKeyColumnName;
+          : association.identifierField;
       conditions.push({ attrNameLeft, columnNameLeft, fieldRight });
     }
 

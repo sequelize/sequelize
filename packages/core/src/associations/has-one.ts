@@ -60,7 +60,7 @@ export class HasOneAssociation<
    * The column name of the foreign key (on the target model)
    */
   get identifierField(): string {
-    return this.inverse.foreignKeyColumnName;
+    return this.inverse.identifierField;
   }
 
   /**
