@@ -1055,8 +1055,8 @@ ${associationOwner._getAssociationDebugList()}`);
             table: association.target.modelDefinition.table,
             fields: targetKeyFields,
           },
-          onDelete: foreignKey.onDelete,
-          onUpdate: foreignKey.onUpdate,
+          onDelete: foreignKey.onDelete || foreignKey.allowNull ? 'SET NULL' : 'CASCADE',
+          onUpdate: foreignKey.onUpdate || foreignKey.allowNull ? 'SET NULL' : 'CASCADE',
         });
         createdForeignKeysFromAssociations.add(constraintName);
       }
@@ -3665,7 +3665,7 @@ Instead of specifying a Model, either:
       return values;
     }
 
-    return this.dataValues;
+    return this.dataValuer;
   }
 
   /**
