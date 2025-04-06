@@ -178,11 +178,19 @@ export class BelongsToManyAssociation<
     return this.fromThroughToSource.targetKey;
   }
 
+  get sourceKeys(): SourceKey[] {
+    return this.fromThroughToSource.targetKeys;
+  }
+
   /**
    * The name of the Column that the {@link foreignKey} fk (located on the Through Table) will reference on the Source model.
    */
   get sourceKeyField(): string {
     return this.fromThroughToSource.targetKeyField(this.fromThroughToSource.targetKey);
+  }
+
+  get sourceKeyFields(): string[] {
+    return this.fromThroughToSource.targetKeys.map(key => this.fromThroughToSource.targetKeyField(key));
   }
 
   /**
@@ -192,11 +200,19 @@ export class BelongsToManyAssociation<
     return this.pairedWith.sourceKey;
   }
 
+  get targetKeys(): TargetKey[] {
+    return this.pairedWith.sourceKeys;
+  }
+
   /**
    * The name of the Column that the {@link otherKey} fk (located on the Through Table) will reference on the Target model.
    */
   get targetKeyField(): string {
     return this.pairedWith.sourceKeyField;
+  }
+
+  get targetKeyFields(): string[] {
+    return this.pairedWith.sourceKeyFields;
   }
 
   /**
