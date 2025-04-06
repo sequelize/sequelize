@@ -161,7 +161,11 @@ export class BelongsToManyAssociation<
    * The corresponding column name of {@link BelongsToManyAssociation#foreignKey}
    */
   get identifierField(): string {
-    return this.fromThroughToSource.identifierField;
+    return this.fromThroughToSource.foreignKey;
+  }
+
+  get identifierFields(): string[] {
+    return this.fromThroughToSource.foreignKeys.map(key => key.sourceKey);
   }
 
   /**
@@ -169,6 +173,10 @@ export class BelongsToManyAssociation<
    */
   get foreignIdentifierField() {
     return this.pairedWith.identifierField;
+  }
+
+  get foreignIdentifierFields(): string[] {
+    return this.pairedWith.identifierFields;
   }
 
   /**
