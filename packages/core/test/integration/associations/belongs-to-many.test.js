@@ -2931,7 +2931,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
   });
 
-  describe.skip('composite foreign keys with fields specified', () => {
+  describe('composite foreign keys with fields specified', () => {
     beforeEach(function () {
       this.User = this.sequelize.define('User', {
         userId: {
