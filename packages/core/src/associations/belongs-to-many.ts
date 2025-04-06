@@ -796,11 +796,10 @@ Add your own primary key to the through model, on different attributes than the 
     const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
 
     const where: WhereOptions = {
+      [foreignKey]: sourceInstance.get(sourceKey),
+      [otherKey]: newInstances.map(newInstance => newInstance.get(targetKey)),
       ...this.through.scope,
     };
-    where[foreignKey] = sourceInstance.get(sourceKey);
-    where[otherKey] = newInstances.map(newInstance => newInstance.get(targetKey));
-    
 
     let currentRows: readonly any[] = EMPTY_ARRAY;
     if (this.through?.unique ?? true) {
