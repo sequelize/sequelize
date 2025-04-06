@@ -1994,21 +1994,21 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const isCompositeKey = association.foreignKeys?.length > 1;
 
     const identSources = isCompositeKey
-      ? association.foreignKeys.map(fk => this.source.getColumnName(fk.sourceKey))
+      ? association.foreignKeys.map(fk => association.source.getColumnName(fk.sourceKey))
       : [association.identifierField];
 
     const identTargets = isCompositeKey
-      ? association.otherKeys.map(fk => this.source.getColumnName(fk.targetKey))
+      ? association.otherKeys.map(fk => association.source.getColumnName(fk.targetKey))
       : [association.foreignIdentifierField];
 
     const attrTargets = isCompositeKey
-      ? association.otherKeys.map(fk => this.source.getColumnName(fk.targetKey))
+      ? association.otherKeys.map(fk => association.source.getColumnName(fk.targetKey))
       : [association.targetKeyField];
 
     const tableTarget = includeAs.internalAs;
 
     let attrSources = isCompositeKey
-      ? association.foreignKeys.map(fk => this.source.getColumnName(fk.targetKey))
+      ? association.foreignKeys.map(fk => association.source.getColumnName(fk.targetKey))
       : [association.sourceKey];
 
     const joinType = include.required
