@@ -2,8 +2,10 @@ import type { AllowIterable, RequiredBy } from '@sequelize/utils';
 import { EMPTY_ARRAY, EMPTY_OBJECT } from '@sequelize/utils';
 import each from 'lodash/each';
 import isEqual from 'lodash/isEqual';
+import intersectionWith from 'lodash/intersectionWith';
 import omit from 'lodash/omit';
 import upperFirst from 'lodash/upperFirst';
+import difference  from 'lodash/difference';
 import type { WhereOptions } from '../abstract-dialect/where-sql-builder-types.js';
 import { AssociationError } from '../errors';
 import { col } from '../expression-builders/col.js';
@@ -36,6 +38,7 @@ import type {
   Association,
   AssociationOptions,
   AssociationScope,
+  CompositeForeignKeysOptions,
   ForeignKeyOptions,
   MultiAssociationAccessors,
   MultiAssociationOptions,
@@ -124,8 +127,14 @@ export class BelongsToManyAssociation<
 > {
   readonly accessors: MultiAssociationAccessors;
 
+  readonly _sharedKeys: CompositeForeignKeysOptions[] | undefined;
+
   get foreignKey(): string {
     return this.fromSourceToThrough.foreignKey;
+  }
+
+  get foreignKeys(): CompositeForeignKeysOptions[] {
+    return this.fromSourceToThrough.foreignKeys;
   }
 
   /**
@@ -135,6 +144,10 @@ export class BelongsToManyAssociation<
    */
   get otherKey(): string {
     return this.pairedWith.foreignKey;
+  }
+
+  get otherKeys(): CompositeForeignKeysOptions[] {
+    return this.pairedWith.foreignKeys;
   }
 
   /**
@@ -300,6 +313,13 @@ export class BelongsToManyAssociation<
 
     const sourceKey = options?.sourceKey || (source.primaryKeyAttribute as TargetKey);
 
+    const name = options.foreignKey?.keys && options.foreignKey.keys.length > 1 ? 
+    undefined :
+    this.options.foreignKey.name ||
+            (this.isSelfAssociation
+              ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
+              : camelize(`${this.source.options.name.singular}_${sourceKey}`)); 
+
     this.fromSourceToThrough = HasManyAssociation.associate(
       AssociationSecret,
       this.source,
@@ -312,11 +332,7 @@ export class BelongsToManyAssociation<
         foreignKey: {
           ...this.options.foreignKey,
           allowNull: this.options.foreignKey.allowNull ?? false,
-          name:
-            this.options.foreignKey.name ||
-            (this.isSelfAssociation
-              ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
-              : camelize(`${this.source.options.name.singular}_${sourceKey}`)),
+          name,
         },
         sourceKey: this.options.sourceKey,
         foreignKeyConstraints: this.options.foreignKeyConstraints,
@@ -341,11 +357,7 @@ export class BelongsToManyAssociation<
         foreignKey: {
           ...this.options.foreignKey,
           allowNull: this.options.foreignKey.allowNull ?? false,
-          name:
-            this.options.foreignKey.name ||
-            (this.isSelfAssociation
-              ? camelize(`${this.pairedWith.name.singular}_${sourceKey}`)
-              : camelize(`${this.source.options.name.singular}_${sourceKey}`)),
+          name,
         },
         sourceKey: this.options.sourceKey,
         foreignKeyConstraints: this.options.foreignKeyConstraints,
@@ -380,6 +392,10 @@ export class BelongsToManyAssociation<
 
     // we are the 'parent' of the belongs-to-many pair
     if (pair == null) {
+      if (Array.isArray(this.foreignKeys) && this.foreignKeys.length > 1) {
+      this._sharedKeys = intersectionWith(this.foreignKeys, this.otherKeys, isEqual);
+      }
+
       this.#makeFkPairUnique();
     }
   }
@@ -417,9 +433,19 @@ export class BelongsToManyAssociation<
 Add your own primary key to the through model, on different attributes than the foreign keys, to be able to use this option.`);
       }
 
-      throughRawAttributes[this.foreignKey].primaryKey = true;
-      throughRawAttributes[this.otherKey].primaryKey = true;
-    } else if (this.through.unique !== false) {
+      const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+      const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
+
+      throughRawAttributes[foreignKey].primaryKey = true;
+      throughRawAttributes[otherKey].primaryKey = true;
+
+      if (this._sharedKeys && this._sharedKeys.length > 0) {
+        for (const key of this._sharedKeys) {
+        throughRawAttributes[key.sourceKey].primaryKey = true;
+        }
+      }
+
+      } else if (this.through.unique !== false) {
       let uniqueKey;
       if (typeof this.through.unique === 'string' && this.through.unique !== '') {
         uniqueKey = this.through.unique;
@@ -524,9 +550,18 @@ Add your own primary key to the through model, on different attributes than the 
       },
     };
 
-    let throughWhere = {
-      [this.foreignKey]: instance.get(this.sourceKey),
+    const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
+    const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+
+    let throughWhere: WhereOptions = {
+      [foreignKey]: instance.get(sourceKey),
     };
+
+    if (this._sharedKeys) {
+      for (const key of this._sharedKeys) {
+      throughWhere[key.sourceKey] = instance.get(key.targetKey);
+      }
+   }
 
     if (through.scope) {
       Object.assign(throughWhere, through.scope);
@@ -549,6 +584,7 @@ Add your own primary key to the through model, on different attributes than the 
         where: throughWhere,
       }),
     );
+
 
     let model = this.target;
     if (options?.scope != null) {
@@ -653,10 +689,10 @@ Add your own primary key to the through model, on different attributes than the 
     newInstancesOrPrimaryKeys: AllowIterable<TargetModel | Exclude<TargetModel[TargetKey], any[]>>,
     options: BelongsToManySetAssociationsMixinOptions<TargetModel> = {},
   ): Promise<void> {
-    const sourceKey = this.sourceKey;
-    const targetKey = this.targetKey;
-    const foreignKey = this.foreignKey;
-    const otherKey = this.otherKey;
+    const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
+    const targetKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).sourceKey : this.targetKey;
+    const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+    const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
 
     const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
 
@@ -730,11 +766,17 @@ Add your own primary key to the through model, on different attributes than the 
       return;
     }
 
+    const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
+    const targetKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).sourceKey : this.targetKey;
+    const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+    const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
+
     const where: WhereOptions = {
-      [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.otherKey]: newInstances.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
     };
+    where[foreignKey] = sourceInstance.get(sourceKey);
+    where[otherKey] = newInstances.map(newInstance => newInstance.get(targetKey));
+    
 
     let currentRows: readonly any[] = EMPTY_ARRAY;
     if (this.through?.unique ?? true) {
@@ -749,6 +791,10 @@ Add your own primary key to the through model, on different attributes than the 
     }
 
     await this.#updateAssociations(sourceInstance, currentRows, newInstances, options);
+  }
+
+  #removeSharedKeys(keys: CompositeForeignKeysOptions[]): CompositeForeignKeysOptions {
+    return difference(keys, this._sharedKeys!)[0];
   }
 
   /**
@@ -768,10 +814,11 @@ Add your own primary key to the through model, on different attributes than the 
     options?: { through?: JoinTableAttributes } & BulkCreateOptions<Attributes<ThroughModel>> &
       Omit<UpdateOptions<Attributes<ThroughModel>>, 'where'>,
   ) {
-    const sourceKey = this.sourceKey;
-    const targetKey = this.targetKey;
-    const foreignKey = this.foreignKey;
-    const otherKey = this.otherKey;
+
+    const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
+    const targetKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).sourceKey : this.targetKey;
+    const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+    const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
 
     const defaultAttributes = options?.through || EMPTY_OBJECT;
 
@@ -781,6 +828,7 @@ Add your own primary key to the through model, on different attributes than the 
     const changedTargets: TargetModel[] = [];
     for (const newInstance of newTargets) {
       const existingThroughRow = currentThroughRows.find(throughRow => {
+
         // @ts-expect-error -- throughRow[] instead of .get because throughRows are loaded using 'raw'
         return throughRow[otherKey] === newInstance.get(targetKey);
       });
@@ -814,6 +862,12 @@ Add your own primary key to the through model, on different attributes than the 
         attributes[foreignKey] = sourceInstance.get(sourceKey);
         attributes[otherKey] = unassociatedTarget.get(targetKey);
 
+        if (this._sharedKeys) {
+        for (const key of this._sharedKeys) {
+          attributes[key.sourceKey] = sourceInstance.get(key.targetKey);
+        }
+      }
+
         Object.assign(attributes, this.through.scope);
 
         return attributes;
@@ -835,6 +889,12 @@ Add your own primary key to the through model, on different attributes than the 
         [foreignKey]: sourceInstance.get(sourceKey),
         [otherKey]: changedTarget.get(targetKey),
       };
+
+      if (this._sharedKeys) {
+        for (const key of this._sharedKeys) {
+          where[key.sourceKey] = sourceInstance.get(key.targetKey);
+        }
+      }
 
       promises.push(
         this.through.model.update(attributes, {
@@ -864,11 +924,28 @@ Add your own primary key to the through model, on different attributes than the 
       return;
     }
 
+    // const where: WhereOptions = {
+    //   [this.foreignKey]: sourceInstance.get(this.sourceKey),
+    //   [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
+    //   ...this.through.scope,
+    // };
+
     const where: WhereOptions = {
-      [this.foreignKey]: sourceInstance.get(this.sourceKey),
-      [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
       ...this.through.scope,
     };
+
+    const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
+    const targetKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).sourceKey : this.targetKey;
+    const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
+    const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
+ 
+    where[foreignKey] = sourceInstance.get(sourceKey);
+    where[otherKey] = targetInstance.map(newInstance => newInstance.get(targetKey));
+    if (this._sharedKeys) {     
+      for (const key of this._sharedKeys) {
+      where[key.sourceKey] = sourceInstance.get(key.targetKey);
+      }
+   }
 
     await this.through.model.destroy({ ...options, where });
   }
