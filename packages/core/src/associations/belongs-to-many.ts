@@ -161,7 +161,7 @@ export class BelongsToManyAssociation<
    * The corresponding column name of {@link BelongsToManyAssociation#foreignKey}
    */
   get identifierField(): string {
-    return this.fromThroughToSource.foreignKey;
+    return this.fromThroughToSource.identifierField;
   }
 
   get identifierFields(): string[] {
