@@ -3665,7 +3665,7 @@ Instead of specifying a Model, either:
       return values;
     }
 
-    return this.dataValuer;
+    return this.dataValues;
   }
 
   /**
