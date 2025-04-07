@@ -947,23 +947,16 @@ Add your own primary key to the through model, on different attributes than the 
       return;
     }
 
-    // const where: WhereOptions = {
-    //   [this.foreignKey]: sourceInstance.get(this.sourceKey),
-    //   [this.otherKey]: targetInstance.map(newInstance => newInstance.get(this.targetKey)),
-    //   ...this.through.scope,
-    // };
-
-    const where: WhereOptions = {
-      ...this.through.scope,
-    };
-
     const sourceKey = this._sharedKeys && this._sharedKeys.length > 0 ?  this.#removeSharedKeys(this.foreignKeys ).targetKey : this.sourceKey;
     const targetKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).sourceKey : this.targetKey;
     const foreignKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.foreignKeys).sourceKey : this.foreignKey;
     const otherKey =  this._sharedKeys && this._sharedKeys.length > 0 ? this.#removeSharedKeys(this.otherKeys).targetKey : this.otherKey;
- 
-    where[foreignKey] = sourceInstance.get(sourceKey);
-    where[otherKey] = targetInstance.map(newInstance => newInstance.get(targetKey));
+    const where: WhereOptions = {
+      [foreignKey]: sourceInstance.get(sourceKey),
+      [otherKey]: targetInstance.map(newInstance => newInstance.get(targetKey)),
+      ...this.through.scope,
+    }; 
+
     if (this._sharedKeys) {     
       for (const key of this._sharedKeys) {
       where[key.sourceKey] = sourceInstance.get(key.targetKey);
