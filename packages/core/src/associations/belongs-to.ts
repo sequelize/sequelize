@@ -26,8 +26,8 @@ import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
 import type {
   AssociationOptions,
-  CompositeForeignKeysOptions,
   SingleAssociationAccessors,
+  Key,
 } from './base';
 import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
@@ -68,7 +68,7 @@ export class BelongsToAssociation<
 
   foreignKey: SourceKey;
 
-  foreignKeys: CompositeForeignKeysOptions[] = [];
+  foreignKeys: Array<Key<SourceKey, TargetKey>> = [];
 
   /**
    * The column name of the foreign key
@@ -169,7 +169,7 @@ export class BelongsToAssociation<
       this.identifierField = null as any;
 
       const foreignKeyAttributeOptions = options.foreignKey;
-      this.foreignKeys = foreignKeyAttributeOptions.keys as CompositeForeignKeysOptions[];
+      this.foreignKeys = foreignKeyAttributeOptions.keys as Array<Key<SourceKey, TargetKey>>;
 
       for (const { sourceKey, targetKey } of this.foreignKeys) {
         const targetColumn = targetAttributes.get(targetKey)!;

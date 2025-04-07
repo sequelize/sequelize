@@ -43,6 +43,7 @@ import type {
   MultiAssociationAccessors,
   MultiAssociationOptions,
   NormalizedAssociationOptions,
+  Key,
 } from './base';
 import { MultiAssociation } from './base';
 import type { BelongsToAssociation } from './belongs-to.js';
@@ -127,13 +128,13 @@ export class BelongsToManyAssociation<
 > {
   readonly accessors: MultiAssociationAccessors;
 
-  readonly _sharedKeys: CompositeForeignKeysOptions[] | undefined;
+  readonly _sharedKeys: Array<Key<SourceKey, TargetKey>> | undefined;
 
   get foreignKey(): string {
     return this.fromSourceToThrough.foreignKey;
   }
 
-  get foreignKeys(): CompositeForeignKeysOptions[] {
+  get foreignKeys(): Array<Key<SourceKey, TargetKey>> {
     return this.fromSourceToThrough.foreignKeys;
   }
 
@@ -146,7 +147,7 @@ export class BelongsToManyAssociation<
     return this.pairedWith.foreignKey;
   }
 
-  get otherKeys(): CompositeForeignKeysOptions[] {
+  get otherKeys(): Array<Key<TargetKey, SourceKey>> {
     return this.pairedWith.foreignKeys;
   }
 

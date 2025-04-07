@@ -26,9 +26,9 @@ import { removeUndefined } from '../utils/object.js';
 import type {
   Association,
   AssociationOptions,
-  CompositeForeignKeysOptions,
   MultiAssociationAccessors,
   MultiAssociationOptions,
+  Key,
 } from './base';
 import { MultiAssociation } from './base';
 import { BelongsToAssociation } from './belongs-to.js';
@@ -112,7 +112,7 @@ export class HasManyAssociation<
 
   readonly inverse: BelongsToAssociation<T, S, TargetKey, SourceKey>;
 
-  readonly foreignKeys: CompositeForeignKeysOptions[];
+  readonly foreignKeys: Array<Key<SourceKey, TargetKey>>;
 
   constructor(
     secret: symbol,
