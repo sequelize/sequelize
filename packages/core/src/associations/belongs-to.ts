@@ -455,6 +455,10 @@ export class BelongsToAssociation<
     } else if (this.targetKeyIsPrimary(this.targetKey) && !options.where) {
       const foreignKeyValue = instances[0].get(this.foreignKey);
 
+      if (foreignKeyValue == null) {
+        return null;
+      }
+
       return Target.findByPk(foreignKeyValue as any, options);
     } else {
       // TODO: combine once we can just have the foreignKey in the foreignKeys array all the time
@@ -464,10 +468,6 @@ export class BelongsToAssociation<
         }
       } else {
         where[this.targetKey] = instances[0].get(this.foreignKey);
-      }
-      
-      if (foreignKeyValue == null) {
-        return null;
       }
 
       options.limit = null;
