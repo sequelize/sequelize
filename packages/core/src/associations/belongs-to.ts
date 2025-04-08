@@ -465,6 +465,10 @@ export class BelongsToAssociation<
       } else {
         where[this.targetKey] = instances[0].get(this.foreignKey);
       }
+      
+      if (foreignKeyValue == null) {
+        return null;
+      }
 
       options.limit = null;
     }

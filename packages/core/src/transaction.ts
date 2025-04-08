@@ -65,7 +65,7 @@ export class Transaction {
     }
   }
 
-  getFinished(): 'commit' | 'rollback' | undefined {
+  get finished(): 'commit' | 'rollback' | undefined {
     return this.#finished;
   }
 
@@ -122,7 +122,7 @@ export class Transaction {
   async rollback(): Promise<void> {
     if (this.#finished) {
       throw new Error(
-        `Transaction cannot be rolled back because it has been finished with state: ${this.getFinished()}`,
+        `Transaction cannot be rolled back because it has been finished with state: ${this.finished}`,
       );
     }
 
@@ -181,9 +181,6 @@ export class Transaction {
     connection.uuid = this.id;
 
     this.#connection = connection;
-    this.getConnection = this.getConnection.bind(this);
-    this.getConnectionIfExists = this.getConnectionIfExists.bind(this);
-    this.getFinished = this.getFinished.bind(this);
 
     try {
       await this.#begin();
