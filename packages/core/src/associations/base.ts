@@ -103,6 +103,8 @@ export abstract class Association<
 
   abstract foreignKey: ForeignKey;
 
+  abstract foreignKeys: Array<Key<string, string>>;
+
   /**
    * A reference to the association that created this one.
    */
@@ -276,7 +278,7 @@ export interface Key<SourceKey extends string, TargetKey extends string> {
 }
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string>
+export interface ForeignKeyOptions<ForeignKey extends string, SourceKey extends string = ForeignKey>
   extends PartialBy<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
@@ -288,7 +290,7 @@ export interface ForeignKeyOptions<ForeignKey extends string>
   /**
    * The pairs of the foreign key attributes used for composite foreign keys.
    */
-  keys?: ForeignKey[] | CompositeForeignKeysOptions[];
+  keys?: ForeignKey[] | Array<CompositeForeignKeysOptions<ForeignKey, SourceKey>>;
 
   /**
    * Alias of {@link ForeignKeyOptions#name}.
@@ -307,10 +309,7 @@ export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
 /** Foreign Key Options */
-export type CompositeForeignKeysOptions = {
-  sourceKey: string;
-  targetKey: string;
-};
+export type CompositeForeignKeysOptions<SourceKey extends string=string, TargetKey extends string=string> = Key<SourceKey, TargetKey>;
 
 /**
  * Options provided when associating models
