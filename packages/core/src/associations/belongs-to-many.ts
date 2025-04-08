@@ -130,7 +130,6 @@ export class BelongsToManyAssociation<
 
   readonly _sharedKeys: Array<Key<SourceKey, TargetKey>> | undefined;
 
-  
   get foreignKey(): string {
     return this.fromSourceToThrough.foreignKey;
   }
@@ -635,7 +634,6 @@ Add your own primary key to the through model, on different attributes than the 
         where: throughWhere,
       }),
     );
-
 
     let model = this.target;
     if (options?.scope != null) {
