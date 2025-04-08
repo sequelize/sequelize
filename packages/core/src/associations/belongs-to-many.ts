@@ -130,6 +130,7 @@ export class BelongsToManyAssociation<
 
   readonly _sharedKeys: Array<Key<SourceKey, TargetKey>> | undefined;
 
+  
   get foreignKey(): string {
     return this.fromSourceToThrough.foreignKey;
   }
@@ -146,6 +147,11 @@ export class BelongsToManyAssociation<
   get otherKey(): string {
     return this.pairedWith.foreignKey;
   }
+
+    /**
+   * The names of the Foreign Key attributes, located on the through table, that points to the Target model.
+   *
+   */
 
   get otherKeys(): Array<Key<TargetKey, SourceKey>> {
     return this.pairedWith.foreignKeys;
@@ -165,6 +171,10 @@ export class BelongsToManyAssociation<
     return this.fromThroughToSource.identifierField;
   }
 
+    /**
+   * The corresponding column names of {@link BelongsToManyAssociation#foreignKeys}
+   */
+
   get identifierFields(): string[] {
     return this.fromThroughToSource.foreignKeys.map(key => key.sourceKey);
   }
@@ -176,6 +186,10 @@ export class BelongsToManyAssociation<
     return this.pairedWith.identifierField;
   }
 
+    /**
+   * The corresponding column names of {@link BelongsToManyAssociation#otherKeys}
+   */
+
   get foreignIdentifierFields(): string[] {
     return this.pairedWith.identifierFields;
   }
@@ -186,6 +200,10 @@ export class BelongsToManyAssociation<
   get sourceKey(): SourceKey {
     return this.fromThroughToSource.targetKey;
   }
+
+    /**
+   * The names of the Attributes that the {@link foreignKeys} fk (located on the Through Model) will reference on the Source model.
+   */
 
   get sourceKeys(): SourceKey[] {
     return this.fromThroughToSource.targetKeys;
@@ -209,6 +227,10 @@ export class BelongsToManyAssociation<
     return this.pairedWith.sourceKey;
   }
 
+   /**
+   * The names of the Attributes that the {@link otherKey} fk (located on the Through Model) will reference on the Target model.
+   */
+
   get targetKeys(): TargetKey[] {
     return this.pairedWith.sourceKeys;
   }
@@ -219,6 +241,10 @@ export class BelongsToManyAssociation<
   get targetKeyField(): string {
     return this.pairedWith.sourceKeyField;
   }
+
+   /**
+   * The names of the Columns that the {@link otherKey} fk (located on the Through Table) will reference on the Target model.
+   */
 
   get targetKeyFields(): string[] {
     return this.pairedWith.sourceKeyFields;

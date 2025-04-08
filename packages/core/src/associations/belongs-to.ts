@@ -83,6 +83,11 @@ export class BelongsToAssociation<
    */
   targetKey: TargetKey;
 
+    /**
+   * The names of the attributes the foreign key points to.
+   * In belongsTo, these keys is on the Target Model, instead of the Source Model
+   * The {@link Association.foreignKeys} is on the Source Model.
+   */
   targetKeys: TargetKey[] = [];
 
   targetKeyIsPrimary(targetKey: TargetKey): boolean {
