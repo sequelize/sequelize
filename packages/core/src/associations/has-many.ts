@@ -26,9 +26,9 @@ import { removeUndefined } from '../utils/object.js';
 import type {
   Association,
   AssociationOptions,
+  Key,
   MultiAssociationAccessors,
   MultiAssociationOptions,
-  Key,
 } from './base';
 import { MultiAssociation } from './base';
 import { BelongsToAssociation } from './belongs-to.js';

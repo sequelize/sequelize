@@ -24,11 +24,7 @@ import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
 import { camelize } from '../utils/string.js';
-import type {
-  AssociationOptions,
-  SingleAssociationAccessors,
-  Key,
-} from './base';
+import type { AssociationOptions, Key, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
@@ -83,7 +79,7 @@ export class BelongsToAssociation<
    */
   targetKey: TargetKey;
 
-    /**
+  /**
    * The names of the attributes the foreign key points to.
    * In belongsTo, these keys is on the Target Model, instead of the Source Model
    * The {@link Association.foreignKeys} is on the Source Model.

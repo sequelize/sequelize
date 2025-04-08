@@ -569,7 +569,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(attributes.bId.onDelete).to.eq('CASCADE');
     });
 
-    it('should throw an association error if we define foreignKey.name and foreignKey.keys', ()=>{
+    it('should throw an association error if we define foreignKey.name and foreignKey.keys', () => {
       const A = sequelize.define('A');
       const B = sequelize.define('B');
 
@@ -581,7 +581,10 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
             keys: ['aId'],
           },
         });
-      }).to.throw(AssociationError, 'Option "foreignKey.name" and "foreignKey.keys" cannot be used at the same time');
+      }).to.throw(
+        AssociationError,
+        'Option "foreignKey.name" and "foreignKey.keys" cannot be used at the same time',
+      );
     });
   });
 

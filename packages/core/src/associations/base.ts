@@ -309,7 +309,10 @@ export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
 
 /** Foreign Key Options */
-export type CompositeForeignKeysOptions<SourceKey extends string=string, TargetKey extends string=string> = Key<SourceKey, TargetKey>;
+export type CompositeForeignKeysOptions<
+  SourceKey extends string = string,
+  TargetKey extends string = string,
+> = Key<SourceKey, TargetKey>;
 
 /**
  * Options provided when associating models
