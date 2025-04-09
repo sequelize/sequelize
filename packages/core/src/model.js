@@ -1038,6 +1038,12 @@ ${associationOwner._getAssociationDebugList()}`);
       const sourceKeyFields = foreignKey.keys.map(k => k.sourceKey);
       const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
       const modelKeysMatch = isEqual(sourceKeyFields, targetKeyFields);
+      const onDelete = foreignKey.onDelete || foreignKey.allowNull ? 'SET NULL' : 'CASCADE';
+      const onUpdate = this.sequelize.dialect.supports.constraints.onUpdate
+        ? undefined
+        : foreignKey.onUpdate || foreignKey.allowNull
+          ? 'SET NULL'
+          : 'CASCADE';
       const constraintName =
         foreignKey.constraintName ||
         (modelKeysMatch
@@ -1056,8 +1062,8 @@ ${associationOwner._getAssociationDebugList()}`);
             table: association.target.modelDefinition.table,
             fields: targetKeyFields,
           },
-          onDelete: foreignKey.onDelete || foreignKey.allowNull ? 'SET NULL' : 'CASCADE',
-          onUpdate: foreignKey.onUpdate || foreignKey.allowNull ? 'SET NULL' : 'CASCADE',
+          onDelete,
+          onUpdate,
         });
         createdForeignKeysFromAssociations.add(constraintName);
       }
