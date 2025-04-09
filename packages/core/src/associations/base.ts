@@ -272,7 +272,7 @@ export type MultiAssociationAccessors = {
   count: string;
 };
 
-export interface Key<SourceKey extends string, TargetKey extends string> {
+export type Key<SourceKey extends string, TargetKey extends string> = {
   sourceKey: SourceKey;
   targetKey: TargetKey;
 }
