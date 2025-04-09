@@ -278,7 +278,7 @@ export type Key<SourceKey extends string, TargetKey extends string> = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string, SourceKey extends string = ForeignKey>
+export interface ForeignKeyOptions<ForeignKey extends string >
   extends PartialBy<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
@@ -290,7 +290,7 @@ export interface ForeignKeyOptions<ForeignKey extends string, SourceKey extends 
   /**
    * The pairs of the foreign key attributes used for composite foreign keys.
    */
-  keys?: ForeignKey[] | Array<CompositeForeignKeysOptions<ForeignKey, SourceKey>>;
+  keys?: ForeignKey[] | Array<CompositeForeignKeysOptions<string, string>>;
 
   /**
    * Alias of {@link ForeignKeyOptions#name}.
