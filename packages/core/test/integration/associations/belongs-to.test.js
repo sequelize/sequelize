@@ -1050,6 +1050,49 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             expect(associatedUser.tenantId).to.equal(user.tenantId);
             expect(associatedUser.username).to.equal('foo');
           });
+
+          it('should define autoincremented primary keys as part of the composite key', async () => {
+            const User = this.sequelize.define('User', {
+              userId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+              },
+              tenantId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: false,
+              },
+              username: DataTypes.STRING,
+            });
+            const Address = this.sequelize.define('Address', {
+              addressId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true,
+              },
+              zipCode: DataTypes.STRING,
+            });
+            Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+            await this.sequelize.sync({ force: true });
+
+            expect(Address.rawAttributes.addressId.primaryKey).to.be.ok;
+
+            const user = await User.create({ username: 'foo', tenantId: 1, userId: 1 });
+            await Address.create({
+              zipCode: '31217',
+              userId: user.userId,
+              tenantId: user.tenantId,
+            });
+
+            const addresses = await Address.findAll();
+            const associatedUser = await addresses[0].getUser();
+            expect(associatedUser).not.to.be.null;
+            expect(associatedUser.userId).to.equal(user.userId);
+            expect(associatedUser.tenantId).to.equal(user.tenantId);
+            expect(associatedUser.username).to.equal('foo');
+          });
         }
       });
     });
