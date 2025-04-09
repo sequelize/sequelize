@@ -2937,12 +2937,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         userId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
         },
         tenantId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: false,
         },
         name: DataTypes.STRING,
       });
@@ -2950,17 +2948,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         projectId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: true,
         },
         tenantId: {
           type: DataTypes.INTEGER,
           primaryKey: true,
-          autoIncrement: false,
         },
         name: DataTypes.STRING,
       });
-
-      this.Puppy = this.sequelize.define('Puppy', { breed: DataTypes.STRING });
 
       this.User.belongsToMany(this.Project, {
         through: 'user_projects',
@@ -2983,9 +2977,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await this.sequelize.sync({ force: true });
 
       const [user3, project1, project2] = await Promise.all([
-        this.User.create({ tenantId: 1, name: 'Matt' }),
-        this.Project.create({ tenantId: 1, name: 'Good Will Hunting' }),
-        this.Project.create({ tenantId: 1, name: 'The Departed' }),
+        this.User.create({ userId: 1, tenantId: 1, name: 'Matt' }),
+        this.Project.create({ projectId: 1, tenantId: 1, name: 'Good Will Hunting' }),
+        this.Project.create({ projectId: 2, tenantId: 1, name: 'The Departed' }),
       ]);
 
       await user3.addProjects([project1, project2], {
