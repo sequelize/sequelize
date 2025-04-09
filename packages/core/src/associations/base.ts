@@ -275,7 +275,8 @@ export type MultiAssociationAccessors = {
 export type Key<SourceKey extends string, TargetKey extends string> = {
   sourceKey: SourceKey;
   targetKey: TargetKey;
-}
+};
+
 
 /** Foreign Key Options */
 export interface ForeignKeyOptions<ForeignKey extends string, SourceKey extends string = ForeignKey>
