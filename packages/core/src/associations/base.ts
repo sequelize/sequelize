@@ -278,7 +278,7 @@ export type Key<SourceKey extends string, TargetKey extends string> = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string >
+export interface ForeignKeyOptions<ForeignKey extends string>
   extends PartialBy<AttributeOptions, 'type'> {
   /**
    * The name of the foreign key attribute.
