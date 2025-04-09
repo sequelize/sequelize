@@ -1039,11 +1039,13 @@ ${associationOwner._getAssociationDebugList()}`);
       const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
       const modelKeysMatch = isEqual(sourceKeyFields, targetKeyFields);
       const onDelete = foreignKey.onDelete || foreignKey.allowNull ? 'SET NULL' : 'CASCADE';
-      const onUpdate = this.sequelize.dialect.supports.constraints.onUpdate
-        ? undefined
-        : foreignKey.onUpdate || foreignKey.allowNull
-          ? 'SET NULL'
-          : 'CASCADE';
+      const onUpdate =
+        this.sequelize.dialect.supports.constraints.onUpdate === false
+          ? undefined
+          : foreignKey.onUpdate || foreignKey.allowNull
+            ? 'SET NULL'
+            : 'CASCADE';
+
       const constraintName =
         foreignKey.constraintName ||
         (modelKeysMatch
@@ -1116,7 +1118,7 @@ ${associationOwner._getAssociationDebugList()}`);
   static withSchema(schema) {
     if (arguments.length > 1) {
       throw new TypeError(
-        'Unlike Model.schema, Model.withSchema only accepts 1 argument which may be either a string or an option bag.',
+        'Unlike Model.schema, Model.withSchema  accepts 1 argument which may be either a string or an option bag.',
       );
     }
 
