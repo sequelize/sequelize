@@ -10,6 +10,16 @@ describe('QueryInterface#createTable', () => {
     sinon.restore();
   });
 
+  const hanaIfNotExistsWrapper = (sqlStatement: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF NOT EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sqlStatement}
+      END IF;
+    END;
+  `;
+
   it('supports sql.uuidV4 default values', async () => {
     const localSequelize =
       dialect.name === 'postgres'
@@ -40,6 +50,11 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 
@@ -93,6 +108,11 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 
@@ -117,6 +137,11 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
+      hana: hanaIfNotExistsWrapper(
+        `CREATE COLUMN TABLE "table" ("json" NVARCHAR(5000) DEFAULT 'null');`,
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 });
