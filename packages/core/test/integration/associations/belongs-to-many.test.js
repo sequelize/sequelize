@@ -2931,6 +2931,94 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
   });
 
+  describe('composite foreign keys with fields specified', () => {
+    // SQLite3 does not support composite primary keys if one of the column is auto-incremented
+    // you only get autoincrement behavior when only one integer column is the primary key.
+    if (dialect !== 'sqlite3') {
+      beforeEach(function () {
+        this.User = this.sequelize.define('User', {
+          userId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          tenantId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+        this.Project = this.sequelize.define('Project', {
+          projectId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          tenantId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+
+        this.User.belongsToMany(this.Project, {
+          through: 'user_projects',
+          as: 'Projects',
+          inverse: {
+            as: 'Users',
+          },
+          foreignKey: {
+            keys: ['userId', 'tenantId'],
+          },
+          otherKey: {
+            keys: ['projectId', 'tenantId'],
+          },
+        });
+      });
+
+      it('should correctly get associations even after a child instance is deleted', async function () {
+        const spy = sinon.spy();
+
+        await this.sequelize.sync({ force: true });
+
+        const [user3, project1, project2] = await Promise.all([
+          this.User.create({ userId: 1, tenantId: 1, name: 'Matt' }),
+          this.Project.create({ projectId: 1, tenantId: 1, name: 'Good Will Hunting' }),
+          this.Project.create({ projectId: 2, tenantId: 1, name: 'The Departed' }),
+        ]);
+
+        await user3.addProjects([project1, project2], {
+          logging: spy,
+        });
+
+        const user2 = user3;
+        expect(spy).to.have.been.calledTwice;
+        spy.resetHistory();
+
+        const [user1, projects0] = await Promise.all([
+          user2,
+          user2.getProjects({
+            logging: spy,
+          }),
+        ]);
+
+        expect(spy.calledOnce).to.be.ok;
+        const project0 = projects0[0];
+        expect(project0).to.be.ok;
+        await project0.destroy();
+        const user0 = user1;
+
+        const user = await this.User.findOne({
+          where: { userId: user0.userId, tenantId: user0.tenantId },
+          include: [{ model: this.Project, as: 'Projects' }],
+        });
+
+        const projects = user.Projects;
+        const project = projects[0];
+
+        expect(project).to.be.ok;
+      });
+    }
+  });
+
   describe('primary key handling for join table', () => {
     beforeEach(function () {
       this.User = this.sequelize.define(
