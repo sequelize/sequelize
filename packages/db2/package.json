@@ -31,7 +31,7 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.45",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   },
