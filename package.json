@@ -98,7 +98,7 @@
     "typedoc": "0.27.9",
     "typedoc-plugin-mdn-links": "5.0.1",
     "typedoc-plugin-missing-exports": "3.1.0",
-    "typescript": "5.8.2"
+    "typescript": "5.8.3"
   },
   "packageManager": "yarn@4.8.1",
   "lint-staged": {
