@@ -1890,6 +1890,28 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param {object} options
    * @returns {Promise<Model>}
    */
+  static async create2(values, options) {
+    /*
+
+        Implement
+        New
+        Create()
+        Here
+
+    */
+
+    // Just making compiler happy
+    return ({...values, ...options});
+  }
+
+  /**
+   * Builds a new model instance and persists it.
+   * Equivalent to calling {@link Model.build} then {@link Model.save}.
+   *
+   * @param {object} values
+   * @param {object} options
+   * @returns {Promise<Model>}
+   */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
 
