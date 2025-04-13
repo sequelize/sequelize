@@ -32,7 +32,7 @@ jobs:
           git config --global user.email "${UPDATE_FORK_EMAIL}"
       - name: Generate Sequelize Bot Token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         with:
           app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
