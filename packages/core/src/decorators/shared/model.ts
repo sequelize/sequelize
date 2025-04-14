@@ -112,7 +112,7 @@ export function mergeAttributeOptions(
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if (subOptionName in existingOptions[optionName]! && !overrideOnConflict) {
+        if (subOptionName in existingOptions[optionName] && !overrideOnConflict) {
           throw new Error(
             `Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`,
           );
@@ -134,7 +134,8 @@ export function mergeAttributeOptions(
       }
 
       if (Array.isArray(optionValue)) {
-        // @ts-expect-error -- runtime type checking is enforced by model
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- became valid in TS 5.8
+        // @ts-ignore -- runtime type checking is enforced by model
         existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
       } else {
         existingOptions[optionName] = [...existingOptions[optionName], optionValue];

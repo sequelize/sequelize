@@ -1560,7 +1560,7 @@ describe('DataTypes', () => {
   describe('BLOB', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
-        declare attr: ArrayBuffer | string | Blob;
+        declare attr: ArrayBuffer | string | Buffer | Uint8Array;
       }
 
       User.init(
@@ -1604,6 +1604,8 @@ describe('DataTypes', () => {
       it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
         await expect(
           vars.User.create({
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
+            // @ts-ignore -- intentionally testing invalid input
             attr: new Blob(['abcd']),
           }),
         ).to.be.rejectedWith(
@@ -1613,6 +1615,8 @@ describe('DataTypes', () => {
 
         await expect(
           vars.User.create({
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
+            // @ts-ignore -- intentionally testing invalid input
             attr: new Uint16Array([49, 50, 51, 52]),
           }),
         ).to.be.rejectedWith(

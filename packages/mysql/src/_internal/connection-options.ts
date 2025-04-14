@@ -29,13 +29,14 @@ type BooleanConnectionOptions = PickByType<Omit<MySqlConnectionOptions, AnyOptio
 
 const BOOLEAN_CONNECTION_OPTION_MAP = {
   compress: undefined,
-  trace: undefined,
+  disableEval: undefined,
   enableKeepAlive: undefined,
-  isServer: undefined,
   insecureAuth: undefined,
-  multipleStatements: undefined,
-  waitForConnections: undefined,
+  isServer: undefined,
   jsonStrings: undefined,
+  multipleStatements: undefined,
+  trace: undefined,
+  waitForConnections: undefined,
 } as const satisfies Record<keyof BooleanConnectionOptions, undefined>;
 
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>(

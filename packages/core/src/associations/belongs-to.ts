@@ -356,8 +356,8 @@ export class BelongsToAssociation<
     } else {
       const foreignKeyValue = instances[0].get(this.foreignKey);
 
-      if (this.targetKeyIsPrimary && !options.where) {
-        return Target.findByPk(foreignKeyValue as any, options);
+      if (foreignKeyValue == null) {
+        return null;
       }
 
       where[this.targetKey] = foreignKeyValue;

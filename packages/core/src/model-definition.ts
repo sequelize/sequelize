@@ -201,12 +201,13 @@ export class ModelDefinition<M extends Model = Model> {
 
     // TODO: deep freeze this.options
     // caution: mergeModelOptions mutates its first input
+    const validate = {} satisfies ModelOptions<M>['validate'];
     this.options = mergeModelOptions<M>(
       // default options
       {
         noPrimaryKey: false,
         timestamps: true,
-        validate: {},
+        validate,
         freezeTableName: false,
         underscored: false,
         paranoid: false,
@@ -981,7 +982,7 @@ export function mergeModelOptions<M extends Model>(
           continue;
         }
 
-        if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]!) {
+        if (!overrideOnConflict && subOptionName in existingModelOptions[optionName]) {
           throw new Error(
             `Trying to set the option ${optionName}[${JSON.stringify(subOptionName)}], but a value already exists.`,
           );
@@ -1008,7 +1009,8 @@ export function mergeModelOptions<M extends Model>(
           : [existingHooks[hookType]];
 
         if (!Array.isArray(optionValue[hookType])) {
-          // @ts-expect-error -- typescript doesn't like this merge algorithm.
+          // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- became valid in TS 5.8
+          // @ts-ignore -- typescript doesn't like this merge algorithm.
           existingHooks[hookType] = [...existingHooksOfType, optionValue[hookType]];
         } else {
           // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
