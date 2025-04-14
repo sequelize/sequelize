@@ -1882,26 +1882,41 @@ ${associationOwner._getAssociationDebugList()}`);
     return valueSets.map(values => this.build(values, options));
   }
 
-  /**
-   * Builds a new model instance and persists it.
+   /**
+   * Builds a new model instance and persists it. Can create new associations with or without include
    * Equivalent to calling {@link Model.build} then {@link Model.save}.
    *
    * @param {object} values
    * @param {object} options
    * @returns {Promise<Model>}
    */
-  static async create2(values, options) {
-    /*
+  static async create(values, options) {
+    options = cloneDeep(options) ?? {};
 
-        Implement
-        New
-        Create()
-        Here
+    // Parses options for include field, if not present, scans all fields for
+    // known association keys and uses any found to generate a new include array to
+    // pass along. Works on the assumption that attribute name cannot equal association name
+    if (!options.include) {
+      const inferredIncludes = [];
 
-    */
+      for (const assocName of Object.keys(this.modelDefinition.associations)) {
+        if (values?.[assocName] != null) {
+          inferredIncludes.push({ association: assocName });
+        }
+      }
 
-    // Just making compiler happy
-    return ({...values, ...options});
+      if (inferredIncludes.length > 0) {
+        options.include = inferredIncludes;
+      }
+    }
+
+    return await this.build(values, {
+      isNewRecord: true,
+      attributes: options.fields,
+      include: options.include,
+      raw: options.raw,
+      silent: options.silent,
+    }).save(options);
   }
 
   /**
@@ -1912,7 +1927,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * @param {object} options
    * @returns {Promise<Model>}
    */
-  static async create(values, options) {
+  static async create2(values, options) {
     options = cloneDeep(options) ?? {};
 
     return await this.build(values, {
