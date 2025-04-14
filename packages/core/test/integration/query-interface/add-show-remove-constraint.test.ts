@@ -60,7 +60,7 @@ if (dialect !== 'duckdb') {
           // @ts-expect-error -- intentionally missing type
           queryInterface.addConstraint('levels', {
             fields: ['roles'],
-            where: {roles: ['user', 'admin', 'guest', 'moderator']},
+            where: { roles: ['user', 'admin', 'guest', 'moderator'] },
             name: 'check_user_roles',
           }),
         ).to.be.rejectedWith(Error, 'Constraint type must be specified through options.type');
@@ -109,11 +109,11 @@ if (dialect !== 'duckdb') {
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'UNIQUE',
-          ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['name', 'age'],
@@ -153,11 +153,11 @@ if (dialect !== 'duckdb') {
         });
         expect(foreignKeys).to.have.length(1);
         expect(foreignKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['level_id'],
@@ -165,7 +165,8 @@ if (dialect !== 'duckdb') {
           referencedTableSchema: defaultSchema,
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+          updateAction:
+            dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -183,11 +184,11 @@ if (dialect !== 'duckdb') {
         });
         expect(primaryKeys).to.have.length(1);
         expect(primaryKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'levels',
           columnNames: ['id'],
@@ -229,11 +230,11 @@ if (dialect !== 'duckdb') {
         });
         expect(foreignKeys).to.have.length(1);
         expect(foreignKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['level_id', 'manager_id'],
@@ -241,7 +242,8 @@ if (dialect !== 'duckdb') {
           referencedTableName: 'levels',
           referencedColumnNames: ['id', 'manager_id'],
           deleteAction: 'CASCADE',
-          updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+          updateAction:
+            dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -258,11 +260,11 @@ if (dialect !== 'duckdb') {
         });
         expect(primaryKeys).to.have.length(1);
         expect(primaryKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'levels',
           columnNames: ['id', 'manager_id'],
@@ -310,11 +312,11 @@ if (dialect !== 'duckdb') {
           );
           expect(constraints).to.have.length(1);
           expect(constraints[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
             constraintSchema: defaultSchema,
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
             tableSchema: defaultSchema,
             tableName: 'actors',
             columnNames: ['level_id'],
@@ -360,11 +362,11 @@ if (dialect !== 'duckdb') {
           );
           expect(constraints).to.have.length(1);
           expect(constraints[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
             constraintSchema: defaultSchema,
             constraintName: 'custom_constraint_name',
             constraintType: 'CHECK',
-            ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
             tableSchema: defaultSchema,
             tableName: 'actors',
             definition:
@@ -408,11 +410,11 @@ if (dialect !== 'duckdb') {
           );
           expect(constraints).to.have.length(1);
           expect(constraints[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
             constraintSchema: defaultSchema,
             constraintName: 'custom_constraint_name',
             constraintType: 'DEFAULT',
-            ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
             tableSchema: defaultSchema,
             tableName: 'actors',
             columnNames: ['status'],
@@ -493,7 +495,7 @@ if (dialect !== 'duckdb') {
           );
 
           await queryInterface.addConstraint(
-            {tableName: 'levels', schema},
+            { tableName: 'levels', schema },
             {
               name: 'pk_levels',
               type: 'PRIMARY KEY',
@@ -502,13 +504,13 @@ if (dialect !== 'duckdb') {
           );
 
           await queryInterface.addConstraint(
-            {tableName: 'actors', schema},
+            { tableName: 'actors', schema },
             {
               name: 'custom_constraint_name',
               type: 'FOREIGN KEY',
               fields: ['level_id'],
               references: {
-                table: {tableName: 'levels', schema},
+                table: { tableName: 'levels', schema },
                 field: 'id',
               },
               onDelete: 'CASCADE',
@@ -518,16 +520,16 @@ if (dialect !== 'duckdb') {
 
         it('should add, show and delete a PRIMARY & FOREIGN KEY constraint', async () => {
           const foreignKeys = await queryInterface.showConstraints(
-            {tableName: 'actors', schema},
-            {columnName: 'level_id', constraintType: 'FOREIGN KEY'},
+            { tableName: 'actors', schema },
+            { columnName: 'level_id', constraintType: 'FOREIGN KEY' },
           );
           expect(foreignKeys).to.have.length(1);
           expect(foreignKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
             constraintSchema: schema,
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
             tableSchema: schema,
             tableName: 'actors',
             columnNames: ['level_id'],
@@ -543,26 +545,26 @@ if (dialect !== 'duckdb') {
           });
 
           await queryInterface.removeConstraint(
-            {tableName: 'actors', schema},
+            { tableName: 'actors', schema },
             'custom_constraint_name',
           );
           const fkAfterRemove = await queryInterface.showConstraints(
-            {tableName: 'actors', schema},
-            {constraintName: 'custom_constraint_name'},
+            { tableName: 'actors', schema },
+            { constraintName: 'custom_constraint_name' },
           );
           expect(fkAfterRemove).to.have.length(0);
 
           const primaryKeys = await queryInterface.showConstraints(
-            {tableName: 'levels', schema},
-            {columnName: 'id', constraintType: 'PRIMARY KEY'},
+            { tableName: 'levels', schema },
+            { columnName: 'id', constraintType: 'PRIMARY KEY' },
           );
           expect(primaryKeys).to.have.length(1);
           expect(primaryKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
             constraintSchema: schema,
             constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
             constraintType: 'PRIMARY KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
             tableSchema: schema,
             tableName: 'levels',
             columnNames: ['id'],
@@ -572,12 +574,12 @@ if (dialect !== 'duckdb') {
           });
 
           await queryInterface.removeConstraint(
-            {tableName: 'levels', schema},
+            { tableName: 'levels', schema },
             ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           );
           const pkAfterRemove = await queryInterface.showConstraints(
-            {tableName: 'levels', schema},
-            {constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels'},
+            { tableName: 'levels', schema },
+            { constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels' },
           );
           expect(pkAfterRemove).to.have.length(0);
         });
@@ -622,13 +624,13 @@ if (dialect !== 'duckdb') {
             );
 
             await queryInterface.addConstraint(
-              {tableName: 'actors'},
+              { tableName: 'actors' },
               {
                 name: 'custom_constraint_name',
                 type: 'FOREIGN KEY',
                 fields: ['level_id'],
                 references: {
-                  table: {tableName: 'levels'},
+                  table: { tableName: 'levels' },
                   field: 'id',
                 },
                 onDelete: 'CASCADE',
@@ -638,17 +640,19 @@ if (dialect !== 'duckdb') {
 
           it('should show only foreign key constraints for the table in the right schema', async () => {
             const foreignKeys = await queryInterface.showConstraints(
-              {tableName: 'actors', schema},
-              {columnName: 'level_id', constraintType: 'FOREIGN KEY'},
+              { tableName: 'actors', schema },
+              { columnName: 'level_id', constraintType: 'FOREIGN KEY' },
             );
 
             expect(foreignKeys).to.have.length(1);
             expect(foreignKeys[0]).to.deep.equal({
-              ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+              ...(['mssql', 'postgres'].includes(dialect) && {
+                constraintCatalog: 'sequelize_test',
+              }),
               constraintSchema: schema,
               constraintName: 'custom_constraint_name',
               constraintType: 'FOREIGN KEY',
-              ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+              ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
               tableSchema: schema,
               tableName: 'actors',
               columnNames: ['level_id'],
@@ -672,11 +676,13 @@ if (dialect !== 'duckdb') {
 
             expect(foreignKeys).to.have.length(1);
             expect(foreignKeys[0]).to.deep.equal({
-              ...(['mssql', 'postgres'].includes(dialect) && {constraintCatalog: 'sequelize_test'}),
+              ...(['mssql', 'postgres'].includes(dialect) && {
+                constraintCatalog: 'sequelize_test',
+              }),
               constraintSchema: sequelize.dialect.getDefaultSchema(),
               constraintName: 'custom_constraint_name',
               constraintType: 'FOREIGN KEY',
-              ...(['mssql', 'postgres'].includes(dialect) && {tableCatalog: 'sequelize_test'}),
+              ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
               tableSchema: sequelize.dialect.getDefaultSchema(),
               tableName: 'actors',
               columnNames: ['level_id'],
