@@ -27,7 +27,7 @@ export function defaultValueSchemable(value: unknown, dialect: AbstractDialect):
     return false;
   }
 
-  if (value instanceof DataTypes.UUIDV1 || value instanceof DataTypes.UUIDV4 || value instanceof DataTypes.UUIDV7) {
+  if (value instanceof DataTypes.UUIDV1 || value instanceof DataTypes.UUIDV4) {
     return false;
   }
 

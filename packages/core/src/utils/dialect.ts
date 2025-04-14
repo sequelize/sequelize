@@ -1,6 +1,6 @@
 import { isPlainObject, isString } from '@sequelize/utils';
 import NodeUtil from 'node:util';
-import { v1 as uuidv1, v4 as uuidv4, v7 as uuidv7 } from 'uuid';
+import { v1 as uuidv1, v4 as uuidv4 } from 'uuid';
 import * as DataTypes from '../abstract-dialect/data-types.js';
 import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { noDataTypesUuid } from './deprecations.js';
@@ -33,12 +33,6 @@ export function toDefaultValue(value: unknown): unknown {
     noDataTypesUuid();
 
     return uuidv4();
-  }
-
-  if (value instanceof DataTypes.UUIDV7) {
-    noDataTypesUuid();
-
-    return uuidv7();
   }
 
   if (value instanceof DataTypes.NOW) {

@@ -103,35 +103,6 @@ describe('DataTypes.UUIDV4', () => {
 
       expect(() => {
         type.validate(value);
-      }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuidv7', value));
-
-      expect(() => {
-        type.validate(['foobar']);
-      }).to.throw(ValidationErrorItem, `[ 'foobar' ] is not a valid uuidv7`);
-    });
-
-    it('should not throw if `value` is an uuid', () => {
-      const type = DataTypes.UUIDV4();
-
-      expect(() => type.validate(generateV4())).not.to.throw();
-    });
-  });
-});
-
-describe('DataTypes.UUIDV7', () => {
-  allowDeprecationsInSuite(['SEQUELIZE0026']);
-
-  testDataTypeSql('UUIDV4', DataTypes.UUIDV7, {
-    default: new Error('toSQL should not be called on DataTypes.UUIDV7'),
-  });
-
-  describe('validate', () => {
-    it('should throw an error if `value` is invalid', () => {
-      const type = DataTypes.UUIDV7();
-      const value = generateV1();
-
-      expect(() => {
-        type.validate(value);
       }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuidv4', value));
 
       expect(() => {
@@ -140,9 +111,9 @@ describe('DataTypes.UUIDV7', () => {
     });
 
     it('should not throw if `value` is an uuid', () => {
-      const type = DataTypes.UUIDV7();
+      const type = DataTypes.UUIDV4();
 
-      expect(() => type.validate(generateV7())).not.to.throw();
+      expect(() => type.validate(generateV4())).not.to.throw();
     });
   });
 });

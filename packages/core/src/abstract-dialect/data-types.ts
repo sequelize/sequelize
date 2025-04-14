@@ -2096,30 +2096,6 @@ export class UUIDV4 extends AbstractDataType<string> {
   }
 }
 
-/**
- * A default unique universal identifier generated following the UUID v1 standard.
- * Cannot be used as a type, must be used as a default value instead.
- *
- * @category DataTypes
- * @deprecated use `DataTypes.UUID.V7` (data type) & `sql.uuidV7` (default value) instead
- */
-export class UUIDV7 extends AbstractDataType<string> {
-  /** @hidden */
-  static readonly [DataTypeIdentifier]: string = 'UUIDV7';
-
-  validate(value: any) {
-    if (typeof value !== 'string' || !Validator.isUUID(value, 7)) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format('%O is not a valid uuidv7', value),
-      );
-    }
-  }
-
-  toSql(): string {
-    throw new Error('toSQL should not be called on DataTypes.UUIDV7');
-  }
-}
-
 export interface VirtualOptions {
   returnType?: DataTypeClassOrInstance | undefined;
   attributeDependencies?: string[] | undefined;
