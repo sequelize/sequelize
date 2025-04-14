@@ -165,6 +165,13 @@ describe('Utils', () => {
         ),
       ).to.equal(true);
     });
+    it('return uuid v7', () => {
+      expect(
+        /^[\da-z-]{36}/.test(
+          toDefaultValue(new DataTypes.UUIDV7().toDialectDataType(dialect)) as string,
+        ),
+      ).to.equal(true);
+    });
     it('return now', () => {
       expect(
         Object.prototype.toString.call(

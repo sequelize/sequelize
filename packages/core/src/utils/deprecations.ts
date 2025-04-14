@@ -117,7 +117,7 @@ export const showAllToListTables = deprecate(
 );
 export const noDataTypesUuid = deprecate(
   noop,
-  'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1 or sql.uuidV4 instead.',
+  'Do not use DataTypes.UUIDV1, DataTypes.UUIDV4 or DataTypes.UUIDV7. Use sql.uuidV1, sql.uuidV4 or sql.uuidV7 instead.',
   'SEQUELIZE0026',
 );
 export const noSequelizeModel = deprecate(

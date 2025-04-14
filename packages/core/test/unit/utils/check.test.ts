@@ -24,6 +24,10 @@ describe('utils / check', () => {
       expect(defaultValueSchemable(DataTypes.UUIDV4, dialect)).to.equal(false);
       expect(defaultValueSchemable(DataTypes.UUIDV4(), dialect)).to.equal(false);
     });
+    it('should return false if the value is a UUIDV7', () => {
+      expect(defaultValueSchemable(DataTypes.UUIDV7, dialect)).to.equal(false);
+      expect(defaultValueSchemable(DataTypes.UUIDV7(), dialect)).to.equal(false);
+    });
     it('should return true otherwise', () => {
       expect(defaultValueSchemable('hello', dialect)).to.equal(true);
       expect(defaultValueSchemable(DataTypes.INTEGER(), dialect)).to.equal(true);
