@@ -85,7 +85,7 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         sqlite3: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
-        postgres: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
+        'postgres duckdb': 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
         snowflake: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
         'mariadb mysql':
           'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',

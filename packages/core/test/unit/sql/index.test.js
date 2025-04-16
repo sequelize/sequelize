@@ -23,6 +23,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
         'mariadb mysql':
           'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
+        duckdb:
+          'COMMENT ON TABLE "table" IS \'CREATE INDEX "table_column1_column2" ON "table" ("column1", "column2")\'',
       });
 
       if (current.dialect.supports.schemas) {
@@ -31,6 +33,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'CREATE INDEX [schema_table_column1_column2] ON [schema.table] ([column1], [column2])',
           'mariadb mysql':
             'ALTER TABLE `schema.table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+          duckdb:
+            'COMMENT ON TABLE "schema.table" IS \'CREATE INDEX "schema_table_column1_column2" ON "schema.table" ("column1", "column2")\'',
         });
 
         expectsql(
@@ -49,6 +53,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'CREATE INDEX "schema"."schema_table_column1_column2" ON "schema"."table" ("column1", "column2")',
             'mariadb mysql':
               'ALTER TABLE `schema`.`table` ADD INDEX `schema_table_column1_column2` (`column1`, `column2`)',
+            duckdb:
+              'COMMENT ON TABLE "schema"."table" IS \'CREATE INDEX "schema_table_column1_column2" ON "schema"."table" ("column1", "column2")\'',
           },
         );
 
@@ -70,6 +76,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             default: `CREATE INDEX ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}_${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}_column1_column2${TICK_RIGHT} ON ${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}schema${TICK_RIGHT}${TICK_RIGHT}.${TICK_LEFT}${TICK_LEFT}table${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ([column1], [column2])`,
             'mariadb mysql':
               'ALTER TABLE ```schema``.``table``` ADD INDEX ```schema``_``table``_column1_column2` (`column1`, `column2`)',
+            duckdb:
+              'COMMENT ON TABLE """schema"".""table""" IS \'CREATE INDEX """schema""_""table""_column1_column2" ON """schema"".""table""" ("column1", "column2")\'',
           },
         );
       }
@@ -89,6 +97,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
           mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
           mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+          duckdb: 'COMMENT ON TABLE "User" IS \'CREATE INDEX "user_field_c" ON "User" ("fieldC")\'',
         },
       );
 
@@ -119,6 +128,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
           mysql:
             'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+          duckdb:
+            'COMMENT ON TABLE "User" IS \'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)\'',
         },
       );
     });
@@ -138,6 +149,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
           mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
           mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+          duckdb:
+            'COMMENT ON TABLE "table" IS \'CREATE INDEX "table_column" ON "table" ("column" DESC)\'',
         },
       );
     });
@@ -149,6 +162,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
           mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
           mysql: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
+          duckdb:
+            'COMMENT ON TABLE "table" IS \'CREATE INDEX "myindex" ON "table" (UPPER("test"))\'',
         },
       );
     });

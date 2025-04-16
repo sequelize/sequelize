@@ -52,7 +52,7 @@ describe('QueryInterface#increment', () => {
       mssql: `UPDATE [Users] SET [age]=[age]+ N':age',[name]=N':name' OUTPUT INSERTED.[:data] WHERE [firstName] = N':firstName'`,
       sqlite3:
         "UPDATE `Users` SET `age`=`age`+ ':age',`name`=':name' WHERE `firstName` = ':firstName' RETURNING `:data`",
-      postgres: `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
+      'postgres duckdb': `UPDATE "Users" SET "age"="age"+ ':age',"name"=':name' WHERE "firstName" = ':firstName' RETURNING ":data"`,
     });
     expect(firstCall.args[1]?.bind).to.be.undefined;
   });
