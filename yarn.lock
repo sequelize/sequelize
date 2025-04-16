@@ -2919,7 +2919,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
-    "@types/pg": "npm:^8.11.12"
+    "@types/pg": "npm:^8.11.13"
     chai: "npm:4.5.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.1.0"
@@ -3964,14 +3964,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/pg@npm:^8.11.12":
-  version: 8.11.12
-  resolution: "@types/pg@npm:8.11.12"
+"@types/pg@npm:^8.11.13":
+  version: 8.11.13
+  resolution: "@types/pg@npm:8.11.13"
   dependencies:
     "@types/node": "npm:*"
     pg-protocol: "npm:*"
     pg-types: "npm:^4.0.1"
-  checksum: 10c0/290a4ef201fb685de92c2201118c3069195c7a75fbf006a68fdf4a48f46681b06fcf30dd4eea56b5edf355750534976d762b3a54458697b1737a836767bbceae
+  checksum: 10c0/a111989a223f21ff864e35150474409e9659766603e4f7a51f89ffc173292adcd895c1551f792aaf1cf94afe99e4bd1dbf7c740252c1dca2a5038f1fd2c6e0bd
   languageName: node
   linkType: hard
 
