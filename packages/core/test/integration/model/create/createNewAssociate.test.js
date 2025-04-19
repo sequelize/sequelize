@@ -7,7 +7,7 @@ const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  describe('create (no include)', () => {
+  describe('create Model, adding new (not built or saved) Associate (no include needed)', () => {
     it('creates BelongsTo data without include', async function () {
       const Product = this.sequelize.define('Product', {
         title: DataTypes.STRING,
