@@ -1882,6 +1882,14 @@ ${associationOwner._getAssociationDebugList()}`);
     return valueSets.map(values => this.build(values, options));
   }
 
+    /**
+   * Builds a new model instance and persists it.
+   * Equivalent to calling {@link Model.build} then {@link Model.save}.
+   *
+   * @param {object} values
+   * @param {object} options
+   * @returns {Promise<Model>}
+   */
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
 
@@ -1957,26 +1965,6 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     return instance;
-  }
-
-  /**
-   * Builds a new model instance and persists it.
-   * Equivalent to calling {@link Model.build} then {@link Model.save}.
-   *
-   * @param {object} values
-   * @param {object} options
-   * @returns {Promise<Model>}
-   */
-  static async create2(values, options) {
-    options = cloneDeep(options) ?? {};
-
-    return await this.build(values, {
-      isNewRecord: true,
-      attributes: options.fields,
-      include: options.include,
-      raw: options.raw,
-      silent: options.silent,
-    }).save(options);
   }
 
   /**

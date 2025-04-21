@@ -2602,21 +2602,6 @@ export abstract class Model<
   ): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
 
   /**
-   * Builds a new model instance and persists it, can create associations with or without Include.
-   * Equivalent to calling {@link Model.build} then {@link Model.save}.
-   *
-   * @param record Hash of data values to create new record with
-   */
-  static create2<
-  M extends Model,
-  O extends CreateOptions<Attributes<M>> = CreateOptions<Attributes<M>>,
->(
-  this: ModelStatic<M>,
-  record?: CreationAttributes<M>,
-  options?: O,
-): Promise<O extends { returning: false } | { ignoreDuplicates: true } ? void : M>;
-
-  /**
    * Find an entity that matches the query, or build (but don't save) the entity if none is found.
    * The successful result of the promise will be the tuple [instance, initialized].
    *
