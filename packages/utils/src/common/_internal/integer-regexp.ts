@@ -49,24 +49,29 @@ export function getIsIntegerRegExp(radix: number): RegExp {
     );
   }
 
-  if (!integerRegExps[radix]) {
-    /**
-     * Get all characters that are valid digits in this base (radix)
-     *
-     * Example: if radix = 16, characterSet will include [0, 1, ..., e, f]
-     */
-    const characterSet = numericSymbols.slice(0, radix);
-
-    /**
-     * Construct a regex that matches whether the input is a valid integer in this radix
-     *
-     * Example, if radix = 2, the regex will be:
-     * /^-?[01]+$/i
-     *
-     * "i" for case insensitivity
-     */
-    integerRegExps[radix] = new RegExp(`^-?[${characterSet.join('')}]+$`, 'i');
+  const existingRegExp = integerRegExps[radix];
+  if (existingRegExp) {
+    return existingRegExp;
   }
 
-  return integerRegExps[radix]!;
+  /**
+   * Get all characters that are valid digits in this base (radix)
+   *
+   * Example: if radix = 16, characterSet will include [0, 1, ..., e, f]
+   */
+  const characterSet = numericSymbols.slice(0, radix);
+
+  /**
+   * Construct a regex that matches whether the input is a valid integer in this radix
+   *
+   * Example, if radix = 2, the regex will be:
+   * /^-?[01]+$/i
+   *
+   * "i" for case insensitivity
+   */
+  const newRegExp = new RegExp(`^-?[${characterSet.join('')}]+$`, 'i');
+
+  integerRegExps[radix] = newRegExp;
+
+  return newRegExp;
 }

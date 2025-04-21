@@ -10,6 +10,7 @@ import {
 } from '@sequelize/core';
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
 
@@ -25,9 +26,14 @@ export interface SnowflakeConnectionOptions
     // "region" is not used by the Snowflake SDK anymore (deprecated option)
     | 'region'
     // ensures that the dialect produces values that Sequelize expects
+    | 'fetchAsString'
     | 'jsTreatIntegerAsBigInt'
+    | 'representNullAsStringNull'
+    | 'rowMode'
     // conflicts with Sequelize's schema option. That option will be taken from Sequelize's options instead.
     | 'schema'
+    // sequelize does not support result streaming https://github.com/sequelize/sequelize/issues/10347
+    | 'streamResult'
   > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
@@ -52,10 +58,11 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
     try {
-      const connection = this.#lib.createConnection({
+      const snowflakeConfig: SnowflakeSdk.ConnectionOptions = removeUndefined({
         schema: this.sequelize.options.schema,
         ...config,
-      }) as SnowflakeConnection;
+      });
+      const connection: SnowflakeConnection = this.#lib.createConnection(snowflakeConfig);
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {

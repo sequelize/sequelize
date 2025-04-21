@@ -130,6 +130,16 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const values = [];
     const bind = Object.create(null);
     const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let suffix = '';
+
+    if (options.returning) {
+      const returnValues = this.generateReturnValues(attributes, options);
+
+      suffix += returnValues.returningFragment;
+
+      // ensure that the return output is properly mapped to model fields.
+      options.mapToModel = true;
+    }
 
     if (attributes) {
       each(attributes, (attribute, key) => {
@@ -158,10 +168,10 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     if (options.limit) {
       query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})${suffix}`.trim();
     } else {
       query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
     }
 
     const result = { query };

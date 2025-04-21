@@ -348,6 +348,94 @@ describe(`@Attribute legacy decorator`, () => {
     expect(descendantPrimaryKey.references.model).to.equal(parentPrimaryKey.references.model);
     expect(descendantPrimaryKey.validate).to.not.equal(parentPrimaryKey.validate);
   });
+
+  it('inherits attributes from multiple levels', () => {
+    abstract class RootUser extends Model<InferAttributes<RootUser>> {
+      @Attribute(DataTypes.STRING)
+      declare name: string;
+
+      @Attribute(DataTypes.STRING)
+      declare age: number;
+    }
+
+    abstract class BaseUser extends RootUser {
+      @Attribute(DataTypes.STRING)
+      declare username: string;
+
+      @Attribute(DataTypes.STRING)
+      declare password: string;
+    }
+
+    class User extends BaseUser {
+      @Attribute(DataTypes.STRING)
+      declare email: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect([...User.modelDefinition.attributes.keys()]).to.deep.equal([
+      'id',
+      'email',
+      'username',
+      'password',
+      'name',
+      'age',
+      'createdAt',
+      'updatedAt',
+    ]);
+  });
+
+  it('respects position of inherited attributes', () => {
+    abstract class RootUser extends Model<InferAttributes<RootUser>> {
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertBefore: true })
+      declare name: string;
+
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertAfter: true })
+      declare age: number;
+    }
+
+    abstract class BaseUser extends RootUser {
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertBefore: true })
+      declare username: string;
+
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertAfter: true })
+      declare password: string;
+    }
+
+    class User extends BaseUser {
+      @Attribute(DataTypes.STRING)
+      declare email: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect([...User.modelDefinition.attributes.keys()]).to.deep.equal([
+      'id',
+      'name',
+      'username',
+      'email',
+      'password',
+      'age',
+      'createdAt',
+      'updatedAt',
+    ]);
+  });
+
+  it('throws if an attribute is set to be inserted before and after', () => {
+    expect(() => {
+      class User extends Model {
+        @Attribute(DataTypes.STRING)
+        @Attribute({ insertBefore: true, insertAfter: true })
+        declare name: string;
+      }
+
+      return User;
+    }).to.throw(`Cannot set both 'insertBefore' and 'insertAfter' to true on the same attribute`);
+  });
 });
 
 describe('createIndexDecorator', () => {

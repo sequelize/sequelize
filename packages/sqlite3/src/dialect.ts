@@ -45,6 +45,7 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
     'DEFAULT VALUES': true,
     'UNION ALL': false,
     'RIGHT JOIN': false,
+    returnValues: 'returning',
     inserts: {
       ignoreDuplicates: ' OR IGNORE',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',

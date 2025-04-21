@@ -11,7 +11,6 @@ import type {
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-  LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -60,17 +59,12 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listDatabasesQuery(options?: ListDatabasesQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'listDatabasesQuery',
-        this.dialect,
-        LIST_DATABASES_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
+    let sql = `SELECT DATABASE_NAME as "name", * FROM SNOWFLAKE.INFORMATION_SCHEMA.DATABASES WHERE "name" NOT IN ('SNOWFLAKE', 'SNOWFLAKE$GDS')`;
+    if (options?.skip) {
+      sql += ` AND UPPER("name") NOT IN (${options.skip.map(db => `UPPER(${this.escape(db)})`).join(', ')})`;
     }
 
-    return `SHOW DATABASES`;
+    return sql;
   }
 
   listSchemasQuery(options?: ListSchemasQueryOptions) {
@@ -133,19 +127,19 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const table = this.extractTableDetails(tableName);
 
     return joinSQLFragments([
-      'SELECT c.CONSTRAINT_CATALOG AS constraintCatalog,',
-      'c.CONSTRAINT_SCHEMA AS constraintSchema,',
-      'c.CONSTRAINT_NAME AS constraintName,',
-      'c.CONSTRAINT_TYPE AS constraintType,',
-      'c.TABLE_CATALOG AS tableCatalog,',
-      'c.TABLE_SCHEMA AS tableSchema,',
-      'c.TABLE_NAME AS tableName,',
-      'fk.TABLE_SCHEMA AS referencedTableSchema,',
-      'fk.TABLE_NAME AS referencedTableName,',
-      'r.DELETE_RULE AS deleteAction,',
-      'r.UPDATE_RULE AS updateAction,',
-      'c.IS_DEFERRABLE AS isDeferrable,',
-      'c.INITIALLY_DEFERRED AS initiallyDeferred',
+      'SELECT c.CONSTRAINT_CATALOG AS "constraintCatalog",',
+      'c.CONSTRAINT_SCHEMA AS "constraintSchema",',
+      'c.CONSTRAINT_NAME AS "constraintName",',
+      'c.CONSTRAINT_TYPE AS "constraintType",',
+      'c.TABLE_CATALOG AS "tableCatalog",',
+      'c.TABLE_SCHEMA AS "tableSchema",',
+      'c.TABLE_NAME AS "tableName",',
+      'fk.TABLE_SCHEMA AS "referencedTableSchema",',
+      'fk.TABLE_NAME AS "referencedTableName",',
+      'r.DELETE_RULE AS "deleteAction",',
+      'r.UPDATE_RULE AS "updateAction",',
+      'c.IS_DEFERRABLE AS "isDeferrable",',
+      'c.INITIALLY_DEFERRED AS "initiallyDeferred"',
       'FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS c',
       'LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS r ON c.CONSTRAINT_CATALOG = r.CONSTRAINT_CATALOG AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = r.CONSTRAINT_NAME',
       'LEFT JOIN INFORMATION_SCHEMA.TABLE_CONSTRAINTS fk ON r.UNIQUE_CONSTRAINT_CATALOG = fk.CONSTRAINT_CATALOG AND r.UNIQUE_CONSTRAINT_SCHEMA = fk.CONSTRAINT_SCHEMA AND r.UNIQUE_CONSTRAINT_NAME = fk.CONSTRAINT_NAME',
