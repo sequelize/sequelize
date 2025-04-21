@@ -1882,7 +1882,7 @@ ${associationOwner._getAssociationDebugList()}`);
     return valueSets.map(values => this.build(values, options));
   }
 
-    /**
+  /**
    * Builds a new model instance and persists it.
    * Equivalent to calling {@link Model.build} then {@link Model.save}.
    *

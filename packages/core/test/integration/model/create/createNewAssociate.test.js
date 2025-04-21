@@ -9,26 +9,34 @@ const { DataTypes } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('create Model, adding new (not built or saved) Associate (no include needed)', () => {
     it('creates BelongsTo data without include', async function () {
-      const Product = this.sequelize.define('Product', {
-        title: DataTypes.STRING,
-      }, {
-        hooks: {
-          afterCreate(product) {
-            product.isIncludeCreatedOnAfterCreate = Boolean(product.user && product.user.id);
+      const Product = this.sequelize.define(
+        'Product',
+        {
+          title: DataTypes.STRING,
+        },
+        {
+          hooks: {
+            afterCreate(product) {
+              product.isIncludeCreatedOnAfterCreate = Boolean(product.user && product.user.id);
+            },
           },
         },
-      });
+      );
 
-      const User = this.sequelize.define('User', {
-        first_name: DataTypes.STRING,
-        last_name: DataTypes.STRING,
-      }, {
-        hooks: {
-          beforeCreate(user, options) {
-            user.createOptions = options;
+      const User = this.sequelize.define(
+        'User',
+        {
+          first_name: DataTypes.STRING,
+          last_name: DataTypes.STRING,
+        },
+        {
+          hooks: {
+            beforeCreate(user, options) {
+              user.createOptions = options;
+            },
           },
         },
-      });
+      );
 
       Product.belongsTo(User);
 
@@ -105,15 +113,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('creates HasMany data', async function () {
-      const Product = this.sequelize.define('Product', {
-        title: DataTypes.STRING,
-      }, {
-        hooks: {
-          afterCreate(product) {
-            product.areIncludesCreatedOnAfterCreate = product.tags.every(tag => tag.id);
+      const Product = this.sequelize.define(
+        'Product',
+        {
+          title: DataTypes.STRING,
+        },
+        {
+          hooks: {
+            afterCreate(product) {
+              product.areIncludesCreatedOnAfterCreate = product.tags.every(tag => tag.id);
+            },
           },
         },
-      });
+      );
 
       const Tag = this.sequelize.define('Tag', {
         name: DataTypes.STRING,
@@ -241,28 +253,40 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('creates BelongsToMany polymorphic', async function () {
-      const Post = this.sequelize.define('Post', {
-        title: DataTypes.STRING,
-      }, {
-        tableName: 'posts',
-        underscored: true,
-      });
+      const Post = this.sequelize.define(
+        'Post',
+        {
+          title: DataTypes.STRING,
+        },
+        {
+          tableName: 'posts',
+          underscored: true,
+        },
+      );
 
-      const Tag = this.sequelize.define('Tag', {
-        name: DataTypes.STRING,
-      }, {
-        tableName: 'tags',
-        underscored: true,
-      });
+      const Tag = this.sequelize.define(
+        'Tag',
+        {
+          name: DataTypes.STRING,
+        },
+        {
+          tableName: 'tags',
+          underscored: true,
+        },
+      );
 
-      const ItemTag = this.sequelize.define('ItemTag', {
-        tag_id: DataTypes.INTEGER,
-        taggable_id: DataTypes.INTEGER,
-        taggable: DataTypes.STRING,
-      }, {
-        tableName: 'item_tag',
-        underscored: true,
-      });
+      const ItemTag = this.sequelize.define(
+        'ItemTag',
+        {
+          tag_id: DataTypes.INTEGER,
+          taggable_id: DataTypes.INTEGER,
+          taggable: DataTypes.STRING,
+        },
+        {
+          tableName: 'item_tag',
+          underscored: true,
+        },
+      );
 
       Post.belongsToMany(Tag, {
         as: 'tags',
