@@ -147,7 +147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@aws-sdk/client-s3@npm:^3.726.0, @aws-sdk/client-s3@npm:^3.782.0":
+"@aws-sdk/client-s3@npm:^3.726.0, @aws-sdk/client-s3@npm:^3.787.0":
   version: 3.787.0
   resolution: "@aws-sdk/client-s3@npm:3.787.0"
   dependencies:
@@ -2711,7 +2711,7 @@ __metadata:
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.1.0"
-    oclif: "npm:4.17.45"
+    oclif: "npm:4.17.46"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.24.3"
   bin:
@@ -12328,12 +12328,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.17.45":
-  version: 4.17.45
-  resolution: "oclif@npm:4.17.45"
+"oclif@npm:4.17.46":
+  version: 4.17.46
+  resolution: "oclif@npm:4.17.46"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.787.0"
-    "@aws-sdk/client-s3": "npm:^3.782.0"
+    "@aws-sdk/client-s3": "npm:^3.787.0"
     "@inquirer/confirm": "npm:^3.1.22"
     "@inquirer/input": "npm:^2.2.4"
     "@inquirer/select": "npm:^2.5.0"
@@ -12358,7 +12358,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/bdb50663e1d1acde0b38655bef034bdd5579e01a1a1c9fa19c72eeca44cabe07f83cdde83461dfd42169c06f89b592dc0830db41d7960282476bba6c234683ac
+  checksum: 10c0/6ee2365696961cc6a600459a0b89ed6d061a869af39c20e0feb1e5865f19e98e2c8151f7ce18c411718ea0a424ddd3b0cbb78975b94708ce38b8669b1878827f
   languageName: node
   linkType: hard
 
