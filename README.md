@@ -1,3 +1,4 @@
+test pull request CI for 777ba574b0626898cc66be46563f6ba89267b138
 <p align="center"><img src="logo.svg" width="100" alt="Sequelize logo" /></p>
 <h1 align="center" style="margin-top: 0;"><a href="https://sequelize.org">Sequelize</a></h1>
 
