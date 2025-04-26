@@ -63,7 +63,7 @@
     "semver": "^7.7.1",
     "sequelize-pool": "^8.0.1",
     "toposort-class": "^1.0.1",
-    "type-fest": "^4.40.0",
+    "type-fest": "^4.40.1",
     "uuid": "^11.1.0",
     "validator": "^13.15.0"
   },

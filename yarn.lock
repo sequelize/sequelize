@@ -2763,7 +2763,7 @@ __metadata:
     sinon: "npm:18.0.1"
     sinon-chai: "npm:3.7.0"
     toposort-class: "npm:^1.0.1"
-    type-fest: "npm:^4.40.0"
+    type-fest: "npm:^4.40.1"
     uuid: "npm:^11.1.0"
     validator: "npm:^13.15.0"
   languageName: unknown
@@ -15562,10 +15562,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-fest@npm:^4.40.0":
-  version: 4.40.0
-  resolution: "type-fest@npm:4.40.0"
-  checksum: 10c0/b39d4da6f9a154e3db7e714cd05ccf56b53f4f0bbf74dd294cb6be4921b16ecca5cb00cb81b53ab621a31c8e8509c74b5101895ada47af9de368a317d24538a3
+"type-fest@npm:^4.40.1":
+  version: 4.40.1
+  resolution: "type-fest@npm:4.40.1"
+  checksum: 10c0/590cb7d4dcd3da83efe49b5b52cd041661f6fa29f18cb76650fe1fdeb4090688e92955656e9d981e606abb13d25c0418be8c6c6504d80e87fe18dc9ca0888392
   languageName: node
   linkType: hard
 
