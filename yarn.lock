@@ -1383,7 +1383,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint-community/eslint-utils@npm:^4.1.2, @eslint-community/eslint-utils@npm:^4.2.0, @eslint-community/eslint-utils@npm:^4.4.0":
+"@eslint-community/eslint-utils@npm:^4.1.2, @eslint-community/eslint-utils@npm:^4.2.0, @eslint-community/eslint-utils@npm:^4.4.0, @eslint-community/eslint-utils@npm:^4.4.1":
   version: 4.6.1
   resolution: "@eslint-community/eslint-utils@npm:4.6.1"
   dependencies:
@@ -2829,7 +2829,7 @@ __metadata:
     esbuild: "npm:0.25.3"
     eslint: "npm:8.57.1"
     eslint-plugin-jsdoc: "npm:48.11.0"
-    eslint-plugin-mocha: "npm:10.5.0"
+    eslint-plugin-mocha: "npm:11.0.0"
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:8.2.2"
@@ -7213,16 +7213,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-mocha@npm:10.5.0":
-  version: 10.5.0
-  resolution: "eslint-plugin-mocha@npm:10.5.0"
+"eslint-plugin-mocha@npm:11.0.0":
+  version: 11.0.0
+  resolution: "eslint-plugin-mocha@npm:11.0.0"
   dependencies:
-    eslint-utils: "npm:^3.0.0"
-    globals: "npm:^13.24.0"
-    rambda: "npm:^7.4.0"
-  peerDependencies:
-    eslint: ">=7.0.0"
-  checksum: 10c0/49b5d3a9df038048bd4483f4d4c3b9581eec74309e197abf202376fe3d3a07812dd753a917c83fa89028f89d74be321303dc4917387e9a67450649f0e3a1ffe9
+    "@eslint-community/eslint-utils": "npm:^4.4.1"
+    globals: "npm:^15.14.0"
+  checksum: 10c0/02f228b320ffb9c1c0462a8e087e5c420a852bc4ff8bd3a0eb17d752ac5b6a4452a8bc383fdaafefa2f37959a3116525a46bdd82e467a1ee630c981a32667272
   languageName: node
   linkType: hard
 
@@ -7340,17 +7337,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-utils@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "eslint-utils@npm:3.0.0"
-  dependencies:
-    eslint-visitor-keys: "npm:^2.0.0"
-  peerDependencies:
-    eslint: ">=5"
-  checksum: 10c0/45aa2b63667a8d9b474c98c28af908d0a592bed1a4568f3145cd49fb5d9510f545327ec95561625290313fe126e6d7bdfe3fdbdb6f432689fab6b9497d3bfb52
-  languageName: node
-  linkType: hard
-
 "eslint-visitor-keys@npm:^1.1.0":
   version: 1.3.0
   resolution: "eslint-visitor-keys@npm:1.3.0"
@@ -7358,7 +7344,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-visitor-keys@npm:^2.0.0, eslint-visitor-keys@npm:^2.1.0":
+"eslint-visitor-keys@npm:^2.1.0":
   version: 2.1.0
   resolution: "eslint-visitor-keys@npm:2.1.0"
   checksum: 10c0/9f0e3a2db751d84067d15977ac4b4472efd6b303e369e6ff241a99feac04da758f46d5add022c33d06b53596038dbae4b4aceb27c7e68b8dfc1055b35e495787
@@ -8506,12 +8492,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:^13.19.0, globals@npm:^13.24.0":
+"globals@npm:^13.19.0":
   version: 13.24.0
   resolution: "globals@npm:13.24.0"
   dependencies:
     type-fest: "npm:^0.20.2"
   checksum: 10c0/d3c11aeea898eb83d5ec7a99508600fbe8f83d2cf00cbb77f873dbf2bcb39428eff1b538e4915c993d8a3b3473fa71eeebfe22c9bb3a3003d1e26b1f2c8a42cd
+  languageName: node
+  linkType: hard
+
+"globals@npm:^15.14.0":
+  version: 15.15.0
+  resolution: "globals@npm:15.15.0"
+  checksum: 10c0/f9ae80996392ca71316495a39bec88ac43ae3525a438b5626cd9d5ce9d5500d0a98a266409605f8cd7241c7acf57c354a48111ea02a767ba4f374b806d6861fe
   languageName: node
   linkType: hard
 
@@ -13514,13 +13507,6 @@ __metadata:
   version: 5.1.1
   resolution: "quick-lru@npm:5.1.1"
   checksum: 10c0/a24cba5da8cec30d70d2484be37622580f64765fb6390a928b17f60cd69e8dbd32a954b3ff9176fa1b86d86ff2ba05252fae55dc4d40d0291c60412b0ad096da
-  languageName: node
-  linkType: hard
-
-"rambda@npm:^7.4.0":
-  version: 7.5.0
-  resolution: "rambda@npm:7.5.0"
-  checksum: 10c0/7285b60cfc0737394dda6d467ef65a97221f9e208041d212378d78264d17acd372e09070f570af821314a9243b4edf465cbb5e15297ad44e484eac10535b8920
   languageName: node
   linkType: hard
 
