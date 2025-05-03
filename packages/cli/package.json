@@ -9,7 +9,7 @@
     "@inquirer/input": "^4.1.9",
     "@inquirer/select": "^4.2.0",
     "@oclif/core": "^4.3.0",
-    "@oclif/plugin-help": "^6.2.27",
+    "@oclif/plugin-help": "^6.2.28",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
