@@ -2722,7 +2722,7 @@ __metadata:
     mocha: "npm:11.2.2"
     oclif: "npm:4.17.46"
     rimraf: "npm:5.0.10"
-    zod: "npm:^3.24.3"
+    zod: "npm:^3.24.4"
   bin:
     sequelize: ./bin/run.js
   languageName: unknown
@@ -16531,9 +16531,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.24.3":
-  version: 3.24.3
-  resolution: "zod@npm:3.24.3"
-  checksum: 10c0/ab0369810968d0329a1a141e9418e01e5c9c2a4905cbb7cb7f5a131d6e9487596e1400e21eeff24c4a8ee28dacfa5bd6103893765c055b7a98c2006a5a4fc68d
+"zod@npm:^3.24.4":
+  version: 3.24.4
+  resolution: "zod@npm:3.24.4"
+  checksum: 10c0/ab3112f017562180a41a0f83d870b333677f7d6b77f106696c56894567051b91154714a088149d8387a4f50806a2520efcb666f108cd384a35c236a191186d91
   languageName: node
   linkType: hard
