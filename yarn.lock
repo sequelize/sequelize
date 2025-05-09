@@ -2707,7 +2707,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
-    ansis: "npm:^3.17.0"
+    ansis: "npm:^4.0.0"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
@@ -2735,7 +2735,7 @@ __metadata:
     "@types/sinon": "npm:17.0.4"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/validator": "npm:^13.15.0"
-    ansis: "npm:^3.17.0"
+    ansis: "npm:^4.0.0"
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
@@ -4644,6 +4644,13 @@ __metadata:
   version: 3.17.0
   resolution: "ansis@npm:3.17.0"
   checksum: 10c0/d8fa94ca7bb91e7e5f8a7d323756aa075facce07c5d02ca883673e128b2873d16f93e0dec782f98f1eeb1f2b3b4b7b60dcf0ad98fb442e75054fe857988cc5cb
+  languageName: node
+  linkType: hard
+
+"ansis@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "ansis@npm:4.0.0"
+  checksum: 10c0/8e549bbf0e838dbaf2ba079a47c18a7955489bc2753d20b29b3dc436d87566a40de68b4b3dad848b2efd52a3a993f4e7ec9991009185ee6556a77ff755fef234
   languageName: node
   linkType: hard
 
