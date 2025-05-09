@@ -2305,7 +2305,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi', 'hana'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
@@ -2508,7 +2508,7 @@ ${associationOwner._getAssociationDebugList()}`);
                 !instance ||
                 (key === model.primaryKeyAttribute &&
                   instance.get(model.primaryKeyAttribute) &&
-                  ['mysql', 'mariadb'].includes(dialect))
+                  ['mysql', 'mariadb', 'hana'].includes(dialect))
               ) {
                 // The query.js for these DBs is blind, it autoincrements the
                 // primarykey value, even if it was set manually. Also, it can

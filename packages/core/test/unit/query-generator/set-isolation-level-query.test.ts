@@ -27,6 +27,9 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
       sqlite3: 'PRAGMA read_uncommitted = 1',
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
+      hana: new Error(
+        `The ${IsolationLevel.READ_UNCOMMITTED} isolation level is not supported by ${dialect.name}.`,
+      ),
     });
   });
 
