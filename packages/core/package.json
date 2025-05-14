@@ -63,7 +63,7 @@
     "semver": "^7.7.1",
     "sequelize-pool": "^8.0.1",
     "toposort-class": "^1.0.1",
-    "type-fest": "^4.40.1",
+    "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
     "validator": "^13.15.0"
   },
@@ -83,7 +83,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.1",
-    "mocha": "11.1.0",
+    "mocha": "11.2.2",
     "moment": "2.30.1",
     "nyc": "17.1.0",
     "p-map": "4.0.0",
