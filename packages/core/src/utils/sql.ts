@@ -542,3 +542,22 @@ export async function withSqliteForeignKeysOff<T>(
     await sequelize.queryRaw('PRAGMA foreign_keys = ON', options);
   }
 }
+
+/**
+ * Creates a function that can be used to collect bind parameters.
+ *
+ * @param bind A mutable object to which bind parameters will be added.
+ */
+export function createBindParamGenerator(
+  bind: Record<string, unknown>,
+): (value: unknown) => string {
+  let i = 0;
+
+  return (value: unknown): string => {
+    const bindName = `sequelize_${++i}`;
+
+    bind[bindName] = value;
+
+    return `$${bindName}`;
+  };
+}
