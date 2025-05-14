@@ -9,18 +9,12 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
-import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
-import { conformIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
-import {
-  nameIndex,
-  removeTrailingSemicolon,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
-import util from 'node:util';
 import { IBMiQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 const typeWithoutDefault = new Set(['BLOB']);
@@ -175,115 +169,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${attrString.join(', ')};`;
-  }
-
-  /*
-    Returns an add index query.
-    Parameters:
-      - tableName -> Name of an existing table, possibly with schema.
-      - options:
-        - type: UNIQUE|FULLTEXT|SPATIAL
-        - name: The name of the index. Default is <table>_<attr1>_<attr2>
-        - fields: An array of attributes as string or as hash.
-                  If the attribute is a hash, it must have the following content:
-                  - name: The name of the attribute/column
-                  - length: An integer. Optional
-                  - order: 'ASC' or 'DESC'. Optional
-        - parser
-        - using
-        - operator
-        - concurrently: Pass CONCURRENT so other operations run while the index is created
-      - rawTablename, the name of the table, without schema. Used to create the name of the index
-   @private
-  */
-  addIndexQuery(tableName, _attributes, _options, rawTablename) {
-    let options = _options || Object.create(null);
-
-    if (!Array.isArray(_attributes)) {
-      options = _attributes;
-    } else {
-      options.fields = _attributes;
-    }
-
-    options.prefix = options.prefix || rawTablename || tableName;
-    if (options.prefix && typeof options.prefix === 'string') {
-      options.prefix = options.prefix.replaceAll('.', '_');
-    }
-
-    const fieldsSql = options.fields.map(field => {
-      if (typeof field === 'string') {
-        return this.quoteIdentifier(field);
-      }
-
-      if (field instanceof BaseSqlExpression) {
-        return this.formatSqlExpression(field);
-      }
-
-      let result = '';
-
-      if (field.attribute) {
-        field.name = field.attribute;
-      }
-
-      if (!field.name) {
-        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
-      }
-
-      result += this.quoteIdentifier(field.name);
-
-      if (this.dialect.supports.index.length && field.length) {
-        result += `(${field.length})`;
-      }
-
-      if (field.order) {
-        result += ` ${field.order}`;
-      }
-
-      return result;
-    });
-
-    if (options.include) {
-      throw new Error(
-        `The include attribute for indexes is not supported by ${this.dialect.name} dialect`,
-      );
-    }
-
-    if (!options.name) {
-      // Mostly for cases where addIndex is called directly by the user without an options object (for example in migrations)
-      // All calls that go through sequelize should already have a name
-      options = nameIndex(options, options.prefix);
-    }
-
-    options = conformIndex(options);
-
-    if (!this.dialect.supports.index.type) {
-      delete options.type;
-    }
-
-    if (options.where) {
-      options.where = this.whereQuery(options.where);
-    }
-
-    tableName = this.quoteTable(tableName);
-
-    let schema;
-    // TODO: drop this option in favor of passing the schema through tableName
-    if (typeof options.schema === 'string') {
-      schema = this.quoteIdentifiers(options.schema);
-    }
-
-    // Although the function is 'addIndex', and the values are passed through
-    // the 'indexes' key of a table, Db2 for i doesn't allow REFERENCES to
-    // work against a UNIQUE INDEX, only a UNIQUE constraint.
-    if (options.unique) {
-      return `BEGIN
-      DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42891'
-        BEGIN END;
-        ALTER TABLE ${tableName} ADD CONSTRAINT ${this.quoteIdentifiers(options.name)} UNIQUE (${fieldsSql.join(', ')}${options.operator ? ` ${options.operator}` : ''})${options.where ? ` ${options.where}` : ''};
-      END`;
-    }
-
-    return `CREATE${options.unique ? ' UNIQUE' : ''} INDEX ${schema ? ` ${schema}.` : ''}${this.quoteIdentifiers(options.name)} ON ${tableName} (${fieldsSql.join(', ')}${options.operator ? ` ${options.operator}` : ''})${options.where ? ` ${options.where}` : ''}`;
   }
 
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
