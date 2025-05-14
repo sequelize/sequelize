@@ -54,7 +54,7 @@
     "ansis": "^3.17.0",
     "bnf-parser": "^3.1.6",
     "dayjs": "^1.11.13",
-    "debug": "^4.4.0",
+    "debug": "^4.4.1",
     "dottie": "^2.0.6",
     "fast-glob": "^3.3.3",
     "inflection": "^3.0.2",
