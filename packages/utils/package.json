@@ -2,7 +2,7 @@
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "description": "Sequelize Utility Library",
   "engines": {
-    "node": ">=18.20.7"
+    "node": ">=18.20.8"
   },
   "types": "./lib/common/index.d.ts",
   "exports": {
@@ -62,6 +62,6 @@
     "chai": "4.5.0",
     "concurrently": "9.1.2",
     "expect-type": "0.19.0",
-    "mocha": "11.1.0"
+    "mocha": "11.2.2"
   }
 }
