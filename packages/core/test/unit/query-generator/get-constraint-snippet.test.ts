@@ -533,7 +533,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
-          'db2 ibmi': onUpdateNotSupportedError,
+          'db2 ibmi oracle': onUpdateNotSupportedError,
         },
       );
     });
