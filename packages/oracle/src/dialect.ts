@@ -8,17 +8,12 @@ import { EMPTY_ARRAY } from '@sequelize/utils';
 import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
 import { OracleConnectionManager } from './connection-manager';
-import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
+import type { OracleConnectionOptions } from './connection-manager.js';
 import { OracleQueryGenerator } from './query-generator.js';
 import { OracleQueryInterface } from './query-interface.js';
 import { OracleQuery } from './query.js';
 
-export interface OracleDialectOptions {
-  /**
-   *  The oracledb module to user.
-   */
-  oracledbModule?: oracledbModule;
-}
+export interface OracleDialectOptions {}
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: false,

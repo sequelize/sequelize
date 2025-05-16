@@ -28,8 +28,6 @@ export interface OracleConnectionOptions extends oracledb.ConnectionAttributes {
 
   host?: string;
 
-  oracleOptions?: object;
-
   port?: number | string;
 }
 
@@ -64,23 +62,8 @@ export class OracleConnectionManager extends AbstractConnectionManager<
 
   /**
    * Method for initializing the lib
-   *
-   * @param config
    */
-  extendLib(config: ConnectionOptions<OracleDialect>) {
-    if (config.oracleOptions) {
-      if ('maxRows' in config.oracleOptions) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-expect-error add maxRow
-        oracledb.maxRows = config.oracleOptions.maxRows;
-      }
-
-      if ('fetchAsString' in config.oracleOptions) {
-        // @ts-expect-error -- add fetchAsString
-        oracledb.fetchAsString = config.oracleOptions.fetchAsString;
-      }
-    }
-
+  extendLib() {
     oracledb.fetchAsString = [oracledb.CLOB];
 
     // Retrieve BLOB always as Buffer.
@@ -88,13 +71,12 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   }
 
   async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
-    this.extendLib(config);
+    this.extendLib();
     this.lib = oracledb;
     const connectionConfig: OracleConnectionOptions = {
       username: config.username,
       password: config.password,
       connectString: this.buildConnectString(config),
-      ...config.oracleOptions,
     };
 
     try {

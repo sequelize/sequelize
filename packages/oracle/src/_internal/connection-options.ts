@@ -72,7 +72,6 @@ export const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<OracleConnectionO
   ...NUMBER_CONNECTION_OPTION_MAP,
   accessToken: undefined,
   accessTokenConfig: undefined,
-  oracleOptions: undefined,
   shardingKey: undefined,
   superShardingKey: undefined,
 });
