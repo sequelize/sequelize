@@ -495,7 +495,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       }
 
       it('should not fail silently with concurrency higher than pool, a unique constraint and a create hook resulting in mismatched values', async function () {
-        if (['sqlite', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
+        if (['sqlite3', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
           return;
         }
 

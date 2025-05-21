@@ -112,6 +112,8 @@ jobs:
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
       - name: Unit tests (core - oracle)
         run: yarn lerna run test-unit-oracle --scope=@sequelize/core
+      - name: Unit tests (oracle package)
+        run: yarn lerna run test-unit --scope=@sequelize/oracle
       - name: SQLite SSCCE
         run: yarn sscce-sqlite3
   test-win:
