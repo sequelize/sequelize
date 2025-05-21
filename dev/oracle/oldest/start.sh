@@ -4,21 +4,14 @@
 set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo_pipefail/
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
-# Remove an existing Oracle DB docker image
-docker compose -p oraclexedb down --remove-orphans
+docker compose -p sequelize-oracle-oldest down --remove-orphans
+docker compose -p sequelize-oracle-oldest up -d
 
-# Bring up new Oracle DB docker image
-docker compose -p oraclexedb up -d
-
-# Wait until Oracle DB is set up and docker state is healthy
-./../../wait-until-healthy.sh oraclexedb
+./../../wait-until-healthy.sh sequelize-oracle-oldest
 
 sleep 30s
 
-# Moving privileges.sql to docker container
-docker cp ../privileges.sql oraclexedb:/opt/oracle/.
+docker cp ../privileges.sql sequelize-oracle-oldest:/opt/oracle/.
+docker exec -t sequelize-oracle-oldest sqlplus system/password@XEPDB1 @privileges.sql
 
-# Granting all the needed privileges to sequelizetest user
-docker exec -t oraclexedb sqlplus system/password@XEPDB1 @privileges.sql
-
-echo "Local Oracle DB is ready for use!"
+DIALECT=oracle ts-node ../../check-connection.ts
