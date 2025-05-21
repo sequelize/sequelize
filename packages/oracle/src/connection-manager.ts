@@ -84,9 +84,8 @@ export class OracleConnectionManager extends AbstractConnectionManager<
 
   async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
     const connectionConfig: OracleConnectionOptions = {
-      username: config.username,
-      password: config.password,
       connectString: this.buildConnectString(config),
+      ...config,
     };
 
     try {
