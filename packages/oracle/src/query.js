@@ -16,6 +16,7 @@ import mapKeys from 'lodash/mapKeys';
 import mapValues from 'lodash/mapValues';
 import reduce from 'lodash/reduce';
 import toPairs from 'lodash/toPairs';
+import oracledb from 'oracledb';
 
 const debug = logger.debugContext('sql:oracle');
 
@@ -42,9 +43,6 @@ export class OracleQuery extends AbstractQuery {
 
   getExecOptions() {
     const execOpts = { outFormat: this.outFormat, autoCommit: this.autoCommit };
-
-    // We set the oracledb
-    const oracledb = this.sequelize.dialect.connectionManager.lib;
 
     if (this.model && this.isSelectQuery()) {
       const fInfo = {};
@@ -74,10 +72,9 @@ export class OracleQuery extends AbstractQuery {
    * types in connector library
    *
    * @param {string} bindingDictionary a string representing the key to scan
-   * @param {object} oracledb native oracle library
    * @private
    */
-  _convertBindAttributes(bindingDictionary, oracledb) {
+  _convertBindAttributes(bindingDictionary) {
     if (this.model && this.options[bindingDictionary]) {
       // check against model if we have some BIGINT
       const keys = Object.keys(this.model.tableAttributes);
@@ -118,7 +115,7 @@ export class OracleQuery extends AbstractQuery {
       this.options.outBindAttributes &&
       (Array.isArray(parameters) || isPlainObject(parameters))
     ) {
-      this._convertBindAttributes('outBindAttributes', oracledb);
+      this._convertBindAttributes('outBindAttributes');
       outParameters.push(...Object.values(this.options.outBindAttributes));
       // For upsertQuery we need to push the bindDef for isUpdate
       if (this.isUpsertQuery()) {
@@ -133,7 +130,7 @@ export class OracleQuery extends AbstractQuery {
       if (this.options.executeMany) {
         // Constructing BindDefs for ExecuteMany call
         // Building the bindDef for in and out binds
-        this._convertBindAttributes('inbindAttributes', oracledb);
+        this._convertBindAttributes('inbindAttributes');
         bindDef.push(...Object.values(this.options.inbindAttributes));
         // eslint-disable-next-line unicorn/no-array-push-push
         bindDef.push(...outParameters);

@@ -35,13 +35,24 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   OracleDialect,
   OracleConnection
 > {
-  lib: typeof oracledb;
+  readonly #lib: typeof oracledb;
   constructor(dialect: OracleDialect) {
     super(dialect);
-    this.lib = oracledb;
+    this.extendLib();
+    this.#lib = oracledb;
   }
 
   buildConnectString(config: ConnectionOptions<OracleDialect>) {
+    if (config.connectString || config.connectionString) {
+      if (config.host || config.database || config.port) {
+        throw new Error(
+          'connectString and host/database/port cannot be accepted simutaneously. Use only connectString instead.',
+        );
+      }
+
+      return config.connectString;
+    }
+
     if (!config.host || config.host.length === 0) {
       return config.database;
     }
@@ -71,8 +82,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   }
 
   async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
-    this.extendLib();
-    this.lib = oracledb;
     const connectionConfig: OracleConnectionOptions = {
       username: config.username,
       password: config.password,
@@ -80,7 +89,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
     };
 
     try {
-      const connection: OracleConnection = (await this.lib.getConnection(
+      const connection: OracleConnection = (await this.#lib.getConnection(
         connectionConfig,
       )) as OracleConnection;
 
