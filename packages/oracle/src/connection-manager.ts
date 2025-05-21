@@ -23,7 +23,8 @@ export interface OracleConnection extends oracledbConnection, AbstractConnection
   on(event: 'error', listener: (err: any) => void): this;
 }
 
-export interface OracleConnectionOptions extends oracledb.ConnectionAttributes {
+export interface OracleConnectionOptions
+  extends Omit<oracledb.ConnectionAttributes, 'connectionString' | 'user'> {
   database?: string;
 
   host?: string;
@@ -43,7 +44,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   }
 
   buildConnectString(config: ConnectionOptions<OracleDialect>) {
-    if (config.connectString || config.connectionString) {
+    if (config.connectString) {
       if (config.host || config.database || config.port) {
         throw new Error(
           'connectString and host/database/port cannot be accepted simutaneously. Use only connectString instead.',

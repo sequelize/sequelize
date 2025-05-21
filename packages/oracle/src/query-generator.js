@@ -7,6 +7,7 @@ import forOwn from 'lodash/forOwn';
 import includes from 'lodash/includes';
 import isPlainObject from 'lodash/isPlainObject';
 import toPath from 'lodash/toPath';
+import oracledb from 'oracledb';
 
 import { DataTypes } from '@sequelize/core';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -633,7 +634,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     returnAttributes,
     options,
   ) {
-    const oracledb = this.sequelize.dialect.connectionManager.lib;
     const outBindAttributes = Object.create(null);
     const outbind = {};
     const outbindParam = this.bindParam(outbind, inbindLength);
@@ -726,7 +726,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const allColumns = {};
     const inBindBindDefMap = {};
     const outBindBindDefMap = {};
-    const oracledb = this.sequelize.dialect.connectionManager.lib;
 
     // Generating the allColumns map
     // The data is provided as an array of objects.

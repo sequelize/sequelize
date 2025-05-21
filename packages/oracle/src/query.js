@@ -34,7 +34,7 @@ export class OracleQuery extends AbstractQuery {
     );
 
     this.checkLoggingOption();
-    this.outFormat = options.outFormat || this.sequelize.dialect.connectionManager.lib.OBJECT;
+    this.outFormat = options.outFormat || oracledb.OBJECT;
   }
 
   getInsertIdField() {
@@ -96,7 +96,6 @@ export class OracleQuery extends AbstractQuery {
 
   async run(sql, parameters) {
     // We set the oracledb
-    const oracledb = this.sequelize.dialect.connectionManager.lib;
     const complete = this._logQuery(sql, debug, parameters);
     const outParameters = [];
     const bindParameters = [];
