@@ -23,7 +23,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'ifExists',
         ]),
-        'postgres mariadb': 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
+        'postgres mariadb mssql': 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
         sqlite3: notSupportedError,
       },
     );
