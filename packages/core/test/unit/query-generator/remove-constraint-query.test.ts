@@ -20,16 +20,11 @@ describe('QueryGenerator#removeConstraintQuery', () => {
     expectsql(
       () => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { ifExists: true }),
       {
-        default: 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
-        sqlite3: notSupportedError,
-        'db2 ibmi mysql snowflake': buildInvalidOptionReceivedError(
-          'removeConstraintQuery',
-          dialect.name,
-          ['ifExists'],
-        ),
-        oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
+        default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'ifExists',
         ]),
+        'postgres mariadb mysql': 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
+        sqlite3: notSupportedError,
       },
     );
   });
@@ -62,7 +57,6 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'ifExists',
         ]),
-        oracle: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, ['cascade']),
         sqlite3: notSupportedError,
       },
     );

@@ -158,10 +158,9 @@ describe('QueryGenerator#removeIndexQuery', () => {
       default: `DROP INDEX [user_foo_bar] ON [MyModels]`,
       sqlite3: 'DROP INDEX `user_foo_bar`',
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
-      db2: `DROP INDEX "user_foo_bar"`,
+      'db2 oracle': `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
       snowflake: notImplementedError,
-      oracle: `DROP INDEX "user_foo_bar"`,
     });
   });
 

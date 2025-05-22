@@ -98,7 +98,6 @@ describe('QueryInterface#createTable', () => {
     });
   });
 
-  // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
   it('supports JSON_NULL default values', async () => {
     if (!dialect.supports.dataTypes.JSON) {
       return;
@@ -120,6 +119,7 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
+      // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
