@@ -647,11 +647,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           FROM [users] AS [user] LEFT OUTER JOIN [post] AS [POSTS]
           ON [user].[id_user] = [POSTS].[user_id]
           ORDER BY [user].${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`,
-            oracle:
-              Support.minifySql(`SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName", "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title"
+            oracle: `SELECT "user"."id_user" AS "id", "user"."email", "user"."first_name" AS "firstName", "user"."last_name" AS "lastName", "POSTS"."id" AS "POSTS.id", "POSTS"."title" AS "POSTS.title"
           FROM "users" "user" LEFT OUTER JOIN "post" "POSTS"
           ON "user"."id_user" = "POSTS"."user_id"
-          ORDER BY "user".${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`),
+          ORDER BY "user".${TICK_LEFT}${TICK_LEFT}${TICK_LEFT}last_name${TICK_RIGHT}${TICK_RIGHT}${TICK_RIGHT} ASC OFFSET 10 ROWS FETCH NEXT 30 ROWS ONLY;`,
           },
         );
       });
