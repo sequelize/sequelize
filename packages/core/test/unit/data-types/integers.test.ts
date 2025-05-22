@@ -160,7 +160,6 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
         expect: {
           default: 'SMALLINT',
           'sqlite3 snowflake': 'INTEGER',
-          oracle: 'SMALLINT',
         },
       },
       {

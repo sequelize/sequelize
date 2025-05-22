@@ -2323,44 +2323,46 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await t.rollback();
       });
 
-      if (!['oracle'].includes(dialect)) {
-        it('supports transactions when updating a through model', async function () {
-          const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
-            this.sequelize,
-          );
-          const User = sequelize.define('User', { username: DataTypes.STRING });
-          const Task = sequelize.define('Task', { title: DataTypes.STRING });
+      it('supports transactions when updating a through model', async function () {
+        if (dialect === 'oracle') {
+          return;
+        }
 
-          const UserTask = sequelize.define('UserTask', {
-            status: DataTypes.STRING,
-          });
+        const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
+          this.sequelize,
+        );
+        const User = sequelize.define('User', { username: DataTypes.STRING });
+        const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
-          User.belongsToMany(Task, { through: UserTask, as: 'Tasks', inverse: 'Users' });
-          await sequelize.sync({ force: true });
-
-          const [user, task, t] = await Promise.all([
-            User.create({ username: 'foo' }),
-            Task.create({ title: 'task' }),
-            sequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.SERIALIZABLE }),
-          ]);
-
-          await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
-          // accesible from outside the transaction
-          await task.addUser(user, { transaction: t, through: { status: 'completed' } }); // Add an already exisiting user in
-          // a transaction, updating a value
-          // in the join table
-
-          const [tasks, transactionTasks] = await Promise.all([
-            user.getTasks(),
-            user.getTasks({ transaction: t }),
-          ]);
-
-          expect(tasks[0].UserTask.status).to.equal('pending');
-          expect(transactionTasks[0].UserTask.status).to.equal('completed');
-
-          await t.rollback();
+        const UserTask = sequelize.define('UserTask', {
+          status: DataTypes.STRING,
         });
-      }
+
+        User.belongsToMany(Task, { through: UserTask, as: 'Tasks', inverse: 'Users' });
+        await sequelize.sync({ force: true });
+
+        const [user, task, t] = await Promise.all([
+          User.create({ username: 'foo' }),
+          Task.create({ title: 'task' }),
+          sequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.SERIALIZABLE }),
+        ]);
+
+        await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is
+        // accesible from outside the transaction
+        await task.addUser(user, { transaction: t, through: { status: 'completed' } }); // Add an already exisiting user in
+        // a transaction, updating a value
+        // in the join table
+
+        const [tasks, transactionTasks] = await Promise.all([
+          user.getTasks(),
+          user.getTasks({ transaction: t }),
+        ]);
+
+        expect(tasks[0].UserTask.status).to.equal('pending');
+        expect(transactionTasks[0].UserTask.status).to.equal('completed');
+
+        await t.rollback();
+      });
     }
 
     it('supports passing the primary key instead of an object', async function () {

@@ -22,42 +22,43 @@ describe('QueryInterface#insert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  // Oracle nedds bindDefinitions to be defined for outBinds which can't be obtained with bind and replacement present together.
-  (dialect.name === 'oracle' ? it.skip : it)(
-    'does not parse replacements outside of raw sql',
-    async () => {
-      const { User } = vars;
-      const stub = sinon.stub(sequelize, 'queryRaw');
+  it('does not parse replacements outside of raw sql', async () => {
+    // Oracle nedds bindDefinitions to be defined for outBinds which can't be obtained with bind and replacement present together.
+    if (dialect.name === 'oracle') {
+      return;
+    }
 
-      await sequelize.queryInterface.insert(
-        null,
-        User.table,
-        {
-          firstName: 'Zoe',
-        },
-        {
-          returning: [':data'],
-          replacements: {
-            data: 'abc',
-          },
-        },
-      );
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw');
 
-      expect(stub.callCount).to.eq(1);
-      const firstCall = stub.getCall(0);
-      expectsql(firstCall.args[0], {
-        default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);',
-        sqlite3: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) RETURNING `:data`;',
-        postgres: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING ":data";`,
-        mssql: `INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[:data] VALUES ($sequelize_1);`,
-        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
-        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
-      });
-      expect(firstCall.args[1]?.bind).to.deep.eq({
-        sequelize_1: 'Zoe',
-      });
-    },
-  );
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: 'Zoe',
+      },
+      {
+        returning: [':data'],
+        replacements: {
+          data: 'abc',
+        },
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0], {
+      default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);',
+      sqlite3: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) RETURNING `:data`;',
+      postgres: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING ":data";`,
+      mssql: `INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[:data] VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+    });
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      sequelize_1: 'Zoe',
+    });
+  });
 
   it('throws if a bind parameter name starts with the reserved "sequelize_" prefix', async () => {
     const { User } = vars;
@@ -81,72 +82,74 @@ describe('QueryInterface#insert', () => {
     );
   });
 
-  // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
-  (dialect.name === 'oracle' ? it.skip : it)(
-    'merges user-provided bind parameters with sequelize-generated bind parameters (object bind)',
-    async () => {
-      const { User } = vars;
-      const stub = sinon.stub(sequelize, 'queryRaw');
+  it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
+    if (dialect.name === 'oracle') {
+      return;
+    }
 
-      await sequelize.queryInterface.insert(
-        null,
-        User.table,
-        {
-          firstName: literal('$firstName'),
-          lastName: 'Doe',
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw');
+
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: literal('$firstName'),
+        lastName: 'Doe',
+      },
+      {
+        bind: {
+          firstName: 'John',
         },
-        {
-          bind: {
-            firstName: 'John',
-          },
-        },
-      );
+      },
+    );
 
-      expect(stub.callCount).to.eq(1);
-      const firstCall = stub.getCall(0);
-      expectsql(firstCall.args[0], {
-        default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1);',
-        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1));`,
-        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
-      });
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0], {
+      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($firstName,$sequelize_1);',
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($firstName,$sequelize_1))`,
+    });
 
-      expect(firstCall.args[1]?.bind).to.deep.eq({
-        firstName: 'John',
-        sequelize_1: 'Doe',
-      });
-    },
-  );
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      firstName: 'John',
+      sequelize_1: 'Doe',
+    });
+  });
 
-  (dialect.name === 'oracle' ? it.skip : it)(
-    'merges user-provided bind parameters with sequelize-generated bind parameters (array bind)',
-    async () => {
-      const { User } = vars;
-      const stub = sinon.stub(sequelize, 'queryRaw');
+  it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    if (dialect.name === 'oracle') {
+      return;
+    }
 
-      await sequelize.queryInterface.insert(
-        null,
-        User.table,
-        {
-          firstName: literal('$1'),
-          lastName: 'Doe',
-        },
-        {
-          bind: ['John'],
-        },
-      );
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw');
 
-      expect(stub.callCount).to.eq(1);
-      const firstCall = stub.getCall(0);
-      expectsql(firstCall.args[0], {
-        default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1);',
-        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1));`,
-        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
-      });
+    await sequelize.queryInterface.insert(
+      null,
+      User.table,
+      {
+        firstName: literal('$1'),
+        lastName: 'Doe',
+      },
+      {
+        bind: ['John'],
+      },
+    );
 
-      expect(firstCall.args[1]?.bind).to.deep.eq({
-        1: 'John',
-        sequelize_1: 'Doe',
-      });
-    },
-  );
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0], {
+      default: 'INSERT INTO [Users] ([firstName],[lastName]) VALUES ($1,$sequelize_1);',
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($1,$sequelize_1))`,
+    });
+
+    expect(firstCall.args[1]?.bind).to.deep.eq({
+      1: 'John',
+      sequelize_1: 'Doe',
+    });
+  });
 });

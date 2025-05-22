@@ -18,7 +18,7 @@ const { list } = sqlTag;
 
 const dialect = sequelize.dialect;
 
-const supportsNamedParameters = dialect.name === 'sqlite3' || dialect.name === 'mssql';
+const supportsNamedParameters = ['sqlite3', 'mssql', 'oracle'].includes(dialect.name);
 
 describe('mapBindParameters', () => {
   it('parses named bind parameters', () => {
@@ -36,8 +36,6 @@ describe('mapBindParameters', () => {
     });
 
     if (supportsNamedParameters) {
-      expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id']);
@@ -59,8 +57,6 @@ describe('mapBindParameters', () => {
     });
 
     if (supportsNamedParameters) {
-      expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['1']);
@@ -135,8 +131,6 @@ describe('mapBindParameters', () => {
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
-      expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['a']);
     }
@@ -162,8 +156,6 @@ describe('mapBindParameters', () => {
       expect(bindOrder).to.be.null;
     } else if (dialect.name === 'postgres') {
       expect(bindOrder).to.deep.eq(['id']);
-    } else if (dialect.name === 'oracle') {
-      expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id', 'id', 'id', 'id']);
     }
@@ -200,8 +192,6 @@ describe('mapBindParameters', () => {
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
-      expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq([]);
     }
@@ -219,8 +209,6 @@ describe('mapBindParameters', () => {
     });
 
     if (supportsNamedParameters) {
-      expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id']);
@@ -242,8 +230,6 @@ describe('mapBindParameters', () => {
     });
 
     if (supportsNamedParameters) {
-      expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id']);
@@ -345,8 +331,6 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
     });
 
     if (supportsNamedParameters) {
-      expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'oracle') {
       expect(bindOrder).to.be.null;
     } else {
       expect(bindOrder).to.deep.eq(['id']);

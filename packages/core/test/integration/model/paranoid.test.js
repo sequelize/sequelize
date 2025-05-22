@@ -124,44 +124,45 @@ describe('Paranoid Model', () => {
         await this.Model.sync({ force: true });
       });
 
-      // Oracle stores JSON as BLOB. where condition with equality isn't supported for this.
-      (dialectName === 'oracle' ? it.skip : it)(
-        'should soft delete with JSON condition',
-        async function () {
-          await this.Model.bulkCreate([
-            {
-              name: 'One',
-              data: {
-                field: {
-                  deep: true,
-                },
-              },
-            },
-            {
-              name: 'Two',
-              data: {
-                field: {
-                  deep: false,
-                },
-              },
-            },
-          ]);
+      it('should soft delete with JSON condition', async function () {
+        // Oracle stores JSON as BLOB. where condition with equality isn't supported for this.
+        if (dialect.name === 'oracle') {
+          return;
+        }
 
-          await this.Model.destroy({
-            where: {
-              data: {
-                field: {
-                  deep: true,
-                },
+        await this.Model.bulkCreate([
+          {
+            name: 'One',
+            data: {
+              field: {
+                deep: true,
               },
             },
-          });
+          },
+          {
+            name: 'Two',
+            data: {
+              field: {
+                deep: false,
+              },
+            },
+          },
+        ]);
 
-          const records = await this.Model.findAll();
-          expect(records.length).to.equal(1);
-          expect(records[0].get('name')).to.equal('Two');
-        },
-      );
+        await this.Model.destroy({
+          where: {
+            data: {
+              field: {
+                deep: true,
+              },
+            },
+          },
+        });
+
+        const records = await this.Model.findAll();
+        expect(records.length).to.equal(1);
+        expect(records[0].get('name')).to.equal('Two');
+      });
     });
   }
 

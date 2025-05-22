@@ -203,13 +203,14 @@ describe('DataTypes', () => {
       await testSimpleInOut(vars.User, 'textAttr', '123456', '123456');
     });
 
-    // For raw queries, Oracle expects hex string during insertion
-    (dialect.name === 'oracle' ? it.skip : it)(
-      'is deserialized as a string when DataType is not specified',
-      async () => {
-        await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
-      },
-    );
+    it('is deserialized as a string when DataType is not specified', async () => {
+      // For raw queries, Oracle expects hex string during insertion
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
+      await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
+    });
   });
 
   describe(`TEXT(<size>)`, () => {

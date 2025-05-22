@@ -18,8 +18,12 @@ describe('QueryGenerator#bulkInsertQuery', () => {
     return { User };
   });
 
-  // The Oracle dialect doesn't support replacements for bulkInsert
-  (dialect !== 'oracle' ? it : it.skip)('parses named replacements in literals', async () => {
+  it('parses named replacements in literals', async () => {
+    // The Oracle dialect doesn't support replacements for bulkInsert
+    if (dialect === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
 
     const sql = queryGenerator.bulkInsertQuery(

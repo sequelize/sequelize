@@ -163,7 +163,7 @@ describe('sequelize.pool', () => {
           account: 'replica2',
         },
         oracle: {
-          host: 'replica1',
+          host: 'replica2',
         },
       };
 

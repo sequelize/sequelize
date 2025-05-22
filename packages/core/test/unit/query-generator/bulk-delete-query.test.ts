@@ -24,8 +24,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
         sqlite3:
           "DELETE FROM `myTable` WHERE rowid IN (SELECT rowid FROM `myTable` WHERE `name` = 'barry' LIMIT 10)",
         'db2 ibmi': `DELETE FROM "myTable" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
-        'mssql postgres snowflake': limitNotSupportedError,
-        oracle: limitNotSupportedError,
+        'mssql postgres snowflake oracle': limitNotSupportedError,
       },
     );
   });

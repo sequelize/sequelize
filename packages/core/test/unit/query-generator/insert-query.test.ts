@@ -164,8 +164,12 @@ describe('QueryGenerator#insertQuery', () => {
       });
     });
 
-    // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
-    (dialect.name === 'oracle' ? it.skip : it)('supports array of strings (column names)', () => {
+    it('supports array of strings (column names)', () => {
+      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       const { query } = queryGenerator.insertQuery(
@@ -193,8 +197,12 @@ describe('QueryGenerator#insertQuery', () => {
       });
     });
 
-    // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
-    (dialect.name === 'oracle' ? it.skip : it)('supports array of literals', () => {
+    it('supports array of literals', () => {
+      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       expectsql(

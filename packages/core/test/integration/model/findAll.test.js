@@ -119,7 +119,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      // Oracle WHERE IN clause for BLOB isn't supported. Use `RAW` datatype.
       it('should not break when using smart syntax on binary fields', async function () {
         const users = await this.User.findAll({
           where: {
