@@ -42,7 +42,7 @@ function assertSameConnection(
       break;
 
     case 'oracle':
-      expect(oldConnection).to.be.equal(newConnection);
+      expect(oldConnection).to.be.equal(newConnection).and.to.be.ok;
       break;
 
     default:
