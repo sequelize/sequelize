@@ -1551,18 +1551,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/confirm@npm:^5.1.10, @inquirer/confirm@npm:^5.1.9":
-  version: 5.1.10
-  resolution: "@inquirer/confirm@npm:5.1.10"
+"@inquirer/confirm@npm:^5.1.11, @inquirer/confirm@npm:^5.1.9":
+  version: 5.1.11
+  resolution: "@inquirer/confirm@npm:5.1.11"
   dependencies:
-    "@inquirer/core": "npm:^10.1.11"
-    "@inquirer/type": "npm:^3.0.6"
+    "@inquirer/core": "npm:^10.1.12"
+    "@inquirer/type": "npm:^3.0.7"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/71a1b1c1007b0edd06984c356a9e13764ca917bdbf947a59ce0f55084d36e653daffe56b3806fc9959337aae80ff7b37eeaf01a40746e5f60de86475fdf0502a
+  checksum: 10c0/e907850e866cbb3bf8e03b963e30bcb720f35903ecf987b0547f12b23b534c7605a8518610dc80cd295460f822881acac6f91231957c035c1b8ccd820d38a962
   languageName: node
   linkType: hard
 
@@ -2698,7 +2698,7 @@ __metadata:
   resolution: "@sequelize/cli@workspace:packages/cli"
   dependencies:
     "@inquirer/checkbox": "npm:^4.1.7"
-    "@inquirer/confirm": "npm:^5.1.10"
+    "@inquirer/confirm": "npm:^5.1.11"
     "@inquirer/input": "npm:^4.1.10"
     "@inquirer/select": "npm:^4.2.1"
     "@oclif/core": "npm:^4.3.0"
