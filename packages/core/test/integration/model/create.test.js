@@ -1176,7 +1176,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (current.dialect.supports.index.functionBased) {
+    if (current.dialect.supports.addIndex.expression) {
       it(`doesn't allow duplicated records with unique function based indexes`, async function () {
         const User = this.customSequelize.define('UserWithUniqueUsernameFunctionIndex', {
           username: DataTypes.STRING,
