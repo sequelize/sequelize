@@ -408,10 +408,7 @@ export class WhereSqlBuilder {
 
     // "IS" operator does not accept bind parameters, only literals
     if (options.bindParam) {
-      options = {
-        ...options,
-        bindParam: undefined,
-      };
+      delete options.bindParam;
     }
 
     return this.formatBinaryOperation(left, undefined, operator, right, undefined, options);
