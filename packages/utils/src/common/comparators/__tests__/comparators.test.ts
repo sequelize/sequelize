@@ -44,12 +44,20 @@ describe('basicComparator', () => {
     expect(items).to.deep.eq([0n, 1n, 2n, 10n]);
   });
 
-  it('sorts unlocalized strings using > & <', () => {
+  it('sorts unlocalized numerical strings using > & <', () => {
     const items = ['0', '10', '2', '1'];
 
     items.sort(basicComparator());
 
     expect(items).to.deep.eq(['0', '1', '10', '2']);
+  });
+
+  it('sorts unlocalized strings using > & <', () => {
+    const items = ['aaa', 'zzz', 'foo', 'bar'];
+
+    items.sort(basicComparator());
+
+    expect(items).to.deep.eq(['aaa', 'bar', 'foo', 'zzz']);
   });
 
   it('sorts Date objects using > & <', () => {
