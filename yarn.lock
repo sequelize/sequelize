@@ -2915,7 +2915,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.17.21"
-    snowflake-sdk: "npm:^2.0.4"
+    snowflake-sdk: "npm:^2.1.0"
   languageName: unknown
   linkType: soft
 
@@ -4515,6 +4515,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"agent-base@npm:5":
+  version: 5.1.1
+  resolution: "agent-base@npm:5.1.1"
+  checksum: 10c0/3baa3f01072c16e3955ce7802166e576cde9831af82b262aae1c780af49c0c84e82e64ba9ef9e7d1704fe29e9f0096a78a4f998ec137360fee3cb95186f97161
+  languageName: node
+  linkType: hard
+
 "agent-base@npm:6, agent-base@npm:^6.0.2":
   version: 6.0.2
   resolution: "agent-base@npm:6.0.2"
@@ -5888,6 +5895,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:^6.2.1":
+  version: 6.2.1
+  resolution: "commander@npm:6.2.1"
+  checksum: 10c0/85748abd9d18c8bc88febed58b98f66b7c591d9b5017cad459565761d7b29ca13b7783ea2ee5ce84bf235897333706c4ce29adf1ce15c8252780e7000e2ce9ea
+  languageName: node
+  linkType: hard
+
 "commander@npm:^8.3.0":
   version: 8.3.0
   resolution: "commander@npm:8.3.0"
@@ -6145,6 +6159,15 @@ __metadata:
     cross-env: src/bin/cross-env.js
     cross-env-shell: src/bin/cross-env-shell.js
   checksum: 10c0/f3765c25746c69fcca369655c442c6c886e54ccf3ab8c16847d5ad0e91e2f337d36eedc6599c1227904bf2a228d721e690324446876115bc8e7b32a866735ecf
+  languageName: node
+  linkType: hard
+
+"cross-fetch@npm:^3.1.5":
+  version: 3.2.0
+  resolution: "cross-fetch@npm:3.2.0"
+  dependencies:
+    node-fetch: "npm:^2.7.0"
+  checksum: 10c0/d8596adf0269130098a676f6739a0922f3cc7b71cc89729925411ebe851a87026171c82ea89154c4811c9867c01c44793205a52e618ce2684650218c7fbeeb9f
   languageName: node
   linkType: hard
 
@@ -8845,6 +8868,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"https-proxy-agent@npm:~4.0.0":
+  version: 4.0.0
+  resolution: "https-proxy-agent@npm:4.0.0"
+  dependencies:
+    agent-base: "npm:5"
+    debug: "npm:4"
+  checksum: 10c0/fbba3e037ec04e1850e867064a763b86dd884baae9c5f4ad380504e321068c9e9b5de79cf2f3a28ede7c36036dce905b58d9f51703c5b3884d887114f4887f77
+  languageName: node
+  linkType: hard
+
 "human-signals@npm:^2.1.0":
   version: 2.1.0
   resolution: "human-signals@npm:2.1.0"
@@ -9928,7 +9961,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json5@npm:^2.2.2, json5@npm:^2.2.3":
+"json5@npm:^2.2.0, json5@npm:^2.2.2, json5@npm:^2.2.3":
   version: 2.2.3
   resolution: "json5@npm:2.2.3"
   bin:
@@ -10515,6 +10548,13 @@ __metadata:
     safe-stable-stringify: "npm:^2.3.1"
     triple-beam: "npm:^1.3.0"
   checksum: 10c0/4789b4b37413c731d1835734cb799240d31b865afde6b7b3e06051d6a4127bfda9e88c99cfbf296d084a315ccbed2647796e6a56b66e725bcb268c586f57558f
+  languageName: node
+  linkType: hard
+
+"loglevel@npm:^1.8.0":
+  version: 1.9.2
+  resolution: "loglevel@npm:1.9.2"
+  checksum: 10c0/1e317fa4648fe0b4a4cffef6de037340592cee8547b07d4ce97a487abe9153e704b98451100c799b032c72bb89c9366d71c9fb8192ada8703269263ae77acdc7
   languageName: node
   linkType: hard
 
@@ -11618,6 +11658,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nanoid@npm:^3.3.1":
+  version: 3.3.11
+  resolution: "nanoid@npm:3.3.11"
+  bin:
+    nanoid: bin/nanoid.cjs
+  checksum: 10c0/40e7f70b3d15f725ca072dfc4f74e81fcf1fbb02e491cf58ac0c79093adc9b0a73b152bcde57df4b79cd097e13023d7504acb38404a4da7bc1cd8e887b82fe0b
+  languageName: node
+  linkType: hard
+
 "napi-build-utils@npm:^2.0.0":
   version: 2.0.0
   resolution: "napi-build-utils@npm:2.0.0"
@@ -11747,7 +11796,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-fetch@npm:^2.6.7, node-fetch@npm:^2.6.9":
+"node-fetch@npm:^2.6.7, node-fetch@npm:^2.6.9, node-fetch@npm:^2.7.0":
   version: 2.7.0
   resolution: "node-fetch@npm:2.7.0"
   dependencies:
@@ -12163,6 +12212,13 @@ __metadata:
   bin:
     nyc: bin/nyc.js
   checksum: 10c0/653497bf11c53c70d821c18a2bfb7dba310b297b8bc83e5392e560c3d60d4dc9836b6c44f060065dfa99f7dacfd49147f8f60b160dfbe3f722517d4e7e236db2
+  languageName: node
+  linkType: hard
+
+"oauth4webapi@npm:^3.0.1":
+  version: 3.5.1
+  resolution: "oauth4webapi@npm:3.5.1"
+  checksum: 10c0/5d57ba4299d61173b28ff0612fdfcc550b02c2ce4afcd1641103960c02af18268b55a70f26d47bbfc956680967c307546284b4a0b1f13845589e247f798ff395
   languageName: node
   linkType: hard
 
@@ -14394,9 +14450,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:^2.0.4":
-  version: 2.0.4
-  resolution: "snowflake-sdk@npm:2.0.4"
+"snowflake-sdk@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "snowflake-sdk@npm:2.1.0"
   dependencies:
     "@aws-sdk/client-s3": "npm:^3.726.0"
     "@azure/storage-blob": "npm:12.26.x"
@@ -14422,15 +14478,17 @@ __metadata:
     mkdirp: "npm:^1.0.3"
     moment: "npm:^2.29.4"
     moment-timezone: "npm:^0.5.15"
+    oauth4webapi: "npm:^3.0.1"
     open: "npm:^7.3.1"
     python-struct: "npm:^1.1.3"
     simple-lru-cache: "npm:^0.0.2"
     toml: "npm:^3.0.0"
     uuid: "npm:^8.3.2"
     winston: "npm:^3.1.0"
+    wiremock-rest-client: "npm:^1.11.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/9c05a14bcf793b764b09f7a8a750429a4ce8d7f29f9e6366b8348e61bea983d0fa7a202a78535ab6acd80779fb38abc2980e43c37880f8d681474e11a15ef794
+  checksum: 10c0/605da000d4f3eccf3b5c5b60609132d7a843694c27c8b49dd8ded65663fab67ad760511c6c8df8dd7c7b5873ed74d0d811734fb854457fb6661062067858dcc3
   languageName: node
   linkType: hard
 
@@ -16150,6 +16208,22 @@ __metadata:
     triple-beam: "npm:^1.3.0"
     winston-transport: "npm:^4.9.0"
   checksum: 10c0/ec8eaeac9a72b2598aedbff50b7dac82ce374a400ed92e7e705d7274426b48edcb25507d78cff318187c4fb27d642a0e2a39c57b6badc9af8e09d4a40636a5f7
+  languageName: node
+  linkType: hard
+
+"wiremock-rest-client@npm:^1.11.0":
+  version: 1.11.0
+  resolution: "wiremock-rest-client@npm:1.11.0"
+  dependencies:
+    commander: "npm:^6.2.1"
+    cross-fetch: "npm:^3.1.5"
+    https-proxy-agent: "npm:~4.0.0"
+    json5: "npm:^2.2.0"
+    loglevel: "npm:^1.8.0"
+    nanoid: "npm:^3.3.1"
+  bin:
+    wrc: bin/index.js
+  checksum: 10c0/ba86735c2860abd42f6b0026a5393946e6e28f431ce7565d719fed81cf67c0a90fc941d9e5dafea1c08393b45cf43fa4e278c73f473ac6979f82168d302d43ca
   languageName: node
   linkType: hard
 
