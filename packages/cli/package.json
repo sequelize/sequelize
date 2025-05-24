@@ -7,7 +7,7 @@
     "@inquirer/checkbox": "^4.1.7",
     "@inquirer/confirm": "^5.1.11",
     "@inquirer/input": "^4.1.11",
-    "@inquirer/select": "^4.2.1",
+    "@inquirer/select": "^4.2.2",
     "@oclif/core": "^4.3.0",
     "@oclif/plugin-help": "^6.2.28",
     "@sequelize/utils": "workspace:*",
