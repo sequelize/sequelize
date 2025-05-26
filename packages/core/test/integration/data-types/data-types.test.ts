@@ -766,7 +766,10 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        // Oracle inferences the datatype from the metadata and return the values in respective format.
+        if (dialect.name !== 'oracle') {
+          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        }
       });
 
       if (dialect.supports.dataTypes.INTS.unsigned) {
@@ -1001,9 +1004,10 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite3') {
+    if (dialect.name === 'sqlite3' || dialect.name === 'oracle') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
+      // Oracle inferences the datatype from the metadata and return the values in respective format.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
         await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, 123);
       });
