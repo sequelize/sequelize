@@ -305,14 +305,6 @@ export class BIGINT extends BaseTypes.BIGINT {
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_NUMBER };
   }
-
-  sanitize(value: any) {
-    if (typeof value === 'bigint' || typeof value === 'number') {
-      return value.toString();
-    }
-
-    return value;
-  }
 }
 
 export class FLOAT extends BaseTypes.FLOAT {

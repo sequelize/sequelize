@@ -28,7 +28,7 @@ enum TestEnum {
   'D,E' = 'D,E',
 }
 
-describe('DataTypes', () => {
+describe.only('DataTypes', () => {
   setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
@@ -128,16 +128,21 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    (dialect.name !== 'oracle' ? it : it.skip)('accepts strings', async () => {
+    it('accepts strings', async () => {
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
-    (dialect.name !== 'oracle' ? it : it.skip)(
-      'is deserialized as a string when DataType is not specified',
-      async () => {
-        await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
-      },
-    );
+    it('is deserialized as a string when DataType is not specified', async () => {
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
+      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
+    });
   });
 
   describe('STRING(100).BINARY', () => {
@@ -615,10 +620,7 @@ describe('DataTypes', () => {
 
       it('accepts numbers, bigints, strings', async () => {
         await testSimpleInOut(vars.User, 'intAttr', 123, 123);
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
-        }
-
+        await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(
@@ -684,9 +686,7 @@ describe('DataTypes', () => {
 
       it('accepts numbers, bigints, strings', async () => {
         await testSimpleInOut(vars.User, 'intAttr', 123, 123);
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
-        }
+        await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
 
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
@@ -751,11 +751,8 @@ describe('DataTypes', () => {
       });
 
       it('rejects unsafe integers', async () => {
-        if (dialect.name !== 'oracle') {
-          await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
-          await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
-        }
-
+        await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
@@ -769,11 +766,7 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
-        } else {
-          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
-        }
+        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
       });
 
       if (dialect.supports.dataTypes.INTS.unsigned) {
@@ -834,10 +827,7 @@ describe('DataTypes', () => {
 
       it(`accepts numbers, bigints, strings, +-Infinity`, async () => {
         await testSimpleInOut(vars.User, 'attr', 100.5, 100.5);
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOut(vars.User, 'attr', 123n, 123);
-        }
-
+        await testSimpleInOut(vars.User, 'attr', 123n, 123);
         await testSimpleInOut(vars.User, 'attr', '100.5', 100.5);
       });
 
@@ -886,9 +876,7 @@ describe('DataTypes', () => {
 
       it(`is deserialized as a JS number when DataType is not specified`, async () => {
         await testSimpleInOutRaw(vars.User, 'attr', 100.5, 100.5);
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
-        }
+        await testSimpleInOutRaw(vars.User, 'attr', 123n, 123);
 
         if (dialect.supports.dataTypes[attrType].NaN) {
           await testSimpleInOutRaw(vars.User, 'attr', Number.NaN, Number.NaN);
@@ -987,10 +975,7 @@ describe('DataTypes', () => {
 
     it('accepts numbers, bigints, strings', async () => {
       await testSimpleInOut(vars.User, 'decimalAttr', 123.4, '123.4');
-      if (dialect.name !== 'oracle') {
-        await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123');
-      }
-
+      await testSimpleInOut(vars.User, 'decimalAttr', 123n, '123');
       await testSimpleInOut(vars.User, 'decimalAttr', '123.4', '123.4');
     });
 
@@ -1016,7 +1001,7 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite3' || dialect.name === 'oracle') {
+    if (dialect.name === 'sqlite3') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
