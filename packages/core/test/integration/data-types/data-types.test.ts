@@ -28,7 +28,7 @@ enum TestEnum {
   'D,E' = 'D,E',
 }
 
-describe.only('DataTypes', () => {
+describe('DataTypes', () => {
   setResetMode('none');
 
   // TODO: merge STRING & TEXT: remove default length limit on STRING instead of using 255.
