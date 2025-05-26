@@ -537,8 +537,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[booleanAttr] = true`,
           mssql: '[booleanAttr] = 1',
           sqlite3: '`booleanAttr` = 1',
-          ibmi: '"booleanAttr" = 1',
-          oracle: `"booleanAttr" = 1`,
+          'ibmi oracle': '"booleanAttr" = 1',
         },
       );
 
@@ -795,8 +794,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.eq]: true } },
         {
           default: '[booleanAttr] = true',
-          'mssql sqlite3 ibmi': '[booleanAttr] = 1',
-          oracle: `"booleanAttr" = 1`,
+          'mssql sqlite3 ibmi oracle': '[booleanAttr] = 1',
         },
       );
 
@@ -832,8 +830,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.ne]: true } },
         {
           default: '[booleanAttr] != true',
-          'mssql ibmi sqlite3': '[booleanAttr] != 1',
-          oracle: `"booleanAttr" != 1`,
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] != 1',
         },
       );
 
@@ -870,8 +867,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.is]: false } },
         {
           default: '[booleanAttr] IS false',
-          'mssql ibmi sqlite3': '[booleanAttr] IS 0',
-          oracle: `"booleanAttr" IS 0`,
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS 0',
         },
       );
 
@@ -879,8 +875,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.is]: true } },
         {
           default: '[booleanAttr] IS true',
-          'mssql ibmi sqlite3': '[booleanAttr] IS 1',
-          oracle: `"booleanAttr" IS 1`,
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS 1',
         },
       );
 
@@ -976,8 +971,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.isNot]: false } },
         {
           default: '[booleanAttr] IS NOT false',
-          'mssql ibmi sqlite3': '[booleanAttr] IS NOT 0',
-          oracle: `"booleanAttr" IS NOT 0`,
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS NOT 0',
         },
       );
 
@@ -985,8 +979,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.isNot]: true } },
         {
           default: '[booleanAttr] IS NOT true',
-          'mssql ibmi sqlite3': '[booleanAttr] IS NOT 1',
-          oracle: `"booleanAttr" IS NOT 1`,
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS NOT 1',
         },
       );
     });
@@ -1036,9 +1029,8 @@ Caused by: "undefined" cannot be escaped`),
         {
           default: 'NOT ([booleanAttr] = false)',
           mssql: 'NOT ([booleanAttr] = 0)',
-          ibmi: 'NOT ("booleanAttr" = 0)',
+          'ibmi oracle': 'NOT ("booleanAttr" = 0)',
           sqlite3: 'NOT (`booleanAttr` = 0)',
-          oracle: `NOT ("booleanAttr" = 0)`,
         },
       );
 
@@ -1047,9 +1039,8 @@ Caused by: "undefined" cannot be escaped`),
         {
           default: 'NOT ([booleanAttr] = true)',
           mssql: 'NOT ([booleanAttr] = 1)',
-          ibmi: 'NOT ("booleanAttr" = 1)',
+          'ibmi oracle': 'NOT ("booleanAttr" = 1)',
           sqlite3: 'NOT (`booleanAttr` = 1)',
-          oracle: 'NOT ("booleanAttr" = 1)',
         },
       );
 
