@@ -6,7 +6,7 @@
   "dependencies": {
     "@inquirer/checkbox": "^4.1.8",
     "@inquirer/confirm": "^5.1.12",
-    "@inquirer/input": "^4.1.11",
+    "@inquirer/input": "^4.1.12",
     "@inquirer/select": "^4.2.2",
     "@oclif/core": "^4.3.0",
     "@oclif/plugin-help": "^6.2.28",
