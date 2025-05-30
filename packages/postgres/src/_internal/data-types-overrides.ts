@@ -82,11 +82,9 @@ export class TEXT extends BaseTypes.TEXT {
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
-    if (this.options.precision != null) {
-      return `TIMESTAMP(${this.options.precision}) WITH TIME ZONE`;
-    }
+    const result = super.toSql();
 
-    return 'TIMESTAMP WITH TIME ZONE';
+    return this.options.plain ? `${result} WITHOUT TIME ZONE` : `${result} WITH TIME ZONE`;
   }
 
   validate(value: any) {
@@ -135,6 +133,21 @@ export class DATE extends BaseTypes.DATE {
     }
 
     return super.sanitize(value);
+  }
+
+  parseDatabaseValue(value: unknown): unknown {
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase();
+      if (lower === 'infinity') {
+        return Number.POSITIVE_INFINITY;
+      }
+
+      if (lower === '-infinity') {
+        return Number.NEGATIVE_INFINITY;
+      }
+    }
+
+    return super.parseDatabaseValue(value);
   }
 }
 
