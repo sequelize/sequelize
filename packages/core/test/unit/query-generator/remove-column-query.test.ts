@@ -12,6 +12,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGenerator.removeColumnQuery('myTable', 'myColumn'), {
       default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
       sqlite3: notSupportedError,
+      hana: 'ALTER TABLE "myTable" DROP ("myColumn")',
     });
   });
 
@@ -37,6 +38,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGenerator.removeColumnQuery(MyModel, 'myColumn'), {
       default: 'ALTER TABLE [MyModels] DROP COLUMN [myColumn]',
       sqlite3: notSupportedError,
+      hana: 'ALTER TABLE "MyModels" DROP ("myColumn")',
     });
   });
 
@@ -47,6 +49,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGenerator.removeColumnQuery(myDefinition, 'myColumn'), {
       default: 'ALTER TABLE [MyModels] DROP COLUMN [myColumn]',
       sqlite3: notSupportedError,
+      hana: 'ALTER TABLE "MyModels" DROP ("myColumn")',
     });
   });
 
@@ -57,6 +60,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
       {
         default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
         sqlite3: notSupportedError,
+        hana: 'ALTER TABLE "mySchema"."myTable" DROP ("myColumn")',
       },
     );
   });
@@ -71,6 +75,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
       {
         default: 'ALTER TABLE [myTable] DROP COLUMN [myColumn]',
         sqlite3: notSupportedError,
+        hana: 'ALTER TABLE "myTable" DROP ("myColumn")',
       },
     );
   });
@@ -82,6 +87,7 @@ describe('QueryGenerator#removeColumnQuery', () => {
     expectsql(() => queryGeneratorSchema.removeColumnQuery('myTable', 'myColumn'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP COLUMN [myColumn]',
       sqlite3: notSupportedError,
+      hana: 'ALTER TABLE "mySchema"."myTable" DROP ("myColumn")',
     });
   });
 
