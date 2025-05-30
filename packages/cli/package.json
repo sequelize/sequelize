@@ -7,13 +7,13 @@
     "@inquirer/checkbox": "^4.1.8",
     "@inquirer/confirm": "^5.1.12",
     "@inquirer/input": "^4.1.12",
-    "@inquirer/select": "^4.2.2",
+    "@inquirer/select": "^4.2.3",
     "@oclif/core": "^4.3.0",
     "@oclif/plugin-help": "^6.2.28",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
-    "zod": "^3.25.28"
+    "zod": "^3.25.32"
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
