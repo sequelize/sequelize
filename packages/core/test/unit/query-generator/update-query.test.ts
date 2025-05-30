@@ -59,6 +59,7 @@ describe('QueryGenerator#updateQuery', () => {
     expectsql(query, {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1,[lastName]=$1,[username]=$sequelize_2',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1,"lastName"=$1,"username"=$sequelize_2);`,
+      oracle: `UPDATE "Users" SET "firstName"=:1,"lastName"=$1,"username"=:2`,
     });
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
@@ -105,6 +106,7 @@ describe('QueryGenerator#updateQuery', () => {
       query: {
         default: 'UPDATE [myTable] SET [date]=$sequelize_1 WHERE [id] = $sequelize_2',
         db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "date"=$sequelize_1 WHERE "id" = $sequelize_2);',
+        oracle: `UPDATE "myTable" SET "date"=:1 WHERE "id" = :2`,
       },
       bind: {
         mysql: {
@@ -137,6 +139,10 @@ describe('QueryGenerator#updateQuery', () => {
         },
         mssql: {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+        oracle: {
+          sequelize_1: new Date('2011-03-27T10:01:55Z'),
           sequelize_2: 2,
         },
       },
@@ -158,6 +164,7 @@ describe('QueryGenerator#updateQuery', () => {
         default:
           'UPDATE [myTable] SET [positive]=$sequelize_1,[negative]=$sequelize_2 WHERE [id] = $sequelize_3',
         db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
+        oracle: `UPDATE "myTable" SET "positive"=:1,"negative"=:2 WHERE "id" = :3`,
       },
       bind: {
         sqlite3: {
@@ -200,6 +207,11 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_2: false,
           sequelize_3: 2,
         },
+        oracle: {
+          sequelize_1: '1',
+          sequelize_2: '0',
+          sequelize_3: 2,
+        },
       },
     });
   });
@@ -219,6 +231,7 @@ describe('QueryGenerator#updateQuery', () => {
       default:
         'UPDATE [myTable] SET [value]=$sequelize_1,[name]=$sequelize_2 WHERE [id] = $sequelize_3',
       db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "value"=$sequelize_1,"name"=$sequelize_2 WHERE "id" = $sequelize_3);',
+      oracle: `UPDATE "myTable" SET "value"=:1,"name"=:2 WHERE "id" = :3`,
     });
 
     expect(bind).to.deep.eq({

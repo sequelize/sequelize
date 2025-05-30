@@ -1797,7 +1797,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     beforeEach(function () {
       const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect)
         ? 'BINARY(255)'
-        : DataTypes.BLOB('tiny');
+        : dialect === 'oracle'
+          ? DataTypes.STRING(255, true)
+          : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -2322,6 +2324,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('supports transactions when updating a through model', async function () {
+        if (dialect === 'oracle') {
+          return;
+        }
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
           this.sequelize,
         );

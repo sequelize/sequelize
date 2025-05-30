@@ -459,6 +459,7 @@ describe('Model.update', () => {
               mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
               db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
               ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+              oracle: `UPDATE "users1" SET "secretValue"=:1,"updatedAt"=:2 WHERE "id" = :3`,
             });
           },
           returning: [sql.col('*')],
