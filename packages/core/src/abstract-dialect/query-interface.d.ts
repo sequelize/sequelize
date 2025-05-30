@@ -26,7 +26,7 @@ interface Replaceable {
   /**
    * Only named replacements are allowed in query interface methods.
    */
-  replacements?: { [key: string]: unknown };
+  replacements?: Record<string, unknown>;
 }
 
 interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
