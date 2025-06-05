@@ -10,11 +10,8 @@ import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
-import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import forEach from 'lodash/forEach';
 import forOwn from 'lodash/forOwn';
@@ -344,53 +341,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const generatedQuery = template(allQueries.join(';'), this._templateSettings)(replacements);
 
     return generatedQuery;
-  }
-
-  updateQuery(tableName, attrValueHash, where, options, attributes) {
-    const sql = super.updateQuery(tableName, attrValueHash, where, options, attributes);
-    options ||= {};
-    defaults(options, this.options);
-    if (!options.limit) {
-      sql.query = `SELECT * FROM FINAL TABLE (${removeTrailingSemicolon(sql.query)});`;
-
-      return sql;
-    }
-
-    attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
-
-    const modelAttributeMap = {};
-    const values = [];
-    const bind = {};
-    const bindParam = options.bindParam || this.bindParam(bind);
-
-    if (attributes) {
-      each(attributes, (attribute, key) => {
-        modelAttributeMap[key] = attribute;
-        if (attribute.field) {
-          modelAttributeMap[attribute.field] = attribute;
-        }
-      });
-    }
-
-    for (const key in attrValueHash) {
-      const value = attrValueHash[key] ?? null;
-      const escapedValue = this.escape(value, {
-        // TODO: pass model
-        type: modelAttributeMap[key]?.type,
-        replacements: options.replacements,
-        bindParam,
-      });
-
-      values.push(`${this.quoteIdentifier(key)}=${escapedValue}`);
-    }
-
-    let query;
-    const whereOptions = defaults({ bindParam }, options);
-
-    query = `UPDATE (SELECT * FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} FETCH NEXT ${this.escape(options.limit, undefined, { replacements: options.replacements })} ROWS ONLY) SET ${values.join(',')}`;
-    query = `SELECT * FROM FINAL TABLE (${query});`;
-
-    return { query, bind };
   }
 
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
