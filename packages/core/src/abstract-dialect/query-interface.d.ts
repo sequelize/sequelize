@@ -121,7 +121,7 @@ export interface IndexOptions {
   type?: IndexType | undefined;
 
   /**
-   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
+   * Should the index be unique? Can also be triggered by setting type to `UNIQUE`
    *
    * @default false
    */
