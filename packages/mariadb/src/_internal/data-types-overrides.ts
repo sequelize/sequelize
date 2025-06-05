@@ -1,15 +1,8 @@
 import type { BindParamOptions, GeoJson } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
-import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
-import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';
-import timezone from 'dayjs/plugin/timezone';
-import utc from 'dayjs/plugin/utc';
 import wkx from 'wkx';
-
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export class FLOAT extends BaseTypes.FLOAT {
   protected getNumberSqlTypeName(): string {
@@ -30,8 +23,6 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 
 export class DATE extends BaseTypes.DATE {
   toBindableValue(date: AcceptedDate) {
-    date = this._applyTimezone(date);
-
     // MariaDB datetime precision defaults to 0
     const precision = this.options.precision ?? 0;
     let format = 'YYYY-MM-DD HH:mm:ss';
@@ -42,19 +33,19 @@ export class DATE extends BaseTypes.DATE {
       format += `.SSS`;
     }
 
-    return date.format(format);
+    // MariaDB sets the timezone DB-side, and the input doesn't specify the timezone offset, so we have to offset the value ourselves
+    // TODO: remove the applyTimezone call when data type is limited to plain only
+    return this.options.plain
+      ? dayjs(date).format(format)
+      : this._applyTimezone(date).format(format);
   }
 
-  sanitize(value: unknown, options?: { timezone?: string }): unknown {
-    if (isString(value) && options?.timezone) {
-      if (isValidTimeZone(options.timezone)) {
-        return dayjs.tz(value, options.timezone).toDate();
-      }
-
-      return new Date(`${value} ${options.timezone}`);
+  toSql() {
+    if (this.options.precision != null) {
+      return `DATETIME(${this.options.precision})`;
     }
 
-    return super.sanitize(value);
+    return 'DATETIME';
   }
 }
 
