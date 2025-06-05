@@ -2433,9 +2433,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.2.10, @oclif/core@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "@oclif/core@npm:4.3.0"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.2.10, @oclif/core@npm:^4.3.1":
+  version: 4.3.1
+  resolution: "@oclif/core@npm:4.3.1"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.17.0"
@@ -2444,7 +2444,6 @@ __metadata:
     debug: "npm:^4.4.0"
     ejs: "npm:^3.1.10"
     get-package-type: "npm:^0.1.0"
-    globby: "npm:^11.1.0"
     indent-string: "npm:^4.0.0"
     is-wsl: "npm:^2.2.0"
     lilconfig: "npm:^3.1.3"
@@ -2452,10 +2451,11 @@ __metadata:
     semver: "npm:^7.6.3"
     string-width: "npm:^4.2.3"
     supports-color: "npm:^8"
+    tinyglobby: "npm:^0.2.13"
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/4915039f066b2de769f5199a82b8cc2bf52a345462b1967ec695f91d0a48ceb3d0e99ee9f7930e5003cfca1cb0d4b3194d672d5ddf740b0cc7b9b90db5850baf
+  checksum: 10c0/a206d8d551e7fddf6f7d014335f36aa89c4c0f925d8bf7ef931021d023a61601025afa6d5839af50b9f93c3528de63c0ea7a0c94202e5f9fbbfcbbac513aff6a
   languageName: node
   linkType: hard
 
@@ -2710,7 +2710,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.12"
     "@inquirer/input": "npm:^4.1.12"
     "@inquirer/select": "npm:^4.2.3"
-    "@oclif/core": "npm:^4.3.0"
+    "@oclif/core": "npm:^4.3.1"
     "@oclif/plugin-help": "npm:^6.2.28"
     "@oclif/test": "npm:4.1.13"
     "@sequelize/utils": "workspace:*"
@@ -2721,9 +2721,9 @@ __metadata:
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.5.0"
-    oclif: "npm:4.17.46"
+    oclif: "npm:4.18.0"
     rimraf: "npm:5.0.10"
-    zod: "npm:^3.25.32"
+    zod: "npm:^3.25.51"
   bin:
     sequelize: ./bin/run.js
   languageName: unknown
@@ -2799,7 +2799,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/ibm_db": "npm:^3.2.0"
     dayjs: "npm:^1.11.13"
-    ibm_db: "npm:^3.3.0"
+    ibm_db: "npm:^3.3.1"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -4673,7 +4673,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ansis@npm:^3.17.0":
+"ansis@npm:^3.16.0, ansis@npm:^3.17.0":
   version: 3.17.0
   resolution: "ansis@npm:3.17.0"
   checksum: 10c0/d8fa94ca7bb91e7e5f8a7d323756aa075facce07c5d02ca883673e128b2873d16f93e0dec782f98f1eeb1f2b3b4b7b60dcf0ad98fb442e75054fe857988cc5cb
@@ -5553,7 +5553,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^4, chalk@npm:^4.0.0, chalk@npm:^4.0.2, chalk@npm:^4.1.0, chalk@npm:^4.1.1, chalk@npm:^4.1.2":
+"chalk@npm:^4.0.0, chalk@npm:^4.0.2, chalk@npm:^4.1.0, chalk@npm:^4.1.1, chalk@npm:^4.1.2":
   version: 4.1.2
   resolution: "chalk@npm:4.1.2"
   dependencies:
@@ -8945,9 +8945,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "ibm_db@npm:3.3.0"
+"ibm_db@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "ibm_db@npm:3.3.1"
   dependencies:
     adm-zip: "npm:^0.5.16"
     axios: "npm:^1.7.4"
@@ -8955,10 +8955,10 @@ __metadata:
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
     lodash: "npm:^4.17.21"
-    nan: "npm:^2.22.0"
+    nan: "npm:^2.22.2"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/46305113b8428703bb3cc05f13ea1f64bae0de80a3293fbf8c13c9ee7a9eef288962c47eec58230af698559c7dc3505f26c6e514b99275d0a0e045232e1468e0
+  checksum: 10c0/e040d4771b2df6ba8d4ddbb249e8cbf7b408c5970a9f64fff2ee98836e92d857046d955e86e5f289416482e89c41b3876cdaa6b646e2c05ba7ab9cf6606c5274
   languageName: node
   linkType: hard
 
@@ -11691,7 +11691,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.22.0":
+"nan@npm:^2.22.2":
   version: 2.22.2
   resolution: "nan@npm:2.22.2"
   dependencies:
@@ -12360,9 +12360,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.17.46":
-  version: 4.17.46
-  resolution: "oclif@npm:4.17.46"
+"oclif@npm:4.18.0":
+  version: 4.18.0
+  resolution: "oclif@npm:4.18.0"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.787.0"
     "@aws-sdk/client-s3": "npm:^3.787.0"
@@ -12373,8 +12373,8 @@ __metadata:
     "@oclif/plugin-help": "npm:^6.2.27"
     "@oclif/plugin-not-found": "npm:^3.2.48"
     "@oclif/plugin-warn-if-update-available": "npm:^3.1.38"
+    ansis: "npm:^3.16.0"
     async-retry: "npm:^1.3.3"
-    chalk: "npm:^4"
     change-case: "npm:^4"
     debug: "npm:^4.4.0"
     ejs: "npm:^3.1.10"
@@ -12390,7 +12390,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/6ee2365696961cc6a600459a0b89ed6d061a869af39c20e0feb1e5865f19e98e2c8151f7ce18c411718ea0a424ddd3b0cbb78975b94708ce38b8669b1878827f
+  checksum: 10c0/b9972a9cbc23f78012ca9f7cacb4a78567c3aa7c91572d1454144f8c564e98082faf8fd3be38c70a1186c5392e1789cdefe4276a7ac27bd11630f0fb11641c36
   languageName: node
   linkType: hard
 
@@ -16581,9 +16581,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod@npm:^3.25.32":
-  version: 3.25.32
-  resolution: "zod@npm:3.25.32"
-  checksum: 10c0/de0bc052a7666578b3d5dd42bc522f02f27e1c798236439c0f6b6bc1b311a221706aebdafb1f58399d5f558b1fab7860c6970e096fe8d6947743bc791d567c4b
+"zod@npm:^3.25.51":
+  version: 3.25.51
+  resolution: "zod@npm:3.25.51"
+  checksum: 10c0/6fc708a45b0d44282c18da4c93f4d42336a884a42487031b40bacb7e8c5a2e539b7993d3ccba75f445df78050f05ff4e34110ffe03d2c3fcbe557c7fe7c1350a
   languageName: node
   linkType: hard
