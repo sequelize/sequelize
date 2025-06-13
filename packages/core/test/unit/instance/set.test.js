@@ -70,13 +70,14 @@ describe('Model#set', () => {
     });
     const user = User.build(
       {
-        date: ' ',
+        date: null,
       },
       {
         isNewRecord: false,
         raw: true,
       },
     );
+    expect(user.get('date')).not.to.be.instanceOf(Date);
 
     user.set('date', new Date());
     expect(user.get('date')).to.be.an.instanceof(Date);
