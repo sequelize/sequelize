@@ -17,6 +17,7 @@ import { HasManyAssociation } from './associations/has-many';
 import { HasOneAssociation } from './associations/has-one';
 import * as DataTypes from './data-types';
 import { ConstraintChecking, Deferrable } from './deferrable';
+import { IndexHints, ParameterStyle, QueryTypes, TableHints } from './enums.js';
 import * as SequelizeErrors from './errors';
 import { AssociationPath } from './expression-builders/association-path';
 import { Attribute } from './expression-builders/attribute';
@@ -34,14 +35,11 @@ import { sql } from './expression-builders/sql';
 import { Value } from './expression-builders/value';
 import { Where, where } from './expression-builders/where.js';
 import { importModels } from './import-models.js';
-import { IndexHints } from './index-hints';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
 import { ManualOnDelete } from './model-repository.types.js';
 import { Op } from './operators';
-import { QueryTypes } from './query-types';
 import { SequelizeTypeScript } from './sequelize-typescript';
-import { TableHints } from './table-hints';
 import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
@@ -852,6 +850,7 @@ Sequelize.useInflection = useInflection;
 Sequelize.SQL_NULL = SQL_NULL;
 Sequelize.JSON_NULL = JSON_NULL;
 Sequelize.ManualOnDelete = ManualOnDelete;
+Sequelize.ParameterStyle = ParameterStyle;
 
 Sequelize.AbstractConnectionManager = AbstractConnectionManager;
 Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
