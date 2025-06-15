@@ -71,6 +71,7 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
       CHAR: false,
       COLLATE_BINARY: true,
       CITEXT: true,
+      DATETIME: { offset: true },
       DECIMAL: false,
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // issue: https://github.com/TryGhost/node-sqlite3/issues/922
