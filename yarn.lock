@@ -2834,7 +2834,7 @@ __metadata:
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:8.2.2"
-    lint-staged: "npm:16.1.1"
+    lint-staged: "npm:16.1.2"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.45.0"
     mocha: "npm:11.6.0"
@@ -10351,9 +10351,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:16.1.1":
-  version: 16.1.1
-  resolution: "lint-staged@npm:16.1.1"
+"lint-staged@npm:16.1.2":
+  version: 16.1.2
+  resolution: "lint-staged@npm:16.1.2"
   dependencies:
     chalk: "npm:^5.4.1"
     commander: "npm:^14.0.0"
@@ -10367,7 +10367,7 @@ __metadata:
     yaml: "npm:^2.8.0"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10c0/80b1945b4e7c9d6c2e08f05bd2c175465f7b8b08a7f512582027ef7da5f2e961b96d4db3e50f9946d4d11a8068658d8fd2ac946655b30883a0adaf64acbc5613
+  checksum: 10c0/2a299fc0d56e0a64ed0af8caf937e00eac47cb270df2917e2d4b939074eaa63ecd7f16d3b70b7e5e57bff75ffbbbf8aae5768dedf3dfd45e3ca1b9caaf7740cc
   languageName: node
   linkType: hard
 
