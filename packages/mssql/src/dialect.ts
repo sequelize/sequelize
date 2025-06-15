@@ -87,6 +87,14 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     createSchema: {
       authorization: true,
     },
+    dropTable: {
+      dropHistoryTable: true,
+    },
+    temporalTables: {
+      systemPeriod: true,
+      historyRetentionPeriod: true,
+      historyTable: true,
+    },
     connectionTransactionMethods: true,
     settingIsolationLevelDuringTransaction: false,
     startTransaction: {
