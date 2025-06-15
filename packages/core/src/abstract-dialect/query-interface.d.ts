@@ -1,7 +1,5 @@
 import type { SetRequired } from 'type-fest';
-import type { Col } from '../expression-builders/col.js';
-import type { Fn } from '../expression-builders/fn.js';
-import type { Literal } from '../expression-builders/literal.js';
+import type { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type {
   AttributeOptions,
   Attributes,
@@ -9,11 +7,10 @@ import type {
   Filterable,
   Model,
   ModelStatic,
-  NormalizedAttributeOptions,
 } from '../model';
 import type { QueryRawOptions, QueryRawOptionsWithModel } from '../sequelize';
 import type { AllowLowercase } from '../utils/types.js';
-import type { DataType } from './data-types.js';
+import type { DataType, DataTypeClassOrInstance } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { AddColumnQueryOptions } from './query-generator.js';
@@ -32,7 +29,7 @@ interface Replaceable {
 interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | Array<string | Literal | Col>;
+  returning?: boolean | Array<string | BaseSqlExpression>;
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
@@ -40,11 +37,11 @@ export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLi
 }
 
 export interface QiUpdateOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | Array<string | Literal | Col>;
+  returning?: boolean | Array<string | BaseSqlExpression>;
 }
 
 export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
-  returning?: boolean | Array<string | Literal | Col>;
+  returning?: boolean | Array<string | BaseSqlExpression>;
 }
 
 export interface QiUpsertOptions<M extends Model>
@@ -143,7 +140,7 @@ export interface IndexOptions {
    * The fields to index.
    */
   // TODO: rename to "columns"
-  fields?: Array<string | IndexField | Fn | Literal>;
+  fields?: Array<string | IndexField | BaseSqlExpression>;
 
   /**
    * The method to create the index by (`USING` statement in SQL).
@@ -170,7 +167,7 @@ export interface IndexOptions {
   /**
    * Non-key columns to be added to the lead level of the nonclustered index.
    */
-  include?: Literal | Array<string | Literal>;
+  include?: BaseSqlExpression | Array<string | BaseSqlExpression>;
 }
 
 export interface QueryInterfaceIndexOptions
@@ -371,7 +368,7 @@ export class AbstractQueryInterface<
     values: object,
     where: WhereOptions<any>,
     options?: QiOptionsWithReplacements,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
+    columnDefinitions?: { [columnName: string]: DataTypeClassOrInstance },
   ): Promise<object>;
 
   /**
