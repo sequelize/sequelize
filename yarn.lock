@@ -2734,7 +2734,7 @@ __metadata:
     "@types/semver": "npm:7.7.0"
     "@types/sinon": "npm:17.0.4"
     "@types/sinon-chai": "npm:3.2.12"
-    "@types/validator": "npm:^13.15.1"
+    "@types/validator": "npm:^13.15.2"
     ansis: "npm:^3.17.0"
     bnf-parser: "npm:^3.1.6"
     chai: "npm:4.5.0"
@@ -4061,10 +4061,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/validator@npm:^13.15.1":
-  version: 13.15.1
-  resolution: "@types/validator@npm:13.15.1"
-  checksum: 10c0/4d13ee084bd6736e22fcec421fc01f2b4436e6c7290f29e271e67dca5852368989b46377bc2858554f56c5b33498a4e647d6ae2cb2ef1c3143def89e8be56210
+"@types/validator@npm:^13.15.2":
+  version: 13.15.2
+  resolution: "@types/validator@npm:13.15.2"
+  checksum: 10c0/2c7ce5b745e2c856d0ecd193469cf0edd5081b17208dfab4f03dd5801b8893dcf4cbcfcb662c2b6a42032940effd33e16a56a7eba9e2776b1804111118e320dc
   languageName: node
   linkType: hard
 
