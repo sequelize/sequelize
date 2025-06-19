@@ -2711,7 +2711,7 @@ __metadata:
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.2"
     cosmiconfig: "npm:^9.0.0"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     oclif: "npm:4.19.0"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.25.67"
@@ -2750,7 +2750,7 @@ __metadata:
     inflection: "npm:^3.0.2"
     lcov-result-merger: "npm:5.0.1"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     moment: "npm:2.30.1"
     nyc: "npm:17.1.0"
     p-map: "npm:4.0.0"
@@ -2807,7 +2807,7 @@ __metadata:
     dayjs: "npm:^1.11.13"
     lodash: "npm:^4.17.21"
     mariadb: "npm:^3.4.2"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     semver: "npm:^7.7.2"
     wkx: "npm:^0.5.0"
   languageName: unknown
@@ -2837,7 +2837,7 @@ __metadata:
     lint-staged: "npm:16.1.2"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.45.0"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     node-gyp: "npm:11.2.0"
     node-hook: "npm:1.0.0"
     nx: "npm:20.8.2"
@@ -2864,7 +2864,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.13"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     sinon: "npm:18.0.1"
     tedious: "npm:^19.0.0"
   languageName: unknown
@@ -2881,7 +2881,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.13"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     mysql2: "npm:^3.14.1"
     wkx: "npm:^0.5.0"
   languageName: unknown
@@ -2898,7 +2898,7 @@ __metadata:
     "@types/pg": "npm:^8.11.14"
     chai: "npm:4.5.0"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
     pg: "npm:^8.15.6"
     pg-hstore: "npm:^2.3.4"
     pg-types: "npm:^4.0.2"
@@ -2941,7 +2941,7 @@ __metadata:
     concurrently: "npm:9.1.2"
     expect-type: "npm:0.19.0"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
   languageName: unknown
   linkType: soft
 
@@ -2956,7 +2956,7 @@ __metadata:
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
     lodash: "npm:^4.17.21"
-    mocha: "npm:11.6.0"
+    mocha: "npm:11.7.0"
   languageName: unknown
   linkType: soft
 
@@ -11528,9 +11528,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mocha@npm:11.6.0":
-  version: 11.6.0
-  resolution: "mocha@npm:11.6.0"
+"mocha@npm:11.7.0":
+  version: 11.7.0
+  resolution: "mocha@npm:11.7.0"
   dependencies:
     browser-stdout: "npm:^1.3.1"
     chokidar: "npm:^4.0.1"
@@ -11555,7 +11555,7 @@ __metadata:
   bin:
     _mocha: bin/_mocha
     mocha: bin/mocha.js
-  checksum: 10c0/fd10feab1f035f12c77d440ac131bd7f89a6235d5d3795b8b30e894e44b5bfeec0397518a490bcac8b37583edf1eaa32175a30ba4255ca3afffd437615b4fca4
+  checksum: 10c0/1eb97ccc6b76804c184688871fcce52bacb38489f0ae885a9105df74f2367d6105a26b8a8e9efad55f38c10275551a3b53690ade8e3c1a586b6e746c10057c27
   languageName: node
   linkType: hard
 
