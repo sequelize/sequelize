@@ -2433,9 +2433,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.3.3":
-  version: 4.3.3
-  resolution: "@oclif/core@npm:4.3.3"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.3.3, @oclif/core@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@oclif/core@npm:4.4.0"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.17.0"
@@ -2455,7 +2455,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/d20fd455d9e633955ede49dc98b428cdc0640d4faff28aded626cbd036e3d746a54b945793854f6cb20e6bf4462f421bc6cac90264dc427dfc64a85cbd2d679a
+  checksum: 10c0/8100da57d6aeacecbfdb08fb0defb207880fe88ea41fcc2a6e18ddb912a45acf53f40f9024db63222d06826023ecca4fbc40199d4689ac9165483961faa99faa
   languageName: node
   linkType: hard
 
@@ -2710,7 +2710,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.12"
     "@inquirer/input": "npm:^4.1.12"
     "@inquirer/select": "npm:^4.2.3"
-    "@oclif/core": "npm:^4.3.3"
+    "@oclif/core": "npm:^4.4.0"
     "@oclif/plugin-help": "npm:^6.2.29"
     "@oclif/test": "npm:4.1.13"
     "@sequelize/utils": "workspace:*"
@@ -2738,7 +2738,7 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.12"
-    "@types/lodash": "npm:4.17.17"
+    "@types/lodash": "npm:4.17.18"
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.7.0"
     "@types/sinon": "npm:17.0.4"
@@ -2847,7 +2847,7 @@ __metadata:
     "@rushstack/eslint-patch": "npm:1.11.0"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
-    "@types/lodash": "npm:4.17.17"
+    "@types/lodash": "npm:4.17.18"
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.13.10"
     chai: "npm:4.5.0"
@@ -2961,7 +2961,7 @@ __metadata:
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
     "@types/chai": "npm:4.3.20"
-    "@types/lodash": "npm:^4.17.17"
+    "@types/lodash": "npm:^4.17.18"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     concurrently: "npm:9.1.2"
@@ -3924,10 +3924,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.17, @types/lodash@npm:^4.17.17":
-  version: 4.17.17
-  resolution: "@types/lodash@npm:4.17.17"
-  checksum: 10c0/8e75df02a15f04d4322c5a503e4efd0e7a92470570ce80f17e9f11ce2b1f1a7c994009c9bcff39f07e0f9ffd8ccaff09b3598997c404b801abd5a7eee5a639dc
+"@types/lodash@npm:4.17.18, @types/lodash@npm:^4.17.18":
+  version: 4.17.18
+  resolution: "@types/lodash@npm:4.17.18"
+  checksum: 10c0/d25f86941990403d59dcaae42b42fc9fef55a0a7f398790517e7189300183e425a94127594cbeaf9b5fcdc4f6c2b285e34f4301fb56c92f81ccd8505a41ab5f5
   languageName: node
   linkType: hard
 
