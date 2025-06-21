@@ -39,9 +39,9 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/pg": "^8.11.14",
+    "@types/pg": "^8.15.4",
     "lodash": "^4.17.21",
-    "pg": "^8.15.6",
+    "pg": "^8.16.2",
     "pg-hstore": "^2.3.4",
     "pg-types": "^4.0.2",
     "postgres-array": "^3.0.4",
