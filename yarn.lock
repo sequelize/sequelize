@@ -2790,7 +2790,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/ibm_db": "npm:^3.2.0"
     dayjs: "npm:^1.11.13"
-    ibm_db: "npm:^3.3.1"
+    ibm_db: "npm:^3.3.2"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -8910,9 +8910,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "ibm_db@npm:3.3.1"
+"ibm_db@npm:^3.3.2":
+  version: 3.3.2
+  resolution: "ibm_db@npm:3.3.2"
   dependencies:
     adm-zip: "npm:^0.5.16"
     axios: "npm:^1.7.4"
@@ -8923,7 +8923,7 @@ __metadata:
     nan: "npm:^2.22.2"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/e040d4771b2df6ba8d4ddbb249e8cbf7b408c5970a9f64fff2ee98836e92d857046d955e86e5f289416482e89c41b3876cdaa6b646e2c05ba7ab9cf6606c5274
+  checksum: 10c0/f9fd5169cfff32aa4ca5af667149217e80f24bb9498809f1454a27ef77a21bcdafefd3c70193e0a66aae698fc5e151c21df022f0418f9b3cdedc7b8e0d2d457a
   languageName: node
   linkType: hard
 
