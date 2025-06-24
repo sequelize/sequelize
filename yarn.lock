@@ -2433,7 +2433,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.3.3, @oclif/core@npm:^4.4.0":
+"@oclif/core@npm:^4, @oclif/core@npm:^4.4.0":
   version: 4.4.0
   resolution: "@oclif/core@npm:4.4.0"
   dependencies:
@@ -2480,17 +2480,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-warn-if-update-available@npm:^3.1.38":
-  version: 3.1.39
-  resolution: "@oclif/plugin-warn-if-update-available@npm:3.1.39"
+"@oclif/plugin-warn-if-update-available@npm:^3.1.41":
+  version: 3.1.42
+  resolution: "@oclif/plugin-warn-if-update-available@npm:3.1.42"
   dependencies:
     "@oclif/core": "npm:^4"
     ansis: "npm:^3.17.0"
-    debug: "npm:^4.4.0"
+    debug: "npm:^4.4.1"
     http-call: "npm:^5.2.2"
     lodash: "npm:^4.17.21"
     registry-auth-token: "npm:^5.1.0"
-  checksum: 10c0/a428b196ec32df0d785826905ee4c3c979c28dc6241d2e4e0d157d6b495c490c57f960b4d09765e976aa9b89c97c5f777be8ad347631b467abd1989185f0d57c
+  checksum: 10c0/29ec2429e30bc5edf9b0837769f6a839828fc3484a8f18bd13e092afc452fb548fdc4ac8700f4dee7a7e9ad88ada752f9af904d28a09a8c1d83af7ebeffbd61e
   languageName: node
   linkType: hard
 
@@ -2718,10 +2718,10 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     ansis: "npm:^3.17.0"
     chai: "npm:4.5.0"
-    concurrently: "npm:9.1.2"
+    concurrently: "npm:9.2.0"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.6.0"
-    oclif: "npm:4.19.0"
+    oclif: "npm:4.20.1"
     rimraf: "npm:5.0.10"
     zod: "npm:^3.25.67"
   bin:
@@ -2851,7 +2851,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.13.10"
     chai: "npm:4.5.0"
-    concurrently: "npm:9.1.2"
+    concurrently: "npm:9.2.0"
     cross-env: "npm:7.0.3"
     esbuild: "npm:0.25.5"
     eslint: "npm:8.57.1"
@@ -2964,7 +2964,7 @@ __metadata:
     "@types/lodash": "npm:^4.17.18"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
-    concurrently: "npm:9.1.2"
+    concurrently: "npm:9.2.0"
     expect-type: "npm:0.19.0"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.6.0"
@@ -5992,9 +5992,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"concurrently@npm:9.1.2":
-  version: 9.1.2
-  resolution: "concurrently@npm:9.1.2"
+"concurrently@npm:9.2.0":
+  version: 9.2.0
+  resolution: "concurrently@npm:9.2.0"
   dependencies:
     chalk: "npm:^4.1.2"
     lodash: "npm:^4.17.21"
@@ -6006,7 +6006,7 @@ __metadata:
   bin:
     conc: dist/bin/concurrently.js
     concurrently: dist/bin/concurrently.js
-  checksum: 10c0/88e00269366aa885ca2b97fd53b04e7af2b0f31774d991bfc0e88c0de61cdebdf115ddacc9c897fbd1f1b90369014637fa77045a171d072a75693332b36dcc70
+  checksum: 10c0/adbb5c42d9b36d345654187003c73e2e97e600b038729eec8f8fe735e01d543097b44990f0655fba8266753f4a0bef45fec69850a2c66d119dc1eddeb427858c
   languageName: node
   linkType: hard
 
@@ -12360,19 +12360,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.19.0":
-  version: 4.19.0
-  resolution: "oclif@npm:4.19.0"
+"oclif@npm:4.20.1":
+  version: 4.20.1
+  resolution: "oclif@npm:4.20.1"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.787.0"
     "@aws-sdk/client-s3": "npm:^3.787.0"
     "@inquirer/confirm": "npm:^3.1.22"
     "@inquirer/input": "npm:^2.2.4"
     "@inquirer/select": "npm:^2.5.0"
-    "@oclif/core": "npm:^4.3.3"
+    "@oclif/core": "npm:^4.4.0"
     "@oclif/plugin-help": "npm:^6.2.29"
     "@oclif/plugin-not-found": "npm:^3.2.57"
-    "@oclif/plugin-warn-if-update-available": "npm:^3.1.38"
+    "@oclif/plugin-warn-if-update-available": "npm:^3.1.41"
     ansis: "npm:^3.16.0"
     async-retry: "npm:^1.3.3"
     change-case: "npm:^4"
@@ -12390,7 +12390,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/bf81c3f5eddc81431bbf1f1c582bc1a88bb7b6e5bd1c15bdd3bf03928c28a967b5ab3c211ce2bac3716100bfe87aab9c134c246678ccad963fadb056b8c655dc
+  checksum: 10c0/b130f9edab900360434a120af3b63a7660a14314b9b82414c6dc7795d94abf510bcbd1df776c6e087f64f93d80bb55aeedd69c5c39917de7a3a10545fcee5841
   languageName: node
   linkType: hard
 

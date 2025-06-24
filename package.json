@@ -80,7 +80,7 @@
     "@types/mocha": "10.0.10",
     "@types/node": "22.13.10",
     "chai": "4.5.0",
-    "concurrently": "9.1.2",
+    "concurrently": "9.2.0",
     "cross-env": "7.0.3",
     "esbuild": "0.25.5",
     "eslint": "8.57.1",
