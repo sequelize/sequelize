@@ -3,8 +3,8 @@ set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 
-docker-compose -p sequelize-mysql-80 down --remove-orphans
-docker-compose -p sequelize-mysql-80 up -d
+docker compose -p sequelize-mysql-80 down --remove-orphans
+docker compose -p sequelize-mysql-80 up -d
 
 ./../../wait-until-healthy.sh sequelize-mysql-80
 

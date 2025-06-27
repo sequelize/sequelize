@@ -67,6 +67,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     testsql({
+      name: 'TO_DATE(\'0\',\'Y\')||\'\' OR 1=1--'
+    }, {
+      default: 'WHERE [name] = \'TO_DATE(\'\'0\'\',\'\'Y\'\')||\'\'\'\' OR 1=1--\'',
+      'mariadb mysql': "WHERE `name` = 'TO_DATE(\\'0\\',\\'Y\\')||\\'\\' OR 1=1--'",
+      mssql: 'WHERE [name] = N\'TO_DATE(\'\'0\'\',\'\'Y\'\')||\'\'\'\' OR 1=1--\'',
+      oracle: new Error('Invalid SQL function call.')
+    });
+
+    testsql({
       name: 'a project',
       [Op.or]: [
         { id: [1, 2, 3] },
