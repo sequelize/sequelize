@@ -17,18 +17,21 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'VARCHAR(255)',
       mssql: 'NVARCHAR(255)',
       sqlite3: 'TEXT',
+      oracle: 'NVARCHAR2(255)',
     });
 
     testDataTypeSql('STRING(1234)', DataTypes.STRING(1234), {
       default: 'VARCHAR(1234)',
       mssql: 'NVARCHAR(1234)',
       sqlite3: 'TEXT',
+      oracle: 'NVARCHAR2(1234)',
     });
 
     testDataTypeSql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
       default: 'VARCHAR(1234)',
       mssql: 'NVARCHAR(1234)',
       sqlite3: 'TEXT',
+      oracle: 'NVARCHAR2(1234)',
     });
 
     testDataTypeSql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
@@ -36,6 +39,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
       'mssql postgres': binaryCollationUnsupportedError,
+      oracle: 'RAW(1234)',
     });
 
     testDataTypeSql('STRING.BINARY', DataTypes.STRING.BINARY, {
@@ -43,6 +47,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
       'mssql postgres': binaryCollationUnsupportedError,
+      oracle: 'RAW(255)',
     });
   });
 
@@ -62,6 +67,7 @@ describe('DataTypes.TEXT', () => {
       default: 'TEXT',
       'ibmi db2': 'CLOB(2147483647)',
       mssql: 'NVARCHAR(MAX)', // in mssql text is actually representing a non unicode text field
+      oracle: 'CLOB',
     });
 
     testDataTypeSql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
@@ -69,6 +75,7 @@ describe('DataTypes.TEXT', () => {
       'ibmi db2': 'VARCHAR(256)',
       mssql: 'NVARCHAR(256)',
       'mariadb mysql': 'TINYTEXT',
+      oracle: 'CLOB',
     });
 
     testDataTypeSql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
@@ -76,6 +83,7 @@ describe('DataTypes.TEXT', () => {
       'ibmi db2': 'VARCHAR(256)',
       mssql: 'NVARCHAR(256)',
       'mariadb mysql': 'TINYTEXT',
+      oracle: 'CLOB',
     });
 
     testDataTypeSql('TEXT("medium")', DataTypes.TEXT('medium'), {
@@ -83,6 +91,7 @@ describe('DataTypes.TEXT', () => {
       'ibmi db2': 'CLOB(16777216)',
       mssql: 'NVARCHAR(MAX)',
       'mariadb mysql': 'MEDIUMTEXT',
+      oracle: 'CLOB',
     });
 
     testDataTypeSql('TEXT("long")', DataTypes.TEXT('long'), {
@@ -90,6 +99,7 @@ describe('DataTypes.TEXT', () => {
       'ibmi db2': 'CLOB(2147483647)',
       mssql: 'NVARCHAR(MAX)',
       'mariadb mysql': 'LONGTEXT',
+      oracle: 'CLOB',
     });
   });
 
@@ -166,6 +176,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
       sqlite3: charNotSupportedError,
       'postgres mssql': binaryNotSupportedError,
+      oracle: 'RAW(12)',
     });
 
     testDataTypeSql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
@@ -173,6 +184,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
       sqlite3: charNotSupportedError,
       'postgres mssql': binaryNotSupportedError,
+      oracle: 'RAW(255)',
     });
   });
 });
