@@ -1523,11 +1523,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/checkbox@npm:^4.1.8":
-  version: 4.1.8
-  resolution: "@inquirer/checkbox@npm:4.1.8"
+"@inquirer/checkbox@npm:^4.1.8, @inquirer/checkbox@npm:^4.1.9":
+  version: 4.1.9
+  resolution: "@inquirer/checkbox@npm:4.1.9"
   dependencies:
-    "@inquirer/core": "npm:^10.1.13"
+    "@inquirer/core": "npm:^10.1.14"
     "@inquirer/figures": "npm:^1.0.12"
     "@inquirer/type": "npm:^3.0.7"
     ansi-escapes: "npm:^4.3.2"
@@ -1537,7 +1537,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/6d726420b179c55b2f0001aaf6e339fa56e9e939afcbda31c386ab2e5d029ef6f2d392ec99c6a6950af1776a399791bbb88a635e4d047f1170b2ed8c5bba1e4c
+  checksum: 10c0/d1a93c31f3dad37f060bfdb6a8ba53f2cd36cfca7766c464c34aa95ecf691956c32be2f5b71cc8633ed7581452a04ab7b3a025d662270460d21b25069651ed42
   languageName: node
   linkType: hard
 
@@ -1566,9 +1566,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^10.1.13":
-  version: 10.1.13
-  resolution: "@inquirer/core@npm:10.1.13"
+"@inquirer/core@npm:^10.1.13, @inquirer/core@npm:^10.1.14":
+  version: 10.1.14
+  resolution: "@inquirer/core@npm:10.1.14"
   dependencies:
     "@inquirer/figures": "npm:^1.0.12"
     "@inquirer/type": "npm:^3.0.7"
@@ -1583,7 +1583,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/919208a31307297d5a07a44b9ebe69a999ce1470b31a2e1b5a04538bc36624d2053808cd6c677637a61690af09bdbdd635bd7031b64e3dd86c5b18df3ca7c3f9
+  checksum: 10c0/2553eb059201ebb182eb8e55a278ce3f2848a3abdfcf26e651b57b146f35baa19a286af0365ee5968b4459a1be93864ebf205a7af32fed8f995b394750a1d1f4
   languageName: node
   linkType: hard
 
@@ -2697,7 +2697,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/cli@workspace:packages/cli"
   dependencies:
-    "@inquirer/checkbox": "npm:^4.1.8"
+    "@inquirer/checkbox": "npm:^4.1.9"
     "@inquirer/confirm": "npm:^5.1.12"
     "@inquirer/input": "npm:^4.1.12"
     "@inquirer/select": "npm:^4.2.3"
