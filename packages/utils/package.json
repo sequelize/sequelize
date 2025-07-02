@@ -53,15 +53,15 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/lodash": "^4.17.17",
+    "@types/lodash": "^4.17.19",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
-    "concurrently": "9.1.2",
+    "concurrently": "9.2.0",
     "expect-type": "0.19.0",
-    "mocha": "11.5.0"
+    "mocha": "11.7.1"
   }
 }
