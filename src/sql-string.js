@@ -1,5 +1,6 @@
 'use strict';
 
+const moment = require('moment');
 const dataTypes = require('./data-types');
 const { logger } = require('./utils/logger');
 
@@ -76,9 +77,69 @@ function escape(val, timeZone, dialect, format) {
       val = val.replace(/\0/g, '\\0');
     }
   } else if (dialect === 'oracle' && typeof val === 'string') {
-    if (val.startsWith('TO_TIMESTAMP') || val.startsWith('TO_DATE')) {
+    if (val.startsWith('TO_TIMESTAMP_TZ') || val.startsWith('TO_DATE')) {
+      // Split the string using parentheses to isolate the function name, parameters, and potential extra parts
+      const splitVal = val.split(/\(|\)/);
+    
+      // Validate that the split result has exactly three parts (function name, parameters, and an empty string)
+      // and that there are no additional SQL commands after the function call (indicated by the last empty string).
+      if (splitVal.length !== 3 || splitVal[2] !== '') {
+        throw new Error('Invalid SQL function call.'); // Error if function call has unexpected format
+      }
+    
+      // Extract the function name (either 'TO_TIMESTAMP_TZ' or 'TO_DATE') and the contents inside the parentheses
+      const functionName = splitVal[0].trim(); // Function name should be 'TO_TIMESTAMP_TZ' or 'TO_DATE'
+      const insideParens = splitVal[1].trim(); // This contains the parameters (date value and format string)
+    
+      if (functionName !== 'TO_TIMESTAMP_TZ' && functionName !== 'TO_DATE') {
+        throw new Error('Invalid SQL function call. Expected TO_TIMESTAMP_TZ or TO_DATE.');
+      }
+    
+      // Split the parameters inside the parentheses by commas (should contain exactly two: date and format)
+      const params = insideParens.split(',');
+    
+      // Validate that the parameters contain exactly two parts (date value and format string)
+      if (params.length !== 2) {
+        throw new Error('Unexpected input received.\nSequelize supports TO_TIMESTAMP_TZ or TO_DATE exclusively with a combination of value and format.');
+      }
+    
+      // Extract the date value (first parameter) and remove single quotes around it
+      const dateValue = params[0].trim().replace(/'/g, '');
+      const formatValue = params[1].trim();
+    
+      if (functionName === 'TO_TIMESTAMP_TZ') {
+        const expectedFormat = "'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'";
+        // Validate that the formatValue is equal to expectedFormat since that is the only format used within sequelize
+        if (formatValue !== expectedFormat) {
+          throw new Error(`Invalid format string for TO_TIMESTAMP_TZ. Expected format: ${expectedFormat}`);
+        }
+      
+        // Validate the date value using Moment.js with the expected format
+        const formattedDate = moment(dateValue).format('YYYY-MM-DD HH:mm:ss.SSS Z');
+      
+        // If the formatted date doesn't match the input date value, throw an error
+        if (formattedDate !== dateValue) {
+          throw new Error("Invalid date value for TO_TIMESTAMP_TZ. Expected format: 'YYYY-MM-DD HH:mm:ss.SSS Z'");
+        }
+      } else if (functionName === 'TO_DATE') {
+        const expectedFormat = "'YYYY/MM/DD'";
+        // Validate that the formatValue is equal to expectedFormat since that is the only format used within sequelize
+        if (formatValue !== expectedFormat) {
+          throw new Error(`Invalid format string for TO_DATE. Expected format: ${expectedFormat}`);
+        }
+      
+        // Validate the date value using Moment.js with the expected format
+        const formattedDate = moment(dateValue).format('YYYY-MM-DD');
+      
+        // If the formatted date doesn't match the input date value, throw an error
+        if (formattedDate !== dateValue) {
+          throw new Error("Invalid date value for TO_DATE. Expected format: 'YYYY-MM-DD'");
+        }
+      }
+
       return val;
     }
+    
     val = val.replace(/'/g, "''");
   } else {
 

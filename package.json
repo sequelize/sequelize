@@ -1,7 +1,7 @@
 {
   "name": "@soinlabs/sequelize",
   "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift and Snowflake’s Data Cloud. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "funding": [
     {
       "type": "opencollective",
@@ -92,7 +92,7 @@
     "esdoc-inject-style-plugin": "^1.0.0",
     "esdoc-standard-plugin": "^1.0.0",
     "eslint": "^8.5.0",
-    "eslint-plugin-jsdoc": "^37.4.0",
+    "eslint-plugin-jsdoc": "^46.2.6",
     "eslint-plugin-mocha": "^9.0.0",
     "expect-type": "^0.12.0",
     "fast-glob": "^3.2.7",
