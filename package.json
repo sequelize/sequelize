@@ -73,7 +73,7 @@
   ],
   "devDependencies": {
     "@ephys/eslint-config-typescript": "20.1.4",
-    "@rushstack/eslint-patch": "1.11.0",
+    "@rushstack/eslint-patch": "1.12.0",
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.20",
     "@types/lodash": "4.17.19",
@@ -88,7 +88,7 @@
     "eslint-plugin-mocha": "10.5.0",
     "fast-glob": "3.3.3",
     "husky": "9.1.7",
-    "lerna": "8.2.2",
+    "lerna": "8.2.3",
     "lint-staged": "16.1.2",
     "lodash": "4.17.21",
     "markdownlint-cli": "0.45.0",
