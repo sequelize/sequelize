@@ -2806,7 +2806,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.13"
     lodash: "npm:^4.17.21"
-    mariadb: "npm:^3.4.2"
+    mariadb: "npm:^3.4.4"
     mocha: "npm:11.7.1"
     semver: "npm:^7.7.2"
     wkx: "npm:^0.5.0"
@@ -3847,13 +3847,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/geojson@npm:^7946.0.14":
-  version: 7946.0.16
-  resolution: "@types/geojson@npm:7946.0.16"
-  checksum: 10c0/1ff24a288bd5860b766b073ead337d31d73bdc715e5b50a2cee5cb0af57a1ed02cc04ef295f5fa68dc40fe3e4f104dd31282b2b818a5ba3231bc1001ba084e3c
-  languageName: node
-  linkType: hard
-
 "@types/hast@npm:^3.0.4":
   version: 3.0.4
   resolution: "@types/hast@npm:3.0.4"
@@ -3942,7 +3935,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18, @types/node@npm:^22.5.4, @types/node@npm:^22.5.5":
+"@types/node@npm:*, @types/node@npm:>=18, @types/node@npm:^22.5.5":
   version: 22.15.3
   resolution: "@types/node@npm:22.15.3"
   dependencies:
@@ -10780,16 +10773,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:^3.4.2":
-  version: 3.4.2
-  resolution: "mariadb@npm:3.4.2"
+"mariadb@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "mariadb@npm:3.4.4"
   dependencies:
-    "@types/geojson": "npm:^7946.0.14"
-    "@types/node": "npm:^22.5.4"
     denque: "npm:^2.1.0"
     iconv-lite: "npm:^0.6.3"
     lru-cache: "npm:^10.3.0"
-  checksum: 10c0/a4cc412490e8f719b72904764b7a9d1ad7b3908b1c6fb6baae620327fd4c3583b6240a7b195261a92a833896a3c5d8f4ba78f6d48d06c5d1c61971b5dd59e80b
+  checksum: 10c0/80cdf04a58e0ceeb7c2cf8630f740c551f23b0d061973422c6e329c09c8d57542f553b8b816211ea26e47b8749baffddff77a3691c1b722f6bf86b0b2bdedbd6
   languageName: node
   linkType: hard
 
