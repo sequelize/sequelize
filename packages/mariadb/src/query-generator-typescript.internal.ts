@@ -2,26 +2,19 @@ import type {
   Expression,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import {
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { MariaDbDialect } from './dialect.js';
 import { MariaDbQueryGeneratorInternal } from './query-generator.internal.js';
-
-const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -126,38 +119,6 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showIndexesQuery(tableName: TableOrModel) {
     return `SHOW INDEX FROM ${this.quoteTable(tableName)}`;
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
-
-    let indexName;
-    if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
-    }
-
-    return joinSQLFragments([
-      'DROP INDEX',
-      options?.ifExists ? 'IF EXISTS' : '',
-      this.quoteIdentifier(indexName),
-      'ON',
-      this.quoteTable(tableName),
-    ]);
   }
 
   getToggleForeignKeyChecksQuery(enable: boolean): string {
