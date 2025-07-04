@@ -1656,18 +1656,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/input@npm:^4.1.12":
-  version: 4.1.12
-  resolution: "@inquirer/input@npm:4.1.12"
+"@inquirer/input@npm:^4.1.12, @inquirer/input@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@inquirer/input@npm:4.2.0"
   dependencies:
-    "@inquirer/core": "npm:^10.1.13"
+    "@inquirer/core": "npm:^10.1.14"
     "@inquirer/type": "npm:^3.0.7"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/17b59547432f54a18ec573fde96c2c13c827f04faf694fc58239ec97e993ac6af151ed2a0521029c9199a4f422742dbe5dc23c20705748eafdc7dd26c7adca3a
+  checksum: 10c0/c9b671bbb8c8079e975c9138951b7abb6b06e04a44e47286b659569080140f5f18015ba3f2d55e90c5060a313a3c3e9e115138feced7abe7a94a43190a052199
   languageName: node
   linkType: hard
 
@@ -2699,7 +2699,7 @@ __metadata:
   dependencies:
     "@inquirer/checkbox": "npm:^4.1.9"
     "@inquirer/confirm": "npm:^5.1.13"
-    "@inquirer/input": "npm:^4.1.12"
+    "@inquirer/input": "npm:^4.2.0"
     "@inquirer/select": "npm:^4.2.4"
     "@oclif/core": "npm:^4.4.1"
     "@oclif/plugin-help": "npm:^6.2.29"
