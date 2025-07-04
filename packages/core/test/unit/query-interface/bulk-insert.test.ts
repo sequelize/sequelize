@@ -41,6 +41,9 @@ describe('QueryInterface#bulkInsert', () => {
       mssql: toMatchRegex(
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
       ),
+      hana: toMatchRegex(
+        /^INSERT INTO "Users" \("firstName"\) \((?:SELECT '\w+' FROM DUMMY UNION ALL ){999}SELECT '\w+' FROM DUMMY\);$/,
+      ),
     });
   });
 
@@ -64,6 +67,9 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       mssql: toMatchRegex(
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
+      ),
+      hana: toMatchRegex(
+        /^INSERT INTO "Users" \("firstName"\) \((?:SELECT '\w+' FROM DUMMY UNION ALL ){1999}SELECT '\w+' FROM DUMMY\);$/,
       ),
     });
   });
@@ -100,6 +106,7 @@ describe('QueryInterface#bulkInsert', () => {
       ibmi: toMatchSql(
         `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
       ),
+      hana: toMatchSql(`INSERT INTO "Users" ("firstName") (SELECT ':injection' FROM DUMMY);`),
     });
   });
 });
