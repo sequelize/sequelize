@@ -5,15 +5,15 @@
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
     "@inquirer/checkbox": "^4.1.9",
-    "@inquirer/confirm": "^5.1.12",
-    "@inquirer/input": "^4.1.12",
-    "@inquirer/select": "^4.2.3",
-    "@oclif/core": "^4.4.0",
-    "@oclif/plugin-help": "^6.2.29",
+    "@inquirer/confirm": "^5.1.13",
+    "@inquirer/input": "^4.2.0",
+    "@inquirer/select": "^4.2.4",
+    "@oclif/core": "^4.4.1",
+    "@oclif/plugin-help": "^6.2.30",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
-    "zod": "^3.25.67"
+    "zod": "^3.25.74"
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
