@@ -41,12 +41,13 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     'ON DUPLICATE KEY': false,
     connectionTransactionMethods: true,
     bulkDefault: true,
-    index: {
-      using: false,
+    addIndex: {
+      expression: true,
+      schemaQuoted: true,
       where: true,
-      functionBased: true,
-      collate: false,
-      include: false,
+    },
+    removeIndex: {
+      ifExists: true,
     },
     constraints: {
       onUpdate: false,

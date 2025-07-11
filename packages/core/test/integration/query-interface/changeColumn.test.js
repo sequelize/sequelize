@@ -299,8 +299,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         });
 
-        await this.queryInterface.addIndex('foos', ['birthday']);
-        const initialIndexes = await this.queryInterface.showIndex('foos');
+        await this.queryInterface.addIndex('foos', { fields: ['birthday'] });
+        const initialIndexes = await this.queryInterface.showIndexes('foos');
         let table = await this.queryInterface.describeTable('foos');
         expect(table.email.unique).to.equal(true, '(0) email column should be unique');
         expect(table.name.unique).to.equal(true, '(0) name column should be unique');
@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+        expect(await this.queryInterface.showIndexes('foos')).to.deep.equal(
           initialIndexes,
           'addColumn should not modify indexes',
         );
@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           allowNull: true,
         });
 
-        expect(await this.queryInterface.showIndex('foos')).to.deep.equal(
+        expect(await this.queryInterface.showIndexes('foos')).to.deep.equal(
           initialIndexes,
           'changeColumn should not modify indexes',
         );
