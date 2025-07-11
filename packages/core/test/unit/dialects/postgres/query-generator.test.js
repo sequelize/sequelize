@@ -171,6 +171,15 @@ if (dialect.startsWith('postgres')) {
           ],
           expectation: `ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(''value 1'', ''value 2''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public"."enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(''value 3'', ''value 4''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public"."enum_myTable_col_2");`,
         },
+        {
+          arguments: [
+            'myTable',
+            {
+              col_1: `ENUM('value 1', 'value 2') NOT NULL; COMMENT ON COLUMN "myTable"."col_1" IS 'column 1'`,
+            },
+          ],
+          expectation: `ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(''value 1'', ''value 2''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public"."enum_myTable_col_1"); COMMENT ON COLUMN "myTable"."col_1" IS 'column 1';`,
+        },
       ],
 
       selectQuery: [
