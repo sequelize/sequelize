@@ -1,6 +1,7 @@
+/* eslint-disable semi */
 class QueryBuilder {
   /** @type {import('.').FindAttributeOptions | undefined} */
-  _attributes;
+  _attributes
 
   /** @type {import('.').WhereOptions | undefined} */
   _where;

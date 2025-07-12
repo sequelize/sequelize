@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     });
   });
 
-  if (['postgres', 'postgres-native'].includes(process.env.DIALECT)) {
+  if (Support.getTestDialect() === 'postgres') {
     describe('PostgreSQL-specific features', () => {
       it('should handle PostgreSQL operators correctly', () => {
         expectsql(
