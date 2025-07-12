@@ -42,14 +42,16 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should generate SELECT query with WHERE clause', () => {
       expectsql(User.select().where({ active: true }).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
-        'mssql sqlite3': 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
       });
     });
 
     it('should generate SELECT query with multiple WHERE conditions', () => {
       expectsql(User.select().where({ active: true, age: 25 }).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true AND [User].[age] = 25;',
-        'mssql sqlite3': 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1 AND [User].[age] = 25;'
+        sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1 AND `User`.`age` = 25;',
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1 AND [User].[age] = 25;'
       });
     });
 
@@ -58,7 +60,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         User.select().attributes(['name', 'email']).where({ active: true }).getQuery(),
         {
           default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
-          'mssql sqlite3': 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
+          sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
+          mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
         }
       );
     });
@@ -73,7 +76,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should generate SELECT query with LIMIT and OFFSET', () => {
       expectsql(User.select().limit(10).offset(5).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10 OFFSET 5;',
-        'mysql mariadb': 'SELECT * FROM `Users` AS `User` LIMIT 5, 10;',
+        'mysql mariadb sqlite': 'SELECT * FROM `Users` AS `User` LIMIT 5, 10;',
         mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
       });
     });
@@ -117,7 +120,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
 
       expectsql(builderWithWhere.getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
-        'mssql sqlite3': 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
       });
     });
 
@@ -126,7 +130,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
 
       expectsql(baseBuilder.where({ active: true }).getQuery(), {
         default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
-        'mssql sqlite3': 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
+        mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
       });
 
       expectsql(baseBuilder.where({ age: { [Op.lt]: 30 } }).getQuery(), {
@@ -205,7 +210,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .getQuery(),
         {
           default: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = true OR ([User].[age] >= 18 AND [User].[name] LIKE \'%admin%\'));',
-          sqlite3: 'SELECT * FROM `users` AS `User` WHERE `User`.`active` = 1 OR (`User`.`age` >= 18 AND `User`.`name` LIKE \'%admin%\');',
+          sqlite: 'SELECT * FROM `Users` AS `User` WHERE (`User`.`active` = 1 OR (`User`.`age` >= 18 AND `User`.`name` LIKE \'%admin%\'));',
           mssql: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));'
         }
       );
