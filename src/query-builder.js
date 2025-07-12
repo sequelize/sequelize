@@ -1,14 +1,17 @@
 class QueryBuilder {
-  /** @type {string[]} */
+  /** @type {import('.').FindAttributeOptions | undefined} */
   _attributes;
 
-  /** @type {Record<string, any>} */
+  /** @type {import('.').WhereOptions | undefined} */
   _where;
 
-  /** @type {number | null} */
+  /** @type {import('.').Order | undefined} */
+  _order;
+
+  /** @type {number | undefined} */
   _limit;
 
-  /** @type {number | null} */
+  /** @type {number | undefined} */
   _offset;
 
   /** @type {import('./model').Model} */
@@ -32,9 +35,11 @@ class QueryBuilder {
    */
   clone() {
     const newBuilder = new QueryBuilder(this._model);
+    newBuilder._sequelize = this._sequelize;
     newBuilder._isSelect = this._isSelect;
     newBuilder._attributes = this._attributes;
     newBuilder._where = this._where;
+    newBuilder._order = this._order;
     newBuilder._limit = this._limit;
     newBuilder._offset = this._offset;
 
@@ -79,6 +84,13 @@ class QueryBuilder {
     return newBuilder;
   }
 
+  orderBy(order) {
+    const newBuilder = this.clone();
+    newBuilder._order = order;
+
+    return newBuilder;
+  }
+
   /**
    * Set a LIMIT clause on the query
    *
@@ -119,9 +131,11 @@ class QueryBuilder {
     const tableName = this._model.tableName;
 
     // Build the options object that matches Sequelize's FindOptions pattern
+    /** @type {import('.').FindOptions} */
     const options = {
       attributes: this._attributes,
       where: this._where,
+      order: this._order,
       limit: this._limit,
       offset: this._offset,
       raw: true,

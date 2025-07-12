@@ -6,6 +6,7 @@ const Support = require('../support');
 const expectsql = Support.expectsql;
 
 describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
+  /** @type {typeof import('../../src/model').Model} */
   let User;
   before(async function() {
     User = this.sequelize.define('User', {
@@ -74,6 +75,16 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10 OFFSET 5;',
         'mysql mariadb': 'SELECT * FROM `Users` AS `User` LIMIT 5, 10;',
         mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
+      });
+    });
+
+    it('should generate SELECT query with ORDER BY', () => {
+      expectsql(User.select().orderBy(['name']).getQuery(), {
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[name];'
+      });
+
+      expectsql(User.select().orderBy([['age', 'DESC']]).getQuery(), {
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[age] DESC;'
       });
     });
   });

@@ -1,10 +1,11 @@
-import { FindAttributeOptions, Model, ModelStatic, Sequelize, WhereOptions } from ".";
+import { FindAttributeOptions, Model, ModelStatic, Order, Sequelize, WhereOptions } from '.';
 
 export class QueryBuilder<M extends Model = Model> {
-  _attributes: string[];
-  _where: Record<string, any>;
-  _limit: number | null;
-  _offset: number | null;
+  _attributes: FindAttributeOptions | undefined;
+  _where: WhereOptions | undefined;
+  _order: Order | undefined;
+  _limit: number | undefined;
+  _offset: number | undefined;
   _isSelect: boolean;
   _model: M;
   _sequelize: Sequelize;
@@ -14,6 +15,7 @@ export class QueryBuilder<M extends Model = Model> {
   select(): QueryBuilder<M>;
   attributes(attributes: FindAttributeOptions): QueryBuilder<M>;
   where(conditions: WhereOptions): QueryBuilder<M>;
+  orderBy(order: Order | undefined): QueryBuilder<M>;
   limit(limit: number): QueryBuilder<M>;
   offset(offset: number): QueryBuilder<M>;
   getQuery(): string;
