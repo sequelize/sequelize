@@ -5,6 +5,9 @@ class QueryBuilder {
   /** @type {import('.').WhereOptions | undefined} */
   _where;
 
+  /** @type {import('.').GroupOption | undefined} */
+  _group;
+
   /** @type {import('.').Order | undefined} */
   _order;
 
@@ -38,6 +41,7 @@ class QueryBuilder {
     newBuilder._sequelize = this._sequelize;
     newBuilder._isSelect = this._isSelect;
     newBuilder._attributes = this._attributes;
+    newBuilder._group = this._group;
     newBuilder._where = this._where;
     newBuilder._order = this._order;
     newBuilder._limit = this._limit;
@@ -84,8 +88,36 @@ class QueryBuilder {
     return newBuilder;
   }
 
+  /**
+   * Groups the results by a specific attribute or attributes
+   * 
+   * @param {import('.').GroupOption} group 
+   * @returns {QueryBuilder} The query builder instance for chaining
+   */
+  groupBy(group) {
+    const newBuilder = this.clone();
+    newBuilder._group = group;
+
+    return newBuilder;
+  }
+
+  /**
+   * Set the ORDER BY clause for the query
+   * 
+   * @param {import('.').Order} order - The order to apply to the query
+   * @returns {QueryBuilder} The query builder instance for chaining
+   */
   orderBy(order) {
     const newBuilder = this.clone();
+    order.forEach((item, idx) => {
+      if (Array.isArray(item)) {
+        if (typeof item[0] === 'number') {
+          order[idx][0] = this._sequelize.literal(item[0]);
+        }
+      } else if (typeof item === 'number') {
+        order[idx] = this._sequelize.literal(item);
+      }
+    });
     newBuilder._order = order;
 
     return newBuilder;
@@ -138,6 +170,7 @@ class QueryBuilder {
       order: this._order,
       limit: this._limit,
       offset: this._offset,
+      group: this._group,
       raw: true,
       plain: false,
       model: this._model

@@ -1,4 +1,4 @@
-const { DataTypes, Op } = require('../../src');
+const { DataTypes, Op, Sequelize } = require('../../src');
 const { expect } = require('chai');
 const QueryBuilder = require('../../src/query-builder');
 const Support = require('../support');
@@ -8,7 +8,10 @@ const expectsql = Support.expectsql;
 describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
   /** @type {typeof import('../../src/model').Model} */
   let User;
+  /** @type {Sequelize} */
+  let sequelize;
   before(async function() {
+    sequelize = this.sequelize;
     User = this.sequelize.define('User', {
       name: DataTypes.STRING,
       age: DataTypes.INTEGER,
@@ -30,14 +33,33 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should generate basic SELECT query', () => {
       expectsql(User.select().getQuery(), {
         default: 'SELECT * FROM [Users] AS [User];',
-        oracle: 'SELECT * FROM [Users] [User];'
+        oracle: 'SELECT * FROM "Users" "User";'
       });
     });
 
     it('should generate SELECT query with specific attributes', () => {
       expectsql(User.select().attributes(['name', 'email']).getQuery(), {
         default: 'SELECT [name], [email] FROM [Users] AS [User];',
-        oracle: 'SELECT [name], [email] FROM [Users] [User];'
+        oracle: 'SELECT "name", "email" FROM "Users" "User";'
+      });
+    });
+
+    it('should generate SELECT query with aliased attributes', () => {
+      expectsql(User.select().attributes([['name', 'username'], 'email']).getQuery(), {
+        default: 'SELECT [name] AS [username], [email] FROM [Users] AS [User];',
+        oracle: 'SELECT "name" "username", "email" FROM "Users" "User";'
+      });
+    });
+
+    it('should generate SELECT query with literal attributes', () => {
+      expectsql(User.select().attributes([sequelize.literal('"User"."email" AS "personalEmail"')]).getQuery(), {
+        default: 'SELECT "User"."email" AS "personalEmail" FROM [Users] AS [User];', // literal
+        oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" AS "User";'
+      });
+
+      expectsql(User.select().attributes([[sequelize.literal('"User"."email"'), 'personalEmail']]).getQuery(), {
+        default: 'SELECT "User"."email" AS [personalEmail] FROM [Users] AS [User];',
+        oracle: 'SELECT "User"."email" "personalEmail" FROM "Users" "User";'
       });
     });
 
@@ -46,7 +68,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
         mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;',
-        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1;'
+        oracle: 'SELECT * FROM "Users" "User" WHERE "User"."active" = \'1\';'
       });
     });
 
@@ -55,7 +77,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true AND [User].[age] = 25;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1 AND `User`.`age` = 25;',
         mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1 AND [User].[age] = 25;',
-        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1 AND [User].[age] = 25;'
+        oracle: 'SELECT * FROM "Users" "User" WHERE "User"."active" = \'1\' AND "User"."age" = 25;'
       });
     });
 
@@ -66,7 +88,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
           sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
           mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;',
-          oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[active] = 1;'
+          oracle: 'SELECT "name", "email" FROM "Users" "User" WHERE "User"."active" = \'1\';'
         }
       );
     });
@@ -74,8 +96,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should generate SELECT query with LIMIT', () => {
       expectsql(User.select().limit(10).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10;',
-        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
-        mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;'
+        mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;'
       });
     });
 
@@ -84,19 +106,43 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10 OFFSET 5;',
         'mysql mariadb sqlite': 'SELECT * FROM `Users` AS `User` LIMIT 5, 10;',
         mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;',
-        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY "User"."id" OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
       });
     });
 
     it('should generate SELECT query with ORDER BY', () => {
       expectsql(User.select().orderBy(['name']).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[name];',
-        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[name];'
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY "User"."name";'
       });
 
       expectsql(User.select().orderBy([['age', 'DESC']]).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[age] DESC;',
-        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[age] DESC;'
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY "User"."age" DESC;'
+      });
+    });
+    
+    it('should support ORDER BY with position notation', () => {
+      expectsql(User.select().orderBy([2]).getQuery(), {
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY 2;',
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY 2;'
+      });
+
+      expectsql(User.select().orderBy([[3, 'DESC']]).getQuery(), {
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY 3 DESC;',
+        oracle: 'SELECT * FROM "Users" "User" ORDER BY 3 DESC;'
+      });
+    });
+
+    it('should generate SELECT query with GROUP BY', () => {
+      expectsql(User
+        .select()
+        .attributes(['name', [sequelize.literal('MAX("age")'), 'maxAge']])
+        .groupBy('name')
+        .orderBy([[2, 'DESC']])
+        .getQuery(), {
+        default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] ORDER BY 2 DESC;',
+        oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" ORDER BY 2 DESC;'
       });
     });
   });
