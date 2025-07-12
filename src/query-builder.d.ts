@@ -5,7 +5,7 @@ export class QueryBuilder<M extends Model = Model> {
   private _attributes: FindAttributeOptions | undefined;
   private _where: WhereOptions | undefined;
   private _group: GroupOption | undefined;
-  private _having: Literal | undefined;
+  private _having: Literal[] | undefined;
   private _order: Order | undefined;
   private _limit: number | undefined;
   private _offset: number | undefined;
