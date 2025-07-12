@@ -255,7 +255,7 @@ jobs:
         ports:
           - 1433:1433
         options: >-
-          --health-cmd="/opt/mssql-tools/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -C -l 30 -Q \"SELECT 1\""
+          --health-cmd="/opt/mssql-tools${{ matrix.mssql-version == '2019' && '18' || '' }}/bin/sqlcmd -S localhost -U SA -P \"Password12!\" -C -l 30 -Q \"SELECT 1\""
           --health-start-period 10s
           --health-interval 10s
           --health-timeout 5s
