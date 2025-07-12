@@ -1,36 +1,6 @@
 const Op = require('./operators');
 
 class QueryBuilder {
-  /** @type {import('.').FindAttributeOptions | undefined} */
-  _attributes;
-
-  /** @type {import('.').WhereOptions | undefined} */
-  _where;
-
-  /** @type {import('.').GroupOption | undefined} */
-  _group;
-
-  /** @type {import('./utils').Literal | undefined} */
-  _having;
-
-  /** @type {import('.').Order | undefined} */
-  _order;
-
-  /** @type {number | undefined} */
-  _limit;
-
-  /** @type {number | undefined} */
-  _offset;
-
-  /** @type {import('./model').Model} */
-  _model;
-  
-  /** @type {import('./sequelize').Sequelize} */
-  _sequelize;
-  
-  /** @type {boolean} */
-  _isSelect = false;
-
   constructor(model) {
     this._model = model;
     this._sequelize = model.sequelize;
