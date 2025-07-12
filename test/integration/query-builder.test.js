@@ -29,13 +29,15 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
   describe('Basic QueryBuilder functionality', () => {
     it('should generate basic SELECT query', () => {
       expectsql(User.select().getQuery(), {
-        default: 'SELECT * FROM [Users] AS [User];'
+        default: 'SELECT * FROM [Users] AS [User];',
+        oracle: 'SELECT * FROM [Users] [User];'
       });
     });
 
     it('should generate SELECT query with specific attributes', () => {
       expectsql(User.select().attributes(['name', 'email']).getQuery(), {
-        default: 'SELECT [name], [email] FROM [Users] AS [User];'
+        default: 'SELECT [name], [email] FROM [Users] AS [User];',
+        oracle: 'SELECT [name], [email] FROM [Users] [User];'
       });
     });
 
@@ -43,7 +45,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       expectsql(User.select().where({ active: true }).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
-        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;',
+        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1;'
       });
     });
 
@@ -51,7 +54,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       expectsql(User.select().where({ active: true, age: 25 }).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true AND [User].[age] = 25;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1 AND `User`.`age` = 25;',
-        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1 AND [User].[age] = 25;'
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1 AND [User].[age] = 25;',
+        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1 AND [User].[age] = 25;'
       });
     });
 
@@ -61,7 +65,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         {
           default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
           sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
-          mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
+          mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;',
+          oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[active] = 1;'
         }
       );
     });
@@ -69,6 +74,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should generate SELECT query with LIMIT', () => {
       expectsql(User.select().limit(10).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10;',
+        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
         mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;'
       });
     });
@@ -77,17 +83,20 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       expectsql(User.select().limit(10).offset(5).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] LIMIT 10 OFFSET 5;',
         'mysql mariadb sqlite': 'SELECT * FROM `Users` AS `User` LIMIT 5, 10;',
-        mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
+        mssql: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;',
+        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[id] OFFSET 5 ROWS FETCH NEXT 10 ROWS ONLY;'
       });
     });
 
     it('should generate SELECT query with ORDER BY', () => {
       expectsql(User.select().orderBy(['name']).getQuery(), {
-        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[name];'
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[name];',
+        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[name];'
       });
 
       expectsql(User.select().orderBy([['age', 'DESC']]).getQuery(), {
-        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[age] DESC;'
+        default: 'SELECT * FROM [Users] AS [User] ORDER BY [User].[age] DESC;',
+        oracle: 'SELECT * FROM [Users] [User] ORDER BY [User].[age] DESC;'
       });
     });
   });
@@ -110,18 +119,21 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
 
       // Base builder should remain unchanged
       expectsql(baseBuilder.getQuery(), {
-        default: 'SELECT * FROM [Users] AS [User];'
+        default: 'SELECT * FROM [Users] AS [User];',
+        oracle: 'SELECT * FROM [Users] [User];'
       });
 
       // Other builders should have their modifications
       expectsql(builderWithAttributes.getQuery(), {
-        default: 'SELECT [name] FROM [Users] AS [User];'
+        default: 'SELECT [name] FROM [Users] AS [User];',
+        oracle: 'SELECT [name] FROM [Users] [User];'
       });
 
       expectsql(builderWithWhere.getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
-        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;',
+        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1;'
       });
     });
 
@@ -131,11 +143,13 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       expectsql(baseBuilder.where({ active: true }).getQuery(), {
         default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
-        mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;'
+        mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;',
+        oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[active] = 1;'
       });
 
       expectsql(baseBuilder.where({ age: { [Op.lt]: 30 } }).getQuery(), {
-        default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[age] < 30;'
+        default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[age] < 30;',
+        oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[age] < 30;'
       });
     });
   });
@@ -211,14 +225,16 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         {
           default: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = true OR ([User].[age] >= 18 AND [User].[name] LIKE \'%admin%\'));',
           sqlite: 'SELECT * FROM `Users` AS `User` WHERE (`User`.`active` = 1 OR (`User`.`age` >= 18 AND `User`.`name` LIKE \'%admin%\'));',
-          mssql: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));'
+          mssql: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));',
+          oracle: 'SELECT * FROM [Users] [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));'
         }
       );
     });
 
     it('should handle IS NULL conditions', () => {
       expectsql(User.select().where({ age: null }).getQuery(), {
-        default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NULL;'
+        default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NULL;',
+        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[age] IS NULL;'
       });
     });
 
@@ -228,7 +244,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .where({ age: { [Op.ne]: null } })
           .getQuery(),
         {
-          default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NOT NULL;'
+          default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NOT NULL;',
+          oracle: 'SELECT * FROM [Users] [User] WHERE [User].[age] IS NOT NULL;'
         }
       );
     });
