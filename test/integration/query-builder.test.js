@@ -220,6 +220,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
 
   describe('execute', () => {
     it('should execute the query', async () => {
+      await User.sync({ force: true });
       await User.create({ name: 'John', email: 'john@example.com', active: true });
       const result = await User.select()
         .attributes(['name'])

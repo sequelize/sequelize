@@ -1,4 +1,4 @@
-import { FindAttributeOptions, Model, ModelStatic, Sequelize, WhereOptions } from "src";
+import { FindAttributeOptions, Model, ModelStatic, Sequelize, WhereOptions } from ".";
 
 export class QueryBuilder<M extends Model = Model> {
   _attributes: string[];
