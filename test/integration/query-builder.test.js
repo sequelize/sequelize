@@ -49,19 +49,19 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       it('should generate SELECT query with aliased attributes', () => {
         expectsql(User.select().attributes([['name', 'username'], 'email']).getQuery(), {
           default: 'SELECT [name] AS [username], [email] FROM [Users] AS [User];',
-          oracle: 'SELECT "name" "username", "email" FROM "Users" "User";'
+          oracle: 'SELECT "name" AS "username", "email" FROM "Users" "User";'
         });
       });
       
       it('should generate SELECT query with literal attributes', () => {
         expectsql(User.select().attributes([sequelize.literal('"User"."email" AS "personalEmail"')]).getQuery(), {
           default: 'SELECT "User"."email" AS "personalEmail" FROM [Users] AS [User];', // literal
-          oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" AS "User";'
+          oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" "User";'
         });
   
         expectsql(User.select().attributes([[sequelize.literal('"User"."email"'), 'personalEmail']]).getQuery(), {
           default: 'SELECT "User"."email" AS [personalEmail] FROM [Users] AS [User];',
-          oracle: 'SELECT "User"."email" "personalEmail" FROM "Users" "User";'
+          oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" "User";'
         });
       });
     }
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .orderBy([[2, 'DESC']])
           .getQuery(), {
           default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] ORDER BY 2 DESC;',
-          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" ORDER BY 2 DESC;'
+          oracle: 'SELECT "name", MAX("age") AS "maxAge" FROM "Users" "User" GROUP BY "name" ORDER BY 2 DESC;'
         });
       });
 
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .having(sequelize.literal('MAX("age") > 30'))
           .getQuery(), {
           default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] HAVING (MAX("age") > 30);',
-          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30);'
+          oracle: 'SELECT "name", MAX("age") AS "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30);'
         });
 
         expectsql(User
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .andHaving(sequelize.literal('COUNT(*) > 1'))
           .getQuery(), {
           default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] HAVING (MAX("age") > 30 AND COUNT(*) > 1);',
-          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30 AND COUNT(*) > 1);'
+          oracle: 'SELECT "name", MAX("age") AS "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30 AND COUNT(*) > 1);'
         });
       });
     }
@@ -195,20 +195,20 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       // Base builder should remain unchanged
       expectsql(baseBuilder.getQuery(), {
         default: 'SELECT * FROM [Users] AS [User];',
-        oracle: 'SELECT * FROM [Users] [User];'
+        oracle: 'SELECT * FROM "Users" "User";'
       });
 
       // Other builders should have their modifications
       expectsql(builderWithAttributes.getQuery(), {
         default: 'SELECT [name] FROM [Users] AS [User];',
-        oracle: 'SELECT [name] FROM [Users] [User];'
+        oracle: 'SELECT "name" FROM "Users" "User";'
       });
 
       expectsql(builderWithWhere.getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT * FROM `Users` AS `User` WHERE `User`.`active` = 1;',
         mssql: 'SELECT * FROM [Users] AS [User] WHERE [User].[active] = 1;',
-        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[active] = 1;'
+        oracle: 'SELECT * FROM "Users" "User" WHERE "User"."active" = \'1\';'
       });
     });
 
@@ -219,12 +219,12 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = true;',
         sqlite: 'SELECT `name`, `email` FROM `Users` AS `User` WHERE `User`.`active` = 1;',
         mssql: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[active] = 1;',
-        oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[active] = 1;'
+        oracle: 'SELECT "name", "email" FROM "Users" "User" WHERE "User"."active" = \'1\';'
       });
 
       expectsql(baseBuilder.where({ age: { [Op.lt]: 30 } }).getQuery(), {
         default: 'SELECT [name], [email] FROM [Users] AS [User] WHERE [User].[age] < 30;',
-        oracle: 'SELECT [name], [email] FROM [Users] [User] WHERE [User].[age] < 30;'
+        oracle: 'SELECT "name", "email" FROM "Users" "User" WHERE "User"."age" < 30;'
       });
     });
   });
@@ -301,7 +301,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           default: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = true OR ([User].[age] >= 18 AND [User].[name] LIKE \'%admin%\'));',
           sqlite: 'SELECT * FROM `Users` AS `User` WHERE (`User`.`active` = 1 OR (`User`.`age` >= 18 AND `User`.`name` LIKE \'%admin%\'));',
           mssql: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));',
-          oracle: 'SELECT * FROM [Users] [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));'
+          oracle: 'SELECT * FROM "Users" "User" WHERE ("User"."active" = \'1\' OR ("User"."age" >= 18 AND "User"."name" LIKE N\'%admin%\'));'
         }
       );
     });
@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     it('should handle IS NULL conditions', () => {
       expectsql(User.select().where({ age: null }).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NULL;',
-        oracle: 'SELECT * FROM [Users] [User] WHERE [User].[age] IS NULL;'
+        oracle: 'SELECT * FROM "Users" "User" WHERE "User"."age" IS NULL;'
       });
     });
 
@@ -320,7 +320,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .getQuery(),
         {
           default: 'SELECT * FROM [Users] AS [User] WHERE [User].[age] IS NOT NULL;',
-          oracle: 'SELECT * FROM [Users] [User] WHERE [User].[age] IS NOT NULL;'
+          oracle: 'SELECT * FROM "Users" "User" WHERE "User"."age" IS NOT NULL;'
         }
       );
     });
