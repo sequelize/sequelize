@@ -1,9 +1,11 @@
 import { FindAttributeOptions, GroupOption, Model, ModelStatic, Order, Sequelize, WhereOptions } from '.';
+import { Literal } from './utils';
 
 export class QueryBuilder<M extends Model = Model> {
   private _attributes: FindAttributeOptions | undefined;
   private _where: WhereOptions | undefined;
   private _group: GroupOption | undefined;
+  private _having: Literal | undefined;
   private _order: Order | undefined;
   private _limit: number | undefined;
   private _offset: number | undefined;
@@ -17,6 +19,8 @@ export class QueryBuilder<M extends Model = Model> {
   attributes(attributes: FindAttributeOptions): QueryBuilder<M>;
   where(conditions: WhereOptions): QueryBuilder<M>;
   groupBy(group: GroupOption): QueryBuilder<M>;
+  having(having: Literal): QueryBuilder<M>;
+  andHaving(having: Literal): QueryBuilder<M>;
   orderBy(order: Order | undefined): QueryBuilder<M>;
   limit(limit: number): QueryBuilder<M>;
   offset(offset: number): QueryBuilder<M>;

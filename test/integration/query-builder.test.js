@@ -1,4 +1,4 @@
-const { DataTypes, Op, Sequelize } = require('../../src');
+const { DataTypes, Op } = require('../../src');
 const { expect } = require('chai');
 const QueryBuilder = require('../../src/query-builder');
 const Support = require('../support');
@@ -8,7 +8,7 @@ const expectsql = Support.expectsql;
 describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
   /** @type {typeof import('../../src/model').Model} */
   let User;
-  /** @type {Sequelize} */
+  /** @type {import('../../src/sequelize').Sequelize} */
   let sequelize;
   before(async function() {
     sequelize = this.sequelize;
@@ -44,24 +44,27 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       });
     });
 
-    it('should generate SELECT query with aliased attributes', () => {
-      expectsql(User.select().attributes([['name', 'username'], 'email']).getQuery(), {
-        default: 'SELECT [name] AS [username], [email] FROM [Users] AS [User];',
-        oracle: 'SELECT "name" "username", "email" FROM "Users" "User";'
+    // Won't work with minified aliases
+    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
+      it('should generate SELECT query with aliased attributes', () => {
+        expectsql(User.select().attributes([['name', 'username'], 'email']).getQuery(), {
+          default: 'SELECT [name] AS [username], [email] FROM [Users] AS [User];',
+          oracle: 'SELECT "name" "username", "email" FROM "Users" "User";'
+        });
       });
-    });
-
-    it('should generate SELECT query with literal attributes', () => {
-      expectsql(User.select().attributes([sequelize.literal('"User"."email" AS "personalEmail"')]).getQuery(), {
-        default: 'SELECT "User"."email" AS "personalEmail" FROM [Users] AS [User];', // literal
-        oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" AS "User";'
+      
+      it('should generate SELECT query with literal attributes', () => {
+        expectsql(User.select().attributes([sequelize.literal('"User"."email" AS "personalEmail"')]).getQuery(), {
+          default: 'SELECT "User"."email" AS "personalEmail" FROM [Users] AS [User];', // literal
+          oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" AS "User";'
+        });
+  
+        expectsql(User.select().attributes([[sequelize.literal('"User"."email"'), 'personalEmail']]).getQuery(), {
+          default: 'SELECT "User"."email" AS [personalEmail] FROM [Users] AS [User];',
+          oracle: 'SELECT "User"."email" "personalEmail" FROM "Users" "User";'
+        });
       });
-
-      expectsql(User.select().attributes([[sequelize.literal('"User"."email"'), 'personalEmail']]).getQuery(), {
-        default: 'SELECT "User"."email" AS [personalEmail] FROM [Users] AS [User];',
-        oracle: 'SELECT "User"."email" "personalEmail" FROM "Users" "User";'
-      });
-    });
+    }
 
     it('should generate SELECT query with WHERE clause', () => {
       expectsql(User.select().where({ active: true }).getQuery(), {
@@ -134,17 +137,43 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       });
     });
 
-    it('should generate SELECT query with GROUP BY', () => {
-      expectsql(User
-        .select()
-        .attributes(['name', [sequelize.literal('MAX("age")'), 'maxAge']])
-        .groupBy('name')
-        .orderBy([[2, 'DESC']])
-        .getQuery(), {
-        default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] ORDER BY 2 DESC;',
-        oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" ORDER BY 2 DESC;'
+    // Won't work with minified aliases
+    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
+      it('should generate SELECT query with GROUP BY', () => {
+        expectsql(User
+          .select()
+          .attributes(['name', [sequelize.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .orderBy([[2, 'DESC']])
+          .getQuery(), {
+          default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] ORDER BY 2 DESC;',
+          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" ORDER BY 2 DESC;'
+        });
       });
-    });
+
+      it('should generate SELECT query with GROUP BY and HAVING', () => {
+        expectsql(User
+          .select()
+          .attributes(['name', [sequelize.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .having(sequelize.literal('MAX("age") > 30'))
+          .getQuery(), {
+          default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] HAVING (MAX("age") > 30);',
+          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30);'
+        });
+
+        expectsql(User
+          .select()
+          .attributes(['name', [sequelize.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .having(sequelize.literal('MAX("age") > 30'))
+          .andHaving(sequelize.literal('COUNT(*) > 1'))
+          .getQuery(), {
+          default: 'SELECT [name], MAX("age") AS [maxAge] FROM [Users] AS [User] GROUP BY [name] HAVING (MAX("age") > 30 AND COUNT(*) > 1);',
+          oracle: 'SELECT "name", MAX("age") "maxAge" FROM "Users" "User" GROUP BY "name" HAVING (MAX("age") > 30 AND COUNT(*) > 1);'
+        });
+      });
+    }
   });
 
   describe('Functional/Immutable behavior', () => {

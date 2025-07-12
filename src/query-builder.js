@@ -1,3 +1,5 @@
+const Op = require('./operators');
+
 class QueryBuilder {
   /** @type {import('.').FindAttributeOptions | undefined} */
   _attributes;
@@ -7,6 +9,9 @@ class QueryBuilder {
 
   /** @type {import('.').GroupOption | undefined} */
   _group;
+
+  /** @type {import('./utils').Literal | undefined} */
+  _having;
 
   /** @type {import('.').Order | undefined} */
   _order;
@@ -42,6 +47,7 @@ class QueryBuilder {
     newBuilder._isSelect = this._isSelect;
     newBuilder._attributes = this._attributes;
     newBuilder._group = this._group;
+    newBuilder._having = this._having;
     newBuilder._where = this._where;
     newBuilder._order = this._order;
     newBuilder._limit = this._limit;
@@ -89,7 +95,7 @@ class QueryBuilder {
   }
 
   /**
-   * Groups the results by a specific attribute or attributes
+   * Sets the GROUP BY clause for the query
    * 
    * @param {import('.').GroupOption} group 
    * @returns {QueryBuilder} The query builder instance for chaining
@@ -97,6 +103,32 @@ class QueryBuilder {
   groupBy(group) {
     const newBuilder = this.clone();
     newBuilder._group = group;
+
+    return newBuilder;
+  }
+
+  /**
+   * Sets the HAVING clause for the query (supports only Literal condition)
+   * 
+   * @param {import('./utils').Literal} having
+   * @returns {QueryBuilder} The query builder instance for chaining
+   */
+  having(having) {
+    const newBuilder = this.clone();
+    newBuilder._having = [having];
+
+    return newBuilder;
+  }
+
+  /**
+   * Allows chaining of additional HAVING conditions
+   * 
+   * @param {import('./utils').Literal} having
+   * @returns {QueryBuilder} The query builder instance for chaining
+   */
+  andHaving(having) {
+    const newBuilder = this.clone();
+    newBuilder._having = [...newBuilder._having || [], having];
 
     return newBuilder;
   }
@@ -171,6 +203,9 @@ class QueryBuilder {
       limit: this._limit,
       offset: this._offset,
       group: this._group,
+      having: this._having && this._having.length > 0 ? {
+        [Op.and]: this._having || []
+      } : undefined,
       raw: true,
       plain: false,
       model: this._model
