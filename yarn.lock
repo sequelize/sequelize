@@ -2447,9 +2447,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.4.0, @oclif/core@npm:^4.5.0":
-  version: 4.5.0
-  resolution: "@oclif/core@npm:4.5.0"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.4.0, @oclif/core@npm:^4.5.1":
+  version: 4.5.1
+  resolution: "@oclif/core@npm:4.5.1"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.17.0"
@@ -2469,7 +2469,7 @@ __metadata:
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/2fd814c55b509bfb2cbfd2236c1c3bef9ea1a1852f0647cab328a8ed3124ae462a00c7151dfaee56899dc29e91aa1b5dbaa8e58326d2902a3d7ee43010fc6c73
+  checksum: 10c0/aedf53324fbb64ca66aaea484f9eaf70e2d889fc09ef30552ae2c47a71dd386f64ee1359fa430a375d3241080153bc8a34c8e37525b808d4f6343f348c3330fa
   languageName: node
   linkType: hard
 
@@ -2715,7 +2715,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.13"
     "@inquirer/input": "npm:^4.2.0"
     "@inquirer/select": "npm:^4.2.4"
-    "@oclif/core": "npm:^4.5.0"
+    "@oclif/core": "npm:^4.5.1"
     "@oclif/plugin-help": "npm:^6.2.31"
     "@oclif/test": "npm:4.1.13"
     "@sequelize/utils": "workspace:*"
