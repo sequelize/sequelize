@@ -1248,7 +1248,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
           name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
           unique: true,
           fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-          column: 'id_user_very_long_field',
         },
       ]);
 
@@ -1302,7 +1301,6 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
           name: 'custom_user_group_unique',
           unique: true,
           fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-          column: 'id_user_very_long_field',
         },
       ]);
 
