@@ -1,5 +1,27 @@
-import { FindAttributeOptions, GroupOption, Model, ModelStatic, Order, Sequelize, WhereOptions } from '.';
-import { Literal } from './utils';
+import {
+  FindAttributeOptions,
+  GroupOption,
+  Model,
+  ModelStatic,
+  Order,
+  Sequelize,
+  WhereOptions,
+} from ".";
+import { Col, Literal } from "./utils";
+
+type QueryBuilderIncludeOptions<M extends Model> = {
+  model: ModelStatic<M>;
+  as?: string;
+  on?: Record<keyof M, Col>;
+  attributes?: FindAttributeOptions;
+  where?: WhereOptions;
+  required?: boolean;
+  joinType?: "LEFT" | "INNER" | "RIGHT";
+};
+
+type QueryBuilderGetQueryOptions = {
+  multiline?: boolean;
+};
 
 export class QueryBuilder<M extends Model = Model> {
   private _attributes: FindAttributeOptions | undefined;
@@ -18,15 +40,15 @@ export class QueryBuilder<M extends Model = Model> {
   select(): QueryBuilder<M>;
   attributes(attributes: FindAttributeOptions): QueryBuilder<M>;
   where(conditions: WhereOptions): QueryBuilder<M>;
+  includes(options: QueryBuilderIncludeOptions<M>): QueryBuilder<M>;
   groupBy(group: GroupOption): QueryBuilder<M>;
   having(having: Literal): QueryBuilder<M>;
   andHaving(having: Literal): QueryBuilder<M>;
   orderBy(order: Order | undefined): QueryBuilder<M>;
   limit(limit: number): QueryBuilder<M>;
   offset(offset: number): QueryBuilder<M>;
-  getQuery(): string;
+  getQuery(options?: QueryBuilderGetQueryOptions): string;
   execute(): Promise<[unknown[], unknown]>;
   get tableName(): string;
   get model(): ModelStatic<M>;
 }
-

@@ -8,20 +8,29 @@ const expectsql = Support.expectsql;
 describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
   /** @type {typeof import('../../src/model').Model} */
   let User;
+  /** @type {typeof import('../../src/model').Model} */
+  let Post;
   /** @type {import('../../src/sequelize').Sequelize} */
   let sequelize;
   before(async function() {
     sequelize = this.sequelize;
     User = this.sequelize.define('User', {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       name: DataTypes.STRING,
       age: DataTypes.INTEGER,
       active: DataTypes.BOOLEAN
     });
+    Post = this.sequelize.define('Post', {
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      userId: DataTypes.INTEGER,
+      title: DataTypes.STRING
+    });
     await User.sync({ force: true });
+    await Post.sync({ force: true });
     this.sequelize.options.quoteIdentifiers = true;
     this.queryInterface = this.sequelize.getQueryInterface();
   });
-  
+
   after(async () => {
     if (this.sequelize) {
       await Support.dropTestSchemas(this.sequelize);
@@ -52,13 +61,13 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           oracle: 'SELECT "name" AS "username", "email" FROM "Users" "User";'
         });
       });
-      
+
       it('should generate SELECT query with literal attributes', () => {
         expectsql(User.select().attributes([sequelize.literal('"User"."email" AS "personalEmail"')]).getQuery(), {
           default: 'SELECT "User"."email" AS "personalEmail" FROM [Users] AS [User];', // literal
           oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" "User";'
         });
-  
+
         expectsql(User.select().attributes([[sequelize.literal('"User"."email"'), 'personalEmail']]).getQuery(), {
           default: 'SELECT "User"."email" AS [personalEmail] FROM [Users] AS [User];',
           oracle: 'SELECT "User"."email" AS "personalEmail" FROM "Users" "User";'
@@ -124,7 +133,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         oracle: 'SELECT * FROM "Users" "User" ORDER BY "User"."age" DESC;'
       });
     });
-    
+
     it('should support ORDER BY with position notation', () => {
       expectsql(User.select().orderBy([2]).getQuery(), {
         default: 'SELECT * FROM [Users] AS [User] ORDER BY 2;',
@@ -301,7 +310,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           default: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = true OR ([User].[age] >= 18 AND [User].[name] LIKE \'%admin%\'));',
           sqlite: 'SELECT * FROM `Users` AS `User` WHERE (`User`.`active` = 1 OR (`User`.`age` >= 18 AND `User`.`name` LIKE \'%admin%\'));',
           mssql: 'SELECT * FROM [Users] AS [User] WHERE ([User].[active] = 1 OR ([User].[age] >= 18 AND [User].[name] LIKE N\'%admin%\'));',
-          oracle: 'SELECT * FROM "Users" "User" WHERE ("User"."active" = \'1\' OR ("User"."age" >= 18 AND "User"."name" LIKE N\'%admin%\'));'
+          oracle: 'SELECT * FROM "Users" "User" WHERE ("User"."active" = \'1\' OR ("User"."age" >= 18 AND "User"."name" LIKE \'%admin%\'));'
         }
       );
     });
@@ -323,6 +332,147 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           oracle: 'SELECT * FROM "Users" "User" WHERE "User"."age" IS NOT NULL;'
         }
       );
+    });
+
+    it('should generate multiline query', () => {
+      expectsql(
+        User.select()
+          .attributes(['name', 'email'])
+          .where({ age: { [Op.gt]: 30 } })
+          .getQuery({ multiline: true }),
+        {
+          default: 'SELECT [name], [email]\nFROM [Users] AS [User]\nWHERE [User].[age] > 30;'
+        }
+      );
+    });
+  });
+
+  describe('includes (custom joins)', () => {
+
+    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
+      it('should generate LEFT JOIN with custom condition', () => {
+        expectsql(
+          User.select()
+            .includes({
+              model: Post,
+              as: 'Posts',
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+            })
+            .getQuery(),
+          {
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+          }
+        );
+      });
+
+      it('should generate INNER JOIN when required is true', () => {
+        expectsql(
+          User.select()
+            .includes({
+              model: Post,
+              as: 'Posts',
+              required: true,
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+            })
+            .getQuery(),
+          {
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+          }
+        );
+      });
+
+      it('should generate INNER JOIN when joinType is INNER', () => {
+        expectsql(
+          User.select()
+            .includes({
+              model: Post,
+              as: 'Posts',
+              joinType: 'INNER',
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+            })
+            .getQuery(),
+          {
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+          }
+        );
+      });
+
+      it('should handle custom WHERE conditions on joined table', () => {
+        expectsql(
+          User.select()
+            .includes({
+              model: Post,
+              as: 'Posts',
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId')),
+              where: {
+                title: 'Hello World'
+              }
+            })
+            .getQuery(),
+          {
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = \'Hello World\';',
+            mssql: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N\'Hello World\';',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId" AND "Posts"."title" = \'Hello World\';"'
+          }
+        );
+      });
+
+      it('should support custom attributes from joined table', () => {
+        expectsql(
+          User.select()
+            .includes({
+              model: Post,
+              as: 'Posts',
+              attributes: ['title'],
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+            })
+            .getQuery(),
+          {
+            default: 'SELECT [User].*, [Posts].[title] AS [Posts.title] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."title" AS "Posts.title" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+          }
+        );
+      });
+
+      it('should generate multiline query', () => {
+        expectsql(
+          User.select()
+            .attributes(['name'])
+            .includes({
+              model: Post,
+              as: 'Posts',
+              attributes: ['title'],
+              on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+            })
+            .where({ age: { [Op.gt]: 30 } })
+            .getQuery({ multiline: true }),
+          {
+            default: 'SELECT [User].[name], [Posts].[title] AS [Posts.title]\nFROM [Users] AS [User]\nLEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId]\nWHERE [User].[age] > 30;'
+          }
+        );
+      });
+    }
+
+    it('should throw error when model is not provided', () => {
+      expect(() => {
+        User.select().includes({
+          on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+        });
+      }).to.throw('Model is required for includes');
+    });
+
+    it('should throw error when on condition is not provided', () => {
+      expect(() => {
+        User.select()
+          .includes({
+            model: Post,
+            as: 'Posts'
+          })
+          .getQuery();
+      }).to.throw('Custom joins require an "on" condition to be specified');
     });
   });
 

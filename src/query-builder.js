@@ -14,6 +14,7 @@ class QueryBuilder {
   clone() {
     const newBuilder = new QueryBuilder(this._model);
     newBuilder._sequelize = this._sequelize;
+    newBuilder._model = this._model;
     newBuilder._isSelect = this._isSelect;
     newBuilder._attributes = this._attributes;
     newBuilder._group = this._group;
@@ -22,7 +23,7 @@ class QueryBuilder {
     newBuilder._order = this._order;
     newBuilder._limit = this._limit;
     newBuilder._offset = this._offset;
-
+    newBuilder._include = this._include;
     return newBuilder;
   }
 
@@ -152,11 +153,46 @@ class QueryBuilder {
   }
 
   /**
+   * Add includes (joins) to the query for custom joins with static models
+   *
+   * @param {import('./query-builder').QueryBuilderIncludeOptions<M>} options - Include options
+   * @returns {QueryBuilder} The query builder instance for chaining
+   */
+  includes(options) {
+    if (!options.model) {
+      throw new Error('Model is required for includes');
+    }
+
+    const newBuilder = this.clone();
+
+    const includeOptions = {
+      model: options.model,
+      as: options.as || options.model.name,
+      required: options.required || options.joinType === 'INNER' || false,
+      right: options.joinType === 'RIGHT' || false,
+      on: options.on,
+      where: options.where,
+      attributes: options.attributes || Object.keys(options.model.rawAttributes),
+      _isCustomJoin: true
+    };
+
+    if (!newBuilder._include) {
+      newBuilder._include = [];
+    }
+
+    newBuilder._include.push(includeOptions);
+
+    return newBuilder;
+  }
+
+  /**
    * Generate the SQL query string
    *
+   * @param {import('./query-builder').QueryBuilderGetQueryOptions} options - Options object
+   * @param {boolean} [options.multiline=false] - Whether to break the query before from, joins, and the where clause
    * @returns {string} The SQL query
    */
-  getQuery() {
+  getQuery({ multiline = false } = {}) {
     if (!this._isSelect) {
       throw new Error('Query builder requires select() to be called first');
     }
@@ -164,11 +200,32 @@ class QueryBuilder {
     const queryGenerator = this._model.queryGenerator;
     const tableName = this._model.tableName;
 
+    // Process custom includes if they exist
+    let processedIncludes = this._include;
+    if (this._include && this._include.length > 0) {
+      processedIncludes = this._include.map(include => {
+        if (include._isCustomJoin) {
+          // Ensure the include has all required properties for Sequelize's include system
+          return {
+            ...include,
+            duplicating: false,
+            association: null, // No association for custom joins
+            parent: {
+              model: this._model,
+              as: this._model.name
+            }
+          };
+        }
+        return include;
+      });
+    }
+
     // Build the options object that matches Sequelize's FindOptions pattern
     /** @type {import('.').FindOptions} */
     const options = {
       attributes: this._attributes,
       where: this._where,
+      include: processedIncludes,
       order: this._order,
       limit: this._limit,
       offset: this._offset,
@@ -183,6 +240,10 @@ class QueryBuilder {
 
     // Generate the SQL using the existing query generator
     const sql = queryGenerator.selectQuery(tableName, options, this._model);
+
+    if (multiline) {
+      return sql.replace(/FROM|LEFT|INNER|RIGHT|WHERE/g, '\n$1');
+    }
 
     return sql;
   }
