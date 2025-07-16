@@ -163,6 +163,10 @@ class QueryBuilder {
       throw new Error('Model is required for includes');
     }
 
+    if (!options.on) {
+      throw new Error('Custom joins require an "on" condition to be specified');
+    }
+
     const newBuilder = this.clone();
 
     const includeOptions = {
@@ -209,7 +213,7 @@ class QueryBuilder {
           return {
             ...include,
             duplicating: false,
-            association: null, // No association for custom joins
+            association: { source: this._model }, // No association for custom joins
             parent: {
               model: this._model,
               as: this._model.name
@@ -242,7 +246,7 @@ class QueryBuilder {
     const sql = queryGenerator.selectQuery(tableName, options, this._model);
 
     if (multiline) {
-      return sql.replace(/FROM|LEFT|INNER|RIGHT|WHERE/g, '\n$1');
+      return sql.replace(/FROM|LEFT|INNER|RIGHT|WHERE/g, '\n$&');
     }
 
     return sql;

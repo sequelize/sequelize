@@ -461,7 +461,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         User.select().includes({
           on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
         });
-      }).to.throw('Model is required for includes');
+      }).to.throw(Error, 'Model is required for includes');
     });
 
     it('should throw error when on condition is not provided', () => {
@@ -472,7 +472,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             as: 'Posts'
           })
           .getQuery();
-      }).to.throw('Custom joins require an "on" condition to be specified');
+      }).to.throw(Error, 'Custom joins require an "on" condition to be specified');
     });
   });
 
@@ -487,5 +487,30 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
       const [row] = result;
       expect(row).to.deep.equal([{ name: 'John' }]);
     });
+
+    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
+      it('should execute the query with custom join, returning multiple rows', async () => {
+        await User.sync({ force: true });
+        await Post.sync({ force: true });
+        const user = await User.create({ name: 'John', email: 'john@example.com', active: true });
+        await Post.create({ title: 'Post 1', userId: user.id });
+        await Post.create({ title: 'Post 2', userId: user.id });
+        const [result] = await User.select()
+          .includes({
+            model: Post,
+            as: 'Posts',
+            on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('Posts.userId'))
+          })
+          .where({ id: user.id })
+          .execute();
+        expect(result).to.have.lengthOf(2);
+        expect(result[0].id).to.equal(user.id);
+        expect(result[0].name).to.equal(user.name);
+        expect(result[1].id).to.equal(user.id);
+        expect(result[1].name).to.equal(user.name);
+        expect(result[0]['Posts.title']).to.equal('Post 1');
+        expect(result[1]['Posts.title']).to.equal('Post 2');
+      });
+    }
   });
 });
