@@ -1709,6 +1709,8 @@ https://github.com/sequelize/sequelize/discussions/15694`);
     //through
     if (include.through) {
       joinQuery = this.generateThroughJoin(include, includeAs, parentTableName.internalAs, topLevelInfo);
+    } else if (include._isCustomJoin) {
+      joinQuery = this.generateCustomJoin(include, includeAs, topLevelInfo);
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
       joinQuery = this.generateJoin(include, topLevelInfo);
@@ -1805,6 +1807,48 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       }
     }
     return null;
+  }
+
+  generateCustomJoin(include, includeAs, topLevelInfo) {
+    const right = include.model;
+    const tableRight = right.getTableName();
+    const asRight = includeAs.internalAs;
+    let joinCondition;
+    let joinWhere;
+
+    if (!include.on) throw new Error('Custom joins require an "on" condition to be specified');
+
+    // Handle the custom join condition
+    joinCondition = this.whereItemsQuery(include.on, {
+      prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+      model: include.model
+    });
+
+    if (include.where) {
+      joinWhere = this.whereItemsQuery(include.where, {
+        prefix: this.sequelize.literal(this.quoteIdentifier(asRight)),
+        model: include.model
+      });
+      if (joinWhere) {
+        if (include.or) {
+          joinCondition += ` OR ${joinWhere}`;
+        } else {
+          joinCondition += ` AND ${joinWhere}`;
+        }
+      }
+    }
+
+    this.aliasAs(asRight, topLevelInfo);
+
+    return {
+      join: include.required ? 'INNER JOIN' : include.right && this._dialect.supports['RIGHT JOIN'] ? 'RIGHT OUTER JOIN' : 'LEFT OUTER JOIN',
+      body: this.quoteTable(tableRight, asRight),
+      condition: joinCondition,
+      attributes: {
+        main: [],
+        subQuery: []
+      }
+    };
   }
 
   generateJoin(include, topLevelInfo) {
