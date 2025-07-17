@@ -246,7 +246,7 @@ class QueryBuilder {
     const sql = queryGenerator.selectQuery(tableName, options, this._model);
 
     if (multiline) {
-      return sql.replace(/FROM|LEFT|INNER|RIGHT|WHERE/g, '\n$&');
+      return sql.replace(/FROM|LEFT|INNER|RIGHT|WHERE|GROUP|HAVING|ORDER/g, '\n$&');
     }
 
     return sql;

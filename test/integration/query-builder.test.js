@@ -23,7 +23,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
     Post = this.sequelize.define('Post', {
       id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
       userId: DataTypes.INTEGER,
-      title: DataTypes.STRING
+      title: DataTypes.STRING,
+      content: DataTypes.STRING
     });
     await User.sync({ force: true });
     await Post.sync({ force: true });
@@ -354,6 +355,94 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
         }
       );
     });
+
+    if (Support.getTestDialect() === 'postgres' && !process.env.SEQ_PG_MINIFY_ALIASES) {
+      it('should handle complex conditions with multiple joins', async () => {
+        const Comments = sequelize.define('Comments', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          userId: DataTypes.INTEGER,
+          content: DataTypes.STRING,
+          likes: DataTypes.INTEGER
+        });
+        await Comments.sync({ force: true });
+        await Post.sync({ force: true });
+        await User.sync({ force: true });
+
+        await User.create({ name: 'Alice', email: 'alice@example.com', active: true, age: 20 });
+        await User.create({ name: 'Bob', email: 'bob@example.com', active: true, age: 25 });
+        await Post.create({ title: 'Creed', userId: 1 });
+        await Post.create({ title: 'Crocodiles', userId: 2 });
+        await Post.create({ title: 'Cronos', userId: 2 });
+        await Comments.create({ content: 'Comment 1', userId: 1, likes: 10 });
+        await Comments.create({ content: 'Comment 2', userId: 1, likes: 20 });
+        await Comments.create({ content: 'Comment 3', userId: 2, likes: 50 });
+
+        const qb = User.select()
+          .attributes(['name', ['age', 'userAge']])
+          .includes({
+            model: Post,
+            as: 'p',
+            on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('p.userId')),
+            attributes: ['title'],
+            where: { title: { [Op.iLike]: '%cr%' } },
+            required: true
+          })
+          .includes({
+            model: Comments,
+            as: 'c',
+            on: sequelize.where(sequelize.col('User.id'), '=', sequelize.col('c.userId')),
+            attributes: [[sequelize.literal('SUM("c"."likes")'), 'likeCount']],
+            joinType: 'LEFT'
+          })
+          .where({
+            [Op.or]: [
+              { active: true },
+              {
+                [Op.and]: [{ age: { [Op.gte]: 18 } }, { name: { [Op.iLike]: '%admin%' } }]
+              }
+            ]
+          })
+          .groupBy([sequelize.col('User.id'), sequelize.col('p.id')])
+          .having(sequelize.literal('SUM("c"."likes") > 10'))
+          .andHaving(sequelize.literal('SUM("c"."likes") < 300'))
+          .orderBy([['name', 'DESC'], [sequelize.col('p.title'), 'ASC']]);
+        const query = qb.getQuery({ multiline: true });
+        expectsql(query, {
+          default: [
+            'SELECT "User"."name", "User"."age" AS "userAge", "p"."title" AS "p.title", SUM("c"."likes") AS "c.likeCount"',
+            'FROM "Users" AS "User"',
+            'INNER JOIN "Posts" AS "p" ON "User"."id" = "p"."userId" AND "p"."title" ILIKE \'%cr%\'',
+            'LEFT OUTER JOIN "Comments" AS "c" ON "User"."id" = "c"."userId"',
+            'WHERE ("User"."active" = true OR ("User"."age" >= 18 AND "User"."name" ILIKE \'%admin%\'))',
+            'GROUP BY "User"."id", "p"."id"',
+            'HAVING (SUM("c"."likes") > 10 AND SUM("c"."likes") < 300)',
+            'ORDER BY "User"."name" DESC, "p"."title" ASC;'
+          ].join('\n')
+        });
+        const [result] = await qb.execute();
+        expect(result).to.have.lengthOf(3);
+        expect(result).to.deep.equal([
+          {
+            name: 'Bob',
+            userAge: 25,
+            'p.title': 'Crocodiles',
+            'c.likeCount': '50'
+          },
+          {
+            name: 'Bob',
+            userAge: 25,
+            'p.title': 'Cronos',
+            'c.likeCount': '50'
+          },
+          {
+            name: 'Alice',
+            userAge: 20,
+            'p.title': 'Creed',
+            'c.likeCount': '30'
+          }
+        ]);
+      });
+    }
   });
 
   describe('includes (custom joins)', () => {
@@ -369,8 +458,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             })
             .getQuery(),
           {
-            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."content" AS "Posts.content", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
           }
         );
       });
@@ -386,8 +475,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             })
             .getQuery(),
           {
-            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."content" AS "Posts.content", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
           }
         );
       });
@@ -403,8 +492,8 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             })
             .getQuery(),
           {
-            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] INNER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."content" AS "Posts.content", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" INNER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId";'
           }
         );
       });
@@ -422,9 +511,9 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             })
             .getQuery(),
           {
-            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = \'Hello World\';',
-            mssql: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N\'Hello World\';',
-            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId" AND "Posts"."title" = \'Hello World\';'
+            default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = \'Hello World\';',
+            mssql: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N\'Hello World\';',
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."content" AS "Posts.content", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId" AND "Posts"."title" = \'Hello World\';'
           }
         );
       });
