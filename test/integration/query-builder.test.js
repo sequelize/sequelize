@@ -341,7 +341,16 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           .where({ age: { [Op.gt]: 30 } })
           .getQuery({ multiline: true }),
         {
-          default: 'SELECT [name], [email]\nFROM [Users] AS [User]\nWHERE [User].[age] > 30;'
+          default: [
+            'SELECT [name], [email]',
+            'FROM [Users] AS [User]',
+            'WHERE [User].[age] > 30;'
+          ].join('\n'),
+          oracle: [
+            'SELECT "name", "email"',
+            'FROM "Users" "User"',
+            'WHERE "User"."age" > 30;'
+          ].join('\n')
         }
       );
     });
@@ -415,7 +424,7 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
           {
             default: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = \'Hello World\';',
             mssql: 'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[userId] AS [Posts.userId], [Posts].[title] AS [Posts.title], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [Users] AS [User] LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N\'Hello World\';',
-            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId" AND "Posts"."title" = \'Hello World\';"'
+            oracle: 'SELECT "User".*, "Posts"."id" AS "Posts.id", "Posts"."userId" AS "Posts.userId", "Posts"."title" AS "Posts.title", "Posts"."createdAt" AS "Posts.createdAt", "Posts"."updatedAt" AS "Posts.updatedAt" FROM "Users" "User" LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId" AND "Posts"."title" = \'Hello World\';'
           }
         );
       });
@@ -450,7 +459,18 @@ describe(Support.getTestDialectTeaser('QueryBuilder'), () => {
             .where({ age: { [Op.gt]: 30 } })
             .getQuery({ multiline: true }),
           {
-            default: 'SELECT [User].[name], [Posts].[title] AS [Posts.title]\nFROM [Users] AS [User]\nLEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId]\nWHERE [User].[age] > 30;'
+            default: [
+              'SELECT [User].[name], [Posts].[title] AS [Posts.title]',
+              'FROM [Users] AS [User]',
+              'LEFT OUTER JOIN [Posts] AS [Posts] ON [User].[id] = [Posts].[userId]',
+              'WHERE [User].[age] > 30;'
+            ].join('\n'),
+            oracle: [
+              'SELECT "User"."name", "Posts"."title" AS "Posts.title"',
+              'FROM "Users" "User"',
+              'LEFT OUTER JOIN "Posts" "Posts" ON "User"."id" = "Posts"."userId"',
+              'WHERE "User"."age" > 30;'
+            ].join('\n')
           }
         );
       });
