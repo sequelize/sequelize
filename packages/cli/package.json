@@ -4,16 +4,16 @@
   },
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
-    "@inquirer/checkbox": "^4.1.8",
-    "@inquirer/confirm": "^5.1.12",
-    "@inquirer/input": "^4.1.12",
-    "@inquirer/select": "^4.2.3",
-    "@oclif/core": "^4.3.3",
-    "@oclif/plugin-help": "^6.2.29",
+    "@inquirer/checkbox": "^4.1.9",
+    "@inquirer/confirm": "^5.1.13",
+    "@inquirer/input": "^4.2.0",
+    "@inquirer/select": "^4.2.4",
+    "@oclif/core": "^4.5.1",
+    "@oclif/plugin-help": "^6.2.31",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
-    "zod": "^3.25.64"
+    "zod": "^3.25.76"
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
   "devDependencies": {
@@ -21,9 +21,9 @@
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
-    "concurrently": "9.1.2",
-    "mocha": "11.6.0",
-    "oclif": "4.18.3",
+    "concurrently": "9.2.0",
+    "mocha": "11.7.1",
+    "oclif": "4.20.6",
     "rimraf": "5.0.10"
   },
   "engines": {
