@@ -1078,6 +1078,44 @@ The following associations are defined on "Worker": "ToDos"`);
         ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
+      it('throws error when record not found by findByPk with model-level rejectOnEmpty', async function () {
+        const Model = current.define(
+          'Test',
+          {
+            username: DataTypes.STRING(100),
+          },
+          {
+            rejectOnEmpty: true,
+          },
+        );
+
+        await Model.sync({ force: true });
+
+        await expect(
+          Model.findByPk(1),
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
+
+      it('override model-level rejectOnEmpty in findByPk', async function () {
+        const Model = current.define(
+          'Test',
+          {
+            username: DataTypes.STRING(100),
+          },
+          {
+            rejectOnEmpty: true,
+          },
+        );
+
+        await Model.sync({ force: true });
+
+        await expect(
+          Model.findByPk(1, {
+            rejectOnEmpty: false,
+          }),
+        ).to.eventually.be.deep.equal(null);
+      });
+
       it('throws error when record not found by find', async function () {
         await expect(
           this.User.findOne({

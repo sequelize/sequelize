@@ -2120,6 +2120,15 @@ export interface ModelOptions<M extends Model = Model> {
    * @default false
    */
   version?: boolean | string | undefined;
+
+  /**
+   * Throws an error if the query would return 0 results.
+   * This option is used as the default for all find operations on this model.
+   * Can be overridden in individual find operations.
+   *
+   * @default false
+   */
+  rejectOnEmpty?: boolean | Error | undefined;
 }
 
 /**
