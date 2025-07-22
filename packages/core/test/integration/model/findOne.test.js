@@ -1114,7 +1114,7 @@ The following associations are defined on "Worker": "ToDos"`);
         ).to.eventually.be.deep.equal(null);
       });
 
-      it('throws error when record not found by find', async () => {
+      it('throws error when record not found by find', async function () {
         await expect(
           this.User.findOne({
             where: {
