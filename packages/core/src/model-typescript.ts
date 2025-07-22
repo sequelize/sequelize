@@ -466,6 +466,27 @@ export class ModelTypeScript {
     identifier: unknown,
     options?: FindByPkOptions<M>,
   ): Promise<M>;
+  // Overload for models with rejectOnEmpty: true at model level (without explicit options)
+  static findByPk<M extends Model>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+  ): Promise<M>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
+  // Overload for models with rejectOnEmpty: true at model level but overridden to false
+  static findByPk<M extends Model>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { rejectOnEmpty: false },
+  ): Promise<M | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty: false },
+  ): Promise<R | null>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: unknown,
