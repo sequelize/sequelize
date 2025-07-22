@@ -1078,7 +1078,7 @@ The following associations are defined on "Worker": "ToDos"`);
         ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('throws error when record not found by findByPk with model-level rejectOnEmpty', async function () {
+      it('throws error when record not found by findByPk with model-level rejectOnEmpty', async () => {
         const Model = current.define(
           'Test',
           {
@@ -1096,7 +1096,7 @@ The following associations are defined on "Worker": "ToDos"`);
         ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
-      it('override model-level rejectOnEmpty in findByPk', async function () {
+      it('override model-level rejectOnEmpty in findByPk', async () => {
         const Model = current.define(
           'Test',
           {
@@ -1116,7 +1116,7 @@ The following associations are defined on "Worker": "ToDos"`);
         ).to.eventually.be.deep.equal(null);
       });
 
-      it('throws error when record not found by find', async function () {
+      it('throws error when record not found by find', async () => {
         await expect(
           this.User.findOne({
             where: {
