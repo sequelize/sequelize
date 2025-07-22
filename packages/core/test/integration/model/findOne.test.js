@@ -1091,9 +1091,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         await Model.sync({ force: true });
 
-        await expect(
-          Model.findByPk(1),
-        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        await expect(Model.findByPk(1)).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
       });
 
       it('override model-level rejectOnEmpty in findByPk', async () => {
