@@ -15,6 +15,7 @@ import type {
   InitOptions,
   ModelAttributes,
   ModelStatic,
+  ModelWithRejectOnEmpty,
   NonNullFindByPkOptions,
   NormalizedAttributeOptions,
   Sequelize,
@@ -455,6 +456,16 @@ export class ModelTypeScript {
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
+  static findByPk<M extends Model>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M>,
+  ): Promise<M>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: unknown,
