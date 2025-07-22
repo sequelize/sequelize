@@ -3189,13 +3189,13 @@ export abstract class Model<
 export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
-export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new (): M; };
+export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new (): M };
 
 /**
  * Helper type to create a model with rejectOnEmpty: true
  */
 export type ModelWithRejectOnEmpty<M extends Model> = ModelStatic<M> & {
-  options: BuiltModelOptions & { rejectOnEmpty: true; };
+  options: BuiltModelOptions & { rejectOnEmpty: true };
 };
 
 /**
