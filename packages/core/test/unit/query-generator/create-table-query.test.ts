@@ -20,6 +20,16 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
+  it('produces a query to create a table with STRICT mode', () => {
+    expectsql(
+      () => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { strict: true }),
+      {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['strict']),
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) STRICT;',
+      },
+    );
+  });
+
   it('produces a query to create a table from a model', () => {
     const MyModel = sequelize.define('MyModel', {});
 

@@ -96,7 +96,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     let sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr})`;
 
-    if (this.dialect.options.strictTables) {
+    if (options.strict) {
       sql += ' STRICT';
     }
 

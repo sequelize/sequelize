@@ -26,21 +26,11 @@ export interface SqliteDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   sqlite3Module?: Sqlite3Module;
-
-  /**
-   * Enable STRICT mode for all tables by default.
-   * When enabled, tables will be created with STRICT keyword,
-   * enforcing strict typing at the database level.
-   *
-   * @default false
-   */
-  strictTables?: boolean;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<SqliteDialectOptions>({
   foreignKeys: undefined,
   sqlite3Module: undefined,
-  strictTables: undefined,
 });
 
 const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SqliteConnectionOptions>({
