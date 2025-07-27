@@ -1,6 +1,6 @@
 import type { FetchDatabaseVersionOptions } from '@sequelize/core';
 import { AbstractQueryInterface } from '@sequelize/core';
-import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-interface-internal.js';
+import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { PostgresDialect } from './dialect.js';
 
 export class PostgresQueryInterfaceTypescript<

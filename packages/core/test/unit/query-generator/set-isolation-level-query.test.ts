@@ -13,7 +13,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to READ COMMITTED', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.READ_COMMITTED), {
       default: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
-      sqlite: new Error(
+      sqlite3: new Error(
         `The ${IsolationLevel.READ_COMMITTED} isolation level is not supported by ${dialect.name}.`,
       ),
       snowflake: notSupportedError,
@@ -24,7 +24,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to READ UNCOMMITTED', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.READ_UNCOMMITTED), {
       default: 'SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED',
-      sqlite: 'PRAGMA read_uncommitted = 1',
+      sqlite3: 'PRAGMA read_uncommitted = 1',
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });
@@ -33,7 +33,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to REPEATABLE READ', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.REPEATABLE_READ), {
       default: 'SET TRANSACTION ISOLATION LEVEL REPEATABLE READ',
-      sqlite: new Error(
+      sqlite3: new Error(
         `The ${IsolationLevel.REPEATABLE_READ} isolation level is not supported by ${dialect.name}.`,
       ),
       snowflake: notSupportedError,
@@ -44,7 +44,7 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
   it('should generate a query for setting the isolation level to SERIALIZABLE', () => {
     expectsql(() => queryGenerator.setIsolationLevelQuery(IsolationLevel.SERIALIZABLE), {
       default: 'SET TRANSACTION ISOLATION LEVEL SERIALIZABLE',
-      sqlite: 'PRAGMA read_uncommitted = 0',
+      sqlite3: 'PRAGMA read_uncommitted = 0',
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
     });

@@ -1,12 +1,18 @@
 import { buildNullBasedParser } from '../_internal/build-parser.js';
 import { inspect } from '../inspect.js';
 import { isBigInt } from '../predicates/is-big-int.js';
+import { isNumber } from '../predicates/is-number.js';
 import { isValidIntegerSyntax } from '../predicates/is-valid-integer-syntax.js';
 import { parseFiniteNumber } from './parse-finite-number.js';
 
-function parseSafeIntegerInternal(value: string | bigint, radix: number = 10): number | null {
+function parseSafeIntegerInternal(
+  value: string | bigint | number,
+  radix: number = 10,
+): number | null {
   let result: number | null;
-  if (isBigInt(value) || radix === 10) {
+  if (isNumber(value)) {
+    result = value;
+  } else if (isBigInt(value) || radix === 10) {
     // delegating to parseNumber as it supports scientific notation & only base 10 is allowed
     result = parseFiniteNumber(value);
   } else {
@@ -30,7 +36,6 @@ function parseSafeIntegerInternal(value: string | bigint, radix: number = 10): n
  * The Scientific notation is only allowed in base 10.
  *
  * @param value The string to parse as a safe integer
- * @param radix The radix
  * @returns null if the input is not an integer or is not safely representable by the JS number type (use parseBigInt for that)
  */
 export const parseSafeInteger = buildNullBasedParser(

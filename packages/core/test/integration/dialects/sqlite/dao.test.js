@@ -8,7 +8,7 @@ const Support = require('../../support');
 const dialect = Support.getTestDialect();
 const { DataTypes, Op, sql } = require('@sequelize/core');
 
-if (dialect === 'sqlite') {
+if (dialect === 'sqlite3') {
   describe('[SQLITE Specific] DAO', () => {
     beforeEach(async function () {
       this.User = this.sequelize.define('User', {

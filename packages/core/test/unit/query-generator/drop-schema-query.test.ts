@@ -12,7 +12,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema'), {
       default: 'DROP SCHEMA [mySchema]',
       db2: 'DROP SCHEMA "mySchema" RESTRICT',
-      sqlite: notSupportedError,
+      sqlite3: notSupportedError,
     });
   });
 
@@ -20,7 +20,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema', { ifExists: true }), {
       default: 'DROP SCHEMA IF EXISTS [mySchema]',
       'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['ifExists']),
-      sqlite: notSupportedError,
+      sqlite3: notSupportedError,
     });
   });
 
@@ -30,7 +30,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       'db2 mariadb mssql mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, [
         'cascade',
       ]),
-      sqlite: notSupportedError,
+      sqlite3: notSupportedError,
     });
   });
 
@@ -42,7 +42,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
         'ifExists',
       ]),
       'mariadb mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
-      sqlite: notSupportedError,
+      sqlite3: notSupportedError,
     });
   });
 });

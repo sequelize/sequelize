@@ -107,7 +107,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         // Create the user first to set the proper default values. PG does not support column references in insert,
         // so we must create a record with the right value for always_false, then reference it in an update
         const now =
-          dialect === 'sqlite'
+          dialect === 'sqlite3'
             ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
             : dialect === 'mssql'
               ? this.sequelize.fn('', this.sequelize.fn('getdate'))

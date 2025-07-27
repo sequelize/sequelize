@@ -1,6 +1,6 @@
 import type { BindParamOptions, GeoJson } from '@sequelize/core';
-import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { isString } from '@sequelize/utils';
 import dayjs from 'dayjs';

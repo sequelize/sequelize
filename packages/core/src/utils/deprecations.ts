@@ -120,11 +120,6 @@ export const noDataTypesUuid = deprecate(
   'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1 or sql.uuidV4 instead.',
   'SEQUELIZE0026',
 );
-export const encodeHost = deprecate(
-  noop,
-  'Use a URL encoded host instead of adding it as a host query string',
-  'SEQUELIZE0027',
-);
 export const noSequelizeModel = deprecate(
   noop,
   'Do not use sequelize.model(). Use sequelize.models.get or sequelize.models.getOrThrow instead.',

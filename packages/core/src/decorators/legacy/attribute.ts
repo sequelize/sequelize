@@ -1,6 +1,6 @@
 import type { NonUndefined } from '@sequelize/utils';
-import { isDataType } from '../../dialects/abstract/data-types-utils.js';
-import type { DataType } from '../../dialects/abstract/data-types.js';
+import { isDataType } from '../../abstract-dialect/data-types-utils.js';
+import type { DataType } from '../../abstract-dialect/data-types.js';
 import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { underscore } from '../../utils/string.js';
@@ -10,7 +10,19 @@ import {
 } from './attribute-utils.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 
-type AttributeDecoratorOption = DataType | Partial<AttributeOptions>;
+export type InheritedAttributeOptions = Partial<AttributeOptions> & {
+  /**
+   * If true, the attribute will be inserted before the descendant's attributes.
+   */
+  insertBefore?: boolean;
+  /**
+   * If true, the attribute will be inserted after the descendant's attributes.
+   * This is the default behavior.
+   */
+  insertAfter?: boolean;
+};
+
+type AttributeDecoratorOption = DataType | InheritedAttributeOptions;
 
 /**
  * The `@Attribute` decorator is used to add an attribute to a model. It is used on an instance property.
@@ -43,6 +55,12 @@ export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecora
       return {
         type: attrOptionOrDataType,
       };
+    }
+
+    if (attrOptionOrDataType.insertBefore && attrOptionOrDataType.insertAfter) {
+      throw new Error(
+        `Cannot set both 'insertBefore' and 'insertAfter' to true on the same attribute`,
+      );
     }
 
     return attrOptionOrDataType;

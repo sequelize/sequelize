@@ -84,7 +84,7 @@ describe('QueryGenerator#selectQuery', () => {
       );
 
       expectsql(sql, {
-        sqlite: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
+        sqlite3: 'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT -1 OFFSET 1;',
         postgres: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET 1;',
         snowflake: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT NULL OFFSET 1;',
         'mariadb mysql':
@@ -336,7 +336,7 @@ describe('QueryGenerator#selectQuery', () => {
       expectsql(sql, {
         postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
         mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
-        'sqlite mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        'sqlite3 mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
       });
     });
   }
@@ -1018,6 +1018,39 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
           ]),
           'mariadb mysql snowflake':
             'SELECT [id] FROM [Users] AS [User] IGNORE INDEX ([index_project_on_name],[index_project_on_name_and_foo]);',
+        },
+      );
+    });
+
+    it('should support index hints on queries with associations', () => {
+      const { User } = vars;
+
+      expectsql(
+        () =>
+          queryGenerator.selectQuery(
+            User.table,
+            {
+              model: User,
+              attributes: ['id'],
+              indexHints: [{ type: IndexHints.FORCE, values: ['index_project_on_name'] }],
+              include: _validateIncludedElements({
+                model: User,
+                include: [
+                  {
+                    association: User.associations.projects,
+                    attributes: ['id'],
+                  },
+                ],
+              }).include,
+            },
+            User,
+          ),
+        {
+          default: buildInvalidOptionReceivedError('quoteTable', sequelize.dialect.name, [
+            'indexHints',
+          ]),
+          'mariadb mysql snowflake':
+            'SELECT [User].[id], [projects].[id] AS [projects.id] FROM [Users] AS [User] FORCE INDEX ([index_project_on_name]) LEFT OUTER JOIN [Projects] AS [projects] ON [User].[id] = [projects].[userId];',
         },
       );
     });

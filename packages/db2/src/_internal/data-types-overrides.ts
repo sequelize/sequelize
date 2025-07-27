@@ -1,6 +1,6 @@
 import type { AbstractDialect } from '@sequelize/core';
-import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import maxBy from 'lodash/maxBy.js';

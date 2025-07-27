@@ -1,4 +1,4 @@
-import type { Connection, ConnectionOptions } from '@sequelize/core';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import {
   AbstractConnectionManager,
   ConnectionError,
@@ -11,8 +11,6 @@ import {
 } from '@sequelize/core';
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import pick from 'lodash/pick';
-import assert from 'node:assert';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
 import type { TypeId, TypeParser } from 'pg-types';
@@ -34,7 +32,9 @@ interface TypeOids {
   rangeOid?: number;
 }
 
-export interface PostgresConnection extends Connection, Pg.Client {
+export type PgModule = typeof Pg;
+
+export interface PostgresConnection extends AbstractConnection, Pg.Client {
   // custom property we attach to the client
   // TODO: replace with Symbols.
   _invalid?: boolean;
@@ -45,67 +45,70 @@ export interface PostgresConnection extends Connection, Pg.Client {
   _ending?: boolean;
 }
 
+export interface PostgresConnectionOptions
+  extends Omit<ClientConfig, 'types' | 'connectionString'> {
+  /**
+   * !! DO NOT SET THIS TO TRUE !!
+   * (unless you know what you're doing)
+   * see [http://www.postgresql.org/message-id/flat/bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com#bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com]
+   */
+  binary?: boolean;
+
+  /**
+   * see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]
+   * choose the SSL mode with the PGSSLMODE environment variable
+   * object format: [https://github.com/brianc/node-postgres/blob/ee19e74ffa6309c9c5e8e01746261a8f651661f8/lib/connection.js#L79]
+   * see also [http://www.postgresql.org/docs/9.3/static/libpq-ssl.html]
+   * In addition to the values accepted by the corresponding server,
+   * you can use "auto" to determine the right encoding from the
+   * current locale in the client (LC_CTYPE environment variable on Unix systems)
+   */
+  client_encoding?: string;
+
+  /**
+   * This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
+   * this feature has been added in pg module v6.0.0, check pg/CHANGELOG.md
+   * Times out queries after a set time in milliseconds in the database end. Added in pg v7.3
+   * Times out queries after a set time in milliseconds in client end, query would be still running in database end.
+   * Number of milliseconds to wait for connection, default is no timeout.
+   * Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
+   * Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
+   */
+  lock_timeout?: number;
+}
+
 export class PostgresConnectionManager extends AbstractConnectionManager<
   PostgresDialect,
   PostgresConnection
 > {
-  readonly #lib: typeof Pg;
+  readonly #lib: PgModule;
   readonly #oidMap = new Map<number, TypeOids>();
   readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);
 
-    const pgLib = dialect.options.native ? Pg.native : Pg;
-    assert(pgLib != null, 'pg-native module not found, please install it');
+    const pgModule = dialect.options.pgModule ?? Pg;
 
-    this.#lib = pgLib;
+    if (dialect.options.native && dialect.options.pgModule) {
+      throw new Error(
+        'You cannot specify both the "pgModule" option and the "native" option at the same time, as the "native" option is only used to use "pg-native" as the "pgModule" instead of "pg"',
+      );
+    }
+
+    if (dialect.options.native && !pgModule.native) {
+      throw new Error(
+        'The "native" option was specified, but the "pg-native" module is not installed. You must install it to use the native bindings.',
+      );
+    }
+
+    this.#lib = dialect.options.native ? pgModule.native! : pgModule;
   }
 
-  async connect(config: ConnectionOptions): Promise<PostgresConnection> {
-    const port = Number(config.port ?? this.dialect.getDefaultPort());
-
-    // @ts-expect-error -- "dialectOptions.options" must be a string in PG, but a Record in MSSQL. We'll fix the typings when we split the dialects into their own modules.
+  async connect(config: ConnectionOptions<PostgresDialect>): Promise<PostgresConnection> {
     const connectionConfig: ClientConfig = {
-      ...(config.dialectOptions &&
-        pick(config.dialectOptions, [
-          // see [http://www.postgresql.org/docs/9.3/static/runtime-config-logging.html#GUC-APPLICATION-NAME]
-          'application_name',
-          // choose the SSL mode with the PGSSLMODE environment variable
-          // object format: [https://github.com/brianc/node-postgres/blob/ee19e74ffa6309c9c5e8e01746261a8f651661f8/lib/connection.js#L79]
-          // see also [http://www.postgresql.org/docs/9.3/static/libpq-ssl.html]
-          'ssl',
-          // In addition to the values accepted by the corresponding server,
-          // you can use "auto" to determine the right encoding from the
-          // current locale in the client (LC_CTYPE environment variable on Unix systems)
-          'client_encoding',
-          // !! DO NOT SET THIS TO TRUE !!
-          // (unless you know what you're doing)
-          // see [http://www.postgresql.org/message-id/flat/bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com#bc9549a50706040852u27633f41ib1e6b09f8339d845@mail.gmail.com]
-          'binary',
-          // This should help with backends incorrectly considering idle clients to be dead and prematurely disconnecting them.
-          // this feature has been added in pg module v6.0.0, check pg/CHANGELOG.md
-          'keepAlive',
-          // Times out queries after a set time in milliseconds in the database end. Added in pg v7.3
-          'statement_timeout',
-          // Times out queries after a set time in milliseconds in client end, query would be still running in database end.
-          'query_timeout',
-          // Number of milliseconds to wait for connection, default is no timeout.
-          'connectionTimeoutMillis',
-          // Terminate any session with an open transaction that has been idle for longer than the specified duration in milliseconds. Added in pg v7.17.0 only supported in postgres >= 10
-          'idle_in_transaction_session_timeout',
-          // Maximum wait time for lock requests in milliseconds. Added in pg v8.8.0.
-          'lock_timeout',
-          // Postgres allows additional session variables to be configured in the connection string in the `options` param.
-          // see [https://www.postgresql.org/docs/14/libpq-connect.html#LIBPQ-CONNECT-OPTIONS]
-          'options',
-          // The stream acts as a user-defined socket factory for postgres. In particular, it enables IAM autentication
-          // with Google Cloud SQL. see: https://github.com/sequelize/sequelize/issues/16001#issuecomment-1561136388
-          'stream',
-        ])),
-      port,
-      ...pick(config, ['password', 'host', 'database']),
-      user: config.username,
+      port: 5432,
+      ...config,
       types: {
         getTypeParser: (oid: TypeId, format?: TypeFormat) => this.getTypeParser(oid, format),
       },
@@ -120,8 +123,9 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
         switch (message.parameterName) {
           case 'server_version': {
             const version = semver.coerce(message.parameterValue)?.version;
-            this.sequelize.options.databaseVersion =
-              version && semver.valid(version) ? version : this.dialect.defaultVersion;
+            this.sequelize.setDatabaseVersion(
+              version && semver.valid(version) ? version : this.dialect.minimumDatabaseVersion,
+            );
 
             break;
           }
@@ -197,13 +201,13 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     connection.on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
-      void this.pool.destroy(connection);
+      void this.sequelize.pool.destroy(connection);
     });
 
     let query = '';
 
     if (
-      this.sequelize.options.standardConformingStrings !== false &&
+      this.dialect.options.standardConformingStrings !== false &&
       connection.standard_conforming_strings
     ) {
       // Disable escape characters in strings
@@ -212,29 +216,13 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       query += 'SET standard_conforming_strings=on;';
     }
 
-    if (this.sequelize.options.clientMinMessages !== undefined) {
-      console.warn('Usage of "options.clientMinMessages" is deprecated and will be removed in v7.');
-      console.warn('Please use the sequelize option "dialectOptions.clientMinMessages" instead.');
-    }
-
-    // Redshift dosen't support client_min_messages, use 'ignore' to skip this settings.
-    // If no option, the default value in sequelize is 'warning'
-    if (
-      !(
-        (config.dialectOptions &&
-          config.dialectOptions.clientMinMessages &&
-          config.dialectOptions.clientMinMessages.toLowerCase() === 'ignore') ||
-        this.sequelize.options.clientMinMessages === false
-      )
-    ) {
-      const clientMinMessages =
-        (config.dialectOptions && config.dialectOptions.clientMinMessages) ||
-        this.sequelize.options.clientMinMessages ||
-        'warning';
+    // TODO: make this a connection option
+    const clientMinMessages = this.dialect.options.clientMinMessages ?? 'warning';
+    if (clientMinMessages) {
       query += `SET client_min_messages TO ${clientMinMessages};`;
     }
 
-    if (!this.sequelize.config.keepDefaultTimezone) {
+    if (!this.sequelize.options.keepDefaultTimezone) {
       if (this.sequelize.options.timezone && isValidTimeZone(this.sequelize.options.timezone)) {
         query += `SET TIME ZONE '${this.sequelize.options.timezone}';`;
       } else {

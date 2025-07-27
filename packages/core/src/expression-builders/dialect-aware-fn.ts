@@ -1,12 +1,12 @@
 import type { Class } from 'type-fest';
-import type { AbstractDialect } from '../dialects/abstract/index.js';
-import type { EscapeOptions } from '../dialects/abstract/query-generator-typescript.js';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
+import type { EscapeOptions } from '../abstract-dialect/query-generator-typescript.js';
 import type { Expression } from '../sequelize.js';
 import { BaseSqlExpression } from './base-sql-expression.js';
 import { JsonPath } from './json-path.js';
 
 /**
- * Unlike {@link Fn}, this class does not accept a function name.
+ * Unlike {@link sql.fn}, this class does not accept a function name.
  * It must instead be extended by a class that implements the {@link applyForDialect} method, in which
  * the function name is provided.
  *

@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "DB2 Connector for Sequelize",
+  "description": "DB2 for Linux, Unix and Windows Connector for Sequelize",
   "exports": {
     ".": {
       "import": {
@@ -13,6 +13,9 @@
       }
     }
   },
+  "files": [
+    "lib"
+  ],
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "sideEffects": false,
@@ -28,22 +31,16 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "0.0.0-development",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/ibm_db": "^2.0.16",
-    "dayjs": "^1.11.10",
-    "ibm_db": "^3.2.3",
+    "@types/ibm_db": "^3.2.0",
+    "dayjs": "^1.11.13",
+    "ibm_db": "^3.3.1",
     "lodash": "^4.17.21"
-  },
-  "devDependencies": {
-    "@types/chai": "4.3.14",
-    "@types/mocha": "10.0.6",
-    "chai": "4.4.1",
-    "mocha": "10.3.0"
   }
 }

@@ -11,10 +11,7 @@
  * @module
  */
 
-export * from './associations/index.js';
-export * as DataTypes from './data-types.js';
-export { ConstraintChecking, Deferrable } from './deferrable.js';
-export * from './dialects/abstract/connection-manager.js';
+export * from './abstract-dialect/connection-manager.js';
 export type {
   ArrayOptions,
   BindParamOptions,
@@ -33,14 +30,22 @@ export type {
   TextOptions,
   TimeOptions,
   VirtualOptions,
-} from './dialects/abstract/data-types.js';
-export { AbstractDialect } from './dialects/abstract/index.js';
-export { AbstractQueryGenerator } from './dialects/abstract/query-generator.js';
-export * from './dialects/abstract/query-generator.types.js';
-export * from './dialects/abstract/query-interface.js';
-export * from './dialects/abstract/query-interface.types.js';
-export * from './dialects/abstract/query.js';
-export type { WhereOptions } from './dialects/abstract/where-sql-builder-types.js';
+} from './abstract-dialect/data-types.js';
+export {
+  AbstractDialect,
+  type ConnectionOptions,
+  type DialectOptions,
+} from './abstract-dialect/dialect.js';
+export { AbstractQueryGenerator } from './abstract-dialect/query-generator.js';
+export * from './abstract-dialect/query-generator.types.js';
+export * from './abstract-dialect/query-interface.js';
+export * from './abstract-dialect/query-interface.types.js';
+export * from './abstract-dialect/query.js';
+export type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
+export type { WhereOptions } from './abstract-dialect/where-sql-builder-types.js';
+export * from './associations/index.js';
+export * as DataTypes from './data-types.js';
+export { ConstraintChecking, Deferrable } from './deferrable.js';
 export * from './errors/index.js';
 export { AssociationPath } from './expression-builders/association-path.js';
 export { Attribute } from './expression-builders/attribute.js';
@@ -66,6 +71,8 @@ export type {
 export { importModels } from './import-models.js';
 export { IndexHints } from './index-hints.js';
 export { ModelDefinition } from './model-definition.js';
+export { ModelRepository } from './model-repository.js';
+export * from './model-repository.types.js';
 export * from './model.js';
 export { Op, type OpTypes } from './operators.js';
 export { QueryTypes } from './query-types.js';
@@ -81,9 +88,9 @@ export {
   type NormalizedTransactionOptions,
   type TransactionOptions,
 } from './transaction.js';
-// TODO [>=8]: remove this alias
-// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
+// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future | TODO [>=8]: remove this alias
 export { Sequelize as default } from './sequelize.js';
+export type { NormalizedOptions, Options, PoolOptions } from './sequelize.types.js';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';
 export { useInflection } from './utils/string.js';
 export type { Validator } from './utils/validator-extras.js';

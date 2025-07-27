@@ -31,7 +31,7 @@ export class MariaDbQuery extends AbstractQuery {
     this.sql = sql;
     const { connection, options } = this;
 
-    const showWarnings = this.sequelize.options.showWarnings || options.showWarnings;
+    const showWarnings = this.sequelize.dialect.options.showWarnings || options.showWarnings;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -215,7 +215,7 @@ export class MariaDbQuery extends AbstractQuery {
   formatError(err) {
     switch (err.errno) {
       case ER_DUP_ENTRY: {
-        const match = err.message.match(/Duplicate entry '([\S\s]*)' for key '?((.|\s)*?)'?\s.*$/);
+        const match = err.message.match(/Duplicate entry '([\S\s]*)' for key '?([^']*?)'?\s.*$/);
 
         let fields = {};
         let message = 'Validation error';

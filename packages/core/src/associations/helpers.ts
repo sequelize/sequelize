@@ -77,17 +77,6 @@ export function mixinMethods<A extends Association, Aliases extends Record<strin
  */
 export const AssociationSecret = Symbol('AssociationConstructorPrivateKey');
 
-export function getModel<M extends Model>(
-  sequelize: Sequelize,
-  model: string | ModelStatic<M>,
-): ModelStatic<M> | null {
-  if (typeof model === 'string') {
-    return sequelize.models.get(model)! ?? null;
-  }
-
-  return model;
-}
-
 export function assertAssociationUnique(
   type: Class<Association>,
   source: ModelStatic<any>,

@@ -1,7 +1,7 @@
 services:
   mssql-latest:
     container_name: sequelize-mssql-latest
-    image: mcr.microsoft.com/mssql/server:2022-latest
+    image: mcr.microsoft.com/mssql/server:2025-latest
     environment:
       ACCEPT_EULA: Y
       MSSQL_PID: Developer
@@ -14,7 +14,8 @@ services:
       test:
         [
           'CMD',
-          '/opt/mssql-tools/bin/sqlcmd',
+          '/opt/mssql-tools18/bin/sqlcmd',
+          '-C',
           '-S',
           'localhost',
           '-U',

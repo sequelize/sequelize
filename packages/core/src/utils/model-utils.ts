@@ -1,6 +1,6 @@
 import { isString } from '@sequelize/utils';
-import type { TableOrModel } from '../dialects/abstract/query-generator.types.js';
-import type { TableNameWithSchema } from '../dialects/abstract/query-interface.js';
+import type { TableOrModel } from '../abstract-dialect/query-generator.types.js';
+import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js';
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
 

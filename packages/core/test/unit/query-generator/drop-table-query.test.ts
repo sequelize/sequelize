@@ -40,7 +40,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
     });
   });
 
@@ -60,7 +60,7 @@ describe('QueryGenerator#dropTableQuery', () => {
 
     expectsql(() => queryGeneratorSchema.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
     });
   });
 
@@ -78,7 +78,7 @@ describe('QueryGenerator#dropTableQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
+        sqlite3: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
       },
     );
   });

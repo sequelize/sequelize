@@ -16,7 +16,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL', async () => {
     const sequelize = Support.createSingleTestSequelizeInstance({
-      dialectOptions: { initSql: `SET @myUserVariable='myValue'` },
+      initSql: `SET @myUserVariable='myValue'`,
     });
     const res = await sequelize.query('SELECT @myUserVariable');
     expect(res[0]).to.deep.equal([{ '@myUserVariable': 'myValue' }]);
@@ -25,9 +25,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
   it('has existing init SQL array', async () => {
     const sequelize = Support.createSingleTestSequelizeInstance({
-      dialectOptions: {
-        initSql: [`SET @myUserVariable1='myValue'`, `SET @myUserVariable2='myValue'`],
-      },
+      initSql: [`SET @myUserVariable1='myValue'`, `SET @myUserVariable2='myValue'`],
     });
     const res = await sequelize.query('SELECT @myUserVariable1, @myUserVariable2');
     expect(res[0]).to.deep.equal([
@@ -44,9 +42,9 @@ describe('[MARIADB Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         host: testHost,
         port: 65_535,
-        dialectOptions: { connectTimeout: 500 },
+        connectTimeout: 500,
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.SequelizeConnectionError,
       );
 
@@ -55,7 +53,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
 
     it('ECONNREFUSED', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: testHost, port: 65_535 });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.ConnectionRefusedError,
       );
 
@@ -66,16 +64,14 @@ describe('[MARIADB Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         host: 'http://wowow.example.com',
       });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.HostNotFoundError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
 
       await sequelize.close();
     });
 
     it('EHOSTUNREACH', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: '255.255.255.255' });
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
         Sequelize.HostNotReachableError,
       );
 
@@ -85,13 +81,11 @@ describe('[MARIADB Specific] Connection Manager', () => {
     it('ER_ACCESS_DENIED_ERROR | ELOGIN', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         database: 'db',
-        username: 'was',
+        user: 'was',
         password: 'ddsd',
       });
 
-      await expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
-        Sequelize.AccessDeniedError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
 
       await sequelize.close();
     });

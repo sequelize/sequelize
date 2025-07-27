@@ -249,7 +249,7 @@ describe('QueryInterface#upsert', () => {
         ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
-      sqlite:
+      sqlite3:
         'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',
       db2: `
         MERGE INTO "Users" AS "Users_target"

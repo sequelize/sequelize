@@ -11,8 +11,8 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator } from '@sequelize/core';
-import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
-import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/query-generator-typescript.js';
+import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
@@ -182,14 +182,14 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'ccu.column_name AS "referencedColumnNames",',
       'r.delete_rule AS "deleteAction",',
       'r.update_rule AS "updateAction",',
-      'ch.check_clause AS "definition",',
+      'pg_get_expr(pgc.conbin, pgc.conrelid) AS "definition",',
       'c.is_deferrable AS "isDeferrable",',
       'c.initially_deferred AS "initiallyDeferred"',
       'FROM INFORMATION_SCHEMA.table_constraints c',
       'LEFT JOIN INFORMATION_SCHEMA.referential_constraints r ON c.constraint_catalog = r.constraint_catalog AND c.constraint_schema = r.constraint_schema AND c.constraint_name = r.constraint_name',
       'LEFT JOIN INFORMATION_SCHEMA.key_column_usage kcu ON c.constraint_catalog = kcu.constraint_catalog AND c.constraint_schema = kcu.constraint_schema AND c.constraint_name = kcu.constraint_name',
       'LEFT JOIN information_schema.constraint_column_usage AS ccu ON r.constraint_catalog = ccu.constraint_catalog AND r.constraint_schema = ccu.constraint_schema AND r.constraint_name = ccu.constraint_name',
-      'LEFT JOIN INFORMATION_SCHEMA.check_constraints ch ON c.constraint_catalog = ch.constraint_catalog AND c.constraint_schema = ch.constraint_schema AND c.constraint_name = ch.constraint_name',
+      'LEFT JOIN pg_constraint pgc ON c.constraint_name = pgc.conname AND c.table_schema = (SELECT nspname FROM pg_namespace WHERE oid = pgc.connamespace) AND c.table_name = pgc.conrelid::regclass::text',
       `WHERE c.table_name = ${this.escape(table.tableName)}`,
       `AND c.table_schema = ${this.escape(table.schema)}`,
       options?.columnName ? `AND kcu.column_name = ${this.escape(options.columnName)}` : '',

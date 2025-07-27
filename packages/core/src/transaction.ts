@@ -2,7 +2,7 @@ import type { StrictRequiredBy } from '@sequelize/utils';
 import { EMPTY_OBJECT } from '@sequelize/utils';
 import assert from 'node:assert';
 import type { Class } from 'type-fest';
-import type { Connection, ConstraintChecking, Logging, Sequelize } from './index.js';
+import type { AbstractConnection, ConstraintChecking, Logging, Sequelize } from './index.js';
 
 type TransactionCallback = (transaction: Transaction) => void | Promise<void>;
 
@@ -34,7 +34,7 @@ export class Transaction {
   readonly parent: Transaction | null;
   readonly id: string;
   #finished: 'commit' | 'rollback' | undefined;
-  #connection: Connection | undefined;
+  #connection: AbstractConnection | undefined;
 
   /**
    * Creates a new transaction instance
@@ -69,7 +69,7 @@ export class Transaction {
     return this.#finished;
   }
 
-  getConnection(): Connection {
+  getConnection(): AbstractConnection {
     if (!this.#connection) {
       throw new Error('This transaction is not bound to a connection.');
     }
@@ -77,7 +77,7 @@ export class Transaction {
     return this.#connection;
   }
 
-  getConnectionIfExists(): Connection | undefined {
+  getConnectionIfExists(): AbstractConnection | undefined {
     return this.#connection;
   }
 
@@ -171,9 +171,8 @@ export class Transaction {
     if (this.parent) {
       connection = this.parent.#connection;
     } else {
-      connection = await this.sequelize.connectionManager.getConnection({
+      connection = await this.sequelize.pool.acquire({
         type: this.options.readOnly ? 'read' : 'write',
-        uuid: this.id,
       });
     }
 
@@ -244,7 +243,7 @@ export class Transaction {
       return;
     }
 
-    this.sequelize.connectionManager.releaseConnection(this.#connection);
+    this.sequelize.pool.release(this.#connection);
     this.#connection.uuid = undefined;
     this.#connection = undefined;
   }
@@ -267,7 +266,7 @@ export class Transaction {
     const connection = this.#connection;
     this.#connection = undefined;
 
-    await this.sequelize.connectionManager.destroyConnection(connection);
+    await this.sequelize.pool.destroy(connection);
   }
 
   /**
@@ -511,7 +510,7 @@ export enum TransactionType {
  * ```
  * UserModel will be locked but other models won't be!
  *
- * [Read more on transaction locks here](https://sequelize.org/docs/v7/other-topics/transactions/#locks)
+ * [Read more on transaction locks here](https://sequelize.org/docs/v7/querying/transactions/#locks)
  */
 export enum Lock {
   UPDATE = 'UPDATE',
@@ -615,7 +614,7 @@ export function normalizeTransactionOptions(
         : undefined),
     isolationLevel:
       options.isolationLevel === undefined
-        ? sequelize.options.isolationLevel ?? null
+        ? (sequelize.options.isolationLevel ?? null)
         : options.isolationLevel,
     readOnly: options.readOnly ?? false,
     constraintChecking:

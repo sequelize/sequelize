@@ -1,7 +1,8 @@
 import { ConstraintChecking, Sequelize, Transaction } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 import { User } from './models/user';
 
-export const sequelize = new Sequelize('uri');
+export const sequelize = new Sequelize({ dialect: MySqlDialect });
 
 async function trans() {
   const a: number = await sequelize.transaction(async transaction => {

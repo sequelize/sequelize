@@ -1,4 +1,4 @@
-import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 // @ts-expect-error -- TODO: fork pg-hstore and add types
 import PgHstore from 'pg-hstore';
 

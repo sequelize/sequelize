@@ -37,6 +37,7 @@ function compileFor(loader) {
         compilerOptions: {
           target: 'node18',
           useDefineForClassFields: true,
+          experimentalDecorators: true,
         },
       },
     });

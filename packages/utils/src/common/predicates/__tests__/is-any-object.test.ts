@@ -21,7 +21,6 @@ describe('isAnyObject', () => {
     expect(isAnyObject(42)).to.be.false;
     expect(isAnyObject('string')).to.be.false;
     expect(isAnyObject(true)).to.be.false;
-    // eslint-disable-next-line unicorn/no-useless-undefined -- false positive
     expect(isAnyObject(undefined)).to.be.false;
     expect(isAnyObject(Symbol('symbol'))).to.be.false;
     expect(isAnyObject(123n)).to.be.false;

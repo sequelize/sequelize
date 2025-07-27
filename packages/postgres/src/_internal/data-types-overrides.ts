@@ -1,12 +1,12 @@
 import type { AbstractDialect, Rangable } from '@sequelize/core';
-import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types-utils.js';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type {
   AbstractDataType,
   AcceptableTypeOf,
   AcceptedDate,
   BindParamOptions,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
-import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/abstract/data-types.js';
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import { inspect, isBigInt, isNumber, isString } from '@sequelize/utils';
 import identity from 'lodash/identity.js';
 import assert from 'node:assert';

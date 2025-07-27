@@ -2,7 +2,7 @@ import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
 import upperFirst from 'lodash/upperFirst';
 import assert from 'node:assert';
-import { cloneDataType } from '../dialects/abstract/data-types-utils.js';
+import { cloneDataType } from '../abstract-dialect/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
 import type {
   AttributeNames,
@@ -356,8 +356,8 @@ export class BelongsToAssociation<
     } else {
       const foreignKeyValue = instances[0].get(this.foreignKey);
 
-      if (this.targetKeyIsPrimary && !options.where) {
-        return Target.findByPk(foreignKeyValue as any, options);
+      if (foreignKeyValue == null) {
+        return null;
       }
 
       where[this.targetKey] = foreignKeyValue;

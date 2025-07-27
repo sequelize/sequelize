@@ -127,7 +127,7 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000',
           sequelize_2: 2,
         },
-        sqlite: {
+        sqlite3: {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
@@ -160,7 +160,7 @@ describe('QueryGenerator#updateQuery', () => {
         db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "positive"=$sequelize_1,"negative"=$sequelize_2 WHERE "id" = $sequelize_3);',
       },
       bind: {
-        sqlite: {
+        sqlite3: {
           sequelize_1: 1,
           sequelize_2: 0,
           sequelize_3: 2,

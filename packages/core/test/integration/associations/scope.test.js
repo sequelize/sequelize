@@ -379,7 +379,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
     });
 
-    if (Support.getTestDialect() !== 'sqlite') {
+    if (Support.getTestDialect() !== 'sqlite3') {
       describe('N:M', () => {
         describe('on the target', () => {
           beforeEach(function () {

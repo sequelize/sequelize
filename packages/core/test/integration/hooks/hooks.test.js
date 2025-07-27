@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -35,48 +35,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     );
 
     await this.sequelize.sync({ force: true });
-  });
-
-  describe('init', () => {
-    Support.setResetMode('none');
-
-    const vars = Support.beforeAll2(() => {
-      const unhookBeforeInit = Sequelize.hooks.addListener('beforeInit', options => {
-        options.database = 'db2';
-        options.host = 'server9';
-      });
-
-      const unhookAfterInit = Sequelize.hooks.addListener('afterInit', sequelize => {
-        sequelize.options.protocol = 'udp';
-      });
-
-      const seq = new Sequelize('db', 'user', 'pass', { dialect });
-
-      return {
-        seq,
-        unhook() {
-          unhookBeforeInit();
-          unhookAfterInit();
-        },
-      };
-    });
-
-    after(async () => {
-      await vars.seq.close();
-      vars.unhook();
-    });
-
-    it('beforeInit hook can alter config', () => {
-      expect(vars.seq.config.database).to.equal('db2');
-    });
-
-    it('beforeInit hook can alter options', () => {
-      expect(vars.seq.options.host).to.equal('server9');
-    });
-
-    it('afterInit hook can alter options', () => {
-      expect(vars.seq.options.protocol).to.equal('udp');
-    });
   });
 
   describe('passing DAO instances', () => {
@@ -349,7 +307,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('Sequelize hooks', () => {
     it('should run before/afterPoolAcquire hooks', async function () {
-      if (dialect === 'sqlite') {
+      if (dialect === 'sqlite3') {
         return this.skip();
       }
 

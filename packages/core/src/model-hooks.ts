@@ -62,6 +62,11 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   ): AsyncHookReturn;
   beforeBulkDestroy(options: DestroyOptions<TAttributes>): AsyncHookReturn;
   afterBulkDestroy(options: DestroyOptions<TAttributes>): AsyncHookReturn;
+  _UNSTABLE_beforeBulkDestroy(options: DestroyOptions<TAttributes>): AsyncHookReturn;
+  _UNSTABLE_afterBulkDestroy(
+    options: DestroyOptions<TAttributes>,
+    deletedCount: number,
+  ): AsyncHookReturn;
   beforeBulkRestore(options: RestoreOptions<TAttributes>): AsyncHookReturn;
   afterBulkRestore(options: RestoreOptions<TAttributes>): AsyncHookReturn;
   beforeBulkUpdate(options: UpdateOptions<TAttributes>): AsyncHookReturn;
@@ -146,6 +151,8 @@ export const validModelHooks: Array<keyof ModelHooks> = [
   'afterBulkCreate',
   'beforeBulkDestroy',
   'afterBulkDestroy',
+  '_UNSTABLE_beforeBulkDestroy',
+  '_UNSTABLE_afterBulkDestroy',
   'beforeBulkRestore',
   'afterBulkRestore',
   'beforeBulkUpdate',

@@ -25,7 +25,7 @@ Learn to use [GitHub flavored markdown](https://help.github.com/articles/github-
 
 ### Opening an issue to report a bug
 
-It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [papb/sequelize-sscce](https://github.com/papb/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
+It is essential that you provide an [SSCCE](http://sscce.org/)/[MCVE](https://stackoverflow.com/help/minimal-reproducible-example) for your issue. You can use the [sequelize-sscce](https://github.com/sequelize/sequelize-sscce) repository. Tell us what is the actual (incorrect) behavior and what should have happened (do not expect the maintainers to know what should happen!). Make sure you checked the bug persists in the latest Sequelize version.
 
 If you can even provide a Pull Request with a failing test (unit test or integration test), that is great! The bug will likely be fixed much faster in this case.
 
@@ -67,7 +67,7 @@ A Pull Request is a request for maintainers to "pull" a specific change in code 
 
 Anyone can open a Pull Request, there is no need to ask for permission. Maintainers will look at your pull request and tell you if anything else must be done before it can be merged.
 
-The target of the Pull Request should be the `main` branch (or in rare cases the `v5` branch, if previously agreed with a maintainer).
+The target of the Pull Request should be the `main` branch (or in rare cases the `v6` branch, if previously agreed with a maintainer).
 
 Please check the _allow edits from maintainers_ box when opening it. Thank you in advance for any pull requests that you open!
 
@@ -120,7 +120,7 @@ Once installed, run the `yarn build` command to build the project.
 
 #### 2.1 Adding and updating dependencies
 
-[Yarn v3](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
+[Yarn v4](https://yarnpkg.com//) is used in the CI/CD pipeline so adding and updating dependencies must be done with Yarn.
 
 #### 2.2 Running commands
 
@@ -158,11 +158,11 @@ If you're happy to run tests only against an SQLite database, you can skip this 
 
 If you have Docker installed, use any of the following commands to start fresh local databases of the dialect of your choice:
 
-- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.0)
+- `yarn start-mariadb-oldest` (for MariaDB 10.4) or `yarn start-mariadb-latest` (for MariaDB 11.3)
 - `yarn start-mysql-oldest` (for MySQL 8.0) or `yarn start-mysql-latest` (for MySQL 8.3)
 - `yarn start-postgres-oldest` (for Postgres 11) or `yarn start-postgres-latest` (for Postgres 15)
 - `yarn start-mssql-oldest` (for MSSQL 2017) or `yarn start-mssql-latest` (for MSSQL 2022)
-- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.8.0)
+- `yarn start-db2-oldest` (for Db2 11.5.5.1) or `yarn start-db2-latest` (for Db2 11.5.9.0)
 
 _Note:_ if you're using Windows, make sure you run these from Git Bash (or another MinGW environment), since these commands will execute bash scripts. Recall that [it's very easy to include Git Bash as your default integrated terminal on Visual Studio Code](https://code.visualstudio.com/docs/editor/integrated-terminal).
 
@@ -189,7 +189,7 @@ You will have to manually install and configure each of database engines you wan
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
-yarn lerna run test-sqlite
+yarn lerna run test-sqlite3
 ```
 
 Then, if you want to run tests for another dialect, assuming you've set it up as written on section 3, run the corresponding command:
@@ -211,21 +211,21 @@ While you're developing, you may want to execute only a single test (or a few), 
 Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `yarn setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended) and you are in the package's root directory):
 
 ```
-DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha
+DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite3 yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha
 ```
 
 ### 5. Running an SSCCE
 
 What is SSCCE? [find out here](http://www.sscce.org/).
 
-You can modify the `sscce.js` file (at the root of the repository) to create an SSCCE.
+You can modify the `sscce.ts` file (at the root of the repository) to create an SSCCE.
 
 Run it for the dialect of your choice using one of the following commands:
 
 - `npm run sscce-mariadb` / `yarn sscce-mariadb`
 - `npm run sscce-mysql` / `yarn sscce-mysql`
 - `npm run sscce-postgres` / `yarn sscce-postgres`
-- `npm run sscce-sqlite` / `yarn sscce-sqlite`
+- `npm run sscce-sqlite3` / `yarn sscce-sqlite3`
 - `npm run sscce-mssql` / `yarn sscce-mssql`
 - `npm run sscce-db2` / `yarn sscce-db2`
 
@@ -233,7 +233,7 @@ _Note:_ First, you need to set up (once) the database instance for corresponding
 
 #### 5.1. Debugging an SSCCE with Visual Studio Code
 
-If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.js` or any other Sequelize source code).
+If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.ts` or any other Sequelize source code).
 
 ### 6. Commit your modifications
 
@@ -246,16 +246,19 @@ We will then use the title of your PR as the message of the Squash Commit. It wi
 We use a simple conventional commits convention:
 
 - The allowed commit types are: `docs`, `feat`, `fix`, `meta`.
-- We allow the following commit scopes (they're the list of dialects we support, plus `types` for TypeScript-only changes):
+- We allow the following commit scopes (they're the list of packages):
+  - `core`
+  - `utils`
+  - `cli`
+  - `validator.js`
   - `postgres`
   - `mysql`
   - `mariadb`
-  - `sqlite`
+  - `sqlite3`
   - `mssql`
   - `db2`
   - `ibmi`
   - `snowflake`
-  - `types`
 - If your changes impact more than one scope, simply omit the scope.
 
 Example:

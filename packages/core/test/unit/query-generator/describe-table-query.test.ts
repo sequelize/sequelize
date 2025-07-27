@@ -57,7 +57,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
+      sqlite3: 'PRAGMA TABLE_INFO(`myTable`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -132,7 +132,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`MyModels`)',
+      sqlite3: 'PRAGMA TABLE_INFO(`MyModels`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -208,7 +208,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite: 'PRAGMA TABLE_INFO(`MyModels`)',
+      sqlite3: 'PRAGMA TABLE_INFO(`MyModels`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -281,7 +281,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-        sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+        sqlite3: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
         db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -360,7 +360,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-        sqlite: 'PRAGMA TABLE_INFO(`myTable`)',
+        sqlite3: 'PRAGMA TABLE_INFO(`myTable`)',
         db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -437,7 +437,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-      sqlite: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+      sqlite3: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -472,7 +472,7 @@ describe('QueryGenerator#describeTableQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
+        sqlite3: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
       },
     );
   });

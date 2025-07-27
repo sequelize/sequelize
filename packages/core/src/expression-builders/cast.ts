@@ -1,15 +1,15 @@
 import { isPlainObject } from '@sequelize/utils';
-import type { DataType } from '../dialects/abstract/data-types.js';
+import type { DataType } from '../abstract-dialect/data-types.js';
 import { Op } from '../operators.js';
 import type { Expression } from '../sequelize.js';
-import { BaseSqlExpression } from './base-sql-expression.js';
+import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
- * Do not use me directly. Use {@link cast}
+ * Do not use me directly. Use {@link sql.cast}
  */
 export class Cast extends BaseSqlExpression {
-  private declare readonly brand: 'cast';
+  declare protected readonly [SQL_IDENTIFIER]: 'cast';
 
   constructor(
     readonly expression: Expression,

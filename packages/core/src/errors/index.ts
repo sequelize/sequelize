@@ -28,5 +28,3 @@ export {
   ValidationErrorItemType,
 } from './validation-error';
 export { UniqueConstraintError } from './validation/unique-constraint-error';
-
-export { AsyncQueueError } from '../dialects/mssql/async-queue';

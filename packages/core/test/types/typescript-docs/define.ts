@@ -5,8 +5,12 @@ import type {
   Model,
 } from '@sequelize/core';
 import { DataTypes, Sequelize } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize({
+  dialect: MySqlDialect,
+  url: 'mysql://root:asd123@localhost:3306/mydb',
+});
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
 

@@ -303,7 +303,9 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   });
 
   it('should not rollback if connection was not acquired', async function () {
-    this.sinon.stub(this.sequelize.connectionManager, '_connect').returns(new Promise(() => {}));
+    this.sinon
+      .stub(this.sequelize.dialect.connectionManager, 'connect')
+      .returns(new Promise(() => {}));
 
     const transaction = new Transaction(this.sequelize);
 
@@ -632,11 +634,11 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         const Task = await getAndInitializeTaskModel(this.sequelize);
 
         // 1 of 2 queries should deadlock and be rolled back by InnoDB
-        this.sinon.spy(this.sequelize.connectionManager, 'releaseConnection');
+        this.sinon.spy(this.sequelize.pool, 'release');
         await Promise.all([update(this.sequelize, Task, 1, 0), update(this.sequelize, Task, 0, 1)]);
 
         // Verify that both of the connections were released
-        expect(this.sequelize.connectionManager.releaseConnection.callCount).to.equal(2);
+        expect(this.sequelize.pool.release.callCount).to.equal(2);
 
         // Verify that a follow-up READ_COMMITTED works as expected.
         // For unknown reasons, we need to explicitly rollback on MariaDB,
@@ -793,7 +795,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     });
   }
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     it('provides persistent transactions', async () => {
       const sequelize = await Support.createMultiTransactionalTestSequelizeInstance();
       Support.destroySequelizeAfterTest(sequelize);
@@ -837,7 +839,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     });
   }
 
-  if (dialect === 'sqlite') {
+  if (dialect === 'sqlite3') {
     it('automatically retries on SQLITE_BUSY failure', async function () {
       const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
         this.sequelize,

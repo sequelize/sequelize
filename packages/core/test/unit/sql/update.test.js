@@ -81,6 +81,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             mssql:
               'DECLARE @tmp TABLE ([id] INTEGER,[user_name] NVARCHAR(255)); UPDATE [users] SET [user_name]=$sequelize_1 OUTPUT INSERTED.[id], INSERTED.[user_name] INTO @tmp WHERE [id] = $sequelize_2; SELECT * FROM @tmp',
+            sqlite3:
+              'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2 RETURNING `id`, `user_name`',
             postgres:
               'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
@@ -126,7 +128,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
             mysql:
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE `username` = $sequelize_2 LIMIT 1',
-            sqlite:
+            sqlite3:
               'UPDATE `Users` SET `username`=$sequelize_1 WHERE rowid IN (SELECT rowid FROM `Users` WHERE `username` = $sequelize_2 LIMIT 1)',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE (SELECT * FROM "Users" WHERE "username" = $sequelize_2 FETCH NEXT 1 ROWS ONLY) SET "username"=$sequelize_1);',
             snowflake:

@@ -6,6 +6,9 @@ import type {
   StrictRequiredBy,
 } from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
+import type { AbstractConnection } from './abstract-dialect/connection-manager.js';
+import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
+import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
 import type {
   Association,
   BelongsToAssociation,
@@ -18,9 +21,6 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
-import type { Connection } from './dialects/abstract/connection-manager.js';
-import type { DataType, NormalizedDataType } from './dialects/abstract/data-types.js';
-import type { IndexField, IndexOptions, TableName } from './dialects/abstract/query-interface';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
@@ -40,7 +40,7 @@ export interface Logging {
   /**
    * A function that gets executed while running the query to log the sql.
    */
-  logging?: boolean | ((sql: string, timing?: number) => void) | undefined;
+  logging?: false | ((sql: string, timing?: number) => void) | undefined;
 
   /**
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
@@ -62,7 +62,7 @@ export interface Transactionable {
    * The transaction in which this query must be run.
    * Mutually exclusive with {@link Transactionable.connection}.
    *
-   * If {@link SequelizeCoreOptions.disableClsTransactions} has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
+   * If the Sequelize disableClsTransactions option has not been set to true, and a transaction is running in the current AsyncLocalStorage context,
    * that transaction will be used, unless null or another Transaction is manually specified here.
    */
   transaction?: Transaction | null | undefined;
@@ -77,13 +77,14 @@ export interface Transactionable {
    * Specifying this option takes precedence over CLS Transactions. If a transaction is running in the current
    * AsyncLocalStorage context, it will be ignored in favor of the specified connection.
    */
-  connection?: Connection | null | undefined;
+  connection?: AbstractConnection | null | undefined;
 
   /**
    * Indicates if the query completes the transaction
    * Internal only
    *
    * @private
+   * @hidden
    */
   [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
@@ -769,26 +770,7 @@ export type OrderItem =
   | Literal
   | [OrderItemColumn, string]
   | [OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn]
-  | [OrderItemAssociation, OrderItemAssociation, OrderItemAssociation, OrderItemColumn, string]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-    ]
-  | [
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemAssociation,
-      OrderItemColumn,
-      string,
-    ];
+  | [...OrderItemAssociation[], OrderItemColumn, string];
 export type Order = Fn | Col | Literal | OrderItem[];
 
 /**
@@ -965,11 +947,11 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
   rejectOnEmpty: true | Error;
 }
 
-export interface FindByPkOptions<M extends Model>
-  extends Omit<FindOptions<Attributes<M>>, 'where'> {}
+export interface FindByPkOptions<M extends Model> extends FindOptions<Attributes<M>> {}
 
 export interface NonNullFindByPkOptions<M extends Model>
-  extends Omit<NonNullFindOptions<Attributes<M>>, 'where'> {}
+  extends NonNullFindOptions<Attributes<M>> {}
+
 /**
  * Options for Model.count method
  */
@@ -1003,6 +985,12 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * Count number of records returned by group by
+   * Used in conjunction with `group`.
+   */
+  countGroupedRows?: boolean;
 }
 
 /**
@@ -1776,7 +1764,7 @@ export interface AttributeOptions<M extends Model = Model> {
   columnName?: string | undefined;
 
   /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   * A literal default value, a JavaScript function, or an SQL function (using {@link sql.fn})
    */
   defaultValue?: unknown | undefined;
 
@@ -2115,7 +2103,10 @@ export interface ModelOptions<M extends Model = Model> {
         /**
          * Custom validation functions run on all instances of the model.
          */
-        [name: string]: (value: unknown) => boolean;
+        [name: string]: (
+          this: CreationAttributes<M> & ExtractMethods<M>,
+          callback?: (err: unknown) => void,
+        ) => void;
       }
     | undefined;
 
@@ -2147,7 +2138,7 @@ export type BuiltModelOptions<M extends Model = Model> = Omit<
     InitOptions<M>,
     'modelName' | 'indexes' | 'underscored' | 'validate' | 'tableName'
   >,
-  'name'
+  'name' | 'sequelize'
 > & { name: BuiltModelName };
 
 /**
@@ -2434,35 +2425,6 @@ export abstract class Model<
   ): Promise<M[]>;
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   */
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
-  ): Promise<R | null>;
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true },
-  ): Promise<R>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M>,
-  ): Promise<M>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options?: FindByPkOptions<M>,
-  ): Promise<M | null>;
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
@@ -2565,7 +2527,7 @@ export abstract class Model<
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
@@ -2579,7 +2541,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Finds the minimum value of field
@@ -2588,7 +2550,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<T>;
+  ): Promise<T | null>;
 
   /**
    * Retrieves the sum of field
@@ -2597,7 +2559,7 @@ export abstract class Model<
     this: ModelStatic<M>,
     field: keyof Attributes<M>,
     options?: AggregateOptions<T, Attributes<M>>,
-  ): Promise<number>;
+  ): Promise<number | null>;
 
   /**
    * Builds a new model instance.
@@ -2651,7 +2613,7 @@ export abstract class Model<
   ): Promise<[entity: M, built: boolean]>;
 
   /**
-   * Find an entity that matches the query, or {@link Model.create} the entity if none is found
+   * Find an entity that matches the query, or {@link Model.create} the entity if none is found.
    * The successful result of the promise will be the tuple [instance, initialized].
    *
    * If no transaction is passed in the `options` object, a new transaction will be created internally, to
@@ -3471,3 +3433,7 @@ export type CreationAttributes<M extends Model> = MakeNullishOptional<M['_creati
 export type Attributes<M extends Model> = M['_attributes'];
 
 export type AttributeNames<M extends Model> = Extract<keyof M['_attributes'], string>;
+
+export type ExtractMethods<M extends Model> = {
+  [K in keyof M as M[K] extends Function ? K : never]: M[K];
+};
