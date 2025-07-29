@@ -9,7 +9,7 @@
     "@inquirer/input": "^4.2.1",
     "@inquirer/select": "^4.3.1",
     "@oclif/core": "^4.5.2",
-    "@oclif/plugin-help": "^6.2.31",
+    "@oclif/plugin-help": "^6.2.32",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
@@ -23,7 +23,7 @@
     "chai": "4.5.0",
     "concurrently": "9.2.0",
     "mocha": "11.7.1",
-    "oclif": "4.22.1",
+    "oclif": "4.22.5",
     "rimraf": "5.0.10"
   },
   "engines": {
