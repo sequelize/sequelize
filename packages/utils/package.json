@@ -2,7 +2,7 @@
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "description": "Sequelize Utility Library",
   "engines": {
-    "node": ">=18.20.8"
+    "node": ">=22.17.1"
   },
   "types": "./lib/common/index.d.ts",
   "exports": {
