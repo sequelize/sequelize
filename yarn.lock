@@ -3009,7 +3009,7 @@ __metadata:
     mocha: "npm:11.7.1"
     pg: "npm:^8.15.6"
     pg-hstore: "npm:^2.3.4"
-    pg-types: "npm:^4.0.2"
+    pg-types: "npm:^4.1.0"
     postgres-array: "npm:^3.0.4"
     semver: "npm:^7.7.2"
     wkx: "npm:^0.5.0"
@@ -13268,9 +13268,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-types@npm:^4.0.1, pg-types@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "pg-types@npm:4.0.2"
+"pg-types@npm:^4.0.1, pg-types@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "pg-types@npm:4.1.0"
   dependencies:
     pg-int8: "npm:1.0.1"
     pg-numeric: "npm:1.0.2"
@@ -13279,7 +13279,7 @@ __metadata:
     postgres-date: "npm:~2.1.0"
     postgres-interval: "npm:^3.0.0"
     postgres-range: "npm:^1.1.1"
-  checksum: 10c0/780fccda2f3fa2a34e85a72e8e7dadb7d88fbe71ce88f126cb3313f333ad836d02488ec4ff3d94d0c1e5846f735d6e6c6281f8059e6b8919d2180429acaec3e2
+  checksum: 10c0/462a56b5c34e0dff38fc5f6ac939c66e80a92333a79bfb1d963ffe0383ca33427a16899e0b9d23235ce1f5df42473373fb9c9f24e1f614f8698b58cc45435ca6
   languageName: node
   linkType: hard
 
