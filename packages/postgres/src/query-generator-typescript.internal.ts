@@ -199,7 +199,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.constraintType
         ? `AND c.constraint_type = ${this.escape(options.constraintType)}`
         : '',
-      'ORDER BY c.constraint_name, kcu.ordinal_position',
+      'ORDER BY c.constraint_name, kcu.ordinal_position, ccu.column_name',
     ]);
   }
 
