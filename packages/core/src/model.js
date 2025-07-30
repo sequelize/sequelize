@@ -40,6 +40,7 @@ import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
 import * as SequelizeErrors from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { QueryBuilder } from './expression-builders/query-builder.js';
 import { InstanceValidator } from './instance-validator';
 import {
   _validateIncludedElements,
@@ -4625,6 +4626,24 @@ Instead of specifying a Model, either:
    */
   static belongsTo(target, options) {
     return BelongsToAssociation.associate(AssociationSecret, this, target, options);
+  }
+
+  /**
+   * Creates a new QueryBuilder instance for this model.
+   * This enables functional/chainable query building.
+   *
+   * @returns {QueryBuilder} A new QueryBuilder instance for this model
+   *
+   * @example
+   * ```js
+   * const query = User.select()
+   *   .attributes(['name', 'email'])
+   *   .where({ active: true })
+   *   .getQuery();
+   * ```
+   */
+  static select() {
+    return new QueryBuilder(this).select();
   }
 }
 

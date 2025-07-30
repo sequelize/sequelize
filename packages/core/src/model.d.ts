@@ -26,6 +26,7 @@ import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
+import type { QueryBuilder } from './expression-builders/query-builder.js';
 import type { Where } from './expression-builders/where.js';
 import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
 import type { IndexHints } from './index-hints';
@@ -2394,6 +2395,22 @@ export abstract class Model<
     scope: FindOptions<Attributes<M>> | ((...args: readonly any[]) => FindOptions<Attributes<M>>),
     options?: AddScopeOptions,
   ): void;
+
+  /**
+   * Creates a new QueryBuilder instance for this model.
+   * This enables functional/chainable query building.
+   *
+   * @returns A new QueryBuilder instance for this model
+   *
+   * @example
+   * ```js
+   * const query = User.select()
+   *   .attributes(['name', 'email'])
+   *   .where({ active: true })
+   *   .getQuery();
+   * ```
+   */
+  static select<M extends Model>(this: ModelStatic<M>): QueryBuilder<M>;
 
   /**
    * Search for multiple instances.
