@@ -1736,11 +1736,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         replacements: topLevelInfo.options?.replacements,
       });
       if (joinWhere) {
-        if (include.or) {
-          joinCondition += ` OR ${joinWhere}`;
-        } else {
-          joinCondition += ` AND ${joinWhere}`;
-        }
+        joinCondition += ` AND ${joinWhere}`;
       }
     }
 
