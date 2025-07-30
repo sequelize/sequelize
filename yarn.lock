@@ -2408,9 +2408,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-arm64@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-darwin-arm64@npm:21.3.9"
+"@nx/nx-darwin-arm64@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-darwin-arm64@npm:21.3.10"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
@@ -2422,9 +2422,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-darwin-x64@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-darwin-x64@npm:21.3.9"
+"@nx/nx-darwin-x64@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-darwin-x64@npm:21.3.10"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
@@ -2436,9 +2436,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-freebsd-x64@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-freebsd-x64@npm:21.3.9"
+"@nx/nx-freebsd-x64@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-freebsd-x64@npm:21.3.10"
   conditions: os=freebsd & cpu=x64
   languageName: node
   linkType: hard
@@ -2450,9 +2450,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm-gnueabihf@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-linux-arm-gnueabihf@npm:21.3.9"
+"@nx/nx-linux-arm-gnueabihf@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-linux-arm-gnueabihf@npm:21.3.10"
   conditions: os=linux & cpu=arm
   languageName: node
   linkType: hard
@@ -2464,9 +2464,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-gnu@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-linux-arm64-gnu@npm:21.3.9"
+"@nx/nx-linux-arm64-gnu@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-linux-arm64-gnu@npm:21.3.10"
   conditions: os=linux & cpu=arm64 & libc=glibc
   languageName: node
   linkType: hard
@@ -2478,9 +2478,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-arm64-musl@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-linux-arm64-musl@npm:21.3.9"
+"@nx/nx-linux-arm64-musl@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-linux-arm64-musl@npm:21.3.10"
   conditions: os=linux & cpu=arm64 & libc=musl
   languageName: node
   linkType: hard
@@ -2492,9 +2492,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-gnu@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-linux-x64-gnu@npm:21.3.9"
+"@nx/nx-linux-x64-gnu@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-linux-x64-gnu@npm:21.3.10"
   conditions: os=linux & cpu=x64 & libc=glibc
   languageName: node
   linkType: hard
@@ -2506,9 +2506,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-linux-x64-musl@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-linux-x64-musl@npm:21.3.9"
+"@nx/nx-linux-x64-musl@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-linux-x64-musl@npm:21.3.10"
   conditions: os=linux & cpu=x64 & libc=musl
   languageName: node
   linkType: hard
@@ -2520,9 +2520,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-arm64-msvc@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-win32-arm64-msvc@npm:21.3.9"
+"@nx/nx-win32-arm64-msvc@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-win32-arm64-msvc@npm:21.3.10"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
@@ -2534,9 +2534,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@nx/nx-win32-x64-msvc@npm:21.3.9":
-  version: 21.3.9
-  resolution: "@nx/nx-win32-x64-msvc@npm:21.3.9"
+"@nx/nx-win32-x64-msvc@npm:21.3.10":
+  version: 21.3.10
+  resolution: "@nx/nx-win32-x64-msvc@npm:21.3.10"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -2948,7 +2948,7 @@ __metadata:
     mocha: "npm:11.7.1"
     node-gyp: "npm:11.3.0"
     node-hook: "npm:1.0.0"
-    nx: "npm:21.3.9"
+    nx: "npm:21.3.10"
     prettier: "npm:3.5.3"
     prettier-plugin-organize-imports: "npm:4.2.0"
     source-map-support: "npm:0.5.21"
@@ -12251,21 +12251,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nx@npm:21.3.9":
-  version: 21.3.9
-  resolution: "nx@npm:21.3.9"
+"nx@npm:21.3.10":
+  version: 21.3.10
+  resolution: "nx@npm:21.3.10"
   dependencies:
     "@napi-rs/wasm-runtime": "npm:0.2.4"
-    "@nx/nx-darwin-arm64": "npm:21.3.9"
-    "@nx/nx-darwin-x64": "npm:21.3.9"
-    "@nx/nx-freebsd-x64": "npm:21.3.9"
-    "@nx/nx-linux-arm-gnueabihf": "npm:21.3.9"
-    "@nx/nx-linux-arm64-gnu": "npm:21.3.9"
-    "@nx/nx-linux-arm64-musl": "npm:21.3.9"
-    "@nx/nx-linux-x64-gnu": "npm:21.3.9"
-    "@nx/nx-linux-x64-musl": "npm:21.3.9"
-    "@nx/nx-win32-arm64-msvc": "npm:21.3.9"
-    "@nx/nx-win32-x64-msvc": "npm:21.3.9"
+    "@nx/nx-darwin-arm64": "npm:21.3.10"
+    "@nx/nx-darwin-x64": "npm:21.3.10"
+    "@nx/nx-freebsd-x64": "npm:21.3.10"
+    "@nx/nx-linux-arm-gnueabihf": "npm:21.3.10"
+    "@nx/nx-linux-arm64-gnu": "npm:21.3.10"
+    "@nx/nx-linux-arm64-musl": "npm:21.3.10"
+    "@nx/nx-linux-x64-gnu": "npm:21.3.10"
+    "@nx/nx-linux-x64-musl": "npm:21.3.10"
+    "@nx/nx-win32-arm64-msvc": "npm:21.3.10"
+    "@nx/nx-win32-x64-msvc": "npm:21.3.10"
     "@yarnpkg/lockfile": "npm:^1.1.0"
     "@yarnpkg/parsers": "npm:3.0.2"
     "@zkochan/js-yaml": "npm:0.0.7"
@@ -12332,7 +12332,7 @@ __metadata:
   bin:
     nx: bin/nx.js
     nx-cloud: bin/nx-cloud.js
-  checksum: 10c0/daf1c98504dc2acd9ed6bc01f1a6e2e8624f623b53d5d410fb0d10f66041c55a27c32bde881e369e81fbf57519029ff820db084ac1c169d42d7077488d700d6a
+  checksum: 10c0/962f1a420471deee9249889a5f7f9ba88427cef911758002d7546713bbfaeed1b8251ed954b6fd20497078c10a167ffb957509a58a1dc16112e40c0235e1ca38
   languageName: node
   linkType: hard
 
