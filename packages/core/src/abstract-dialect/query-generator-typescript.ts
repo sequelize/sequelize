@@ -661,7 +661,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     if (options?.indexHints) {
