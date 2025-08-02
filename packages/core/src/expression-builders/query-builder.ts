@@ -10,6 +10,7 @@ import type {
 } from '../model.d.ts';
 import { Op } from '../operators.js';
 import type { Sequelize } from '../sequelize.js';
+import { logger } from '../utils/logger.js';
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import type { Col } from './col.js';
 import type { Literal } from './literal.js';
@@ -66,6 +67,7 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
   }
 
   /**
+   * [EXPERIMENTAL]
    * Creates a clone of the current query builder instance with all properties copied over
    *
    * @returns A new QueryBuilder instance with the same properties
@@ -86,11 +88,13 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
   }
 
   /**
+   * [EXPERIMENTAL]
    * Initialize a SELECT query
    *
    * @returns The query builder instance for chaining
    */
   select(): QueryBuilder<M> {
+    logger.warn('WARNING: Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.');
     const newBuilder = new QueryBuilder(this._model);
     newBuilder._isSelect = true;
 
@@ -207,7 +211,7 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
    * @param options - Include options
    * @returns The query builder instance for chaining
    */
-  includes(options: QueryBuilderIncludeOptions<M>) {
+  includes<OM extends Model>(options: QueryBuilderIncludeOptions<OM>) {
     if (!options.model) {
       throw new Error('Model is required for includes');
     }

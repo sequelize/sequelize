@@ -2,46 +2,41 @@ import type {
   InferAttributes,
   InferCreationAttributes,
   Model,
-  ModelStatic,
-  Sequelize,
 } from '@sequelize/core';
 import { DataTypes, Op, sql, where } from '@sequelize/core';
 import { expect } from 'chai';
 import { QueryBuilder } from '../../../lib/expression-builders/query-builder';
 import {
+  beforeEach2,
   createSequelizeInstance,
   expectsql,
   getTestDialect,
-  getTestDialectTeaser,
 } from '../../support';
 
 interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
-  id: number;
+  id?: number;
   name: string;
+  email: string;
   active: boolean;
   age?: number;
 }
 
 interface TPost extends Model<InferAttributes<TPost>, InferCreationAttributes<TPost>> {
-  id: number;
+  id?: number;
   title: string;
   content?: string;
   userId?: number;
 }
 
-describe(getTestDialectTeaser('QueryBuilder'), () => {
-  let sequelize: Sequelize;
-  let User: ModelStatic<any>;
-  let Post: ModelStatic<any>;
-
-  beforeEach(async () => {
-    sequelize = createSequelizeInstance();
-
-    User = sequelize.define<TUser>(
+describe('QueryBuilder', () => {
+  const vars = beforeEach2(async () => {
+    const sequelize = createSequelizeInstance();
+    const User = sequelize.define<TUser>(
       'User',
       {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
         name: { type: DataTypes.STRING, allowNull: false },
+        email: { type: DataTypes.STRING, allowNull: false },
         active: { type: DataTypes.BOOLEAN, defaultValue: true },
         age: { type: DataTypes.INTEGER },
       },
@@ -50,7 +45,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
       },
     );
 
-    Post = sequelize.define<TPost>(
+    const Post = sequelize.define<TPost>(
       'Post',
       {
         id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -67,21 +62,23 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     await Post.truncate();
     await User.sync({ force: true });
     await User.truncate();
+
+    return { sequelize, User, Post };
   });
 
   afterEach(async () => {
-    return sequelize?.close();
+    return vars.sequelize?.close();
   });
 
   describe('Basic QueryBuilder functionality', () => {
     it('should generate basic SELECT query', () => {
-      expectsql(User.select().getQuery(), {
+      expectsql(vars.User.select().getQuery(), {
         default: `SELECT [User].* FROM [users] AS [User];`,
       });
     });
 
     it('should generate SELECT query with specific attributes', () => {
-      expectsql(User.select().attributes(['name', 'email']).getQuery(), {
+      expectsql(vars.User.select().attributes(['name', 'email']).getQuery(), {
         default: `SELECT [name], [email] FROM [users] AS [User];`,
       });
     });
@@ -90,7 +87,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     if (!process.env.SEQ_PG_MINIFY_ALIASES) {
       it('should generate SELECT query with aliased attributes', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes([['name', 'username'], 'email'])
             .getQuery(),
           {
@@ -101,7 +98,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should generate SELECT query with literal attributes', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes([sql.literal('"User"."email" AS "personalEmail"')])
             .getQuery(),
           {
@@ -110,7 +107,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
         );
 
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes([[sql.literal('"User"."email"'), 'personalEmail']])
             .getQuery(),
           {
@@ -121,7 +118,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     }
 
     it('should generate SELECT query with WHERE clause', () => {
-      expectsql(User.select().where({ active: true }).getQuery(), {
+      expectsql(vars.User.select().where({ active: true }).getQuery(), {
         default: 'SELECT [User].* FROM [users] AS [User] WHERE [User].[active] = true;',
         sqlite3: 'SELECT `User`.* FROM `users` AS `User` WHERE `User`.`active` = 1;',
         mssql: 'SELECT [User].* FROM [users] AS [User] WHERE [User].[active] = 1;',
@@ -129,7 +126,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should generate SELECT query with multiple WHERE conditions', () => {
-      expectsql(User.select().where({ active: true, age: 25 }).getQuery(), {
+      expectsql(vars.User.select().where({ active: true, age: 25 }).getQuery(), {
         default:
           'SELECT [User].* FROM [users] AS [User] WHERE [User].[active] = true AND [User].[age] = 25;',
         sqlite3:
@@ -140,7 +137,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should generate complete SELECT query with attributes and WHERE', () => {
-      expectsql(User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
+      expectsql(vars.User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
         default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
         sqlite3: 'SELECT `name`, `email` FROM `users` AS `User` WHERE `User`.`active` = 1;',
         mssql: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = 1;',
@@ -148,7 +145,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should generate SELECT query with LIMIT', () => {
-      expectsql(User.select().limit(10).getQuery(), {
+      expectsql(vars.User.select().limit(10).getQuery(), {
         default: 'SELECT [User].* FROM [users] AS [User] ORDER BY [User].[id] LIMIT 10;',
         mssql:
           'SELECT [User].* FROM [users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY;',
@@ -157,7 +154,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should generate SELECT query with LIMIT and OFFSET', () => {
-      expectsql(User.select().limit(10).offset(5).getQuery(), {
+      expectsql(vars.User.select().limit(10).offset(5).getQuery(), {
         default: 'SELECT [User].* FROM [users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET 5;',
         'mysql mariadb sqlite3':
           'SELECT [User].* FROM `users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET 5;',
@@ -167,12 +164,12 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should generate SELECT query with ORDER BY', () => {
-      expectsql(User.select().orderBy(['name']).getQuery(), {
+      expectsql(vars.User.select().orderBy(['name']).getQuery(), {
         default: 'SELECT [User].* FROM [users] AS [User] ORDER BY [User].[name];',
       });
 
       expectsql(
-        User.select()
+        vars.User.select()
           .orderBy([['age', 'DESC']])
           .getQuery(),
         {
@@ -183,11 +180,11 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     // TODO: Figure out how to implement this
     // it('should support ORDER BY with position notation', () => {
-    //   expectsql(User.select().orderBy([2]).getQuery(), {
+    //   expectsql(vars.User.select().orderBy([2]).getQuery(), {
     //     default: 'SELECT [User].* FROM [users] AS [User] ORDER BY 2;',
     //   });
 
-    //   expectsql(User.select().orderBy([[3, 'DESC']]).getQuery(), {
+    //   expectsql(vars.User.select().orderBy([[3, 'DESC']]).getQuery(), {
     //     default: 'SELECT [User].* FROM [users] AS [User] ORDER BY 3 DESC;',
     //   });
     // });
@@ -196,7 +193,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     if (!process.env.SEQ_PG_MINIFY_ALIASES) {
       it('should generate SELECT query with GROUP BY', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
             .groupBy('name')
             .orderBy([[sql.literal('MAX("age")'), 'DESC']])
@@ -210,7 +207,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should generate SELECT query with GROUP BY and HAVING', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
             .groupBy('name')
             .having(sql.literal('MAX("age") > 30'))
@@ -222,7 +219,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
         );
 
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
             .groupBy('name')
             .having(sql.literal('MAX("age") > 30'))
@@ -239,7 +236,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
   describe('Functional/Immutable behavior', () => {
     it('should return new instances for each method call', () => {
-      const builder1 = User.select();
+      const builder1 = vars.User.select();
       const builder2 = builder1.attributes(['name']);
       const builder3 = builder2.where({ active: true });
 
@@ -249,7 +246,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should not mutate original builder when chaining', () => {
-      const baseBuilder = User.select();
+      const baseBuilder = vars.User.select();
       const builderWithAttributes = baseBuilder.attributes(['name']);
       const builderWithWhere = baseBuilder.where({ active: true });
 
@@ -271,7 +268,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should allow building different queries from same base', () => {
-      const baseBuilder = User.select().attributes(['name', 'email']);
+      const baseBuilder = vars.User.select().attributes(['name', 'email']);
 
       expectsql(baseBuilder.where({ active: true }).getQuery(), {
         default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
@@ -289,7 +286,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     describe('PostgreSQL-specific features', () => {
       it('should handle PostgreSQL operators correctly', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .where({
               name: { [Op.iLike]: '%john%' },
               age: { [Op.between]: [18, 65] },
@@ -304,7 +301,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should handle array operations', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .where({
               name: { [Op.in]: ['John', 'Jane', 'Bob'] },
             })
@@ -317,7 +314,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
       });
 
       it('should quote identifiers properly for PostgreSQL', () => {
-        expectsql(User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
+        expectsql(vars.User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
           default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
         });
       });
@@ -327,14 +324,14 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
   describe('Error handling', () => {
     it('should throw error when getQuery is called on non-select builder', () => {
       expect(() => {
-        const builder = new QueryBuilder(User);
+        const builder = new QueryBuilder(vars.User);
         builder.getQuery();
       }).to.throw();
     });
 
     it('should handle empty attributes array', () => {
       expect(() => {
-        User.select().attributes([]).getQuery();
+        vars.User.select().attributes([]).getQuery();
       }).to.throw(/Attempted a SELECT query for model 'User' as .* without selecting any columns/);
     });
   });
@@ -342,7 +339,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
   describe('Complex WHERE conditions', () => {
     it('should handle complex nested conditions', () => {
       expectsql(
-        User.select()
+        vars.User.select()
           .where({
             [Op.or]: [
               { active: true },
@@ -364,14 +361,14 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     });
 
     it('should handle IS NULL conditions', () => {
-      expectsql(User.select().where({ age: null }).getQuery(), {
+      expectsql(vars.User.select().where({ age: null }).getQuery(), {
         default: 'SELECT [User].* FROM [users] AS [User] WHERE [User].[age] IS NULL;',
       });
     });
 
     it('should handle NOT NULL conditions', () => {
       expectsql(
-        User.select()
+        vars.User.select()
           .where({ age: { [Op.ne]: null } })
           .getQuery(),
         {
@@ -382,7 +379,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     it('should generate multiline query', () => {
       expectsql(
-        User.select()
+        vars.User.select()
           .attributes(['name', 'email'])
           .where({ age: { [Op.gt]: 30 } })
           .getQuery({ multiline: true }),
@@ -398,7 +395,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     if (getTestDialect() === 'postgres' && !process.env.SEQ_PG_MINIFY_ALIASES) {
       it('should handle complex conditions with multiple joins', async () => {
-        const Comments = sequelize.define(
+        const Comments = vars.sequelize.define(
           'Comments',
           {
             id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -409,22 +406,22 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
           { tableName: 'comments' },
         );
         await Comments.sync({ force: true });
-        await Post.sync({ force: true });
-        await User.sync({ force: true });
+        await vars.Post.sync({ force: true });
+        await vars.User.sync({ force: true });
 
-        await User.create({ name: 'Alice', email: 'alice@example.com', active: true, age: 20 });
-        await User.create({ name: 'Bob', email: 'bob@example.com', active: true, age: 25 });
-        await Post.create({ title: 'Creed', userId: 1 });
-        await Post.create({ title: 'Crocodiles', userId: 2 });
-        await Post.create({ title: 'Cronos', userId: 2 });
+        await vars.User.create({ name: 'Alice', email: 'alice@example.com', active: true, age: 20 });
+        await vars.User.create({ name: 'Bob', email: 'bob@example.com', active: true, age: 25 });
+        await vars.Post.create({ title: 'Creed', userId: 1 });
+        await vars.Post.create({ title: 'Crocodiles', userId: 2 });
+        await vars.Post.create({ title: 'Cronos', userId: 2 });
         await Comments.create({ content: 'Comment 1', userId: 1, likes: 10 });
         await Comments.create({ content: 'Comment 2', userId: 1, likes: 20 });
         await Comments.create({ content: 'Comment 3', userId: 2, likes: 50 });
 
-        const qb = User.select()
+        const qb = vars.User.select()
           .attributes(['name', ['age', 'userAge']])
           .includes({
-            model: Post,
+            model: vars.Post,
             as: 'p',
             on: where(sql.col('User.id'), Op.eq, sql.col('p.userId')),
             attributes: ['title'],
@@ -496,9 +493,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
     if (!process.env.SEQ_PG_MINIFY_ALIASES) {
       it('should generate LEFT JOIN with custom condition', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
             })
@@ -512,9 +509,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should generate INNER JOIN when required is true', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               required: true,
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
@@ -529,9 +526,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should generate INNER JOIN when joinType is INNER', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               joinType: 'INNER',
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
@@ -546,9 +543,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should handle custom WHERE conditions on joined table', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
               where: {
@@ -567,9 +564,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should support custom attributes from joined table', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               attributes: ['title'],
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
@@ -584,10 +581,10 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
       it('should generate multiline query', () => {
         expectsql(
-          User.select()
+          vars.User.select()
             .attributes(['name'])
             .includes({
-              model: Post,
+              model: vars.Post,
               as: 'Posts',
               attributes: ['title'],
               on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
@@ -608,7 +605,7 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     it('should throw error when model is not provided', () => {
       expect(() => {
-        User.select().includes({
+        vars.User.select().includes({
           on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
         } as never);
       }).to.throw(Error, 'Model is required for includes');
@@ -616,9 +613,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     it('should throw error when on condition is not provided', () => {
       expect(() => {
-        User.select()
+        vars.User.select()
           .includes({
-            model: Post,
+            model: vars.Post,
             as: 'Posts',
           })
           .getQuery();
@@ -628,9 +625,9 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
   describe('execute', () => {
     it('should execute the query', async () => {
-      await User.sync({ force: true });
-      await User.create({ name: 'John', email: 'john@example.com', active: true });
-      const result = await User.select()
+      await vars.User.sync({ force: true });
+      await vars.User.create({ name: 'John', email: 'john@example.com', active: true });
+      const result = await vars.User.select()
         .attributes(['name'])
         .where({ active: true, name: 'John' })
         .execute();
@@ -640,14 +637,14 @@ describe(getTestDialectTeaser('QueryBuilder'), () => {
 
     if (!process.env.SEQ_PG_MINIFY_ALIASES) {
       it('should execute the query with custom join, returning multiple rows', async () => {
-        await User.sync({ force: true });
-        await Post.sync({ force: true });
-        const user = await User.create({ name: 'John', email: 'john@example.com', active: true });
-        await Post.create({ title: 'Post 1', userId: user.id });
-        await Post.create({ title: 'Post 2', userId: user.id });
-        const [result] = await User.select()
+        await vars.User.sync({ force: true });
+        await vars.Post.sync({ force: true });
+        const user = await vars.User.create({ name: 'John', email: 'john@example.com', active: true });
+        await vars.Post.create({ title: 'Post 1', userId: user.id });
+        await vars.Post.create({ title: 'Post 2', userId: user.id });
+        const [result] = await vars.User.select()
           .includes({
-            model: Post,
+            model: vars.Post,
             as: 'Posts',
             on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
           })
