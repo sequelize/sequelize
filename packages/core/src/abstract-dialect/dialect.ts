@@ -217,6 +217,9 @@ export type DialectSupports = {
     unquoted: boolean;
     quoted: boolean;
   };
+  operations: {
+    iLike: boolean;
+  };
   tmpTableTrigger: boolean;
   indexHints: boolean;
   tableHints: boolean;
@@ -446,6 +449,9 @@ export abstract class AbstractDialect<
     jsonExtraction: {
       unquoted: false,
       quoted: false,
+    },
+    operations: {
+        iLike: false,
     },
     REGEXP: false,
     IREGEXP: false,

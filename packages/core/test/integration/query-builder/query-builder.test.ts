@@ -10,7 +10,6 @@ import {
   beforeEach2,
   createSequelizeInstance,
   expectsql,
-  getTestDialect,
 } from '../../support';
 
 interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
@@ -83,39 +82,36 @@ describe('QueryBuilder', () => {
       });
     });
 
-    // Won't work with minified aliases
-    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
-      it('should generate SELECT query with aliased attributes', () => {
-        expectsql(
-          vars.User.select()
-            .attributes([['name', 'username'], 'email'])
-            .getQuery(),
-          {
-            default: 'SELECT [name] AS [username], [email] FROM [users] AS [User];',
-          },
-        );
-      });
+    it('should generate SELECT query with aliased attributes', () => {
+      expectsql(
+        vars.User.select()
+          .attributes([['name', 'username'], 'email'])
+          .getQuery(),
+        {
+          default: 'SELECT [name] AS [username], [email] FROM [users] AS [User];',
+        },
+      );
+    });
 
-      it('should generate SELECT query with literal attributes', () => {
-        expectsql(
-          vars.User.select()
-            .attributes([sql.literal('"User"."email" AS "personalEmail"')])
-            .getQuery(),
-          {
-            default: 'SELECT "User"."email" AS "personalEmail" FROM [users] AS [User];', // literal
-          },
-        );
+    it('should generate SELECT query with literal attributes', () => {
+      expectsql(
+        vars.User.select()
+          .attributes([sql.literal('"User"."email" AS "personalEmail"')])
+          .getQuery(),
+        {
+          default: 'SELECT "User"."email" AS "personalEmail" FROM [users] AS [User];', // literal
+        },
+      );
 
-        expectsql(
-          vars.User.select()
-            .attributes([[sql.literal('"User"."email"'), 'personalEmail']])
-            .getQuery(),
-          {
-            default: 'SELECT "User"."email" AS [personalEmail] FROM [users] AS [User];',
-          },
-        );
-      });
-    }
+      expectsql(
+        vars.User.select()
+          .attributes([[sql.literal('"User"."email"'), 'personalEmail']])
+          .getQuery(),
+        {
+          default: 'SELECT "User"."email" AS [personalEmail] FROM [users] AS [User];',
+        },
+      );
+    });
 
     it('should generate SELECT query with WHERE clause', () => {
       expectsql(vars.User.select().where({ active: true }).getQuery(), {
@@ -189,49 +185,46 @@ describe('QueryBuilder', () => {
     //   });
     // });
 
-    // Won't work with minified aliases
-    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
-      it('should generate SELECT query with GROUP BY', () => {
-        expectsql(
-          vars.User.select()
-            .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
-            .groupBy('name')
-            .orderBy([[sql.literal('MAX("age")'), 'DESC']])
-            .getQuery(),
-          {
-            default:
-              'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] ORDER BY MAX("age") DESC;',
-          },
-        );
-      });
+    it('should generate SELECT query with GROUP BY', () => {
+      expectsql(
+        vars.User.select()
+          .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .orderBy([[sql.literal('MAX("age")'), 'DESC']])
+          .getQuery(),
+        {
+          default:
+            'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] ORDER BY MAX("age") DESC;',
+        },
+      );
+    });
 
-      it('should generate SELECT query with GROUP BY and HAVING', () => {
-        expectsql(
-          vars.User.select()
-            .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
-            .groupBy('name')
-            .having(sql.literal('MAX("age") > 30'))
-            .getQuery(),
-          {
-            default:
-              'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] HAVING MAX("age") > 30;',
-          },
-        );
+    it('should generate SELECT query with GROUP BY and HAVING', () => {
+      expectsql(
+        vars.User.select()
+          .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .having(sql.literal('MAX("age") > 30'))
+          .getQuery(),
+        {
+          default:
+            'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] HAVING MAX("age") > 30;',
+        },
+      );
 
-        expectsql(
-          vars.User.select()
-            .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
-            .groupBy('name')
-            .having(sql.literal('MAX("age") > 30'))
-            .andHaving(sql.literal('COUNT(*) > 1'))
-            .getQuery(),
-          {
-            default:
-              'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] HAVING MAX("age") > 30 AND COUNT(*) > 1;',
-          },
-        );
-      });
-    }
+      expectsql(
+        vars.User.select()
+          .attributes(['name', [sql.literal('MAX("age")'), 'maxAge']])
+          .groupBy('name')
+          .having(sql.literal('MAX("age") > 30'))
+          .andHaving(sql.literal('COUNT(*) > 1'))
+          .getQuery(),
+        {
+          default:
+            'SELECT [name], MAX("age") AS [maxAge] FROM [users] AS [User] GROUP BY [name] HAVING MAX("age") > 30 AND COUNT(*) > 1;',
+        },
+      );
+    });
   });
 
   describe('Functional/Immutable behavior', () => {
@@ -282,44 +275,34 @@ describe('QueryBuilder', () => {
     });
   });
 
-  if (getTestDialect() === 'postgres') {
-    describe('PostgreSQL-specific features', () => {
-      it('should handle PostgreSQL operators correctly', () => {
-        expectsql(
-          vars.User.select()
-            .where({
-              name: { [Op.iLike]: '%john%' },
-              age: { [Op.between]: [18, 65] },
-            })
-            .getQuery(),
-          {
-            default:
-              "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] ILIKE '%john%' AND ([User].[age] BETWEEN 18 AND 65);",
-          },
-        );
-      });
+  it('should handle specific operators', () => {
+    expectsql(
+      vars.User.select()
+        .where({
+          name: { [Op.iLike]: '%john%' },
+          age: { [Op.between]: [18, 65] },
+        })
+        .getQuery(),
+      {
+        default:
+          "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] ILIKE '%john%' AND ([User].[age] BETWEEN 18 AND 65);",
+      },
+    );
+  });
 
-      it('should handle array operations', () => {
-        expectsql(
-          vars.User.select()
-            .where({
-              name: { [Op.in]: ['John', 'Jane', 'Bob'] },
-            })
-            .getQuery(),
-          {
-            default:
-              "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] IN ('John', 'Jane', 'Bob');",
-          },
-        );
-      });
-
-      it('should quote identifiers properly for PostgreSQL', () => {
-        expectsql(vars.User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
-          default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
-        });
-      });
-    });
-  }
+  it('should handle IN queries', () => {
+    expectsql(
+      vars.User.select()
+        .where({
+          name: { [Op.in]: ['John', 'Jane', 'Bob'] },
+        })
+        .getQuery(),
+      {
+        default:
+          "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] IN ('John', 'Jane', 'Bob');",
+      },
+    );
+  });
 
   describe('Error handling', () => {
     it('should throw error when getQuery is called on non-select builder', () => {
@@ -393,100 +376,102 @@ describe('QueryBuilder', () => {
       );
     });
 
-    if (getTestDialect() === 'postgres' && !process.env.SEQ_PG_MINIFY_ALIASES) {
-      it('should handle complex conditions with multiple joins', async () => {
-        const Comments = vars.sequelize.define(
-          'Comments',
-          {
-            id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-            userId: DataTypes.INTEGER,
-            content: DataTypes.STRING,
-            likes: DataTypes.INTEGER,
-          },
-          { tableName: 'comments' },
-        );
-        await Comments.sync({ force: true });
-        await vars.Post.sync({ force: true });
-        await vars.User.sync({ force: true });
+    it('should handle complex conditions with multiple joins', async () => {
+      if (!vars.sequelize.dialect.supports.operations.iLike) {
+        return;
+      }
 
-        await vars.User.create({ name: 'Alice', email: 'alice@example.com', active: true, age: 20 });
-        await vars.User.create({ name: 'Bob', email: 'bob@example.com', active: true, age: 25 });
-        await vars.Post.create({ title: 'Creed', userId: 1 });
-        await vars.Post.create({ title: 'Crocodiles', userId: 2 });
-        await vars.Post.create({ title: 'Cronos', userId: 2 });
-        await Comments.create({ content: 'Comment 1', userId: 1, likes: 10 });
-        await Comments.create({ content: 'Comment 2', userId: 1, likes: 20 });
-        await Comments.create({ content: 'Comment 3', userId: 2, likes: 50 });
+      const Comments = vars.sequelize.define(
+        'Comments',
+        {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          userId: DataTypes.INTEGER,
+          content: DataTypes.STRING,
+          likes: DataTypes.INTEGER,
+        },
+        { tableName: 'comments' },
+      );
+      await Comments.sync({ force: true });
+      await vars.Post.sync({ force: true });
+      await vars.User.sync({ force: true });
 
-        const qb = vars.User.select()
-          .attributes(['name', ['age', 'userAge']])
-          .includes({
-            model: vars.Post,
-            as: 'p',
-            on: where(sql.col('User.id'), Op.eq, sql.col('p.userId')),
-            attributes: ['title'],
-            where: { title: { [Op.iLike]: '%cr%' } },
-            required: true,
-          })
-          .includes({
-            model: Comments,
-            as: 'c',
-            on: where(sql.col('User.id'), Op.eq, sql.col('c.userId')),
-            attributes: [[sql.literal('SUM("c"."likes")'), 'likeCount']],
-            joinType: 'LEFT',
-          })
-          .where({
-            [Op.or]: [
-              { active: true },
-              {
-                [Op.and]: [{ age: { [Op.gte]: 18 } }, { name: { [Op.iLike]: '%admin%' } }],
-              },
-            ],
-          })
-          .groupBy([sql.col('User.id'), sql.col('p.id')])
-          .having(sql.literal('SUM("c"."likes") > 10'))
-          .andHaving(sql.literal('SUM("c"."likes") < 300'))
-          .orderBy([
-            ['name', 'DESC'],
-            [sql.col('p.title'), 'ASC'],
-          ]);
-        const query = qb.getQuery({ multiline: true });
-        expectsql(query, {
-          default: [
-            'SELECT "User"."name", "User"."age" AS "userAge", "p"."title" AS "p.title", SUM("c"."likes") AS "c.likeCount"',
-            'FROM "users" AS "User"',
-            'INNER JOIN "posts" AS "p" ON "User"."id" = "p"."userId" AND "p"."title" ILIKE \'%cr%\'',
-            'LEFT OUTER JOIN "comments" AS "c" ON "User"."id" = "c"."userId"',
-            'WHERE "User"."active" = true OR ("User"."age" >= 18 AND "User"."name" ILIKE \'%admin%\')',
-            'GROUP BY "User"."id", "p"."id"',
-            'HAVING SUM("c"."likes") > 10 AND SUM("c"."likes") < 300',
-            'ORDER BY "User"."name" DESC, "p"."title" ASC;',
-          ].join('\n'),
-        });
-        const [result] = await qb.execute();
-        expect(result).to.have.lengthOf(3);
-        expect(result).to.deep.equal([
-          {
-            name: 'Bob',
-            userAge: 25,
-            'p.title': 'Crocodiles',
-            'c.likeCount': '50',
-          },
-          {
-            name: 'Bob',
-            userAge: 25,
-            'p.title': 'Cronos',
-            'c.likeCount': '50',
-          },
-          {
-            name: 'Alice',
-            userAge: 20,
-            'p.title': 'Creed',
-            'c.likeCount': '30',
-          },
+      await vars.User.create({ name: 'Alice', email: 'alice@example.com', active: true, age: 20 });
+      await vars.User.create({ name: 'Bob', email: 'bob@example.com', active: true, age: 25 });
+      await vars.Post.create({ title: 'Creed', userId: 1 });
+      await vars.Post.create({ title: 'Crocodiles', userId: 2 });
+      await vars.Post.create({ title: 'Cronos', userId: 2 });
+      await Comments.create({ content: 'Comment 1', userId: 1, likes: 10 });
+      await Comments.create({ content: 'Comment 2', userId: 1, likes: 20 });
+      await Comments.create({ content: 'Comment 3', userId: 2, likes: 50 });
+
+      const qb = vars.User.select()
+        .attributes(['name', ['age', 'userAge']])
+        .includes({
+          model: vars.Post,
+          as: 'p',
+          on: where(sql.col('User.id'), Op.eq, sql.col('p.userId')),
+          attributes: ['title'],
+          where: { title: { [Op.iLike]: '%cr%' } },
+          required: true,
+        })
+        .includes({
+          model: Comments,
+          as: 'c',
+          on: where(sql.col('User.id'), Op.eq, sql.col('c.userId')),
+          attributes: [[sql.literal('SUM("c"."likes")'), 'likeCount']],
+          joinType: 'LEFT',
+        })
+        .where({
+          [Op.or]: [
+            { active: true },
+            {
+              [Op.and]: [{ age: { [Op.gte]: 18 } }, { name: { [Op.iLike]: '%admin%' } }],
+            },
+          ],
+        })
+        .groupBy([sql.col('User.id'), sql.col('p.id')])
+        .having(sql.literal('SUM("c"."likes") > 10'))
+        .andHaving(sql.literal('SUM("c"."likes") < 300'))
+        .orderBy([
+          ['name', 'DESC'],
+          [sql.col('p.title'), 'ASC'],
         ]);
+      const query = qb.getQuery({ multiline: true });
+      expectsql(query, {
+        default: [
+          'SELECT [User].[name], [User].[age] AS [userAge], [p].[title] AS [p.title], SUM("c"."likes") AS [c.likeCount]',
+          'FROM [users] AS [User]',
+          'INNER JOIN [posts] AS [p] ON [User].[id] = [p].[userId] AND [p].[title] ILIKE \'%cr%\'',
+          'LEFT OUTER JOIN [comments] AS [c] ON [User].[id] = [c].[userId]',
+          'WHERE [User].[active] = true OR ([User].[age] >= 18 AND [User].[name] ILIKE \'%admin%\')',
+          'GROUP BY [User].[id], [p].[id]',
+          'HAVING SUM("c"."likes") > 10 AND SUM("c"."likes") < 300',
+          'ORDER BY [User].[name] DESC, [p].[title] ASC;',
+        ].join('\n'),
       });
-    }
+      const [result] = await qb.execute();
+      expect(result).to.have.lengthOf(3);
+      expect(result).to.deep.equal([
+        {
+          name: 'Bob',
+          userAge: 25,
+          'p.title': 'Crocodiles',
+          'c.likeCount': '50',
+        },
+        {
+          name: 'Bob',
+          userAge: 25,
+          'p.title': 'Cronos',
+          'c.likeCount': '50',
+        },
+        {
+          name: 'Alice',
+          userAge: 20,
+          'p.title': 'Creed',
+          'c.likeCount': '30',
+        },
+      ]);
+    });
   });
 
   describe('includes (custom joins)', () => {
