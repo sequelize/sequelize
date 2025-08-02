@@ -94,7 +94,9 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
    * @returns The query builder instance for chaining
    */
   select(): QueryBuilder<M> {
-    logger.warn('Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.');
+    logger.warn(
+      'Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.',
+    );
     const newBuilder = new QueryBuilder(this._model);
     newBuilder._isSelect = true;
 

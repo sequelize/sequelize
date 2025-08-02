@@ -451,7 +451,7 @@ export abstract class AbstractDialect<
       quoted: false,
     },
     operations: {
-        iLike: false,
+      iLike: false,
     },
     REGEXP: false,
     IREGEXP: false,

@@ -1,16 +1,8 @@
-import type {
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
-} from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes, Model } from '@sequelize/core';
 import { DataTypes, Op, sql, where } from '@sequelize/core';
 import { expect } from 'chai';
 import { QueryBuilder } from '../../../lib/expression-builders/query-builder';
-import {
-  beforeEach2,
-  createSequelizeInstance,
-  expectsql,
-} from '../../support';
+import { beforeEach2, createSequelizeInstance, expectsql } from '../../support';
 
 interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
   id?: number;
@@ -133,11 +125,14 @@ describe('QueryBuilder', () => {
     });
 
     it('should generate complete SELECT query with attributes and WHERE', () => {
-      expectsql(vars.User.select().attributes(['name', 'email']).where({ active: true }).getQuery(), {
-        default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
-        sqlite3: 'SELECT `name`, `email` FROM `users` AS `User` WHERE `User`.`active` = 1;',
-        mssql: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = 1;',
-      });
+      expectsql(
+        vars.User.select().attributes(['name', 'email']).where({ active: true }).getQuery(),
+        {
+          default: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = true;',
+          sqlite3: 'SELECT `name`, `email` FROM `users` AS `User` WHERE `User`.`active` = 1;',
+          mssql: 'SELECT [name], [email] FROM [users] AS [User] WHERE [User].[active] = 1;',
+        },
+      );
     });
 
     it('should generate SELECT query with LIMIT', () => {
@@ -441,9 +436,9 @@ describe('QueryBuilder', () => {
         default: [
           'SELECT [User].[name], [User].[age] AS [userAge], [p].[title] AS [p.title], SUM("c"."likes") AS [c.likeCount]',
           'FROM [users] AS [User]',
-          'INNER JOIN [posts] AS [p] ON [User].[id] = [p].[userId] AND [p].[title] ILIKE \'%cr%\'',
+          "INNER JOIN [posts] AS [p] ON [User].[id] = [p].[userId] AND [p].[title] ILIKE '%cr%'",
           'LEFT OUTER JOIN [comments] AS [c] ON [User].[id] = [c].[userId]',
-          'WHERE [User].[active] = true OR ([User].[age] >= 18 AND [User].[name] ILIKE \'%admin%\')',
+          "WHERE [User].[active] = true OR ([User].[age] >= 18 AND [User].[name] ILIKE '%admin%')",
           'GROUP BY [User].[id], [p].[id]',
           'HAVING SUM("c"."likes") > 10 AND SUM("c"."likes") < 300',
           'ORDER BY [User].[name] DESC, [p].[title] ASC;',
@@ -624,7 +619,11 @@ describe('QueryBuilder', () => {
       it('should execute the query with custom join, returning multiple rows', async () => {
         await vars.User.sync({ force: true });
         await vars.Post.sync({ force: true });
-        const user = await vars.User.create({ name: 'John', email: 'john@example.com', active: true });
+        const user = await vars.User.create({
+          name: 'John',
+          email: 'john@example.com',
+          active: true,
+        });
         await vars.Post.create({ title: 'Post 1', userId: user.id });
         await vars.Post.create({ title: 'Post 2', userId: user.id });
         const [result] = await vars.User.select()
