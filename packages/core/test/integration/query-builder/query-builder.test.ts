@@ -281,6 +281,8 @@ describe('QueryBuilder', () => {
       {
         default:
           "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] ILIKE '%john%' AND ([User].[age] BETWEEN 18 AND 65);",
+        mssql:
+          "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] ILIKE N'%john%' AND ([User].[age] BETWEEN 18 AND 65);",
       },
     );
   });
@@ -295,6 +297,8 @@ describe('QueryBuilder', () => {
       {
         default:
           "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] IN ('John', 'Jane', 'Bob');",
+        mssql:
+          "SELECT [User].* FROM [users] AS [User] WHERE [User].[name] IN (N'John', N'Jane', N'Bob');",
       },
     );
   });
