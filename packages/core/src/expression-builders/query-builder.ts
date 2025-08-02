@@ -98,10 +98,10 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
    */
   select(): QueryBuilder<M> {
     if (!QueryBuilder._hasShownWarning) {
-        logger.warn(
-          'Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.',
-        );
-        QueryBuilder._hasShownWarning = true;
+      logger.warn(
+        'Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.',
+      );
+      QueryBuilder._hasShownWarning = true;
     }
 
     const newBuilder = new QueryBuilder(this._model);
@@ -306,15 +306,15 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
     };
 
     if (this._attributes) {
-        options.attributes = this._attributes;
+      options.attributes = this._attributes;
     }
 
     if (this._order) {
-        options.order = this._order;
+      options.order = this._order;
     }
 
     if (this._group) {
-        options.group = this._group;
+      options.group = this._group;
     }
 
     // Generate the SQL using the existing query generator
