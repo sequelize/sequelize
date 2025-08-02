@@ -470,118 +470,116 @@ describe('QueryBuilder', () => {
   });
 
   describe('includes (custom joins)', () => {
-    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
-      it('should generate LEFT JOIN with custom condition', () => {
-        expectsql(
-          vars.User.select()
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-            })
-            .getQuery(),
-          {
-            default:
-              'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-          },
-        );
-      });
+    it('should generate LEFT JOIN with custom condition', () => {
+      expectsql(
+        vars.User.select()
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+          })
+          .getQuery(),
+        {
+          default:
+            'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+        },
+      );
+    });
 
-      it('should generate INNER JOIN when required is true', () => {
-        expectsql(
-          vars.User.select()
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              required: true,
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-            })
-            .getQuery(),
-          {
-            default:
-              'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] INNER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-          },
-        );
-      });
+    it('should generate INNER JOIN when required is true', () => {
+      expectsql(
+        vars.User.select()
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            required: true,
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+          })
+          .getQuery(),
+        {
+          default:
+            'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] INNER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+        },
+      );
+    });
 
-      it('should generate INNER JOIN when joinType is INNER', () => {
-        expectsql(
-          vars.User.select()
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              joinType: 'INNER',
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-            })
-            .getQuery(),
-          {
-            default:
-              'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] INNER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-          },
-        );
-      });
+    it('should generate INNER JOIN when joinType is INNER', () => {
+      expectsql(
+        vars.User.select()
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            joinType: 'INNER',
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+          })
+          .getQuery(),
+        {
+          default:
+            'SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] INNER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+        },
+      );
+    });
 
-      it('should handle custom WHERE conditions on joined table', () => {
-        expectsql(
-          vars.User.select()
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-              where: {
-                title: 'Hello World',
-              },
-            })
-            .getQuery(),
-          {
-            default:
-              "SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = 'Hello World';",
-            mssql:
-              "SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N'Hello World';",
-          },
-        );
-      });
+    it('should handle custom WHERE conditions on joined table', () => {
+      expectsql(
+        vars.User.select()
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+            where: {
+              title: 'Hello World',
+            },
+          })
+          .getQuery(),
+        {
+          default:
+            "SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = 'Hello World';",
+          mssql:
+            "SELECT [User].*, [Posts].[id] AS [Posts.id], [Posts].[title] AS [Posts.title], [Posts].[content] AS [Posts.content], [Posts].[userId] AS [Posts.userId], [Posts].[createdAt] AS [Posts.createdAt], [Posts].[updatedAt] AS [Posts.updatedAt] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId] AND [Posts].[title] = N'Hello World';",
+        },
+      );
+    });
 
-      it('should support custom attributes from joined table', () => {
-        expectsql(
-          vars.User.select()
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              attributes: ['title'],
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-            })
-            .getQuery(),
-          {
-            default:
-              'SELECT [User].*, [Posts].[title] AS [Posts.title] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
-          },
-        );
-      });
+    it('should support custom attributes from joined table', () => {
+      expectsql(
+        vars.User.select()
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            attributes: ['title'],
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+          })
+          .getQuery(),
+        {
+          default:
+            'SELECT [User].*, [Posts].[title] AS [Posts.title] FROM [users] AS [User] LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId];',
+        },
+      );
+    });
 
-      it('should generate multiline query', () => {
-        expectsql(
-          vars.User.select()
-            .attributes(['name'])
-            .includes({
-              model: vars.Post,
-              as: 'Posts',
-              attributes: ['title'],
-              on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-            })
-            .where({ age: { [Op.gt]: 30 } })
-            .getQuery({ multiline: true }),
-          {
-            default: [
-              'SELECT [User].[name], [Posts].[title] AS [Posts.title]',
-              'FROM [users] AS [User]',
-              'LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId]',
-              'WHERE [User].[age] > 30;',
-            ].join('\n'),
-          },
-        );
-      });
-    }
+    it('should generate multiline query', () => {
+      expectsql(
+        vars.User.select()
+          .attributes(['name'])
+          .includes({
+            model: vars.Post,
+            as: 'Posts',
+            attributes: ['title'],
+            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+          })
+          .where({ age: { [Op.gt]: 30 } })
+          .getQuery({ multiline: true }),
+        {
+          default: [
+            'SELECT [User].[name], [Posts].[title] AS [Posts.title]',
+            'FROM [users] AS [User]',
+            'LEFT OUTER JOIN [posts] AS [Posts] ON [User].[id] = [Posts].[userId]',
+            'WHERE [User].[age] > 30;',
+          ].join('\n'),
+        },
+      );
+    });
 
     it('should throw error when model is not provided', () => {
       expect(() => {
@@ -615,33 +613,31 @@ describe('QueryBuilder', () => {
       expect(row).to.deep.equal([{ name: 'John' }]);
     });
 
-    if (!process.env.SEQ_PG_MINIFY_ALIASES) {
-      it('should execute the query with custom join, returning multiple rows', async () => {
-        await vars.User.sync({ force: true });
-        await vars.Post.sync({ force: true });
-        const user = await vars.User.create({
-          name: 'John',
-          email: 'john@example.com',
-          active: true,
-        });
-        await vars.Post.create({ title: 'Post 1', userId: user.id });
-        await vars.Post.create({ title: 'Post 2', userId: user.id });
-        const [result] = await vars.User.select()
-          .includes({
-            model: vars.Post,
-            as: 'Posts',
-            on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
-          })
-          .where({ id: user.id })
-          .execute();
-        expect(result).to.have.lengthOf(2);
-        expect((result[0] as any).id).to.equal(user.id);
-        expect((result[0] as any).name).to.equal(user.name);
-        expect((result[1] as any).id).to.equal(user.id);
-        expect((result[1] as any).name).to.equal(user.name);
-        expect((result[0] as any)['Posts.title']).to.equal('Post 1');
-        expect((result[1] as any)['Posts.title']).to.equal('Post 2');
+    it('should execute the query with custom join, returning multiple rows', async () => {
+      await vars.User.sync({ force: true });
+      await vars.Post.sync({ force: true });
+      const user = await vars.User.create({
+        name: 'John',
+        email: 'john@example.com',
+        active: true,
       });
-    }
+      await vars.Post.create({ title: 'Post 1', userId: user.id });
+      await vars.Post.create({ title: 'Post 2', userId: user.id });
+      const [result] = await vars.User.select()
+        .includes({
+          model: vars.Post,
+          as: 'Posts',
+          on: where(sql.col('User.id'), Op.eq, sql.col('Posts.userId')),
+        })
+        .where({ id: user.id })
+        .execute();
+      expect(result).to.have.lengthOf(2);
+      expect((result[0] as any).id).to.equal(user.id);
+      expect((result[0] as any).name).to.equal(user.name);
+      expect((result[1] as any).id).to.equal(user.id);
+      expect((result[1] as any).name).to.equal(user.name);
+      expect((result[0] as any)['Posts.title']).to.equal('Post 1');
+      expect((result[1] as any)['Posts.title']).to.equal('Post 2');
+    });
   });
 });

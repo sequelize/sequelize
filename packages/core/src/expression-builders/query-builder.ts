@@ -84,7 +84,8 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
     newBuilder._order = this._order;
     newBuilder._limit = this._limit;
     newBuilder._offset = this._offset;
-    newBuilder._include = this._include.map(include => structuredClone(include));
+    // Can't use structuredClone here because the static model isn't clonable, and we don't really want to clone it
+    newBuilder._include = this._include.map(include => ({ ...include }));
 
     return newBuilder;
   }
