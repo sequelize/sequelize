@@ -47,6 +47,8 @@ type CustomIncludeOptions = {
 export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'queryBuilder';
 
+  private static _hasShownWarning: boolean = false;
+
   private readonly _model: ModelStatic<M>;
   private _attributes?: FindAttributeOptions | undefined;
   private _where?: WhereOptions;
@@ -82,7 +84,7 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
     newBuilder._order = this._order;
     newBuilder._limit = this._limit;
     newBuilder._offset = this._offset;
-    newBuilder._include = this._include.map(include => ({ ...include }));
+    newBuilder._include = this._include.map(include => structuredClone(include));
 
     return newBuilder;
   }
@@ -94,9 +96,13 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
    * @returns The query builder instance for chaining
    */
   select(): QueryBuilder<M> {
-    logger.warn(
-      'Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.',
-    );
+    if (!QueryBuilder._hasShownWarning) {
+        logger.warn(
+          'Query Builder is an experimental feature. Results may be incomplete or inaccurate. Please verify all outputs before use.',
+        );
+        QueryBuilder._hasShownWarning = true;
+    }
+
     const newBuilder = new QueryBuilder(this._model);
     newBuilder._isSelect = true;
 
@@ -283,13 +289,10 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
 
     // Build the options object that matches Sequelize's FindOptions pattern
     const options: SelectOptions<any> = {
-      attributes: this._attributes!,
       where: this._where,
       include: processedIncludes,
-      order: this._order!,
       limit: this._limit,
       offset: this._offset,
-      group: this._group!,
       having:
         this._having && this._having.length > 0
           ? {
@@ -300,6 +303,18 @@ export class QueryBuilder<M extends Model = Model> extends BaseSqlExpression {
       plain: false,
       model: this._model,
     };
+
+    if (this._attributes) {
+        options.attributes = this._attributes;
+    }
+
+    if (this._order) {
+        options.order = this._order;
+    }
+
+    if (this._group) {
+        options.group = this._group;
+    }
 
     // Generate the SQL using the existing query generator
     const sql = queryGenerator.selectQuery(tableName, options, this._model);
