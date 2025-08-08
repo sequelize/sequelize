@@ -2949,7 +2949,7 @@ __metadata:
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:8.2.3"
-    lint-staged: "npm:16.1.4"
+    lint-staged: "npm:16.1.5"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.45.0"
     mocha: "npm:11.7.1"
@@ -5677,10 +5677,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chalk@npm:^5.4.1":
-  version: 5.4.1
-  resolution: "chalk@npm:5.4.1"
-  checksum: 10c0/b23e88132c702f4855ca6d25cb5538b1114343e41472d5263ee8a37cccfccd9c4216d111e1097c6a27830407a1dc81fecdf2a56f2c63033d4dbbd88c10b0dcef
+"chalk@npm:^5.5.0":
+  version: 5.5.0
+  resolution: "chalk@npm:5.5.0"
+  checksum: 10c0/23063b544f7c2fe57d25ff814807de561f8adfff72e4f0051051eaa606f772586470507ccd38d89166300eeaadb0164acde8bb8a0716a0f2d56ccdf3761d5e4f
   languageName: node
   linkType: hard
 
@@ -10489,11 +10489,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:16.1.4":
-  version: 16.1.4
-  resolution: "lint-staged@npm:16.1.4"
+"lint-staged@npm:16.1.5":
+  version: 16.1.5
+  resolution: "lint-staged@npm:16.1.5"
   dependencies:
-    chalk: "npm:^5.4.1"
+    chalk: "npm:^5.5.0"
     commander: "npm:^14.0.0"
     debug: "npm:^4.4.1"
     lilconfig: "npm:^3.1.3"
@@ -10502,10 +10502,10 @@ __metadata:
     nano-spawn: "npm:^1.0.2"
     pidtree: "npm:^0.6.0"
     string-argv: "npm:^0.3.2"
-    yaml: "npm:^2.8.0"
+    yaml: "npm:^2.8.1"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10c0/dd1caa079a37598e1a8e25661f0ab387c584b83f06364e112d73fcfea3896ea920bbadbe89a7150de1bf02130efd16ce0cc8cd217e1db94570fddc93e77878ac
+  checksum: 10c0/771e7be871f1d74ed09ef4e4eae5f835ed962965db7709be26cccf71bef8fed34f8d5d92f193b2a6fad32c12d955850aa74008e6180fabea8a7a6666cba2ac39
   languageName: node
   linkType: hard
 
@@ -16682,12 +16682,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"yaml@npm:^2.6.0, yaml@npm:^2.6.1, yaml@npm:^2.8.0":
-  version: 2.8.0
-  resolution: "yaml@npm:2.8.0"
+"yaml@npm:^2.6.0, yaml@npm:^2.6.1, yaml@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "yaml@npm:2.8.1"
   bin:
     yaml: bin.mjs
-  checksum: 10c0/f6f7310cf7264a8107e72c1376f4de37389945d2fb4656f8060eca83f01d2d703f9d1b925dd8f39852a57034fafefde6225409ddd9f22aebfda16c6141b71858
+  checksum: 10c0/7c587be00d9303d2ae1566e03bc5bc7fe978ba0d9bf39cc418c3139d37929dfcb93a230d9749f2cb578b6aa5d9ebebc322415e4b653cb83acd8bc0bc321707f3
   languageName: node
   linkType: hard
 
