@@ -28,6 +28,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
       uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
+      uuidv7: { type: DataTypes.UUID, defaultValue: sql.uuidV7 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
@@ -121,44 +122,55 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('default values', () => {
     describe('uuid', () => {
-      it('should store a string in uuidv1 and uuidv4', function () {
+      it('should store a string in uuidv1, uuidv4 and uuidv7', function () {
         const user = this.User.build({ username: 'a user' });
         expect(user.uuidv1).to.be.a('string');
         expect(user.uuidv4).to.be.a('string');
+        expect(user.uuidv7).to.be.a('string');
       });
 
-      it('should store a string of length 36 in uuidv1 and uuidv4', function () {
+      it('should store a string of length 36 in uuidv1, uuidv4 and uuidv7', function () {
         const user = this.User.build({ username: 'a user' });
         expect(user.uuidv1).to.have.length(36);
         expect(user.uuidv4).to.have.length(36);
+        expect(user.uuidv7).to.have.length(36);
       });
 
-      it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function () {
+      it('should store a valid uuid in uuidv1, uuidv4 and uuidv7 that conforms to the UUID v1, v4 and v7 specifications', function () {
         const user = this.User.build({ username: 'a user' });
         expect(isUUID(user.uuidv1)).to.be.true;
         expect(isUUID(user.uuidv4, 4)).to.be.true;
+        expect(isUUID(user.uuidv7, 7)).to.be.true;
       });
 
       it('should store a valid uuid if the multiple primary key fields used', function () {
         const Person = this.sequelize.define('Person', {
-          id1: {
+          uuidV1: {
             type: DataTypes.UUID,
             defaultValue: sql.uuidV1,
             primaryKey: true,
           },
-          id2: {
+          uuidV4: {
             type: DataTypes.UUID,
             defaultValue: sql.uuidV4,
+            primaryKey: true,
+          },
+          uuidV7: {
+            type: DataTypes.UUID,
+            defaultValue: sql.uuidV7,
             primaryKey: true,
           },
         });
 
         const person = Person.build({});
-        expect(person.id1).to.be.ok;
-        expect(person.id1).to.have.length(36);
+        expect(person.uuidV1).to.be.ok;
+        expect(person.uuidV1).to.have.length(36);
 
-        expect(person.id2).to.be.ok;
-        expect(person.id2).to.have.length(36);
+        expect(person.uuidV4).to.be.ok;
+        expect(person.uuidV4).to.have.length(36);
+
+        expect(person.uuidV7).to.be.ok;
+        expect(person.uuidV7).to.have.length(36);
       });
     });
     describe('current date', () => {
