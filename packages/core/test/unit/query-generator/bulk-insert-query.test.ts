@@ -38,6 +38,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
       mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'a string');`,
       // TODO: ibmi should be the same as `default`, since the 'returning' option is not specified
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('a string'))`,
+      hana: `INSERT INTO "Users" ("firstName") (SELECT 'a string' FROM DUMMY);`,
     });
   });
 });
