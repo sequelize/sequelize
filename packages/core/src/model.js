@@ -1690,8 +1690,10 @@ ${associationOwner._getAssociationDebugList()}`);
     // use a subquery to get the count
     if (options.group && options.countGroupedRows) {
       const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
+      const dialect = this.sequelize.dialect.name;
 
-      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
+      // Oracle doesn't support 'AS' keyword for aliasing tables
+      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) ${dialect !== 'oracle' ? 'AS' : ''} Z`;
 
       const result = await this.sequelize.query(queryCountAll);
 
@@ -2312,7 +2314,7 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 

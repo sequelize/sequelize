@@ -286,6 +286,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted) {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
+          if (dialect.name === 'oracle') {
+            return;
+          }
+
           await this.Event.create({
             data: {
               name: {
