@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       } else if (['mysql', 'mariadb', 'mssql'].includes(dialect)) {
         expect(Object.keys(foreignKeys[0])).to.have.length(12);
       } else if (dialect === 'oracle') {
-        expect(Object.keys(foreignKeys[0])).to.have.length(6);
+        expect(Object.keys(foreignKeys[0])).to.have.length(7);
       } else {
         throw new Error(`This test doesn't support ${dialect}`);
       }
