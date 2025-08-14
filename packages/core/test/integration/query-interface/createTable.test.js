@@ -67,22 +67,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         );
 
-        const indexes = (await this.queryInterface.showIndex('MyTable'))
+        const indexes = (await this.queryInterface.showIndexes('MyTable'))
           .filter(index => !index.primary)
           .sort((a, b) => a.name.localeCompare(b.name));
 
         for (const index of indexes) {
-          index.fields.sort((a, b) => a.attribute.localeCompare(b.attribute));
+          index.fields.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         // name + email
         expect(indexes[0].unique).to.be.true;
-        expect(indexes[0].fields[0].attribute).to.equal('email');
-        expect(indexes[0].fields[1].attribute).to.equal('name');
+        expect(indexes[0].fields[0].name).to.equal('email');
+        expect(indexes[0].fields[1].name).to.equal('name');
 
         // name
         expect(indexes[1].unique).to.be.true;
-        expect(indexes[1].fields[0].attribute).to.equal('name');
+        expect(indexes[1].fields[0].name).to.equal('name');
       });
     }
 

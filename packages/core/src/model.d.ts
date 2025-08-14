@@ -8,7 +8,8 @@ import type {
 import type { SetRequired } from 'type-fest';
 import type { AbstractConnection } from './abstract-dialect/connection-manager.js';
 import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
-import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
+import type { TableName } from './abstract-dialect/query-interface';
+import type { IndexField, IndexOptions } from './abstract-dialect/query-interface.types.js';
 import type {
   Association,
   BelongsToAssociation,

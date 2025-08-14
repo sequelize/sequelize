@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await User.sync({ force: true });
-      const indexes = (await this.sequelize.queryInterface.showIndex(User.table)).filter(
+      const indexes = (await this.sequelize.queryInterface.showIndexes(User)).filter(
         index => !index.primary,
       );
 
@@ -265,43 +265,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(index.primary).to.equal(false);
       expect(index.unique).to.equal(true);
       expect(index.name).to.equal('user_name_unique');
-
-      switch (dialectName) {
-        case 'mariadb':
-        case 'mysql': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', length: undefined, order: 'ASC' },
-          ]);
-          expect(index.type).to.equal('BTREE');
-
-          break;
-        }
-
-        case 'postgres': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', collate: undefined, order: undefined, length: undefined },
-          ]);
-
-          break;
-        }
-
-        case 'db2':
-        case 'mssql': {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' },
-          ]);
-
-          break;
-        }
-
-        case 'sqlite3':
-        default: {
-          expect(index.fields).to.deep.equal([
-            { attribute: 'user_name', length: undefined, order: undefined },
-          ]);
-
-          break;
-        }
+      expect(index.fields).to.deep.equal([
+        {
+          name: 'user_name',
+          order: 'ASC',
+          ...(dialect.supports.addIndex.nullOrder && { nullOrder: 'LAST' }),
+          ...(dialect.supports.addIndex.collate && {
+            collate: dialectName === 'postgres' ? 'default' : undefined,
+          }),
+          ...(dialect.supports.addIndex.length && { length: undefined }),
+          ...(dialect.supports.addIndex.operator && { operator: 'text_ops' }),
+        },
+      ]);
+      if (dialect.supports.addIndex.method) {
+        expect(index.method).to.equal('BTREE');
       }
     });
 
@@ -347,16 +324,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 name: 'user_and_email_index',
                 msg: 'User and email must be unique',
                 unique: true,
-                method: 'BTREE',
                 fields: [
                   'user_id',
                   {
-                    attribute: 'email',
-                    collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+                    name: 'email',
                     order: 'DESC',
-                    length: 5,
+                    ...(dialect.supports.addIndex.length && { length: 5 }),
+                    ...(dialect.supports.addIndex.collate && {
+                      collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+                    }),
                   },
                 ],
+                ...(dialect.supports.addIndex.method && { method: 'BTREE' }),
               },
             ],
           },
@@ -402,8 +381,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             fields: [
               'fieldB',
               {
-                attribute: 'fieldA',
-                collate: 'en_US',
+                name: 'fieldA',
                 order: 'DESC',
                 length: 5,
               },
@@ -444,8 +422,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             fields: [
               'fieldB',
               {
-                attribute: 'fieldA',
-                collate: 'en_US',
+                name: 'fieldA',
                 order: 'DESC',
                 length: 5,
               },
@@ -476,38 +453,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         {
           name: 'a_b_uniq',
           unique: true,
-          method: 'BTREE',
           fields: [
             'fieldB',
             {
-              attribute: 'fieldA',
-              collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
-              order:
-                dialectName === 'ibmi'
-                  ? ''
-                  : // MySQL doesn't support DESC indexes (will throw)
-                    // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
-                    dialectName === 'mysql' || dialectName === 'mariadb'
-                    ? 'ASC'
-                    : `DESC`,
-              length: 5,
+              name: 'fieldA',
+              // MySQL doesn't support DESC indexes (will throw)
+              // MariaDB doesn't support DESC indexes (will silently replace it with ASC)
+              order: ['mariadb', 'mysql'].includes(dialectName) ? 'ASC' : `DESC`,
+              ...(dialect.supports.addIndex.length && { length: 5 }),
+              ...(dialect.supports.addIndex.collate && {
+                collate: dialectName === 'sqlite3' ? 'RTRIM' : 'en_US',
+              }),
             },
           ],
+          ...(dialect.supports.addIndex.method && { method: 'BTREE' }),
         },
       ];
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
-        indices.push(
-          {
-            type: 'FULLTEXT',
-            fields: ['fieldC'],
-            concurrently: true,
-          },
-          {
-            type: 'FULLTEXT',
-            fields: ['fieldD'],
-          },
-        );
+      if (dialect.supports.addIndex.concurrently) {
+        indices.push({
+          fields: ['fieldC'],
+          concurrently: true,
+        });
+      }
+
+      if (['mariadb', 'mysql'].includes(dialectName)) {
+        indices.push({
+          type: 'FULLTEXT',
+          fields: ['fieldC'],
+        });
       }
 
       const modelOptions = ['mariadb', 'mysql'].includes(dialectName)
@@ -527,25 +501,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await this.sequelize.sync();
       await this.sequelize.sync(); // The second call should not try to create the indices again
-      const args = await this.sequelize.queryInterface.showIndex(Model.table);
+      const args = await this.sequelize.queryInterface.showIndexes(Model);
       let primary;
       let idx1;
       let idx2;
-      let idx3;
 
       switch (dialectName) {
         case 'sqlite3': {
           // PRAGMA index_info does not return the primary index
           idx1 = args[0];
-          idx2 = args[1];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined },
-            { attribute: 'fieldA', length: undefined, order: undefined },
-          ]);
-
-          expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined },
+            { name: 'fieldB', order: 'ASC', collate: undefined },
+            { name: 'fieldA', order: 'DESC', collate: 'RTRIM' },
           ]);
 
           break;
@@ -555,8 +523,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           idx1 = args[1];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
+            { name: 'fieldB', order: 'ASC' },
+            { name: 'fieldA', order: 'DESC' },
           ]);
 
           break;
@@ -566,8 +534,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           idx1 = args[0];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldA', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
+            { name: 'fieldA', order: 'DESC' },
+            { name: 'fieldB', order: 'ASC' },
           ]);
 
           break;
@@ -577,8 +545,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           idx1 = args[0];
 
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined },
+            { name: 'fieldB', order: 'ASC' },
+            { name: 'fieldA', order: 'DESC' },
           ]);
 
           break;
@@ -589,48 +557,55 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           primary = args[2];
           idx1 = args[0];
           idx2 = args[1];
-          idx3 = args[2];
 
+          expect(idx1.method).to.equal('BTREE');
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' },
+            {
+              name: 'fieldB',
+              order: 'ASC',
+              nullOrder: 'LAST',
+              collate: null,
+              operator: 'int4_ops',
+            },
+            {
+              name: 'fieldA',
+              order: 'DESC',
+              nullOrder: 'FIRST',
+              collate: 'en_US',
+              operator: 'text_ops',
+            },
           ]);
 
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined },
-          ]);
-
-          expect(idx3.fields).to.deep.equal([
-            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
+            {
+              name: 'fieldC',
+              order: 'ASC',
+              nullOrder: 'LAST',
+              collate: 'default',
+              operator: 'text_ops',
+            },
           ]);
 
           break;
         }
 
         default: {
-          // And finally mysql returns the primary first, and then the rest in the order they were defined
+          // And finally MariaDB & MySQL returns the primary first, and then the rest in the order they were defined
           primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
 
           expect(primary.primary).to.be.ok;
 
-          expect(idx1.type).to.equal('BTREE');
-          expect(idx2.type).to.equal('FULLTEXT');
-
+          expect(idx1.method).to.equal('BTREE');
           expect(idx1.fields).to.deep.equal([
-            { attribute: 'fieldB', length: undefined, order: 'ASC' },
-            // length is a bigint, which is why it's returned as a string
-            {
-              attribute: 'fieldA',
-              length: '5',
-              // mysql & mariadb don't support DESC indexes
-              order: 'ASC',
-            },
+            { name: 'fieldB', order: 'ASC', length: undefined },
+            { name: 'fieldA', order: 'ASC', length: '5' },
           ]);
 
+          expect(idx2.type).to.equal('FULLTEXT');
           expect(idx2.fields).to.deep.equal([
-            { attribute: 'fieldC', length: undefined, order: null },
+            { name: 'fieldC', order: undefined, length: undefined },
           ]);
         }
       }
@@ -638,7 +613,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(idx1.name).to.equal('a_b_uniq');
       expect(idx1.unique).to.be.ok;
 
-      if (!['mssql', 'db2', 'ibmi'].includes(dialectName)) {
+      if (['mariadb', 'mysql', 'postgres'].includes(dialectName)) {
         expect(idx2.name).to.equal('models_field_c');
         expect(idx2.unique).not.to.be.ok;
       }

@@ -9,7 +9,6 @@ import {
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import forOwn from 'lodash/forOwn';
-import map from 'lodash/map';
 import mapKeys from 'lodash/mapKeys';
 import reduce from 'lodash/reduce';
 import zipObject from 'lodash/zipObject';
@@ -168,10 +167,6 @@ export class SnowflakeQuery extends AbstractQuery {
       return result;
     }
 
-    if (this.isShowIndexesQuery()) {
-      return this.handleShowIndexesQuery(data);
-    }
-
     if (this.isCallQuery()) {
       return data[0];
     }
@@ -266,33 +261,5 @@ export class SnowflakeQuery extends AbstractQuery {
       default:
         return new DatabaseError(err);
     }
-  }
-
-  handleShowIndexesQuery(data) {
-    // Group by index name, and collect all fields
-    data = data.reduce((acc, item) => {
-      if (!(item.Key_name in acc)) {
-        acc[item.Key_name] = item;
-        item.fields = [];
-      }
-
-      acc[item.Key_name].fields[item.Seq_in_index - 1] = {
-        attribute: item.Column_name,
-        length: item.Sub_part || undefined,
-        order: item.Collation === 'A' ? 'ASC' : undefined,
-      };
-      delete item.column_name;
-
-      return acc;
-    }, {});
-
-    return map(data, item => ({
-      primary: item.Key_name === 'PRIMARY',
-      fields: item.fields,
-      name: item.Key_name,
-      tableName: item.Table,
-      unique: item.Non_unique !== 1,
-      type: item.Index_type,
-    }));
   }
 }

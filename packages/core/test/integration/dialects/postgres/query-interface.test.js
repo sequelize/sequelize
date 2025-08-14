@@ -1,14 +1,11 @@
 'use strict';
 
-const uniq = require('lodash/uniq');
-
 const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
@@ -311,57 +308,6 @@ if (dialect.startsWith('postgres')) {
             this.queryInterface.dropFunction('droptest', [{ name: 'test' }]),
           ).to.be.rejectedWith(/.*function or trigger used with a parameter without any type/),
         ]);
-      });
-    });
-
-    describe('indexes', () => {
-      beforeEach(async function () {
-        await this.queryInterface.dropTable('Group');
-
-        await this.queryInterface.createTable('Group', {
-          username: DataTypes.STRING,
-          isAdmin: DataTypes.BOOLEAN,
-          from: DataTypes.STRING,
-        });
-      });
-
-      it('supports newlines', async function () {
-        await this.queryInterface.addIndex(
-          'Group',
-          [
-            this.sequelize.literal(`(
-            CASE "username"
-              WHEN 'foo' THEN 'bar'
-              ELSE 'baz'
-            END
-          )`),
-          ],
-          { name: 'group_username_case' },
-        );
-
-        const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = uniq(indexes.map(index => index.name));
-
-        expect(indexColumns).to.include('group_username_case');
-      });
-
-      it('adds, reads and removes a named functional index to the table', async function () {
-        await this.queryInterface.addIndex(
-          'Group',
-          [this.sequelize.fn('lower', this.sequelize.col('username'))],
-          {
-            name: 'group_username_lower',
-          },
-        );
-
-        const indexes0 = await this.queryInterface.showIndex('Group');
-        const indexColumns0 = uniq(indexes0.map(index => index.name));
-
-        expect(indexColumns0).to.include('group_username_lower');
-        await this.queryInterface.removeIndex('Group', 'group_username_lower');
-        const indexes = await this.queryInterface.showIndex('Group');
-        const indexColumns = uniq(indexes.map(index => index.name));
-        expect(indexColumns).to.be.empty;
       });
     });
   });

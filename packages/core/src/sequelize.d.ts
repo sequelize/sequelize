@@ -4,6 +4,7 @@ import type { DataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
+  IndexDescription,
   RawConstraintDescription,
 } from './abstract-dialect/query-interface.types';
 import type {
@@ -535,6 +536,10 @@ export class Sequelize<
     sql: string | BaseSqlExpression,
     options: QueryOptionsWithType<QueryTypes.SHOWCONSTRAINTS>,
   ): Promise<RawConstraintDescription[]>;
+  query(
+    sql: string | BaseSqlExpression,
+    options: QueryRawOptionsWithType<QueryTypes.SHOWINDEXES>,
+  ): Promise<IndexDescription[]>;
   query<M extends Model>(
     sql: string | BaseSqlExpression,
     options: QueryOptionsWithModel<M> & { plain: true },
@@ -585,6 +590,10 @@ export class Sequelize<
     sql: string,
     options: QueryRawOptionsWithType<QueryTypes.SHOWCONSTRAINTS>,
   ): Promise<RawConstraintDescription[]>;
+  queryRaw(
+    sql: string,
+    options: QueryRawOptionsWithType<QueryTypes.SHOWINDEXES>,
+  ): Promise<IndexDescription[]>;
   queryRaw<M extends Model>(
     sql: string,
     options: QueryRawOptionsWithModel<M> & { plain: true },

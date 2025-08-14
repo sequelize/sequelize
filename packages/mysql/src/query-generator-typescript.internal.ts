@@ -2,22 +2,17 @@ import type {
   Expression,
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
-  RemoveIndexQueryOptions,
   ShowConstraintsQueryOptions,
   TableOrModel,
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import {
-  REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import { TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { MySqlDialect } from './dialect.js';
 import { MySqlQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -127,32 +122,6 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   getToggleForeignKeyChecksQuery(enable: boolean): string {
     return `SET FOREIGN_KEY_CHECKS=${enable ? '1' : '0'}`;
-  }
-
-  removeIndexQuery(
-    tableName: TableOrModel,
-    indexNameOrAttributes: string | string[],
-    options?: RemoveIndexQueryOptions,
-  ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
-
-    let indexName: string;
-    if (Array.isArray(indexNameOrAttributes)) {
-      const table = this.extractTableDetails(tableName);
-      indexName = generateIndexName(table, { fields: indexNameOrAttributes });
-    } else {
-      indexName = indexNameOrAttributes;
-    }
-
-    return `DROP INDEX ${this.quoteIdentifier(indexName)} ON ${this.quoteTable(tableName)}`;
   }
 
   jsonPathExtractionQuery(
