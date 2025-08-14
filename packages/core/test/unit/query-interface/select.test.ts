@@ -41,6 +41,7 @@ describe('QueryInterface#select', () => {
     expectsql(firstCall.args[0], {
       default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'some :data';`,
       mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'some :data';`,
+      oracle: `SELECT "id" FROM "Users" "User" WHERE "User"."username" = 'some :data';`,
     });
   });
 });
