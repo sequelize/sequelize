@@ -45,6 +45,10 @@ describe('QueryInterface#bulkInsert', () => {
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
       ),
     });
+
+    const { bind } = stub.getCall(0).args[1];
+    expect(bind).to.include({ sequelize_1: 'user0' });
+    expect(bind).to.have.property('sequelize_1000', 'user999');
   });
 
   it('uses minimal insert queries when rows >1000', async () => {
