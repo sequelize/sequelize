@@ -486,7 +486,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       assertNoReservedBind(options.bind);
     }
 
-    const { bind, query } = this.queryGenerator.bulkInsertQuery(
+    const { bind = {}, query } = this.queryGenerator.bulkInsertQuery(
       tableName,
       records,
       options,
@@ -494,8 +494,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     );
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacement;
-    options.bind = combineBinds(options.bind, bind);
+    delete options.replacements;
+    options.bind = combineBinds(options.bind ?? {}, bind);
 
     const results = await this.sequelize.queryRaw(query, options);
 
