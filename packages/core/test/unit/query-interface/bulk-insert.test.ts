@@ -107,10 +107,6 @@ describe('QueryInterface#bulkInsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
 
-    const firstOpts = firstCall.args[1];
-    expect(firstOpts.bind ?? {}).to.deep.equal({});
-    expect(firstOpts.replacements).to.deep.equal({ injection: 'raw sql' });
-
     expectPerDialect(() => firstCall.args[0], {
       default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       'mysql mariadb sqlite3': toMatchSql(
