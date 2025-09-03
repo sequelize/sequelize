@@ -63,9 +63,12 @@ describe('QueryInterface#bulkInsert', () => {
     });
 
     expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0).args[0];
+    const firstCall = stub.getCall(0);
+    const firstOpts = firstCall.args[1];
+    expect(firstOpts).to.have.property('bind');
+    expect(Object.keys(firstOpts.bind)).to.have.lengthOf(2000);
 
-    expectPerDialect(() => firstCall, {
+    expectPerDialect(() => firstCall.args[0], {
       default: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\);$/,
       ),
