@@ -46,9 +46,13 @@ describe('QueryInterface#bulkInsert', () => {
       ),
     });
 
-    const { bind } = stub.getCall(0).args[1];
-    expect(bind).to.include({ sequelize_1: 'user0' });
-    expect(bind).to.have.property('sequelize_1000', 'user999');
+    const firstArg = stub.getCall(0).args[1];
+    if (firstArg && typeof firstArg === 'object') {
+      expect(firstArg.bind).to.include({ sequelize_1: 'user0' });
+      expect(firstArg.bind).to.have.property('sequelize_1000', 'user999');
+    } else {
+      throw new Error('expected the first arg to be an object');
+    }
   });
 
   it('uses minimal insert queries when rows >1000', async () => {
@@ -65,14 +69,18 @@ describe('QueryInterface#bulkInsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     const firstOpts = firstCall.args[1];
-    expect(firstOpts.transaction).to.equal(transaction);
-    if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
-      expect(firstOpts.bind ?? {}).to.deep.equal({});
+    if (firstOpts && typeof firstOpts === 'object') {
+      expect(firstOpts.transaction).to.equal(transaction);
+      if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
+        expect(firstOpts.bind ?? {}).to.deep.equal({});
+      } else {
+        expect(firstOpts).to.have.property('bind');
+        expect(Object.keys(firstOpts.bind || {})).to.have.lengthOf(2000);
+        expect(firstOpts.bind).to.include({ sequelize_1: 'user0' });
+        expect(firstOpts.bind).to.have.property('sequelize_2000', 'user1999');
+      }
     } else {
-      expect(firstOpts).to.have.property('bind');
-      expect(Object.keys(firstOpts.bind)).to.have.lengthOf(2000);
-      expect(firstOpts.bind).to.include({ sequelize_1: 'user0' });
-      expect(firstOpts.bind).to.have.property('sequelize_2000', 'user1999');
+      throw new Error('expected the options to be passed as an object');
     }
 
     expectPerDialect(() => firstCall.args[0], {
