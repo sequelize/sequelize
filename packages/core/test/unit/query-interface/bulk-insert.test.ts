@@ -65,8 +65,15 @@ describe('QueryInterface#bulkInsert', () => {
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0);
     const firstOpts = firstCall.args[1];
-    expect(firstOpts).to.have.property('bind');
-    expect(Object.keys(firstOpts.bind)).to.have.lengthOf(2000);
+    expect(firstOpts.transaction).to.equal(transaction);
+    if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
+      expect(firstOpts.bind ?? {}).to.deep.equal({});
+    } else {
+      expect(firstOpts).to.have.property('bind');
+      expect(Object.keys(firstOpts.bind)).to.have.lengthOf(2000);
+      expect(firstOpts.bind).to.include({ sequelize_1: 'user0' });
+      expect(firstOpts.bind).to.have.property('sequelize_2000', 'user1999');
+    }
 
     expectPerDialect(() => firstCall.args[0], {
       default: toMatchRegex(
