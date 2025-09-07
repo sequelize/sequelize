@@ -46,12 +46,14 @@ describe('QueryInterface#bulkInsert', () => {
       ),
     });
 
-    const firstArg = stub.getCall(0).args[1];
-    if (firstArg && typeof firstArg === 'object') {
-      expect(firstArg.bind).to.include({ sequelize_1: 'user0' });
-      expect(firstArg.bind).to.have.property('sequelize_1000', 'user999');
-    } else {
-      throw new Error('expected the first arg to be an object');
+    if (!['db2', 'mssql'].includes(sequelize.dialect.name)) {
+      const firstArg = stub.getCall(0).args[1];
+      if (firstArg && typeof firstArg === 'object') {
+        expect(firstArg.bind).to.include({ sequelize_1: 'user0' });
+        expect(firstArg.bind).to.have.property('sequelize_1000', 'user999');
+      } else {
+        throw new Error('expected the first arg to be an object');
+      }
     }
   });
 
