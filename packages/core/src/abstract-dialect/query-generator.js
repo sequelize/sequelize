@@ -181,7 +181,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, { ...options, bindParam }));
+          fragments.push(this.whereQuery(options.conflictWhere, options));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -364,7 +364,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
+          whereClause = this.whereQuery(options.conflictWhere, options);
         }
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
