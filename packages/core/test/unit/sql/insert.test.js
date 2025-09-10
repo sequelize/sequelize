@@ -391,6 +391,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1),($sequelize_2);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1),($sequelize_2);',
           },
+          bind: {
+            postgres: { sequelize_1: 0 },
+            ibmi: { sequelize_1: 0 },
+            snowflake: { sequelize_1: 0, sequelize_2: null },
+            default: { sequelize_1: 0, sequelize_2: null },
+          },
         },
       );
     });
