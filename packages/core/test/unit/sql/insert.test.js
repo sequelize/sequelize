@@ -129,7 +129,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error('missing dialect support for conflictWhere option'),
-          'postgres sqlite3': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = $sequelize_3 DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
+          postgres:
+            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ("user_name") WHERE "user_name" = $sequelize_3 DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+          sqlite3:
+            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT (`user_name`) WHERE `user_name` = $sequelize_3 DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
         });
       },
     );
