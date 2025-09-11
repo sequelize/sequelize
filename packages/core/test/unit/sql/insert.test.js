@@ -290,20 +290,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       );
 
-      expectsql(sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()), {
-        query: {
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-          postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
-          snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
-          default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+      expectsql(
+        sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes(), {
+          parameterStyle: 'bind',
+        }),
+        {
+          query: {
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+          },
+          bind: {
+            postgres: { sequelize_1: 'null\u0000test' },
+            default: { sequelize_1: 'null\0test' },
+          },
         },
-        bind: {
-          postgres: { sequelize_1: 'null\u0000test' },
-          default: { sequelize_1: 'null\0test' },
-        },
-      });
+      );
     });
   });
 
