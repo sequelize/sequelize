@@ -60,7 +60,6 @@ jobs:
         run: tar -xf install-build-node-20.tar
       - run: yarn test:format
   unit-test:
-    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
