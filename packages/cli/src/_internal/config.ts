@@ -1,6 +1,6 @@
 import { cosmiconfig } from 'cosmiconfig';
 import * as path from 'node:path';
-import { z } from 'zod';
+import { z } from 'zod/v3';
 
 const explorer = cosmiconfig('sequelize');
 const result = await explorer.search();
