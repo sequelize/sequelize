@@ -43,6 +43,9 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   ) {
     super(dialect, internals);
 
+    internals.whereSqlBuilder.setOperatorKeyword(Op.regexp, 'REGEXP');
+    internals.whereSqlBuilder.setOperatorKeyword(Op.notRegexp, 'NOT REGEXP');
+
     this.#internals = internals;
   }
 
