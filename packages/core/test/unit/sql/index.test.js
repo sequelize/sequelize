@@ -89,6 +89,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           postgres: 'CREATE INDEX CONCURRENTLY "user_field_c" ON "User" ("fieldC")',
           mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
           mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
+          hana: 'CREATE FULLTEXT INDEX "user_field_c" ON "User" ("fieldC")', // FULLTEXT is supported on on-premise, not HANA Cloud
         },
       );
 
@@ -119,6 +120,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
           mysql:
             'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
+          hana: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
         },
       );
     });
@@ -138,6 +140,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
           mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
           mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
+          hana: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         },
       );
     });

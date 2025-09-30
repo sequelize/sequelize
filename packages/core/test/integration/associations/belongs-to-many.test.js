@@ -1797,7 +1797,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     beforeEach(function () {
       const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect)
         ? 'BINARY(255)'
-        : DataTypes.BLOB('tiny');
+        : dialect === 'hana'
+          ? 'VARBINARY(255)'
+          : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -2322,6 +2324,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('supports transactions when updating a through model', async function () {
+        if (dialect === 'hana') {
+          // HANA doesn't have a real SERIALIZABLE isolation mode.
+          // It's mapped to REPEATABLE READ and the transaction serialization error is expected here.
+          return;
+        }
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
           this.sequelize,
         );
@@ -3357,8 +3365,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           await this.sequelize.sync({ force: true });
 
           const [worker0, tasks0] = await Promise.all([
-            dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create(),
-            Task.bulkCreate([{}, {}]).then(() => {
+            dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create(),
+            Task.bulkCreate(dialect === 'hana' ? [{ id: 1 }, { id: 2 }] : [{}, {}]).then(() => {
               return Task.findAll();
             }),
           ]);
@@ -3404,8 +3412,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
-          Task.bulkCreate([{}, {}, {}]).then(() => {
+          dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Task.bulkCreate(
+            dialect === 'hana' ? [{ id: 1 }, { id: 2 }, { id: 3 }] : [{}, {}, {}],
+          ).then(() => {
             return Task.findAll();
           }),
         ]);
@@ -3431,8 +3441,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
-          Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => {
+          dialect === 'db2' || dialect === 'hana' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Task.bulkCreate(
+            dialect === 'hana'
+              ? [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }]
+              : [{}, {}, {}, {}, {}],
+          ).then(() => {
             return Task.findAll();
           }),
         ]);

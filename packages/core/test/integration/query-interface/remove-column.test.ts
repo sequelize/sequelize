@@ -83,12 +83,24 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
     });
 
     it('should be able to remove a column with a foreign key constraint', async () => {
+      if (dialectName === 'hana') {
+        // HANA does not support dropping column of foreign key
+        return;
+      }
+
       await queryInterface.removeColumn('users', 'manager');
       const table = await queryInterface.describeTable('users');
       expect(table).to.not.have.property('manager');
     });
 
     it('should be able to remove a column with primaryKey', async () => {
+      if (dialectName === 'hana') {
+        // HANA does not support dropping columns in the primary-key column list
+        // Code 350: cannot drop columns in the primary-key column list
+        // https://help.sap.com/docs/hana-cloud-database/sap-hana-cloud-sap-hana-database-sql-reference-guide/sql-error-codes
+        return;
+      }
+
       await queryInterface.removeColumn('users', 'manager');
       const table0 = await queryInterface.describeTable('users');
       expect(table0).to.not.have.property('manager');
@@ -221,8 +233,11 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
           referencedTableSchema: defaultSchema,
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          updateAction:
-            dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite3' ? '' : 'NO ACTION',
+          updateAction: ['mariadb', 'hana'].includes(dialectName)
+            ? 'RESTRICT'
+            : dialectName === 'sqlite3'
+              ? ''
+              : 'NO ACTION',
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),

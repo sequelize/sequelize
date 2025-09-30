@@ -530,8 +530,8 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create(dialect === 'db2' ? { id: 1 } : {});
-      const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
+      await User.create(dialect === 'db2' || dialect === 'hana' ? { id: 1 } : {});
+      const mail = await Mail.create(dialect === 'db2' || dialect === 'hana' ? { id: 1 } : {});
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       // set recipients
