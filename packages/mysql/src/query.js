@@ -126,9 +126,8 @@ export class MySqlQuery extends AbstractQuery {
             });
           }
         } else {
-
           const startId = data[this.getInsertIdField()];
-          if (data.constructor.name === "ResultSetHeader" && data.affectedRows > 1) {
+          if (data.constructor.name === 'ResultSetHeader' && data.affectedRows > 1) {
             // No model context, but still return array of IDs
             result = [];
             for (let i = startId; i < startId + data.affectedRows; i++) {
