@@ -1,6 +1,6 @@
 'use strict';
 
-import { DataTypes, Op } from '@sequelize/core';
+import { DataTypes, HistoryRetentionPeriodUnit, Op, TemporalTableType } from '@sequelize/core';
 import {
   attributeTypeToSql,
   normalizeDataType,
@@ -25,7 +25,14 @@ function throwMethodUndefined(methodName) {
   throw new Error(`The method "${methodName}" is not defined! Please add it to your sql dialect.`);
 }
 
-const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set([
+  'historyRetentionPeriod',
+  'historyTable',
+  'systemPeriodRowEnd',
+  'systemPeriodRowStart',
+  'temporalTableType',
+  'uniqueKeys',
+]);
 
 export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
@@ -42,6 +49,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const primaryKeys = [];
     const foreignKeys = {};
     const attributesClauseParts = [];
+    const temporalAttributes = { start: '', end: '' };
 
     let commentStr = '';
 
@@ -78,6 +86,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
           foreignKeys[attr] = match[2];
+        } else if (options?.systemPeriodRowStart === attr) {
+          temporalAttributes.start = attr;
+        } else if (options?.systemPeriodRowEnd === attr) {
+          temporalAttributes.end = attr;
         } else {
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType}`);
         }
@@ -85,6 +97,19 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     const pkString = primaryKeys.map(pk => this.quoteIdentifier(pk)).join(', ');
+
+    if (options?.temporalTableType === TemporalTableType.SYSTEM_PERIOD) {
+      temporalAttributes.end = options.systemPeriodRowEnd || 'SysEndTime';
+      temporalAttributes.start = options.systemPeriodRowStart || 'SysStartTime';
+      const rowStart = `${this.quoteIdentifier(temporalAttributes.start)} DATETIME2 GENERATED ALWAYS AS ROW START`;
+      const rowEnd = `${this.quoteIdentifier(temporalAttributes.end)} DATETIME2 GENERATED ALWAYS AS ROW END`;
+      const period = `PERIOD FOR SYSTEM_TIME (${this.quoteIdentifier(temporalAttributes.start)}, ${this.quoteIdentifier(temporalAttributes.end)})`;
+      attributesClauseParts.push(rowStart, rowEnd, period);
+    } else if (options?.temporalTableType) {
+      throw new Error(
+        `${options.temporalTableType} tables are not supported in ${this.dialect.name}.`,
+      );
+    }
 
     if (options?.uniqueKeys) {
       each(options.uniqueKeys, (columns, indexName) => {
@@ -112,11 +137,42 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       }
     }
 
+    let temporalTableSql = '';
     const quotedTableName = this.quoteTable(tableName);
+
+    if (options?.temporalTableType === TemporalTableType.SYSTEM_PERIOD) {
+      const historyTableSql = [];
+      if (options.historyTable) {
+        const historyTable = this.extractTableDetails(options.historyTable);
+        const quoteHistoryTable = this.quoteIdentifier(historyTable.tableName);
+        const quoteHistorySchema = this.quoteIdentifier(historyTable.schema);
+        historyTableSql.push(`HISTORY_TABLE = ${quoteHistorySchema}.${quoteHistoryTable}`);
+      }
+
+      if (
+        options.historyRetentionPeriod?.unit &&
+        options.historyRetentionPeriod.unit !== HistoryRetentionPeriodUnit.INFINITE
+      ) {
+        if (!Number.isInteger(options?.historyRetentionPeriod?.length)) {
+          throw new TypeError('Invalid history retention period length.');
+        }
+
+        historyTableSql.push(
+          `HISTORY_RETENTION_PERIOD = ${options?.historyRetentionPeriod?.length} ${options?.historyRetentionPeriod?.unit}`,
+        );
+      }
+
+      temporalTableSql = joinSQLFragments([
+        ` WITH (SYSTEM_VERSIONING = ON`,
+        historyTableSql.length > 0 ? `(${historyTableSql.join(', ')})` : '',
+        `)`,
+      ]);
+    }
 
     return joinSQLFragments([
       `IF OBJECT_ID(${this.escape(quotedTableName)}, 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
+      temporalTableSql,
       ';',
       commentStr,
     ]);

@@ -73,3 +73,39 @@ export const Version = createBuiltInAttributeDecorator(
     });
   },
 );
+
+export const ApplicationPeriodRowStart = createBuiltInAttributeDecorator(
+  'ApplicationPeriodRowStart',
+  (target: ModelStatic, propertyName: string) => {
+    registerModelOptions(target, {
+      applicationPeriodRowStart: propertyName,
+    });
+  },
+);
+
+export const ApplicationPeriodRowEnd = createBuiltInAttributeDecorator(
+  'ApplicationPeriodRowEnd',
+  (target: ModelStatic, propertyName: string) => {
+    registerModelOptions(target, {
+      applicationPeriodRowEnd: propertyName,
+    });
+  },
+);
+
+export const SystemPeriodRowStart = createBuiltInAttributeDecorator(
+  'SystemPeriodRowStart',
+  (target: ModelStatic, propertyName: string) => {
+    registerModelOptions(target, {
+      systemPeriodRowStart: propertyName,
+    });
+  },
+);
+
+export const SystemPeriodRowEnd = createBuiltInAttributeDecorator(
+  'SystemPeriodRowEnd',
+  (target: ModelStatic, propertyName: string) => {
+    registerModelOptions(target, {
+      systemPeriodRowEnd: propertyName,
+    });
+  },
+);

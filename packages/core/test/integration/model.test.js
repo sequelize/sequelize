@@ -1071,41 +1071,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let test = false;
 
         await UserPub.sync({ force: true });
-        await ItemPub.sync({
-          force: true,
-          logging: afterLodash(
-            2,
-            once(sql => {
-              test = true;
-              switch (dialectName) {
-                case 'postgres':
-                case 'db2':
-                case 'ibmi': {
-                  expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
-
-                  break;
-                }
-
-                case 'mssql': {
-                  expect(sql).to.match(/REFERENCES\s+\[prefix]\.\[UserPubs] \(\[id]\)/);
-
-                  break;
-                }
-
-                case 'mysql':
-                case 'mariadb': {
-                  expect(sql).to.match(/REFERENCES\s+`prefix`\.`UserPubs` \(`id`\)/);
-
-                  break;
-                }
-
-                default: {
+        if (
+          dialect.supports.temporalTables.applicationPeriod ||
+          dialect.supports.temporalTables.biTemporal ||
+          dialect.supports.temporalTables.systemPeriod
+        ) {
+          await ItemPub.sync({
+            force: true,
+            logging: afterLodash(
+              3,
+              once(sql => {
+                test = true;
+                expect(sql).to.match(
+                  /REFERENCES\s+(?:`|"|\[)prefix(?:`|"|\])\.(?:`|"|\[)UserPubs(?:`|"|\]) \((?:`|"|\[)id(?:`|"|\])\)/,
+                );
+              }),
+            ),
+          });
+        } else {
+          await ItemPub.sync({
+            force: true,
+            logging: afterLodash(
+              2,
+              once(sql => {
+                test = true;
+                if (dialect.name === 'sqlite') {
                   expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
+                } else {
+                  expect(sql).to.match(
+                    /REFERENCES\s+(?:`|"|\[)prefix(?:`|"|\])\.(?:`|"|\[)UserPubs(?:`|"|\]) \((?:`|"|\[)id(?:`|"|\])\)/,
+                  );
                 }
-              }
-            }),
-          ),
-        });
+              }),
+            ),
+          });
+        }
 
         expect(test).to.be.true;
       });

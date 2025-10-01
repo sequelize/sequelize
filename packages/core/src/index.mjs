@@ -93,6 +93,12 @@ export const GeoJsonType = Pkg.GeoJsonType;
 export const Deferrable = Pkg.Deferrable;
 export const ConstraintChecking = Pkg.ConstraintChecking;
 
+// export { HistoryRetentionPeriodUnit, TemporalPeriodType, TemporalTableType, TemporalTimeQueryType };
+export const HistoryRetentionPeriodUnit = Pkg.HistoryRetentionPeriodUnit;
+export const TemporalPeriodType = Pkg.TemporalPeriodType;
+export const TemporalTableType = Pkg.TemporalTableType;
+export const TemporalTimeQueryType = Pkg.TemporalTimeQueryType;
+
 // export { Validator as validator } from './lib/utils/validator-extras';
 export const Validator = Pkg.Validator;
 

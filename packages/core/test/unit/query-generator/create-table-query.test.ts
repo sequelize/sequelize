@@ -1,8 +1,15 @@
+import { HistoryRetentionPeriodUnit, TemporalTableType } from '@sequelize/core';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 const dialectName = getTestDialect();
+const biTemporalNotSupportedError = new Error(
+  `BITEMPORAL tables are not supported in ${dialectName}.`,
+);
+const applicationPeriodNotSupportedError = new Error(
+  `APPLICATION_PERIOD tables are not supported in ${dialectName}.`,
+);
 
 // TODO: check the tests with COMMENT after attributeToSQL quotes the comment
 // TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
@@ -723,6 +730,372 @@ describe('QueryGenerator#createTableQuery', () => {
             'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT, UNIQUE "uniq_myTable_myColumn_secondColumn" ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
           db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE, "secondColumn" TEXT NOT NULL, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn"), FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id"));',
           ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE REFERENCES "Bar" ("id"), "secondColumn" TEXT, CONSTRAINT "uniq_myTable_myColumn_secondColumn" UNIQUE ("myColumn", "secondColumn"), PRIMARY KEY ("myColumn")); END`,
+        },
+      );
+    });
+  });
+
+  describe('supports temporal tables', () => {
+    it('with APPLICATION PERIOD', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            {
+              int: 'INTEGER',
+              varchar: 'VARCHAR(50) UNIQUE',
+              start: 'DATE NOT NULL',
+              end: 'DATE NOT NULL',
+            },
+            {
+              applicationPeriodRowStart: 'start',
+              applicationPeriodRowEnd: 'end',
+              temporalTableType: TemporalTableType.APPLICATION_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
+        },
+      );
+    });
+
+    it('with APPLICATION PERIOD and schema', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            { tableName: 'myTable', schema: 'mySchema' },
+            {
+              int: 'INTEGER',
+              varchar: 'VARCHAR(50) UNIQUE',
+              start: 'DATE NOT NULL',
+              end: 'DATE NOT NULL',
+            },
+            {
+              applicationPeriodRowStart: 'start',
+              applicationPeriodRowEnd: 'end',
+              temporalTableType: TemporalTableType.APPLICATION_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
+        },
+      );
+    });
+
+    it('with APPLICATION PERIOD without columns', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            { temporalTableType: TemporalTableType.APPLICATION_PERIOD },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'temporalTableType',
+          ]),
+          mssql: applicationPeriodNotSupportedError,
+        },
+      );
+    });
+
+    it('with BI TEMPORAL', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            {
+              int: 'INTEGER',
+              varchar: 'VARCHAR(50) UNIQUE',
+              start: 'DATE NOT NULL',
+              end: 'DATE NOT NULL',
+            },
+            {
+              applicationPeriodRowStart: 'start',
+              applicationPeriodRowEnd: 'end',
+              temporalTableType: TemporalTableType.BITEMPORAL,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
+        },
+      );
+    });
+
+    it('with BI TEMPORAL and schema', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            { tableName: 'myTable', schema: 'mySchema' },
+            {
+              int: 'INTEGER',
+              varchar: 'VARCHAR(50) UNIQUE',
+              start: 'DATE NOT NULL',
+              end: 'DATE NOT NULL',
+            },
+            {
+              applicationPeriodRowStart: 'start',
+              applicationPeriodRowEnd: 'end',
+              temporalTableType: TemporalTableType.BITEMPORAL,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
+        },
+      );
+    });
+
+    it('with BI TEMPORAL without columns', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            { temporalTableType: TemporalTableType.BITEMPORAL },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'temporalTableType',
+          ]),
+          mssql: biTemporalNotSupportedError,
+        },
+      );
+    });
+
+    it('with BI TEMPORAL and custom columns', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            {
+              int: 'INTEGER',
+              varchar: 'VARCHAR(50) UNIQUE',
+              start: 'DATE NOT NULL',
+              end: 'DATE NOT NULL',
+            },
+            {
+              applicationPeriodRowStart: 'start',
+              applicationPeriodRowEnd: 'end',
+              systemPeriodRowStart: 'sys_start',
+              systemPeriodRowEnd: 'sys_end',
+              temporalTableType: TemporalTableType.BITEMPORAL,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+            'systemPeriodRowStart',
+            'systemPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'applicationPeriodRowStart',
+            'applicationPeriodRowEnd',
+          ]),
+        },
+      );
+    });
+
+    it('with BI TEMPORAL and custom history table', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            { historyTable: 'myHistoryTable', temporalTableType: TemporalTableType.BITEMPORAL },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'historyTable',
+            'temporalTableType',
+          ]),
+          mssql: biTemporalNotSupportedError,
+        },
+      );
+    });
+
+    it('with BI TEMPORAL and custom history retention period', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            {
+              historyRetentionPeriod: { length: 3, unit: HistoryRetentionPeriodUnit.MONTH },
+              temporalTableType: TemporalTableType.BITEMPORAL,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'historyRetentionPeriod',
+            'temporalTableType',
+          ]),
+          mssql: biTemporalNotSupportedError,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            { temporalTableType: TemporalTableType.SYSTEM_PERIOD },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON);`,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD and schema', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            { tableName: 'myTable', schema: 'mySchema' },
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            { temporalTableType: TemporalTableType.SYSTEM_PERIOD },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON);`,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD and custom columns', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            {
+              systemPeriodRowStart: 'sys_start',
+              systemPeriodRowEnd: 'sys_end',
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'systemPeriodRowStart',
+            'systemPeriodRowEnd',
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [sys_start] DATETIME2 GENERATED ALWAYS AS ROW START, [sys_end] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([sys_start], [sys_end]))
+          WITH (SYSTEM_VERSIONING = ON);`,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD and custom history table', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            {
+              historyTable: 'myHistoryTable',
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'historyTable',
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [dbo].[myHistoryTable]));`,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD and custom history table and schema', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            {
+              historyTable: { tableName: 'myHistoryTable', schema: 'mySchema' },
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'historyTable',
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_TABLE = [mySchema].[myHistoryTable]));`,
+        },
+      );
+    });
+
+    it('with SYSTEM PERIOD and custom retention period', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { int: 'INTEGER', varchar: 'VARCHAR(50) UNIQUE' },
+            {
+              historyRetentionPeriod: { length: 3, unit: HistoryRetentionPeriodUnit.MONTH },
+              temporalTableType: TemporalTableType.SYSTEM_PERIOD,
+            },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, [
+            'historyRetentionPeriod',
+            'temporalTableType',
+          ]),
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([int] INTEGER, [varchar] VARCHAR(50) UNIQUE,
+          [SysStartTime] DATETIME2 GENERATED ALWAYS AS ROW START, [SysEndTime] DATETIME2 GENERATED ALWAYS AS ROW END, PERIOD FOR SYSTEM_TIME ([SysStartTime], [SysEndTime]))
+          WITH (SYSTEM_VERSIONING = ON (HISTORY_RETENTION_PERIOD = 3 MONTH));`,
         },
       );
     });

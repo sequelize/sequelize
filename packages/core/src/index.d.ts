@@ -79,6 +79,13 @@ export { QueryTypes } from './query-types.js';
 export * from './sequelize.js';
 export { TableHints } from './table-hints.js';
 export {
+  HistoryRetentionPeriodUnit,
+  TemporalPeriodType,
+  TemporalTableType,
+  TemporalTimeQueryType,
+} from './temporal-tables.js';
+export type { HistoryRetentionPeriod, TemporalTimeFindOptions } from './temporal-tables.js';
+export {
   IsolationLevel,
   Lock,
   Transaction,

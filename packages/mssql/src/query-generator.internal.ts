@@ -1,3 +1,5 @@
+import type { TemporalTimeFindOptions } from '@sequelize/core';
+import { TemporalTimeQueryType } from '@sequelize/core';
 import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-internal.js';
 import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import type { MsSqlDialect } from './dialect.js';
@@ -44,5 +46,57 @@ export class MsSqlQueryGeneratorInternal<
     }
 
     return fragment;
+  }
+
+  formatTemporalTime(options: TemporalTimeFindOptions) {
+    if (options.type !== 'SYSTEM_TIME') {
+      throw new Error(`Invalid temporal time type ${options.type}.`);
+    }
+
+    const temporalTimeQuery = 'FOR SYSTEM_TIME';
+    if (options.period === TemporalTimeQueryType.ALL) {
+      return `${temporalTimeQuery} ALL`;
+    }
+
+    if (!options.startDate) {
+      throw new Error(`System time start date is required for ${options.type} query.`);
+    }
+
+    if (!(options.startDate instanceof Date)) {
+      throw new TypeError('System time start date must be a Date object.');
+    }
+
+    if (Number.isNaN(options.startDate)) {
+      throw new TypeError('System time start date must be a valid date.');
+    }
+
+    const startDate = options.startDate.toISOString();
+    if (options.period === TemporalTimeQueryType.AS_OF) {
+      return `${temporalTimeQuery} AS OF ${this.queryGenerator.escape(startDate)}`;
+    }
+
+    if (!options.endDate) {
+      throw new Error(`System time end date is required for ${options.type} query.`);
+    }
+
+    if (!(options.endDate instanceof Date)) {
+      throw new TypeError('System time end date must be a Date object.');
+    }
+
+    if (Number.isNaN(options.endDate)) {
+      throw new TypeError('System time end date must be a valid date.');
+    }
+
+    const endDate = options.endDate.toISOString();
+    switch (options.period || '') {
+      case TemporalTimeQueryType.FROM_TO:
+        return `${temporalTimeQuery} FROM ${this.queryGenerator.escape(startDate)} TO ${this.queryGenerator.escape(endDate)}`;
+      case TemporalTimeQueryType.BETWEEN:
+        return `${temporalTimeQuery} BETWEEN ${this.queryGenerator.escape(startDate)} AND ${this.queryGenerator.escape(endDate)}`;
+      case TemporalTimeQueryType.CONTAINED_IN:
+        return `${temporalTimeQuery} CONTAINED IN (${this.queryGenerator.escape(startDate)}, ${this.queryGenerator.escape(endDate)})`;
+      default:
+        throw new Error(`Invalid temporal time period ${options.period}.`);
+    }
   }
 }

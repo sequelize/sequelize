@@ -20,6 +20,13 @@ describe('QueryGenerator#dropTableQuery', () => {
     });
   });
 
+  it('produces a DROP TABLE query with dropHistoryTable', () => {
+    expectsql(() => queryGenerator.dropTableQuery('myTable', { dropHistoryTable: true }), {
+      default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['dropHistoryTable']),
+      mssql: `DROP TABLE IF EXISTS [myTable]`,
+    });
+  });
+
   it('produces a query that drops a table from a model', () => {
     const MyModel = sequelize.define('MyModel', {});
 
