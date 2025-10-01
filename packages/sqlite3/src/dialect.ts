@@ -90,6 +90,11 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
     delete: {
       limit: false,
     },
+    update: {
+      ignoreDuplicates: true,
+      limit: false,
+      returning: true,
+    },
   });
 
   readonly Query = SqliteQuery;

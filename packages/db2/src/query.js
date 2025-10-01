@@ -76,14 +76,14 @@ export class Db2Query extends AbstractQuery {
         // eslint-disable-next-line no-ex-assign -- legacy code. TODO: reformat
         error = this.filterSQLError(error, this.sql, connection);
         if (error === null) {
-          stmt.closeSync();
+          await stmt.close();
 
           return this.formatResults([], 0);
         }
       }
 
       error.sql = sql;
-      stmt.closeSync();
+      await stmt.close();
       throw this.formatError(error, connection, parameters);
     }
 
@@ -109,14 +109,14 @@ export class Db2Query extends AbstractQuery {
       if (this.sql.startsWith('DELETE FROM ')) {
         affectedRows = result.getAffectedRowsSync();
       } else {
-        data = result.fetchAllSync();
+        data = await result.fetchAll();
         metadata = result.getColumnMetadataSync();
       }
 
-      result.closeSync();
+      await result.close();
     }
 
-    stmt.closeSync();
+    await stmt.close();
     const datalen = data.length;
     if (datalen > 0) {
       const coltypes = {};
@@ -228,12 +228,14 @@ export class Db2Query extends AbstractQuery {
 
       return [
         this.instance || (data && ((this.options.plain && data[0]) || data)) || undefined,
-        this.options.returning ? data.length : rowCount,
+        this.options.returning ? rowCount : (data.at(0)?.AFFECTED_ROWS ?? rowCount),
       ];
     }
 
     if (this.isBulkUpdateQuery()) {
-      return this.options.returning ? this.handleSelectQuery(data) : rowCount;
+      return this.options.returning
+        ? this.handleSelectQuery(data)
+        : (data.at(0)?.AFFECTED_ROWS ?? rowCount);
     }
 
     let result = this.instance;

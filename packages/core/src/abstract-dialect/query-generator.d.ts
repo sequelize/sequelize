@@ -1,7 +1,6 @@
 // TODO: complete me - this file is a stub that will be completed when query-generator.ts is migrated to TS
 
-import type { Col } from '../expression-builders/col.js';
-import type { Literal } from '../expression-builders/literal.js';
+import type { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type {
   AttributeOptions,
   FindOptions,
@@ -36,7 +35,7 @@ type InsertOptions = ParameterOptions &
     updateOnDuplicate?: string[];
     ignoreDuplicates?: boolean;
     upsertKeys?: string[];
-    returning?: boolean | Array<string | Literal | Col>;
+    returning?: boolean | Array<string | BaseSqlExpression>;
   };
 
 type BulkInsertOptions = ParameterOptions & {
@@ -45,15 +44,11 @@ type BulkInsertOptions = ParameterOptions & {
   updateOnDuplicate?: string[];
   ignoreDuplicates?: boolean;
   upsertKeys?: string[];
-  returning?: boolean | Array<string | Literal | Col>;
-};
-
-type UpdateOptions = ParameterOptions & {
-  bindParam?: false | ((value: unknown) => string);
+  returning?: boolean | Array<string | BaseSqlExpression>;
 };
 
 type ArithmeticQueryOptions = ParameterOptions & {
-  returning?: boolean | Array<string | Literal | Col>;
+  returning?: boolean | Array<string | BaseSqlExpression>;
 };
 
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
@@ -111,19 +106,11 @@ export class AbstractQueryGenerator<
     options?: AddColumnQueryOptions,
   ): string;
 
-  updateQuery(
-    tableName: TableName,
-    attrValueHash: object,
-    where: WhereOptions,
-    options?: UpdateOptions,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): { query: string; bind?: unknown[] };
-
   arithmeticQuery(
     operator: string,
     tableName: TableName,
     where: WhereOptions,
-    incrementAmountsByField: { [key: string]: number | Literal },
+    incrementAmountsByField: { [key: string]: number | BaseSqlExpression },
     extraAttributesToBeUpdated: { [key: string]: unknown },
     options?: ArithmeticQueryOptions,
   ): string;
@@ -134,13 +121,6 @@ export class AbstractQueryGenerator<
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions,
   ): string;
-
-  /**
-   * Creates a function that can be used to collect bind parameters.
-   *
-   * @param bind A mutable object to which bind parameters will be added.
-   */
-  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 
   attributesToSQL(
     attributes: ColumnsDescription,

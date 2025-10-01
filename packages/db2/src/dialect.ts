@@ -77,6 +77,9 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     startTransaction: {
       useBegin: true,
     },
+    update: {
+      returning: true,
+    },
   });
 
   readonly connectionManager: Db2ConnectionManager;
