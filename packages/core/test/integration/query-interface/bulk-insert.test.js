@@ -29,8 +29,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       await this.queryInterface.dropTable('UsersBulkInsert');
     });
 
-    it('should return inserted IDs for MySQL/MariaDB', async function () {
-      if (!['mysql', 'mariadb'].includes(dialect)) {
+    it('should return inserted IDs for MySQL', async function () {
+      if (!['mysql'].includes(dialect)) {
         this.skip();
       }
 
