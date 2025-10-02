@@ -25,12 +25,70 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
       const warnings = [validWarning, undefined, invalidWarning];
 
       const query = new MySqlQuery({}, current, {});
+      query.sql = 'SELECT 1'; // ensure sql is defined
+
       const stub = sinon.stub(query, 'run');
       stub.onFirstCall().resolves(warnings);
 
       const results = await query.logWarnings('dummy-results');
-      expect('dummy-results').to.equal(results);
-      expect(true).to.equal(console.debug.calledOnce);
+      expect(results).to.equal('dummy-results');
+      expect(console.debug.calledOnce).to.equal(true);
+    });
+  });
+
+  describe('formatResults', () => {
+    let query;
+
+    beforeEach(() => {
+      query = new MySqlQuery({}, current, {});
+      query.sql = 'INSERT INTO Users (id) VALUES (1)'; // ensure sql is defined
+    });
+    it('returns array of IDs for bulkInsert with model context', () => {
+      query.model = {
+        primaryKeyAttribute: 'id',
+        modelDefinition: {
+          autoIncrementAttributeName: 'id',
+          getColumnName: () => 'id',
+        },
+      };
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: 10,
+        affectedRows: 3,
+      };
+
+      const [result] = query.formatResults(data); 
+
+      expect(result).to.deep.equal([{ id: 10 }, { id: 11 }, { id: 12 }]);
+    });
+
+    it('returns array of IDs for bulkInsert without model context', () => {
+      query.model = null;
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: 20,
+        affectedRows: 2,
+      };
+
+      const [result] = query.formatResults(data); 
+
+      expect(result).to.deep.equal([{ id: 20 }, { id: 21 }]);
+    });
+
+    it('returns single ID when only one row inserted', () => {
+      query.model = null;
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: 30,
+        affectedRows: 1,
+      };
+
+      const [result] = query.formatResults(data); 
+
+      expect(result).to.equal(30);
     });
   });
 });
