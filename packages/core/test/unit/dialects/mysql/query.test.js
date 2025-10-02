@@ -58,7 +58,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
         affectedRows: 3,
       };
 
-      const [result] = query.formatResults(data); 
+      const [result] = query.formatResults(data);
 
       expect(result).to.deep.equal([{ id: 10 }, { id: 11 }, { id: 12 }]);
     });
@@ -72,7 +72,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
         affectedRows: 2,
       };
 
-      const [result] = query.formatResults(data); 
+      const [result] = query.formatResults(data);
 
       expect(result).to.deep.equal([{ id: 20 }, { id: 21 }]);
     });
@@ -86,7 +86,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
         affectedRows: 1,
       };
 
-      const [result] = query.formatResults(data); 
+      const [result] = query.formatResults(data);
 
       expect(result).to.equal(30);
     });
