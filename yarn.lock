@@ -2862,7 +2862,7 @@ __metadata:
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
     chai-datetime: "npm:1.8.1"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     debug: "npm:^4.4.1"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.6"
@@ -2898,7 +2898,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     lodash: "npm:^4.17.21"
     odbc: "npm:^2.4.9"
   languageName: unknown
@@ -2911,7 +2911,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/ibm_db": "npm:^3.2.0"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     ibm_db: "npm:^3.3.1"
     lodash: "npm:^4.17.21"
   languageName: unknown
@@ -2926,7 +2926,7 @@ __metadata:
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     lodash: "npm:^4.17.21"
     mariadb: "npm:^3.4.5"
     mocha: "npm:11.7.1"
@@ -2984,7 +2984,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/sinon": "npm:17.0.4"
     chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.1"
     sinon: "npm:18.0.1"
@@ -3001,7 +3001,7 @@ __metadata:
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.13"
+    dayjs: "npm:^1.11.18"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.1"
     mysql2: "npm:^3.14.3"
@@ -6412,10 +6412,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.13":
-  version: 1.11.13
-  resolution: "dayjs@npm:1.11.13"
-  checksum: 10c0/a3caf6ac8363c7dade9d1ee797848ddcf25c1ace68d9fe8678ecf8ba0675825430de5d793672ec87b24a69bf04a1544b176547b2539982275d5542a7955f35b7
+"dayjs@npm:^1.11.18":
+  version: 1.11.18
+  resolution: "dayjs@npm:1.11.18"
+  checksum: 10c0/83b67f5d977e2634edf4f5abdd91d9041a696943143638063016915d2cd8c7e57e0751e40379a07ebca8be7a48dd380bef8752d22a63670f2d15970e34f96d7a
   languageName: node
   linkType: hard
 
