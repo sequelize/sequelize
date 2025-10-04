@@ -21,6 +21,7 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
+import type { IndexHints } from './enums.js';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
@@ -28,7 +29,6 @@ import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
 import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
-import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
@@ -985,6 +985,12 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * Count number of records returned by group by
+   * Used in conjunction with `group`.
+   */
+  countGroupedRows?: boolean;
 }
 
 /**
@@ -2521,7 +2527,7 @@ export abstract class Model<
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
