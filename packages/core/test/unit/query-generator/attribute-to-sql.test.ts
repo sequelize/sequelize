@@ -217,7 +217,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'INTEGER', first: true },
     {
       default: 'INTEGER FIRST',
-      'postgres sqlite db2': 'INTEGER',
+      'postgres sqlite3 db2': 'INTEGER',
       mssql: 'INTEGER NULL',
     },
   );
@@ -226,7 +226,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'INTEGER', after: 'bar' },
     {
       default: 'INTEGER AFTER `bar`',
-      'postgres sqlite db2': 'INTEGER',
+      'postgres sqlite3 db2': 'INTEGER',
       mssql: 'INTEGER NULL',
       'snowflake ibmi': 'INTEGER AFTER "bar"',
     },
@@ -260,7 +260,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         // Normally a context is given and this is only used for createTable where comments are quoted there so this is fine for now
         postgres: 'INTEGER COMMENT Foo',
         mssql: "INTEGER NULL COMMENT N'Foo'",
-        'sqlite ibmi': 'INTEGER',
+        'sqlite3 ibmi': 'INTEGER',
       },
     );
 
@@ -271,7 +271,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         // Normally a context is given and this is only used for createTable where comments are quoted there so this is fine for now
         postgres: "INTEGER COMMENT '); DELETE YOLO INJECTIONS; -- ",
         mssql: "INTEGER NULL COMMENT N'''); DELETE YOLO INJECTIONS; -- '",
-        'sqlite ibmi': 'INTEGER',
+        'sqlite3 ibmi': 'INTEGER',
         'snowflake db2': `INTEGER COMMENT '''); DELETE YOLO INJECTIONS; -- '`,
       },
     );
@@ -282,7 +282,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         default: `INTEGER COMMENT 'Foo'`,
         postgres: `INTEGER; COMMENT ON COLUMN "bar"."baz" IS 'Foo'`,
         mssql: "INTEGER NULL COMMENT N'Foo'",
-        'sqlite ibmi': 'INTEGER',
+        'sqlite3 ibmi': 'INTEGER',
       },
       { context: 'addColumn', table: 'bar' },
     );
@@ -300,7 +300,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', defaultValue: true },
       {
         default: 'INTEGER DEFAULT true',
-        'mssql sqlite ibmi': 'INTEGER DEFAULT 1',
+        'mssql sqlite3 ibmi': 'INTEGER DEFAULT 1',
       },
     );
 
@@ -308,7 +308,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', defaultValue: false },
       {
         default: 'INTEGER DEFAULT false',
-        'mssql sqlite ibmi': 'INTEGER DEFAULT 0',
+        'mssql sqlite3 ibmi': 'INTEGER DEFAULT 0',
       },
     );
 
