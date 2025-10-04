@@ -5,10 +5,10 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
- * Do not use me directly. Use {@link fn}
+ * Do not use me directly. Use {@link sql.fn}
  */
 export class Fn extends BaseSqlExpression {
-  protected declare readonly [SQL_IDENTIFIER]: 'fn';
+  declare protected readonly [SQL_IDENTIFIER]: 'fn';
 
   readonly fn: string;
   readonly args: readonly Expression[];
@@ -22,7 +22,7 @@ export class Fn extends BaseSqlExpression {
 
 /**
  * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
- * If you want to refer to columns in your function, you should use {@link Attribute} (recommended), {@link Identifier}, or {@link col} (discouraged)
+ * If you want to refer to columns in your function, you should use {@link sql.attribute} (recommended), {@link sql.identifier}, or {@link sql.col} (discouraged)
  * otherwise the value will be interpreted as a string.
  *
  * ℹ️ This method is usually verbose and we recommend using the {@link sql} template string tag instead.

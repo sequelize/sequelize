@@ -115,7 +115,6 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
 
         resolve();
 
-        // eslint-disable-next-line unicorn/no-useless-undefined -- bad typings in OBDC
         return undefined;
       });
     });

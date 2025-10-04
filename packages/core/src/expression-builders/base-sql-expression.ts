@@ -23,7 +23,7 @@ export declare const SQL_IDENTIFIER: unique symbol;
  * @private
  */
 export class BaseSqlExpression {
-  protected declare readonly [SQL_IDENTIFIER]: string;
+  declare protected readonly [SQL_IDENTIFIER]: string;
 }
 
 export type DynamicSqlExpression =

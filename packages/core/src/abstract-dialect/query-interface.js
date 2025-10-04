@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
-import { QueryTypes } from '../query-types';
+import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -84,6 +84,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
+
+    // Snowflake requires special SQL commands for SEQUENCES
+    await this.ensureSequences(tableName, attributes, options);
 
     const modelTable = model?.table;
 
@@ -392,7 +395,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   // TODO: the user should be able to configure the WHERE clause for upsert instead of the current default which
   //  is using the primary keys.
   async upsert(tableName, insertValues, updateValues, where, options) {
-    if (!this.dialect.name) {
+    if (!this.dialect.supports.upserts) {
       throw new Error(`Upserts are not supported by the ${this.dialect.name} dialect.`);
     }
 
@@ -858,6 +861,20 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @private
    */
   ensureEnums() {
+    // noop by default
+  }
+
+  /**
+   * @private
+   */
+  ensureSequences() {
+    // noop by default
+  }
+
+  /**
+   * @private
+   */
+  getNextPrimaryKeyValue() {
     // noop by default
   }
 }

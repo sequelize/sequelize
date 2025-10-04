@@ -6,7 +6,6 @@ describe('inspect function', () => {
     expect(inspect(123)).to.equal('123');
     expect(inspect(123n)).to.equal('123n');
     expect(inspect(null)).to.equal('null');
-    // eslint-disable-next-line unicorn/no-useless-undefined -- false positive
     expect(inspect(undefined)).to.equal('undefined');
     expect(inspect(true)).to.equal('true');
     expect(inspect(false)).to.equal('false');

@@ -60,6 +60,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         );
 
+        expect(savedProduct.id).to.be.a('number');
         expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
         expect(savedProduct.user.createOptions.myOption).to.equal('option');
         expect(savedProduct.user.createOptions.parentRecord).to.equal(savedProduct);
@@ -106,6 +107,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         );
 
+        expect(savedProduct.id).to.be.a('number');
         expect(savedProduct).to.exist;
         expect(savedProduct.title).to.equal('Chair');
         expect(savedProduct.user).to.exist;
@@ -143,6 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           include: [Creator],
         });
 
+        expect(savedProduct.id).to.be.a('number');
         expect(persistedProduct.creator).to.be.ok;
         expect(persistedProduct.creator.first_name).to.equal('Matt');
         expect(persistedProduct.creator.last_name).to.equal('Hansen');
@@ -203,6 +206,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         );
 
+        expect(savedProduct.id).to.be.a('number');
         expect(savedProduct.areIncludesCreatedOnAfterCreate).to.be.true;
         expect(savedProduct.tags[0].createOptions.myOption).to.equal('option');
         expect(savedProduct.tags[0].createOptions.parentRecord).to.equal(savedProduct);

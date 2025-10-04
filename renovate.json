@@ -1,12 +1,13 @@
 {
   "extends": [
-    "config:base",
+    "config:recommended",
     ":maintainLockFilesWeekly",
     ":semanticCommitTypeAll(meta)",
     ":semanticCommitScopeDisabled"
   ],
   "automergeStrategy": "squash",
   "automergeType": "branch",
+  "branchConcurrentLimit": 2,
   "semanticCommitType": "meta",
   "ignorePaths": ["dev/**/oldest/docker-compose.yml"],
   "platformAutomerge": true,
@@ -16,6 +17,7 @@
       "automerge": true
     }
   ],
+  "rangeStrategy": "bump",
   "labels": ["no-autoupdate"],
   "postUpdateOptions": ["yarnDedupeHighest"]
 }

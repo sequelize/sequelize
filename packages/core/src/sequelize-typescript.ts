@@ -11,7 +11,7 @@ import {
   map,
   splitObject,
 } from '@sequelize/utils';
-import chalk from 'chalk';
+import { cyan, red } from 'ansis';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import semver from 'semver';
 import type {
@@ -345,7 +345,7 @@ If you really need to access the connection manager, access it through \`sequeli
   }
 
   readonly #models = new Set<ModelStatic>();
-  readonly models = new ModelSetView(this, this.#models);
+  readonly models = new ModelSetView<Dialect>(this, this.#models);
   #isClosed: boolean = false;
   readonly pool: ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>;
 
@@ -552,7 +552,7 @@ new Sequelize({
     if (conflictingOptions.length > 0) {
       throw new Error(
         `The following options from ${DialectClass.name} conflict with built-in Sequelize options: ${join(
-          map(conflictingOptions, option => chalk.red(option)),
+          map(conflictingOptions, option => red(option)),
           ', ',
         )}.
 This is a bug in the dialect implementation itself, not in the user's code.
@@ -579,26 +579,26 @@ Please rename these options to a name that is not already used by Sequelize.`,
 
       throw new Error(
         `The following options are not recognized by Sequelize nor ${DialectClass.name}: ${join(
-          map(unseenKeys, option => chalk.red(option)),
+          map(unseenKeys, option => red(option)),
           ', ',
         )}.
 
 Sequelize accepts the following options: ${allSequelizeOptionNames
           .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
+          .map(option => cyan(option))
           .join(', ')}.
 
 ${DialectClass.name} accepts the following options (in addition to the Sequelize options): ${[
           ...dialectOptionNames,
         ]
           .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
+          .map(option => cyan(option))
           .join(', ')}.
 ${DialectClass.name} options can be set at the root of the option bag, like Sequelize options.
 
 The following options can be used to configure the connection to the database: ${connectionOptionNames
           .sort(caseInsensitiveEnComparator)
-          .map(option => chalk.cyan(option))
+          .map(option => cyan(option))
           .join(', ')}.
 Connection options can be used at the root of the option bag, in the "replication" option, and can be modified by the "beforeConnect" hook.
 `,
@@ -805,7 +805,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Escape value to be used in raw SQL.
    *
-   * If you are using this to use the value in a {@link literal}, consider using {@link sql} instead, which automatically
+   * If you are using this to use the value in a {@link sql.literal}, consider using {@link sql} instead, which automatically
    * escapes interpolated values.
    *
    * @param value The value to escape

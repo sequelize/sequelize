@@ -1,5 +1,6 @@
 'use strict';
 
+import { ParameterStyle } from '@sequelize/core';
 import {
   attributeTypeToSql,
   normalizeDataType,
@@ -12,6 +13,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -131,13 +133,32 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, attributes) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const modelAttributeMap = Object.create(null);
     const values = [];
-    const bind = Object.create(null);
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let suffix = '';
+    let bind;
+    let bindParam;
+    const parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
+
+    if (options.returning) {
+      const returnValues = this.generateReturnValues(attributes, options);
+
+      suffix += returnValues.returningFragment;
+
+      // ensure that the return output is properly mapped to model fields.
+      options.mapToModel = true;
+    }
 
     if (attributes) {
       each(attributes, (attribute, key) => {
@@ -166,14 +187,14 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     if (options.limit) {
       query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})`.trim();
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})${suffix}`.trim();
     } else {
       query =
-        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}`.trim();
+        `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
     }
 
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 

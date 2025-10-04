@@ -20,13 +20,23 @@ jobs:
   autoupdate:
     runs-on: ubuntu-latest
     steps:
+      # This step is used by the fork update feature, which uses git instead of the API
+      - name: Configure git
+        env:
+          UPDATE_FORK_USERNAME: '${{ vars.UPDATE_FORK_USERNAME }}'
+          UPDATE_FORK_EMAIL: '${{ vars.UPDATE_FORK_EMAIL }}'
+        run: |
+          # The username of the "UPDATE_FORK_PAT" owner
+          git config --global user.name "${UPDATE_FORK_USERNAME}"
+          # The email of the "UPDATE_FORK_PAT" owner
+          git config --global user.email "${UPDATE_FORK_EMAIL}"
       - name: Generate Sequelize Bot Token
         id: generate-token
         uses: actions/create-github-app-token@v1
         with:
           app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
-      - uses: sequelize/pr-auto-update-and-handle-conflicts@257ac5f68859672393e3320495164251140bd801 # 1.0.1
+      - uses: sequelize/pr-auto-update-and-handle-conflicts@74929c430b8843e691e7b83d229d8d13d78d89e3 # 2.0.0
         with:
           conflict-label: 'conflicted'
           conflict-requires-ready-state: 'ready_for_review'
@@ -37,4 +47,11 @@ jobs:
           update-excluded-authors: 'bot/renovate'
           update-excluded-labels: 'no-autoupdate'
         env:
+          # We need to use a GitHub App PAT to update PRs
+          # or workflows will not be triggered by the update
           GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
+
+          # updating forks require a user PAT instead of an app PAT,
+          # as the permissions of the app PAT do not apply to forks.
+          UPDATE_FORK_PAT: '${{ secrets.UPDATE_FORK_PAT }}'
+          UPDATE_FORK_USERNAME: '${{ vars.UPDATE_FORK_USERNAME }}'

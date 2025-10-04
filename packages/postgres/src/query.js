@@ -287,21 +287,16 @@ export class PostgresQuery extends AbstractQuery {
           throw new EmptyResultError();
         }
 
-        if (rows[0]) {
+        if (Array.isArray(rows) && rows[0]) {
           for (const attributeOrColumnName of Object.keys(rows[0])) {
             const modelDefinition = this.model.modelDefinition;
-
-            // TODO: this should not be searching in both column names & attribute names. It will lead to collisions. Use only one or the other.
-            const attribute =
-              modelDefinition.attributes.get(attributeOrColumnName) ??
-              modelDefinition.columns.get(attributeOrColumnName);
-
+            const attribute = modelDefinition.columns.get(attributeOrColumnName);
             const updatedValue = this._parseDatabaseValue(
               rows[0][attributeOrColumnName],
               attribute?.type,
             );
 
-            this.instance.set(attribute?.fieldName ?? attributeOrColumnName, updatedValue, {
+            this.instance.set(attribute?.attributeName ?? attributeOrColumnName, updatedValue, {
               raw: true,
               comesFromDatabase: true,
             });

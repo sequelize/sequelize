@@ -147,9 +147,10 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
               addEnumValue(field, remainingEnumValues[reverseIdx], lastOldEnumValue, 'after');
             }
           }
-
-          enumIdx++;
         }
+
+        // Continue to the next enum
+        enumIdx++;
       }
     }
 

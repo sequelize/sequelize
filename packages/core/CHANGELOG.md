@@ -3,46 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
-# [7.0.0-alpha.40](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.39...v7.0.0-alpha.40) (2024-04-11)
+# [7.0.0-alpha.46](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.45...v7.0.0-alpha.46) (2025-03-22)
 
 ### Bug Fixes
 
-- parse the `url` option based on the dialect ([#17252](https://github.com/sequelize/sequelize/issues/17252)) ([f05281c](https://github.com/sequelize/sequelize/commit/f05281cd406cba7d14c8770d64261ef6b859d143))
-- update bulkDeleteQuery supported options ([#17191](https://github.com/sequelize/sequelize/issues/17191)) ([c53fd01](https://github.com/sequelize/sequelize/commit/c53fd0114ab7a796d7b649abd12086e3c6f7d077))
-
-- feat(mssql)!: move mssql to the `@sequelize/mssql` package (#17206) ([8631f5a](https://github.com/sequelize/sequelize/commit/8631f5a51cf81e244f3160d753865bdfa0a2f539)), closes [#17206](https://github.com/sequelize/sequelize/issues/17206)
-- feat(ibmi)!: move ibmi to the `@sequelize/ibmi` package (#17209) ([21772a5](https://github.com/sequelize/sequelize/commit/21772a5b2aa4eec952f91ba747093cb737af4af9)), closes [#17209](https://github.com/sequelize/sequelize/issues/17209)
-- feat(mysql)!: move mysql to the `@sequelize/mysql` package (#17202) ([5c7830e](https://github.com/sequelize/sequelize/commit/5c7830e976900cca2b8c40535a0e895a66f2d8a6)), closes [#17202](https://github.com/sequelize/sequelize/issues/17202)
-- feat(mariadb)!: move mariadb to the `@sequelize/mariadb` package (#17198) ([46ea159](https://github.com/sequelize/sequelize/commit/46ea159306c55c7b3c02ac0ba24a2c0dd3dff4d9)), closes [#17198](https://github.com/sequelize/sequelize/issues/17198)
+- **core:** fix issues with composite PK in `findByPk` ([#17747](https://github.com/sequelize/sequelize/issues/17747)) ([dd587cb](https://github.com/sequelize/sequelize/commit/dd587cb86a1b636cdc9cc490c9325e2f6e7640a8))
+- **core:** fix msg of error thrown when decorating a non-model ([#17745](https://github.com/sequelize/sequelize/issues/17745)) ([c43c270](https://github.com/sequelize/sequelize/commit/c43c2708d75535edd0fd78e990884a3e38f2fb0d))
+- **core:** proper check upsert support in query-interface ([#17358](https://github.com/sequelize/sequelize/issues/17358)) ([68d7d75](https://github.com/sequelize/sequelize/commit/68d7d758671e0f80bafd68c6980be9dc818683fd))
+- **postgres:** correct existing enum type matching ([#17576](https://github.com/sequelize/sequelize/issues/17576)) ([425d217](https://github.com/sequelize/sequelize/commit/425d21718af40f86015f6496ea6cf721cc61b981))
+- **postgres:** update to postgres 17 ([#17740](https://github.com/sequelize/sequelize/issues/17740)) ([b5c2b26](https://github.com/sequelize/sequelize/commit/b5c2b2667004b3b27e5634c677507f5593987938))
+- update typescript to v5.8.2 ([#17728](https://github.com/sequelize/sequelize/issues/17728)) ([6c5a82d](https://github.com/sequelize/sequelize/commit/6c5a82dbc82ec45bbe85112c51e1b496f3f7dbaa))
 
 ### Features
 
-- add `ModelRepository#_UNSTABLE_bulkDestroy` and manual `ON DELETE` handling ([#17078](https://github.com/sequelize/sequelize/issues/17078)) ([45ac01a](https://github.com/sequelize/sequelize/commit/45ac01acbb56d815ad195649003501407e31f8b4))
-- **db2:** move db2 to the `@sequelize/db2` package ([#17197](https://github.com/sequelize/sequelize/issues/17197)) ([6aa4ced](https://github.com/sequelize/sequelize/commit/6aa4ceda95fb5fb96abaf6e0de3cd116ade664f9))
-- move postgres to the `@sequelize/postgres` package ([#17190](https://github.com/sequelize/sequelize/issues/17190)) ([721d560](https://github.com/sequelize/sequelize/commit/721d56061c801015a8ec91d8e0aed30b5da24497))
-- **mssql:** upgrade to tedious 18 ([#17137](https://github.com/sequelize/sequelize/issues/17137)) ([65e19a1](https://github.com/sequelize/sequelize/commit/65e19a174f69aaef12f396e062a8270362b48a50))
-- re-add the ability to override the connector library ([#17219](https://github.com/sequelize/sequelize/issues/17219)) ([b3c3362](https://github.com/sequelize/sequelize/commit/b3c3362aeca7ce50d0bdb657c6db25f2418dc687))
-- rename `@sequelize/sqlite` to `@sequelize/sqlite3`, `@sequelize/ibmi` to `@sequelize/db2-ibmi`, ban conflicting options ([#17269](https://github.com/sequelize/sequelize/issues/17269)) ([1fb48a4](https://github.com/sequelize/sequelize/commit/1fb48a462c96ec64bf8ed19f91662c4d73e1fe3e))
-- type options per dialect, add "url" option, remove alternative Sequelize constructor signatures ([#17222](https://github.com/sequelize/sequelize/issues/17222)) ([b605bb3](https://github.com/sequelize/sequelize/commit/b605bb372b1500a75daa46bb4c4ae6f4912094a1))
-
-### BREAKING CHANGES
-
-- `db2`, `ibmi`, `snowflake` and `sqlite` do not accept the `url` option anymore
-- The sequelize constructor only accepts a single parameter: the option bag. All other signatures have been removed.
-- Setting the sequelize option to a string representing a URL has been replaced with the `"url"` option.
-- The `dialectOptions` option has been removed. All options that were previously in that object can now be set at the root of the option bag, like all other options.
-- All dialect-specific options changed. This includes at least some credential options that changed.
-- Which dialect-specific option can be used is allow-listed to ensure they do not break Sequelize
-- The sequelize pool is not on the connection manager anymore. It is now directly on the sequelize instance and can be accessed via `sequelize.pool`
-- The `sequelize.config` field has been removed. Everything related to connecting to the database has been normalized to `sequelize.options.replication.write` (always present) and `sequelize.options.replication.read` (only present if read-replication is enabled)
-- `sequelize.options` is now fully frozen. It is no longer possible to modify the Sequelize options after the instance has been created.
-- `sequelize.options` is a normalized list of option. If you wish to access the options that were used to create the sequelize instance, use `sequelize.rawOptions`
-- The default sqlite database is not `':memory:'` anymore, but `sequelize.sqlite` in your current working directory.
-- Setting the sqlite database to a temporary database like `':memory:'` or `''` requires configuring the pool to behave like a singleton, and disallowed read replication
-- The `match` option is no longer supported by `sequelize.sync`. If you made use of this feature, let us know so we can design a better alternative.
-- The `dialectModulePath` has been fully removed to improve compatibility with bundlers.
-- The `dialectModule` option has been split into multiple options. Each option is named after the npm library that is being replaced. For instance, `@sequelize/postgres` now accepts `pgModule`. `@sequelize/mssql` now accepts `tediousModule`
-- Instead of installing the `mssql` package, users need to install `@sequelize/mssql`.
-- Instead of installing the `odbc` package, users need to install `@sequelize/ibmi`.
-- Instead of installing `mysql2`, users need to install `@sequelize/mysql`.
-- Instead of installing the `mariadb` package, users need to install `@sequelize/mariadb.`
+- **core:** add `sql.join` & improve `sql.identifier` ([#17744](https://github.com/sequelize/sequelize/issues/17744)) ([e914861](https://github.com/sequelize/sequelize/commit/e914861c084ef0ed8f12ca7b59be4965326e9641))
+- **core:** count grouped rows ([#17751](https://github.com/sequelize/sequelize/issues/17751)) ([a396673](https://github.com/sequelize/sequelize/commit/a396673b4edad0d3d3379111a3b1cbf3695d22cc))

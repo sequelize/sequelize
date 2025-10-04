@@ -387,6 +387,8 @@ describe('QueryGenerator#createTableQuery', () => {
         'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER AUTOINCREMENT) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] INTEGER AUTOINCREMENT);`,
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT); END`,
+      snowflake:
+        'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL);',
     });
   });
 
@@ -453,6 +455,8 @@ describe('QueryGenerator#createTableQuery', () => {
         sqlite3:
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` INTEGER PRIMARY KEY AUTOINCREMENT);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" INTEGER AUTOINCREMENT, PRIMARY KEY ("myColumn")); END`,
+        snowflake:
+          'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" INTEGER DEFAULT "myTable_myColumn_seq".NEXTVAL, PRIMARY KEY ("myColumn"));',
       },
     );
   });

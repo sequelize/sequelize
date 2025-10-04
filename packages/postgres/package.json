@@ -32,26 +32,26 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.40",
+  "version": "7.0.0-alpha.46",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/pg": "^8.11.4",
+    "@types/pg": "^8.11.14",
     "lodash": "^4.17.21",
-    "pg": "^8.11.3",
+    "pg": "^8.15.6",
     "pg-hstore": "^2.3.4",
-    "pg-types": "^4.0.2",
-    "postgres-array": "^3.0.2",
-    "semver": "^7.6.0",
+    "pg-types": "^4.1.0",
+    "postgres-array": "^3.0.4",
+    "semver": "^7.7.2",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.14",
-    "@types/mocha": "10.0.6",
-    "chai": "4.4.1",
-    "mocha": "10.4.0"
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "chai": "4.5.0",
+    "mocha": "11.7.1"
   }
 }
