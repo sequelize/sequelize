@@ -47,4 +47,20 @@ describe('QueryInterface#bulkInsert', () => {
       ]);
     }
   });
+
+  it('should return an array even when inserting a single row', async function testSingleRowInsert() {
+    const result = await this.queryInterface.bulkInsert(
+      'UsersBulkInsert',
+      [{ name: 'SingleUser' }],
+      {
+        returning: true,
+      },
+    );
+
+    if (['mysql', 'mariadb'].includes(dialect)) {
+      expect(result).to.deep.equal([{ id: 1 }]);
+    } else {
+      expect(result).to.deep.equal([{ id: 1, name: 'SingleUser' }]);
+    }
+  });
 });
