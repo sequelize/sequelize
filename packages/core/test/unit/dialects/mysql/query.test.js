@@ -88,7 +88,7 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
 
       const [result] = query.formatResults(data);
 
-      expect(result).to.equal(30);
+      expect(result).to.deep.equal([{ id: 30 }]);
     });
   });
 });
