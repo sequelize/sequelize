@@ -2863,7 +2863,7 @@ __metadata:
     chai-as-promised: "npm:7.1.2"
     chai-datetime: "npm:1.8.1"
     dayjs: "npm:^1.11.18"
-    debug: "npm:^4.4.1"
+    debug: "npm:^4.4.3"
     delay: "npm:5.0.0"
     dottie: "npm:^2.0.6"
     expect-type: "npm:0.13.0"
