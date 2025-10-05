@@ -2912,7 +2912,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/ibm_db": "npm:^3.2.0"
     dayjs: "npm:^1.11.18"
-    ibm_db: "npm:^3.3.1"
+    ibm_db: "npm:^3.3.3"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -5134,14 +5134,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.7.4, axios@npm:^1.8.3":
-  version: 1.9.0
-  resolution: "axios@npm:1.9.0"
+"axios@npm:^1.11.0, axios@npm:^1.8.3":
+  version: 1.12.2
+  resolution: "axios@npm:1.12.2"
   dependencies:
     follow-redirects: "npm:^1.15.6"
-    form-data: "npm:^4.0.0"
+    form-data: "npm:^4.0.4"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 10c0/9371a56886c2e43e4ff5647b5c2c3c046ed0a3d13482ef1d0135b994a628c41fbad459796f101c655e62f0c161d03883454474d2e435b2e021b1924d9f24994c
+  checksum: 10c0/80b063e318cf05cd33a4d991cea0162f3573481946f9129efb7766f38fde4c061c34f41a93a9f9521f02b7c9565ccbc197c099b0186543ac84a24580017adfed
   languageName: node
   linkType: hard
 
@@ -8140,15 +8140,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"form-data@npm:^4.0.0":
-  version: 4.0.2
-  resolution: "form-data@npm:4.0.2"
+"form-data@npm:^4.0.4":
+  version: 4.0.4
+  resolution: "form-data@npm:4.0.4"
   dependencies:
     asynckit: "npm:^0.4.0"
     combined-stream: "npm:^1.0.8"
     es-set-tostringtag: "npm:^2.1.0"
+    hasown: "npm:^2.0.2"
     mime-types: "npm:^2.1.12"
-  checksum: 10c0/e534b0cf025c831a0929bf4b9bbe1a9a6b03e273a8161f9947286b9b13bf8fb279c6944aae0070c4c311100c6d6dbb815cd955dc217728caf73fad8dc5b8ee9c
+  checksum: 10c0/373525a9a034b9d57073e55eab79e501a714ffac02e7a9b01be1c820780652b16e4101819785e1e18f8d98f0aee866cc654d660a435c378e16a72f2e7cac9695
   languageName: node
   linkType: hard
 
@@ -9042,20 +9043,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "ibm_db@npm:3.3.1"
+"ibm_db@npm:^3.3.3":
+  version: 3.3.3
+  resolution: "ibm_db@npm:3.3.3"
   dependencies:
     adm-zip: "npm:^0.5.16"
-    axios: "npm:^1.7.4"
+    axios: "npm:^1.11.0"
     big-integer: "npm:^1.6.51"
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
     lodash: "npm:^4.17.21"
-    nan: "npm:^2.22.2"
+    nan: "npm:^2.23.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/e040d4771b2df6ba8d4ddbb249e8cbf7b408c5970a9f64fff2ee98836e92d857046d955e86e5f289416482e89c41b3876cdaa6b646e2c05ba7ab9cf6606c5274
+  checksum: 10c0/cca8ebc80a5467c5a98b79a530f7a30cce82bc42d9e24db0f0b35e6b5ee1705ce253aa77b7a1a62a01d3ff4fbe137ab21c8c878811947eb2c241cecac99c07b2
   languageName: node
   linkType: hard
 
@@ -11793,12 +11794,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.22.2":
-  version: 2.22.2
-  resolution: "nan@npm:2.22.2"
+"nan@npm:^2.23.0":
+  version: 2.23.0
+  resolution: "nan@npm:2.23.0"
   dependencies:
     node-gyp: "npm:latest"
-  checksum: 10c0/971f963b8120631880fa47a389c71b00cadc1c1b00ef8f147782a3f4387d4fc8195d0695911272d57438c11562fb27b24c4ae5f8c05d5e4eeb4478ba51bb73c5
+  checksum: 10c0/b986dd257dca53ab43a3b6ca6d0eafde697b69e1d63b242fa4aece50ce97eb169f9c4a5d8eb0eb5f58d118a9595fee11f3198fa210f023440053bb6f54109e73
   languageName: node
   linkType: hard
 
