@@ -1303,7 +1303,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _createModelVariant(optionOverrides) {
-    const model = class extends this { };
+    const model = class extends this {};
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
