@@ -16,6 +16,7 @@ import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import { ParameterStyle } from '../enums.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
@@ -24,6 +25,7 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
+import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -75,16 +77,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     const modelAttributeMap = {};
-    const bind =
-      this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const returnTypes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     const returnAttributes = [];
     let query;
     let valueQuery = '';
@@ -128,12 +133,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind =
+        this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
+      bindParam = createBindParamGenerator(bind);
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -290,7 +301,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -445,22 +456,30 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = Object.create(null);
     const modelAttributeMap = {};
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
       if (!['mssql', 'db2', 'oracle'].includes(this.dialect.name)) {
@@ -536,7 +555,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -1004,18 +1023,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  bindParam(bind) {
-    let i = 0;
-
-    return value => {
-      const bindName = `sequelize_${++i}`;
-
-      bind[bindName] = value;
-
-      return `$${bindName}`;
-    };
   }
 
   /*

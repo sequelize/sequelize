@@ -39,7 +39,7 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.18",
     "lodash": "^4.17.21",
     "mariadb": "^3.4.5",
     "semver": "^7.7.2",

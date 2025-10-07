@@ -38,6 +38,7 @@ import {
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
+import { QueryTypes } from './enums.js';
 import * as SequelizeErrors from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { InstanceValidator } from './instance-validator';
@@ -50,7 +51,6 @@ import {
 } from './model-internals';
 import { ModelTypeScript } from './model-typescript';
 import { Op } from './operators';
-import { QueryTypes } from './query-types';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
