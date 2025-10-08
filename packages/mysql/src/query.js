@@ -107,66 +107,50 @@ export class MySqlQuery extends AbstractQuery {
       if (!this.instance) {
         const modelDefinition = this.model?.modelDefinition;
 
-        // handle bulkCreate AI primary key
+        /**
+         * Helper to normalize insert ID values.
+         * Converts a BigInt loop variable to a number if the original startId wasn't BigInt.
+         *
+         * @param value
+         * @param isBigInt
+         */
+        const convertInsertId = (value, isBigInt) => (isBigInt ? value : Number(value));
+
+        /**
+         * Generates an array of { id } objects (or with model PK column)
+         * from startId → startId + affectedRows - 1
+         *
+         * @param startId
+         * @param affectedRows
+         * @param keyName
+         */
+        const generateInsertResults = (startId, affectedRows, keyName) => {
+          const isBigInt = typeof startId === 'bigint';
+          const start = isBigInt ? startId : BigInt(startId);
+          const end = start + BigInt(affectedRows);
+
+          const result = [];
+          for (let i = start; i < end; i = i + 1n) {
+            result.push({ [keyName]: convertInsertId(i, isBigInt) });
+          }
+
+          return result;
+        };
+
+        // --- Case 1: bulkCreate with model context ---
         if (
           data.constructor.name === 'ResultSetHeader' &&
           modelDefinition?.autoIncrementAttributeName &&
           modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
         ) {
           const startId = data[this.getInsertIdField()];
-          result = [];
+          const keyName = modelDefinition.getColumnName(this.model.primaryKeyAttribute);
+          result = generateInsertResults(startId, data.affectedRows, keyName);
 
-          const isBigInt = typeof startId === 'bigint';
-          const isString = typeof startId === 'string';
-
-          for (
-            let i = isBigInt ? startId : BigInt(startId);
-            i <
-            (isBigInt
-              ? startId + BigInt(data.affectedRows)
-              : BigInt(startId) + BigInt(data.affectedRows));
-            i = i + 1n
-          ) {
-            let value;
-            if (isBigInt) {
-              value = i;
-            } // keep BigInt as-is
-            else if (isString) {
-              value = Number(i);
-            } // string insertId → number
-            else {
-              value = Number(i);
-            } // number insertId → number
-
-            result.push({
-              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: value,
-            });
-          }
-        } else {
-          // handle no-model insertId
+          // --- Case 2: bulkInsert without model context ---
+        } else if (data.constructor.name === 'ResultSetHeader') {
           const startId = data[this.getInsertIdField()];
-          if (data.constructor.name === 'ResultSetHeader') {
-            result = [];
-            const isBigInt = typeof startId === 'bigint';
-            const isString = typeof startId === 'string';
-
-            const start = isBigInt ? startId : BigInt(startId);
-            const end = start + BigInt(data.affectedRows);
-
-            for (let i = start; i < end; i++) {
-              let value;
-              if (isBigInt) {
-                value = i;
-              } // keep BigInt intact
-              else if (isString) {
-                value = Number(i);
-              } else {
-                value = Number(i);
-              }
-
-              result.push({ id: value });
-            }
-          }
+          result = generateInsertResults(startId, data.affectedRows, 'id');
         }
       }
     }
