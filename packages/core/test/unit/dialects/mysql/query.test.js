@@ -90,5 +90,47 @@ describe('[MYSQL/MARIADB Specific] Query', () => {
 
       expect(result).to.deep.equal([{ id: 30 }]);
     });
+
+    it('returns empty array when no rows were inserted', () => {
+      query.model = null;
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: 40,
+        affectedRows: 0,
+      };
+
+      const [result] = query.formatResults(data);
+      expect(result).to.deep.equal([]);
+    });
+
+    it('handles string insertId values correctly', () => {
+      query.model = null;
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: '50',
+        affectedRows: 3,
+      };
+
+      const [result] = query.formatResults(data);
+      expect(result).to.deep.equal([{ id: 50 }, { id: 51 }, { id: 52 }]);
+    });
+
+    it('handles BigInt insertId values safely', () => {
+      query.model = null;
+
+      const data = {
+        constructor: { name: 'ResultSetHeader' },
+        insertId: BigInt('9007199254740991'),
+        affectedRows: 2,
+      };
+
+      const [result] = query.formatResults(data);
+      expect(result).to.deep.equal([
+        { id: 9_007_199_254_740_991n },
+        { id: 9_007_199_254_740_992n },
+      ]);
+    });
   });
 });

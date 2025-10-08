@@ -115,24 +115,56 @@ export class MySqlQuery extends AbstractQuery {
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
+
+          const isBigInt = typeof startId === 'bigint';
+          const isString = typeof startId === 'string';
+
           for (
-            let i = BigInt(startId);
-            i < BigInt(startId) + BigInt(data.affectedRows);
+            let i = isBigInt ? startId : BigInt(startId);
+            i <
+            (isBigInt
+              ? startId + BigInt(data.affectedRows)
+              : BigInt(startId) + BigInt(data.affectedRows));
             i = i + 1n
           ) {
+            let value;
+            if (isBigInt) {
+              value = i;
+            } // keep BigInt as-is
+            else if (isString) {
+              value = Number(i);
+            } // string insertId → number
+            else {
+              value = Number(i);
+            } // number insertId → number
+
             result.push({
-              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]:
-                typeof startId === 'string' ? i.toString() : Number(i),
+              [modelDefinition.getColumnName(this.model.primaryKeyAttribute)]: value,
             });
           }
         } else {
+          // handle no-model insertId
           const startId = data[this.getInsertIdField()];
           if (data.constructor.name === 'ResultSetHeader') {
-            // No model context, but still return array of IDs
             result = [];
-            for (let i = startId; i < startId + data.affectedRows; i++) {
-              // this shouldnot be (id) key but we have no other choice here
-              result.push({ id: i });
+            const isBigInt = typeof startId === 'bigint';
+            const isString = typeof startId === 'string';
+
+            const start = isBigInt ? startId : BigInt(startId);
+            const end = start + BigInt(data.affectedRows);
+
+            for (let i = start; i < end; i++) {
+              let value;
+              if (isBigInt) {
+                value = i;
+              } // keep BigInt intact
+              else if (isString) {
+                value = Number(i);
+              } else {
+                value = Number(i);
+              }
+
+              result.push({ id: value });
             }
           }
         }
