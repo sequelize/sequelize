@@ -108,21 +108,23 @@ export class MySqlQuery extends AbstractQuery {
         const modelDefinition = this.model?.modelDefinition;
 
         /**
-         * Helper to normalize insert ID values.
-         * Converts a BigInt loop variable to a number if the original startId wasn't BigInt.
+         * Converts a BigInt loop variable to the appropriate type based on the original startId type.
          *
-         * @param value
-         * @param isBigInt
+         * @param {bigint} value - The current loop value.
+         * @param {boolean} isBigInt - Whether the original startId was a BigInt.
+         * @returns {bigint|number} The converted value.
          */
-        const convertInsertId = (value, isBigInt) => (isBigInt ? value : Number(value));
+        const convertInsertId = (value, isBigInt) => {
+          return isBigInt ? value : Number(value);
+        };
 
         /**
-         * Generates an array of { id } objects (or with model PK column)
-         * from startId → startId + affectedRows - 1
+         * Generates an array of insert results from startId → startId + affectedRows - 1.
          *
-         * @param startId
-         * @param affectedRows
-         * @param keyName
+         * @param {(bigint|number|string)} startId - The starting insert ID from the database.
+         * @param {number} affectedRows - The number of rows affected by the insert.
+         * @param {string} keyName - The property name for the ID field (e.g. 'id' or model PK column).
+         * @returns {Array<object>} Array of inserted ID objects.
          */
         const generateInsertResults = (startId, affectedRows, keyName) => {
           const isBigInt = typeof startId === 'bigint';
