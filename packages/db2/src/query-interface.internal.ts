@@ -10,11 +10,11 @@ export class Db2QueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   /**
    * Parses the isolation level and returns the corresponding value for tedious.
    *
-   * @see https://www.ibm.com/docs/en/db2/11.5?topic=keywords-txnisolation
+   * @see https://www.ibm.com/docs/en/db2/11.5.x?topic=keywords-txnisolation
    *
    * @param value The isolation level to parse.
    */
-  parseIsolationLevel(value: IsolationLevel): number {
+  parseIsolationLevel(value: IsolationLevel): 1 | 2 | 4 | 8 {
     switch (value) {
       case IsolationLevel.READ_UNCOMMITTED:
         return 1;
