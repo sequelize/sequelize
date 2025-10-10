@@ -34,6 +34,8 @@ export interface SnowflakeConnectionOptions
     | 'schema'
     // sequelize does not support result streaming https://github.com/sequelize/sequelize/issues/10347
     | 'streamResult'
+    // "oauthHttpAllowed" is not supported by the Snowflake SDK anymore (deprecated option)
+    | 'oauthHttpAllowed'
   > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<

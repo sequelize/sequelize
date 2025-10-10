@@ -42,6 +42,8 @@
     "__classPrivateFieldIn",
     "__addDisposableResource",
     "__disposeResources",
-    "__rewriteRelativeImportExtension"
+    "__rewriteRelativeImportExtension",
+    // Added for `snowflake-sdk` package in https://github.com/sequelize/sequelize/pull/18005
+    "awslambda"
   ]
 }
