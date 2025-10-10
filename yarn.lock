@@ -2981,7 +2981,7 @@ __metadata:
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.45.0"
     mocha: "npm:11.7.4"
-    node-gyp: "npm:11.3.0"
+    node-gyp: "npm:11.4.2"
     node-hook: "npm:1.0.0"
     nx: "npm:21.3.11"
     prettier: "npm:3.5.3"
@@ -11984,9 +11984,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-gyp@npm:11.3.0":
-  version: 11.3.0
-  resolution: "node-gyp@npm:11.3.0"
+"node-gyp@npm:11.4.2":
+  version: 11.4.2
+  resolution: "node-gyp@npm:11.4.2"
   dependencies:
     env-paths: "npm:^2.2.0"
     exponential-backoff: "npm:^3.1.1"
@@ -12000,7 +12000,7 @@ __metadata:
     which: "npm:^5.0.0"
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 10c0/5f4ad5a729386f7b50096efd4934b06c071dbfbc7d7d541a66d6959a7dccd62f53ff3dc95fffb60bf99d8da1270e23769f82246fcaa6c5645a70c967ae9a3398
+  checksum: 10c0/0bfd3e96770ed70f07798d881dd37b4267708966d868a0e585986baac487d9cf5831285579fd629a83dc4e434f53e6416ce301097f2ee464cb74d377e4d8bdbe
   languageName: node
   linkType: hard
 
