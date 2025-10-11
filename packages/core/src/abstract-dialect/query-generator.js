@@ -300,6 +300,25 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
+    const bind = Object.create(null);
+    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+
+    // Require explicit opt-in to use bind parameters (for backwards compatibility)
+    // https://github.com/sequelize/sequelize/pull/17752#discussion_r1986317512
+    if (options.parameterStyle !== 'bind') {
+      bindParam = undefined;
+    }
+
+    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
+      // Not currently supported with search path (requires output of multiple queries)
+      bindParam = undefined;
+    }
+
+    if (this.dialect.supports.EXCEPTION && options.exception) {
+      // Not currently supported with bind parameters (requires output of multiple queries)
+      bindParam = undefined;
+    }
+
     const tuples = [];
     const serials = {};
     const allAttributes = [];
@@ -319,16 +338,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
           type: fieldMappedAttributes[key]?.type,
           replacements: options.replacements,
+          bindParam,
         });
       });
 
@@ -353,7 +375,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          whereClause = this.whereQuery(options.conflictWhere, options);
+          whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
         }
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
@@ -394,7 +416,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return joinSQLFragments([
+    const query = joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -407,6 +429,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
+
+    const result = { query };
+    if (options.bindParam !== false) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**
