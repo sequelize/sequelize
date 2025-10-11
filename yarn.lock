@@ -2576,9 +2576,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.5.3, @oclif/core@npm:^4.5.4":
-  version: 4.5.4
-  resolution: "@oclif/core@npm:4.5.4"
+"@oclif/core@npm:^4, @oclif/core@npm:^4.5.3, @oclif/core@npm:^4.5.4, @oclif/core@npm:^4.5.5":
+  version: 4.5.5
+  resolution: "@oclif/core@npm:4.5.5"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.17.0"
@@ -2591,14 +2591,14 @@ __metadata:
     is-wsl: "npm:^2.2.0"
     lilconfig: "npm:^3.1.3"
     minimatch: "npm:^9.0.5"
-    semver: "npm:^7.6.3"
+    semver: "npm:^7.7.3"
     string-width: "npm:^4.2.3"
     supports-color: "npm:^8"
     tinyglobby: "npm:^0.2.14"
     widest-line: "npm:^3.1.0"
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
-  checksum: 10c0/f92c904067f7500cd1ceaa37f4c9ce75dd9032ea7550b494e10fd2058f5f83ee60f838b0eb8a26dbd3ab7fa79d8ecabfea291e2899feced2d18a5939795aa07a
+  checksum: 10c0/625abae31dd00fea07a6c5e511b43f0cc5867eccd5b07e1b24848f153e0f3904761b7cbc69de0516169711eaca4102a4b32efe618ab1f045432efcd04e449dfa
   languageName: node
   linkType: hard
 
@@ -2844,7 +2844,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.18"
     "@inquirer/input": "npm:^4.2.4"
     "@inquirer/select": "npm:^4.3.4"
-    "@oclif/core": "npm:^4.5.4"
+    "@oclif/core": "npm:^4.5.5"
     "@oclif/plugin-help": "npm:^6.2.33"
     "@oclif/test": "npm:4.1.14"
     "@sequelize/utils": "workspace:*"
