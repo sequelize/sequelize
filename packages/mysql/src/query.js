@@ -127,6 +127,10 @@ export class MySqlQuery extends AbstractQuery {
          * @returns {Array<object>} Array of inserted ID objects.
          */
         const generateInsertResults = (startId, affectedRows, keyName) => {
+          if (affectedRows < 0 || !Number.isFinite(affectedRows)) {
+            throw new Error(`Invalid affectedRows value: ${affectedRows}`);
+          }
+
           const isBigInt = typeof startId === 'bigint';
           const start = isBigInt ? startId : BigInt(startId);
           const end = start + BigInt(affectedRows);
