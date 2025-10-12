@@ -13,10 +13,13 @@ import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
-import type { TypeId, TypeParser } from 'pg-types';
+import type { TypeId } from 'pg-types';
 import { parse as parseArray } from 'postgres-array';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
+
+// TypeParser is not exported in pg-types v2, so we define it locally
+type TypeParser<TOid = number, TReturn = any> = (oid: TOid) => TReturn;
 
 const debug = logger.debugContext('connection:pg');
 
@@ -152,7 +155,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
       if (!this.dialect.options.native) {
         // Receive various server parameters for further configuration
-        // @ts-expect-error -- undeclared type
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
@@ -161,7 +163,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
         if (!this.dialect.options.native) {
           // remove parameter handler
-          // @ts-expect-error -- undeclared type
           connection.connection.removeListener('parameterStatus', parameterHandler);
         }
 
