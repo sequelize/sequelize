@@ -1,5 +1,6 @@
 import type { ModelWithRejectOnEmpty } from '@sequelize/core';
-import { DataTypes, Sequelize } from '@sequelize/core';
+import type { ModelWithRejectOnEmpty } from '@sequelize/core';
+import { DataTypes, Model, Sequelize } from '@sequelize/core';
 import { MySqlDialect } from '@sequelize/mysql';
 
 const sequelize = new Sequelize({
@@ -7,8 +8,14 @@ const sequelize = new Sequelize({
   url: 'mysql://root:asd123@localhost:3306/mydb',
 });
 
+// A proper Model subclass to use with the define() generic
+class UserInstance extends Model {
+  declare id: number;
+  declare name: string;
+}
+
 // Define a model with rejectOnEmpty: true at the model level
-const UserModel = sequelize.define<ModelWithRejectOnEmpty>(
+const UserModel: ModelWithRejectOnEmpty<UserInstance> = sequelize.define<UserInstance>(
   'User',
   {
     id: {
