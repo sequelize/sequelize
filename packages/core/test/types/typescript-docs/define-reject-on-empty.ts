@@ -1,6 +1,4 @@
-import type {
-  ModelWithRejectOnEmpty,
-} from '@sequelize/core';
+import type { ModelWithRejectOnEmpty } from '@sequelize/core';
 import { DataTypes, Sequelize } from '@sequelize/core';
 import { MySqlDialect } from '@sequelize/mysql';
 
