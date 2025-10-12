@@ -1,8 +1,5 @@
 import type {
-  CreationOptional,
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
+  ModelWithRejectOnEmpty,
 } from '@sequelize/core';
 import { DataTypes, Sequelize } from '@sequelize/core';
 import { MySqlDialect } from '@sequelize/mysql';
@@ -12,17 +9,8 @@ const sequelize = new Sequelize({
   url: 'mysql://root:asd123@localhost:3306/mydb',
 });
 
-// We recommend you declare an interface for the attributes, for stricter typechecking
-
-interface IUserModel
-  extends Model<InferAttributes<IUserModel>, InferCreationAttributes<IUserModel>> {
-  // Some fields are optional when calling UserModel.create() or UserModel.build()
-  id: CreationOptional<number>;
-  name: string;
-}
-
 // Define a model with rejectOnEmpty: true at the model level
-const UserModel = sequelize.define<IUserModel>(
+const UserModel = sequelize.define<ModelWithRejectOnEmpty>(
   'User',
   {
     id: {
