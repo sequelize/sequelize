@@ -709,11 +709,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const escapedIndexName =
       tableName.schema && this.dialect.name === 'db2'
         ? // 'quoteTable' isn't the best name: it quotes any identifier.
-          // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
-          this.quoteTable({
-            schema: tableName.schema,
-            tableName: options.name,
-          })
+        // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+        this.quoteTable({
+          schema: tableName.schema,
+          tableName: options.name,
+        })
         : this.quoteIdentifiers(options.name);
 
     ind = ind.concat(
@@ -1035,12 +1035,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     mainTable.quotedName = !Array.isArray(mainTable.name)
       ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
       : tableName
-          .map(t => {
-            return Array.isArray(t)
-              ? this.quoteTable(t[0], { ...options, alias: t[1] })
-              : this.quoteTable(t, { ...options, alias: true });
-          })
-          .join(', ');
+        .map(t => {
+          return Array.isArray(t)
+            ? this.quoteTable(t[0], { ...options, alias: t[1] })
+            : this.quoteTable(t, { ...options, alias: true });
+        })
+        .join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
     const mainModelAttributes = mainModelDefinition?.attributes;
@@ -1667,7 +1667,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
 
-      joinQueries.subQuery.push(subChildIncludes.join(''));
+      if (subChildIncludes.length > 0) {
+        if (topLevelInfo.subQuery) {
+          const subFragments = [];
+
+          if (requiredMismatch) {
+            subFragments.push(
+              ` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} ) ON ${joinQuery.condition}`,
+            );
+          } else {
+            subFragments.push(
+              ` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`,
+              subChildIncludes.join(''),
+            );
+          }
+
+          joinQueries.subQuery.push(...subFragments);
+        } else {
+          joinQueries.subQuery.push(subChildIncludes.join(''));
+        }
+      }
     }
 
     return {
@@ -1697,8 +1716,61 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
-      return options.aliasesByTable[`${tableName}${field}`];
+    if (!options.minifyAliases || !options.aliasesByTable) {
+      return null;
+    }
+
+    const candidates = new Set();
+    const tableNameString = typeof tableName === 'string' ? tableName : undefined;
+    const tableVariants = [];
+
+    if (tableNameString) {
+      tableVariants.push(tableNameString);
+
+      const normalizedTable = tableNameString.replaceAll('->', '.');
+      if (normalizedTable !== tableNameString) {
+        tableVariants.push(normalizedTable);
+      }
+    }
+
+    const fieldVariants = new Set();
+
+    if (typeof field === 'string') {
+      fieldVariants.add(field);
+
+      const dotVariant = field.replaceAll('->', '.');
+      const arrowVariant = field.replaceAll('.', '->');
+
+      fieldVariants.add(dotVariant);
+      fieldVariants.add(arrowVariant);
+
+      if (field.includes('.')) {
+        fieldVariants.add(field.slice(field.lastIndexOf('.') + 1));
+      }
+    } else if (field != null) {
+      fieldVariants.add(field);
+    }
+
+    for (const variant of fieldVariants) {
+      candidates.add(variant);
+    }
+
+    if (tableVariants.length > 0) {
+      for (const tableVariant of tableVariants) {
+        for (const fieldVariant of fieldVariants) {
+          if (typeof fieldVariant === 'string' && fieldVariant.length > 0) {
+            candidates.add(`${tableVariant}.${fieldVariant}`);
+          }
+        }
+      }
+    }
+
+    for (const candidate of candidates) {
+      const alias = options.aliasesByTable[`${tableName}${candidate}`];
+
+      if (alias) {
+        return alias;
+      }
     }
 
     return null;
@@ -1992,17 +2064,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // If parent include was in a subquery need to join on the aliased attribute
     if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && !parentIsTop) {
       // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const joinSource =
-        this._getAliasForField(tableSource, `${tableSource}.${attrSource}`, topLevelInfo.options) ||
-        `${tableSource}.${attrSource}`;
+      const aliasedSource = this._getAliasForField(
+        tableSource,
+        `${tableSource}.${attrSource}`,
+        topLevelInfo.options,
+      );
 
-      sourceJoinOn = `${this.quoteIdentifier(joinSource)} = `;
+      sourceJoinOn = aliasedSource
+        ? `${this.quoteIdentifier(aliasedSource)} = `
+        : `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     } else {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const aliasedSource =
-        this._getAliasForField(tableSource, attrSource, topLevelInfo.options) || attrSource;
-
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(aliasedSource)} = `;
+      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
