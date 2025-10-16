@@ -75,12 +75,12 @@ if (Support.sequelize.dialect.supports.upserts) {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert(values => {
-            values.mood = 'happy';
+          this.User.beforeUpsert(user => {
+            user.mood = 'happy';
             hookCalled++;
           });
 
-          const user = await this.User.upsert(valuesOriginal);
+          const [user] = await this.User.upsert(valuesOriginal);
           expect(user.mood).to.equal('happy');
           expect(valuesOriginal.mood).to.equal('sad');
           expect(hookCalled).to.equal(1);
