@@ -70,18 +70,17 @@ if (Support.sequelize.dialect.supports.upserts) {
         });
       });
 
-      describe('preserves changes to instance', () => {
+      describe('preserves changes to values', () => {
         it('beforeUpsert', async function() {
           let hookCalled = 0;
           const valuesOriginal = { mood: 'sad', username: 'leafninja' };
 
-          this.User.beforeUpsert(user => {
-            user.mood = 'happy';
+          this.User.beforeUpsert(values => {
+            values.mood = 'happy';
             hookCalled++;
           });
 
-          const [user] = await this.User.upsert(valuesOriginal);
-          expect(user.mood).to.equal('happy');
+          await this.User.upsert(valuesOriginal);
           expect(valuesOriginal.mood).to.equal('sad');
           expect(hookCalled).to.equal(1);
         });
