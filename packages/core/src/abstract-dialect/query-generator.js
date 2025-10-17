@@ -2077,9 +2077,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         topLevelInfo.options,
       );
 
-      sourceJoinOn = aliasedSource
-        ? `${this.quoteIdentifier(aliasedSource)} = `
-        : `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+      if (aliasedSource) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      } else {
+        const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+
+        if (mainAlias) {
+          sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
+        } else {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+        }
+      }
     } else {
       sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
