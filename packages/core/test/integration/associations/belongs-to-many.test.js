@@ -3910,4 +3910,418 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(firstGood.orderGood.isUpsell).to.be.not.equal(secondGood.orderGood.isUpsell);
     });
   });
+
+  describe('new-test nested includes with minified aliases', () => {
+    beforeEach(async function () {
+      this.minifiedSequelize = Support.createSequelizeInstance({
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      Support.destroySequelizeAfterTest(this.minifiedSequelize);
+
+      const sequelize = this.minifiedSequelize;
+
+      this.CustomerLocation = sequelize.define(
+        'CustomerLocation',
+        {
+          customerId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+          },
+          locationId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            allowNull: false,
+          },
+          relationType: DataTypes.TEXT,
+          endAt: {
+            type: DataTypes.DATE(6),
+            allowNull: true,
+          },
+        },
+        {
+          indexes: [
+            {
+              fields: ['endAt'],
+            },
+          ],
+        },
+      );
+
+      this.Customer = sequelize.define('Customer', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: DataTypes.TEXT,
+      });
+
+      this.Location = sequelize.define('Location', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: DataTypes.TEXT,
+      });
+
+      this.System = sequelize.define('System', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: DataTypes.TEXT,
+        locationId: DataTypes.INTEGER,
+      });
+
+      this.FuelDelivery = sequelize.define('FuelDelivery', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        product: DataTypes.TEXT,
+        systemId: DataTypes.INTEGER,
+      });
+
+      this.Location.hasMany(this.System, { as: 'systems', foreignKey: 'locationId' });
+      this.System.belongsTo(this.Location, { as: 'location', foreignKey: 'locationId' });
+
+      this.Location.belongsToMany(this.Customer, {
+        as: 'customers',
+        through: {
+          model: this.CustomerLocation,
+          scope: { endAt: null },
+        },
+        foreignKey: 'locationId',
+        otherKey: 'customerId',
+        inverse: {
+          as: 'locations',
+        },
+      });
+
+      this.System.hasMany(this.FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
+      this.FuelDelivery.belongsTo(this.System, { as: 'system', foreignKey: 'systemId' });
+
+      await sequelize.sync({ force: true });
+
+      this.firstCustomer = await this.Customer.create({ name: 'Propane Delivery Co' });
+      this.secondCustomer = await this.Customer.create({ name: 'Kozy Operations Inc' });
+      this.locationInstance = await this.Location.create({ name: 'Fuel Depot' });
+
+      await this.CustomerLocation.create({
+        customerId: this.firstCustomer.id,
+        locationId: this.locationInstance.id,
+        relationType: 'primary',
+      });
+
+      await this.CustomerLocation.create({
+        customerId: this.secondCustomer.id,
+        locationId: this.locationInstance.id,
+        relationType: 'secondary',
+      });
+
+      this.systemInstance = await this.System.create({
+        name: 'Kozy Operations Inc',
+        locationId: this.locationInstance.id,
+      });
+
+      this.deliveryInstance = await this.FuelDelivery.create({
+        product: 'Propane',
+        systemId: this.systemInstance.id,
+      });
+    });
+
+    it('loads customers from nested required includes', async () => {
+      const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
+        include: [
+          {
+            association: 'system',
+            required: true,
+            include: [
+              {
+                association: 'location',
+                required: true,
+                include: [
+                  {
+                    association: 'customers',
+                    required: true,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(delivery).to.not.be.null;
+      expect(delivery.system).to.not.be.undefined;
+      expect(delivery.system.location).to.not.be.undefined;
+
+      const customers = delivery.system.location.customers;
+      expect(customers).to.not.be.undefined;
+      expect(customers).to.have.length(2);
+      expect(customers.map(customer => customer.id)).to.have.members([
+        this.firstCustomer.id,
+        this.secondCustomer.id,
+      ]);
+    });
+
+    it('loads nested customers from the inverse association tree', async () => {
+      const customer = await this.Customer.findOne({
+        include: [
+          {
+            association: 'locations',
+            include: [
+              {
+                association: 'customers',
+              },
+            ],
+          },
+        ],
+        order: [['id', 'ASC']],
+      });
+
+      expect(customer).to.not.be.null;
+
+      const locations = customer.locations ?? [];
+      expect(locations.length).to.be.greaterThan(0);
+
+      const nestedCustomers = locations[0].customers ?? [];
+      expect(nestedCustomers.length).to.be.greaterThan(0);
+      expect(nestedCustomers.map(entry => entry.id)).to.include(this.firstCustomer.id);
+    });
+
+    it('supports deeply nested includes with repeated alias chains', async () => {
+      const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
+        include: [
+          {
+            association: 'system',
+            include: [
+              {
+                association: 'location',
+                include: [
+                  {
+                    association: 'customers',
+                    required: true,
+                    include: [
+                      {
+                        association: 'locations',
+                        required: false,
+                        include: [
+                          {
+                            association: 'systems',
+                            where: { name: 'Kozy Operations Inc' },
+                            required: true,
+                            include: [
+                              {
+                                association: 'location',
+                                include: [
+                                  {
+                                    association: 'customers',
+                                    required: false,
+                                    include: [
+                                      {
+                                        association: 'locations',
+                                        required: false,
+                                        include: [
+                                          {
+                                            association: 'systems',
+                                            where: { name: 'Kozy Operations Inc' },
+                                            required: false,
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(delivery).to.not.be.null;
+      expect(delivery.system).to.not.be.undefined;
+      expect(delivery.system.location).to.not.be.undefined;
+
+      const customers = delivery.system.location.customers ?? [];
+      expect(customers).to.have.length(2);
+
+      const firstCustomer = customers[0];
+      expect(firstCustomer.locations).to.not.be.undefined;
+      const firstLocation = firstCustomer.locations?.[0];
+      expect(firstLocation).to.not.be.undefined;
+      expect(firstLocation.systems).to.not.be.undefined;
+      expect(firstLocation.systems?.[0]?.name).to.equal('Kozy Operations Inc');
+    });
+
+    it('keeps nested required includes when applying a limit', async () => {
+      const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
+        limit: 1,
+        include: [
+          {
+            association: 'system',
+            include: [
+              {
+                association: 'location',
+                include: [
+                  {
+                    association: 'customers',
+                    required: true,
+                    include: [
+                      {
+                        association: 'locations',
+                        required: false,
+                        include: [
+                          {
+                            association: 'systems',
+                            where: { name: 'Kozy Operations Inc' },
+                            required: true,
+                            include: [
+                              {
+                                association: 'location',
+                                include: [
+                                  {
+                                    association: 'customers',
+                                    required: false,
+                                    include: [
+                                      {
+                                        association: 'locations',
+                                        required: true,
+                                        include: [
+                                          {
+                                            association: 'systems',
+                                            where: { name: 'Kozy Operations Inc' },
+                                            required: false,
+                                          },
+                                        ],
+                                      },
+                                    ],
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      expect(delivery).to.not.be.null;
+      expect(delivery.system).to.not.be.undefined;
+      expect(delivery.system.location).to.not.be.undefined;
+
+      const customers = delivery.system.location.customers ?? [];
+      expect(customers).to.have.length(2);
+
+      const firstCustomer = customers[0];
+      expect(firstCustomer.locations).to.not.be.undefined;
+      const firstLocation = firstCustomer.locations?.[0];
+      expect(firstLocation).to.not.be.undefined;
+      expect(firstLocation.systems).to.not.be.undefined;
+      expect(firstLocation.systems?.[0]?.name).to.equal('Kozy Operations Inc');
+    });
+  });
+
+  describe('handles very long association names', () => {
+    it('supports alias minification with long model names', async () => {
+      const sequelize = Support.createSequelizeInstance({
+        minifyAliases: true,
+      });
+
+      Support.destroySequelizeAfterTest(sequelize);
+
+      const modelOne = sequelize.define(
+        'modelOne',
+        {},
+        {
+          paranoid: true,
+        },
+      );
+      const modelTwo = sequelize.define(
+        'modelTwo',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelOne, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+      const modelThree = sequelize.define(
+        'modelThree',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelTwo, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+      const modelFour = sequelize.define(
+        'modelWithVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongNamessss',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelThree, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+
+      modelOne.hasMany(modelTwo);
+      modelTwo.belongsTo(modelOne);
+      modelTwo.hasMany(modelThree);
+      modelThree.belongsTo(modelTwo);
+      modelThree.hasMany(modelFour);
+      modelFour.belongsTo(modelThree);
+
+      const spy = sinon.spy();
+      sequelize.afterBulkSync(() => spy());
+
+      await sequelize.sync();
+      expect(spy).to.have.been.called;
+
+      const results = await modelOne.findAll({
+        include: {
+          model: modelTwo,
+          include: [
+            {
+              model: modelThree,
+              include: [modelFour],
+            },
+          ],
+        },
+      });
+
+      expect(results).to.be.an('array');
+    });
+  });
 });
