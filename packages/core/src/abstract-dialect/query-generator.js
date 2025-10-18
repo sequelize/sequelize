@@ -1617,6 +1617,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
+        const childOriginalSubQuery = childInclude.subQuery;
+
+        if (childInclude.subQuery && (!include.subQuery || !topLevelInfo.subQuery)) {
+          childInclude.subQuery = false;
+        }
+
         const childJoinQueries = this.generateInclude(
           childInclude,
           includeAs,
@@ -1624,12 +1630,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           options,
         );
 
+        childInclude.subQuery = childOriginalSubQuery;
+
         if (include.required === false && childInclude.required === true) {
           requiredMismatch = true;
         }
 
         // if the child is a sub query we just give it to the
-        if (childInclude.subQuery && topLevelInfo.subQuery) {
+        if (childOriginalSubQuery && include.subQuery && topLevelInfo.subQuery) {
           subChildIncludes.push(childJoinQueries.subQuery);
         }
 
@@ -1674,7 +1682,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
 
-      joinQueries.subQuery.push(subChildIncludes.join(''));
+      if (subChildIncludes.length > 0) {
+        if (topLevelInfo.subQuery) {
+          const subFragments = [];
+
+          if (requiredMismatch) {
+            subFragments.push(
+              ` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} ) ON ${joinQuery.condition}`,
+            );
+          } else {
+            subFragments.push(
+              ` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`,
+              subChildIncludes.join(''),
+            );
+          }
+
+          joinQueries.subQuery.push(...subFragments);
+        } else {
+          joinQueries.subQuery.push(subChildIncludes.join(''));
+        }
+      }
     }
 
     return {
@@ -1704,8 +1731,61 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
-      return options.aliasesByTable[`${tableName}${field}`];
+    if (!options.minifyAliases || !options.aliasesByTable) {
+      return null;
+    }
+
+    const candidates = new Set();
+    const tableNameString = typeof tableName === 'string' ? tableName : undefined;
+    const tableVariants = [];
+
+    if (tableNameString) {
+      tableVariants.push(tableNameString);
+
+      const normalizedTable = tableNameString.replaceAll('->', '.');
+      if (normalizedTable !== tableNameString) {
+        tableVariants.push(normalizedTable);
+      }
+    }
+
+    const fieldVariants = new Set();
+
+    if (typeof field === 'string') {
+      fieldVariants.add(field);
+
+      const dotVariant = field.replaceAll('->', '.');
+      const arrowVariant = field.replaceAll('.', '->');
+
+      fieldVariants.add(dotVariant);
+      fieldVariants.add(arrowVariant);
+
+      if (field.includes('.')) {
+        fieldVariants.add(field.slice(field.lastIndexOf('.') + 1));
+      }
+    } else if (field != null) {
+      fieldVariants.add(field);
+    }
+
+    for (const variant of fieldVariants) {
+      candidates.add(variant);
+    }
+
+    if (tableVariants.length > 0) {
+      for (const tableVariant of tableVariants) {
+        for (const fieldVariant of fieldVariants) {
+          if (typeof fieldVariant === 'string' && fieldVariant.length > 0) {
+            candidates.add(`${tableVariant}.${fieldVariant}`);
+          }
+        }
+      }
+    }
+
+    for (const candidate of candidates) {
+      const alias = options.aliasesByTable[`${tableName}${candidate}`];
+
+      if (alias) {
+        return alias;
+      }
     }
 
     return null;
@@ -1999,17 +2079,25 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // If parent include was in a subquery need to join on the aliased attribute
     if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && !parentIsTop) {
       // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const joinSource =
-        this._getAliasForField(tableSource, `${tableSource}.${attrSource}`, topLevelInfo.options) ||
-        `${tableSource}.${attrSource}`;
+      const aliasedSource = this._getAliasForField(
+        tableSource,
+        `${tableSource}.${attrSource}`,
+        topLevelInfo.options,
+      );
 
-      sourceJoinOn = `${this.quoteIdentifier(joinSource)} = `;
+      if (aliasedSource) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      } else {
+        const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+
+        if (mainAlias) {
+          sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
+        } else {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+        }
+      }
     } else {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const aliasedSource =
-        this._getAliasForField(tableSource, attrSource, topLevelInfo.options) || attrSource;
-
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(aliasedSource)} = `;
+      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
