@@ -592,7 +592,7 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : this.dialect.name === 'oracle' ? ' FROM DUAL' : ''}`,
       options,
     );
   }

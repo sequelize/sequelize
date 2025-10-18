@@ -58,6 +58,10 @@ describe('JSON Manipulation', () => {
   });
 
   it('should be able to store strings that require escaping', async () => {
+    if (dialect.name === 'oracle') {
+      return;
+    }
+
     const text = 'Multi-line \n \'$string\' needing "escaping" for $$ and $1 type values';
 
     await vars.User.create({ jsonAttr: text });
@@ -69,8 +73,10 @@ describe('JSON Manipulation', () => {
 const JSON_OBJECT = { name: 'swen', phones: [1337, 42] };
 const JSON_STRING = 'kate';
 
+// Oracle database < 21 doesn't supports scalars to be treated as JSON
+// thus fails with CHECk constraint violation errors
 describe('JSON Querying', () => {
-  if (!dialect.supports.dataTypes.JSON) {
+  if (!dialect.supports.dataTypes.JSON || dialect.name === 'oracle') {
     return;
   }
 
