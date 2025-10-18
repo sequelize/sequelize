@@ -741,6 +741,161 @@ if (dialect.startsWith('postgres')) {
           expect(firstLocation.systems).to.not.be.undefined;
           expect(firstLocation.systems?.[0]?.name).to.equal('Kozy Operations Inc');
         });
+
+        it('should still work with nested includes and no subquery', async () => {
+          const minifiedSequelize = Support.createSingleTestSequelizeInstance({
+            minifyAliases: true,
+            define: {
+              timestamps: false,
+            },
+          });
+
+          try {
+            const CustomerLocation = minifiedSequelize.define('CustomerLocation', {
+              customerId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                allowNull: false,
+              },
+              locationId: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                allowNull: false,
+              },
+              relationType: DataTypes.TEXT,
+              endAt: {
+                type: DataTypes.DATE(6),
+                allowNull: true,
+              },
+            });
+
+            const Customer = minifiedSequelize.define('Customer', {
+              name: DataTypes.TEXT,
+            });
+
+            const Location = minifiedSequelize.define('Location', {
+              name: DataTypes.TEXT,
+            });
+
+            const System = minifiedSequelize.define('System', {
+              name: DataTypes.TEXT,
+              locationId: DataTypes.INTEGER,
+            });
+
+            const FuelDelivery = minifiedSequelize.define('FuelDelivery', {
+              product: DataTypes.TEXT,
+              systemId: DataTypes.INTEGER,
+            });
+
+            Location.hasMany(System, { as: 'systems', foreignKey: 'locationId' });
+            System.belongsTo(Location, { as: 'location', foreignKey: 'locationId' });
+
+            Location.belongsToMany(Customer, {
+              as: 'customers',
+              through: {
+                model: CustomerLocation,
+                scope: { endAt: null },
+              },
+              foreignKey: 'locationId',
+              otherKey: 'customerId',
+              inverse: {
+                as: 'locations',
+              },
+            });
+
+            System.hasMany(FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
+            FuelDelivery.belongsTo(System, { as: 'system', foreignKey: 'systemId' });
+
+            await minifiedSequelize.sync({ force: true });
+
+            const [firstCustomer, secondCustomer, location] = await Promise.all([
+              Customer.create({ name: 'Propane Delivery Co' }),
+              Customer.create({ name: 'Kozy Operations Inc' }),
+              Location.create({ name: 'Fuel Depot' }),
+            ]);
+
+            await CustomerLocation.bulkCreate([
+              {
+                customerId: firstCustomer.id,
+                locationId: location.id,
+                relationType: 'primary',
+              },
+              {
+                customerId: secondCustomer.id,
+                locationId: location.id,
+                relationType: 'secondary',
+              },
+            ]);
+
+            const system = await System.create({
+              name: 'Kozy Operations Inc',
+              locationId: location.id,
+            });
+
+            await FuelDelivery.create({
+              product: 'Propane',
+              systemId: system.id,
+            });
+
+            const customers = await location.getCustomers({
+              subQuery: false,
+              include: [
+                {
+                  association: 'locations',
+                  required: false,
+                  include: [
+                    {
+                      association: 'customers',
+                      required: true,
+                      include: [
+                        {
+                          association: 'locations',
+                          required: false,
+                          include: [
+                            {
+                              association: 'customers',
+                              required: false,
+                              include: [
+                                {
+                                  association: 'locations',
+                                  required: true,
+                                  include: [
+                                    {
+                                      association: 'customers',
+                                      required: true,
+                                    },
+                                  ],
+                                },
+                              ],
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+              order: [['id', 'ASC']],
+            });
+
+            expect(customers).to.have.length(2);
+            expect(customers[0].locations?.[0]?.customers?.map(customer => customer.id)).to.include(
+              firstCustomer.id,
+            );
+            expect(
+              customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
+                customer => customer.id,
+              ),
+            ).to.include(firstCustomer.id);
+            expect(
+              customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
+                customer => customer.id,
+              ),
+            ).to.include(secondCustomer.id);
+          } finally {
+            await minifiedSequelize.close();
+          }
+        });
       });
     });
 
