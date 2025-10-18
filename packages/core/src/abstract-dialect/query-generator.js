@@ -1617,6 +1617,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
+        const childOriginalSubQuery = childInclude.subQuery;
+
+        if (childInclude.subQuery && (!include.subQuery || !topLevelInfo.subQuery)) {
+          childInclude.subQuery = false;
+        }
+
         const childJoinQueries = this.generateInclude(
           childInclude,
           includeAs,
@@ -1624,12 +1630,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           options,
         );
 
+        childInclude.subQuery = childOriginalSubQuery;
+
         if (include.required === false && childInclude.required === true) {
           requiredMismatch = true;
         }
 
         // if the child is a sub query we just give it to the
-        if (childInclude.subQuery && topLevelInfo.subQuery) {
+        if (childOriginalSubQuery && include.subQuery && topLevelInfo.subQuery) {
           subChildIncludes.push(childJoinQueries.subQuery);
         }
 
