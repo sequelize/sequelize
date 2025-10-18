@@ -3138,7 +3138,7 @@ __metadata:
     "@oclif/plugin-help": "npm:^6.2.33"
     "@oclif/test": "npm:4.1.14"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/mocha": "npm:10.0.10"
     ansis: "npm:^3.17.0"
     chai: "npm:4.5.0"
@@ -3158,7 +3158,7 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/chai-as-promised": "npm:7.1.8"
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.12"
@@ -3234,7 +3234,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.18"
@@ -3253,7 +3253,7 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:20.1.4"
     "@rushstack/eslint-patch": "npm:1.14.0"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/lodash": "npm:4.17.20"
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.13.10"
@@ -3291,7 +3291,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/mocha": "npm:10.0.10"
     "@types/sinon": "npm:17.0.4"
     chai: "npm:4.5.0"
@@ -3309,7 +3309,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.18"
@@ -3326,7 +3326,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/mocha": "npm:10.0.10"
     "@types/pg": "npm:^8.11.14"
     chai: "npm:4.5.0"
@@ -3367,7 +3367,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/lodash": "npm:^4.17.20"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
@@ -3384,7 +3384,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.2"
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
@@ -4266,19 +4266,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*":
-  version: 5.2.1
-  resolution: "@types/chai@npm:5.2.1"
+"@types/chai@npm:*, @types/chai@npm:5.2.2":
+  version: 5.2.2
+  resolution: "@types/chai@npm:5.2.2"
   dependencies:
     "@types/deep-eql": "npm:*"
-  checksum: 10c0/f8a03c9f8450b7ab8df11f658c4194be17a6316b870490d5ffaf5289a3c0c0591ed6291b2d6551e181887c3eed89d0490744b3e569d9b23cf611b05f93e775b6
-  languageName: node
-  linkType: hard
-
-"@types/chai@npm:4.3.20":
-  version: 4.3.20
-  resolution: "@types/chai@npm:4.3.20"
-  checksum: 10c0/4601189d611752e65018f1ecadac82e94eed29f348e1d5430e5681a60b01e1ecf855d9bcc74ae43b07394751f184f6970fac2b5561fc57a1f36e93a0f5ffb6e8
+  checksum: 10c0/49282bf0e8246800ebb36f17256f97bd3a8c4fb31f92ad3c0eaa7623518d7e87f1eaad4ad206960fcaf7175854bdff4cb167e4fe96811e0081b4ada83dd533ec
   languageName: node
   linkType: hard
 
