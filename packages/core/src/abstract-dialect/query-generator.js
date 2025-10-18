@@ -1996,6 +1996,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
+    const isRootParent =
+      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
+    const isMinified = topLevelInfo.options.minifyAliases;
+
     const through = include.through;
     const throughTable = through.model.table;
     const throughAs = `${includeAs.internalAs}->${through.as}`;
@@ -2014,9 +2018,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         this.quoteIdentifier(alias),
       ]);
     });
+
     const association = include.association;
-    const parentIsTop =
-      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     const tableSource = parentTableName;
     const identSource = association.identifierField;
     const tableTarget = includeAs.internalAs;
@@ -2074,11 +2077,72 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       attrSource = association.sourceKeyField;
     }
 
-    // Filter statement for left side of through
-    // Used by both join and subquery where
-    // If parent include was in a subquery need to join on the aliased attribute
-    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && !parentIsTop) {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
+    // Build source side of the JOIN predicate for the through association.
+    // This condition is reused by the actual JOIN and any subquery WHERE filters.
+
+    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && isMinified) {
+      // When the parent include is also part of a subquery (especially with minified aliases),
+      // the source key may only be available under a projected alias. Thus, we resolve
+      // and reference the aliased attribute (or project it if missing) instead of the raw column
+      // name to avoid referencing a missing column.
+      const aliasCandidates = new Set();
+
+      const dottedTableSource = tableSource.replaceAll('->', '.');
+
+      if (attrSource) {
+        aliasCandidates.add(attrSource);
+        aliasCandidates.add(`${tableSource}.${attrSource}`);
+        aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
+      }
+
+      if (association.sourceKeyField && association.sourceKeyField !== attrSource) {
+        aliasCandidates.add(association.sourceKeyField);
+        aliasCandidates.add(`${tableSource}.${association.sourceKeyField}`);
+        aliasCandidates.add(`${dottedTableSource}.${association.sourceKeyField}`);
+      }
+
+      let aliasedSource = null;
+
+      for (const candidate of aliasCandidates) {
+        aliasedSource = this._getAliasForField(tableSource, candidate, topLevelInfo.options);
+
+        if (aliasedSource) {
+          break;
+        }
+      }
+
+      if (!aliasedSource) {
+        const joinColumn = association.sourceKeyField || attrSource || identSource;
+
+        if (isRootParent) {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+        } else {
+          const aliasBase = `${dottedTableSource}.${joinColumn}`;
+
+          aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
+
+          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+
+          if (!attributes.subQuery.includes(projection)) {
+            attributes.subQuery.push(projection);
+          }
+        }
+      }
+
+      if (!sourceJoinOn) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      }
+    } else if (
+      topLevelInfo.subQuery &&
+      !include.subQuery &&
+      include.parent.subQuery &&
+      !isRootParent
+    ) {
+      // Subquery + non-root parent: when alias minification is enabled,
+      // the parent path's source key may have been projected under a generated alias.
+      // Resolve and use the projected alias for the source side of the JOIN;
+      // If no alias is found, fall back to the table-qualified column, prefixed
+      // by the main subquery alias when available.
       const aliasedSource = this._getAliasForField(
         tableSource,
         `${tableSource}.${attrSource}`,
