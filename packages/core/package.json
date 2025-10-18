@@ -89,7 +89,7 @@
     "p-map": "4.0.0",
     "p-props": "4.0.0",
     "p-settle": "4.1.1",
-    "p-timeout": "4.1.0",
+    "p-timeout": "7.0.1",
     "rimraf": "5.0.10",
     "sinon": "18.0.1",
     "sinon-chai": "3.7.0"

@@ -3184,7 +3184,7 @@ __metadata:
     p-map: "npm:4.0.0"
     p-props: "npm:4.0.0"
     p-settle: "npm:4.1.1"
-    p-timeout: "npm:4.1.0"
+    p-timeout: "npm:7.0.1"
     retry-as-promised: "npm:^7.1.1"
     rimraf: "npm:5.0.10"
     semver: "npm:^7.7.3"
@@ -13243,10 +13243,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-timeout@npm:4.1.0":
-  version: 4.1.0
-  resolution: "p-timeout@npm:4.1.0"
-  checksum: 10c0/25aaf13ae9ebfff4ab45591f6647f3bee1ecede073c367175fb0157c27efb170cfb51259a4d2e9118d2ca595453bc885f086ad0ca7476d1c26cee3d13a7c9f6d
+"p-timeout@npm:7.0.1":
+  version: 7.0.1
+  resolution: "p-timeout@npm:7.0.1"
+  checksum: 10c0/87d96529d1096d506607218dba6f9ec077c6dbedd0c2e2788c748e33bcd05faae8a81009fd9d22ec0b3c95fc83f4717306baba223f6e464737d8b99294c3e863
   languageName: node
   linkType: hard
 
