@@ -74,7 +74,7 @@
     "@types/lodash": "4.17.20",
     "@types/mocha": "10.0.10",
     "@types/node": "22.13.10",
-    "chai": "4.5.0",
+    "chai": "6.2.0",
     "concurrently": "9.2.1",
     "cross-env": "10.1.0",
     "esbuild": "0.25.11",
