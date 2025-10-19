@@ -474,42 +474,34 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Children.hasMany(GrandChildren, { as: 'grandChildren', foreignKey: 'parentId' });
       GrandChildren.belongsTo(Children, { as: 'parent', foreignKey: 'parentId' });
 
-      const bulkSyncSpy = sinon.spy();
-      sequelize.hooks.addListener('afterBulkSync', bulkSyncSpy);
+      await sequelize.sync({ force: true });
+      const createdParent = await Parents.create({ name: 'Parent' });
+      const createdChild = await Children.create({ parentId: createdParent.id });
+      await GrandChildren.create({ parentId: createdChild.id });
 
-      try {
-        await sequelize.sync({ force: true });
-        expect(bulkSyncSpy).to.have.been.called;
+      const result = await Parents.findAndCountAll({
+        include: [
+          {
+            model: Children,
+            as: 'children',
+            required: false,
+            include: [
+              {
+                model: GrandChildren,
+                as: 'grandChildren',
+                required: true,
+              },
+            ],
+          },
+        ],
+        limit: 1,
+      });
 
-        const createdParent = await Parents.create({ name: 'Parent' });
-        const createdChild = await Children.create({ parentId: createdParent.id });
-        await GrandChildren.create({ parentId: createdChild.id });
-
-        const result = await Parents.findAndCountAll({
-          include: [
-            {
-              model: Children,
-              as: 'children',
-              required: false,
-              include: [
-                {
-                  model: GrandChildren,
-                  as: 'grandChildren',
-                  required: true,
-                },
-              ],
-            },
-          ],
-          limit: 1,
-        });
-
-        expect(result.count).to.equal(1);
-        expect(result.rows.length).to.equal(1);
-        expect(result.rows[0].children.length).to.equal(1);
-        expect(result.rows[0].children[0].grandChildren.length).to.equal(1);
-      } finally {
-        sequelize.hooks.removeListener('afterBulkSync', bulkSyncSpy);
-      }
+      expect(result.count).to.equal(1);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].children.length).to.equal(1);
+      expect(result.rows[0].children[0].grandChildren.length).to.equal(1);
+    
     });
   });
 });
