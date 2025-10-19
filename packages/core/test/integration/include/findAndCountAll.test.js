@@ -469,10 +469,10 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         },
       });
 
-  Parents.hasMany(Children, { as: 'children', foreignKey: 'parentId' });
-  Children.belongsTo(Parents, { as: 'parent', foreignKey: 'parentId' });
-  Children.hasMany(GrandChildren, { as: 'grandChildren', foreignKey: 'parentId' });
-  GrandChildren.belongsTo(Children, { as: 'parent', foreignKey: 'parentId' });
+      Parents.hasMany(Children, { as: 'children', foreignKey: 'parentId' });
+      Children.belongsTo(Parents, { as: 'parent', foreignKey: 'parentId' });
+      Children.hasMany(GrandChildren, { as: 'grandChildren', foreignKey: 'parentId' });
+      GrandChildren.belongsTo(Children, { as: 'parent', foreignKey: 'parentId' });
 
       const bulkSyncSpy = sinon.spy();
       sequelize.hooks.addListener('afterBulkSync', bulkSyncSpy);
