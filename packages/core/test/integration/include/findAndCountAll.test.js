@@ -501,7 +501,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result.rows.length).to.equal(1);
       expect(result.rows[0].children.length).to.equal(1);
       expect(result.rows[0].children[0].grandChildren.length).to.equal(1);
-    
     });
   });
 });
