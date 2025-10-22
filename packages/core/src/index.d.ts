@@ -46,6 +46,7 @@ export type { WhereOptions } from './abstract-dialect/where-sql-builder-types.js
 export * from './associations/index.js';
 export * as DataTypes from './data-types.js';
 export { ConstraintChecking, Deferrable } from './deferrable.js';
+export * from './enums.js';
 export * from './errors/index.js';
 export { AssociationPath } from './expression-builders/association-path.js';
 export { Attribute } from './expression-builders/attribute.js';
@@ -69,15 +70,12 @@ export type {
   PositionPosition,
 } from './geo-json.js';
 export { importModels } from './import-models.js';
-export { IndexHints } from './index-hints.js';
 export { ModelDefinition } from './model-definition.js';
 export { ModelRepository } from './model-repository.js';
 export * from './model-repository.types.js';
 export * from './model.js';
 export { Op, type OpTypes } from './operators.js';
-export { QueryTypes } from './query-types.js';
 export * from './sequelize.js';
-export { TableHints } from './table-hints.js';
 export {
   IsolationLevel,
   Lock,
