@@ -15,7 +15,7 @@ const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     const sanitizedValueHash =
-      valueHash && !Array.isArray(valueHash)
+      valueHash && typeof valueHash === 'object' && !Array.isArray(valueHash)
         ? { ...valueHash }
         : valueHash;
 
