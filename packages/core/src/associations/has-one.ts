@@ -1,6 +1,6 @@
 import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
-import { AssociationError } from '../errors/index.js';
+import { AssociationError } from '../errors';
 import type {
   AttributeNames,
   Attributes,
@@ -52,6 +52,10 @@ export class HasOneAssociation<
     return this.inverse.foreignKey;
   }
 
+  get foreignKeys() {
+    return this.inverse.foreignKeys;
+  }
+
   /**
    * The column name of the foreign key (on the target model)
    */
@@ -72,7 +76,7 @@ export class HasOneAssociation<
    * The Column Name of the source key.
    */
   get sourceKeyField(): string {
-    return this.inverse.targetKeyField;
+    return this.inverse.targetKeyField(this.sourceKey);
   }
 
   /**
@@ -230,10 +234,20 @@ If having two associations does not make sense (for instance a "spouse" associat
 
     const where = Object.create(null);
 
-    if (instances.length > 1) {
+    if (instances.length > 1 && !Array.isArray(this.options.foreignKey.keys)) {
       where[this.foreignKey] = {
         [Op.in]: instances.map(instance => instance.get(this.sourceKey)),
       };
+    } else if (instances.length > 1 && Array.isArray(this.options.foreignKey.keys)) {
+      for (const key of this.foreignKeys) {
+        where[key.targetKey] = {
+          [Op.in]: instances.map(instance => instance.get(key.sourceKey)),
+        };
+      }
+    } else if (Array.isArray(this.options.foreignKey.keys)) {
+      for (const key of this.foreignKeys) {
+        where[key.targetKey] = instances[0].get(key.sourceKey);
+      }
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);
     }
@@ -385,10 +399,17 @@ This option is only available in BelongsTo associations.`);
       }
     }
 
-    // @ts-expect-error -- implicit any, can't fix
-    values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
-    if (options.fields) {
-      options.fields.push(this.foreignKey);
+    if (Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1) {
+      for (const foreignKey of this.options.foreignKey.keys) {
+        // @ts-expect-error -- implicit any, can't fix
+        values[foreignKey.targetKey] = sourceInstance.get(foreignKey.sourceKey);
+      }
+    } else {
+      // @ts-expect-error -- implicit any, can't fix
+      values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
+      if (options.fields) {
+        options.fields.push(this.foreignKey);
+      }
     }
 
     return this.target.create(values, options);

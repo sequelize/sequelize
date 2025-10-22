@@ -103,7 +103,7 @@ describe('HasMany', () => {
           const User = this.sequelize.define('User', {});
           const Task = this.sequelize.define('Task', {});
 
-          User.Tasks = User.hasMany(Task, { as: 'tasks' });
+          User.Tasks = User.hasMany(Task, { a: 'tasks' });
 
           await this.sequelize.sync({ force: true });
 
@@ -132,9 +132,9 @@ describe('HasMany', () => {
           ]);
 
           const result = await User.Tasks.get(users);
-          expect(result.get(users[0].id).length).to.equal(3);
-          expect(result.get(users[1].id).length).to.equal(1);
-          expect(result.get(users[2].id).length).to.equal(0);
+          expect(result.get(`${users[0].id}`).length).to.equal(3);
+          expect(result.get(`${users[1].id}`).length).to.equal(1);
+          expect(result.get(`${users[2].id}`).length).to.equal(0);
         });
 
         it('should fetch associations for multiple instances with limit and order', async function () {
@@ -171,13 +171,13 @@ describe('HasMany', () => {
             order: [['title', 'ASC']],
           });
 
-          expect(result.get(users[0].id).length).to.equal(2);
-          expect(result.get(users[0].id)[0].title).to.equal('a');
-          expect(result.get(users[0].id)[1].title).to.equal('b');
+          expect(result.get(`${users[0].id}`).length).to.equal(2);
+          expect(result.get(`${users[0].id}`)[0].title).to.equal('a');
+          expect(result.get(`${users[0].id}`)[1].title).to.equal('b');
 
-          expect(result.get(users[1].id).length).to.equal(2);
-          expect(result.get(users[1].id)[0].title).to.equal('a');
-          expect(result.get(users[1].id)[1].title).to.equal('b');
+          expect(result.get(`${users[1].id}`).length).to.equal(2);
+          expect(result.get(`${users[1].id}`)[0].title).to.equal('a');
+          expect(result.get(`${users[1].id}`)[1].title).to.equal('b');
         });
 
         it('should fetch multiple layers of associations with limit and order with separate=true', async function () {
@@ -339,17 +339,17 @@ describe('HasMany', () => {
             include: [Task.Category],
           });
 
-          expect(result.get(users[0].id).length).to.equal(2);
-          expect(result.get(users[0].id)[0].title).to.equal('a');
-          expect(result.get(users[0].id)[0].category).to.be.ok;
-          expect(result.get(users[0].id)[1].title).to.equal('b');
-          expect(result.get(users[0].id)[1].category).to.be.ok;
+          expect(result.get(`${users[0].id}`).length).to.equal(2);
+          expect(result.get(`${users[0].id}`)[0].title).to.equal('a');
+          expect(result.get(`${users[0].id}`)[0].category).to.be.ok;
+          expect(result.get(`${users[0].id}`)[1].title).to.equal('b');
+          expect(result.get(`${users[0].id}`)[1].category).to.be.ok;
 
-          expect(result.get(users[1].id).length).to.equal(2);
-          expect(result.get(users[1].id)[0].title).to.equal('a');
-          expect(result.get(users[1].id)[0].category).to.be.ok;
-          expect(result.get(users[1].id)[1].title).to.equal('b');
-          expect(result.get(users[1].id)[1].category).to.be.ok;
+          expect(result.get(`${users[1].id}`).length).to.equal(2);
+          expect(result.get(`${users[1].id}`)[0].title).to.equal('a');
+          expect(result.get(`${users[1].id}`)[0].category).to.be.ok;
+          expect(result.get(`${users[1].id}`)[1].title).to.equal('b');
+          expect(result.get(`${users[1].id}`)[1].category).to.be.ok;
         });
 
         it('supports schemas', async function () {

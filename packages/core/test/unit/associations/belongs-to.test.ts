@@ -206,6 +206,7 @@ describe(getTestDialectTeaser('belongsTo'), () => {
         expect(firstArg.type.name).to.equal('BelongsTo');
         expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
+
       it('should not trigger association hooks', () => {
         const beforeAssociate = sinon.spy();
         Projects.beforeAssociate(beforeAssociate);
@@ -243,6 +244,77 @@ describe(getTestDialectTeaser('belongsTo'), () => {
         Projects.belongsTo(Tasks, { hooks: false });
         expect(afterAssociate).to.not.have.been.called;
       });
+    });
+  });
+
+  describe('composite foreign pk', () => {
+    let Tenants: ModelStatic<any>;
+    let Projects: ModelStatic<any>;
+    let Tasks: ModelStatic<any>;
+
+    beforeEach(() => {
+      Tenants = sequelize.define('tenant', {
+        tenantId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+
+      Projects = sequelize.define('project', {
+        projectId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+        name: DataTypes.STRING,
+      });
+      Projects.belongsTo(Tenants, { foreignKey: 'tenantId' });
+
+      Tasks = sequelize.define('task', {
+        taskId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+        name: DataTypes.STRING,
+      });
+    });
+
+    it('should add attributes to columns', () => {
+      Tasks.belongsTo(Projects, { foreignKey: { keys: ['projectId', 'tenantId'] }, hooks: false });
+      expect(Tasks.getAttributes().projectId).to.not.be.undefined;
+      expect(Tasks.getAttributes().tenantId).to.not.be.undefined;
+    });
+
+    it('should add not null constraint to columns', () => {
+      Tasks.belongsTo(Projects, {
+        foreignKey: { keys: ['projectId', 'tenantId'], allowNull: false },
+        hooks: false,
+      });
+      expect(Tasks.getAttributes().projectId.allowNull).to.be.false;
+      expect(Tasks.getAttributes().tenantId.allowNull).to.be.false;
+    });
+
+    it('should add attributes to columns when they are not named the same', () => {
+      Tasks.belongsTo(Projects, {
+        foreignKey: {
+          keys: [
+            {
+              sourceKey: 'projectIdentifier',
+              targetKey: 'projectId',
+            },
+            {
+              sourceKey: 'tenantIdentifier',
+              targetKey: 'tenantId',
+            },
+          ],
+        },
+        hooks: false,
+      });
+      expect(Tasks.getAttributes().projectIdentifier).to.not.be.undefined;
+      expect(Tasks.getAttributes().tenantIdentifier).to.not.be.undefined;
     });
   });
 });
