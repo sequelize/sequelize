@@ -5,12 +5,12 @@ import pick from 'lodash/pick';
 import sinon from 'sinon';
 import { CONFIG } from '../../../config/config';
 import {
+  sequelize as baseSequelize,
   beforeEach2,
   createSequelizeInstance,
   destroySequelizeAfterTest,
   getTestDialect,
   getTestDialectTeaser,
-  sequelize as baseSequelize,
   setResetMode,
 } from '../../support';
 
@@ -20,59 +20,56 @@ if (dialectName === 'mariadb') {
   describe(getTestDialectTeaser('Replication (useMaster)'), () => {
     setResetMode('none');
 
-const deps = beforeEach2(async () => {
-        function getConnectionOptions(): ConnectionOptions<AbstractDialect> {
-        return pick(
-            CONFIG[dialectName],
-            baseSequelize.dialect.getSupportedConnectionOptions(),
-        );
-        }
+    const deps = beforeEach2(async () => {
+      function getConnectionOptions(): ConnectionOptions<AbstractDialect> {
+        return pick(CONFIG[dialectName], baseSequelize.dialect.getSupportedConnectionOptions());
+      }
 
-        const sandbox = sinon.createSandbox();
-        const sequelize = createSequelizeInstance({
+      const sandbox = sinon.createSandbox();
+      const sequelize = createSequelizeInstance({
         replication: {
-            write: getConnectionOptions(),
-            read: [getConnectionOptions()],
+          write: getConnectionOptions(),
+          read: [getConnectionOptions()],
         },
-        });
+      });
 
-        destroySequelizeAfterTest(sequelize);
+      destroySequelizeAfterTest(sequelize);
 
-        const poolAcquireSpy = sandbox.spy(sequelize.pool, 'acquire');
+      const poolAcquireSpy = sandbox.spy(sequelize.pool, 'acquire');
 
-        const User = sequelize.define(
+      const User = sequelize.define(
         'User',
         {
-            firstName: {
+          firstName: {
             type: DataTypes.STRING,
-            },
+          },
         },
         { timestamps: false },
-        );
+      );
 
-        await User.sync({ force: true });
-        poolAcquireSpy.resetHistory();
+      await User.sync({ force: true });
+      poolAcquireSpy.resetHistory();
 
-        return {
+      return {
         User,
         sequelize,
         sandbox,
         poolAcquireSpy,
-        };
+      };
     });
 
     afterEach(() => {
-        deps.sandbox.restore();
+      deps.sandbox.restore();
     });
 
     it('uses the master connection when requested and populates the auto-increment primary key', async () => {
-        const instance = await deps.User.create(
+      const instance = await deps.User.create(
         { firstName: `KozyOps` },
         // @ts-expect-error -- Mysql dialect supports useMaster
         { useMaster: true },
-        );
+      );
 
-        expect(instance.get('id')).to.be.a('number');
+      expect(instance.get('id')).to.be.a('number');
     });
-    });
+  });
 }

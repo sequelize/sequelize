@@ -5,12 +5,12 @@ import pick from 'lodash/pick';
 import sinon from 'sinon';
 import { CONFIG } from '../../../config/config';
 import {
+  sequelize as baseSequelize,
   beforeEach2,
   createSequelizeInstance,
   destroySequelizeAfterTest,
   getTestDialect,
   getTestDialectTeaser,
-  sequelize as baseSequelize,
   setResetMode,
 } from '../../support';
 
@@ -22,10 +22,7 @@ if (dialectName === 'mysql') {
 
     const deps = beforeEach2(async () => {
       function getConnectionOptions(): ConnectionOptions<AbstractDialect> {
-        return pick(
-          CONFIG[dialectName],
-          baseSequelize.dialect.getSupportedConnectionOptions(),
-        );
+        return pick(CONFIG[dialectName], baseSequelize.dialect.getSupportedConnectionOptions());
       }
 
       const sandbox = sinon.createSandbox();
@@ -72,7 +69,7 @@ if (dialectName === 'mysql') {
         { useMaster: true },
       );
 
-        expect(instance.get('id')).to.be.a('number');
+      expect(instance.get('id')).to.be.a('number');
     });
   });
 }

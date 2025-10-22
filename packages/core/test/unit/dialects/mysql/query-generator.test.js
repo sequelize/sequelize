@@ -326,7 +326,11 @@ if (dialect === 'mysql') {
         },
         {
           title: 'omits auto increment columns with null values',
-          arguments: ['myTable', { id: null, name: 'foo' }, { id: { field: 'id', autoIncrement: true }, name: { field: 'name' } }],
+          arguments: [
+            'myTable',
+            { id: null, name: 'foo' },
+            { id: { field: 'id', autoIncrement: true }, name: { field: 'name' } },
+          ],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1);',
             bind: { sequelize_1: 'foo' },
