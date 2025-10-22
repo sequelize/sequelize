@@ -42,13 +42,15 @@ if (dialect.startsWith('postgres')) {
       });
 
       describe('correctly generates joins for nested includes', () => {
-        it('loads customers from nested required includes', async () => {
-          this.minifiedSequelize = Support.createSingleTestSequelizeInstance({
+        beforeEach(async function () {
+          // Shared setup for nested include tests
+          this.minifiedSequelize = Support.createSequelizeInstance({
             minifyAliases: true,
             define: {
               timestamps: false,
             },
           });
+          Support.destroySequelizeAfterTest(this.minifiedSequelize);
 
           this.CustomerLocation = this.minifiedSequelize.define(
             'CustomerLocation',
@@ -134,6 +136,7 @@ if (dialect.startsWith('postgres')) {
 
           this.System.hasMany(this.FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
           this.FuelDelivery.belongsTo(this.System, { as: 'system', foreignKey: 'systemId' });
+
           await this.minifiedSequelize.sync({ force: true });
 
           this.firstCustomer = await this.Customer.create({ name: 'Propane Delivery Co' });
@@ -161,6 +164,9 @@ if (dialect.startsWith('postgres')) {
             product: 'Propane',
             systemId: this.systemInstance.id,
           });
+        });
+
+        it('loads customers from nested required includes', async function () {
           const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
             include: [
               {
@@ -195,125 +201,7 @@ if (dialect.startsWith('postgres')) {
           ]);
         });
 
-        it('loads nested customers from the inverse association tree', async () => {
-          this.minifiedSequelize = Support.createSingleTestSequelizeInstance({
-            minifyAliases: true,
-            define: {
-              timestamps: false,
-            },
-          });
-
-          this.CustomerLocation = this.minifiedSequelize.define(
-            'CustomerLocation',
-            {
-              customerId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              locationId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              relationType: DataTypes.TEXT,
-              endAt: {
-                type: DataTypes.DATE(6),
-                allowNull: true,
-              },
-            },
-            {
-              indexes: [
-                {
-                  fields: ['endAt'],
-                },
-              ],
-            },
-          );
-
-          this.Customer = this.minifiedSequelize.define('Customer', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.Location = this.minifiedSequelize.define('Location', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.System = this.minifiedSequelize.define('System', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-            locationId: DataTypes.INTEGER,
-          });
-
-          this.FuelDelivery = this.minifiedSequelize.define('FuelDelivery', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            product: DataTypes.TEXT,
-            systemId: DataTypes.INTEGER,
-          });
-
-          this.Location.hasMany(this.System, { as: 'systems', foreignKey: 'locationId' });
-          this.System.belongsTo(this.Location, { as: 'location', foreignKey: 'locationId' });
-
-          this.Location.belongsToMany(this.Customer, {
-            as: 'customers',
-            through: {
-              model: this.CustomerLocation,
-              scope: { endAt: null },
-            },
-            foreignKey: 'locationId',
-            otherKey: 'customerId',
-            inverse: {
-              as: 'locations',
-            },
-          });
-
-          this.System.hasMany(this.FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
-          this.FuelDelivery.belongsTo(this.System, { as: 'system', foreignKey: 'systemId' });
-          await this.minifiedSequelize.sync({ force: true });
-
-          this.firstCustomer = await this.Customer.create({ name: 'Propane Delivery Co' });
-          this.secondCustomer = await this.Customer.create({ name: 'Kozy Operations Inc' });
-          this.locationInstance = await this.Location.create({ name: 'Fuel Depot' });
-
-          await this.CustomerLocation.create({
-            customerId: this.firstCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'primary',
-          });
-
-          await this.CustomerLocation.create({
-            customerId: this.secondCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'secondary',
-          });
-
-          this.systemInstance = await this.System.create({
-            name: 'Kozy Operations Inc',
-            locationId: this.locationInstance.id,
-          });
-
-          this.deliveryInstance = await this.FuelDelivery.create({
-            product: 'Propane',
-            systemId: this.systemInstance.id,
-          });
+        it('loads nested customers from the inverse association tree', async function () {
           await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
             include: [
               {
@@ -359,126 +247,7 @@ if (dialect.startsWith('postgres')) {
           expect(nestedCustomers.map(entry => entry.id)).to.include(this.firstCustomer.id);
         });
 
-        it('supports deeply nested includes with repeated alias chains', async () => {
-          this.minifiedSequelize = Support.createSingleTestSequelizeInstance({
-            minifyAliases: true,
-            define: {
-              timestamps: false,
-            },
-          });
-
-          this.CustomerLocation = this.minifiedSequelize.define(
-            'CustomerLocation',
-            {
-              customerId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              locationId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              relationType: DataTypes.TEXT,
-              endAt: {
-                type: DataTypes.DATE(6),
-                allowNull: true,
-              },
-            },
-            {
-              indexes: [
-                {
-                  fields: ['endAt'],
-                },
-              ],
-            },
-          );
-
-          this.Customer = this.minifiedSequelize.define('Customer', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.Location = this.minifiedSequelize.define('Location', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.System = this.minifiedSequelize.define('System', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-            locationId: DataTypes.INTEGER,
-          });
-
-          this.FuelDelivery = this.minifiedSequelize.define('FuelDelivery', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            product: DataTypes.TEXT,
-            systemId: DataTypes.INTEGER,
-          });
-
-          this.Location.hasMany(this.System, { as: 'systems', foreignKey: 'locationId' });
-          this.System.belongsTo(this.Location, { as: 'location', foreignKey: 'locationId' });
-
-          this.Location.belongsToMany(this.Customer, {
-            as: 'customers',
-            through: {
-              model: this.CustomerLocation,
-              scope: { endAt: null },
-            },
-            foreignKey: 'locationId',
-            otherKey: 'customerId',
-            inverse: {
-              as: 'locations',
-            },
-          });
-
-          this.System.hasMany(this.FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
-          this.FuelDelivery.belongsTo(this.System, { as: 'system', foreignKey: 'systemId' });
-          await this.minifiedSequelize.sync({ force: true });
-
-          this.firstCustomer = await this.Customer.create({ name: 'Propane Delivery Co' });
-          this.secondCustomer = await this.Customer.create({ name: 'Kozy Operations Inc' });
-          this.locationInstance = await this.Location.create({ name: 'Fuel Depot' });
-
-          await this.CustomerLocation.create({
-            customerId: this.firstCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'primary',
-          });
-
-          await this.CustomerLocation.create({
-            customerId: this.secondCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'secondary',
-          });
-
-          this.systemInstance = await this.System.create({
-            name: 'Kozy Operations Inc',
-            locationId: this.locationInstance.id,
-          });
-
-          this.deliveryInstance = await this.FuelDelivery.create({
-            product: 'Propane',
-            systemId: this.systemInstance.id,
-          });
-
+        it('supports deeply nested includes with repeated alias chains', async function () {
           const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
             include: [
               {
@@ -548,130 +317,15 @@ if (dialect.startsWith('postgres')) {
           expect(firstLocation).to.not.be.undefined;
           expect(firstLocation.systems).to.not.be.undefined;
           expect(firstLocation.systems?.[0]?.name).to.equal('Kozy Operations Inc');
+
+          const deepestSystems =
+            firstLocation.systems?.[0]?.location?.customers?.[0]?.locations?.[0]?.systems;
+          expect(deepestSystems).to.not.be.undefined;
+          expect(deepestSystems?.[0]?.name).to.equal('Kozy Operations Inc');
         });
 
-        it('keeps nested required includes when applying a limit', async () => {
-          this.minifiedSequelize = Support.createSingleTestSequelizeInstance({
-            minifyAliases: true,
-            define: {
-              timestamps: false,
-            },
-          });
-
-          this.CustomerLocation = this.minifiedSequelize.define(
-            'CustomerLocation',
-            {
-              customerId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              locationId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              relationType: DataTypes.TEXT,
-              endAt: {
-                type: DataTypes.DATE(6),
-                allowNull: true,
-              },
-            },
-            {
-              indexes: [
-                {
-                  fields: ['endAt'],
-                },
-              ],
-            },
-          );
-
-          this.Customer = this.minifiedSequelize.define('Customer', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.Location = this.minifiedSequelize.define('Location', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-          });
-
-          this.System = this.minifiedSequelize.define('System', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            name: DataTypes.TEXT,
-            locationId: DataTypes.INTEGER,
-          });
-
-          this.FuelDelivery = this.minifiedSequelize.define('FuelDelivery', {
-            id: {
-              type: DataTypes.INTEGER,
-              autoIncrement: true,
-              primaryKey: true,
-            },
-            product: DataTypes.TEXT,
-            systemId: DataTypes.INTEGER,
-          });
-
-          this.Location.hasMany(this.System, { as: 'systems', foreignKey: 'locationId' });
-          this.System.belongsTo(this.Location, { as: 'location', foreignKey: 'locationId' });
-
-          this.Location.belongsToMany(this.Customer, {
-            as: 'customers',
-            through: {
-              model: this.CustomerLocation,
-              scope: { endAt: null },
-            },
-            foreignKey: 'locationId',
-            otherKey: 'customerId',
-            inverse: {
-              as: 'locations',
-            },
-          });
-
-          this.System.hasMany(this.FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
-          this.FuelDelivery.belongsTo(this.System, { as: 'system', foreignKey: 'systemId' });
-          await this.minifiedSequelize.sync({ force: true });
-
-          this.firstCustomer = await this.Customer.create({ name: 'Propane Delivery Co' });
-          this.secondCustomer = await this.Customer.create({ name: 'Kozy Operations Inc' });
-          this.locationInstance = await this.Location.create({ name: 'Fuel Depot' });
-
-          await this.CustomerLocation.create({
-            customerId: this.firstCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'primary',
-          });
-
-          await this.CustomerLocation.create({
-            customerId: this.secondCustomer.id,
-            locationId: this.locationInstance.id,
-            relationType: 'secondary',
-          });
-
-          this.systemInstance = await this.System.create({
-            name: 'Kozy Operations Inc',
-            locationId: this.locationInstance.id,
-          });
-
-          this.deliveryInstance = await this.FuelDelivery.create({
-            product: 'Propane',
-            systemId: this.systemInstance.id,
-          });
-
+        it('keeps nested required includes when applying a limit', async function () {
           const delivery = await this.FuelDelivery.findByPk(this.deliveryInstance.id, {
-            limit: 1,
             include: [
               {
                 association: 'system',
@@ -740,161 +394,69 @@ if (dialect.startsWith('postgres')) {
           expect(firstLocation).to.not.be.undefined;
           expect(firstLocation.systems).to.not.be.undefined;
           expect(firstLocation.systems?.[0]?.name).to.equal('Kozy Operations Inc');
+
+          const deepestSystems =
+            firstLocation.systems?.[0]?.location?.customers?.[0]?.locations?.[0]?.systems;
+          expect(deepestSystems).to.not.be.undefined;
+          expect(deepestSystems?.[0]?.name).to.equal('Kozy Operations Inc');
         });
 
-        it('should still work with nested includes and no subquery', async () => {
-          const minifiedSequelize = Support.createSingleTestSequelizeInstance({
-            minifyAliases: true,
-            define: {
-              timestamps: false,
-            },
+        it('should still work with nested includes and no subquery', async function () {
+          const customers = await this.locationInstance.getCustomers({
+            subQuery: false,
+            include: [
+              {
+                association: 'locations',
+                required: false,
+                include: [
+                  {
+                    association: 'customers',
+                    required: true,
+                    include: [
+                      {
+                        association: 'locations',
+                        required: false,
+                        include: [
+                          {
+                            association: 'customers',
+                            required: false,
+                            include: [
+                              {
+                                association: 'locations',
+                                required: true,
+                                include: [
+                                  {
+                                    association: 'customers',
+                                    required: true,
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            order: [['id', 'ASC']],
           });
 
-          try {
-            const CustomerLocation = minifiedSequelize.define('CustomerLocation', {
-              customerId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              locationId: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                allowNull: false,
-              },
-              relationType: DataTypes.TEXT,
-              endAt: {
-                type: DataTypes.DATE(6),
-                allowNull: true,
-              },
-            });
-
-            const Customer = minifiedSequelize.define('Customer', {
-              name: DataTypes.TEXT,
-            });
-
-            const Location = minifiedSequelize.define('Location', {
-              name: DataTypes.TEXT,
-            });
-
-            const System = minifiedSequelize.define('System', {
-              name: DataTypes.TEXT,
-              locationId: DataTypes.INTEGER,
-            });
-
-            const FuelDelivery = minifiedSequelize.define('FuelDelivery', {
-              product: DataTypes.TEXT,
-              systemId: DataTypes.INTEGER,
-            });
-
-            Location.hasMany(System, { as: 'systems', foreignKey: 'locationId' });
-            System.belongsTo(Location, { as: 'location', foreignKey: 'locationId' });
-
-            Location.belongsToMany(Customer, {
-              as: 'customers',
-              through: {
-                model: CustomerLocation,
-                scope: { endAt: null },
-              },
-              foreignKey: 'locationId',
-              otherKey: 'customerId',
-              inverse: {
-                as: 'locations',
-              },
-            });
-
-            System.hasMany(FuelDelivery, { as: 'fuelDeliveries', foreignKey: 'systemId' });
-            FuelDelivery.belongsTo(System, { as: 'system', foreignKey: 'systemId' });
-
-            await minifiedSequelize.sync({ force: true });
-
-            const [firstCustomer, secondCustomer, location] = await Promise.all([
-              Customer.create({ name: 'Propane Delivery Co' }),
-              Customer.create({ name: 'Kozy Operations Inc' }),
-              Location.create({ name: 'Fuel Depot' }),
-            ]);
-
-            await CustomerLocation.bulkCreate([
-              {
-                customerId: firstCustomer.id,
-                locationId: location.id,
-                relationType: 'primary',
-              },
-              {
-                customerId: secondCustomer.id,
-                locationId: location.id,
-                relationType: 'secondary',
-              },
-            ]);
-
-            const system = await System.create({
-              name: 'Kozy Operations Inc',
-              locationId: location.id,
-            });
-
-            await FuelDelivery.create({
-              product: 'Propane',
-              systemId: system.id,
-            });
-
-            const customers = await location.getCustomers({
-              subQuery: false,
-              include: [
-                {
-                  association: 'locations',
-                  required: false,
-                  include: [
-                    {
-                      association: 'customers',
-                      required: true,
-                      include: [
-                        {
-                          association: 'locations',
-                          required: false,
-                          include: [
-                            {
-                              association: 'customers',
-                              required: false,
-                              include: [
-                                {
-                                  association: 'locations',
-                                  required: true,
-                                  include: [
-                                    {
-                                      association: 'customers',
-                                      required: true,
-                                    },
-                                  ],
-                                },
-                              ],
-                            },
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-              ],
-              order: [['id', 'ASC']],
-            });
-
-            expect(customers).to.have.length(2);
-            expect(customers[0].locations?.[0]?.customers?.map(customer => customer.id)).to.include(
-              firstCustomer.id,
-            );
-            expect(
-              customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
-                customer => customer.id,
-              ),
-            ).to.include(firstCustomer.id);
-            expect(
-              customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
-                customer => customer.id,
-              ),
-            ).to.include(secondCustomer.id);
-          } finally {
-            await minifiedSequelize.close();
-          }
+          expect(customers).to.have.length(2);
+          expect(customers[0].locations?.[0]?.customers?.map(customer => customer.id)).to.include(
+            this.firstCustomer.id,
+          );
+          expect(
+            customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
+              customer => customer.id,
+            ),
+          ).to.include(this.firstCustomer.id);
+          expect(
+            customers[0].locations?.[0]?.customers?.[0]?.locations?.[0]?.customers?.map(
+              customer => customer.id,
+            ),
+          ).to.include(this.secondCustomer.id);
         });
       });
     });
