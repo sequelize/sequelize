@@ -2347,7 +2347,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         title: DataTypes.STRING,
       });
 
-      User.belongsToMany(Task, { through: 'UserTasks' });
+      User.belongsToMany(Task, {
+        through: 'UserTasks',
+        scope: { status: 'active' },
+      });
       Task.belongsToMany(User, {
         through: 'UserTasks',
         scope: { status: 'active' },
