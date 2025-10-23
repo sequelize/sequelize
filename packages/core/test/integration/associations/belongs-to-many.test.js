@@ -2280,14 +2280,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const users = await task.createUsers([
         { username: 'alice' },
         { username: 'bob' },
-        { username: 'charlie' }
+        { username: 'charlie' },
       ]);
-      
+
       expect(users).to.have.length(3);
       expect(users[0].username).to.equal('alice');
       expect(users[1].username).to.equal('bob');
       expect(users[2].username).to.equal('charlie');
-      
+
       // Verify all users are associated with the task
       const allUsers = await task.getUsers();
       expect(allUsers).to.have.length(3);
@@ -2303,9 +2303,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       await this.sequelize.sync({ force: true });
       const task = await Task.create({ title: 'task' });
       const users = await task.createUsers([]);
-      
+
       expect(users).to.have.length(0);
-      
+
       // Verify no users were created
       const allUsers = await task.getUsers();
       expect(allUsers).to.have.length(0);
@@ -2323,17 +2323,16 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       await this.sequelize.sync({ force: true });
       const task = await Task.create({ title: 'task' });
-      const users = await task.createUsers([
-        { username: 'alice' },
-        { username: 'bob' }
-      ], { through: { priority: 'high' } });
-      
+      const users = await task.createUsers([{ username: 'alice' }, { username: 'bob' }], {
+        through: { priority: 'high' },
+      });
+
       expect(users).to.have.length(2);
-      
+
       // Verify all users are associated with the task and through table attributes are set
       const allUsers = await task.getUsers();
       expect(allUsers).to.have.length(2);
-      
+
       const userTasks = await UserTasks.findAll();
       expect(userTasks).to.have.length(2);
       expect(userTasks[0].priority).to.equal('high');

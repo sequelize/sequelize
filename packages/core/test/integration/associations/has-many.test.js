@@ -916,14 +916,14 @@ describe('HasMany', () => {
         const labels = await article.createLabels([
           { text: 'bar' },
           { text: 'baz' },
-          { text: 'qux' }
+          { text: 'qux' },
         ]);
-        
+
         expect(labels).to.have.length(3);
         expect(labels[0].text).to.equal('bar');
         expect(labels[1].text).to.equal('baz');
         expect(labels[2].text).to.equal('qux');
-        
+
         // Verify all labels are associated with the article
         const allLabels = await Label.findAll({ where: { articleId: article.id } });
         expect(allLabels).to.have.length(3);
@@ -938,37 +938,34 @@ describe('HasMany', () => {
         await this.sequelize.sync({ force: true });
         const article = await Article.create({ title: 'foo' });
         const labels = await article.createLabels([]);
-        
+
         expect(labels).to.have.length(0);
-        
+
         // Verify no labels were created
         const allLabels = await Label.findAll({ where: { articleId: article.id } });
         expect(allLabels).to.have.length(0);
       });
 
       it('creates multiple associated objects with scope', async function () {
-        const Article = this.sequelize.define('Article', { 
+        const Article = this.sequelize.define('Article', {
           title: DataTypes.STRING,
-          status: DataTypes.STRING 
+          status: DataTypes.STRING,
         });
-        const Label = this.sequelize.define('Label', { 
+        const Label = this.sequelize.define('Label', {
           text: DataTypes.STRING,
-          status: DataTypes.STRING 
+          status: DataTypes.STRING,
         });
 
-        Article.hasMany(Label, { 
-          scope: { status: 'active' }
+        Article.hasMany(Label, {
+          scope: { status: 'active' },
         });
 
         await this.sequelize.sync({ force: true });
         const article = await Article.create({ title: 'foo' });
-        const labels = await article.createLabels([
-          { text: 'bar' },
-          { text: 'baz' }
-        ]);
-        
+        const labels = await article.createLabels([{ text: 'bar' }, { text: 'baz' }]);
+
         expect(labels).to.have.length(2);
-        
+
         // Verify all labels have the scope applied
         const allLabels = await Label.findAll({ where: { articleId: article.id } });
         expect(allLabels).to.have.length(2);
