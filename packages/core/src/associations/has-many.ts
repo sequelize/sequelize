@@ -160,6 +160,7 @@ export class HasManyAssociation<
       addMultiple: `add${plural}`,
       add: `add${singular}`,
       create: `create${singular}`,
+      createMultiple: `create${plural}`,
       remove: `remove${singular}`,
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
@@ -228,6 +229,7 @@ export class HasManyAssociation<
         'remove',
         'removeMultiple',
         'create',
+        'createMultiple',
       ],
       {
         hasSingle: 'has',
@@ -605,6 +607,44 @@ export class HasManyAssociation<
       options,
     );
   }
+
+  /**
+   * Create multiple new instances of the associated model and associate them with this.
+   *
+   * @param sourceInstance source instance
+   * @param valuesArray array of values for target model instances
+   * @param options Options passed to `target.bulkCreate`
+   */
+  async createMultiple(
+    sourceInstance: S,
+    valuesArray: CreationAttributes<T>[],
+    options: HasManyCreateAssociationsMixinOptions<T> = {},
+  ): Promise<T[]> {
+    if (valuesArray.length === 0) {
+      return [];
+    }
+
+    const sourceKeyValue = sourceInstance.get(this.sourceKey);
+    const recordsToCreate = valuesArray.map(values => {
+      const recordValues = { ...values };
+
+      // Apply scope if it exists
+      if (this.scope) {
+        for (const attribute of Object.keys(this.scope)) {
+          // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
+          recordValues[attribute] = this.scope[attribute];
+        }
+      }
+
+      // Set the foreign key
+      // @ts-expect-error -- TODO: fix the typing of foreign key assignment
+      recordValues[this.foreignKey] = sourceKeyValue;
+
+      return recordValues;
+    });
+
+    return this.target.bulkCreate(recordsToCreate, options);
+  }
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
@@ -820,6 +860,36 @@ export type HasManyCreateAssociationMixin<
   values?: Omit<CreationAttributes<Target>, ExcludedAttributes>,
   options?: HasManyCreateAssociationMixinOptions<Target>,
 ) => Promise<Target>;
+
+/**
+ * The options for the createAssociations mixin of the hasMany association.
+ *
+ * @see HasManyCreateAssociationsMixin
+ */
+export interface HasManyCreateAssociationsMixinOptions<T extends Model>
+  extends CreateOptions<Attributes<T>> {}
+
+/**
+ * The createAssociations mixin applied to models with hasMany.
+ * An example of usage is as follows:
+ *
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare createRoles: HasManyCreateAssociationsMixin<Role>;
+ * }
+ *
+ * User.hasMany(Role);
+ * ```
+ *
+ * @see Model.hasMany
+ */
+export type HasManyCreateAssociationsMixin<
+  Target extends Model,
+  ExcludedAttributes extends keyof CreationAttributes<Target> = never,
+> = (
+  valuesArray: Omit<CreationAttributes<Target>, ExcludedAttributes>[],
+  options?: HasManyCreateAssociationsMixinOptions<Target>,
+) => Promise<Target[]>;
 
 /**
  * The options for the removeAssociation mixin of the hasMany association.

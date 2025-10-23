@@ -2267,6 +2267,78 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const _users = await task.getUsers();
       expect(_users).to.have.length(1);
     });
+
+    it('creates multiple associated objects', async function () {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      await this.sequelize.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+      const users = await task.createUsers([
+        { username: 'alice' },
+        { username: 'bob' },
+        { username: 'charlie' }
+      ]);
+      
+      expect(users).to.have.length(3);
+      expect(users[0].username).to.equal('alice');
+      expect(users[1].username).to.equal('bob');
+      expect(users[2].username).to.equal('charlie');
+      
+      // Verify all users are associated with the task
+      const allUsers = await task.getUsers();
+      expect(allUsers).to.have.length(3);
+    });
+
+    it('creates multiple associated objects with empty array', async function () {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      await this.sequelize.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+      const users = await task.createUsers([]);
+      
+      expect(users).to.have.length(0);
+      
+      // Verify no users were created
+      const allUsers = await task.getUsers();
+      expect(allUsers).to.have.length(0);
+    });
+
+    it('creates multiple associated objects with through table attributes', async function () {
+      const User = this.sequelize.define('User', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      const UserTasks = this.sequelize.define('UserTasks', {
+        priority: DataTypes.STRING,
+      });
+
+      User.belongsToMany(Task, { through: UserTasks });
+      Task.belongsToMany(User, { through: UserTasks });
+
+      await this.sequelize.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+      const users = await task.createUsers([
+        { username: 'alice' },
+        { username: 'bob' }
+      ], { through: { priority: 'high' } });
+      
+      expect(users).to.have.length(2);
+      
+      // Verify all users are associated with the task and through table attributes are set
+      const allUsers = await task.getUsers();
+      expect(allUsers).to.have.length(2);
+      
+      const userTasks = await UserTasks.findAll();
+      expect(userTasks).to.have.length(2);
+      expect(userTasks[0].priority).to.equal('high');
+      expect(userTasks[1].priority).to.equal('high');
+    });
   });
 
   describe('addAssociations', () => {

@@ -369,6 +369,7 @@ export class BelongsToManyAssociation<
       addMultiple: `add${plural}`,
       add: `add${singular}`,
       create: `create${singular}`,
+      createMultiple: `create${plural}`,
       remove: `remove${singular}`,
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
@@ -492,6 +493,7 @@ Add your own primary key to the through model, on different attributes than the 
         'remove',
         'removeMultiple',
         'create',
+        'createMultiple',
       ],
       {
         hasSingle: 'has',
@@ -907,6 +909,42 @@ Add your own primary key to the through model, on different attributes than the 
     await this.add(sourceInstance, newAssociatedObject, omit(options, ['fields']));
 
     return newAssociatedObject;
+  }
+
+  /**
+   * Create multiple new instances of the associated model and associate them with this.
+   *
+   * @param sourceInstance source instance
+   * @param valuesArray array of values for target model instances
+   * @param options Options passed to bulkCreate and add
+   */
+  async createMultiple(
+    sourceInstance: SourceModel,
+    valuesArray: CreationAttributes<TargetModel>[],
+    options: BelongsToManyCreateAssociationsMixinOptions<TargetModel> = {},
+  ): Promise<TargetModel[]> {
+    if (valuesArray.length === 0) {
+      return [];
+    }
+
+    const recordsToCreate = valuesArray.map(values => {
+      const recordValues = { ...values };
+
+      // Apply scope if it exists
+      if (this.scope) {
+        Object.assign(recordValues, this.scope);
+      }
+
+      return recordValues;
+    });
+
+    // Create the related model instances
+    const newAssociatedObjects = await this.target.bulkCreate(recordsToCreate, options);
+
+    // Associate all created instances
+    await this.add(sourceInstance, newAssociatedObjects, omit(options, ['fields']));
+
+    return newAssociatedObjects;
   }
 }
 
@@ -1343,6 +1381,35 @@ export type BelongsToManyCreateAssociationMixin<T extends Model> = (
   values?: CreationAttributes<T>,
   options?: BelongsToManyCreateAssociationMixinOptions<T>,
 ) => Promise<T>;
+
+/**
+ * The options for the createAssociations mixin of the belongsToMany association.
+ *
+ * @see BelongsToManyCreateAssociationsMixin
+ */
+export interface BelongsToManyCreateAssociationsMixinOptions<T extends Model>
+  extends BulkCreateOptions<Attributes<T>> {
+  through?: JoinTableAttributes;
+}
+
+/**
+ * The createAssociations mixin applied to models with belongsToMany.
+ * An example of usage is as follows:
+ *
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare createRoles: BelongsToManyCreateAssociationsMixin<Role>;
+ * }
+ *
+ * User.belongsToMany(Role, { through: UserRole });
+ * ```
+ *
+ * @see Model.belongsToMany
+ */
+export type BelongsToManyCreateAssociationsMixin<T extends Model> = (
+  valuesArray: CreationAttributes<T>[],
+  options?: BelongsToManyCreateAssociationsMixinOptions<T>,
+) => Promise<T[]>;
 
 /**
  * The options for the removeAssociation mixin of the belongsToMany association.
