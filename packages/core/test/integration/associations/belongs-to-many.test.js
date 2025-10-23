@@ -2269,11 +2269,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('creates multiple associated objects', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      const User = this.sequelize.define('UserBasic', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskBasic', { title: DataTypes.STRING });
 
-      User.belongsToMany(Task, { through: 'UserTasks' });
-      Task.belongsToMany(User, { through: 'UserTasks' });
+      User.belongsToMany(Task, { through: 'UserTaskBasics' });
+      Task.belongsToMany(User, { through: 'UserTaskBasics' });
 
       await this.sequelize.sync({ force: true });
       const task = await Task.create({ title: 'task' });
@@ -2294,11 +2294,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('creates multiple associated objects with empty array', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+      const User = this.sequelize.define('UserEmpty', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskEmpty', { title: DataTypes.STRING });
 
-      User.belongsToMany(Task, { through: 'UserTasks' });
-      Task.belongsToMany(User, { through: 'UserTasks' });
+      User.belongsToMany(Task, { through: 'UserTaskEmpties' });
+      Task.belongsToMany(User, { through: 'UserTaskEmpties' });
 
       await this.sequelize.sync({ force: true });
       const task = await Task.create({ title: 'task' });
@@ -2312,9 +2312,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('creates multiple associated objects with through table attributes', async function () {
-      const User = this.sequelize.define('User', { username: DataTypes.STRING });
-      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
-      const UserTasks = this.sequelize.define('UserTasks', {
+      const User = this.sequelize.define('UserThrough', { username: DataTypes.STRING });
+      const Task = this.sequelize.define('TaskThrough', { title: DataTypes.STRING });
+      const UserTasks = this.sequelize.define('UserTaskThroughs', {
         priority: DataTypes.STRING,
       });
 
@@ -2340,15 +2340,15 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('creates multiple associated objects with bulk-specific options', async function () {
-      const User = this.sequelize.define('User', {
+      const User = this.sequelize.define('UserBulk', {
         username: DataTypes.STRING,
       });
-      const Task = this.sequelize.define('Task', {
+      const Task = this.sequelize.define('TaskBulk', {
         title: DataTypes.STRING,
       });
 
-      User.belongsToMany(Task, { through: 'UserTasks' });
-      Task.belongsToMany(User, { through: 'UserTasks' });
+      User.belongsToMany(Task, { through: 'UserTaskBulks' });
+      Task.belongsToMany(User, { through: 'UserTaskBulks' });
 
       await this.sequelize.sync({ force: true });
       const task = await Task.create({ title: 'task' });
