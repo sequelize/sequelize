@@ -2342,11 +2342,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     it('creates multiple associated objects with scope and fields option', async function () {
       const User = this.sequelize.define('User', {
         username: DataTypes.STRING,
-        status: DataTypes.STRING,
       });
       const Task = this.sequelize.define('Task', {
         title: DataTypes.STRING,
-        status: DataTypes.STRING,
       });
 
       User.belongsToMany(Task, { through: 'UserTasks' });
@@ -2365,13 +2363,19 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       expect(users).to.have.length(2);
 
-      // Verify all users have the scope applied even when fields was specified
+      // Verify all users are associated with the task
       const allUsers = await task.getUsers();
       expect(allUsers).to.have.length(2);
-      expect(allUsers[0].status).to.equal('active');
-      expect(allUsers[1].status).to.equal('active');
       expect(allUsers[0].username).to.equal('alice');
       expect(allUsers[1].username).to.equal('bob');
+
+      // Verify the scope is applied to the junction table
+      const userTasks = await this.sequelize.models.UserTasks.findAll({
+        where: { taskId: task.id },
+      });
+      expect(userTasks).to.have.length(2);
+      expect(userTasks[0].status).to.equal('active');
+      expect(userTasks[1].status).to.equal('active');
     });
 
     it('creates multiple associated objects with bulk-specific options', async function () {
