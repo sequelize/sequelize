@@ -920,7 +920,7 @@ Add your own primary key to the through model, on different attributes than the 
    */
   async createMultiple(
     sourceInstance: SourceModel,
-    valuesArray: CreationAttributes<TargetModel>[],
+    valuesArray: Array<CreationAttributes<TargetModel>>,
     options: BelongsToManyCreateAssociationsMixinOptions<TargetModel> = {},
   ): Promise<TargetModel[]> {
     if (valuesArray.length === 0) {
@@ -1416,7 +1416,7 @@ export interface BelongsToManyCreateAssociationsMixinOptions<T extends Model>
  * @see Model.belongsToMany
  */
 export type BelongsToManyCreateAssociationsMixin<T extends Model> = (
-  valuesArray: CreationAttributes<T>[],
+  valuesArray: Array<CreationAttributes<T>>,
   options?: BelongsToManyCreateAssociationsMixinOptions<T>,
 ) => Promise<T[]>;
 
