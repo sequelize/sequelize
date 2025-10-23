@@ -618,9 +618,9 @@ export class HasManyAssociation<
    */
   async createMultiple(
     sourceInstance: S,
-    valuesArray: Array<CreationAttributes<T>>,
+    valuesArray: CreationAttributes<T>[],
     options: HasManyCreateAssociationsMixinOptions<T> = {},
-  ): Promise<Array<T>> {
+  ): Promise<T[]> {
     if (valuesArray.length === 0) {
       return [];
     }
@@ -906,9 +906,9 @@ export type HasManyCreateAssociationsMixin<
   Target extends Model,
   ExcludedAttributes extends keyof CreationAttributes<Target> = never,
 > = (
-  valuesArray: Array<Omit<CreationAttributes<Target>, ExcludedAttributes>>,
+  valuesArray: Omit<CreationAttributes<Target>, ExcludedAttributes>[],
   options?: HasManyCreateAssociationsMixinOptions<Target>,
-) => Promise<Array<Target>>;
+) => Promise<Target[]>;
 
 /**
  * The options for the removeAssociation mixin of the hasMany association.
