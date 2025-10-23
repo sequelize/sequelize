@@ -972,6 +972,46 @@ describe('HasMany', () => {
         expect(allLabels[0].status).to.equal('active');
         expect(allLabels[1].status).to.equal('active');
       });
+
+      it('creates multiple associated objects with scope and fields option', async function () {
+        const Article = this.sequelize.define('Article', {
+          title: DataTypes.STRING,
+          status: DataTypes.STRING,
+        });
+        const Label = this.sequelize.define('Label', {
+          text: DataTypes.STRING,
+          status: DataTypes.STRING,
+          priority: DataTypes.STRING,
+        });
+
+        Article.hasMany(Label, {
+          scope: { status: 'active' },
+        });
+
+        await this.sequelize.sync({ force: true });
+        const article = await Article.create({ title: 'foo' });
+
+        // Test with fields option - scope columns should be automatically included
+        const labels = await article.createLabels(
+          [
+            { text: 'bar', priority: 'high' },
+            { text: 'baz', priority: 'low' },
+          ],
+          { fields: ['text', 'priority'] },
+        );
+
+        expect(labels).to.have.length(2);
+
+        // Verify all labels have the scope applied even when fields was specified
+        const allLabels = await Label.findAll({ where: { articleId: article.id } });
+        expect(allLabels).to.have.length(2);
+        expect(allLabels[0].status).to.equal('active');
+        expect(allLabels[1].status).to.equal('active');
+        expect(allLabels[0].text).to.equal('bar');
+        expect(allLabels[1].text).to.equal('baz');
+        expect(allLabels[0].priority).to.equal('high');
+        expect(allLabels[1].priority).to.equal('low');
+      });
     });
 
     describe('getting assocations with options', () => {

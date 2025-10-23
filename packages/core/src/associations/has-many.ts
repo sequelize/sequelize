@@ -625,6 +625,24 @@ export class HasManyAssociation<
     }
 
     const sourceKeyValue = sourceInstance.get(this.sourceKey);
+
+    // Handle fields option to include scope and foreign key columns
+    if (options.fields) {
+      // Add scope attributes to fields if scope exists
+      if (this.scope) {
+        for (const attribute of Object.keys(this.scope)) {
+          if (!options.fields.includes(attribute)) {
+            options.fields.push(attribute);
+          }
+        }
+      }
+
+      // Add foreign key to fields if not already present
+      if (!options.fields.includes(this.foreignKey)) {
+        options.fields.push(this.foreignKey);
+      }
+    }
+
     const recordsToCreate = valuesArray.map(values => {
       const recordValues = { ...values };
 

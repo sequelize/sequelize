@@ -927,6 +927,15 @@ Add your own primary key to the through model, on different attributes than the 
       return [];
     }
 
+    // Handle fields option to include scope columns
+    if (options.fields && this.scope) {
+      const scopeKeys = Object.keys(this.scope);
+      options.fields = [
+        ...options.fields,
+        ...scopeKeys.filter(key => !options.fields!.includes(key)),
+      ];
+    }
+
     const recordsToCreate = valuesArray.map(values => {
       const recordValues = { ...values };
 

@@ -2338,6 +2338,48 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(userTasks[0].priority).to.equal('high');
       expect(userTasks[1].priority).to.equal('high');
     });
+
+    it('creates multiple associated objects with scope and fields option', async function () {
+      const User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        status: DataTypes.STRING,
+      });
+      const Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING,
+        status: DataTypes.STRING,
+        priority: DataTypes.STRING,
+      });
+
+      User.belongsToMany(Task, {
+        through: 'UserTasks',
+        scope: { status: 'active' },
+      });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      await this.sequelize.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+
+      // Test with fields option - scope columns should be automatically included
+      const users = await task.createUsers(
+        [
+          { username: 'alice', priority: 'high' },
+          { username: 'bob', priority: 'low' },
+        ],
+        { fields: ['username', 'priority'] },
+      );
+
+      expect(users).to.have.length(2);
+
+      // Verify all users have the scope applied even when fields was specified
+      const allUsers = await task.getUsers();
+      expect(allUsers).to.have.length(2);
+      expect(allUsers[0].status).to.equal('active');
+      expect(allUsers[1].status).to.equal('active');
+      expect(allUsers[0].username).to.equal('alice');
+      expect(allUsers[1].username).to.equal('bob');
+      expect(allUsers[0].priority).to.equal('high');
+      expect(allUsers[1].priority).to.equal('low');
+    });
   });
 
   describe('addAssociations', () => {
