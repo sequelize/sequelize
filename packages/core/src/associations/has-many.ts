@@ -9,6 +9,7 @@ import { fn } from '../expression-builders/fn.js';
 import type {
   AttributeNames,
   Attributes,
+  BulkCreateOptions,
   CreateOptions,
   CreationAttributes,
   DestroyOptions,
@@ -885,7 +886,7 @@ export type HasManyCreateAssociationMixin<
  * @see HasManyCreateAssociationsMixin
  */
 export interface HasManyCreateAssociationsMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>> {}
+  extends BulkCreateOptions<Attributes<T>> {}
 
 /**
  * The createAssociations mixin applied to models with hasMany.

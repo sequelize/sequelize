@@ -2380,6 +2380,41 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       expect(allUsers[0].priority).to.equal('high');
       expect(allUsers[1].priority).to.equal('low');
     });
+
+    it('creates multiple associated objects with bulk-specific options', async function () {
+      const User = this.sequelize.define('User', {
+        username: DataTypes.STRING,
+        priority: DataTypes.STRING,
+      });
+      const Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING,
+      });
+
+      User.belongsToMany(Task, { through: 'UserTasks' });
+      Task.belongsToMany(User, { through: 'UserTasks' });
+
+      await this.sequelize.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+
+      // Test with bulk-specific options like validate and individualHooks
+      const users = await task.createUsers(
+        [
+          { username: 'alice', priority: 'high' },
+          { username: 'bob', priority: 'low' },
+        ],
+        { validate: true, individualHooks: false },
+      );
+
+      expect(users).to.have.length(2);
+      expect(users[0].username).to.equal('alice');
+      expect(users[1].username).to.equal('bob');
+      expect(users[0].priority).to.equal('high');
+      expect(users[1].priority).to.equal('low');
+
+      // Verify all users are associated with the task
+      const allUsers = await task.getUsers();
+      expect(allUsers).to.have.length(2);
+    });
   });
 
   describe('addAssociations', () => {

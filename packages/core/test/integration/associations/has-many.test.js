@@ -1012,6 +1012,40 @@ describe('HasMany', () => {
         expect(allLabels[0].priority).to.equal('high');
         expect(allLabels[1].priority).to.equal('low');
       });
+
+      it('creates multiple associated objects with bulk-specific options', async function () {
+        const Article = this.sequelize.define('Article', {
+          title: DataTypes.STRING,
+        });
+        const Label = this.sequelize.define('Label', {
+          text: DataTypes.STRING,
+          priority: DataTypes.STRING,
+        });
+
+        Article.hasMany(Label);
+
+        await this.sequelize.sync({ force: true });
+        const article = await Article.create({ title: 'foo' });
+
+        // Test with bulk-specific options like validate and individualHooks
+        const labels = await article.createLabels(
+          [
+            { text: 'bar', priority: 'high' },
+            { text: 'baz', priority: 'low' },
+          ],
+          { validate: true, individualHooks: false },
+        );
+
+        expect(labels).to.have.length(2);
+        expect(labels[0].text).to.equal('bar');
+        expect(labels[1].text).to.equal('baz');
+        expect(labels[0].priority).to.equal('high');
+        expect(labels[1].priority).to.equal('low');
+
+        // Verify all labels are associated with the article
+        const allLabels = await Label.findAll({ where: { articleId: article.id } });
+        expect(allLabels).to.have.length(2);
+      });
     });
 
     describe('getting assocations with options', () => {
