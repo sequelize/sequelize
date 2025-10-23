@@ -2349,10 +2349,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       User.belongsToMany(Task, {
         through: 'UserTaskScopes',
+        as: 'taskScopes',
         scope: { status: 'active' },
       });
       Task.belongsToMany(User, {
         through: 'UserTaskScopes',
+        as: 'userScopes',
         scope: { status: 'active' },
       });
 
@@ -2360,14 +2362,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       const task = await Task.create({ title: 'task' });
 
       // Test with fields option - scope columns should be automatically included
-      const users = await task.createUsers([{ username: 'alice' }, { username: 'bob' }], {
+      const users = await task.createUserScopes([{ username: 'alice' }, { username: 'bob' }], {
         fields: ['username'],
       });
 
       expect(users).to.have.length(2);
 
       // Verify all users are associated with the task
-      const allUsers = await task.getUsers();
+      const allUsers = await task.getUserScopes();
       expect(allUsers).to.have.length(2);
       expect(allUsers[0].username).to.equal('alice');
       expect(allUsers[1].username).to.equal('bob');
