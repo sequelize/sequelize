@@ -1038,6 +1038,10 @@ function normalizeBelongsToManyOptions<
 
   const sequelize = target.sequelize;
 
+  const normalizedThroughAssociations = options?.throughAssociations
+    ? removeUndefined(options.throughAssociations)
+    : EMPTY_OBJECT;
+
   return normalizeBaseAssociationOptions(
     type,
     {
@@ -1049,9 +1053,10 @@ function normalizeBelongsToManyOptions<
           ? normalizeThroughOptions(source, target, options.through, sequelize)
           : normalizeThroughOptions(source, target, { model: options.through }, sequelize),
       ),
-      throughAssociations: options?.throughAssociations
-        ? removeUndefined(options.throughAssociations)
-        : EMPTY_OBJECT,
+      throughAssociations:
+        Object.keys(normalizedThroughAssociations).length === 0
+          ? EMPTY_OBJECT
+          : normalizedThroughAssociations,
     },
     source,
     target,
