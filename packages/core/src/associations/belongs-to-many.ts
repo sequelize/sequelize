@@ -951,7 +951,9 @@ Add your own primary key to the through model, on different attributes than the 
     const newAssociatedObjects = await this.target.bulkCreate(recordsToCreate, options);
 
     // Associate all created instances
-    await this.add(sourceInstance, newAssociatedObjects, omit(options, ['fields']));
+    const addOptions = { ...options };
+    delete addOptions.fields;
+    await this.add(sourceInstance, newAssociatedObjects, addOptions);
 
     return newAssociatedObjects;
   }
