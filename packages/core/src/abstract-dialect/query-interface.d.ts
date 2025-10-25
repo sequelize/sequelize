@@ -188,7 +188,7 @@ export interface FunctionParam {
 }
 
 export interface IndexFieldDescription {
-  attribute: string;
+  attribute: string | null;
   length: number | undefined;
   order: 'DESC' | 'ASC';
   collate: string | undefined;
