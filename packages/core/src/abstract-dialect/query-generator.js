@@ -51,6 +51,17 @@ export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
 ]);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 
+const VALID_ORDER_OPTIONS = [
+  'ASC',
+  'DESC',
+  'ASC NULLS LAST',
+  'DESC NULLS LAST',
+  'ASC NULLS FIRST',
+  'DESC NULLS FIRST',
+  'NULLS FIRST',
+  'NULLS LAST',
+];
+
 /**
  * Abstract Query Generator
  *
@@ -780,16 +791,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   */
   quote(collection, parent, connector = '.', options) {
     // init
-    const validOrderOptions = [
-      'ASC',
-      'DESC',
-      'ASC NULLS LAST',
-      'DESC NULLS LAST',
-      'ASC NULLS FIRST',
-      'DESC NULLS FIRST',
-      'NULLS FIRST',
-      'NULLS LAST',
-    ];
+    const validOrderOptions = VALID_ORDER_OPTIONS;
 
     // just quote as identifiers if string
     if (typeof collection === 'string') {
@@ -1797,6 +1799,129 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     );
   }
 
+  /**
+   * Analyzes an ORDER BY clause to determine the attribute reference path.
+   *
+   * This handles order arrays like [Model, 'field', 'ASC'] or ['assoc1', 'assoc2', 'field', 'DESC']
+   * by traversing the association chain to find the correct table alias path and attribute.
+   *
+   * This does not handle raw SQL or literal orders, only structured association orders.
+   *
+   * The returned information is used to:
+   * - Resolve the correct table alias (internal path with '->' or external path with '.')
+   * - Find the corresponding include to access minified aliases
+   * - Replace the association parts to their table.column reference.
+   *
+   * @param {Array} order - The order clause array (e.g., [User, Task, 'name', 'DESC'])
+   * @param {Model} model - The root model for the query
+   * @param {object} options - Query options including include tree
+   * @returns {object|null} Info about the association path and attribute, or null if not an association order or malformed
+   */
+  _getAssociationOrderInfo(order, model, options) {
+    if (!Array.isArray(order) || order.length < 2 || !isModelStatic(model)) {
+      return null;
+    }
+
+    const isDirectional =
+      typeof order.at(-1) === 'string' && VALID_ORDER_OPTIONS.has(order.at(-1).toUpperCase());
+    const attributeIndex = order.length - 1 - (isDirectional ? 1 : 0);
+
+    // If attributeIndex is 0, there are no associations in the order array
+    if (attributeIndex < 1) {
+      return null;
+    }
+
+    const attribute = order[attributeIndex];
+
+    // Sanity check that the attribute is a property name and not malformed.
+    if (typeof attribute !== 'string' || attribute.length === 0) {
+      return null;
+    }
+
+    // Everything before the attribute should be associations
+    const associationParts = order.slice(0, attributeIndex);
+    if (associationParts.length === 0) {
+      return null;
+    }
+
+    let currentModel = model;
+    const associations = [];
+
+    // Start association walk through the order clause
+    for (const part of associationParts) {
+      let association;
+
+      if (part instanceof Association) {
+        association = part;
+      } else if (typeof part === 'string' && currentModel?.associations?.[part]) {
+        association = currentModel.associations[part];
+      } else {
+        throw new Error(
+          `Invalid Order: association "${part}" is not found in ${currentModel.name}'s associations. Check your order definition.`,
+        );
+      }
+
+      associations.push(association);
+      currentModel = association.target;
+    }
+
+    if (associations.length === 0) {
+      return null;
+    }
+
+    const associationAliases = associations.map(association => association.as);
+    if (associationAliases.some(alias => !alias)) {
+      return null;
+    }
+
+    // Find the corresponding include in the query options to access its alias information
+    const include = this._findIncludeForAliasPath(options?.include, associationAliases);
+
+    return {
+      attribute,
+      replaceCount: associationParts.length + 1, // Number of elements to replace in the order array
+      associationAliases,
+      include,
+      externalPath: associationAliases.join('.'), // e.g., 'user.tasks' for nested associations
+      internalPath: associationAliases.join('->'), // e.g., 'user->tasks' used for internal aliasing
+    };
+  }
+
+  /**
+   * Finds the nested include object that matches a given alias path.
+   *
+   * Starting from the provided root `includes` array, this method walks the tree by
+   * following each segment in `aliasPath` and matching it against the `as` of each include.
+   * If any segment is not found at a given level, it returns `null`. When all segments are
+   * matched, it returns the deepest include corresponding to the full path.
+   *
+   * This is used (e.g. by association order resolution) to locate the include that corresponds
+   * to an ORDER BY association chain so that the correct table aliasing/minified alias can be applied.
+   *
+   * @param {Array<object>} includes - The root include array to traverse (e.g. `options.include`).
+   * @param {string[]} aliasPath - Ordered list of association alias names (e.g. ['user', 'tasks']).
+   * @returns {object|null} The include that matches the full alias path, or `null` if no match is found.
+   */
+  _findIncludeForAliasPath(includes, aliasPath) {
+    if (!Array.isArray(includes) || aliasPath.length === 0) {
+      return null;
+    }
+
+    let currentIncludes = includes;
+    let match;
+
+    for (const segment of aliasPath) {
+      match = currentIncludes.find(include => include.as === segment);
+      if (!match) {
+        return null;
+      }
+
+      currentIncludes = match.include || [];
+    }
+
+    return match;
+  }
+
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
@@ -2344,6 +2469,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           order = [order];
         }
 
+        const associationOrderInfo = this._getAssociationOrderInfo(order, model, options);
+
+        if (subQuery && associationOrderInfo?.include?.subQuery) {
+          const subOrder = [...order];
+          subQueryOrder.push(this.quote(subOrder, model, '->', options));
+        }
+
         if (
           subQuery &&
           Array.isArray(order) &&
@@ -2377,6 +2509,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           }
 
           subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
+        }
+
+        if (associationOrderInfo?.include?.subQuery) {
+          const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
+          const alias =
+            this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
+            aliasField;
+          const aliasLiteral = new Literal(this.quoteIdentifier(alias));
+
+          order.splice(0, associationOrderInfo.replaceCount, aliasLiteral);
         }
 
         // Handle case where renamed attributes are used to order by,
