@@ -4,6 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
+const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
 const { DatabaseError, DataTypes } = require('@sequelize/core');
@@ -151,6 +152,85 @@ if (dialect.startsWith('postgres')) {
           include: Company,
         },
       });
+    });
+
+    it('supports alias minification with long model names in joins', async () => {
+      const sequelize = Support.createSequelizeInstance({
+        minifyAliases: true,
+      });
+
+      Support.destroySequelizeAfterTest(sequelize);
+
+      const modelOne = sequelize.define(
+        'modelOne',
+        {},
+        {
+          paranoid: true,
+        },
+      );
+      const modelTwo = sequelize.define(
+        'modelTwo',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelOne, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+      const modelThree = sequelize.define(
+        'modelThree',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelTwo, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+      const modelFour = sequelize.define(
+        'modelWithVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryVeryLongNamessss',
+        {
+          modelOneId: {
+            type: DataTypes.INTEGER,
+            references: { model: modelThree, key: 'id' },
+          },
+        },
+        {
+          paranoid: true,
+        },
+      );
+
+      modelOne.hasMany(modelTwo);
+      modelTwo.belongsTo(modelOne);
+      modelTwo.hasMany(modelThree);
+      modelThree.belongsTo(modelTwo);
+      modelThree.hasMany(modelFour);
+      modelFour.belongsTo(modelThree);
+
+      const spy = sinon.spy();
+      sequelize.afterBulkSync(() => spy());
+
+      await sequelize.sync({ force: true });
+      expect(spy).to.have.been.called;
+
+      const results = await modelOne.findAll({
+        include: {
+          model: modelTwo,
+          include: [
+            {
+              model: modelThree,
+              include: [modelFour],
+            },
+          ],
+        },
+      });
+
+      expect(results).to.be.an('array');
     });
 
     it('orders by a literal when subquery and minifyAliases are enabled', async () => {
