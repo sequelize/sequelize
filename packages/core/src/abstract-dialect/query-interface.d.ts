@@ -1,4 +1,5 @@
 import type { SetRequired } from 'type-fest';
+import type { ParameterStyle } from '../enums.js';
 import type { Col } from '../expression-builders/col.js';
 import type { Fn } from '../expression-builders/fn.js';
 import type { Literal } from '../expression-builders/literal.js';
@@ -36,7 +37,7 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
-  parameterStyle?: 'replacement' | 'bind';
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {

@@ -6,7 +6,7 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { col, DataTypes, Op } = require('@sequelize/core');
+const { col, DataTypes, Op, ParameterStyle } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -167,7 +167,7 @@ describe('Model', () => {
           },
         ],
         {
-          parameterStyle: 'bind',
+          parameterStyle: ParameterStyle.BIND,
           logging(sql) {
             switch (dialectName) {
               case 'postgres':

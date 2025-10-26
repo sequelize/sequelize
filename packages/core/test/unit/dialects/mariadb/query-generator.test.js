@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const { Op } = require('@sequelize/core');
+const { Op, ParameterStyle } = require('@sequelize/core');
 const { MariaDbQueryGenerator } = require('@sequelize/mariadb');
 const { createSequelizeInstance } = require('../../../support');
 
@@ -348,7 +348,11 @@ if (dialect === 'mariadb') {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { parameterStyle: ParameterStyle.BIND },
+          ],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: { sequelize_1: 'foo', sequelize_2: 'bar' },
@@ -358,7 +362,7 @@ if (dialect === 'mariadb') {
           arguments: [
             'myTable',
             [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
@@ -372,7 +376,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
               { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -392,7 +396,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', foo: 1 },
               { name: 'bar', foo: 2 },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -412,7 +416,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -434,7 +438,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -457,7 +461,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -480,7 +484,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', foo: 1, nullValue: undefined },
               { name: 'bar', foo: 2, undefinedValue: undefined },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -505,7 +509,7 @@ if (dialect === 'mariadb') {
               { name: 'foo', value: true },
               { name: 'bar', value: false },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -522,7 +526,7 @@ if (dialect === 'mariadb') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { ignoreDuplicates: true, parameterStyle: 'bind' },
+            { ignoreDuplicates: true, parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT IGNORE INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
@@ -536,7 +540,7 @@ if (dialect === 'mariadb') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'], parameterStyle: 'bind' },
+            { updateOnDuplicate: ['name'], parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -548,7 +552,7 @@ if (dialect === 'mariadb') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { parameterStyle: 'replacement' },
+            { parameterStyle: ParameterStyle.REPLACEMENT },
           ],
           expectation: {
             query: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');",

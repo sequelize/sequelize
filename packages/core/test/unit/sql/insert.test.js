@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, ParameterStyle } = require('@sequelize/core');
 const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
@@ -292,7 +292,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       expectsql(
         sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes(), {
-          parameterStyle: 'bind',
+          parameterStyle: ParameterStyle.BIND,
         }),
         {
           query: {
@@ -350,7 +350,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
             upsertKeys: primaryKeys,
-            parameterStyle: 'bind',
+            parameterStyle: ParameterStyle.BIND,
           },
           User.fieldRawAttributesMap,
         ),
@@ -386,7 +386,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         sql.bulkInsertQuery(
           M.table,
           [{ id: 0 }, { id: null }],
-          { parameterStyle: 'bind' },
+          { parameterStyle: ParameterStyle.BIND },
           M.fieldRawAttributesMap,
         ),
         {
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
               upsertKeys: primaryKeys,
               conflictWhere: { deleted_at: null },
-              parameterStyle: 'bind',
+              parameterStyle: ParameterStyle.BIND,
             },
             User.fieldRawAttributesMap,
           );

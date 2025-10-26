@@ -28,7 +28,7 @@ import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
-import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
+import type { Lock, Op, ParameterStyle, TableHints, Transaction, WhereOptions } from './index';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
@@ -1214,7 +1214,7 @@ export interface BulkCreateOptions<TAttributes = any>
    * replacement (values are added directly as literals in the SQL statement)
    * Defaults to 'replacement' for backwards compatibility:
    */
-  parameterStyle?: 'replacement' | 'bind';
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 /**

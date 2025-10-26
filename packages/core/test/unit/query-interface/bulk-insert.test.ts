@@ -1,4 +1,4 @@
-import { DataTypes, Transaction } from '@sequelize/core';
+import { DataTypes, ParameterStyle, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
@@ -26,7 +26,9 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, { parameterStyle: 'bind' });
+    await sequelize.queryInterface.bulkInsert(User.table, users, {
+      parameterStyle: ParameterStyle.BIND,
+    });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -65,7 +67,7 @@ describe('QueryInterface#bulkInsert', () => {
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
     await sequelize.queryInterface.bulkInsert(User.table, users, {
       transaction,
-      parameterStyle: 'bind',
+      parameterStyle: ParameterStyle.BIND,
     });
 
     expect(stub.callCount).to.eq(1);
@@ -117,7 +119,7 @@ describe('QueryInterface#bulkInsert', () => {
         replacements: {
           injection: 'raw sql',
         },
-        parameterStyle: 'replacement',
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 

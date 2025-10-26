@@ -5,7 +5,7 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { Op } = require('@sequelize/core');
+const { Op, ParameterStyle } = require('@sequelize/core');
 const { PostgresQueryGenerator: QueryGenerator } = require('@sequelize/postgres');
 const Support = require('../../../support');
 
@@ -559,7 +559,11 @@ if (dialect.startsWith('postgres')) {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { parameterStyle: ParameterStyle.BIND },
+          ],
           expectation: {
             query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -572,7 +576,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { ignoreDuplicates: true, parameterStyle: 'bind' },
+            { ignoreDuplicates: true, parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -587,7 +591,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { returning: true, parameterStyle: 'bind' },
+            { returning: true, parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -602,7 +606,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { returning: ['id', 'sentToId'], parameterStyle: 'bind' },
+            { returning: ['id', 'sentToId'], parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -617,7 +621,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { ignoreDuplicates: true, returning: true, parameterStyle: 'bind' },
+            { ignoreDuplicates: true, returning: true, parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -632,7 +636,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT INTO "myTable" ("name") VALUES ($sequelize_1),($sequelize_2);',
@@ -655,7 +659,7 @@ if (dialect.startsWith('postgres')) {
                 birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
               },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -675,7 +679,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', foo: 1 },
               { name: 'bar', foo: 2 },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -695,7 +699,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -715,7 +719,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -736,7 +740,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -757,7 +761,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: undefined },
               { name: 'bar', nullValue: undefined },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -775,7 +779,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -793,7 +797,7 @@ if (dialect.startsWith('postgres')) {
               { name: JSON.stringify({ info: 'Look ma a " quote' }) },
               { name: JSON.stringify({ info: 'Look ma another " quote' }) },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -808,7 +812,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -823,7 +827,11 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'], upsertKeys: ['name'], parameterStyle: 'bind' },
+            {
+              updateOnDuplicate: ['name'],
+              upsertKeys: ['name'],
+              parameterStyle: ParameterStyle.BIND,
+            },
           ],
           expectation: {
             query:
@@ -837,7 +845,11 @@ if (dialect.startsWith('postgres')) {
 
         // Variants when quoteIdentifiers is false
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { parameterStyle: ParameterStyle.BIND },
+          ],
           expectation: {
             query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -851,7 +863,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             'myTable',
             [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT INTO myTable (name) VALUES ($sequelize_1),($sequelize_2);',
@@ -875,7 +887,7 @@ if (dialect.startsWith('postgres')) {
                 birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
               },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -896,7 +908,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', foo: 1 },
               { name: 'bar', foo: 2 },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -917,7 +929,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
@@ -937,7 +949,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
@@ -952,7 +964,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: null },
               { name: 'bar', nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
@@ -967,7 +979,7 @@ if (dialect.startsWith('postgres')) {
               { name: 'foo', nullValue: undefined },
               { name: 'bar', nullValue: undefined },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: `INSERT INTO myTable (name,nullValue) VALUES ($sequelize_1,$sequelize_2),($sequelize_3,$sequelize_4);`,
@@ -979,7 +991,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: 'foo' }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: `INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);`,
@@ -997,7 +1009,7 @@ if (dialect.startsWith('postgres')) {
               { name: JSON.stringify({ info: 'Look ma a " quote' }) },
               { name: JSON.stringify({ info: 'Look ma another " quote' }) },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);',
@@ -1012,7 +1024,7 @@ if (dialect.startsWith('postgres')) {
           arguments: [
             { schema: 'mySchema', tableName: 'myTable' },
             [{ name: "foo';DROP TABLE mySchema.myTable;" }, { name: 'bar' }],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT INTO mySchema.myTable (name) VALUES ($sequelize_1),($sequelize_2);',

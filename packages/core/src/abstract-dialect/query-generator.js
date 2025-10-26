@@ -306,7 +306,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Require explicit opt-in to use bind parameters (for backwards compatibility)
     // https://github.com/sequelize/sequelize/pull/17752#discussion_r1986317512
-    if (options.parameterStyle !== 'bind') {
+    if (options.parameterStyle !== ParameterStyle.BIND) {
       bindParam = undefined;
     }
 

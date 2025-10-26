@@ -10,6 +10,7 @@ const Support = require('../../../support');
 const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/sqlite3');
+const { ParameterStyle } = require('@sequelize/core');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'sqlite3') {
@@ -291,7 +292,11 @@ if (dialect === 'sqlite3') {
 
       bulkInsertQuery: [
         {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { parameterStyle: 'bind' }],
+          arguments: [
+            'myTable',
+            [{ name: 'foo' }, { name: 'bar' }],
+            { parameterStyle: ParameterStyle.BIND },
+          ],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -301,7 +306,11 @@ if (dialect === 'sqlite3') {
           },
         },
         {
-          arguments: ['myTable', [{ name: "'bar'" }, { name: 'foo' }], { parameterStyle: 'bind' }],
+          arguments: [
+            'myTable',
+            [{ name: "'bar'" }, { name: 'foo' }],
+            { parameterStyle: ParameterStyle.BIND },
+          ],
           expectation: {
             query: 'INSERT INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
             bind: {
@@ -323,7 +332,7 @@ if (dialect === 'sqlite3') {
                 birthday: dayjs('2012-03-27 10:01:55 +0000', 'YYYY-MM-DD HH:mm:ss Z').toDate(),
               },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -343,7 +352,7 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: null },
               { name: 'foo', value: 1 },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -363,7 +372,7 @@ if (dialect === 'sqlite3') {
               { name: 'bar', value: undefined },
               { name: 'bar', value: 2 },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -383,7 +392,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', value: true },
               { name: 'bar', value: false },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -403,7 +412,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', value: false },
               { name: 'bar', value: false },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -423,7 +432,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -445,7 +454,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -468,7 +477,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -491,7 +500,7 @@ if (dialect === 'sqlite3') {
               { name: 'foo', foo: 1, nullValue: null },
               { name: 'bar', foo: 2, nullValue: null },
             ],
-            { parameterStyle: 'bind' },
+            { parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query:
@@ -511,7 +520,7 @@ if (dialect === 'sqlite3') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { ignoreDuplicates: true, parameterStyle: 'bind' },
+            { ignoreDuplicates: true, parameterStyle: ParameterStyle.BIND },
           ],
           expectation: {
             query: 'INSERT OR IGNORE INTO `myTable` (`name`) VALUES ($sequelize_1),($sequelize_2);',
@@ -525,7 +534,11 @@ if (dialect === 'sqlite3') {
           arguments: [
             'myTable',
             [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'], upsertKeys: ['name'], parameterStyle: 'bind' },
+            {
+              updateOnDuplicate: ['name'],
+              upsertKeys: ['name'],
+              parameterStyle: ParameterStyle.BIND,
+            },
           ],
           expectation: {
             query:
