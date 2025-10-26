@@ -301,7 +301,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fieldMappedAttributes ||= {};
 
     const bind = Object.create(null);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bindParam =
+      options.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam;
 
     // Require explicit opt-in to use bind parameters (for backwards compatibility)
     // https://github.com/sequelize/sequelize/pull/17752#discussion_r1986317512
