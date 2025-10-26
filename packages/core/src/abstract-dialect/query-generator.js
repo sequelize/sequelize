@@ -192,7 +192,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
+          fragments.push(this.whereQuery(options.conflictWhere, { ...options, bindParam }));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
