@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.47](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.46...v7.0.0-alpha.47) (2025-10-25)
+
+### Bug Fixes
+
+- **postgres:** order on column name in showConstraintsQuery ([#17760](https://github.com/sequelize/sequelize/issues/17760)) ([5de096a](https://github.com/sequelize/sequelize/commit/5de096aefe86ca8941667ecadd5a91059312a5d9))
+
 # [7.0.0-alpha.46](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.45...v7.0.0-alpha.46) (2025-03-22)
 
 ### Bug Fixes

@@ -352,14 +352,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return generated.bind != null ? { bind: generated.bind, query } : { query };
   }
 
-  // bindParam(bind) {
-  //   return value => {
-  //     bind.push(value);
-
-  //     return '?';
-  //   };
-  // }
-
   attributeToSQL(attribute, options) {
     if (!isPlainObject(attribute)) {
       attribute = {

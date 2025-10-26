@@ -16,6 +16,7 @@ import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import { ParameterStyle } from '../enums.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
@@ -24,6 +25,7 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
+import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -75,14 +77,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     const modelAttributeMap = {};
-    const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -117,12 +123,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -268,7 +279,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -441,22 +452,30 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = Object.create(null);
     const modelAttributeMap = {};
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
 
     if (
       this.dialect.supports['LIMIT ON UPDATE'] &&
@@ -524,7 +543,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -992,18 +1011,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  bindParam(bind) {
-    let i = 0;
-
-    return value => {
-      const bindName = `sequelize_${++i}`;
-
-      bind[bindName] = value;
-
-      return `$${bindName}`;
-    };
   }
 
   /*
@@ -1639,6 +1646,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
+        const childOriginalSubQuery = childInclude.subQuery;
+
+        if (childInclude.subQuery && (!include.subQuery || !topLevelInfo.subQuery)) {
+          childInclude.subQuery = false;
+        }
+
         const childJoinQueries = this.generateInclude(
           childInclude,
           includeAs,
@@ -1646,12 +1659,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           options,
         );
 
+        childInclude.subQuery = childOriginalSubQuery;
+
         if (include.required === false && childInclude.required === true) {
           requiredMismatch = true;
         }
 
         // if the child is a sub query we just give it to the
-        if (childInclude.subQuery && topLevelInfo.subQuery) {
+        if (childOriginalSubQuery && include.subQuery && topLevelInfo.subQuery) {
           subChildIncludes.push(childJoinQueries.subQuery);
         }
 
@@ -1696,7 +1711,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
 
-      joinQueries.subQuery.push(subChildIncludes.join(''));
+      if (subChildIncludes.length > 0) {
+        if (topLevelInfo.subQuery) {
+          const subFragments = [];
+
+          if (requiredMismatch) {
+            subFragments.push(
+              ` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} ) ON ${joinQuery.condition}`,
+            );
+          } else {
+            subFragments.push(
+              ` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`,
+              subChildIncludes.join(''),
+            );
+          }
+
+          joinQueries.subQuery.push(...subFragments);
+        } else {
+          joinQueries.subQuery.push(subChildIncludes.join(''));
+        }
+      }
     }
 
     return {
@@ -1726,8 +1760,61 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
-      return options.aliasesByTable[`${tableName}${field}`];
+    if (!options.minifyAliases || !options.aliasesByTable) {
+      return null;
+    }
+
+    const candidates = new Set();
+    const tableNameString = typeof tableName === 'string' ? tableName : undefined;
+    const tableVariants = [];
+
+    if (tableNameString) {
+      tableVariants.push(tableNameString);
+
+      const normalizedTable = tableNameString.replaceAll('->', '.');
+      if (normalizedTable !== tableNameString) {
+        tableVariants.push(normalizedTable);
+      }
+    }
+
+    const fieldVariants = new Set();
+
+    if (typeof field === 'string') {
+      fieldVariants.add(field);
+
+      const dotVariant = field.replaceAll('->', '.');
+      const arrowVariant = field.replaceAll('.', '->');
+
+      fieldVariants.add(dotVariant);
+      fieldVariants.add(arrowVariant);
+
+      if (field.includes('.')) {
+        fieldVariants.add(field.slice(field.lastIndexOf('.') + 1));
+      }
+    } else if (field != null) {
+      fieldVariants.add(field);
+    }
+
+    for (const variant of fieldVariants) {
+      candidates.add(variant);
+    }
+
+    if (tableVariants.length > 0) {
+      for (const tableVariant of tableVariants) {
+        for (const fieldVariant of fieldVariants) {
+          if (typeof fieldVariant === 'string' && fieldVariant.length > 0) {
+            candidates.add(`${tableVariant}.${fieldVariant}`);
+          }
+        }
+      }
+    }
+
+    for (const candidate of candidates) {
+      const alias = options.aliasesByTable[`${tableName}${candidate}`];
+
+      if (alias) {
+        return alias;
+      }
     }
 
     return null;
@@ -1938,6 +2025,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
+    const isRootParent =
+      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
+    const isMinified = topLevelInfo.options.minifyAliases;
+
     const through = include.through;
     const throughTable = through.model.table;
     const throughAs = `${includeAs.internalAs}->${through.as}`;
@@ -1956,9 +2047,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         this.quoteIdentifier(alias),
       ]);
     });
+
     const association = include.association;
-    const parentIsTop =
-      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     const tableSource = parentTableName;
     const identSource = association.identifierField;
     const tableTarget = includeAs.internalAs;
@@ -2016,22 +2106,91 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       attrSource = association.sourceKeyField;
     }
 
-    // Filter statement for left side of through
-    // Used by both join and subquery where
-    // If parent include was in a subquery need to join on the aliased attribute
-    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && !parentIsTop) {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const joinSource =
-        this._getAliasForField(tableSource, `${tableSource}.${attrSource}`, topLevelInfo.options) ||
-        `${tableSource}.${attrSource}`;
+    // Build source side of the JOIN predicate for the through association.
+    // This condition is reused by the actual JOIN and any subquery WHERE filters.
 
-      sourceJoinOn = `${this.quoteIdentifier(joinSource)} = `;
+    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && isMinified) {
+      // When the parent include is also part of a subquery (especially with minified aliases),
+      // the source key may only be available under a projected alias. Thus, we resolve
+      // and reference the aliased attribute (or project it if missing) instead of the raw column
+      // name to avoid referencing a missing column.
+      const aliasCandidates = new Set();
+
+      const dottedTableSource = tableSource.replaceAll('->', '.');
+
+      if (attrSource) {
+        aliasCandidates.add(attrSource);
+        aliasCandidates.add(`${tableSource}.${attrSource}`);
+        aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
+      }
+
+      if (association.sourceKeyField && association.sourceKeyField !== attrSource) {
+        aliasCandidates.add(association.sourceKeyField);
+        aliasCandidates.add(`${tableSource}.${association.sourceKeyField}`);
+        aliasCandidates.add(`${dottedTableSource}.${association.sourceKeyField}`);
+      }
+
+      let aliasedSource = null;
+
+      for (const candidate of aliasCandidates) {
+        aliasedSource = this._getAliasForField(tableSource, candidate, topLevelInfo.options);
+
+        if (aliasedSource) {
+          break;
+        }
+      }
+
+      if (!aliasedSource) {
+        const joinColumn = association.sourceKeyField || attrSource || identSource;
+
+        if (isRootParent) {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+        } else {
+          const aliasBase = `${dottedTableSource}.${joinColumn}`;
+
+          aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
+
+          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+
+          if (!attributes.subQuery.includes(projection)) {
+            attributes.subQuery.push(projection);
+          }
+        }
+      }
+
+      if (!sourceJoinOn) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      }
+    } else if (
+      topLevelInfo.subQuery &&
+      !include.subQuery &&
+      include.parent.subQuery &&
+      !isRootParent
+    ) {
+      // Subquery + non-root parent: when alias minification is enabled,
+      // the parent path's source key may have been projected under a generated alias.
+      // Resolve and use the projected alias for the source side of the JOIN;
+      // If no alias is found, fall back to the table-qualified column, prefixed
+      // by the main subquery alias when available.
+      const aliasedSource = this._getAliasForField(
+        tableSource,
+        `${tableSource}.${attrSource}`,
+        topLevelInfo.options,
+      );
+
+      if (aliasedSource) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      } else {
+        const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+
+        if (mainAlias) {
+          sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
+        } else {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+        }
+      }
     } else {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const aliasedSource =
-        this._getAliasForField(tableSource, attrSource, topLevelInfo.options) || attrSource;
-
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(aliasedSource)} = `;
+      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
