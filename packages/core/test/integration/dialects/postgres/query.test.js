@@ -459,7 +459,6 @@ if (dialect.startsWith('postgres')) {
         ],
         where: { quantity: { [Op.gt]: 0 } },
         order: [['load', 'route', 'date', 'ASC']],
-        logging: console.log,
       });
       expect(deliveryWithSubquery.load.route.date).to.equal('2025-12-12');
     });
