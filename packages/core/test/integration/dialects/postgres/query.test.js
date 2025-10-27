@@ -437,6 +437,7 @@ if (dialect.startsWith('postgres')) {
       expect(delivery.load.route.date).to.equal('2025-12-12');
 
       const deliveryWithSubquery = await Delivery.findOne({
+        subQuery: true,
         include: [
           {
             model: Load,
