@@ -380,7 +380,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
+          if (this.dialect.supports.inserts.onConflictWhereBind) {
+            whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
+          } else {
+            whereClause = this.whereQuery(options.conflictWhere, options);
+          }
         }
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
