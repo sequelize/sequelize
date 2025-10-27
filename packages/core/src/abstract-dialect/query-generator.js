@@ -1823,7 +1823,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     const isDirectional =
-      typeof order.at(-1) === 'string' && VALID_ORDER_OPTIONS.has(order.at(-1).toUpperCase());
+      typeof order.at(-1) === 'string' && VALID_ORDER_OPTIONS.includes(order.at(-1).toUpperCase());
     const attributeIndex = order.length - 1 - (isDirectional ? 1 : 0);
 
     // If attributeIndex is 0, there are no associations in the order array
