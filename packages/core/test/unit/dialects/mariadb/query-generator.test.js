@@ -13,7 +13,7 @@ const { MariaDbQueryGenerator } = require('@sequelize/mariadb');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'mariadb') {
-  describe('[MARIADB Specific] QueryGenerator', () => {
+  describe(Support.getTestDialectTeaser('QueryGenerator'), () => {
     const suites = {
       attributesToSQL: [
         {
@@ -649,7 +649,7 @@ if (dialect === 'mariadb') {
           const title =
             test.title ||
             `MariaDB correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, () => {
+          it(title, async () => {
             const sequelize = createSequelizeInstance({
               ...test.sequelizeOptions,
               ...(test.context && test.context.options),
@@ -668,7 +668,11 @@ if (dialect === 'mariadb') {
             const queryGenerator = sequelize.dialect.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
-            expect(conditions).to.deep.equal(test.expectation);
+            try {
+              expect(conditions).to.deep.equal(test.expectation);
+            } finally {
+              await sequelize.close();
+            }
           });
         }
       });

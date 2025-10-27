@@ -304,6 +304,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
+
     let bind;
     let bindParam;
     // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
