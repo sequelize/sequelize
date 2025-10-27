@@ -355,20 +355,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           User.fieldRawAttributesMap,
         ),
         {
-          default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2))',
-          snowflake:
-            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2);',
-          postgres:
-            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
-          mssql: "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
-          db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
-          mariadb:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
-          mysql:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
-          sqlite3:
-            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
+          query: {
+            default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2))',
+            snowflake:
+              'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2);',
+            postgres:
+              'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+            mssql: "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
+            db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+            mariadb:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+            mysql:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
+            sqlite3:
+              'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
+          },
+          bind: {
+            default: {
+              sequelize_1: 'testuser',
+              sequelize_2: '12345',
+            },
+            mssql: undefined,
+            db2: undefined,
+          },
         },
       );
     });
