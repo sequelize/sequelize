@@ -1854,12 +1854,23 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let currentModel = model;
     const associations = [];
+    let previousAssociation = null;
 
     // Start association walk through the order clause
     for (const part of associationParts) {
       let association;
+      const previousBelongsToMany =
+        previousAssociation instanceof BelongsToManyAssociation ? previousAssociation : null;
+      const matchesPreviousThroughModel =
+        previousBelongsToMany &&
+        (part === previousBelongsToMany.throughModel ||
+          (isPlainObject(part) &&
+            part.model === previousBelongsToMany.throughModel &&
+            (part.as == null || part.as === previousBelongsToMany.fromTargetToThrough.as)));
 
-      if (part instanceof Association) {
+      if (matchesPreviousThroughModel) {
+        association = previousBelongsToMany.fromTargetToThrough;
+      } else if (part instanceof Association) {
         association = part;
       } else if (typeof part === 'string' && currentModel?.associations?.[part]) {
         association = currentModel.associations[part];
@@ -1875,6 +1886,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       associations.push(association);
       currentModel = association.target;
+      previousAssociation = association;
     }
 
     if (associations.length === 0) {
