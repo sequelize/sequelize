@@ -2592,7 +2592,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
           }
 
-          if (associationOrderInfo?.include?.subQuery) {
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
             const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
             const alias =
               this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
