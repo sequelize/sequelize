@@ -304,24 +304,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
-    const bind = Object.create(null);
-    let bindParam =
-      options.bindParam === undefined ? createBindParamGenerator(bind) : options.bindParam;
-
-    // Require explicit opt-in to use bind parameters (for backwards compatibility)
-    // https://github.com/sequelize/sequelize/pull/17752#discussion_r1986317512
-    if (options.parameterStyle !== ParameterStyle.BIND) {
-      bindParam = undefined;
-    }
+    let bind;
+    let bindParam;
+    // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.REPLACEMENT;
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
     }
 
     const tuples = [];
@@ -440,7 +440,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     ]);
 
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 

@@ -556,15 +556,13 @@ if (dialect === 'mariadb') {
           ],
           expectation: {
             query: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');",
-            bind: {},
           },
         },
-        // When no parameterStyle is given, we should default to 'replacement' as that's the historical default:
+        // When no parameterStyle is given, we should default to REPLACEMENT as that's the historical default:
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
           expectation: {
             query: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');",
-            bind: {},
           },
         },
       ],
