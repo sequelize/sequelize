@@ -62,6 +62,14 @@ const VALID_ORDER_OPTIONS = [
   'NULLS LAST',
 ];
 
+function isOrderDirection(value) {
+  return typeof value === 'string' && VALID_ORDER_OPTIONS.includes(value.toUpperCase());
+}
+
+function isModelAttribute(value) {
+  return value?._modelAttribute === true;
+}
+
 /**
  * Abstract Query Generator
  *
@@ -1855,6 +1863,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         association = part;
       } else if (typeof part === 'string' && currentModel?.associations?.[part]) {
         association = currentModel.associations[part];
+      } else if (isModelStatic(part)) {
+        association = currentModel.getAssociationWithModel(part);
+      } else if (isPlainObject(part) && part.model && isModelStatic(part.model)) {
+        association = currentModel.getAssociationWithModel(part.model, part.as);
       } else {
         throw new Error(
           `Invalid Order: association "${part}" is not found in ${currentModel.name}'s associations. Check your order definition.`,
@@ -1920,6 +1932,59 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return match;
+  }
+
+  /**
+   * Splits a raw ORDER clause entry into normalized sub-entries.
+   *
+   * This helper peels off any leading model/attribute reference segments and keeps
+   * an optional trailing direction (ASC/DESC). For example:
+   * - [User, 'tasks', 'name', 'DESC'] -> [[User], ['tasks', 'name', 'DESC']]
+   * - ['createdAt', 'ASC'] -> [['createdAt', 'ASC']]
+   * - ['DESC'] -> [['DESC']]
+   * - [] -> [[]]
+   *
+   * The output is consumed by later normalization steps that resolve association paths
+   * and build the final ORDER BY fragment.
+   *
+   * @param {Array<unknown>} rawOrder - The raw order entry array to split.
+   * @returns {Array<Array<unknown>>} A list of order sub-entries, where leading model/attribute
+   *   references are emitted as single-item arrays, and the remaining path plus optional
+   *   direction are grouped as the last entry. Returns `[[]]` for an empty input.
+   * @private
+   */
+  _splitOrderEntry(rawOrder) {
+    const orderParts = [...rawOrder];
+    const results = [];
+
+    let direction;
+    if (isOrderDirection(orderParts.at(-1))) {
+      direction = orderParts.pop();
+    }
+
+    while (orderParts.length > 1 && isModelAttribute(orderParts[0])) {
+      results.push([orderParts.shift()]);
+    }
+
+    if (orderParts.length > 0) {
+      const entry = [...orderParts];
+      if (direction !== undefined) {
+        entry.push(direction);
+        direction = undefined;
+      }
+
+      results.push(entry);
+    }
+
+    if (direction !== undefined) {
+      if (results.length === 0) {
+        results.push([direction]);
+      } else {
+        results.at(-1).push(direction);
+      }
+    }
+
+    return results.length > 0 ? results : [[]];
   }
 
   generateJoin(include, topLevelInfo, options) {
@@ -2463,78 +2528,83 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const subQueryOrder = [];
 
     if (Array.isArray(options.order)) {
-      for (let order of options.order) {
-        // wrap if not array
-        if (!Array.isArray(order)) {
-          order = [order];
-        }
+      for (const rawOrder of options.order) {
+        const normalizedOrder = Array.isArray(rawOrder) ? rawOrder : [rawOrder];
+        const orderEntries = this._splitOrderEntry(normalizedOrder);
 
-        const associationOrderInfo = this._getAssociationOrderInfo(order, model, options);
-
-        if (subQuery && associationOrderInfo?.include?.subQuery) {
-          const subOrder = [...order];
-          subQueryOrder.push(this.quote(subOrder, model, '->', options));
-        }
-
-        if (
-          subQuery &&
-          Array.isArray(order) &&
-          order[0] &&
-          !(order[0] instanceof Association) &&
-          !isModelStatic(order[0]) &&
-          !isModelStatic(order[0].model) &&
-          !(
-            typeof order[0] === 'string' &&
-            model &&
-            model.associations !== undefined &&
-            model.associations[order[0]]
-          )
-        ) {
-          // TODO - refactor this.quote() to not change the first argument
-          const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
-          const subQueryAlias = this._getAliasForField(model.name, columnName, options);
-
-          let parent = null;
-          let orderToQuote = [];
-
-          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
-          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
-          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
-          if (subQueryAlias === null) {
-            orderToQuote = order;
-            parent = model;
-          } else {
-            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
-            parent = null;
+        for (let order of orderEntries) {
+          if (!Array.isArray(order)) {
+            order = [order];
           }
 
-          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
-        }
+          const associationOrderInfo = this._getAssociationOrderInfo(order, model, options);
 
-        if (associationOrderInfo?.include?.subQuery) {
-          const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
-          const alias =
-            this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
-            aliasField;
-          const aliasLiteral = new Literal(this.quoteIdentifier(alias));
-
-          order.splice(0, associationOrderInfo.replaceCount, aliasLiteral);
-        }
-
-        // Handle case where renamed attributes are used to order by,
-        // see https://github.com/sequelize/sequelize/issues/8739
-        // need to check if either of the attribute options match the order
-        if (options.attributes && model) {
-          const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
-
-          if (aliasedAttribute) {
-            const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
-
-            order[0] = new Col(alias || aliasedAttribute[1]);
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
+            const subOrder = [...order];
+            subQueryOrder.push(this.quote(subOrder, model, '->', options));
           }
-        }
 
-        mainQueryOrder.push(this.quote(order, model, '->', options));
+          if (
+            subQuery &&
+            Array.isArray(order) &&
+            order[0] &&
+            !Array.isArray(order[0]) &&
+            !(order[0] instanceof Association) &&
+            !isModelStatic(order[0]) &&
+            !isModelStatic(order[0].model) &&
+            !(
+              typeof order[0] === 'string' &&
+              model &&
+              model.associations !== undefined &&
+              model.associations[order[0]]
+            )
+          ) {
+            // TODO - refactor this.quote() to not change the first argument
+            const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
+            const subQueryAlias = this._getAliasForField(model.name, columnName, options);
+
+            let parent = null;
+            let orderToQuote = [];
+
+            // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+            // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+            // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+            if (subQueryAlias === null) {
+              orderToQuote = order;
+              parent = model;
+            } else {
+              orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+              parent = null;
+            }
+
+            subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
+          }
+
+          if (associationOrderInfo?.include?.subQuery) {
+            const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
+            const alias =
+              this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
+              aliasField;
+            const aliasLiteral = new Literal(this.quoteIdentifier(alias));
+
+            order.splice(0, associationOrderInfo.replaceCount, aliasLiteral);
+          }
+
+          // Handle case where renamed attributes are used to order by,
+          // see https://github.com/sequelize/sequelize/issues/8739
+          // need to check if either of the attribute options match the order
+          if (options.attributes && model) {
+            const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
+
+            if (aliasedAttribute) {
+              const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
+
+              order[0] = new Col(alias || aliasedAttribute[1]);
+            }
+          }
+
+          mainQueryOrder.push(this.quote(order, model, '->', options));
+        }
       }
     } else if (options.order instanceof BaseSqlExpression) {
       const sql = this.quote(options.order, model, '->', options);
