@@ -130,6 +130,9 @@ export class PostgresDialect extends AbstractDialect<
       unquoted: true,
       quoted: true,
     },
+    operations: {
+      iLike: true,
+    },
     REGEXP: true,
     IREGEXP: true,
     searchPath: true,
