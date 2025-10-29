@@ -1,4 +1,4 @@
-import { DataTypes, Transaction } from '@sequelize/core';
+import { DataTypes, ParameterStyle, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
@@ -26,22 +26,37 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users);
+    await sequelize.queryInterface.bulkInsert(User.table, users, {
+      parameterStyle: ParameterStyle.BIND,
+    });
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
 
     expectPerDialect(() => firstCall, {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){999}\(\$sequelize_1000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
       ),
     });
+
+    if (!['db2', 'mssql'].includes(sequelize.dialect.name)) {
+      const firstArg = stub.getCall(0).args[1];
+      if (firstArg && typeof firstArg === 'object') {
+        expect(firstArg.bind).to.include({ sequelize_1: 'user0' });
+        expect(firstArg.bind).to.have.property('sequelize_1000', 'user999');
+      } else {
+        throw new Error('expected the first arg to be an object');
+      }
+    }
   });
 
   it('uses minimal insert queries when rows >1000', async () => {
@@ -50,17 +65,37 @@ describe('QueryInterface#bulkInsert', () => {
     const transaction = new Transaction(sequelize, {});
 
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, { transaction });
+    await sequelize.queryInterface.bulkInsert(User.table, users, {
+      transaction,
+      parameterStyle: ParameterStyle.BIND,
+    });
 
     expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0).args[0];
+    const firstCall = stub.getCall(0);
+    const firstOpts = firstCall.args[1];
+    if (firstOpts && typeof firstOpts === 'object') {
+      expect(firstOpts.transaction).to.equal(transaction);
+      if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
+        expect(firstOpts.bind ?? {}).to.deep.equal({});
+      } else {
+        expect(firstOpts).to.have.property('bind');
+        expect(Object.keys(firstOpts.bind || {})).to.have.lengthOf(2000);
+        expect(firstOpts.bind).to.include({ sequelize_1: 'user0' });
+        expect(firstOpts.bind).to.have.property('sequelize_2000', 'user1999');
+      }
+    } else {
+      throw new Error('expected the options to be passed as an object');
+    }
 
-    expectPerDialect(() => firstCall, {
+    expectPerDialect(() => firstCall.args[0], {
       default: toMatchRegex(
+        /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\);$/,
+      ),
+      db2: toMatchRegex(
         /^INSERT INTO (?:`|")Users(?:`|") \((?:`|")firstName(?:`|")\) VALUES (?:\('\w+'\),){1999}\('\w+'\);$/,
       ),
       ibmi: toMatchRegex(
-        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/,
+        /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\(\$sequelize_\d+\),){1999}\(\$sequelize_2000\)\)$/,
       ),
       mssql: toMatchRegex(
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
@@ -84,13 +119,14 @@ describe('QueryInterface#bulkInsert', () => {
         replacements: {
           injection: 'raw sql',
         },
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 
     expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0).args[0];
+    const firstCall = stub.getCall(0);
 
-    expectPerDialect(() => firstCall, {
+    expectPerDialect(() => firstCall.args[0], {
       default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
       'mysql mariadb sqlite3': toMatchSql(
         "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
