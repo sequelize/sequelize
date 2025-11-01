@@ -21,22 +21,24 @@ const onUpdateNotSupportedError = new Error(
 describe('QueryGenerator#addConstraintQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  it('throws an error if invalid type', () => {
-    expectsql(
-      () => {
-        return queryGenerator.addConstraintQuery('myTable', {
-          // @ts-expect-error -- We're testing invalid options
-          type: 'miss-typed',
-          fields: ['otherId'],
-        });
-      },
-      {
-        default: new Error(
-          `Constraint type miss-typed is not supported by ${dialect.name} dialect`,
-        ),
-        sqlite3: notSupportedError,
-      },
-    );
+  describe('error handling', () => {
+    it('throws an error if invalid type', () => {
+      expectsql(
+        () => {
+          return queryGenerator.addConstraintQuery('myTable', {
+            // @ts-expect-error -- We're testing invalid options
+            type: 'miss-typed',
+            fields: ['otherId'],
+          });
+        },
+        {
+          default: new Error(
+            `Constraint type miss-typed is not supported by ${dialect.name} dialect`,
+          ),
+          sqlite3: notSupportedError,
+        },
+      );
+    });
   });
 
   describe('CHECK constraints', () => {

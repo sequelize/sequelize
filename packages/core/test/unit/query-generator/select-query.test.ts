@@ -242,104 +242,106 @@ describe('QueryGenerator#selectQuery', () => {
     });
   });
 
-  it('supports querying for bigint values', () => {
-    const { Project } = vars;
+  describe('general query features', () => {
+    it('supports querying for bigint values', () => {
+      const { Project } = vars;
 
-    const sql = queryGenerator.selectQuery(
-      Project.table,
-      {
-        model: Project,
-        attributes: ['id'],
-        where: {
-          duration: { [Op.eq]: 9_007_199_254_740_993n },
+      const sql = queryGenerator.selectQuery(
+        Project.table,
+        {
+          model: Project,
+          attributes: ['id'],
+          where: {
+            duration: { [Op.eq]: 9_007_199_254_740_993n },
+          },
         },
-      },
-      Project,
-    );
+        Project,
+      );
 
-    expectsql(sql, {
-      default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Projects] AS [Project] WHERE [Project].[duration] = 9007199254740993;`,
+      });
     });
-  });
 
-  it('supports cast in attributes', () => {
-    const { User } = vars;
-
-    const sql = queryGenerator.selectQuery(
-      User.table,
-      {
-        model: User,
-        attributes: ['id', [cast(col('createdAt'), 'varchar'), 'createdAt']],
-      },
-      User,
-    );
-
-    expectsql(sql, {
-      default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
-    });
-  });
-
-  it('supports empty where object', () => {
-    const { User } = vars;
-
-    const sql = queryGenerator.selectQuery(
-      User.table,
-      {
-        model: User,
-        attributes: ['id'],
-        where: {},
-      },
-      User,
-    );
-
-    expectsql(sql, {
-      default: `SELECT [id] FROM [Users] AS [User];`,
-    });
-  });
-
-  it('escapes WHERE clause correctly', () => {
-    const { User } = vars;
-
-    const sql = queryGenerator.selectQuery(
-      User.table,
-      {
-        model: User,
-        attributes: ['id'],
-        where: { username: "foo';DROP TABLE mySchema.myTable;" },
-      },
-      User,
-    );
-
-    expectsql(sql, {
-      default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
-      'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
-      mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
-    });
-  });
-
-  if (
-    sequelize.dialect.supports.jsonOperations &&
-    sequelize.dialect.supports.jsonExtraction.quoted
-  ) {
-    it('accepts json paths in attributes', () => {
+    it('supports cast in attributes', () => {
       const { User } = vars;
 
       const sql = queryGenerator.selectQuery(
         User.table,
         {
           model: User,
-          attributes: [[attribute('data.email'), 'email']],
+          attributes: ['id', [cast(col('createdAt'), 'varchar'), 'createdAt']],
         },
         User,
       );
 
       expectsql(sql, {
-        postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
-        mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
-        'sqlite3 mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        default: `SELECT [id], CAST([createdAt] AS VARCHAR) AS [createdAt] FROM [Users] AS [User];`,
       });
     });
-  }
+
+    it('supports empty where object', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          where: {},
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User];`,
+      });
+    });
+
+    it('escapes WHERE clause correctly', () => {
+      const { User } = vars;
+
+      const sql = queryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          where: { username: "foo';DROP TABLE mySchema.myTable;" },
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
+        'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
+        mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
+      });
+    });
+
+    if (
+      sequelize.dialect.supports.jsonOperations &&
+      sequelize.dialect.supports.jsonExtraction.quoted
+    ) {
+      it('accepts json paths in attributes', () => {
+        const { User } = vars;
+
+        const sql = queryGenerator.selectQuery(
+          User.table,
+          {
+            model: User,
+            attributes: [[attribute('data.email'), 'email']],
+          },
+          User,
+        );
+
+        expectsql(sql, {
+          postgres: `SELECT "data"->'email' AS "email" FROM "Users" AS "User";`,
+          mariadb: `SELECT json_compact(json_extract(\`data\`,'$.email')) AS \`email\` FROM \`Users\` AS \`User\`;`,
+          'sqlite3 mysql': `SELECT json_extract([data],'$.email') AS [email] FROM [Users] AS [User];`,
+        });
+      });
+    }
+  });
 
   describe('replacements', () => {
     it('parses named replacements in literals', () => {

@@ -11,142 +11,151 @@ const dialectName = getTestDialect();
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
-  it('produces a query to create a table', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+  describe('basic table creation', () => {
+    it('produces a query to create a table', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+      });
+    });
+
+    it('produces a query to create a table from a model', () => {
+      const MyModel = sequelize.define('MyModel', {});
+
+      expectsql(queryGenerator.createTableQuery(MyModel, { myColumn: 'DATE' }), {
+        default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
+        mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+      });
+    });
+
+    it('produces a query to create a table from a model definition', () => {
+      const MyModel = sequelize.define('MyModel', {});
+      const myDefinition = MyModel.modelDefinition;
+
+      expectsql(queryGenerator.createTableQuery(myDefinition, { myColumn: 'DATE' }), {
+        default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
+        mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+      });
     });
   });
 
-  it('produces a query to create a table from a model', () => {
-    const MyModel = sequelize.define('MyModel', {});
-
-    expectsql(queryGenerator.createTableQuery(MyModel, { myColumn: 'DATE' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+  describe('schema handling', () => {
+    it('produces a query to create a table with schema in tableName object', () => {
+      expectsql(
+        queryGenerator.createTableQuery(
+          { tableName: 'myTable', schema: 'mySchema' },
+          { myColumn: 'DATE' },
+        ),
+        {
+          default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
+          'mariadb mysql':
+            'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+          mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
+          sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
+        },
+      );
     });
-  });
 
-  it('produces a query to create a table from a model definition', () => {
-    const MyModel = sequelize.define('MyModel', {});
-    const myDefinition = MyModel.modelDefinition;
-
-    expectsql(queryGenerator.createTableQuery(myDefinition, { myColumn: 'DATE' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [MyModels] ([myColumn] DATE);',
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `MyModels` (`myColumn` DATE) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[MyModels]', 'U') IS NULL CREATE TABLE [MyModels] ([myColumn] DATE);`,
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "MyModels" ("myColumn" DATE); END`,
+    it('produces a query to create a table with default schema in tableName object', () => {
+      expectsql(
+        queryGenerator.createTableQuery(
+          { tableName: 'myTable', schema: dialect.getDefaultSchema() },
+          { myColumn: 'DATE' },
+        ),
+        {
+          default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+          'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+        },
+      );
     });
-  });
 
-  it('produces a query to create a table with schema in tableName object', () => {
-    expectsql(
-      queryGenerator.createTableQuery(
-        { tableName: 'myTable', schema: 'mySchema' },
-        { myColumn: 'DATE' },
-      ),
-      {
+    it('produces a query to create a table from a table and globally set schema', () => {
+      const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
+      const queryGeneratorSchema = sequelizeSchema.queryGenerator;
+
+      expectsql(queryGeneratorSchema.createTableQuery('myTable', { myColumn: 'DATE' }), {
         default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
         mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
         sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
-      },
-    );
-  });
+      });
+    });
 
-  it('produces a query to create a table with default schema in tableName object', () => {
-    expectsql(
-      queryGenerator.createTableQuery(
-        { tableName: 'myTable', schema: dialect.getDefaultSchema() },
-        { myColumn: 'DATE' },
-      ),
-      {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
-        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
-        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
-      },
-    );
-  });
+    it('produces a query to create a table with schema and delimiter in tableName object', () => {
+      // This test is only relevant for dialects that do not support schemas
+      if (dialect.supports.schemas) {
+        return;
+      }
 
-  it('produces a query to create a table from a table and globally set schema', () => {
-    const sequelizeSchema = createSequelizeInstance({ schema: 'mySchema' });
-    const queryGeneratorSchema = sequelizeSchema.queryGenerator;
-
-    expectsql(queryGeneratorSchema.createTableQuery('myTable', { myColumn: 'DATE' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [mySchema].[myTable] ([myColumn] DATE);',
-      'mariadb mysql':
-        'CREATE TABLE IF NOT EXISTS `mySchema`.`myTable` (`myColumn` DATE) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[mySchema].[myTable]', 'U') IS NULL CREATE TABLE [mySchema].[myTable] ([myColumn] DATE);`,
-      sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchema.myTable` (`myColumn` DATE);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "mySchema"."myTable" ("myColumn" DATE); END`,
+      expectsql(
+        queryGenerator.createTableQuery(
+          { tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' },
+          { myColumn: 'DATE' },
+        ),
+        {
+          sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable` (`myColumn` DATE);',
+        },
+      );
     });
   });
 
-  it('produces a query to create a table with schema and delimiter in tableName object', () => {
-    // This test is only relevant for dialects that do not support schemas
-    if (dialect.supports.schemas) {
-      return;
-    }
-
-    expectsql(
-      queryGenerator.createTableQuery(
-        { tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' },
-        { myColumn: 'DATE' },
-      ),
-      {
-        sqlite3: 'CREATE TABLE IF NOT EXISTS `mySchemacustommyTable` (`myColumn` DATE);',
-      },
-    );
-  });
-
-  it('produces a query to create a table with multiple columns', () => {
-    expectsql(
-      queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }),
-      {
-        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
-        'mariadb mysql':
-          'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT) ENGINE=InnoDB;',
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT);`,
-        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT); END`,
-      },
-    );
-  });
-
-  it('produces a query to create a table with a primary key', () => {
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY' }), {
-      default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));',
-      'mariadb mysql':
-        'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
-      sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
-      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
+  describe('columns and data types', () => {
+    it('produces a query to create a table with multiple columns', () => {
+      expectsql(
+        queryGenerator.createTableQuery('myTable', { myColumn: 'DATE', secondColumn: 'TEXT' }),
+        {
+          default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT);',
+          'mariadb mysql':
+            'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT) ENGINE=InnoDB;',
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT);`,
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT); END`,
+        },
+      );
     });
   });
 
-  it('produces a query to create a table with multiple primary keys', () => {
-    expectsql(
-      queryGenerator.createTableQuery('myTable', {
-        myColumn: 'DATE PRIMARY KEY',
-        secondColumn: 'TEXT PRIMARY KEY',
-      }),
-      {
+  describe('primary keys', () => {
+    it('produces a query to create a table with a primary key', () => {
+      expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE PRIMARY KEY' }), {
         default:
-          'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));',
+          'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));',
         'mariadb mysql':
-          'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
-        sqlite3:
-          'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
-        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
-      },
-    );
+          'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, PRIMARY KEY (`myColumn`)) ENGINE=InnoDB;',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, PRIMARY KEY ([myColumn]));`,
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE PRIMARY KEY);',
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, PRIMARY KEY ("myColumn")); END`,
+      });
+    });
+
+    it('produces a query to create a table with multiple primary keys', () => {
+      expectsql(
+        queryGenerator.createTableQuery('myTable', {
+          myColumn: 'DATE PRIMARY KEY',
+          secondColumn: 'TEXT PRIMARY KEY',
+        }),
+        {
+          default:
+            'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));',
+          'mariadb mysql':
+            'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE, `secondColumn` TEXT, PRIMARY KEY (`myColumn`, `secondColumn`)) ENGINE=InnoDB;',
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE, [secondColumn] TEXT, PRIMARY KEY ([myColumn], [secondColumn]));`,
+          sqlite3:
+            'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE NOT NULL, `secondColumn` TEXT NOT NULL, PRIMARY KEY (`myColumn`, `secondColumn`));',
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE, "secondColumn" TEXT, PRIMARY KEY ("myColumn", "secondColumn")); END`,
+        },
+      );
+    });
   });
 
   // quoting the identifiers after REFERENCES is done by attributesToSQL

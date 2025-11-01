@@ -1,4 +1,5 @@
-import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { DataTypes, Model, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -6,7 +7,11 @@ describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define(
+    interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+      firstName: string | null;
+    }
+
+    const User = sequelize.define<TUser>(
       'User',
       {
         firstName: DataTypes.STRING,

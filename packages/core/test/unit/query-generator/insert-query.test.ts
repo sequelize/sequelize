@@ -1,4 +1,5 @@
-import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { DataTypes, Model, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -6,7 +7,11 @@ describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define(
+    interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+      firstName: string | null;
+    }
+
+    const User = sequelize.define<TUser>(
       'User',
       {
         firstName: DataTypes.STRING,
@@ -17,79 +22,97 @@ describe('QueryGenerator#insertQuery', () => {
     return { User };
   });
 
-  // you'll find more replacement tests in query-generator tests
-  it('parses named replacements in literals', () => {
-    const { User } = vars;
+  describe('replacements and bind parameters', () => {
+    // you'll find more replacement tests in query-generator tests
+    it('parses named replacements in literals', () => {
+      const { User } = vars;
 
-    const { query, bind } = queryGenerator.insertQuery(
-      User.table,
-      {
-        firstName: literal(':name'),
-      },
-      {},
-      {
-        replacements: {
-          name: 'Zoe',
+      const { query, bind } = queryGenerator.insertQuery(
+        User.table,
+        {
+          firstName: literal(':name'),
         },
-      },
-    );
+        {},
+        {
+          replacements: {
+            name: 'Zoe',
+          },
+        },
+      );
 
-    expectsql(query, {
-      default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
-      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
-      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'))`,
-    });
-    expect(bind).to.deep.eq({});
-  });
-
-  it('supports named bind parameters in literals', () => {
-    const { User } = vars;
-
-    const { query, bind } = queryGenerator.insertQuery(User.table, {
-      firstName: 'John',
-      lastName: literal('$lastName'),
-      username: 'jd',
+      expectsql(query, {
+        default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
+        mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
+        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'))`,
+      });
+      expect(bind).to.deep.eq({});
     });
 
-    expectsql(query, {
-      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
-      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
+    it('supports named bind parameters in literals', () => {
+      const { User } = vars;
+
+      const { query, bind } = queryGenerator.insertQuery(User.table, {
+        firstName: 'John',
+        lastName: literal('$lastName'),
+        username: 'jd',
+      });
+
+      expectsql(query, {
+        default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
+        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
+      });
+
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: 'jd',
+      });
     });
 
-    expect(bind).to.deep.eq({
-      sequelize_1: 'John',
-      sequelize_2: 'jd',
+    it('parses positional bind parameters in literals', () => {
+      const { User } = vars;
+
+      const { query, bind } = queryGenerator.insertQuery(User.table, {
+        firstName: 'John',
+        lastName: literal('$1'),
+        username: 'jd',
+      });
+
+      // lastName's bind position being changed from $1 to $2 is intentional: bind array order must match their order in the query in some dialects.
+      expectsql(query, {
+        default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
+        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: 'jd',
+      });
     });
-  });
 
-  it('parses positional bind parameters in literals', () => {
-    const { User } = vars;
+    it('throws an error if the bindParam option is used', () => {
+      const { User } = vars;
 
-    const { query, bind } = queryGenerator.insertQuery(User.table, {
-      firstName: 'John',
-      lastName: literal('$1'),
-      username: 'jd',
+      expect(() => {
+        queryGenerator.insertQuery(
+          User.table,
+          {
+            firstName: 'John',
+            lastName: literal('$1'),
+            username: 'jd',
+          },
+          {},
+          // @ts-expect-error -- intentionally testing deprecated option
+          { bindParam: false },
+        );
+      }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
     });
 
-    // lastName's bind position being changed from $1 to $2 is intentional: bind array order must match their order in the query in some dialects.
-    expectsql(query, {
-      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
-      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
-    });
-    expect(bind).to.deep.eq({
-      sequelize_1: 'John',
-      sequelize_2: 'jd',
-    });
-  });
+    it('parses bind parameters in literals even with parameterStyle: REPLACEMENT', () => {
+      const { User } = vars;
 
-  it('throws an error if the bindParam option is used', () => {
-    const { User } = vars;
-
-    expect(() => {
-      queryGenerator.insertQuery(
+      const { query, bind } = queryGenerator.insertQuery(
         User.table,
         {
           firstName: 'John',
@@ -97,56 +120,42 @@ describe('QueryGenerator#insertQuery', () => {
           username: 'jd',
         },
         {},
-        // @ts-expect-error -- intentionally testing deprecated option
-        { bindParam: false },
+        {
+          parameterStyle: ParameterStyle.REPLACEMENT,
+        },
       );
-    }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
+
+      expectsql(query, {
+        default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
+        mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
+        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'));`,
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
+      });
+      expect(bind).to.be.undefined;
+    });
   });
 
-  it('parses bind parameters in literals even with parameterStyle: REPLACEMENT', () => {
-    const { User } = vars;
+  describe('value binding', () => {
+    // This test was added due to a regression where these values were being converted to strings
+    it('binds number values', () => {
+      if (!sequelize.dialect.supports.dataTypes.ARRAY) {
+        return;
+      }
 
-    const { query, bind } = queryGenerator.insertQuery(
-      User.table,
-      {
-        firstName: 'John',
-        lastName: literal('$1'),
-        username: 'jd',
-      },
-      {},
-      {
-        parameterStyle: ParameterStyle.REPLACEMENT,
-      },
-    );
+      const { User } = vars;
 
-    expectsql(query, {
-      default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
-      mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
-      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'));`,
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
-    });
-    expect(bind).to.be.undefined;
-  });
+      const { query, bind } = queryGenerator.insertQuery(User.tableName, {
+        numbers: [1, 2, 3],
+      });
 
-  // This test was added due to a regression where these values were being converted to strings
-  it('binds number values', () => {
-    if (!sequelize.dialect.supports.dataTypes.ARRAY) {
-      return;
-    }
-
-    const { User } = vars;
-
-    const { query, bind } = queryGenerator.insertQuery(User.tableName, {
-      numbers: [1, 2, 3],
-    });
-
-    expectsql(query, {
-      default: `INSERT INTO "Users" ([numbers]) VALUES ($sequelize_1);`,
-      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1));`,
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1))`,
-    });
-    expect(bind).to.deep.eq({
-      sequelize_1: [1, 2, 3],
+      expectsql(query, {
+        default: `INSERT INTO "Users" ([numbers]) VALUES ($sequelize_1);`,
+        db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1));`,
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("numbers") VALUES ($sequelize_1))`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: [1, 2, 3],
+      });
     });
   });
 

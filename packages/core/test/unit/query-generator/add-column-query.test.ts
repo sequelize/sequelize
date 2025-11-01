@@ -1,4 +1,5 @@
-import { DataTypes } from '@sequelize/core';
+import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import { DataTypes, Model } from '@sequelize/core';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
 
@@ -8,7 +9,11 @@ describe('QueryGenerator#addColumnQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
   const vars = beforeAll2(() => {
-    const User = sequelize.define(
+    interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+      firstName: string | null;
+    }
+
+    const User = sequelize.define<TUser>(
       'User',
       {
         firstName: DataTypes.STRING,
