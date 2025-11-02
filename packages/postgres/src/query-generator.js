@@ -261,8 +261,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
-    if (attribute.unique === true) {
-      sql += ' UNIQUE';
+    if (attribute.unique === true && !(options?.uniqueKeys && Object.values(options.uniqueKeys)
+        .some(u => u.fields.includes(attribute.field || options.key)))) {
+      sql += " UNIQUE";
     }
 
     if (attribute.primaryKey) {
