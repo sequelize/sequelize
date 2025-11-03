@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     if (dialect === 'postgres' || dialect === 'postgres-native') {
       describe('unique constraint duplication fix', () => {
         it('should not create duplicate unique constraints on repeated alter syncs', async function () {
-          const User = this.sequelize.define('UserUniqueTest', {
+          const ignoreUser = this.sequelize.define('UserUniqueTest', {
             email: {
               type: DataTypes.STRING,
               unique: true,
@@ -300,7 +300,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
     }
-
 
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.
@@ -584,7 +583,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(userRows).to.have.length(users.length, 'user records should be unaffected');
       });
-      
     }
   });
 });

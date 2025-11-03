@@ -207,7 +207,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
     const model = Object.values(this.sequelize.models).find(
-      m => m.tableName === (tableName.tableName || tableName)
+      m =>
+        m.tableName === (tableName.tableName || tableName) &&
+        m.table.schema === (tableName.schema || null),
     );
 
     const query = this.queryGenerator.attributesToSQL(
@@ -217,7 +219,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       {
         context: 'changeColumn',
         table: tableName,
-        uniqueKeys: model?.uniqueKeys 
+        uniqueKeys: model?.uniqueKeys,
       },
     );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
