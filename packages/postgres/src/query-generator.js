@@ -261,15 +261,29 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
-    if (
-      attribute.unique === true &&
-      !(
-        options?.uniqueKeys &&
-        Object.values(options.uniqueKeys).some(u =>
-          u.fields.includes(attribute.field || options.key),
-        )
-      )
-    ) {
+    const inlineUniqueField = attribute.field ?? options.key;
+    const hasExistingUniqueKey =
+      options?.uniqueKeys &&
+      Object.values(options.uniqueKeys).some(uniqueKey =>
+        uniqueKey.fields.some(field => {
+          if (typeof field === 'string') {
+            return field === inlineUniqueField;
+          }
+
+          if (field && typeof field === 'object') {
+            return (
+              field.attribute === options.key ||
+              field.name === inlineUniqueField ||
+              field.field === inlineUniqueField ||
+              field.column === inlineUniqueField
+            );
+          }
+
+          return false;
+        }),
+      );
+
+    if (attribute.unique === true && !hasExistingUniqueKey) {
       sql += ' UNIQUE';
     }
 
