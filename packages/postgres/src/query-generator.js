@@ -272,7 +272,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
           if (field && typeof field === 'object') {
             return (
-              field.attribute === options.key ||
+              field.attribute === inlineUniqueField ||
               field.name === inlineUniqueField ||
               field.field === inlineUniqueField ||
               field.column === inlineUniqueField
