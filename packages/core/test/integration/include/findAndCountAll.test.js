@@ -427,5 +427,80 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result.count).to.equal(2);
       expect(result.rows.length).to.equal(1);
     });
+
+    it('supports nested required includes under an optional include when using findAndCountAll', async function () {
+      const sequelize = this.sequelize;
+      const Parents = sequelize.define('Parents', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        name: DataTypes.TEXT,
+      });
+
+      const Children = sequelize.define('Children', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        parentId: {
+          type: DataTypes.INTEGER,
+          references: {
+            model: Parents,
+            key: 'id',
+          },
+        },
+      });
+
+      const GrandChildren = sequelize.define('GrandChildren', {
+        id: {
+          type: DataTypes.INTEGER,
+          autoIncrement: true,
+          primaryKey: true,
+        },
+        parentId: {
+          type: DataTypes.INTEGER,
+          references: {
+            model: Children,
+            key: 'id',
+          },
+        },
+      });
+
+      Parents.hasMany(Children, { as: 'children', foreignKey: 'parentId' });
+      Children.belongsTo(Parents, { as: 'parent', foreignKey: 'parentId' });
+      Children.hasMany(GrandChildren, { as: 'grandChildren', foreignKey: 'parentId' });
+      GrandChildren.belongsTo(Children, { as: 'parent', foreignKey: 'parentId' });
+
+      await sequelize.sync({ force: true });
+      const createdParent = await Parents.create({ name: 'Parent' });
+      const createdChild = await Children.create({ parentId: createdParent.id });
+      await GrandChildren.create({ parentId: createdChild.id });
+
+      const result = await Parents.findAndCountAll({
+        include: [
+          {
+            model: Children,
+            as: 'children',
+            required: false,
+            include: [
+              {
+                model: GrandChildren,
+                as: 'grandChildren',
+                required: true,
+              },
+            ],
+          },
+        ],
+        limit: 1,
+      });
+
+      expect(result.count).to.equal(1);
+      expect(result.rows.length).to.equal(1);
+      expect(result.rows[0].children.length).to.equal(1);
+      expect(result.rows[0].children[0].grandChildren.length).to.equal(1);
+    });
   });
 });
