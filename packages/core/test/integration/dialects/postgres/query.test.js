@@ -7,8 +7,7 @@ const Support = require('../../support');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
-const { DatabaseError, DataTypes } = require('@sequelize/core');
-const { Op } = require('@sequelize/core');
+const { DatabaseError, DataTypes, Op } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
