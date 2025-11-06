@@ -4,7 +4,6 @@ import NodeUtil from 'node:util';
 import { QueryTypes } from '../enums';
 import { AbstractDataType } from './data-types';
 
-import chain from 'lodash/chain';
 import findKey from 'lodash/findKey';
 import isEmpty from 'lodash/isEmpty';
 import reduce from 'lodash/reduce';
@@ -12,6 +11,32 @@ import reduce from 'lodash/reduce';
 const Dot = require('dottie');
 const deprecations = require('../utils/deprecations');
 const crypto = require('node:crypto');
+
+const uniqueKeyAttributesCache = new WeakMap();
+
+const getUniqueKeyAttributes = model => {
+  const cached = uniqueKeyAttributesCache.get(model);
+  if (cached) {
+    return cached;
+  }
+
+  const uniqueKeys = model.uniqueKeys;
+  let uniqueKeyAttributes = [];
+
+  if (!isEmpty(uniqueKeys)) {
+    const [firstUniqueKeyName] = Object.keys(uniqueKeys);
+    const uniqueKey = firstUniqueKeyName ? uniqueKeys[firstUniqueKeyName] : undefined;
+    const fields = uniqueKey?.fields ?? [];
+
+    uniqueKeyAttributes = fields.map(field =>
+      findKey(model.attributes, attribute => attribute.field === field),
+    );
+  }
+
+  uniqueKeyAttributesCache.set(model, uniqueKeyAttributes);
+
+  return uniqueKeyAttributes;
+};
 
 export class AbstractQuery {
   constructor(connection, sequelize, options) {
@@ -488,6 +513,8 @@ export class AbstractQuery {
     let $lastKeyPrefix;
     let $current;
     let $parent;
+    let prefixHashCache;
+    let getHashesForPrefix;
     // Map each key to an include option
     let previousPiece;
     const buildIncludeMap = piece => {
@@ -556,20 +583,9 @@ export class AbstractQuery {
     // sort the array by the level of their depth calculated by dot.
     const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
 
-    const getUniqueKeyAttributes = model => {
-      let uniqueKeyAttributes = chain(model.uniqueKeys);
-      uniqueKeyAttributes = uniqueKeyAttributes
-        .result(`${uniqueKeyAttributes.findKey()}.fields`)
-        .map(field => findKey(model.attributes, chr => chr.field === field))
-        .value();
-
-      return uniqueKeyAttributes;
-    };
-
     const stringify = obj => (obj instanceof Buffer ? obj.toString('hex') : obj);
     let primaryKeyAttributes;
     let uniqueKeyAttributes;
-    let prefix;
 
     for (rowsI = 0; rowsI < rowsLength; rowsI++) {
       row = rows[rowsI];
@@ -598,6 +614,52 @@ export class AbstractQuery {
             topHash += row[uniqueKeyAttributes[$i]];
           }
         }
+
+        // Memoize prefix hashes per row so nested lookups reuse the same computed string
+        prefixHashCache = new Map();
+        const topHashEntry = { itemHash: topHash, parentHash: null };
+        prefixHashCache.set('', topHashEntry);
+        getHashesForPrefix = prefix => {
+          if (prefix === '') {
+            return topHashEntry;
+          }
+
+          let cached = prefixHashCache.get(prefix);
+          if (cached) {
+            return cached;
+          }
+
+          const include = includeMap[prefix];
+          primaryKeyAttributes = include.model.primaryKeyAttributes;
+          let hash = prefix;
+          $length = primaryKeyAttributes.length;
+
+          if ($length === 1) {
+            hash += stringify(row[`${prefix}.${primaryKeyAttributes[0]}`]);
+          } else if ($length > 1) {
+            for ($i = 0; $i < $length; $i++) {
+              hash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
+            }
+          } else if (!isEmpty(include.model.uniqueKeys)) {
+            uniqueKeyAttributes = getUniqueKeyAttributes(include.model);
+            for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
+              hash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
+            }
+          }
+
+          const parentPrefixIndex = prefix.lastIndexOf('.');
+          const parentPrefix = parentPrefixIndex === -1 ? '' : prefix.slice(0, parentPrefixIndex);
+          const parentHashes = getHashesForPrefix(parentPrefix);
+          const parentHashValue = parentHashes.itemHash;
+
+          cached = {
+            itemHash: parentHashValue + hash,
+            parentHash: parentHashValue,
+          };
+          prefixHashCache.set(prefix, cached);
+
+          return cached;
+        };
       }
 
       topValues = values = {};
@@ -625,40 +687,14 @@ export class AbstractQuery {
         if ($prevKeyPrefix !== undefined && $prevKeyPrefix !== $keyPrefix) {
           if (checkExisting) {
             // Compute hash key for this set instance
-            // TODO: Optimize
             length = $prevKeyPrefix.length;
-            $parent = null;
             parentHash = null;
-
             if (length) {
-              for (i = 0; i < length; i++) {
-                prefix = $parent ? `${$parent}.${$prevKeyPrefix[i]}` : $prevKeyPrefix[i];
-                primaryKeyAttributes = includeMap[prefix].model.primaryKeyAttributes;
-                $length = primaryKeyAttributes.length;
-                itemHash = prefix;
-                if ($length === 1) {
-                  itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[0]}`]);
-                } else if ($length > 1) {
-                  for ($i = 0; $i < $length; $i++) {
-                    itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
-                  }
-                } else if (!isEmpty(includeMap[prefix].model.uniqueKeys)) {
-                  uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
-                  for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
-                    itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
-                  }
-                }
+              const prefixString = $prevKeyPrefix.join('.');
+              const hashes = getHashesForPrefix(prefixString);
 
-                if (!parentHash) {
-                  parentHash = topHash;
-                }
-
-                itemHash = parentHash + itemHash;
-                $parent = prefix;
-                if (i < length - 1) {
-                  parentHash = itemHash;
-                }
-              }
+              itemHash = hashes.itemHash;
+              parentHash = hashes.parentHash;
             } else {
               itemHash = topHash;
             }
@@ -718,34 +754,11 @@ export class AbstractQuery {
         parentHash = null;
 
         if (length) {
-          for (i = 0; i < length; i++) {
-            prefix = $parent ? `${$parent}.${$prevKeyPrefix[i]}` : $prevKeyPrefix[i];
-            primaryKeyAttributes = includeMap[prefix].model.primaryKeyAttributes;
-            $length = primaryKeyAttributes.length;
-            itemHash = prefix;
-            if ($length === 1) {
-              itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[0]}`]);
-            } else if ($length > 0) {
-              for ($i = 0; $i < $length; $i++) {
-                itemHash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
-              }
-            } else if (!isEmpty(includeMap[prefix].model.uniqueKeys)) {
-              uniqueKeyAttributes = getUniqueKeyAttributes(includeMap[prefix].model);
-              for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
-                itemHash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
-              }
-            }
+          const prefixString = $prevKeyPrefix.join('.');
+          const hashes = getHashesForPrefix(prefixString);
 
-            if (!parentHash) {
-              parentHash = topHash;
-            }
-
-            itemHash = parentHash + itemHash;
-            $parent = prefix;
-            if (i < length - 1) {
-              parentHash = itemHash;
-            }
-          }
+          itemHash = hashes.itemHash;
+          parentHash = hashes.parentHash;
         } else {
           itemHash = topHash;
         }
