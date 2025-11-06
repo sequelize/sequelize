@@ -495,7 +495,10 @@ export class AbstractQuery {
     let key;
     let keyI;
     let keyLength;
-    let prevKey;
+    let keyMeta;
+    let prefixMeta;
+    let meta;
+    let prevMeta;
     let values;
     let topValues;
     let topExists;
@@ -508,78 +511,11 @@ export class AbstractQuery {
     const resultMap = {};
     const includeMap = {};
     // Result variables for the respective functions
-    let $keyPrefix;
-    let $prevKeyPrefix;
-    let $lastKeyPrefix;
     let $current;
     let $parent;
     let prefixHashCache;
     let getHashesForPrefix;
     // Map each key to an include option
-    let previousPiece;
-    const buildIncludeMap = piece => {
-      if (Object.hasOwn($current.includeMap, piece)) {
-        includeMap[key] = $current = $current.includeMap[piece];
-        if (previousPiece) {
-          previousPiece = `${previousPiece}.${piece}`;
-        } else {
-          previousPiece = piece;
-        }
-
-        includeMap[previousPiece] = $current;
-      }
-    };
-
-    // Calculate the string prefix of a key ('User.Results' for 'User.Results.id')
-    const keyPrefixStringMemo = {};
-    const keyPrefixString = (key, memo) => {
-      if (!Object.hasOwn(memo, key)) {
-        memo[key] = key.slice(0, Math.max(0, key.lastIndexOf('.')));
-      }
-
-      return memo[key];
-    };
-
-    // Removes the prefix from a key ('id' for 'User.Results.id')
-    const removeKeyPrefixMemo = {};
-    const removeKeyPrefix = key => {
-      if (!Object.hasOwn(removeKeyPrefixMemo, key)) {
-        const index = key.lastIndexOf('.');
-        removeKeyPrefixMemo[key] = key.slice(index === -1 ? 0 : index + 1);
-      }
-
-      return removeKeyPrefixMemo[key];
-    };
-
-    // Calculates the array prefix of a key (['User', 'Results'] for 'User.Results.id')
-    const keyPrefixMemo = {};
-    const keyPrefix = key => {
-      // We use a double memo and keyPrefixString so that different keys with the same prefix will receive the same array instead of differnet arrays with equal values
-      if (!Object.hasOwn(keyPrefixMemo, key)) {
-        const prefixString = keyPrefixString(key, keyPrefixStringMemo);
-        if (!Object.hasOwn(keyPrefixMemo, prefixString)) {
-          keyPrefixMemo[prefixString] = prefixString ? prefixString.split('.') : [];
-        }
-
-        keyPrefixMemo[key] = keyPrefixMemo[prefixString];
-      }
-
-      return keyPrefixMemo[key];
-    };
-
-    // Calcuate the last item in the array prefix ('Results' for 'User.Results.id')
-    const lastKeyPrefixMemo = {};
-    const lastKeyPrefix = key => {
-      if (!Object.hasOwn(lastKeyPrefixMemo, key)) {
-        const prefix = keyPrefix(key);
-        const length = prefix.length;
-
-        lastKeyPrefixMemo[key] = !length ? '' : prefix[length - 1];
-      }
-
-      return lastKeyPrefixMemo[key];
-    };
-
     // sort the array by the level of their depth calculated by dot.
     const sortByDepth = keys => keys.sort((a, b) => a.split('.').length - b.split('.').length);
 
@@ -594,6 +530,80 @@ export class AbstractQuery {
       if (rowsI === 0) {
         keys = sortByDepth(Object.keys(row));
         keyLength = keys.length;
+        keyMeta = [];
+        prefixMeta = new Map();
+        const prefixPartsCache = new Map();
+
+        for (const rawKey of keys) {
+          const lastDotIndex = rawKey.lastIndexOf('.');
+          const prefixId = lastDotIndex === -1 ? '' : rawKey.slice(0, lastDotIndex);
+          let prefixParts = prefixPartsCache.get(prefixId);
+          if (!prefixParts) {
+            prefixParts = prefixId ? prefixId.split('.') : [];
+            prefixPartsCache.set(prefixId, prefixParts);
+          }
+
+          const prefixLength = prefixParts.length;
+          const attribute = lastDotIndex === -1 ? rawKey : rawKey.slice(lastDotIndex + 1);
+          const lastKeySegment = prefixLength ? prefixParts[prefixLength - 1] : '';
+
+          if (!Object.hasOwn(includeMap, rawKey)) {
+            if (prefixLength === 0) {
+              includeMap[rawKey] = includeOptions;
+              includeMap[''] = includeOptions;
+            } else {
+              let currentInclude = includeOptions;
+              let previousPiece;
+              let resolvedInclude;
+
+              for (const piece of prefixParts) {
+                if (!Object.hasOwn(currentInclude.includeMap, piece)) {
+                  resolvedInclude = undefined;
+                  break;
+                }
+
+                currentInclude = currentInclude.includeMap[piece];
+                resolvedInclude = currentInclude;
+                previousPiece = previousPiece ? `${previousPiece}.${piece}` : piece;
+                includeMap[previousPiece] = currentInclude;
+              }
+
+              if (resolvedInclude) {
+                includeMap[rawKey] = resolvedInclude;
+              }
+            }
+          }
+
+          const includeForKey = includeMap[rawKey];
+          const parentPrefixId =
+            prefixLength === 0
+              ? ''
+              : prefixId.slice(0, Math.max(0, prefixId.lastIndexOf('.'))) || '';
+          const primaryKeyAttributes = includeForKey?.model.primaryKeyAttributes ?? [];
+          const hasUniqueKeys = includeForKey ? !isEmpty(includeForKey.model.uniqueKeys) : false;
+          const uniqueKeyAttributes = hasUniqueKeys
+            ? getUniqueKeyAttributes(includeForKey.model)
+            : [];
+
+          const metaEntry = {
+            key: rawKey,
+            attribute,
+            prefixParts,
+            prefixLength,
+            prefixId,
+            lastKeySegment,
+            include: includeForKey,
+            parentPrefixId,
+            primaryKeyAttributes,
+            uniqueKeyAttributes,
+          };
+
+          keyMeta.push(metaEntry);
+
+          if (!prefixMeta.has(prefixId)) {
+            prefixMeta.set(prefixId, metaEntry);
+          }
+        }
       }
 
       if (checkExisting) {
@@ -630,7 +640,10 @@ export class AbstractQuery {
           }
 
           const include = includeMap[prefix];
-          primaryKeyAttributes = include.model.primaryKeyAttributes;
+          const prefixInfo = prefixMeta.get(prefix);
+          primaryKeyAttributes = prefixInfo
+            ? prefixInfo.primaryKeyAttributes
+            : include.model.primaryKeyAttributes;
           let hash = prefix;
           $length = primaryKeyAttributes.length;
 
@@ -640,8 +653,12 @@ export class AbstractQuery {
             for ($i = 0; $i < $length; $i++) {
               hash += stringify(row[`${prefix}.${primaryKeyAttributes[$i]}`]);
             }
-          } else if (!isEmpty(include.model.uniqueKeys)) {
-            uniqueKeyAttributes = getUniqueKeyAttributes(include.model);
+          } else {
+            uniqueKeyAttributes = prefixInfo ? prefixInfo.uniqueKeyAttributes : [];
+            if (!uniqueKeyAttributes.length && !prefixInfo && !isEmpty(include.model.uniqueKeys)) {
+              uniqueKeyAttributes = getUniqueKeyAttributes(include.model);
+            }
+
             for ($i = 0; $i < uniqueKeyAttributes.length; $i++) {
               hash += row[`${prefix}.${uniqueKeyAttributes[$i]}`];
             }
@@ -663,35 +680,19 @@ export class AbstractQuery {
       }
 
       topValues = values = {};
-      $prevKeyPrefix = undefined;
+      prevMeta = undefined;
       for (keyI = 0; keyI < keyLength; keyI++) {
         key = keys[keyI];
-
-        // The string prefix isn't actualy needed
-        // We use it so keyPrefix for different keys will resolve to the same array if they have the same prefix
-        // TODO: Find a better way?
-        $keyPrefix = keyPrefix(key);
-
-        // On the first row we compute the includeMap
-        if (rowsI === 0 && !Object.hasOwn(includeMap, key)) {
-          if ($keyPrefix.length === 0) {
-            includeMap[key] = includeMap[''] = includeOptions;
-          } else {
-            $current = includeOptions;
-            previousPiece = undefined;
-            $keyPrefix.forEach(buildIncludeMap);
-          }
-        }
+        meta = keyMeta[keyI];
 
         // End of key set
-        if ($prevKeyPrefix !== undefined && $prevKeyPrefix !== $keyPrefix) {
+        if (prevMeta && prevMeta.prefixParts !== meta.prefixParts) {
           if (checkExisting) {
             // Compute hash key for this set instance
-            length = $prevKeyPrefix.length;
+            length = prevMeta.prefixLength;
             parentHash = null;
             if (length) {
-              const prefixString = $prevKeyPrefix.join('.');
-              const hashes = getHashesForPrefix(prefixString);
+              const hashes = getHashesForPrefix(prevMeta.prefixId);
 
               itemHash = hashes.itemHash;
               parentHash = hashes.parentHash;
@@ -707,18 +708,18 @@ export class AbstractQuery {
               }
             } else if (!resultMap[itemHash]) {
               $parent = resultMap[parentHash];
-              $lastKeyPrefix = lastKeyPrefix(prevKey);
+              const lastKeySegment = prevMeta.lastKeySegment;
 
-              if (includeMap[prevKey].association.isSingleAssociation) {
+              if (prevMeta.include.association.isSingleAssociation) {
                 if ($parent) {
-                  $parent[$lastKeyPrefix] = resultMap[itemHash] = values;
+                  $parent[lastKeySegment] = resultMap[itemHash] = values;
                 }
               } else {
-                if (!$parent[$lastKeyPrefix]) {
-                  $parent[$lastKeyPrefix] = [];
+                if (!$parent[lastKeySegment]) {
+                  $parent[lastKeySegment] = [];
                 }
 
-                $parent[$lastKeyPrefix].push((resultMap[itemHash] = values));
+                $parent[lastKeySegment].push((resultMap[itemHash] = values));
               }
             }
 
@@ -729,33 +730,32 @@ export class AbstractQuery {
             // However we still need to map onto the appropriate parent
             // For 1:1 we map forward, initializing the value object on the parent to be filled in the next iterations of the loop
             $current = topValues;
-            length = $keyPrefix.length;
+            length = meta.prefixLength;
             if (length) {
-              for (i = 0; i < length; i++) {
+              const prefixParts = meta.prefixParts;
+              for (const part of prefixParts) {
                 if (i === length - 1) {
-                  values = $current[$keyPrefix[i]] = {};
+                  values = $current[part] = {};
                 }
 
-                $current = $current[$keyPrefix[i]] || {};
+                $current = $current[part] || {};
               }
             }
           }
         }
 
         // End of iteration, set value and set prev values (for next iteration)
-        values[removeKeyPrefix(key)] = row[key];
-        prevKey = key;
-        $prevKeyPrefix = $keyPrefix;
+        values[meta.attribute] = row[key];
+        prevMeta = meta;
       }
 
       if (checkExisting) {
-        length = $prevKeyPrefix.length;
+        length = prevMeta.prefixLength;
         $parent = null;
         parentHash = null;
 
         if (length) {
-          const prefixString = $prevKeyPrefix.join('.');
-          const hashes = getHashesForPrefix(prefixString);
+          const hashes = getHashesForPrefix(prevMeta.prefixId);
 
           itemHash = hashes.itemHash;
           parentHash = hashes.parentHash;
@@ -771,9 +771,9 @@ export class AbstractQuery {
           }
         } else if (!resultMap[itemHash]) {
           $parent = resultMap[parentHash];
-          $lastKeyPrefix = lastKeyPrefix(prevKey);
+          const $lastKeyPrefix = prevMeta.lastKeySegment;
 
-          if (includeMap[prevKey].association.isSingleAssociation) {
+          if (prevMeta.include.association.isSingleAssociation) {
             if ($parent) {
               $parent[$lastKeyPrefix] = resultMap[itemHash] = values;
             }
