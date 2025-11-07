@@ -1,4 +1,4 @@
-// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-internal.js';

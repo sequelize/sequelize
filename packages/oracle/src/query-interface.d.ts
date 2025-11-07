@@ -1,4 +1,4 @@
-// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryInterfaceTypescript } from './query-interface-typescript.internal.ts';

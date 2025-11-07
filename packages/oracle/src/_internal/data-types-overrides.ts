@@ -1,4 +1,4 @@
-// Copyright (c) 2024, Oracle and/or its affiliates. All rights reserved
+// Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import type { AbstractDialect, BindParamOptions } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
