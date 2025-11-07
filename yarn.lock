@@ -3249,6 +3249,7 @@ __metadata:
     "@rushstack/eslint-patch": "npm:1.14.0"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
+    "@types/dottie": "npm:^2.0.7"
     "@types/lodash": "npm:4.17.20"
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.13.10"
@@ -4297,6 +4298,13 @@ __metadata:
   version: 4.0.2
   resolution: "@types/deep-eql@npm:4.0.2"
   checksum: 10c0/bf3f811843117900d7084b9d0c852da9a044d12eb40e6de73b552598a6843c21291a8a381b0532644574beecd5e3491c5ff3a0365ab86b15d59862c025384844
+  languageName: node
+  linkType: hard
+
+"@types/dottie@npm:^2.0.7":
+  version: 2.0.7
+  resolution: "@types/dottie@npm:2.0.7"
+  checksum: 10c0/754626aceccdbcccf1d194688b5298ab13a2bc90e8538615149c59e560318a4602115a56692ed09af21f90426030f1a8c905474736b63bf545fff2a23a086abe
   languageName: node
   linkType: hard
 
