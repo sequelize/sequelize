@@ -144,7 +144,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (parameterStyle === ParameterStyle.BIND) {
       bind =
         this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
-      bindParam = createBindParamGenerator(bind);
+      bindParam = createBindParamGenerator(bind, this.dialect);
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -478,7 +478,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (parameterStyle === ParameterStyle.BIND) {
       bind = Object.create(null);
-      bindParam = createBindParamGenerator(bind);
+      bindParam = createBindParamGenerator(bind, this.dialect);
     }
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
