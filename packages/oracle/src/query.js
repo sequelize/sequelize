@@ -203,6 +203,7 @@ export class OracleQuery extends AbstractQuery {
           outFormat: this.outFormat,
           autoCommit: this.autoCommit,
         });
+
         return this.formatResults(result);
       } catch (error) {
         throw this.formatError(error);

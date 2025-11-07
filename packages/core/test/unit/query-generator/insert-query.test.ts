@@ -301,7 +301,6 @@ describe('QueryGenerator#insertQuery', () => {
             'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
-          //oracle: `INSERT INTO "myTable" ("positive","negative") VALUES (:1,:2);`,
         },
         bind: {
           sqlite3: {
@@ -354,7 +353,6 @@ describe('QueryGenerator#insertQuery', () => {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
         'db2 ibmi':
           'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
-        //oracle: `INSERT INTO "myTable" ("value","name") VALUES (:1,:2);`,
       });
 
       expect(bind).to.deep.eq({
