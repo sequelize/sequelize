@@ -57,7 +57,6 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$lastName,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$lastName,$sequelize_2))`,
-      oracle: `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:1,$lastName,:2);`,
     });
 
     expect(bind).to.deep.eq({
@@ -80,7 +79,6 @@ describe('QueryGenerator#insertQuery', () => {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ($sequelize_1,$1,$sequelize_2);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ($sequelize_1,$1,$sequelize_2))`,
-      oracle: `INSERT INTO "Users" ("firstName","lastName","username") VALUES (:1,$1,:2);`,
     });
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
@@ -178,7 +176,7 @@ describe('QueryGenerator#insertQuery', () => {
           'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
-        oracle: `INSERT INTO "Users" ("firstName") VALUES (:1) RETURNING "id", "firstName" INTO :2,:3;`,
+        oracle: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING "id", "firstName" INTO :2,:3;`,
       });
     });
 
@@ -261,7 +259,7 @@ describe('QueryGenerator#insertQuery', () => {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
-          oracle: `INSERT INTO "myTable" ("birthday") VALUES (:1);`,
+          oracle: `INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1);`,
         },
         bind: {
           mysql: {
@@ -303,7 +301,7 @@ describe('QueryGenerator#insertQuery', () => {
             'INSERT INTO [myTable] ([positive],[negative]) VALUES ($sequelize_1,$sequelize_2);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("positive","negative") VALUES ($sequelize_1,$sequelize_2));',
-          oracle: `INSERT INTO "myTable" ("positive","negative") VALUES (:1,:2);`,
+          //oracle: `INSERT INTO "myTable" ("positive","negative") VALUES (:1,:2);`,
         },
         bind: {
           sqlite3: {
@@ -356,7 +354,7 @@ describe('QueryGenerator#insertQuery', () => {
         default: 'INSERT INTO [myTable] ([value],[name]) VALUES ($sequelize_1,$sequelize_2);',
         'db2 ibmi':
           'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("value","name") VALUES ($sequelize_1,$sequelize_2));',
-        oracle: `INSERT INTO "myTable" ("value","name") VALUES (:1,:2);`,
+        //oracle: `INSERT INTO "myTable" ("value","name") VALUES (:1,:2);`,
       });
 
       expect(bind).to.deep.eq({

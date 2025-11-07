@@ -146,7 +146,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   }
 
   async disconnect(connection: OracleConnection) {
-    if (!connection.isHealthy()) {
+    if (connection.isHealthy?.() === false) {
       debug('connection tried to disconnect but was already at CLOSED state');
 
       return;

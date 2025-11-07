@@ -286,7 +286,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
       // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
       options.bindParameterOrder = mappedResult.bindOrder;
-      if (mappedResult.bindOrder == null) {
+      if (mappedResult.bindOrder == null || mappedResult.bindOrder?.length === 0) {
         bindParameters = options.bind;
       } else {
         bindParameters = mappedResult.bindOrder.map(key => {

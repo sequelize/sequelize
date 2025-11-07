@@ -52,7 +52,7 @@ describe('QueryInterface#update', () => {
       mssql:
         'UPDATE [Users] SET [firstName]=$sequelize_1 OUTPUT INSERTED.[:data] WHERE [firstName] = $sequelize_2',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2);`,
-      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "firstName" = :2`,
+      oracle: `UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "firstName" = $sequelize_2`,
     });
     expect(firstCall.args[1]?.bind).to.deep.eq({
       sequelize_1: ':name',
@@ -106,7 +106,7 @@ describe('QueryInterface#update', () => {
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $id',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id);`,
-      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "id" = $id`,
+      oracle: `UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $id`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({
@@ -136,7 +136,7 @@ describe('QueryInterface#update', () => {
     expectsql(firstCall.args[0], {
       default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [id] = $1',
       db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1);`,
-      oracle: `UPDATE "Users" SET "firstName"=:1 WHERE "id" = $1`,
+      oracle: `UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "id" = $1`,
     });
 
     expect(firstCall.args[1]?.bind).to.deep.eq({

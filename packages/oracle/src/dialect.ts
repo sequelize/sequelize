@@ -3,7 +3,7 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
-import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { EMPTY_ARRAY } from '@sequelize/utils';
 import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
@@ -110,7 +110,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   }
 
   createBindCollector() {
-    return createNamedParamBindCollector(':');
+    return createSpecifiedOrderedBindCollector(':');
   }
 
   escapeString(val: string): string {
