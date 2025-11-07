@@ -271,7 +271,7 @@ Use Sequelize#query if you wish to use replacements.`);
 
       if (isOracleBulkBind) {
         // skip mapBindParameters and all bind name validation
-        // oracle driver executeMany() already expects this format
+        // oracle driver executeMany() expects this format
         bindParameters = options.bind;
       } else {
         const mappedResult = mapBindParameters(sql, this.dialect);
