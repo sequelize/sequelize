@@ -4,6 +4,17 @@
 // because we need the performance benefits of traditional for-loops
 // and JIT compilers love the reduced complexity
 
+/**
+ * Abstract query utilities and base implementation used by all dialects.
+ *
+ * This module contains:
+ * - The `AbstractQuery` base class used by dialect query implementations.
+ * - Helper utilities to post-process raw result sets into nested include graphs.
+ * - Internal hashing and grouping logic for JOIN de-duplication.
+ *
+ * All symbols are documented for Typedoc/JSDoc consumption. Unless marked otherwise,
+ * everything in this file is considered internal to Sequelize's query pipeline.
+ */
 import Dottie from 'dottie';
 import isEmpty from 'lodash/isEmpty';
 import { randomUUID } from 'node:crypto';
@@ -17,54 +28,127 @@ import type { AbstractConnection } from './connection-manager.js';
 import type { NormalizedDataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 
+/**
+ * Cache of unique-key attribute name arrays per model.
+ * Used by JOIN de-duplication and hashing to avoid repeated model inspection.
+ */
 const uniqueKeyAttributesCache = new WeakMap<ModelStatic, readonly string[]>();
+
+/**
+ * Cache mapping a model to a mapping from column name -> attribute name.
+ * Accelerates resolving attribute names from raw column identifiers.
+ */
 const columnAttributeNameCache = new WeakMap<ModelStatic, Map<string, string>>();
 
+/**
+ * Include options extended with pre-resolved model and a fast lookup map for child includes.
+ */
 interface IncludeOptionsWithMap extends IncludeOptions {
+  /**
+   * Model associated to this include (present after include resolution).
+   */
   model?: ModelStatic;
+  /**
+   * Map of child include name -> include options for constant-time lookups.
+   */
   includeMap?: Record<string, IncludeOptionsWithMap | undefined>;
 }
 
+/**
+ * Lookup table from dotted include path (e.g., "posts.comments") to the corresponding include options.
+ */
 type IncludeMap = Record<string, IncludeOptionsWithMap | undefined>;
 
+/**
+ * The root include options used when grouping JOINed rows. Root must always have a model.
+ */
 type RootIncludeOptions = IncludeOptionsWithMap & {
+  /** The root model for the query. */
   model: ModelStatic;
+  /**
+   * List of include names in resolution order; used by model building.
+   */
   includeNames?: readonly string[];
 };
 
+/**
+ * Internal options passed to `Model.bulkBuild` when materializing rows.
+ */
 interface BulkBuildOptionsInternal extends BuildOptions {
+  /** Names of includes applied to the rows. */
   includeNames?: readonly string[] | undefined;
+  /** Resolved include map for nested parsing. */
   includeMap?: IncludeMap | undefined;
+  /** Whether include configuration was already validated. */
   includeValidated?: boolean | undefined;
+  /** Attributes that were originally requested (pre-alias). */
   attributes?: readonly string[] | undefined;
+  /** Hints that data originates from the DB rather than user input. */
   comesFromDatabase?: boolean | undefined;
 }
 
+/**
+ * Hash information for a single node of a joined graph.
+ */
 interface HashEntry {
+  /** The computed hash for the current item (includes parent hash prefix). */
   itemHash: string;
+  /** The computed hash for the parent item, or null if at the root. */
   parentHash: string | null;
 }
 
+/**
+ * Legacy unique key definition shape used by historical model definitions.
+ */
 type LegacyUniqueKeyDefinition = { fields?: readonly string[] };
 
+/**
+ * Model type guard for models that expose legacy `uniqueKeys` metadata.
+ */
 type ModelWithLegacyUniqueKeys = ModelStatic & {
+  /** A record of legacy unique keys keyed by name. */
   uniqueKeys?: Record<string, LegacyUniqueKeyDefinition>;
 };
 
+/**
+ * Metadata describing a single dotted key in the raw result set and how it maps into the include tree.
+ */
 type metaEntry = {
+  /** The full raw dotted key (e.g., "posts.comments.id"). */
   key: string;
+  /** The attribute portion of the key (segment after the last dot). */
   attribute: string;
+  /** The dotted path segments leading to the attribute. */
   prefixParts: readonly string[];
+  /** Number of segments in `prefixParts`. */
   prefixLength: number;
+  /** The dotted prefix id (e.g., "posts.comments"). */
   prefixId: string;
+  /** The last segment of the prefix (e.g., "comments"). */
   lastKeySegment: string;
+  /** Resolved include options for this prefix, if any. */
   include: IncludeOptionsWithMap | undefined;
+  /** The parent prefix id (one level up). */
   parentPrefixId: string;
+  /** The primary key attributes of the model at this prefix. */
   primaryKeyAttributes: readonly string[];
+  /** Fallback unique key attributes, if PKs are absent. */
   uniqueKeyAttributes: readonly string[];
+  /** Fully-qualified row keys used to compute the hash for this prefix. */
   hashAttributeRowKeys: readonly string[];
 };
 
+/**
+ * Resolves the attribute name corresponding to a column or attribute identifier.
+ *
+ * If the identifier is already an attribute name present in the model definition,
+ * it is returned as-is. Otherwise, a per-model cache mapping column names to
+ * attribute names is consulted (and lazily populated) to resolve the attribute name.
+ *
+ * @param model - The Sequelize model to resolve against.
+ * @param columnOrAttribute - A column name (DB) or attribute name (model).
+ * @returns The resolved attribute name if known, otherwise `columnOrAttribute`.
+ */
 function getAttributeNameFromColumn(model: ModelStatic, columnOrAttribute: string): string {
   const definition = model.modelDefinition;
 
@@ -85,6 +169,14 @@ function getAttributeNameFromColumn(model: ModelStatic, columnOrAttribute: strin
   return cache.get(columnOrAttribute) ?? columnOrAttribute;
 }
 
+/**
+ * Produces a shallow copy of a row with keys remapped according to `fieldMap`.
+ * Keys present in `fieldMap` are renamed; original keys are removed.
+ *
+ * @param row - The input row to transform.
+ * @param fieldMap - Mapping from "from" key -> "to" key.
+ * @returns A new object containing the remapped fields.
+ */
 function remapRowFields(
   row: Record<string, unknown>,
   fieldMap: Record<string, string>,
@@ -106,10 +198,22 @@ function remapRowFields(
   return output;
 }
 
+/**
+ * Runtime type guard to determine whether a value implements the iterator protocol.
+ *
+ * @param value - The value to check.
+ * @returns `true` if the value is iterable, `false` otherwise.
+ */
 function isIterable(value: unknown): value is Iterable<unknown> {
   return value != null && typeof (value as Iterable<unknown>)[Symbol.iterator] === 'function';
 }
 
+/**
+ * Extracts an `Association` from an include option only when it has been resolved.
+ *
+ * @param association - The include's `association` property.
+ * @returns The `Association` instance if available, otherwise `undefined`.
+ */
 function extractAssociation(
   association: IncludeOptions['association'] | undefined,
 ): Association | undefined {
@@ -120,6 +224,14 @@ function extractAssociation(
   return undefined;
 }
 
+/**
+ * Builds the list of fully-qualified row keys used for hashing at a given include prefix.
+ *
+ * @param prefixId - Dotted path to the include prefix (e.g., "posts.comments").
+ * @param primaryKeyAttributes - Primary key attribute names for the model at the prefix.
+ * @param uniqueKeyAttributes - Fallback unique attribute names if PKs are absent.
+ * @returns An array of keys to read from a raw row for hashing.
+ */
 function buildHashAttributeRowKeys(
   prefixId: string,
   primaryKeyAttributes: readonly string[],
@@ -137,11 +249,28 @@ function buildHashAttributeRowKeys(
   return attributeNames.map(attributeName => `${rowKeyPrefix}${attributeName}`);
 }
 
+/**
+ * Result of attaching an existing segment during de-duplication.
+ */
 type ExistingSegmentResult = {
+  /** The next scratch object to receive subsequent attributes. */
   nextValues: Record<string, unknown>;
+  /** Indicates whether the top-level container already existed. */
   topExists: boolean;
 };
 
+/**
+ * Computes the hash values for a particular meta entry, delegating to `getHashesForPrefix`.
+ * Optimizes the root prefix by returning the provided `topHash`.
+ *
+ * @param meta - The meta entry describing the current segment.
+ * @param row - The current raw row.
+ * @param includeMap - The include lookup map.
+ * @param prefixMeta - Metadata per prefix, used to infer parent/child relations.
+ * @param topHash - Pre-computed hash for the root item.
+ * @param prefixHashCache - Optional memoization cache.
+ * @returns The computed `HashEntry` for this meta.
+ */
 function computeHashesForMeta(
   meta: metaEntry,
   row: Record<string, unknown>,
@@ -157,6 +286,17 @@ function computeHashesForMeta(
   return getHashesForPrefix(meta.prefixId, row, includeMap, prefixMeta, topHash, prefixHashCache);
 }
 
+/**
+ * Attaches a child object into its parent at the include key, handling both
+ * single-association (assign) and multi-association (array push) cases.
+ *
+ * No-ops if the parent container cannot be found (e.g., filtered out by hashing).
+ *
+ * @param meta - Meta information describing the relationship and key.
+ * @param parentHash - Hash of the parent container; `null` for root.
+ * @param resultMap - Global map of hash -> container.
+ * @param childValues - The child object to attach.
+ */
 function attachToParent(
   meta: metaEntry,
   parentHash: string | null,
@@ -191,6 +331,21 @@ function attachToParent(
   (associationValues as Array<Record<string, unknown>>).push(childValues);
 }
 
+/**
+ * In de-duplication mode, wires the current `currentValues` object into the
+ * appropriate container (top-level or nested) based on the computed hashes and
+ * prepares the next container for subsequent attributes.
+ *
+ * @param previousMeta - The meta of the previously processed key (same prefix group).
+ * @param row - The current raw row.
+ * @param includeMap - Include lookup map.
+ * @param prefixMeta - Metadata per prefix id.
+ * @param topHash - The pre-computed root hash for the row.
+ * @param prefixHashCache - Hash memoization cache.
+ * @param currentValues - The object being filled for the previous segment.
+ * @param resultMap - Map of hash -> materialized object.
+ * @returns The next scratch container and whether the root already existed.
+ */
 function attachExistingSegment(
   previousMeta: metaEntry,
   row: Record<string, unknown>,
@@ -229,6 +384,15 @@ function attachExistingSegment(
   return { nextValues, topExists: false };
 }
 
+/**
+ * Ensures that the nested object chain exists for the given `meta` prefix and
+ * returns the container into which attributes for this prefix should be written.
+ * Used when de-duplication is disabled.
+ *
+ * @param topValues - The root output object for the current row.
+ * @param meta - Meta describing the current prefix path.
+ * @returns The nested container for this prefix.
+ */
 function ensureNestedContainer(
   topValues: Record<string, unknown>,
   meta: metaEntry,
@@ -260,6 +424,21 @@ function ensureNestedContainer(
   return current;
 }
 
+/**
+ * Finalizes the wiring of the last processed segment in a deduplicated row and
+ * returns whether the top-level container already existed in `resultMap`.
+ *
+ * @param previousMeta - The meta of the last processed key.
+ * @param row - The current raw row.
+ * @param includeMap - Include lookup map.
+ * @param prefixMeta - Metadata per prefix id.
+ * @param topHash - Pre-computed root hash for the current row.
+ * @param prefixHashCache - Hash memoization cache.
+ * @param currentValues - The object containing attributes of the last segment.
+ * @param resultMap - Global map of hash -> container.
+ * @param currentTopExists - Whether the root already existed before finalization.
+ * @returns The updated `topExists` state.
+ */
 function finalizeExistingRow(
   previousMeta: metaEntry,
   row: Record<string, unknown>,
@@ -298,6 +477,16 @@ function finalizeExistingRow(
   return currentTopExists;
 }
 
+/**
+ * Resolves and caches the include options matching a dotted raw key by traversing
+ * the `includeMap` chain. Intermediate segments are memoized to speed up future lookups.
+ *
+ * @param rawKey - The full dotted key from the result set.
+ * @param prefixParts - The path segments preceding the attribute.
+ * @param rootInclude - The root include options.
+ * @param includeMap - The lookup map to populate.
+ * @returns The resolved include options for the key, if any.
+ */
 function resolveIncludeForKey(
   rawKey: string,
   prefixParts: readonly string[],
@@ -311,7 +500,6 @@ function resolveIncludeForKey(
     return rootInclude;
   }
 
-  let resolvedInclude: IncludeOptionsWithMap | undefined;
   let currentInclude: IncludeOptionsWithMap | undefined = rootInclude;
   let accumulatedPath: string | undefined;
 
@@ -323,16 +511,20 @@ function resolveIncludeForKey(
 
     accumulatedPath = accumulatedPath ? `${accumulatedPath}.${piece}` : piece;
     includeMap[accumulatedPath] = currentInclude;
-    resolvedInclude = currentInclude;
   }
 
-  if (resolvedInclude) {
-    includeMap[rawKey] = resolvedInclude;
-  }
+  includeMap[rawKey] = currentInclude;
 
-  return resolvedInclude;
+  return currentInclude;
 }
 
+/**
+ * Retrieves the attribute names that form the first unique key in a model, mapping
+ * column names to attribute names when necessary. Results are cached per model.
+ *
+ * @param model - The Sequelize model to inspect.
+ * @returns A (possibly empty) array of attribute names for a unique key.
+ */
 function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
   const cached = uniqueKeyAttributesCache.get(model);
   if (cached) {
@@ -362,14 +554,38 @@ function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
   return uniqueKeyAttributes;
 }
 
+/**
+ * Sorts dotted keys so that shallower paths (parents) come before deeper ones (children).
+ * This ordering ensures prefix metadata is computed in dependency order.
+ *
+ * @param inputKeys - The array of dotted keys to sort (mutated in-place by `sort`).
+ * @returns The sorted `inputKeys` reference.
+ */
 function sortByDepth(inputKeys: string[]) {
   return inputKeys.sort((a, b) => a.split('.').length - b.split('.').length);
 }
 
+/**
+ * Converts a value into a string suitable for hash concatenation. Buffers are rendered as hex.
+ *
+ * @param obj - The value to stringify.
+ * @returns The string representation used for hashing.
+ */
 function stringify(obj: unknown) {
   return obj instanceof Buffer ? obj.toString('hex') : (obj?.toString() ?? '');
 }
 
+/**
+ * Generates a deterministic hash for a single raw row for the provided model.
+ * Priority of attributes used:
+ * 1) Primary keys
+ * 2) First legacy unique key definition (if any)
+ * 3) First unique index fields (string fields only)
+ *
+ * @param model - The model whose identity should be represented by the hash.
+ * @param row - The row object to read values from.
+ * @returns A stable string hash composed by concatenating selected attribute values.
+ */
 function getHash(model: ModelStatic, row: Record<string, unknown>): string {
   const strings: string[] = [];
   const primaryKeyAttributes = model.modelDefinition.primaryKeysAttributeNames;
@@ -407,6 +623,21 @@ function getHash(model: ModelStatic, row: Record<string, unknown>): string {
   return strings.join('');
 }
 
+/**
+ * Returns or computes the `HashEntry` for the given dotted include prefix.
+ *
+ * The hash of an item is defined as `parentHash + prefix + attributeValues`, where
+ * `attributeValues` are the PK or unique key values at this prefix. This makes each
+ * child's hash dependent on its parent, preventing collisions across siblings.
+ *
+ * @param prefix - The dotted include prefix (empty string for root).
+ * @param currentRow - The current raw row.
+ * @param currentIncludeMap - Include lookup map.
+ * @param currentPrefixMeta - Metadata per prefix id.
+ * @param currentTopHash - Root hash for the current row.
+ * @param prefixHashCache - Optional memoization cache shared within the row.
+ * @returns The computed `HashEntry` for the prefix.
+ */
 function getHashesForPrefix(
   prefix: string,
   currentRow: Record<string, unknown>,
@@ -494,28 +725,51 @@ function getHashesForPrefix(
 }
 
 export interface AbstractQueryGroupJoinDataOptions {
+  /**
+   * Whether to de-duplicate rows by hashing PK/unique keys when grouping JOIN results.
+   * If `false`, rows are nested directly without deduplication (faster for no-join queries).
+   */
   checkExisting: boolean;
 }
 
 export interface AbstractQueryOptions {
+  /** The instance being operated on (e.g., for INSERT/UPDATE). */
   instance?: Model;
+  /** The model associated with this query. */
   model?: ModelStatic;
+  /** The query type used to adjust result processing. */
   type?: QueryTypes;
+  /** Map from raw column name to model attribute name, or `true` to disable. */
   fieldMap?: Record<string, string> | boolean;
+  /** If `true`, returns only the first row (or `null`). */
   plain: boolean;
+  /** If `true`, returns raw objects instead of model instances. */
   raw: boolean;
+  /** If `true`, uses dotted key nesting for raw results. */
   nest?: boolean;
+  /** Internal flag indicating that the select has JOINs. */
   hasJoin?: boolean;
+  /** Internal flag indicating presence of a multi association. */
   hasMultiAssociation?: boolean;
+  /** Logging function or `false` to disable; `true` is deprecated. */
   logging?: boolean | ((sql: string, timing?: number) => void);
+  /** If `true`, emits benchmark timings instead of raw SQL logging. */
   benchmark?: boolean;
+  /** If `true`, logs bound parameter values. */
   logQueryParameters?: boolean;
+  /** Optional label prefixed to the log line. */
   queryLabel?: string;
+  /** Include definitions passed by the user. */
   include?: IncludeOptions[] | boolean;
+  /** Resolved include names used by builder. */
   includeNames?: readonly string[];
+  /** Resolved include map used by parser. */
   includeMap?: IncludeMap;
+  /** The attributes originally selected by the user. */
   originalAttributes?: readonly string[];
+  /** The attributes currently selected by the query. */
   attributes?: readonly string[];
+  /** If `true`, skip error wrapping and re-throw database errors as-is. */
   rawErrors?: boolean;
   [key: string]: unknown;
 }
@@ -732,6 +986,15 @@ export class AbstractQuery {
     return this.options.type === QueryTypes.UPDATE;
   }
 
+  /**
+   * Post-processes a SELECT result set according to the query options:
+   * - Remaps field names when `fieldMap` is provided.
+   * - Returns raw nested objects when `raw` and `nest` are set.
+   * - Groups JOINed rows into nested include graphs and builds model instances otherwise.
+   *
+   * @param results - The raw rows returned by the driver.
+   * @returns Raw objects or built model instances depending on `options`.
+   */
   protected handleSelectQuery(results: Array<Record<string, unknown>>): unknown {
     let processedResults: Array<Record<string, unknown>> = results;
     let result: unknown = null;
@@ -822,6 +1085,14 @@ export class AbstractQuery {
     return result;
   }
 
+  /**
+   * Applies attribute-type parsing to an array of value objects.
+   *
+   * @param valueArrays - Array of objects to parse in-place.
+   * @param model - The model providing attribute types for parsing.
+   * @param includeMap - Include lookup map for nested parsing.
+   * @returns The same array instance after parsing.
+   */
   protected _parseDataArrayByType(
     valueArrays: Array<Record<string, unknown>>,
     model?: ModelStatic,
@@ -835,6 +1106,14 @@ export class AbstractQuery {
     return valueArrays;
   }
 
+  /**
+   * Applies attribute-type parsing to a single object. Descends into includes when present.
+   *
+   * @param values - The object to mutate with parsed values.
+   * @param model - The model providing attribute types for parsing.
+   * @param includeMap - Include lookup map for nested parsing.
+   * @returns The mutated `values` object.
+   */
   protected _parseDataByType(
     values: Record<string, unknown>,
     model?: ModelStatic,
@@ -870,6 +1149,13 @@ export class AbstractQuery {
     return values;
   }
 
+  /**
+   * Parses a raw database value using the attribute's data-type parser when available.
+   *
+   * @param value - The raw value to parse.
+   * @param attributeType - The normalized data type to parse with.
+   * @returns The parsed value, or the original value if no parser applies.
+   */
   protected _parseDatabaseValue(value: unknown, attributeType?: NormalizedDataType): unknown {
     if (value == null) {
       return value;
@@ -892,6 +1178,15 @@ export class AbstractQuery {
     return (this.sql?.toLowerCase() ?? '').startsWith('call');
   }
 
+  /**
+   * Logs a SQL query with optional parameters and returns a function to log completion.
+   * When benchmarking is enabled, the completion logger emits timing information.
+   *
+   * @param sql - The SQL string to log.
+   * @param debugContext - A function receiving debug messages.
+   * @param parameters - Optional bound parameters to display when enabled.
+   * @returns A callback to be invoked after query execution to finalize logging.
+   */
   protected _logQuery(
     sql: string,
     debugContext: (msg: string) => void,
@@ -926,6 +1221,26 @@ export class AbstractQuery {
     };
   }
 
+  /**
+   * Groups a flat array of JOINed rows into nested objects according to include definitions.
+   *
+   * Algorithm overview:
+   * - Sorts row keys by depth to build prefix metadata once on the first row.
+   * - For each row, computes stable identity hashes for each include prefix
+   *   using PK/unique-key values to de-duplicate repeated JOIN combinations.
+   * - Uses a global `resultMap` keyed by hash to re-use previously materialized
+   *   containers and attach children in O(1) time.
+   * - In non-dedup mode, directly builds nested objects for each row without hashing.
+   *
+   * Complexity:
+   * - First row metadata setup: O(K log K) for K keys due to depth sort.
+   * - Each subsequent row: O(K) for value assignment and at most O(depth) hash lookups.
+   *
+   * @param rows - Raw rows as returned by the driver with dotted keys.
+   * @param includeOptions - The root include options and model information.
+   * @param options - Controls whether de-duplication is applied.
+   * @returns An array of nested objects ready for model-building or raw return.
+   */
   static _groupJoinData(
     rows: Array<Record<string, unknown>>,
     includeOptions: RootIncludeOptions,
