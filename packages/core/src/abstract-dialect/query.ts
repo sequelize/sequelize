@@ -183,10 +183,11 @@ function remapRowFields(
 ): Record<string, unknown> {
   const output: Record<string, unknown> = { ...row };
 
-  const fields = Object.keys(fieldMap);
+  for (const field in fieldMap) {
+    if (!Object.prototype.hasOwnProperty.call(fieldMap, field)) {
+      continue;
+    }
 
-  for (let index = 0; index < fields.length; ++index) {
-    const field = fields[index];
     const name = fieldMap[field];
 
     if (field in output && name !== field) {
@@ -261,13 +262,13 @@ type ExistingSegmentResult = {
 
 /**
  * Computes the hash values for a particular meta entry, delegating to `getHashesForPrefix`.
- * Optimizes the root prefix by returning the provided `topHash`.
+ * Optimizes the root prefix by returning the provided root hash entry.
  *
  * @param meta - The meta entry describing the current segment.
  * @param row - The current raw row.
  * @param includeMap - The include lookup map.
  * @param prefixMeta - Metadata per prefix, used to infer parent/child relations.
- * @param topHash - Pre-computed hash for the root item.
+ * @param topHashEntry - Pre-computed hash entry for the root item.
  * @param prefixHashCache - Optional memoization cache.
  * @returns The computed `HashEntry` for this meta.
  */
@@ -276,14 +277,21 @@ function computeHashesForMeta(
   row: Record<string, unknown>,
   includeMap: IncludeMap,
   prefixMeta: Map<string, metaEntry>,
-  topHash: string,
+  topHashEntry: HashEntry,
   prefixHashCache: Map<string, HashEntry> | undefined,
 ): HashEntry {
   if (meta.prefixLength === 0) {
-    return { itemHash: topHash, parentHash: null };
+    return topHashEntry;
   }
 
-  return getHashesForPrefix(meta.prefixId, row, includeMap, prefixMeta, topHash, prefixHashCache);
+  return getHashesForPrefix(
+    meta.prefixId,
+    row,
+    includeMap,
+    prefixMeta,
+    topHashEntry.itemHash,
+    prefixHashCache,
+  );
 }
 
 /**
@@ -332,53 +340,91 @@ function attachToParent(
 }
 
 /**
- * In de-duplication mode, wires the current `currentValues` object into the
- * appropriate container (top-level or nested) based on the computed hashes and
- * prepares the next container for subsequent attributes.
+ * Retrieves a reusable plain object from the pool, clearing previous contents.
  *
- * @param previousMeta - The meta of the previously processed key (same prefix group).
- * @param row - The current raw row.
+ * @param pool - Pool of reusable objects.
+ * @returns An emptied object ready for population.
+ */
+function acquireValuesObject(pool: Record<string, unknown>[]): Record<string, unknown> {
+  const reusable = pool.pop();
+  if (!reusable) {
+    return {};
+  }
+
+  for (const key in reusable) {
+    if (Object.prototype.hasOwnProperty.call(reusable, key)) {
+      delete reusable[key];
+    }
+  }
+
+  return reusable;
+}
+
+/**
+ * Returns an object to the reuse pool after the caller is done with it.
+ *
+ * @param pool - Pool to return the object to.
+ * @param obj - Object to recycle.
+ */
+function releaseValuesObject(pool: Record<string, unknown>[], obj: Record<string, unknown>): void {
+  pool.push(obj);
+}
+
+/**
+ * Handles the transition between prefixes in deduplication mode:
+ * - hashes the previous prefix
+ * - attaches its container into the result map if needed
+ * - releases unused containers
+ * - returns a fresh container for the next prefix
+ *
+ * @param previousMeta - Metadata for the previous prefix.
+ * @param row - Current raw row.
  * @param includeMap - Include lookup map.
  * @param prefixMeta - Metadata per prefix id.
- * @param topHash - The pre-computed root hash for the row.
- * @param prefixHashCache - Hash memoization cache.
- * @param currentValues - The object being filled for the previous segment.
- * @param resultMap - Map of hash -> materialized object.
- * @returns The next scratch container and whether the root already existed.
+ * @param prefixHashCache - Optional hash cache.
+ * @param currentValues - Container holding the previous prefix's attributes.
+ * @param resultMap - Global hash -> container map.
+ * @param freeList - Pool of reusable containers.
+ * @param topHashEntry - Hash entry representing the root object.
+ * @returns The next container and whether the top already existed.
  */
 function attachExistingSegment(
   previousMeta: metaEntry,
   row: Record<string, unknown>,
   includeMap: IncludeMap,
   prefixMeta: Map<string, metaEntry>,
-  topHash: string,
   prefixHashCache: Map<string, HashEntry> | undefined,
   currentValues: Record<string, unknown>,
   resultMap: Record<string, Record<string, unknown>>,
+  freeList: Record<string, unknown>[],
+  topHashEntry: HashEntry,
 ): ExistingSegmentResult {
   const hashes = computeHashesForMeta(
     previousMeta,
     row,
     includeMap,
     prefixMeta,
-    topHash,
+    topHashEntry,
     prefixHashCache,
   );
-  const nextValues: Record<string, unknown> = {};
+  const nextValues = acquireValuesObject(freeList);
 
-  if (hashes.itemHash === topHash) {
-    if (!resultMap[topHash]) {
-      resultMap[topHash] = currentValues;
+  if (hashes.itemHash === topHashEntry.itemHash) {
+    if (!resultMap[topHashEntry.itemHash]) {
+      resultMap[topHashEntry.itemHash] = currentValues;
 
       return { nextValues, topExists: false };
     }
 
+    releaseValuesObject(freeList, currentValues);
     return { nextValues, topExists: true };
   }
 
   if (!resultMap[hashes.itemHash]) {
     resultMap[hashes.itemHash] = currentValues;
     attachToParent(previousMeta, hashes.parentHash, resultMap, currentValues);
+  } else {
+    releaseValuesObject(freeList, currentValues);
   }
 
   return { nextValues, topExists: false };
@@ -432,11 +478,12 @@ function ensureNestedContainer(
  * @param row - The current raw row.
  * @param includeMap - Include lookup map.
  * @param prefixMeta - Metadata per prefix id.
- * @param topHash - Pre-computed root hash for the current row.
  * @param prefixHashCache - Hash memoization cache.
  * @param currentValues - The object containing attributes of the last segment.
  * @param resultMap - Global map of hash -> container.
  * @param currentTopExists - Whether the root already existed before finalization.
+ * @param freeList - Pool used to recycle unused containers.
+ * @param topHashEntry - Pre-computed root hash entry for the current row.
  * @returns The updated `topExists` state.
  */
 function finalizeExistingRow(
@@ -444,27 +491,29 @@ function finalizeExistingRow(
   row: Record<string, unknown>,
   includeMap: IncludeMap,
   prefixMeta: Map<string, metaEntry>,
-  topHash: string,
   prefixHashCache: Map<string, HashEntry> | undefined,
   currentValues: Record<string, unknown>,
   resultMap: Record<string, Record<string, unknown>>,
   currentTopExists: boolean,
+  freeList: Record<string, unknown>[],
+  topHashEntry: HashEntry,
 ): boolean {
   const hashes = computeHashesForMeta(
     previousMeta,
     row,
     includeMap,
     prefixMeta,
-    topHash,
+    topHashEntry,
     prefixHashCache,
   );
-
-  if (hashes.itemHash === topHash) {
-    if (!resultMap[topHash]) {
-      resultMap[topHash] = currentValues;
+  if (hashes.itemHash === topHashEntry.itemHash) {
+    if (!resultMap[topHashEntry.itemHash]) {
+      resultMap[topHashEntry.itemHash] = currentValues;
 
       return currentTopExists;
     }
+
+    releaseValuesObject(freeList, currentValues);
 
     return true;
   }
@@ -472,6 +521,8 @@ function finalizeExistingRow(
   if (!resultMap[hashes.itemHash]) {
     resultMap[hashes.itemHash] = currentValues;
     attachToParent(previousMeta, hashes.parentHash, resultMap, currentValues);
+  } else {
+    releaseValuesObject(freeList, currentValues);
   }
 
   return currentTopExists;
@@ -667,7 +718,7 @@ function getHashesForPrefix(
     return cache.get('')!;
   }
 
-  let hash = prefix;
+  const hashParts: string[] = [prefix];
   let hashAttributeRowKeys = prefixInfo?.hashAttributeRowKeys ?? [];
 
   if (hashAttributeRowKeys.length === 0) {
@@ -698,7 +749,7 @@ function getHashesForPrefix(
 
   if (hashAttributeRowKeys.length > 0) {
     for (const attributeKey of hashAttributeRowKeys) {
-      hash += stringify(currentRow[attributeKey]);
+      hashParts.push(stringify(currentRow[attributeKey]));
     }
   }
 
@@ -715,6 +766,7 @@ function getHashesForPrefix(
   );
   const parentHashValue = parentHashes.itemHash;
 
+  const hash = hashParts.join('');
   const result: HashEntry = {
     itemHash: parentHashValue + hash,
     parentHash: parentHashValue,
@@ -1006,16 +1058,23 @@ export class AbstractQuery {
     }
 
     if (this.options.raw) {
+      const outputPool: Record<string, unknown>[] = [];
       const rawRows = processedResults.map(row => {
-        const output: Record<string, unknown> = {};
+        if (!this.options.nest) {
+          return row;
+        }
 
+        const output = acquireValuesObject(outputPool);
         const keys = Object.keys(row);
         for (let index = 0; index < keys.length; ++index) {
           const key = keys[index];
           output[key] = row[key];
         }
 
-        return this.options.nest ? Dottie.transform(output) : output;
+        const transformed = Dottie.transform(output);
+        releaseValuesObject(outputPool, output);
+
+        return transformed;
       });
 
       result = rawRows;
@@ -1119,9 +1178,11 @@ export class AbstractQuery {
     model?: ModelStatic,
     includeMap?: IncludeMap,
   ): Record<string, unknown> {
-    const keys = Object.keys(values);
-    for (let index = 0; index < keys.length; ++index) {
-      const key = keys[index];
+    for (const key in values) {
+      if (!Object.prototype.hasOwnProperty.call(values, key)) {
+        continue;
+      }
+
       const nestedInclude = includeMap?.[key];
       if (nestedInclude) {
         const child = values[key];
@@ -1288,7 +1349,9 @@ export class AbstractQuery {
 
     for (let rowIndex = 0; rowIndex < rowsLength; ++rowIndex) {
       const row = rows[rowIndex];
+      const freeList: Record<string, unknown>[] = [];
       let prefixHashCache: Map<string, HashEntry> | undefined;
+      let topHashEntry: HashEntry | undefined;
       let topHash = '';
 
       if (rowIndex === 0) {
@@ -1358,10 +1421,14 @@ export class AbstractQuery {
       if (checkExisting) {
         topHash = getHash(includeOptions.model, row);
         prefixHashCache = new Map<string, HashEntry>();
-        prefixHashCache.set('', { itemHash: topHash, parentHash: null });
+        const rootEntry: HashEntry = { itemHash: topHash, parentHash: null };
+        prefixHashCache.set('', rootEntry);
+        topHashEntry = rootEntry;
       }
 
-      let currentValues: Record<string, unknown> = {};
+      let currentValues: Record<string, unknown> = checkExisting
+        ? acquireValuesObject(freeList)
+        : {};
       const topValues = currentValues;
       let previousMeta: metaEntry | undefined;
 
@@ -1376,10 +1443,11 @@ export class AbstractQuery {
               row,
               includeMap,
               prefixMeta,
-              topHash,
               prefixHashCache,
               currentValues,
               resultMap,
+              freeList,
+              topHashEntry!,
             );
             currentValues = segmentResult.nextValues;
             topExistsForRow ||= segmentResult.topExists;
@@ -1398,11 +1466,12 @@ export class AbstractQuery {
           row,
           includeMap,
           prefixMeta,
-          topHash,
           prefixHashCache,
           currentValues,
           resultMap,
           topExistsForRow,
+          freeList,
+          topHashEntry!,
         );
 
         if (!finalTopExists) {
