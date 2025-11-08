@@ -1,3 +1,9 @@
+/* eslint-disable unicorn/no-for-loop */
+
+// We're disabling the unicorn/no-for-loop rule in this file
+// because we need the performance benefits of traditional for-loops
+// and JIT compilers love the reduced complexity
+
 import Dottie from 'dottie';
 import isEmpty from 'lodash/isEmpty';
 import { randomUUID } from 'node:crypto';
@@ -56,6 +62,7 @@ type metaEntry = {
   parentPrefixId: string;
   primaryKeyAttributes: readonly string[];
   uniqueKeyAttributes: readonly string[];
+  hashAttributeRowKeys: readonly string[];
 };
 
 function getAttributeNameFromColumn(model: ModelStatic, columnOrAttribute: string): string {
@@ -84,8 +91,12 @@ function remapRowFields(
 ): Record<string, unknown> {
   const output: Record<string, unknown> = { ...row };
 
-  for (const field of Object.keys(fieldMap)) {
+  const fields = Object.keys(fieldMap);
+
+  for (let index = 0; index < fields.length; ++index) {
+    const field = fields[index];
     const name = fieldMap[field];
+
     if (field in output && name !== field) {
       output[name] = output[field];
       delete output[field];
@@ -109,6 +120,191 @@ function extractAssociation(
   return undefined;
 }
 
+function buildHashAttributeRowKeys(
+  prefixId: string,
+  primaryKeyAttributes: readonly string[],
+  uniqueKeyAttributes: readonly string[],
+): readonly string[] {
+  const attributeNames =
+    primaryKeyAttributes.length > 0 ? primaryKeyAttributes : uniqueKeyAttributes;
+
+  if (attributeNames.length === 0) {
+    return [];
+  }
+
+  const rowKeyPrefix = prefixId ? `${prefixId}.` : '';
+
+  return attributeNames.map(attributeName => `${rowKeyPrefix}${attributeName}`);
+}
+
+type ExistingSegmentResult = {
+  nextValues: Record<string, unknown>;
+  topExists: boolean;
+};
+
+function computeHashesForMeta(
+  meta: metaEntry,
+  row: Record<string, unknown>,
+  includeMap: IncludeMap,
+  prefixMeta: Map<string, metaEntry>,
+  topHash: string,
+  prefixHashCache: Map<string, HashEntry> | undefined,
+): HashEntry {
+  if (meta.prefixLength === 0) {
+    return { itemHash: topHash, parentHash: null };
+  }
+
+  return getHashesForPrefix(
+    meta.prefixId,
+    row,
+    includeMap,
+    prefixMeta,
+    topHash,
+    prefixHashCache,
+  );
+}
+
+function attachToParent(
+  meta: metaEntry,
+  parentHash: string | null,
+  resultMap: Record<string, Record<string, unknown>>,
+  childValues: Record<string, unknown>,
+): void {
+  if (!parentHash) {
+    return;
+  }
+
+  const parentContainer = resultMap[parentHash];
+  if (!parentContainer) {
+    return;
+  }
+
+  const association = extractAssociation(meta.include?.association);
+  const associationKey = meta.lastKeySegment;
+
+  if (!association || association.isSingleAssociation) {
+    parentContainer[associationKey] = childValues;
+
+    return;
+  }
+
+  let associationValues = parentContainer[associationKey];
+  if (!Array.isArray(associationValues)) {
+    const newAssociationValues: Array<Record<string, unknown>> = [];
+    parentContainer[associationKey] = newAssociationValues;
+    associationValues = newAssociationValues;
+  }
+
+  (associationValues as Array<Record<string, unknown>>).push(childValues);
+}
+
+function attachExistingSegment(
+  previousMeta: metaEntry,
+  row: Record<string, unknown>,
+  includeMap: IncludeMap,
+  prefixMeta: Map<string, metaEntry>,
+  topHash: string,
+  prefixHashCache: Map<string, HashEntry> | undefined,
+  currentValues: Record<string, unknown>,
+  resultMap: Record<string, Record<string, unknown>>,
+): ExistingSegmentResult {
+  const hashes = computeHashesForMeta(
+    previousMeta,
+    row,
+    includeMap,
+    prefixMeta,
+    topHash,
+    prefixHashCache,
+  );
+  const nextValues: Record<string, unknown> = {};
+
+  if (hashes.itemHash === topHash) {
+    if (!resultMap[topHash]) {
+      resultMap[topHash] = currentValues;
+
+      return { nextValues, topExists: false };
+    }
+
+    return { nextValues, topExists: true };
+  }
+
+  if (!resultMap[hashes.itemHash]) {
+    resultMap[hashes.itemHash] = currentValues;
+    attachToParent(previousMeta, hashes.parentHash, resultMap, currentValues);
+  }
+
+  return { nextValues, topExists: false };
+}
+
+function ensureNestedContainer(
+  topValues: Record<string, unknown>,
+  meta: metaEntry,
+): Record<string, unknown> {
+  if (meta.prefixLength === 0) {
+    return topValues;
+  }
+
+  let current = topValues;
+  const { prefixParts, prefixLength } = meta;
+
+  for (let index = 0; index < prefixLength; ++index) {
+    const part = prefixParts[index];
+    if (index === prefixLength - 1) {
+      if (typeof current[part] !== 'object' || current[part] == null) {
+        current[part] = {};
+      }
+
+      return current[part] as Record<string, unknown>;
+    }
+
+    if (typeof current[part] !== 'object' || current[part] == null) {
+      current[part] = {};
+    }
+
+    current = current[part] as Record<string, unknown>;
+  }
+
+  return current;
+}
+
+function finalizeExistingRow(
+  previousMeta: metaEntry,
+  row: Record<string, unknown>,
+  includeMap: IncludeMap,
+  prefixMeta: Map<string, metaEntry>,
+  topHash: string,
+  prefixHashCache: Map<string, HashEntry> | undefined,
+  currentValues: Record<string, unknown>,
+  resultMap: Record<string, Record<string, unknown>>,
+  currentTopExists: boolean,
+): boolean {
+  const hashes = computeHashesForMeta(
+    previousMeta,
+    row,
+    includeMap,
+    prefixMeta,
+    topHash,
+    prefixHashCache,
+  );
+
+  if (hashes.itemHash === topHash) {
+    if (!resultMap[topHash]) {
+      resultMap[topHash] = currentValues;
+
+      return currentTopExists;
+    }
+
+    return true;
+  }
+
+  if (!resultMap[hashes.itemHash]) {
+    resultMap[hashes.itemHash] = currentValues;
+    attachToParent(previousMeta, hashes.parentHash, resultMap, currentValues);
+  }
+
+  return currentTopExists;
+}
+
 function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
   const cached = uniqueKeyAttributesCache.get(model);
   if (cached) {
@@ -123,7 +319,8 @@ function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
     const uniqueKey = firstUniqueKeyName ? uniqueKeys[firstUniqueKeyName] : undefined;
     const fields: readonly unknown[] = uniqueKey?.fields ?? [];
 
-    for (const field of fields) {
+    for (let fieldIndex = 0; fieldIndex < fields.length; fieldIndex++) {
+      const field = fields[fieldIndex];
       if (typeof field !== 'string') {
         continue;
       }
@@ -147,15 +344,16 @@ function stringify(obj: unknown) {
 
 function getHash(model: ModelStatic, row: Record<string, unknown>): string {
   const strings: string[] = [];
-  const primaryKeyAttributes = model.primaryKeyAttributes ?? [];
+  const primaryKeyAttributes = model.modelDefinition.primaryKeysAttributeNames;
 
-  if (primaryKeyAttributes.length > 0) {
+  if (primaryKeyAttributes.size > 0) {
     for (const attributeName of primaryKeyAttributes) {
       strings.push(stringify(row[attributeName]));
     }
   } else {
     const uniqueKeyAttributes = getUniqueKeyAttributes(model);
-    for (const attributeName of uniqueKeyAttributes) {
+    for (let attributeIndex = 0; attributeIndex < uniqueKeyAttributes.length; attributeIndex++) {
+      const attributeName = uniqueKeyAttributes[attributeIndex];
       strings.push(stringify(row[attributeName]));
     }
   }
@@ -204,38 +402,50 @@ function getHashesForPrefix(
     return cached;
   }
 
-  const include = currentIncludeMap[prefix] ?? currentPrefixMeta.get(prefix)?.include;
+  const prefixInfo = currentPrefixMeta.get(prefix);
+  const include = currentIncludeMap[prefix] ?? prefixInfo?.include;
   if (!include?.model) {
     return cache.get('')!;
   }
 
-  const prefixInfo = currentPrefixMeta.get(prefix);
-
-  const primaryKeyAttributes = prefixInfo?.primaryKeyAttributes?.length
-    ? prefixInfo.primaryKeyAttributes
-    : [...include.model.modelDefinition.primaryKeysAttributeNames.values()];
-
-  let attributesToHash = primaryKeyAttributes;
-
-  if (attributesToHash.length === 0) {
-    const uniqueKeyAttributes = prefixInfo?.uniqueKeyAttributes?.length
-      ? prefixInfo.uniqueKeyAttributes
-      : getUniqueKeyAttributes(include.model);
-
-    attributesToHash = uniqueKeyAttributes;
-  }
-
   let hash = prefix;
+  let hashAttributeRowKeys = prefixInfo?.hashAttributeRowKeys ?? [];
 
-  if (attributesToHash.length > 0) {
-    for (const attributeName of attributesToHash) {
-      const key = prefix ? `${prefix}.${attributeName}` : attributeName;
-      hash += stringify(currentRow[key]);
+  if (hashAttributeRowKeys.length === 0) {
+    const primaryKeyAttributes = prefixInfo?.primaryKeyAttributes?.length
+      ? prefixInfo.primaryKeyAttributes
+      : [...include.model.modelDefinition.primaryKeysAttributeNames.values()];
+
+    let attributesToHash = primaryKeyAttributes;
+
+    if (attributesToHash.length === 0) {
+      const uniqueKeyAttributes = prefixInfo?.uniqueKeyAttributes?.length
+        ? prefixInfo.uniqueKeyAttributes
+        : getUniqueKeyAttributes(include.model);
+
+      attributesToHash = uniqueKeyAttributes;
+    }
+
+    if (attributesToHash.length > 0) {
+      const rowKeyPrefix = prefix ? `${prefix}.` : '';
+      hashAttributeRowKeys = attributesToHash.map(
+        attributeName => `${rowKeyPrefix}${attributeName}`,
+      );
+      if (prefixInfo) {
+        prefixInfo.hashAttributeRowKeys = hashAttributeRowKeys;
+      }
     }
   }
 
-  const parentPrefixIndex = prefix.lastIndexOf('.');
-  const parentPrefix = parentPrefixIndex === -1 ? '' : prefix.slice(0, parentPrefixIndex);
+  if (hashAttributeRowKeys.length > 0) {
+    for (const attributeKey of hashAttributeRowKeys) {
+      hash += stringify(currentRow[attributeKey]);
+    }
+  }
+
+  const parentPrefix =
+    prefixInfo?.parentPrefixId ??
+    (prefix.includes('.') ? prefix.slice(0, prefix.lastIndexOf('.')) : '');
   const parentHashes = getHashesForPrefix(
     parentPrefix,
     currentRow,
@@ -508,7 +718,9 @@ export class AbstractQuery {
       const rawRows = processedResults.map(row => {
         const output: Record<string, unknown> = {};
 
-        for (const key of Object.keys(row)) {
+        const keys = Object.keys(row);
+        for (let index = 0; index < keys.length; ++index) {
+          const key = keys[index];
           output[key] = row[key];
         }
 
@@ -587,7 +799,8 @@ export class AbstractQuery {
     model?: ModelStatic,
     includeMap?: IncludeMap,
   ): Array<Record<string, unknown>> {
-    for (const values of valueArrays) {
+    for (let index = 0; index < valueArrays.length; ++index) {
+      const values = valueArrays[index];
       this._parseDataByType(values, model, includeMap);
     }
 
@@ -599,7 +812,9 @@ export class AbstractQuery {
     model?: ModelStatic,
     includeMap?: IncludeMap,
   ): Record<string, unknown> {
-    for (const key of Object.keys(values)) {
+    const keys = Object.keys(values);
+    for (let index = 0; index < keys.length; ++index) {
+      const key = keys[index];
       const nestedInclude = includeMap?.[key];
       if (nestedInclude) {
         const child = values[key];
@@ -692,38 +907,48 @@ export class AbstractQuery {
       return [];
     }
 
-    let length: number;
     const rowsLength = rows.length;
     let keys: string[] = [];
-
     let keyLength = 0;
     let keyMeta: metaEntry[] = [];
     let prefixMeta = new Map<string, metaEntry>();
-    let meta: metaEntry | undefined;
-    let prevMeta: metaEntry | undefined;
-    let values: Record<string, unknown> = {};
-    let topValues: Record<string, unknown> = {};
-    let topExists = false;
     const checkExisting = options.checkExisting;
-    let itemHash = '';
-    let parentHash: string | null = null;
 
-    const results: Array<Record<string, unknown>> = checkExisting
-      ? []
-      : Array.from({ length: rowsLength });
+    // disabled eslint rule for this line as we want a fixed length array here for optimization.
+    // at scale, this gives a measurable performance improvement.
+    //
+    // Benchmarks: N = 250_000 K = 20
+    // new Array(n) + indexed write x 979 ops/sec ±1.06% (91 runs sampled)
+    // Array.from({length:n}) x 100 ops/sec ±0.60% (74 runs sampled)
+    // push into [] x 331 ops/sec ±1.81% (78 runs sampled)
+    // pre-sized results[i] = obj x 882 ops/sec ±1.92% (85 runs sampled)
+    // results.push(obj) x 329 ops/sec ±3.28% (85 runs sampled)
+    //
+    // Benchmarks: N = 250_000 K = 60
+    // new Array(n) + indexed write x 917 ops/sec ±0.87% (93 runs sampled)
+    // Array.from({length:n}) x 117 ops/sec ±1.21% (74 runs sampled)
+    // push into [] x 302 ops/sec ±3.22% (85 runs sampled)
+    // pre-sized results[i] = obj x 819 ops/sec ±1.41% (89 runs sampled)
+    // results.push(obj) x 286 ops/sec ±1.98% (84 runs sampled)
+    //
+    // Benchmarks: N = 1_000_000 K = 60
+    // new Array(n) + indexed write x 482 ops/sec ±1.03% (89 runs sampled)
+    // Array.from({length:n}) x 27.11 ops/sec ±1.14% (49 runs sampled)
+    // push into [] x 72.85 ops/sec ±15.85% (63 runs sampled)
+    // pre-sized results[i] = obj x 426 ops/sec ±1.10% (88 runs sampled)
+    // results.push(obj) x 68.01 ops/sec ±10.89% (61 runs sampled)
+
+    // eslint-disable-next-line unicorn/no-new-array
+    const results: Array<Record<string, unknown>> = checkExisting ? [] : new Array(rowsLength);
     const resultMap: Record<string, Record<string, unknown>> = {};
     const includeMap: IncludeMap = {};
-    let $current: Record<string, unknown> | undefined;
 
-    let primaryKeyAttributes: readonly string[] = [];
-    let uniqueKeyAttributes: readonly string[] = [];
-
-    for (let rowsI = 0; rowsI < rowsLength; rowsI++) {
-      const row = rows[rowsI];
+    for (let rowIndex = 0; rowIndex < rowsLength; ++rowIndex) {
+      const row = rows[rowIndex];
       let prefixHashCache: Map<string, HashEntry> | undefined;
       let topHash = '';
 
-      if (rowsI === 0) {
+      if (rowIndex === 0) {
         keys = sortByDepth(Object.keys(row));
         keyLength = keys.length;
         keyMeta = [];
@@ -778,10 +1003,15 @@ export class AbstractQuery {
             prefixLength === 0
               ? ''
               : prefixId.slice(0, Math.max(0, prefixId.lastIndexOf('.'))) || '';
-          primaryKeyAttributes = modelForKey?.primaryKeyAttributes ?? [];
+          const primaryKeyAttributes = modelForKey?.primaryKeyAttributes ?? [];
           const hasUniqueKeys = modelForKey ? !isEmpty(modelForKey.uniqueKeys) : false;
-          uniqueKeyAttributes =
+          const uniqueKeyAttributes =
             hasUniqueKeys && modelForKey ? getUniqueKeyAttributes(modelForKey) : [];
+          const hashAttributeRowKeys = buildHashAttributeRowKeys(
+            prefixId,
+            primaryKeyAttributes,
+            uniqueKeyAttributes,
+          );
 
           const metaEntry = {
             key: rawKey,
@@ -794,6 +1024,7 @@ export class AbstractQuery {
             parentPrefixId,
             primaryKeyAttributes,
             uniqueKeyAttributes,
+            hashAttributeRowKeys,
           };
 
           keyMeta.push(metaEntry);
@@ -804,154 +1035,65 @@ export class AbstractQuery {
         }
       }
 
+      let topExistsForRow = false;
+
       if (checkExisting) {
-        topExists = false;
         topHash = getHash(includeOptions.model, row);
         prefixHashCache = new Map<string, HashEntry>();
         prefixHashCache.set('', { itemHash: topHash, parentHash: null });
       }
 
-      values = {};
-      topValues = values;
-      prevMeta = undefined;
-      for (let keyI = 0; keyI < keyLength; keyI++) {
-        const key = keys[keyI];
-        meta = keyMeta[keyI];
+      let currentValues: Record<string, unknown> = {};
+      const topValues = currentValues;
+      let previousMeta: metaEntry | undefined;
 
-        if (prevMeta && prevMeta.prefixParts !== meta.prefixParts) {
+      for (let keyIndex = 0; keyIndex < keyLength; ++keyIndex) {
+        const meta = keyMeta[keyIndex];
+        const key = keys[keyIndex];
+
+        if (previousMeta && previousMeta.prefixId !== meta.prefixId) {
           if (checkExisting) {
-            length = prevMeta.prefixLength;
-            parentHash = null;
-            if (length) {
-              const hashes = getHashesForPrefix(
-                prevMeta.prefixId,
-                row,
-                includeMap,
-                prefixMeta,
-                topHash,
-                prefixHashCache,
-              );
-
-              itemHash = hashes.itemHash;
-              parentHash = hashes.parentHash;
-            } else {
-              itemHash = topHash;
-            }
-
-            if (itemHash === topHash) {
-              if (!resultMap[itemHash]) {
-                resultMap[itemHash] = values;
-              } else {
-                topExists = true;
-              }
-            } else if (!resultMap[itemHash]) {
-              resultMap[itemHash] = values;
-              const lastKeySegment = prevMeta.lastKeySegment;
-              const association = extractAssociation(prevMeta.include?.association);
-              const parentContainer = parentHash ? resultMap[parentHash] : undefined;
-
-              if (association?.isSingleAssociation) {
-                if (parentContainer) {
-                  parentContainer[lastKeySegment] = values;
-                }
-              } else if (parentContainer) {
-                const existing = parentContainer[lastKeySegment];
-                const associationValues: Array<Record<string, unknown>> = Array.isArray(existing)
-                  ? (existing as Array<Record<string, unknown>>)
-                  : [];
-
-                if (!Array.isArray(existing)) {
-                  parentContainer[lastKeySegment] = associationValues;
-                }
-
-                associationValues.push(values);
-              }
-            }
-
-            values = {};
+            const segmentResult = attachExistingSegment(
+              previousMeta,
+              row,
+              includeMap,
+              prefixMeta,
+              topHash,
+              prefixHashCache,
+              currentValues,
+              resultMap,
+            );
+            currentValues = segmentResult.nextValues;
+            topExistsForRow ||= segmentResult.topExists;
           } else {
-            $current = topValues;
-            length = meta.prefixLength;
-            if (length) {
-              const prefixParts = meta.prefixParts;
-              let index = 0;
-              for (const part of prefixParts) {
-                if (index === length - 1) {
-                  $current[part] = {};
-                  values = $current[part] as Record<string, unknown>;
-                }
-
-                const nextCurrent = $current[part];
-                if (typeof nextCurrent !== 'object' || nextCurrent == null) {
-                  $current[part] = {};
-                }
-
-                $current = $current[part] as Record<string, unknown>;
-                index++;
-              }
-            }
+            currentValues = ensureNestedContainer(topValues, meta);
           }
         }
 
-        values[meta.attribute] = row[key];
-        prevMeta = meta;
+        currentValues[meta.attribute] = row[key];
+        previousMeta = meta;
       }
 
-      if (checkExisting && prevMeta) {
-        length = prevMeta.prefixLength;
-        parentHash = null;
+      if (checkExisting && previousMeta) {
+        const finalTopExists = finalizeExistingRow(
+          previousMeta,
+          row,
+          includeMap,
+          prefixMeta,
+          topHash,
+          prefixHashCache,
+          currentValues,
+          resultMap,
+          topExistsForRow,
+        );
 
-        if (length) {
-          const hashes = getHashesForPrefix(
-            prevMeta.prefixId,
-            row,
-            includeMap,
-            prefixMeta,
-            topHash,
-            prefixHashCache,
-          );
-
-          itemHash = hashes.itemHash;
-          parentHash = hashes.parentHash;
-        } else {
-          itemHash = topHash;
-        }
-
-        if (itemHash === topHash) {
-          if (!resultMap[itemHash]) {
-            resultMap[itemHash] = values;
-          } else {
-            topExists = true;
-          }
-        } else if (!resultMap[itemHash]) {
-          resultMap[itemHash] = values;
-          const parentContainer = parentHash ? resultMap[parentHash] : undefined;
-          const lastKeyPrefix = prevMeta.lastKeySegment;
-          const association = extractAssociation(prevMeta.include?.association);
-
-          if (association?.isSingleAssociation) {
-            if (parentContainer) {
-              parentContainer[lastKeyPrefix] = values;
-            }
-          } else if (parentContainer) {
-            const existing = parentContainer[lastKeyPrefix];
-            const associationValues: Array<Record<string, unknown>> = Array.isArray(existing)
-              ? (existing as Array<Record<string, unknown>>)
-              : [];
-
-            if (!Array.isArray(existing)) {
-              parentContainer[lastKeyPrefix] = associationValues;
-            }
-
-            associationValues.push(values);
-          }
-        }
-
-        if (!topExists) {
+        if (!finalTopExists) {
           results.push(topValues);
         }
+
+        topExistsForRow = finalTopExists;
       } else if (!checkExisting) {
-        results[rowsI] = topValues;
+        results[rowIndex] = topValues;
       }
     }
 
