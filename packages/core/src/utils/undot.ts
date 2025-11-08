@@ -215,10 +215,6 @@ export function transformRowWithPrecompiled(
 }
 
 /**
- * Optional: tiny object pool to reuse result objects in tight loops.
- * Clear with a super-fast key iteration (no Object.keys allocation).
- */
-/**
  * Acquire an object from a simple pool and clear its own keys.
  *
  * @param pool Pool of reusable plain objects
