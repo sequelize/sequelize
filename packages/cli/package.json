@@ -8,8 +8,8 @@
     "@inquirer/confirm": "^5.1.19",
     "@inquirer/input": "^4.2.5",
     "@inquirer/select": "^4.4.0",
-    "@oclif/core": "^4.5.6",
-    "@oclif/plugin-help": "^6.2.33",
+    "@oclif/core": "^4.8.0",
+    "@oclif/plugin-help": "^6.2.35",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.0",
@@ -22,8 +22,8 @@
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
     "concurrently": "9.2.1",
-    "mocha": "11.7.4",
-    "oclif": "4.22.32",
+    "mocha": "11.7.5",
+    "oclif": "4.22.41",
     "rimraf": "5.0.10"
   },
   "engines": {
