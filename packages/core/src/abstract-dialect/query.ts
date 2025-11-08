@@ -676,6 +676,7 @@ function getHash(model: ModelStatic, row: Record<string, unknown>): string {
         const attributeName = getAttributeNameFromColumn(model, field);
         strings.push(stringify(row[attributeName]));
       }
+
       break; // Only use the first unique index, matching getUniqueKeyAttributes logic
     }
   }
@@ -1159,6 +1160,10 @@ export class AbstractQuery {
         parsedRows as unknown as Parameters<typeof model.bulkBuild>[0],
         buildOptions as unknown as Parameters<typeof model.bulkBuild>[1],
       );
+    }
+
+    if (result == null) {
+      result = processedResults;
     }
 
     if (this.options.plain && Array.isArray(result)) {
