@@ -676,6 +676,7 @@ function getHash(model: ModelStatic, row: Record<string, unknown>): string {
         const attributeName = getAttributeNameFromColumn(model, field);
         strings.push(stringify(row[attributeName]));
       }
+      break; // Only use the first unique index, matching getUniqueKeyAttributes logic
     }
   }
 
