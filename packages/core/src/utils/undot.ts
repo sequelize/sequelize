@@ -62,6 +62,7 @@ export function tokenizePath(key: string): PathSeg[] {
       i++;
       let num = 0;
       let hasDigit = false;
+      let hasClosingBracket = false;
 
       // read digits until ']'
       while (i < n) {
@@ -74,6 +75,7 @@ export function tokenizePath(key: string): PathSeg[] {
         }
 
         if (c === 93 /* ']' */) {
+          hasClosingBracket = true;
           i++;
           break;
         }
@@ -81,6 +83,10 @@ export function tokenizePath(key: string): PathSeg[] {
         // Non-digit inside brackets: fallback to simple behavior (treat as text)
         // For perf, this doesn't support ["complex.key"] patterns.
         throw new Error(`Unsupported bracket syntax in key: ${key}`);
+      }
+
+      if (!hasClosingBracket) {
+        throw new Error(`Unterminated bracket in key: ${key}`);
       }
 
       if (!hasDigit) {
