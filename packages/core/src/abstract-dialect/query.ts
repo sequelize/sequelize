@@ -1500,7 +1500,7 @@ export class AbstractQuery {
           results.push(topValues);
         }
 
-        topExistsForRow = finalTopExists;
+        // Removed unused assignment to topExistsForRow
       } else if (!checkExisting) {
         results[rowIndex] = topValues;
       }
