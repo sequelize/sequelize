@@ -154,14 +154,7 @@ function computeHashesForMeta(
     return { itemHash: topHash, parentHash: null };
   }
 
-  return getHashesForPrefix(
-    meta.prefixId,
-    row,
-    includeMap,
-    prefixMeta,
-    topHash,
-    prefixHashCache,
-  );
+  return getHashesForPrefix(meta.prefixId, row, includeMap, prefixMeta, topHash, prefixHashCache);
 }
 
 function attachToParent(
@@ -182,7 +175,7 @@ function attachToParent(
   const association = extractAssociation(meta.include?.association);
   const associationKey = meta.lastKeySegment;
 
-  if (!association || association.isSingleAssociation) {
+  if (!association || !association.isMultiAssociation) {
     parentContainer[associationKey] = childValues;
 
     return;
@@ -303,6 +296,41 @@ function finalizeExistingRow(
   }
 
   return currentTopExists;
+}
+
+function resolveIncludeForKey(
+  rawKey: string,
+  prefixParts: readonly string[],
+  rootInclude: IncludeOptionsWithMap,
+  includeMap: IncludeMap,
+): IncludeOptionsWithMap | undefined {
+  if (prefixParts.length === 0) {
+    includeMap[rawKey] = rootInclude;
+    includeMap[''] = rootInclude;
+
+    return rootInclude;
+  }
+
+  let resolvedInclude: IncludeOptionsWithMap | undefined;
+  let currentInclude: IncludeOptionsWithMap | undefined = rootInclude;
+  let accumulatedPath: string | undefined;
+
+  for (const piece of prefixParts) {
+    currentInclude = currentInclude?.includeMap?.[piece];
+    if (!currentInclude) {
+      return undefined;
+    }
+
+    accumulatedPath = accumulatedPath ? `${accumulatedPath}.${piece}` : piece;
+    includeMap[accumulatedPath] = currentInclude;
+    resolvedInclude = currentInclude;
+  }
+
+  if (resolvedInclude) {
+    includeMap[rawKey] = resolvedInclude;
+  }
+
+  return resolvedInclude;
 }
 
 function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
@@ -969,32 +997,7 @@ export class AbstractQuery {
           const lastKeySegment = prefixLength ? prefixParts[prefixLength - 1] : '';
 
           if (!Object.hasOwn(includeMap, rawKey)) {
-            if (prefixLength === 0) {
-              includeMap[rawKey] = includeOptions;
-              includeMap[''] = includeOptions;
-            } else {
-              let currentInclude: IncludeOptionsWithMap | undefined = includeOptions;
-              let previousPiece: string | undefined;
-              let resolvedInclude: IncludeOptionsWithMap | undefined;
-
-              for (const piece of prefixParts) {
-                const nextInclude: IncludeOptionsWithMap | undefined =
-                  currentInclude?.includeMap?.[piece];
-                if (!nextInclude) {
-                  resolvedInclude = undefined;
-                  break;
-                }
-
-                resolvedInclude = nextInclude;
-                previousPiece = previousPiece ? `${previousPiece}.${piece}` : piece;
-                includeMap[previousPiece] = nextInclude;
-                currentInclude = nextInclude;
-              }
-
-              if (resolvedInclude) {
-                includeMap[rawKey] = resolvedInclude;
-              }
-            }
+            resolveIncludeForKey(rawKey, prefixParts, includeOptions, includeMap);
           }
 
           const includeForKey = includeMap[rawKey];
