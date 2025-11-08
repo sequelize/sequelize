@@ -3413,7 +3413,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/oracledb": "npm:^6.6.0"
     chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.18"
+    dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.5"
     oracledb: "npm:^6.8.0"
@@ -6848,7 +6848,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"dayjs@npm:^1.11.18, dayjs@npm:^1.11.19":
+"dayjs@npm:^1.11.19":
   version: 1.11.19
   resolution: "dayjs@npm:1.11.19"
   checksum: 10c0/7d8a6074a343f821f81ea284d700bd34ea6c7abbe8d93bce7aba818948957c1b7f56131702e5e890a5622cdfc05dcebe8aed0b8313bdc6838a594d7846b0b000
