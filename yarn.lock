@@ -3403,24 +3403,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@sequelize/oracle@workspace:packages/oracle":
-  version: 0.0.0-use.local
-  resolution: "@sequelize/oracle@workspace:packages/oracle"
-  dependencies:
-    "@sequelize/core": "workspace:*"
-    "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
-    "@types/mocha": "npm:10.0.10"
-    "@types/oracledb": "npm:^6.6.0"
-    chai: "npm:4.5.0"
-    dayjs: "npm:^1.11.18"
-    lodash: "npm:^4.17.21"
-    mocha: "npm:11.7.1"
-    oracledb: "npm:^6.8.0"
-    semver: "npm:^7.7.1"
-  languageName: unknown
-  linkType: soft
-
 "@sequelize/postgres@workspace:packages/postgres":
   version: 0.0.0-use.local
   resolution: "@sequelize/postgres@workspace:packages/postgres"
@@ -4531,15 +4513,6 @@ __metadata:
   version: 2.4.4
   resolution: "@types/normalize-package-data@npm:2.4.4"
   checksum: 10c0/aef7bb9b015883d6f4119c423dd28c4bdc17b0e8a0ccf112c78b4fe0e91fbc4af7c6204b04bba0e199a57d2f3fbbd5b4a14bf8739bf9d2a39b2a0aad545e0f86
-  languageName: node
-  linkType: hard
-
-"@types/oracledb@npm:^6.6.0":
-  version: 6.6.0
-  resolution: "@types/oracledb@npm:6.6.0"
-  dependencies:
-    "@types/node": "npm:*"
-  checksum: 10c0/98418f4d9f86113e7f1b3e5d8bc1fb28dcb94354685c62492009795171c10d2379e234a33a9af3c5af5f5559eac55498003ea3eee4e102b52ab5e3eab3bb8504
   languageName: node
   linkType: hard
 
@@ -13178,13 +13151,6 @@ __metadata:
     strip-ansi: "npm:^6.0.0"
     wcwidth: "npm:^1.0.1"
   checksum: 10c0/10ff14aace236d0e2f044193362b22edce4784add08b779eccc8f8ef97195cae1248db8ec1ec5f5ff076f91acbe573f5f42a98c19b78dba8c54eefff983cae85
-  languageName: node
-  linkType: hard
-
-"oracledb@npm:^6.8.0":
-  version: 6.8.0
-  resolution: "oracledb@npm:6.8.0"
-  checksum: 10c0/344e3cb641c60896d618d9f4d080b071a199afd98123e0a2e65ca4577c91b6ca383acf85a904c9ac349c2ffa5baa7605001385c430864509efdc55fb86e54799
   languageName: node
   linkType: hard
 
