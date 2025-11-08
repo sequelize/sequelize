@@ -15,7 +15,6 @@
  * All symbols are documented for Typedoc/JSDoc consumption. Unless marked otherwise,
  * everything in this file is considered internal to Sequelize's query pipeline.
  */
-import Dottie from 'dottie';
 import isEmpty from 'lodash/isEmpty';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -24,6 +23,13 @@ import { QueryTypes } from '../enums.js';
 import type { BuildOptions, IncludeOptions, Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
+import type { PrecompiledTransform } from '../utils/undot';
+import {
+  precompileKeys,
+  setByPathArray,
+  tokenizePath,
+  transformRowWithPrecompiled,
+} from '../utils/undot';
 import type { AbstractConnection } from './connection-manager.js';
 import type { NormalizedDataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
@@ -183,11 +189,10 @@ function remapRowFields(
 ): Record<string, unknown> {
   const output: Record<string, unknown> = { ...row };
 
-  for (const field in fieldMap) {
-    if (!Object.prototype.hasOwnProperty.call(fieldMap, field)) {
-      continue;
-    }
+  const fields = Object.keys(fieldMap);
 
+  for (let index = 0; index < fields.length; ++index) {
+    const field = fields[index];
     const name = fieldMap[field];
 
     if (field in output && name !== field) {
@@ -345,16 +350,15 @@ function attachToParent(
  * @param pool - Pool of reusable objects.
  * @returns An emptied object ready for population.
  */
-function acquireValuesObject(pool: Record<string, unknown>[]): Record<string, unknown> {
+function acquireValuesObject(pool: Array<Record<string, unknown>>): Record<string, unknown> {
   const reusable = pool.pop();
   if (!reusable) {
     return {};
   }
 
-  for (const key in reusable) {
-    if (Object.prototype.hasOwnProperty.call(reusable, key)) {
-      delete reusable[key];
-    }
+  const keys = Object.keys(reusable);
+  for (let i = 0; i < keys.length; i++) {
+    delete reusable[keys[i]];
   }
 
   return reusable;
@@ -366,7 +370,10 @@ function acquireValuesObject(pool: Record<string, unknown>[]): Record<string, un
  * @param pool - Pool to return the object to.
  * @param obj - Object to recycle.
  */
-function releaseValuesObject(pool: Record<string, unknown>[], obj: Record<string, unknown>): void {
+function releaseValuesObject(
+  pool: Array<Record<string, unknown>>,
+  obj: Record<string, unknown>,
+): void {
   pool.push(obj);
 }
 
@@ -396,7 +403,7 @@ function attachExistingSegment(
   prefixHashCache: Map<string, HashEntry> | undefined,
   currentValues: Record<string, unknown>,
   resultMap: Record<string, Record<string, unknown>>,
-  freeList: Record<string, unknown>[],
+  freeList: Array<Record<string, unknown>>,
   topHashEntry: HashEntry,
 ): ExistingSegmentResult {
   const hashes = computeHashesForMeta(
@@ -417,6 +424,7 @@ function attachExistingSegment(
     }
 
     releaseValuesObject(freeList, currentValues);
+
     return { nextValues, topExists: true };
   }
 
@@ -495,7 +503,7 @@ function finalizeExistingRow(
   currentValues: Record<string, unknown>,
   resultMap: Record<string, Record<string, unknown>>,
   currentTopExists: boolean,
-  freeList: Record<string, unknown>[],
+  freeList: Array<Record<string, unknown>>,
   topHashEntry: HashEntry,
 ): boolean {
   const hashes = computeHashesForMeta(
@@ -1058,23 +1066,38 @@ export class AbstractQuery {
     }
 
     if (this.options.raw) {
-      const outputPool: Record<string, unknown>[] = [];
+      let precompiled: PrecompiledTransform | undefined;
+
       const rawRows = processedResults.map(row => {
         if (!this.options.nest) {
           return row;
         }
 
-        const output = acquireValuesObject(outputPool);
-        const keys = Object.keys(row);
-        for (let index = 0; index < keys.length; ++index) {
-          const key = keys[index];
-          output[key] = row[key];
+        if (!precompiled) {
+          precompiled = precompileKeys(Object.keys(row));
         }
 
-        const transformed = Dottie.transform(output);
-        releaseValuesObject(outputPool, output);
+        const target: Record<string, unknown> = {};
+        transformRowWithPrecompiled(row, precompiled, target);
 
-        return transformed;
+        // If this row contains keys not present in the initial precompilation,
+        // compile and set them once and extend the cache for subsequent rows.
+        const rowKeys = Object.keys(row);
+        for (let i = 0; i < rowKeys.length; ++i) {
+          const k = rowKeys[i];
+          if (!precompiled.index.has(k)) {
+            const path = tokenizePath(k);
+            const v = row[k];
+            if (v !== undefined) {
+              setByPathArray(target, path, v);
+            }
+
+            precompiled.index.set(k, path);
+            precompiled.compiled.push({ sourceKey: k, path });
+          }
+        }
+
+        return target;
       });
 
       result = rawRows;
@@ -1178,11 +1201,9 @@ export class AbstractQuery {
     model?: ModelStatic,
     includeMap?: IncludeMap,
   ): Record<string, unknown> {
-    for (const key in values) {
-      if (!Object.prototype.hasOwnProperty.call(values, key)) {
-        continue;
-      }
-
+    const keys = Object.keys(values);
+    for (let index = 0; index < keys.length; ++index) {
+      const key = keys[index];
       const nestedInclude = includeMap?.[key];
       if (nestedInclude) {
         const child = values[key];
@@ -1349,7 +1370,7 @@ export class AbstractQuery {
 
     for (let rowIndex = 0; rowIndex < rowsLength; ++rowIndex) {
       const row = rows[rowIndex];
-      const freeList: Record<string, unknown>[] = [];
+      const freeList: Array<Record<string, unknown>> = [];
       let prefixHashCache: Map<string, HashEntry> | undefined;
       let topHashEntry: HashEntry | undefined;
       let topHash = '';
