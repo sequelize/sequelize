@@ -2202,21 +2202,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^4.4.0":
-  version: 4.4.0
-  resolution: "@inquirer/select@npm:4.4.0"
+"@inquirer/select@npm:^4.4.0, @inquirer/select@npm:^4.4.1":
+  version: 4.4.1
+  resolution: "@inquirer/select@npm:4.4.1"
   dependencies:
-    "@inquirer/ansi": "npm:^1.0.1"
-    "@inquirer/core": "npm:^10.3.0"
-    "@inquirer/figures": "npm:^1.0.14"
-    "@inquirer/type": "npm:^3.0.9"
-    yoctocolors-cjs: "npm:^2.1.2"
+    "@inquirer/ansi": "npm:^1.0.2"
+    "@inquirer/core": "npm:^10.3.1"
+    "@inquirer/figures": "npm:^1.0.15"
+    "@inquirer/type": "npm:^3.0.10"
+    yoctocolors-cjs: "npm:^2.1.3"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/9ab3811342f293e49eff60c85117612226c54aebda09db7f2354eabb95df55e02a8a4a674cb3514c12cf7c3dc6df4ef1addc4e41e006f52c17d9cee50208643a
+  checksum: 10c0/11fefa1f37e5afca67c104c3db01c4363c31493ef6b5b8a1308c9608c471ece2675cd774320ca99a3c22fe9ae1c8e311764957efdb7e3412b88e6a2bf8574edd
   languageName: node
   linkType: hard
 
@@ -3216,7 +3216,7 @@ __metadata:
     "@inquirer/checkbox": "npm:^4.3.1"
     "@inquirer/confirm": "npm:^5.1.20"
     "@inquirer/input": "npm:^4.2.5"
-    "@inquirer/select": "npm:^4.4.0"
+    "@inquirer/select": "npm:^4.4.1"
     "@oclif/core": "npm:^4.8.0"
     "@oclif/plugin-help": "npm:^6.2.35"
     "@oclif/test": "npm:4.1.14"
