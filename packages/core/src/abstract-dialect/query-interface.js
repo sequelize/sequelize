@@ -13,6 +13,7 @@ import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
+import { extractModelDefinition } from '../utils/model-utils';
 
 /**
  * The interface that Sequelize uses to talk to all databases
@@ -73,6 +74,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
+    console.log('=== CREATE TABLE TRIGGERED ===', tableName);
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
@@ -206,11 +208,20 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
-    const model = Object.values(this.sequelize.models).find(
-      m =>
-        m.tableName === (tableName.tableName || tableName) &&
-        m.table.schema === (tableName.schema || null),
-    );
+    const modelDef = extractModelDefinition(model);
+    const indexes = modelDef.getIndexes?.() || [];
+    console.log('=== changeColumn called for', tableName, attributeName);
+
+    const uniqueKeys = {};
+    for (const index of indexes) {
+      if (index.unique && index.fields && index.name) {
+        uniqueKeys[index.name] = {
+          fields: index.fields.map(f => (typeof f === 'string' ? f : f.attribute || f.name)),
+          name: index.name,
+          unique: true,
+        };
+      }
+    }
 
     const query = this.queryGenerator.attributesToSQL(
       {
@@ -219,7 +230,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       {
         context: 'changeColumn',
         table: tableName,
-        uniqueKeys: model?.uniqueKeys,
+        uniqueKeys,
       },
     );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);

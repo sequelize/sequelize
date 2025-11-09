@@ -270,36 +270,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
-    if (dialect === 'postgres' || dialect === 'postgres-native') {
-      describe('unique constraint duplication fix', () => {
-        it('should not create duplicate unique constraints on repeated alter syncs', async function () {
-          const ignoreUser = this.sequelize.define('UserUniqueTest', {
-            email: {
-              type: DataTypes.STRING,
-              unique: true,
-            },
-          });
-
-          await this.sequelize.sync({ force: true });
-
-          await this.sequelize.sync({ alter: true });
-          await this.sequelize.sync({ alter: true });
-
-          const [results] = await this.sequelize.query(`
-            SELECT constraint_name
-            FROM information_schema.table_constraints
-            WHERE table_name = 'UserUniqueTests'
-              AND constraint_type = 'UNIQUE';
-          `);
-
-          // Filter only email-related constraints
-          const uniqueConstraints = results.filter(r => r.constraint_name.includes('email'));
-
-          // Expect only one constraint
-          expect(uniqueConstraints.length).to.equal(1);
-        });
-      });
-    }
 
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.

@@ -702,6 +702,21 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
     });
   }
+  it('should not recreate a UNIQUE constraint if it already exists when { alter: true } is used', async () => {
+    const ignoreUser = sequelize.define('UserUniqueSync', {
+      email: { type: DataTypes.STRING, unique: true },
+    }, { timestamps: false });
+
+    await sequelize.sync({ force: true });
+    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
+
+    const results = await sequelize.queryInterface.showConstraints(ignoreUser, {
+      constraintType: 'UNIQUE',
+    });
+
+    expect(results).to.have.length(1);
+  });
 });
 
 async function getNonPrimaryIndexes(model) {
