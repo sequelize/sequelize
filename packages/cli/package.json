@@ -5,7 +5,7 @@
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
     "@inquirer/checkbox": "^4.3.1",
-    "@inquirer/confirm": "^5.1.19",
+    "@inquirer/confirm": "^5.1.20",
     "@inquirer/input": "^4.2.5",
     "@inquirer/select": "^4.4.0",
     "@oclif/core": "^4.8.0",
