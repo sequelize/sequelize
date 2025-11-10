@@ -47,7 +47,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
     if (config.connectString) {
       if (config.host || config.database || config.port) {
         throw new Error(
-          'connectString and host/database/port cannot be accepted simutaneously. Use only connectString instead.',
+          'connectString and host/database/port cannot be accepted simultaneously. Use only connectString instead.',
         );
       }
 
@@ -55,6 +55,10 @@ export class OracleConnectionManager extends AbstractConnectionManager<
     }
 
     if (!config.host || config.host.length === 0) {
+      if (!config.database) {
+        throw new Error('Either connectString or host/database must be provided');
+      }
+
       return config.database;
     }
 
@@ -155,8 +159,9 @@ export class OracleConnectionManager extends AbstractConnectionManager<
     await new Promise<void>((resolve, reject) => {
       connection.close(error => {
         if (error) {
-          // eslint-disable-next-line prefer-promise-reject-errors
-          return void reject();
+          debug('connection close error: %O', error);
+
+          return void reject(error);
         }
 
         resolve();
