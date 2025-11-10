@@ -2012,7 +2012,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@js-joda/core@npm:^5.6.1":
+"@js-joda/core@npm:^5.6.3":
   version: 5.6.5
   resolution: "@js-joda/core@npm:5.6.5"
   checksum: 10c0/bad9d67736eb7dfbc99f09b2f485c63c4d64cad2661648be88028e777f93769767c41d6019c0a35ba6f55a1b9846666f3528ae8746496a9f1ed9b60eade174be
@@ -3010,7 +3010,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.5"
     sinon: "npm:18.0.1"
-    tedious: "npm:^19.0.0"
+    tedious: "npm:^19.1.0"
   languageName: unknown
   linkType: soft
 
@@ -5273,15 +5273,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bl@npm:^6.0.11":
-  version: 6.1.0
-  resolution: "bl@npm:6.1.0"
+"bl@npm:^6.0.14":
+  version: 6.1.4
+  resolution: "bl@npm:6.1.4"
   dependencies:
     "@types/readable-stream": "npm:^4.0.0"
     buffer: "npm:^6.0.3"
     inherits: "npm:^2.0.4"
     readable-stream: "npm:^4.2.0"
-  checksum: 10c0/57407cb04d48fd913320f8f3a4a73b62b5a771fdf845dfc4071f46640cb48c01df40eb19cc2487d8acc0590a458ac0129ebd9a42c04b8573661fa8ed46522d06
+  checksum: 10c0/8744ecf54269b82c126b29066bd9460e65feeb57e2bb8a46b5a6d60db61f857270524b9a73853f22823806492bb66348c117515511d6840586f519bc195cd140
   languageName: node
   linkType: hard
 
@@ -15446,21 +15446,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:^19.0.0":
-  version: 19.0.0
-  resolution: "tedious@npm:19.0.0"
+"tedious@npm:^19.1.0":
+  version: 19.1.0
+  resolution: "tedious@npm:19.1.0"
   dependencies:
     "@azure/core-auth": "npm:^1.7.2"
     "@azure/identity": "npm:^4.2.1"
     "@azure/keyvault-keys": "npm:^4.4.0"
-    "@js-joda/core": "npm:^5.6.1"
+    "@js-joda/core": "npm:^5.6.3"
     "@types/node": "npm:>=18"
-    bl: "npm:^6.0.11"
+    bl: "npm:^6.0.14"
     iconv-lite: "npm:^0.6.3"
     js-md4: "npm:^0.3.2"
     native-duplexpair: "npm:^1.0.0"
     sprintf-js: "npm:^1.1.3"
-  checksum: 10c0/2ea152d62608b31b7513fb75933cf50475975d69bc6968fe53eda9a19834655d2505bf5b2b9710a705c597d0900c94ad08a0475daa211dafa97bbd47e1e19734
+  checksum: 10c0/99630b468ac93e98a366bf45c5765bf5b92a6328bb789e2bf223c60e5201980281b61e2a38ad322f9cca738cfe9a98e28212d428406f2c9beff02b9c4f743b70
   languageName: node
   linkType: hard
 
