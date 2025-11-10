@@ -12,19 +12,25 @@ const STRING_CONNECTION_OPTION_MAP = {
   connectString: undefined,
   database: undefined,
   debugJdwp: undefined,
+  driverName: undefined,
   edition: undefined,
   host: undefined,
   httpsProxy: undefined,
+  machine: undefined,
   newPassword: undefined,
+  osUser: undefined,
   password: undefined,
   poolAlias: undefined,
   port: undefined,
+  program: undefined,
   sourceRoute: undefined,
   sslServerCertDN: undefined,
   tag: undefined,
+  terminal: undefined,
   username: undefined,
   walletPassword: undefined,
   walletLocation: undefined,
+  walletContent: undefined,
 } as const satisfies Record<keyof StringConnectionOptions, undefined>;
 
 export const STRING_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<StringConnectionOptions>(
@@ -37,8 +43,10 @@ const BOOLEAN_CONNECTION_OPTION_MAP = {
   events: undefined,
   externalAuth: undefined,
   matchAny: undefined,
+  networkCompression: undefined,
   sslAllowWeakDNMatch: undefined,
   sslServerDNMatch: undefined,
+  useSNI: undefined,
 } as const satisfies Record<keyof BooleanConnectionOptions, undefined>;
 
 export const BOOLEAN_CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<BooleanConnectionOptions>(
@@ -51,6 +59,7 @@ const NUMBER_CONNECTION_OPTION_MAP = {
   connectTimeout: undefined,
   expireTime: undefined,
   httpsProxyPort: undefined,
+  networkCompressionThreshold: undefined,
   port: undefined,
   privilege: undefined,
   retryCount: undefined,
@@ -68,6 +77,7 @@ export const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<OracleConnectionO
   ...STRING_CONNECTION_OPTION_MAP,
   ...BOOLEAN_CONNECTION_OPTION_MAP,
   ...NUMBER_CONNECTION_OPTION_MAP,
+  appContext: undefined,
   accessToken: undefined,
   accessTokenConfig: undefined,
   shardingKey: undefined,

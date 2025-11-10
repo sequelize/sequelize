@@ -38,10 +38,10 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/oracledb": "^6.6.0",
+    "@types/oracledb": "^6.10.0",
     "dayjs": "^1.11.19",
     "lodash": "^4.17.21",
-    "oracledb": "^6.8.0",
+    "oracledb": "^6.10.0",
     "semver": "^7.7.3"
   },
   "devDependencies": {

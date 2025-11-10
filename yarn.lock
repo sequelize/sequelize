@@ -3411,12 +3411,12 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
-    "@types/oracledb": "npm:^6.6.0"
+    "@types/oracledb": "npm:^6.10.0"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.5"
-    oracledb: "npm:^6.8.0"
+    oracledb: "npm:^6.10.0"
     semver: "npm:^7.7.3"
   languageName: unknown
   linkType: soft
@@ -4534,7 +4534,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/oracledb@npm:^6.6.0":
+"@types/oracledb@npm:^6.10.0":
   version: 6.10.0
   resolution: "@types/oracledb@npm:6.10.0"
   dependencies:
@@ -13181,7 +13181,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oracledb@npm:^6.8.0":
+"oracledb@npm:^6.10.0":
   version: 6.10.0
   resolution: "oracledb@npm:6.10.0"
   checksum: 10c0/bd3c551a1fc2f3aeceeee5002a64c1104320195516b37c05252bb7e722b2de7c3ea041279c2d6c00501b4b595704aad3e200970583e8eb359b651314235ef6fc
