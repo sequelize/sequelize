@@ -152,7 +152,7 @@ export const CONFIG: DialectConfigs = {
     username: env.SEQ_ORACLE_USER || env.SEQ_USER || 'sequelizetest',
     password: env.SEQ_ORACLE_PW || env.SEQ_PW || 'sequelizepassword',
     host: env.SEQ_ORACLE_HOST || env.SEQ_HOST || '127.0.0.1',
-    port: env.SEQ_ORACLE_PORT || env.SEQ_PORT || 1521,
+    port: parseSafeInteger.orThrow(env.SEQ_ORACLE_PORT || env.SEQ_PORT || 1521),
     pool: {
       max: Number(env.SEQ_ORACLE_POOL_MAX || env.SEQ_POOL_MAX || 5),
       idle: Number(env.SEQ_ORACLE_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
