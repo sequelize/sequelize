@@ -10,7 +10,7 @@ services:
     ports:
       - 1521:1521
     healthcheck:
-      test: ['CMD-SHELL', 'sqlplus', 'system/password@localhost:1521/XEPDB1']
+      test: ['CMD-SHELL', 'sqlplus system/password@localhost:1521/XEPDB1']
       interval: 3s
       timeout: 1s
       retries: 10

@@ -21,7 +21,6 @@ const STRING_CONNECTION_OPTION_MAP = {
   osUser: undefined,
   password: undefined,
   poolAlias: undefined,
-  port: undefined,
   program: undefined,
   sourceRoute: undefined,
   sslServerCertDN: undefined,

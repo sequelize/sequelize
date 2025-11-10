@@ -766,7 +766,7 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        // Oracle inferences the datatype from the metadata and return the values in respective format.
+        // Oracle infers the datatype from the metadata and return the values in respective format.
         if (dialect.name !== 'oracle') {
           await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
         }

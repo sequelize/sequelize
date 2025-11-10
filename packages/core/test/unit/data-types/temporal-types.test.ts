@@ -141,7 +141,7 @@ describe('DataTypes.TIME', () => {
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       sqlite3: 'TEXT',
       oracle: new Error(`oracle does not support the TIME(precision) data type.
-See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types`),
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
     });
   });
 });

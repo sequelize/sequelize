@@ -553,7 +553,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         case 'oracle': {
-          primary = args[0];
           idx1 = args[1];
           idx2 = args[2];
           idx3 = args[3];

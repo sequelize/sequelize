@@ -29,7 +29,7 @@ export interface OracleConnectionOptions
 
   host?: string;
 
-  port?: number | string;
+  port?: number;
 }
 
 export class OracleConnectionManager extends AbstractConnectionManager<

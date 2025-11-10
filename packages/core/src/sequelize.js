@@ -266,8 +266,7 @@ Use Sequelize#query if you wish to use replacements.`);
         );
       }
 
-      const isOracleBulkBind =
-        this.dialect.name === 'oracle' && isBindArray && Array.isArray(options.bind[0]);
+      const isOracleBulkBind = this.dialect.name === 'oracle' && isBindArray && options.executeMany;
 
       if (isOracleBulkBind) {
         // skip mapBindParameters and all bind name validation
