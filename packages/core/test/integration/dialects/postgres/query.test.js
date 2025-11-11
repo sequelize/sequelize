@@ -7,7 +7,7 @@ const Support = require('../../support');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
-const { DatabaseError, DataTypes } = require('@sequelize/core');
+const { DatabaseError, DataTypes, Op } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
@@ -289,6 +289,178 @@ if (dialect.startsWith('postgres')) {
         })
       ).map(f => f.name);
       expect(orderByDescSubquery[0]).to.equal('record2');
+    });
+
+    it('orders by an alias when ordering by an attribute in an included subquery, filtering by a belongsToMany, and minifyAliases are enabled', async () => {
+      const sequelizeMinifyAliases = Support.createSingleTestSequelizeInstance({
+        logQueryParameters: true,
+        benchmark: true,
+        minifyAliases: true,
+        define: {
+          timestamps: false,
+        },
+      });
+
+      const Customer = sequelizeMinifyAliases.define(
+        'customer',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.TEXT,
+          },
+        },
+        { timestamps: false },
+      );
+
+      const Route = sequelizeMinifyAliases.define(
+        'route',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          date: {
+            type: DataTypes.DATEONLY,
+          },
+        },
+        { timestamps: false },
+      );
+      const Load = sequelizeMinifyAliases.define(
+        'load',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          routeId: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: Route,
+              key: 'id',
+            },
+          },
+        },
+        { timestamps: false },
+      );
+
+      const Delivery = sequelizeMinifyAliases.define(
+        'delivery',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          loadId: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: Load,
+              key: 'id',
+            },
+          },
+          customerId: {
+            type: DataTypes.INTEGER,
+            references: {
+              model: Customer,
+              key: 'id',
+            },
+          },
+
+          quantity: {
+            type: DataTypes.INTEGER,
+          },
+        },
+        { timestamps: false },
+      );
+
+      const CustomerDeliveries = sequelizeMinifyAliases.define(
+        'customer_deliveries',
+        {
+          customerId: {
+            type: DataTypes.INTEGER,
+          },
+          deliveryId: {
+            type: DataTypes.INTEGER,
+          },
+        },
+        { timestamps: false },
+      );
+
+      Route.hasMany(Load, { foreignKey: 'routeId' });
+      Load.hasMany(Delivery, { foreignKey: 'loadId' });
+      Customer.belongsToMany(Delivery, {
+        through: 'customer_deliveries',
+        foreignKey: 'customerId',
+        otherKey: 'deliveryId',
+      });
+
+      await sequelizeMinifyAliases.sync({ force: true });
+
+      await Route.create({ id: 1, date: '2025-12-12' });
+      await Load.create({ id: 2, routeId: 1 });
+      await Customer.create({ id: 4, name: 'Zyzz Aziz' });
+      await Delivery.create({ id: 3, quantity: 10, loadId: 2 });
+      await CustomerDeliveries.create({ customerId: 4, deliveryId: 3 });
+
+      const delivery = await Delivery.findOne({
+        subQuery: false,
+        include: [
+          {
+            model: Load,
+            required: true,
+            attributes: ['id'],
+            include: [
+              {
+                model: Route,
+                required: true,
+                attributes: ['id', 'date'],
+                where: { date: { [Op.gt]: '2020-01-01' } },
+              },
+            ],
+          },
+          {
+            model: Customer,
+            required: true,
+            where: { name: 'Zyzz Aziz' },
+          },
+        ],
+        where: { quantity: { [Op.gt]: 0 } },
+        order: [['load', 'route', 'date', 'ASC']],
+      });
+      expect(delivery.load.route.date).to.equal('2025-12-12');
+
+      const deliveryWithSubquery = await Delivery.findOne({
+        subQuery: true,
+        include: [
+          {
+            model: Load,
+            required: true,
+            attributes: ['id'],
+            include: [
+              {
+                model: Route,
+                required: true,
+                attributes: ['id', 'date'],
+                where: { date: { [Op.gt]: '2020-01-01' } },
+              },
+            ],
+          },
+          {
+            model: Customer,
+            required: true,
+            where: { id: 4 },
+          },
+        ],
+        where: { quantity: { [Op.gt]: 0 } },
+        order: [['load', 'route', 'date', 'ASC']],
+      });
+      expect(deliveryWithSubquery.load.route.date).to.equal('2025-12-12');
     });
 
     it('returns the minified aliased attributes', async () => {
