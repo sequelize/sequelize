@@ -1345,31 +1345,7 @@ export class AbstractQuery {
     let prefixMeta = new Map<string, metaEntry>();
     const checkExisting = options.checkExisting;
 
-    // disabled eslint rule for this line as we want a fixed length array here for optimization.
-    // at scale, this gives a measurable performance improvement.
-    //
-    // Benchmarks: N = 250_000 K = 20
-    // new Array(n) + indexed write x 979 ops/sec ±1.06% (91 runs sampled)
-    // Array.from({length:n}) x 100 ops/sec ±0.60% (74 runs sampled)
-    // push into [] x 331 ops/sec ±1.81% (78 runs sampled)
-    // pre-sized results[i] = obj x 882 ops/sec ±1.92% (85 runs sampled)
-    // results.push(obj) x 329 ops/sec ±3.28% (85 runs sampled)
-    //
-    // Benchmarks: N = 250_000 K = 60
-    // new Array(n) + indexed write x 917 ops/sec ±0.87% (93 runs sampled)
-    // Array.from({length:n}) x 117 ops/sec ±1.21% (74 runs sampled)
-    // push into [] x 302 ops/sec ±3.22% (85 runs sampled)
-    // pre-sized results[i] = obj x 819 ops/sec ±1.41% (89 runs sampled)
-    // results.push(obj) x 286 ops/sec ±1.98% (84 runs sampled)
-    //
-    // Benchmarks: N = 1_000_000 K = 60
-    // new Array(n) + indexed write x 482 ops/sec ±1.03% (89 runs sampled)
-    // Array.from({length:n}) x 27.11 ops/sec ±1.14% (49 runs sampled)
-    // push into [] x 72.85 ops/sec ±15.85% (63 runs sampled)
-    // pre-sized results[i] = obj x 426 ops/sec ±1.10% (88 runs sampled)
-    // results.push(obj) x 68.01 ops/sec ±10.89% (61 runs sampled)
-
-    // eslint-disable-next-line unicorn/no-new-array
+    // eslint-disable-next-line unicorn/no-new-array -- we want a fixed length array here for optimization at scale
     const results: Array<Record<string, unknown>> = checkExisting ? [] : new Array(rowsLength);
     const resultMap: Record<string, Record<string, unknown>> = {};
     const includeMap: IncludeMap = {};
