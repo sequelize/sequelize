@@ -1597,6 +1597,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         topLevelInfo,
         { minifyAliases: options.minifyAliases },
       );
+    } else if (include._isCustomJoin) {
+      joinQuery = this.generateCustomJoin(include, includeAs, topLevelInfo);
     } else {
       this._generateSubQueryFilter(include, includeAs, topLevelInfo);
       joinQuery = this.generateJoin(include, topLevelInfo, options);
@@ -1795,6 +1797,89 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return (options.attributes || []).find(
       attr => Array.isArray(attr) && attr[1] && (attr[0] === field || attr[1] === field),
     );
+  }
+
+  generateCustomJoin(include, includeAs, topLevelInfo) {
+    const right = include.model;
+    const asRight = includeAs.internalAs;
+    let joinCondition;
+    let joinWhere;
+
+    if (!include.on) {
+      throw new Error('Custom joins require an "on" condition to be specified');
+    }
+
+    // Handle the custom join condition
+    joinCondition = this.whereItemsQuery(include.on, {
+      mainAlias: asRight,
+      model: include.model,
+      replacements: topLevelInfo.options?.replacements,
+    });
+
+    if (include.where) {
+      joinWhere = this.whereItemsQuery(include.where, {
+        mainAlias: asRight,
+        model: include.model,
+        replacements: topLevelInfo.options?.replacements,
+      });
+      if (joinWhere) {
+        joinCondition += ` AND ${joinWhere}`;
+      }
+    }
+
+    // Handle alias minification like in generateJoin
+    if (topLevelInfo.options?.minifyAliases && asRight.length > 63) {
+      const alias = `%${topLevelInfo.options.includeAliases.size}`;
+      topLevelInfo.options.includeAliases.set(alias, asRight);
+    }
+
+    // Generate attributes for the joined table
+    const attributes = [];
+    const rightAttributes = right.modelDefinition.attributes;
+
+    // Process each attribute based on include.attributes or all attributes
+    const attributesToInclude =
+      include.attributes && include.attributes.length > 0
+        ? include.attributes
+        : Array.from(rightAttributes.keys());
+
+    for (const attr of attributesToInclude) {
+      if (typeof attr === 'string') {
+        // Simple attribute name
+        const field = rightAttributes.get(attr)?.columnName || attr;
+        attributes.push(
+          `${this.quoteTable(asRight)}.${this.quoteIdentifier(field)} AS ${this.quoteIdentifier(`${asRight}.${attr}`)}`,
+        );
+      } else if (Array.isArray(attr)) {
+        // [field, alias] format
+        const [field, alias] = attr;
+        if (typeof field === 'string') {
+          const columnName = rightAttributes.get(field)?.columnName || field;
+          attributes.push(
+            `${this.quoteTable(asRight)}.${this.quoteIdentifier(columnName)} AS ${this.quoteIdentifier(`${asRight}.${alias}`)}`,
+          );
+        } else {
+          // Handle complex expressions
+          attributes.push(
+            `${this.formatSqlExpression(field)} AS ${this.quoteIdentifier(`${asRight}.${alias}`)}`,
+          );
+        }
+      }
+    }
+
+    return {
+      join: include.required
+        ? 'INNER JOIN'
+        : include.right && this._dialect.supports['RIGHT JOIN']
+          ? 'RIGHT OUTER JOIN'
+          : 'LEFT OUTER JOIN',
+      body: this.quoteTable(right, { ...topLevelInfo.options, ...include, alias: asRight }),
+      condition: joinCondition,
+      attributes: {
+        main: attributes,
+        subQuery: [],
+      },
+    };
   }
 
   generateJoin(include, topLevelInfo, options) {
