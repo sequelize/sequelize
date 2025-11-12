@@ -562,7 +562,8 @@ function resolveIncludeForKey(
   let currentInclude: IncludeOptionsWithMap | undefined = rootInclude;
   let accumulatedPath: string | undefined;
 
-  for (const piece of prefixParts) {
+  for (let i = 0; i < prefixParts.length; i++) {
+    const piece = prefixParts[i];
     currentInclude = currentInclude?.includeMap?.[piece];
     if (!currentInclude) {
       return undefined;
@@ -655,19 +656,21 @@ function getHash(model: ModelStatic, row: Record<string, unknown>): string {
     }
   } else {
     const uniqueKeyAttributes = getUniqueKeyAttributes(model);
-    for (let attributeIndex = 0; attributeIndex < uniqueKeyAttributes.length; attributeIndex++) {
-      const attributeName = uniqueKeyAttributes[attributeIndex];
+    for (let i = 0; i < uniqueKeyAttributes.length; i++) {
+      const attributeName = uniqueKeyAttributes[i];
       strings.push(stringify(row[attributeName]));
     }
   }
 
   if (isEmpty(strings) && !isEmpty(model.getIndexes())) {
-    for (const index of model.getIndexes()) {
+    for (let i = 0; i < model.getIndexes().length; i++) {
+      const index = model.getIndexes()[i];
       if (!index.unique || !index.fields) {
         continue;
       }
 
-      for (const field of index.fields) {
+      for (let j = 0; j < index.fields.length; j++) {
+        const field = index.fields[j];
         // Skip function-based or literal index fields - we can only hash simple attribute names
         if (typeof field !== 'string') {
           continue;
@@ -758,7 +761,8 @@ function getHashesForPrefix(
   }
 
   if (hashAttributeRowKeys.length > 0) {
-    for (const attributeKey of hashAttributeRowKeys) {
+    for (let k = 0; k < hashAttributeRowKeys.length; k++) {
+      const attributeKey = hashAttributeRowKeys[k];
       hashParts.push(stringify(currentRow[attributeKey]));
     }
   }
@@ -958,7 +962,8 @@ export class AbstractQuery {
 
     const model = this.model;
 
-    for (const index of model.getIndexes()) {
+    for (let i = 0; i < model.getIndexes().length; i++) {
+      const index = model.getIndexes()[i];
       if (!index.unique || !index.fields) {
         continue;
       }
@@ -1364,7 +1369,8 @@ export class AbstractQuery {
         prefixMeta = new Map<string, metaEntry>();
         const prefixPartsCache = new Map<string, readonly string[]>();
 
-        for (const rawKey of keys) {
+        for (let i = 0; i < keys.length; i++) {
+          const rawKey = keys[i];
           const lastDotIndex = rawKey.lastIndexOf('.');
           const prefixId = lastDotIndex === -1 ? '' : rawKey.slice(0, lastDotIndex);
           let prefixParts = prefixPartsCache.get(prefixId);

@@ -1,8 +1,3 @@
-/* eslint-disable unicorn/no-new-array */
-/* eslint-disable unicorn/prefer-includes */
-/* eslint-disable @typescript-eslint/prefer-includes */
-/* eslint-disable unicorn/no-for-loop */
-/* eslint-disable unicorn/prefer-code-point */
 /**
  * Tiny precompiler + setter to replace Dottie.transform for flat "a.b[0].c" keys.
  * Advantages:
@@ -10,7 +5,7 @@
  * - Handles dot paths and [number] array indices
  * - Fast: pre-tokenizes keys once, then does straight-line writes
  *
- * disable some linting rules for performance.
+ * some linting rules are skipped for performance optimizations.
  */
 
 type PathSeg = string | number;
@@ -49,6 +44,8 @@ export function tokenizePath(key: string): PathSeg[] {
   };
 
   while (i < n) {
+    // disable linting rule for performance.
+    /* eslint-disable-next-line unicorn/prefer-code-point */
     const ch = key.charCodeAt(i);
     if (ch === 46 /* '.' */) {
       flushBuf();
@@ -66,6 +63,7 @@ export function tokenizePath(key: string): PathSeg[] {
 
       // read digits until ']'
       while (i < n) {
+        // eslint-disable-next-line unicorn/prefer-code-point
         const c = key.charCodeAt(i);
         if (c >= 48 && c <= 57) {
           hasDigit = true;
@@ -113,13 +111,19 @@ export function tokenizePath(key: string): PathSeg[] {
  * @param keys The flat keys to precompile
  */
 export function precompileKeys(keys: readonly string[]): PrecompiledTransform {
+  /* eslint-disable-next-line unicorn/no-new-array */
   const compiled: CompiledPath[] = new Array(keys.length);
   const index = new Map<string, PathSeg[]>();
 
+  // disable linting rule for performance.
+  /* eslint-disable-next-line unicorn/no-for-loop */
   for (let i = 0; i < keys.length; i++) {
     const k = keys[i];
     // Fast path: if no '.' and no '[' then it’s a direct write, store a single string seg
+
+    /* eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  */
     const hasDot = k.indexOf('.') >= 0;
+    /* eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  */
     const hasBracket = k.indexOf('[') >= 0;
 
     const path = hasDot || hasBracket ? tokenizePath(k) : [k];
@@ -208,6 +212,8 @@ export function transformRowWithPrecompiled(
 ): Record<string, unknown> {
   const target = out ?? {};
   const { compiled } = pre;
+  // disable linting rule for performance.
+  /* eslint-disable-next-line unicorn/no-for-loop */
   for (let i = 0; i < compiled.length; i++) {
     const { sourceKey, path } = compiled[i];
     const v = (row as any)[sourceKey];
@@ -234,6 +240,8 @@ export function acquirePooledObject(pool: Array<Record<string, unknown>>): Recor
   // Clear previous contents
 
   const keys = Object.keys(obj);
+  // disable linting rule for performance.
+  /* eslint-disable-next-line unicorn/no-for-loop */
   for (let i = 0; i < keys.length; i++) {
     delete (obj as any)[keys[i]];
   }
