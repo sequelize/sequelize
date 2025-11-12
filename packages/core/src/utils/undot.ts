@@ -182,19 +182,7 @@ export function setByPathArray(
   }
 
   const leaf = path[last];
-  if (typeof leaf === 'number') {
-    if (!Array.isArray(obj)) {
-      // LLMs said we need this. I'm not sure, but it seems like it won't hurt. -sid
-      // Convert to array for correctness; small overhead but rare in well-formed paths
-      const arr: any[] = [];
-      (obj as any[]).length = 0; // drop refs (no-op if not array)
-      obj = arr;
-    }
-
-    obj[leaf] = value;
-  } else {
-    obj[leaf] = value;
-  }
+  obj[leaf] = value;
 }
 
 /**
