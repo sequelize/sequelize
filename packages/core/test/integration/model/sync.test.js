@@ -703,9 +703,13 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
   it('should not recreate a UNIQUE constraint if it already exists when { alter: true } is used', async () => {
-    const ignoreUser = sequelize.define('UserUniqueSync', {
-      email: { type: DataTypes.STRING, unique: true },
-    }, { timestamps: false });
+    const ignoreUser = sequelize.define(
+      'UserUniqueSync',
+      {
+        email: { type: DataTypes.STRING, unique: true },
+      },
+      { timestamps: false },
+    );
 
     await sequelize.sync({ force: true });
     await sequelize.sync({ alter: true });

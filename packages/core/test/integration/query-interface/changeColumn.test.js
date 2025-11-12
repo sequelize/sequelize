@@ -270,7 +270,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
-
     // sqlite has limited ALTER TABLE capapibilites which requires a workaround involving recreating tables.
     // This leads to issues with losing data or losing foreign key references.
     // The tests below address these problems

@@ -13,7 +13,6 @@ import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
-import { extractModelDefinition } from '../utils/model-utils';
 
 /**
  * The interface that Sequelize uses to talk to all databases
