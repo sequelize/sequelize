@@ -267,7 +267,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       if (typeof field === 'string') {
         return field;
       }
-      
+
       if (field && typeof field === 'object') {
         return field.field ?? field.column ?? field.attribute ?? field.name;
       }
