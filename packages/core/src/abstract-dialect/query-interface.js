@@ -208,20 +208,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
-    const modelDef = extractModelDefinition(model);
-    const indexes = modelDef.getIndexes?.() || [];
-    console.log('=== changeColumn called for', tableName, attributeName);
-
-    const uniqueKeys = {};
-    for (const index of indexes) {
-      if (index.unique && index.fields && index.name) {
-        uniqueKeys[index.name] = {
-          fields: index.fields.map(f => (typeof f === 'string' ? f : f.attribute || f.name)),
-          name: index.name,
-          unique: true,
-        };
-      }
-    }
 
     const query = this.queryGenerator.attributesToSQL(
       {
@@ -230,7 +216,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       {
         context: 'changeColumn',
         table: tableName,
-        uniqueKeys,
+        uniqueKeys: options?.uniqueKeys,
       },
     );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);

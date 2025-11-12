@@ -219,10 +219,10 @@ export class Model extends ModelTypeScript {
       const defaults =
         modelDefinition.defaultValues.size > 0
           ? mapValues(getObjectFromMap(modelDefinition.defaultValues), getDefaultValue => {
-              const value = getDefaultValue();
+            const value = getDefaultValue();
 
-              return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
-            })
+            return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
+          })
           : Object.create(null);
 
       // set id to null if not passed as value, a newly created dao has no id
@@ -961,7 +961,28 @@ ${associationOwner._getAssociationDebugList()}`);
             }
           }
 
-          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+          const modelDef = this.modelDefinition;
+          const indexes = modelDef?.getIndexes?.() || [];
+
+          const uniqueKeys = Object.fromEntries(
+            indexes
+              .filter(i => i.unique)
+              .map(i => [
+                i.name,
+                {
+                  fields: i.fields.map(f =>
+                    typeof f === 'string' ? f : f.attribute || f.name,
+                  ),
+                  name: i.name,
+                  unique: true,
+                },
+              ]),
+          );
+
+          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, {
+            ...options,
+            uniqueKeys,
+          },);
         }
       }
     }
@@ -1303,7 +1324,7 @@ ${associationOwner._getAssociationDebugList()}`);
   }
 
   static _createModelVariant(optionOverrides) {
-    const model = class extends this {};
+    const model = class extends this { };
     model._initialModel = this;
     Object.defineProperty(model, 'name', { value: this.name });
 
@@ -1913,7 +1934,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (!options || !options.where || arguments.length > 1) {
       throw new Error(
         'Missing where attribute in the options parameter passed to findOrBuild. ' +
-          'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
+        'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
       );
     }
 
@@ -1955,7 +1976,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (!options || !options.where || arguments.length > 1) {
       throw new Error(
         'Missing where attribute in the options parameter passed to findOrCreate. ' +
-          'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
+        'Please note that the API has changed, and is now options only (an object with where, defaults keys, transaction etc.)',
       );
     }
 
@@ -2623,7 +2644,7 @@ ${associationOwner._getAssociationDebugList()}`);
                         attributeName === include.association.foreignKey ||
                         attributeName === include.association.otherKey ||
                         typeof associationInstance[include.association.through.model.name][
-                          attributeName
+                        attributeName
                         ] === 'undefined'
                       ) {
                         continue;
@@ -3403,8 +3424,8 @@ Instead of specifying a Model, either:
     assert(options && options.where, 'Missing where attribute in the options parameter');
     assert(
       isPlainObject(options.where) ||
-        Array.isArray(options.where) ||
-        options.where instanceof BaseSqlExpression,
+      Array.isArray(options.where) ||
+      options.where instanceof BaseSqlExpression,
       'Expected plain object, array or sequelize method in the options.where parameter',
     );
   }
