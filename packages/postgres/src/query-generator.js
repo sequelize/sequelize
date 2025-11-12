@@ -264,7 +264,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const inlineUniqueField = attribute.field ?? options.key;
 
     const normalizeFieldName = field => {
-      if (typeof field === 'string') return field;
+      if (typeof field === 'string') {
+        return field;
+      }
       if (field && typeof field === 'object') {
         return field.field ?? field.column ?? field.attribute ?? field.name;
       }

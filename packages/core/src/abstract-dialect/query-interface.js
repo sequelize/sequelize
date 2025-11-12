@@ -73,7 +73,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
-    console.log('=== CREATE TABLE TRIGGERED ===', tableName);
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query

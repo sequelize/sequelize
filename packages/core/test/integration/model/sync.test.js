@@ -702,6 +702,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       await sequelize.sync({ alter: true });
     });
   }
+
   it('should not recreate a UNIQUE constraint if it already exists when { alter: true } is used', async () => {
     const ignoreUser = sequelize.define(
       'UserUniqueSync',
