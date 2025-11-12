@@ -18,11 +18,11 @@
 import isEmpty from 'lodash/isEmpty';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
-import type { Association } from '../associations/index.js';
-import { QueryTypes } from '../enums.js';
+import type { Association } from '../associations';
+import { QueryTypes } from '../enums';
 import type { BuildOptions, IncludeOptions, Model, ModelStatic } from '../model';
 import type { Sequelize } from '../sequelize';
-import * as deprecations from '../utils/deprecations.js';
+import * as deprecations from '../utils/deprecations';
 import type { PrecompiledTransform } from '../utils/undot';
 import {
   precompileKeys,
@@ -30,9 +30,9 @@ import {
   tokenizePath,
   transformRowWithPrecompiled,
 } from '../utils/undot';
-import type { AbstractConnection } from './connection-manager.js';
-import type { NormalizedDataType } from './data-types.js';
-import { AbstractDataType } from './data-types.js';
+import type { AbstractConnection } from './connection-manager';
+import type { NormalizedDataType } from './data-types';
+import { AbstractDataType } from './data-types';
 
 /**
  * Cache of unique-key attribute name arrays per model.
