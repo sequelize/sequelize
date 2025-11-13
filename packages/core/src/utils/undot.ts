@@ -200,8 +200,7 @@ export function transformRowWithPrecompiled(
 ): Record<string, unknown> {
   const target = out ?? {};
   const { compiled } = pre;
-  // disable linting rule for performance.
-  /* eslint-disable-next-line unicorn/no-for-loop */
+  // eslint-disable-next-line unicorn/no-for-loop -- disabled for performance
   for (let i = 0; i < compiled.length; i++) {
     const { sourceKey, path } = compiled[i];
     const v = (row as any)[sourceKey];
