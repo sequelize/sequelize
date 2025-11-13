@@ -121,7 +121,7 @@ export function precompileKeys(keys: readonly string[]): PrecompiledTransform {
     const k = keys[i];
     // Fast path: if no '.' and no '[' then it’s a direct write, store a single string seg
 
-    /* eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  */
+    // eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  -- disabled for performance
     const hasDot = k.indexOf('.') >= 0;
     /* eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  */
     const hasBracket = k.indexOf('[') >= 0;
