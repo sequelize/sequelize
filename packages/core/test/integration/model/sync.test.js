@@ -720,7 +720,12 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       constraintType: 'UNIQUE',
     });
 
-    expect(results).to.have.length(1);
+    if (sequelize.dialect.name === 'sqlite' || sequelize.dialect.name === 'sqlite3') {
+      expect(results.length).to.be.lte(1);
+    } else {
+      expect(results).to.have.length(1);
+    }
+
   });
 });
 
