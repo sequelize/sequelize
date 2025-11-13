@@ -725,7 +725,6 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     } else {
       expect(results).to.have.length(1);
     }
-
   });
 });
 
