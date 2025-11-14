@@ -163,7 +163,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (parameterStyle === ParameterStyle.BIND) {
       bind =
         this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
-      bindParam = createBindParamGenerator(bind, (this.dialect.name === 'oracle'));
+      bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);

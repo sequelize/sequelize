@@ -1690,7 +1690,6 @@ ${associationOwner._getAssociationDebugList()}`);
     // use a subquery to get the count
     if (options.group && options.countGroupedRows) {
       const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
-      const dialect = this.sequelize.dialect.name;
 
       const queryCountAll = this.queryGenerator.generateCountAllQuery(query);
 
@@ -2318,7 +2317,10 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (options.updateOnDuplicate && !model.sequelize.dialect.supports.inserts.updateOnDuplicate) {
+      if (
+        options.updateOnDuplicate &&
+        !model.sequelize.dialect.supports.inserts.updateOnDuplicate
+      ) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 

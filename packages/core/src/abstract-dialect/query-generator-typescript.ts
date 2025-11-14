@@ -1002,5 +1002,4 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     // The "Z" alias is required for all dialects (Oracle does not support "AS")
     return `SELECT COUNT(*) AS count FROM (${query}) ${aliasToken} Z`;
   }
-
 }
