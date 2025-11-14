@@ -2322,7 +2322,6 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
-
       const modelDefinition = model.modelDefinition;
 
       options.fields = options.fields || Array.from(modelDefinition.attributes.keys());
