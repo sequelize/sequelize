@@ -47,7 +47,6 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const currTableName = this.getCatalogName(table.tableName);
     const schema = this.getCatalogName(table.schema);
 
-    // name, type, datalength (except number / nvarchar), datalength varchar, datalength number, nullable, default value, primary ?
     return [
       'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
       'FROM all_tab_columns atc ',

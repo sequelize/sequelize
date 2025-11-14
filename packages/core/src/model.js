@@ -1692,8 +1692,7 @@ ${associationOwner._getAssociationDebugList()}`);
       const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
       const dialect = this.sequelize.dialect.name;
 
-      // Oracle doesn't support 'AS' keyword for aliasing tables
-      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) ${dialect !== 'oracle' ? 'AS' : ''} Z`;
+      const queryCountAll = this.queryGenerator.generateCountAllQuery(query);
 
       const result = await this.sequelize.query(queryCountAll);
 
@@ -2314,18 +2313,16 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+      const model = options.model;
+      if (options.ignoreDuplicates && !model.sequelize.dialect.supports.inserts.ignoreDuplicates) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
-      if (
-        options.updateOnDuplicate &&
-        !['mysql', 'mariadb', 'sqlite3', 'postgres', 'ibmi'].includes(dialect)
-      ) {
+      if (options.updateOnDuplicate && !model.sequelize.dialect.supports.inserts.updateOnDuplicate) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
-      const model = options.model;
+
       const modelDefinition = model.modelDefinition;
 
       options.fields = options.fields || Array.from(modelDefinition.attributes.keys());

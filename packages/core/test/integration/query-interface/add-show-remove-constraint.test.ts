@@ -352,7 +352,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           constraintType: 'CHECK',
         });
         if (dialect === 'postgres' || dialect === 'oracle') {
-          // Postgres adds a CHECK constraint for each column with not null
+          // These dialects add a CHECK constraint for each column with not null
           expect(constraintType).to.have.length(6);
           expect(constraintType[5].constraintType).to.equal('CHECK');
         } else {

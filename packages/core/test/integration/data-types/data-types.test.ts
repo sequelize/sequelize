@@ -171,7 +171,7 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    // TODO: add length check constraint in sqlite
+    // TODO: add length check constraint in sqlite and oracle
     if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle') {
       it('throws if the string is too long', async () => {
         await expect(
@@ -687,7 +687,6 @@ describe('DataTypes', () => {
       it('accepts numbers, bigints, strings', async () => {
         await testSimpleInOut(vars.User, 'intAttr', 123, 123);
         await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
-
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
         await testSimpleInOut(
@@ -753,6 +752,7 @@ describe('DataTypes', () => {
       it('rejects unsafe integers', async () => {
         await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
+
         await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
         await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
@@ -1058,7 +1058,6 @@ describe('DataTypes', () => {
         123n,
         dialect.name === 'mssql' ? '123' : '123.00',
       );
-
       await testSimpleInOut(
         vars.User,
         'decimalAttr',
@@ -1260,7 +1259,7 @@ describe('DataTypes', () => {
     });
 
     it('clamps to specified precision', async () => {
-      // sqlite does not support restricting the precision
+      // sqlite and oracle do not support restricting the precision
       if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle') {
         await testSimpleInOut(
           vars.User,
@@ -1783,8 +1782,8 @@ describe('DataTypes', () => {
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
-      // Oracle JSON is BLOB column with check `IS JSON`.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
+      // Oracle JSON is BLOB column with check `IS JSON`.
       if (dialect.name !== 'mariadb' && dialect.name !== 'oracle') {
         if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.

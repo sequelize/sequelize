@@ -1279,13 +1279,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       return `:${Object.keys(bind).length + posOffset}`;
     };
   }
-
-  /**
-   * Returns the authenticate test query string
-   */
-  authTestQuery() {
-    return 'SELECT 1+1 AS result FROM DUAL';
-  }
 }
 
 /* istanbul ignore next */

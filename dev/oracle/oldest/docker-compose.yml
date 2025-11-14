@@ -3,9 +3,10 @@
 services:
   oracle-oldest:
     container_name: sequelize-oracle-oldest
-    image: gvenzl/oracle-xe:18-slim
+    image: gvenzl/oracle-xe:18.4.0-slim
     environment:
       ORACLE_PASSWORD: password
+      ORACLE_DATABASE: XEPDB1
     ports:
       - 1521:1521
     healthcheck:

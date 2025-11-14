@@ -86,7 +86,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     super({
       dataTypesDocumentationUrl:
         'https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/Data-Types.html',
-      minimumDatabaseVersion: '18.0.0',
+      minimumDatabaseVersion: '18.4.0',
       identifierDelimiter: '"',
       name: 'oracle',
       options,
@@ -142,7 +142,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       throw new Error('Invalid SQL function call.'); // Error if function call has unexpected format
     }
 
-    // Extract the function name (etiher 'TO_TIMESTAM_TZ' or 'TO_DATE') and the contents inside the parantheses
+    // Extract the function name (either 'TO_TIMESTAM_TZ' or 'TO_DATE') and the contents inside the parentheses
     const functionName = splitVal[0].trim(); // Function name should be 'TO_TIMESTAMP_TZ' or 'TO_DATE'
     const insideParens = splitVal[1].trim(); // This contains the parameters (date value and format string)
 

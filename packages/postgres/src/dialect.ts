@@ -99,6 +99,7 @@ export class PostgresDialect extends AbstractDialect<
       include: true,
     },
     inserts: {
+      ignoreDuplicates: ' IGNORE',
       onConflictDoNothing: ' ON CONFLICT DO NOTHING',
       updateOnDuplicate: ' ON CONFLICT DO UPDATE SET',
       conflictFields: true,

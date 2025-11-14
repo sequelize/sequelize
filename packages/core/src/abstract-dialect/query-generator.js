@@ -104,12 +104,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const fields = [];
     const returningModelAttributes = [];
     const returnTypes = [];
+    const returnAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
     let bind;
     let bindParam;
     let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
-    const returnAttributes = [];
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -163,7 +163,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (parameterStyle === ParameterStyle.BIND) {
       bind =
         this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
-      bindParam = createBindParamGenerator(bind, this.dialect);
+      bindParam = createBindParamGenerator(bind, (this.dialect.name === 'oracle'));
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -453,7 +453,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Helper method for populating the returning into bind information
    * that is needed by some dialects (currently Oracle)
-   * This is called when `dialect.supports.returnIntoClause` is `True`
+   * This is called when `dialect.supports.returnIntoClause` is `true`
    *
    * @private
    */
@@ -497,7 +497,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (parameterStyle === ParameterStyle.BIND) {
       bind = Object.create(null);
-      bindParam = createBindParamGenerator(bind, this.dialect);
+      bindParam = createBindParamGenerator(bind);
     }
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
@@ -507,10 +507,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       } else if (this.dialect.name === 'oracle') {
         // This cannot be set in where clause because rownum will be quoted
         if (where && ((where.length && where.length > 0) || Object.keys(where).length > 0)) {
-          // If we have a where clause, we add AND
           suffix += ' AND ';
         } else {
-          // No where clause, we add where
           suffix += ' WHERE ';
         }
 
@@ -1241,7 +1239,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          // For  dialects which don't allow for ordering in the subqueries, the result of a select
+          // For dialects which don't allow for ordering in the subqueries, the result of a select
           // is a set, not a sequence, and so is the result of UNION.
           // So the top level ORDER BY is required
           if (!this.dialect.supports.topLevelOrderByRequired) {
