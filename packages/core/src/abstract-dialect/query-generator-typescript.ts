@@ -980,7 +980,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    *
    *   SELECT COUNT(*) AS count FROM (<query>) <alias>
    *
-   * The alias token is generated through {@link getAliasToken}, so dialects
+   * The alias token is generated through getAliasToken, so dialects
    * that do not support the `AS` keyword (e.g. Oracle) are handled correctly.
    *
    * @param query The SQL query to wrap inside the COUNT(*) subquery.
