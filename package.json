@@ -74,7 +74,7 @@
   ],
   "devDependencies": {
     "@ephys/eslint-config-typescript": "20.1.4",
-    "@rushstack/eslint-patch": "1.14.1",
+    "@rushstack/eslint-patch": "1.15.0",
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.20",
     "@types/lodash": "4.17.20",
@@ -85,7 +85,7 @@
     "cross-env": "10.1.0",
     "esbuild": "0.27.0",
     "eslint": "8.57.1",
-    "eslint-plugin-jsdoc": "61.1.12",
+    "eslint-plugin-jsdoc": "61.2.1",
     "eslint-plugin-mocha": "10.5.0",
     "fast-glob": "3.3.3",
     "husky": "9.1.7",
