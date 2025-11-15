@@ -1,7 +1,10 @@
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone.js';
 import type { FieldInfo } from 'mariadb';
 import type { MariaDbDialect } from '../dialect.js';
+
+dayjs.extend(timezone);
 
 /**
  * First pass of DB value parsing: Parses based on the MariaDB Type ID.
