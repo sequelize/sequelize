@@ -41,6 +41,10 @@ function assertSameConnection(
       expect(newConnection.dummyId).to.equal(oldConnection.dummyId).and.to.be.ok;
       break;
 
+    case 'oracle':
+      expect(oldConnection).to.be.equal(newConnection).and.to.be.ok;
+      break;
+
     default:
       throw new Error('Unsupported dialect');
   }
@@ -73,6 +77,10 @@ function assertNewConnection(newConnection: AbstractConnection, oldConnection: A
       expect(newConnection.dummyId).to.not.be.ok;
       // @ts-expect-error -- untyped
       expect(oldConnection.dummyId).to.be.ok;
+      break;
+
+    case 'oracle':
+      expect(oldConnection).to.not.be.equal(newConnection);
       break;
 
     default:

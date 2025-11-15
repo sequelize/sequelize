@@ -4,6 +4,7 @@ import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -175,10 +176,16 @@ describe('QueryGenerator#insertQuery', () => {
           'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        oracle: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING "id", "firstName" INTO :2,:3;`,
       });
     });
 
     it('supports array of strings (column names)', () => {
+      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       const { query } = queryGenerator.insertQuery(
@@ -207,6 +214,11 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
+      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       expectsql(
@@ -247,6 +259,7 @@ describe('QueryGenerator#insertQuery', () => {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+          oracle: `INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1);`,
         },
         bind: {
           mysql: {
@@ -272,6 +285,9 @@ describe('QueryGenerator#insertQuery', () => {
           },
           mssql: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
+          oracle: {
+            sequelize_1: new Date('2011-03-27T10:01:55Z'),
           },
         },
       });
@@ -318,6 +334,10 @@ describe('QueryGenerator#insertQuery', () => {
           snowflake: {
             sequelize_1: true,
             sequelize_2: false,
+          },
+          oracle: {
+            sequelize_1: '1',
+            sequelize_2: '0',
           },
         },
       });

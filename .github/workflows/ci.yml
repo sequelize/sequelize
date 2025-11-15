@@ -110,6 +110,10 @@ jobs:
         run: yarn lerna run test-unit-ibmi --scope=@sequelize/core
       - name: Unit tests (core - snowflake)
         run: yarn lerna run test-unit-snowflake --scope=@sequelize/core
+      - name: Unit tests (core - oracle)
+        run: yarn lerna run test-unit-oracle --scope=@sequelize/core
+      - name: Unit tests (oracle package)
+        run: yarn lerna run test-unit --scope=@sequelize/oracle
       - name: SQLite SSCCE
         run: yarn sscce-sqlite3
   test-win:
@@ -235,7 +239,7 @@ jobs:
       matrix:
         node-version: [18, 20]
         database-version: [oldest, latest]
-        dialect: [mysql, mariadb, db2]
+        dialect: [mysql, mariadb, db2, oracle]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [unit-test, test-typings]
