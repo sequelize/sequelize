@@ -55,8 +55,8 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     upserts: false,
     schemas: true,
     inserts: {
+      updateOnDuplicate: '',
       ignoreDuplicates: false,
-      updateOnDuplicate: ' ON DUPLICATE KEY UPDATE',
     },
     dataTypes: {
       COLLATE_BINARY: true,
