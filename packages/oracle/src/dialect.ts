@@ -42,7 +42,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     'ORDER NULLS': true,
     schemas: true,
     inserts: {
-      updateOnDuplicate: false,
+      ignoreDuplicates: false,
     },
     indexViaAlter: false,
     dataTypes: {

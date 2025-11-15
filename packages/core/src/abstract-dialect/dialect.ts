@@ -113,7 +113,9 @@ export type DialectSupports = {
   migrations: boolean;
   upserts: boolean;
   inserts: {
-    ignoreDuplicates: string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
+    ignoreDuplicates:
+      | false /* Not supported */
+      | string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
     updateOnDuplicate: boolean | string /* whether dialect supports ON DUPLICATE KEY UPDATE */;
     onConflictDoNothing: string /* dialect specific words for ON CONFLICT DO NOTHING */;
     onConflictWhere: boolean /* whether dialect supports ON CONFLICT WHERE */;

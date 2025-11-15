@@ -2313,7 +2313,10 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       const model = options.model;
-      if (options.ignoreDuplicates && !model.sequelize.dialect.supports.inserts.ignoreDuplicates) {
+      if (
+        options.ignoreDuplicates &&
+        model.sequelize.dialect.supports.inserts.ignoreDuplicates === false
+      ) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
