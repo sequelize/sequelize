@@ -2876,7 +2876,7 @@ __metadata:
     "@types/lodash": "npm:4.17.20"
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.7.1"
-    "@types/sinon": "npm:17.0.4"
+    "@types/sinon": "npm:20.0.0"
     "@types/sinon-chai": "npm:3.2.12"
     "@types/validator": "npm:^13.15.9"
     ansis: "npm:^3.17.0"
@@ -3004,7 +3004,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
-    "@types/sinon": "npm:17.0.4"
+    "@types/sinon": "npm:20.0.0"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.21"
@@ -4194,12 +4194,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon@npm:*, @types/sinon@npm:17.0.4":
-  version: 17.0.4
-  resolution: "@types/sinon@npm:17.0.4"
+"@types/sinon@npm:*, @types/sinon@npm:20.0.0":
+  version: 20.0.0
+  resolution: "@types/sinon@npm:20.0.0"
   dependencies:
     "@types/sinonjs__fake-timers": "npm:*"
-  checksum: 10c0/7c67ae1050d98a86d8dd771f0a764e97adb9d54812bf3b001195f8cfaa1e2bdfc725d5b970b91e7b0bb6b7c1ca209f47993f2c6f84f1f868313c37441313ca5b
+  checksum: 10c0/0a3d9761be5bf2f7bf79fb91da2f4462726ec27ed8bc14adb50a9ce68efbcdb71436447ae923e5df297c3023c7c39447b63c98be49b4954e0ed3fd01e8917de2
   languageName: node
   linkType: hard
 
