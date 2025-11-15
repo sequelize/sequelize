@@ -38,9 +38,8 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "@types/ibm_db": "^3.2.0",
     "dayjs": "^1.11.19",
-    "ibm_db": "^3.3.1",
+    "ibm_db": "^3.3.4",
     "lodash": "^4.17.21"
   }
 }
