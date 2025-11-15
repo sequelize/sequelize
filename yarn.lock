@@ -2645,15 +2645,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:4.1.14":
-  version: 4.1.14
-  resolution: "@oclif/test@npm:4.1.14"
+"@oclif/test@npm:4.1.15":
+  version: 4.1.15
+  resolution: "@oclif/test@npm:4.1.15"
   dependencies:
     ansis: "npm:^3.17.0"
     debug: "npm:^4.4.3"
   peerDependencies:
     "@oclif/core": ">= 3.0.0"
-  checksum: 10c0/c8362be47098b06c92a216a42fe15b4596aa50e4267a8307d2f03ed52822520fcb901cd2cceaa05234115351bdb28f9b8196edbf483ebc1ebc7fd4022470a8ef
+  checksum: 10c0/e2405b20ae0e315acf7c1ce836b0bd6269df7233e4e469928b7c4ddd568050a12ab438352f1811924d210a8f6d089fad3dde957f262ae7a045741ea2aab6c608
   languageName: node
   linkType: hard
 
@@ -2847,7 +2847,7 @@ __metadata:
     "@inquirer/select": "npm:^4.4.2"
     "@oclif/core": "npm:^4.8.0"
     "@oclif/plugin-help": "npm:^6.2.36"
-    "@oclif/test": "npm:4.1.14"
+    "@oclif/test": "npm:4.1.15"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"
     "@types/mocha": "npm:10.0.10"
