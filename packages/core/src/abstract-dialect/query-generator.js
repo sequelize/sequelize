@@ -1003,7 +1003,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       - order -> e.g. 'id DESC'
       - group
       - limit -> The maximum count you want to get.
-      - offset -> An offset value to start from. Only useable with limit!
+      - offset -> An offset value to start from. Only usable with limit!
    @private
   */
   selectQuery(tableName, options, model) {
