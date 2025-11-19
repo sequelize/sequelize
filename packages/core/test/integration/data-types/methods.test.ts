@@ -16,21 +16,26 @@ import { beforeAll2, beforeEach2, sequelize, setResetMode } from '../support';
 const dialect = sequelize.dialect;
 
 describe('DataType Methods', () => {
-  // For a custom data-type definition for Oracle, _getBindDef() is required to
-  // provide information about BINDOUT variables. Similar tests have been added
-  // in dialects/oracle/data-types/methods.test.ts
-  if (dialect.name === 'oracle') {
-    return;
-  }
-
   setResetMode('none');
 
   const customValueSymbol = Symbol('dummy');
 
   class CustomDataType extends DataTypes.STRING {
+    // Declare the optional defined for oracle only
+    _getBindDef?: (oracledb: any) => { type: any; maxSize: number };
+
     parseDatabaseValue(_value: unknown): any {
       return customValueSymbol;
     }
+  }
+
+  if (dialect.name === 'oracle') {
+    // For a custom data-type definition for Oracle, _getBindDef() is required to
+    // provide information about BINDOUT variables.
+    CustomDataType.prototype._getBindDef = oracledb => ({
+      type: oracledb.DB_TYPE_VARCHAR,
+      maxSize: 255,
+    });
   }
 
   const models = beforeAll2(async () => {
