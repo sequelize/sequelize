@@ -453,7 +453,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Helper method for populating the returning into bind information
    * that is needed by some dialects (currently Oracle)
-   * This is called when `dialect.supports.returnIntoClause` is `true`
+   * This is called when `dialect.supports.returnIntoValues` is `true`
    *
    * @private
    */

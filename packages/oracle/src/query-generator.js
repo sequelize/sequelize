@@ -806,7 +806,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // Iterating over the allColumns keys to get the bindDef for inbind and outbinds
     // and also to get the list of insert and return column after applying this.quoteIdentifier
     for (const key of Object.keys(allColumns)) {
-      // If fieldMappenAttributes[attr] is defined we generate the bindDef
+      // If fieldMappedAttributes[attr] is defined we generate the bindDef
       // and return clause else we can skip it
       if (fieldMappedAttributes[key]) {
         // BindDef for the specific column
