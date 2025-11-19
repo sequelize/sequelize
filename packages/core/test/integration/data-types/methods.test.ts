@@ -21,21 +21,20 @@ describe('DataType Methods', () => {
   const customValueSymbol = Symbol('dummy');
 
   class CustomDataType extends DataTypes.STRING {
-    // Declare the optional defined for oracle only
-    _getBindDef?: (oracledb: any) => { type: any; maxSize: number };
-
     parseDatabaseValue(_value: unknown): any {
       return customValueSymbol;
     }
-  }
 
-  if (dialect.name === 'oracle') {
-    // For a custom data-type definition for Oracle, _getBindDef() is required to
-    // provide information about BINDOUT variables.
-    CustomDataType.prototype._getBindDef = oracledb => ({
-      type: oracledb.DB_TYPE_VARCHAR,
-      maxSize: 255,
-    });
+    _getBindDef(oracledb: any) {
+      if (dialect.name !== 'oracle') {
+        return undefined;
+      }
+
+      return {
+        type: oracledb.DB_TYPE_VARCHAR, // CustomDataType extends STRING so VARCHAR is ued.
+        maxSize: 255, // Adjust the value based on the input/output value of this type.
+      };
+    }
   }
 
   const models = beforeAll2(async () => {
