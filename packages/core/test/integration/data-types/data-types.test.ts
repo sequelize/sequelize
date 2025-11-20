@@ -1695,6 +1695,20 @@ describe('DataTypes', () => {
   for (const jsonTypeName of ['JSON', 'JSONB'] as const) {
     const JsonType = DataTypes[jsonTypeName];
     describe(`DataTypes.${jsonTypeName}`, () => {
+      if (dialect.name === 'oracle') {
+        before(async function checkOracleVersionForJSONSupport(this: Mocha.Context) {
+          return (async () => {
+            const dbVersion = await getOracleDBServerVersion(); // e.g. "21.2.0.0.0"
+            const [major, minor] = dbVersion.split('.').map(Number);
+
+            // Check JSON constraint support > 21.3
+            if (major < 21 || (major === 21 && minor < 3)) {
+              this.skip();
+            }
+          })();
+        });
+      }
+
       if (!dialect.supports.dataTypes[jsonTypeName]) {
         it('throws, as it is not supported', async () => {
           expect(() => {
@@ -2258,4 +2272,13 @@ export async function getRawBytesForOracle<
 
   // Return the RAW bytes stored for the specified attribute
   return fetchedUser[0][attributeName];
+}
+
+export async function getOracleDBServerVersion(): Promise<String> {
+  const result = await sequelize.query<any>(`SELECT version FROM v$instance`, {
+    type: QueryTypes.SELECT,
+    plain: true, // directly return object instead of array
+  });
+
+  return result.VERSION; // e.g. "23.4.0.0.0"
 }
