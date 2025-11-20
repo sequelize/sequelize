@@ -1938,6 +1938,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@inquirer/ansi@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@inquirer/ansi@npm:2.0.1"
+  checksum: 10c0/e1af11c63dc3390c0fee7c9633b587c4bb657bd1b223522daa4eec5b573d84a67e278c824f30ea3a797e781201c51d87af3a8cb64be1a5b2c791878af0d961fa
+  languageName: node
+  linkType: hard
+
 "@inquirer/checkbox@npm:^4.3.0, @inquirer/checkbox@npm:^4.3.2":
   version: 4.3.2
   resolution: "@inquirer/checkbox@npm:4.3.2"
@@ -1999,6 +2006,26 @@ __metadata:
     "@types/node":
       optional: true
   checksum: 10c0/f0f27e07fe288e01e3949b4ad216c19751f025ce77c610366e08d8b0f7a135d064dc074732031d251584b454c576f1e5c849e4abe259186dd5d4974c8f85c13e
+  languageName: node
+  linkType: hard
+
+"@inquirer/core@npm:^11.0.1":
+  version: 11.0.1
+  resolution: "@inquirer/core@npm:11.0.1"
+  dependencies:
+    "@inquirer/ansi": "npm:^2.0.1"
+    "@inquirer/figures": "npm:^2.0.1"
+    "@inquirer/type": "npm:^4.0.1"
+    cli-width: "npm:^4.1.0"
+    mute-stream: "npm:^3.0.0"
+    signal-exit: "npm:^4.1.0"
+    wrap-ansi: "npm:^9.0.2"
+  peerDependencies:
+    "@types/node": ">=18"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 10c0/5d65c4c27403ec41aee6d853753e7b39ea426e184dc722d7f3be3a5fff1f53f6d540d4550100f6f0525ffa38127ee67d4b3ed559cc2f80949ba3e302036462c7
   languageName: node
   linkType: hard
 
@@ -2073,6 +2100,13 @@ __metadata:
   version: 1.0.15
   resolution: "@inquirer/figures@npm:1.0.15"
   checksum: 10c0/6e39a040d260ae234ae220180b7994ff852673e20be925f8aa95e78c7934d732b018cbb4d0ec39e600a410461bcb93dca771e7de23caa10630d255692e440f69
+  languageName: node
+  linkType: hard
+
+"@inquirer/figures@npm:^2.0.1":
+  version: 2.0.1
+  resolution: "@inquirer/figures@npm:2.0.1"
+  checksum: 10c0/b38fef47976bcc767bc6c21fa83bfaa12725b8ff4f238ddfe8519ba4cd544e6d414570ade8d2c0a863ac54404678e51990a6a0aff6a859b86550609dea43500a
   languageName: node
   linkType: hard
 
@@ -2201,7 +2235,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^4.4.0, @inquirer/select@npm:^4.4.2":
+"@inquirer/select@npm:^4.4.0":
   version: 4.4.2
   resolution: "@inquirer/select@npm:4.4.2"
   dependencies:
@@ -2216,6 +2250,23 @@ __metadata:
     "@types/node":
       optional: true
   checksum: 10c0/6978a5a92928b4d439dd6b688f2db51fd49be209f24be224bb81ed8f75b76e0715e79bdb05dab2a33bbdc7091c779a99f8603fe0ca199f059528ca2b1d0d4944
+  languageName: node
+  linkType: hard
+
+"@inquirer/select@npm:^5.0.1":
+  version: 5.0.1
+  resolution: "@inquirer/select@npm:5.0.1"
+  dependencies:
+    "@inquirer/ansi": "npm:^2.0.1"
+    "@inquirer/core": "npm:^11.0.1"
+    "@inquirer/figures": "npm:^2.0.1"
+    "@inquirer/type": "npm:^4.0.1"
+  peerDependencies:
+    "@types/node": ">=18"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 10c0/6fafd20f6545d51cf684b2dbc3f519e352e90a1cb0ce00424bead9ca3e5756ee8670d0ea12bee7fd59775fc0478af54aad8f83fee33c2f1711087e09f81f9318
   languageName: node
   linkType: hard
 
@@ -2246,6 +2297,18 @@ __metadata:
     "@types/node":
       optional: true
   checksum: 10c0/a846c7a570e3bf2657d489bcc5dcdc3179d24c7323719de1951dcdb722400ac76e5b2bfe9765d0a789bc1921fac810983d7999f021f30a78a6a174c23fc78dc9
+  languageName: node
+  linkType: hard
+
+"@inquirer/type@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@inquirer/type@npm:4.0.1"
+  peerDependencies:
+    "@types/node": ">=18"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 10c0/b43c26a23f6ac5560e163434e631c23c73c2eaa5689465c52ecef4aa6fb436090d741c44e4525505faa800c615bbe21a55549f3b9a72fc1c007bb84d87b6dc7d
   languageName: node
   linkType: hard
 
@@ -3231,7 +3294,7 @@ __metadata:
     "@inquirer/checkbox": "npm:^4.3.2"
     "@inquirer/confirm": "npm:^5.1.21"
     "@inquirer/input": "npm:^4.3.1"
-    "@inquirer/select": "npm:^4.4.2"
+    "@inquirer/select": "npm:^5.0.1"
     "@oclif/core": "npm:^4.8.0"
     "@oclif/plugin-help": "npm:^6.2.36"
     "@oclif/test": "npm:4.1.15"
@@ -12160,6 +12223,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mute-stream@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "mute-stream@npm:3.0.0"
+  checksum: 10c0/12cdb36a101694c7a6b296632e6d93a30b74401873cf7507c88861441a090c71c77a58f213acadad03bc0c8fa186639dec99d68a14497773a8744320c136e701
+  languageName: node
+  linkType: hard
+
 "mysql2@npm:^3.14.3":
   version: 3.14.3
   resolution: "mysql2@npm:3.14.3"
@@ -16950,14 +17020,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"wrap-ansi@npm:^9.0.0":
-  version: 9.0.0
-  resolution: "wrap-ansi@npm:9.0.0"
+"wrap-ansi@npm:^9.0.0, wrap-ansi@npm:^9.0.2":
+  version: 9.0.2
+  resolution: "wrap-ansi@npm:9.0.2"
   dependencies:
     ansi-styles: "npm:^6.2.1"
     string-width: "npm:^7.0.0"
     strip-ansi: "npm:^7.1.0"
-  checksum: 10c0/a139b818da9573677548dd463bd626a5a5286271211eb6e4e82f34a4f643191d74e6d4a9bb0a3c26ec90e6f904f679e0569674ac099ea12378a8b98e20706066
+  checksum: 10c0/3305839b9a0d6fb930cb63a52f34d3936013d8b0682ff3ec133c9826512620f213800ffa19ea22904876d5b7e9a3c1f40682f03597d986a4ca881fa7b033688c
   languageName: node
   linkType: hard
 
