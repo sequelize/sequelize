@@ -130,18 +130,20 @@ describe('DataTypes', () => {
 
     it('accepts strings', async () => {
       if (dialect.name === 'oracle') {
-        return;
+        const expected = await getRawBytesForOracle(vars.User, 'binaryStringAttr', 'abc');
+        await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', expected as any);
+      } else {
+        await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
       }
-
-      await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      if (dialect.name === 'oracle') {
-        return;
-      }
+      const expected =
+        dialect.name === 'oracle'
+          ? await getRawBytesForOracle(vars.User, 'binaryStringAttr', 'abc')
+          : 'abc';
 
-      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
+      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', expected);
     });
   });
 
@@ -171,12 +173,17 @@ describe('DataTypes', () => {
       return { User };
     });
 
-    // TODO: add length check constraint in sqlite and oracle
-    if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle') {
+    // TODO: add length check constraint in sqlite
+    if (dialect.name !== 'sqlite3') {
+      const maxValue =
+        dialect.name === 'oracle'
+          ? '10000000000' // too long for RAW(5), max is 0xFFFFFFFFFF
+          : '123456'; // too long for other dialects
+
       it('throws if the string is too long', async () => {
         await expect(
           vars.User.create({
-            binaryStringAttr: '123456',
+            binaryStringAttr: maxValue,
           }),
         ).to.be.rejected;
       });
@@ -209,11 +216,6 @@ describe('DataTypes', () => {
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      // For raw queries, Oracle expects hex string during insertion
-      if (dialect.name === 'oracle') {
-        return;
-      }
-
       await testSimpleInOutRaw(vars.User, 'textAttr', 'abc', 'abc');
     });
   });
@@ -323,52 +325,77 @@ describe('DataTypes', () => {
     });
   });
 
-  if (dialect.name !== 'oracle') {
-    describe('CHAR(<length>).BINARY', () => {
-      if (!dialect.supports.dataTypes.CHAR) {
-        it('throws, because this dialect does not support CHAR', async () => {
-          expect(() => {
-            sequelize.define('CrashedModel', {
-              attr: DataTypes.CHAR(5),
-            });
-          }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
-        });
-
-        return;
-      }
-
-      if (!dialect.supports.dataTypes.COLLATE_BINARY) {
-        it('throws if CHAR.BINARY is used', () => {
-          expect(() => {
-            sequelize.define('CrashedModel', {
-              attr: DataTypes.CHAR(5).BINARY,
-            });
-          }).to.throwWithCause(`${dialect.name} does not support the CHAR.BINARY data type.`);
-        });
-
-        return;
-      }
-
-      const vars = beforeAll2(async () => {
-        class User extends Model<InferAttributes<User>> {
-          declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
-        }
-
-        User.init(
-          {
-            binaryCharAttr: {
-              type: DataTypes.CHAR(5).BINARY,
-              allowNull: false,
-            },
-          },
-          { sequelize },
-        );
-
-        await User.sync({ force: true });
-
-        return { User };
+  describe('CHAR(<length>).BINARY', () => {
+    if (!dialect.supports.dataTypes.CHAR) {
+      it('throws, because this dialect does not support CHAR', async () => {
+        expect(() => {
+          sequelize.define('CrashedModel', {
+            attr: DataTypes.CHAR(5),
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the CHAR data type.`);
       });
 
+      return;
+    }
+
+    if (!dialect.supports.dataTypes.COLLATE_BINARY) {
+      it('throws if CHAR.BINARY is used', () => {
+        expect(() => {
+          sequelize.define('CrashedModel', {
+            attr: DataTypes.CHAR(5).BINARY,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the CHAR.BINARY data type.`);
+      });
+
+      return;
+    }
+
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
+      }
+
+      User.init(
+        {
+          binaryCharAttr: {
+            type: DataTypes.CHAR(5).BINARY,
+            allowNull: false,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    if (dialect.name === 'oracle') {
+      // When string is inserted to CHAR.BINARY(internally RAW column is used), it is stored as binary.
+      // For 'abc', We see it is written as [0x0A, 0xBC] but not [0x61, 0x62, 0x63].
+      // ' 1234' -> [0x20, 0x31, 0x32, 0x33, 0x34].
+      // Having a converter to convert to string causes issues especially with non-printable characters.
+      // So we write a string and verify it by reading through getRawBytesForOracle which uses raw sql 'select' .
+      it('is serialized as string and deserialized as Buffer', async () => {
+        const expected = await getRawBytesForOracle(vars.User, 'binaryCharAttr', '1234');
+
+        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', expected);
+      });
+
+      it('is serialized as Buffer and deserialized as Buffer', async () => {
+        await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('abc'), Buffer.from('abc'));
+      });
+
+      it('is serialized as Buffer and deserialized as a Buffer when DataType is not specified', async () => {
+        const expected = await getRawBytesForOracle(
+          vars.User,
+          'binaryCharAttr',
+          Buffer.from(' 234'),
+        );
+
+        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), expected);
+      });
+    } else {
       it('is serialized/deserialized as strings', async () => {
         // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         if (dialect.name === 'db2') {
@@ -387,8 +414,8 @@ describe('DataTypes', () => {
           await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
         }
       });
-    });
-  }
+    }
+  });
 
   describe('CITEXT', () => {
     if (!dialect.supports.dataTypes.CITEXT) {
@@ -766,10 +793,11 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        // Oracle infers the datatype from the metadata and return the values in respective format.
-        if (dialect.name !== 'oracle') {
-          await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
-        }
+        // oracle dialect returns BigInt as JS number by default in raw sql mode
+        // unless its overwritten by fetchTypeHandler.
+        const expected = dialect.name === 'oracle' ? 123 : '123';
+
+        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, expected);
       });
 
       if (dialect.supports.dataTypes.INTS.unsigned) {
@@ -1007,7 +1035,8 @@ describe('DataTypes', () => {
     if (dialect.name === 'sqlite3' || dialect.name === 'oracle') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
-      // Oracle inferences the datatype from the metadata and return the values in respective format.
+      //
+      // Oracle returns the NUMBER column (internally used for DECIMAL ) type as js number for raw sql by default.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
         await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, 123);
       });
@@ -1221,7 +1250,7 @@ describe('DataTypes', () => {
             : dialect.name === 'db2'
               ? '2022-01-01 00:00:00.000000+00'
               : dialect.name === 'oracle'
-                ? new Date('2022-01-01T00:00:00Z')
+                ? new Date('2022-01-01T00:00:00Z') // For oracle, DATE columns are fetched as js dates for raw sql.
                 : '2022-01-01 00:00:00+00',
       );
     });
@@ -1361,6 +1390,7 @@ describe('DataTypes', () => {
     });
 
     if (dialect.name === 'oracle') {
+      // Date columns are always fetched as js dates for raw sql.
       it(`is deserialized as a date when DataType is not specified`, async () => {
         await testSimpleInOutRaw(
           vars.User,
@@ -1751,39 +1781,37 @@ describe('DataTypes', () => {
         }
       });
 
-      // Oracle Database < 21 doesn't consider scalars as JSON column
-      // thus, fails the CHECK constraint test.
-      if (dialect.name !== 'oracle') {
-        it('properly serializes default values', async () => {
-          const createdUser = await vars.User.create();
-          await createdUser.reload();
-          expect(createdUser.get()).to.deep.eq({
-            jsonStr: 'abc',
-            jsonBoolean: true,
-            jsonNumber: 1,
-            jsonNull: null,
-            jsonArray: ['a', 'b'],
-            jsonObject: { key: 'abc' },
-            id: 1,
-          });
+      it('properly serializes default values', async () => {
+        const createdUser = await vars.User.create();
+        await createdUser.reload();
+        expect(createdUser.get()).to.deep.eq({
+          jsonStr: 'abc',
+          jsonBoolean: true,
+          jsonNumber: 1,
+          jsonNull: null,
+          jsonArray: ['a', 'b'],
+          jsonObject: { key: 'abc' },
+          id: 1,
         });
+      });
 
-        it('properly serializes values', async () => {
-          await testSimpleInOut(vars.User, 'jsonStr', 'abc', 'abc');
-          await testSimpleInOut(vars.User, 'jsonBoolean', true, true);
-          await testSimpleInOut(vars.User, 'jsonBoolean', false, false);
-          await testSimpleInOut(vars.User, 'jsonNumber', 123.4, 123.4);
-          await testSimpleInOut(vars.User, 'jsonArray', [1, 2], [1, 2]);
-          await testSimpleInOut(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
-          await testSimpleInOut(vars.User, 'jsonNull', null, null);
-        });
-      }
+      it('properly serializes values', async () => {
+        await testSimpleInOut(vars.User, 'jsonStr', 'abc', 'abc');
+        await testSimpleInOut(vars.User, 'jsonBoolean', true, true);
+        await testSimpleInOut(vars.User, 'jsonBoolean', false, false);
+        await testSimpleInOut(vars.User, 'jsonNumber', 123.4, 123.4);
+        await testSimpleInOut(vars.User, 'jsonArray', [1, 2], [1, 2]);
+        await testSimpleInOut(vars.User, 'jsonObject', { a: 1 }, { a: 1 });
+        await testSimpleInOut(vars.User, 'jsonNull', null, null);
+      });
 
       // MariaDB: supports a JSON type, but:
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
-      // Oracle JSON is BLOB column with check `IS JSON`.
+      //
+      // Oracle JSON is BLOB column and it returns Buffer for raw sql.
+      // When native JSON support is added, this can be removed.
       if (dialect.name !== 'mariadb' && dialect.name !== 'oracle') {
         if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
@@ -2202,4 +2230,33 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
   );
 
   expect(fetchedUser[0][attributeName]).to.deep.eq(outVal, message);
+}
+
+/*
+ * Oracle stores the input string in its internal representation based on the charset encoding.
+ * The RAW column is fetched as Buffer by default.
+ * This function fetches the RAW bytes stored in the database for verification against the input string.
+ */
+export async function getRawBytesForOracle<
+  M extends Model,
+  Key extends keyof CreationAttributes<M>,
+>(model: ModelStatic<M>, attributeName: Key, inVal: CreationAttributes<M>[Key]): Promise<Buffer> {
+  // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
+  const createdUser = await model.create({ [attributeName]: inVal });
+
+  const quotedTableName = model.queryGenerator.quoteIdentifier(model.tableName);
+  const quotedId = model.queryGenerator.quoteIdentifier('id');
+  const fetchedUser = await model.sequelize.query<any>(
+    `SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`,
+    {
+      type: QueryTypes.SELECT,
+      replacements: {
+        // @ts-expect-error -- it's not worth it to type .id for these internal tests.
+        id: createdUser.id,
+      },
+    },
+  );
+
+  // Return the RAW bytes stored for the specified attribute
+  return fetchedUser[0][attributeName];
 }

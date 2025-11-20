@@ -424,7 +424,7 @@ export class OracleQuery extends AbstractQuery {
             }
 
             const parser = this.sequelize.dialect.getParserForDatabaseDataType(typeid);
-            if ((value !== null) & parser) {
+            if (value !== null && parser) {
               value = parser(value);
             }
           }

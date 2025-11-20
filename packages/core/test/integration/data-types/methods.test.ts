@@ -31,7 +31,7 @@ describe('DataType Methods', () => {
       }
 
       return {
-        type: oracledb.DB_TYPE_VARCHAR, // CustomDataType extends STRING so VARCHAR is ued.
+        type: oracledb.DB_TYPE_VARCHAR, // CustomDataType extends STRING so VARCHAR is used.
         maxSize: 255, // Adjust the value based on the input/output value of this type.
       };
     }
