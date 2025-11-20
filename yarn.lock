@@ -3360,12 +3360,12 @@ __metadata:
     cross-env: "npm:10.1.0"
     esbuild: "npm:0.27.0"
     eslint: "npm:8.57.1"
-    eslint-plugin-jsdoc: "npm:61.2.1"
+    eslint-plugin-jsdoc: "npm:61.3.0"
     eslint-plugin-mocha: "npm:10.5.0"
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:8.2.4"
-    lint-staged: "npm:16.2.6"
+    lint-staged: "npm:16.2.7"
     lodash: "npm:4.17.21"
     markdownlint-cli: "npm:0.46.0"
     mocha: "npm:11.7.5"
@@ -6482,7 +6482,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"commander@npm:^14.0.1, commander@npm:~14.0.2":
+"commander@npm:^14.0.2, commander@npm:~14.0.2":
   version: 14.0.2
   resolution: "commander@npm:14.0.2"
   checksum: 10c0/245abd1349dbad5414cb6517b7b5c584895c02c4f7836ff5395f301192b8566f9796c82d7bd6c92d07eba8775fe4df86602fca5d86d8d10bcc2aded1e21c2aeb
@@ -7751,9 +7751,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:61.2.1":
-  version: 61.2.1
-  resolution: "eslint-plugin-jsdoc@npm:61.2.1"
+"eslint-plugin-jsdoc@npm:61.3.0":
+  version: 61.3.0
+  resolution: "eslint-plugin-jsdoc@npm:61.3.0"
   dependencies:
     "@es-joy/jsdoccomment": "npm:~0.76.0"
     "@es-joy/resolve.exports": "npm:1.2.0"
@@ -7771,7 +7771,7 @@ __metadata:
     to-valid-identifier: "npm:^1.0.0"
   peerDependencies:
     eslint: ^7.0.0 || ^8.0.0 || ^9.0.0
-  checksum: 10c0/c2288ab5cffcb8a21adc4b7baa26d253c616463367d52157bdcce322135fd9d141fa5f0d27bd1a8c9d93db16dc1727d9a5c58bf6d2008ed0849e6c4b2f811384
+  checksum: 10c0/5b4e700582acdd1e49ad37c862f82f2d1df9b296173cf0c11a7f751abb10874f18fa096b55cf21300a476d876544b56c7b49aa5945c34d5530dc512369055292
   languageName: node
   linkType: hard
 
@@ -10919,11 +10919,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:16.2.6":
-  version: 16.2.6
-  resolution: "lint-staged@npm:16.2.6"
+"lint-staged@npm:16.2.7":
+  version: 16.2.7
+  resolution: "lint-staged@npm:16.2.7"
   dependencies:
-    commander: "npm:^14.0.1"
+    commander: "npm:^14.0.2"
     listr2: "npm:^9.0.5"
     micromatch: "npm:^4.0.8"
     nano-spawn: "npm:^2.0.0"
@@ -10932,7 +10932,7 @@ __metadata:
     yaml: "npm:^2.8.1"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10c0/6bae38082a0fcb3f699b144d1a4b85394f259f17a1f8a58b22122b9f1c6bb5e8340d6ee4bff12e52dbc4267377d6dde9e5c206157f381f1924a2640717f769c1
+  checksum: 10c0/9a677c21a8112d823ae5bc565ba2c9e7b803786f2a021c46827a55fe44ed59def96edb24fc99c06a2545cdbbf366022ad82addcb3bf60c712f3b98ef92069717
   languageName: node
   linkType: hard
 
