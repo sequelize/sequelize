@@ -387,13 +387,7 @@ describe('DataTypes', () => {
       });
 
       it('is serialized as Buffer and deserialized as a Buffer when DataType is not specified', async () => {
-        const expected = await getRawBytesForOracle(
-          vars.User,
-          'binaryCharAttr',
-          Buffer.from(' 234'),
-        );
-
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), expected);
+        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), Buffer.from(' 234'));
       });
     } else {
       it('is serialized/deserialized as strings', async () => {
