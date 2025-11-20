@@ -2275,10 +2275,15 @@ export async function getRawBytesForOracle<
 }
 
 export async function getOracleDBServerVersion(): Promise<String> {
-  const result = await sequelize.query<any>(`SELECT version FROM v$instance`, {
-    type: QueryTypes.SELECT,
-    plain: true, // directly return object instead of array
-  });
+  const result = await sequelize.query<any>(
+    `SELECT version FROM product_component_version
+WHERE product LIKE 'Oracle%';
+`,
+    {
+      type: QueryTypes.SELECT,
+      plain: true, // directly return object instead of array
+    },
+  );
 
   return result.VERSION; // e.g. "23.4.0.0.0"
 }
