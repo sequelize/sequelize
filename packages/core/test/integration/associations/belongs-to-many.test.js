@@ -1797,7 +1797,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     beforeEach(function () {
       const keyDataType = ['mysql', 'mariadb', 'db2', 'ibmi'].includes(dialect)
         ? 'BINARY(255)'
-        : DataTypes.BLOB('tiny');
+        : dialect === 'oracle'
+          ? DataTypes.STRING(255, true)
+          : DataTypes.BLOB('tiny');
       this.Article = this.sequelize.define('Article', {
         id: {
           type: keyDataType,
@@ -2322,6 +2324,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       });
 
       it('supports transactions when updating a through model', async function () {
+        // SERIALIZABLE in oracle will not allow new changes from other sessions
+        // that depend on uncommitted rows inside the transaction.
+        // it cannot reconstruct a consistent snapshot, we get error ORA-08176.
+        // so we use READ_COMMITTED for oracle.
+        const isolationLevel =
+          dialect === 'oracle' ? IsolationLevel.READ_COMMITTED : IsolationLevel.SERIALIZABLE;
+
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
           this.sequelize,
         );
@@ -2338,7 +2347,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         const [user, task, t] = await Promise.all([
           User.create({ username: 'foo' }),
           Task.create({ title: 'task' }),
-          sequelize.startUnmanagedTransaction({ isolationLevel: IsolationLevel.SERIALIZABLE }),
+          sequelize.startUnmanagedTransaction({ isolationLevel }),
         ]);
 
         await task.addUser(user, { through: { status: 'pending' } }); // Create without transaction, so the old value is

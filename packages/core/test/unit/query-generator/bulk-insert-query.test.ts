@@ -1,5 +1,7 @@
 import { DataTypes, literal } from '@sequelize/core';
-import { beforeAll2, expectsql, sequelize } from '../../support';
+import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
+
+const dialect = getTestDialect();
 
 describe('QueryGenerator#bulkInsertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -17,6 +19,11 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   });
 
   it('parses named replacements in literals', async () => {
+    // The Oracle dialect doesn't support replacements for bulkInsert
+    if (dialect === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
 
     const sql = queryGenerator.bulkInsertQuery(
