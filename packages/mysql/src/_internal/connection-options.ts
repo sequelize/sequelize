@@ -31,6 +31,7 @@ const BOOLEAN_CONNECTION_OPTION_MAP = {
   compress: undefined,
   disableEval: undefined,
   enableKeepAlive: undefined,
+  gracefulEnd: undefined,
   insecureAuth: undefined,
   isServer: undefined,
   jsonStrings: undefined,

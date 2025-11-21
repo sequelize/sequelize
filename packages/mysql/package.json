@@ -32,22 +32,22 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.46",
+  "version": "7.0.0-alpha.47",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.18",
+    "dayjs": "^1.11.19",
     "lodash": "^4.17.21",
-    "mysql2": "^3.14.3",
+    "mysql2": "^3.15.2",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/mocha": "10.0.10",
     "chai": "4.5.0",
-    "mocha": "11.7.4"
+    "mocha": "11.7.5"
   }
 }
