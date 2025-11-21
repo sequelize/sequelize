@@ -391,7 +391,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       'C.TABLE_NAME "tableName",',
       'A.OWNER "tableSchema",',
       'C.OWNER "constraintSchema",',
-      'C.COLUMN_NAME "columnNames"',
+      'C.COLUMN_NAME "columnNames",',
+      'A.SEARCH_CONDITION "definition"',
       'FROM ALL_CONS_COLUMNS C',
       'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
       'AND C.OWNER = A.OWNER',
@@ -403,7 +404,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       options?.constraintType
         ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}`
         : '',
-      'ORDER BY C.CONSTRAINT_NAME',
+      'ORDER BY C.CONSTRAINT_NAME, C.POSITION',
     ]);
   }
 
@@ -1067,6 +1068,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       `CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
       ' c.r_owner "referencedTableSchema",',
       ' c.DELETE_RULE "deleteAction",',
+      ` 'NO ACTION' AS "updateAction",`,
       ' b.table_name "referencedTableName", b.column_name "referencedColumnNames"',
       ' FROM all_cons_columns a',
       ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',

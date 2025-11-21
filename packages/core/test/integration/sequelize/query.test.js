@@ -564,14 +564,21 @@ describe(getTestDialectTeaser('Sequelize'), () => {
           let error = null;
           try {
             let query;
-            if (['db2', 'ibmi', 'oracle'].includes(dialectName)) {
+
+            if (['db2', 'ibmi'].includes(dialectName)) {
               query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
                 'createdAt',
               )}, ${qq(
                 'updatedAt',
               )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            } else if (dialectName === 'oracle') {
+              const ts = "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')";
+
+              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
+                'createdAt',
+              )}, ${qq('updatedAt')}) VALUES (123456789, ${ts}, ${ts}, ${ts})`;
             } else {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
+              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
                 'createdAt',
               )}, ${qq(
                 'updatedAt',
@@ -583,12 +590,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             error = error_;
           }
 
-          if (dialectName === 'oracle') {
-            expect(error).to.be.instanceOf(DatabaseError);
-          } else {
-            expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-            expect(error.stack).to.contain('query.test');
-          }
+          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+          expect(error.stack).to.contain('query.test');
         });
       });
     }
