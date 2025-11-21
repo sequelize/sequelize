@@ -14,7 +14,13 @@ import moment from 'moment';
 import 'moment-timezone';
 import type { Moment } from 'moment-timezone';
 import { Blob } from 'node:buffer';
-import { allowDeprecationsInSuite, beforeAll2, sequelize, setResetMode } from '../support';
+import {
+  allowDeprecationsInSuite,
+  beforeAll2,
+  isOracleJSONConstraintsSupported,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 dayjs.extend(DayjsTimezone);
 
@@ -1698,11 +1704,7 @@ describe('DataTypes', () => {
       if (dialect.name === 'oracle') {
         before(async function checkOracleVersionForJSONSupport(this: Mocha.Context) {
           return (async () => {
-            const dbVersion = await getOracleDBServerVersion(); // e.g. "21.2.0.0.0"
-            const [major, minor] = dbVersion.split('.').map(Number);
-
-            // Check JSON constraint support > 21.3
-            if (major < 21 || (major === 21 && minor < 3)) {
+            if (!(await isOracleJSONConstraintsSupported())) {
               this.skip();
             }
           })();
@@ -2250,10 +2252,11 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
  * The RAW column is fetched as Buffer by default.
  * This function fetches the RAW bytes stored in the database for verification against the input string.
  */
-export async function getRawBytesForOracle<
-  M extends Model,
-  Key extends keyof CreationAttributes<M>,
->(model: ModelStatic<M>, attributeName: Key, inVal: CreationAttributes<M>[Key]): Promise<Buffer> {
+async function getRawBytesForOracle<M extends Model, Key extends keyof CreationAttributes<M>>(
+  model: ModelStatic<M>,
+  attributeName: Key,
+  inVal: CreationAttributes<M>[Key],
+): Promise<Buffer> {
   // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
   const createdUser = await model.create({ [attributeName]: inVal });
 
@@ -2272,18 +2275,4 @@ export async function getRawBytesForOracle<
 
   // Return the RAW bytes stored for the specified attribute
   return fetchedUser[0][attributeName];
-}
-
-export async function getOracleDBServerVersion(): Promise<String> {
-  const result = await sequelize.query<any>(
-    `SELECT version FROM product_component_version
-WHERE product LIKE 'Oracle%';
-`,
-    {
-      type: QueryTypes.SELECT,
-      plain: true, // directly return object instead of array
-    },
-  );
-
-  return result.VERSION; // e.g. "23.4.0.0.0"
 }

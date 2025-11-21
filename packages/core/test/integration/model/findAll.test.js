@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       theDate: DataTypes.DATE,
       aBool: DataTypes.BOOLEAN,
       ...(dialectName === 'oracle'
-        ? { binary: DataTypes.STRING(16, true) }
+        ? { binary: DataTypes.STRING(16, true) } // where clause on BLOB is not supported so using STRING.BINARY
         : { binary: DataTypes.BLOB }),
     });
 
