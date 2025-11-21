@@ -243,6 +243,7 @@ export type DialectSupports = {
   uuidV4Generation: boolean;
   dropTable: {
     cascade: boolean;
+    concurrentDropConstraints: boolean; // If Constraints on same table can be dropped concurrently.
   };
   maxExecutionTimeHint: {
     select: boolean;
@@ -469,6 +470,7 @@ export abstract class AbstractDialect<
     uuidV4Generation: false,
     dropTable: {
       cascade: false,
+      concurrentDropConstraints: true,
     },
     maxExecutionTimeHint: {
       select: false,

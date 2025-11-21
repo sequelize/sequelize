@@ -62,6 +62,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     },
     dropTable: {
       cascade: true,
+      concurrentDropConstraints: false, // parallel DDL on same table gives ORA-00054: resource busy and acquire with NOWAIT specified
     },
     renameTable: {
       changeSchema: false,

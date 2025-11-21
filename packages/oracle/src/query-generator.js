@@ -171,10 +171,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  versionQuery() {
-    return `SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'`;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -374,53 +370,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const [tableName, schemaName] = this.getSchemaNameAndTableName(table);
 
     return `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = ${this.escape(tableName)} AND OWNER = ${table.schema ? this.escape(schemaName) : 'USER'}`;
-  }
-
-  showConstraintsQuery(tableName, options) {
-    if (options && options.constraintType === 'FOREIGN KEY') {
-      return this.getForeignKeysQuery(tableName);
-    }
-
-    let table = this.extractTableDetails(tableName);
-    const schema = this.getCatalogName(table.schema);
-    table = this.getCatalogName(table.tableName);
-
-    return joinSQLFragments([
-      'SELECT C.CONSTRAINT_NAME "constraintName",',
-      `CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
-      'C.TABLE_NAME "tableName",',
-      'A.OWNER "tableSchema",',
-      'C.OWNER "constraintSchema",',
-      'C.COLUMN_NAME "columnNames",',
-      'A.SEARCH_CONDITION "definition"',
-      'FROM ALL_CONS_COLUMNS C',
-      'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
-      'AND C.OWNER = A.OWNER',
-      `WHERE C.TABLE_NAME =${this.escape(table)}`,
-      `AND C.OWNER =${this.escape(schema)}`,
-      options?.constraintName
-        ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}`
-        : '',
-      options?.constraintType
-        ? `AND A.CONSTRAINT_TYPE =${this.escape(this._getConstraintType(options.constraintType))}`
-        : '',
-      'ORDER BY C.CONSTRAINT_NAME, C.POSITION',
-    ]);
-  }
-
-  _getConstraintType(type) {
-    switch (type) {
-      case 'CHECK':
-        return 'C';
-      case 'FOREIGN KEY':
-        return 'R';
-      case 'PRIMARY KEY':
-        return 'P';
-      case 'UNIQUE':
-        return 'U';
-      default:
-        throw new Error(`Constraint type ${type} is not supported`);
-    }
   }
 
   listTablesQuery(options) {
@@ -1053,32 +1002,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ' and COLUMN_NAME = ',
       this.escape(column),
       ' AND POSITION IS NOT NULL ORDER BY POSITION',
-    ].join('');
-
-    return sql;
-  }
-
-  getForeignKeysQuery(table) {
-    // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
-    const tableDetails = this.extractTableDetails(table);
-    const tableName = this.getCatalogName(tableDetails.tableName);
-    const schemaName = this.getCatalogName(tableDetails.schema);
-    const sql = [
-      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", c.owner "tableSchema", a.owner "constraintSchema", a.column_name "columnNames",',
-      `CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
-      ' c.r_owner "referencedTableSchema",',
-      ' c.DELETE_RULE "deleteAction",',
-      ` 'NO ACTION' AS "updateAction",`,
-      ' b.table_name "referencedTableName", b.column_name "referencedColumnNames"',
-      ' FROM all_cons_columns a',
-      ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
-      ' JOIN all_cons_columns b ON c.r_owner = b.owner AND c.r_constraint_name = b.constraint_name',
-      " WHERE c.constraint_type  = 'R'",
-      ' AND a.table_name = ',
-      this.escape(tableName),
-      ' AND a.owner = ',
-      tableDetails.schema && schemaName !== '' ? this.escape(schemaName) : 'USER',
-      ' ORDER BY a.table_name, a.column_name, b.column_name',
     ].join('');
 
     return sql;
