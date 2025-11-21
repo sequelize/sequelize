@@ -529,11 +529,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         it('emits full stacktraces for unique constraint error', async function () {
           let query;
           if (['db2', 'ibmi', 'oracle'].includes(dialectName)) {
+            const ts =
+              dialectName === 'oracle'
+                ? "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')"
+                : `'2012-01-01 10:10:10'`;
             query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${qq(
               'createdAt',
-            )}, ${qq(
-              'updatedAt',
-            )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+            )}, ${qq('updatedAt')}) VALUES ('duplicate', 'duplicate@gmail.com', ${ts}, ${ts})`;
           } else {
             query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq(
               'createdAt',
@@ -552,19 +554,14 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             error = error_;
           }
 
-          if (dialectName === 'oracle') {
-            expect(error).to.be.instanceOf(DatabaseError);
-          } else {
-            expect(error).to.be.instanceOf(UniqueConstraintError);
-            expect(error.stack).to.contain('query.test');
-          }
+          expect(error).to.be.instanceOf(UniqueConstraintError);
+          expect(error.stack).to.contain('query.test');
         });
 
         it('emits full stacktraces for constraint validation error', async function () {
           let error = null;
           try {
             let query;
-
             if (['db2', 'ibmi'].includes(dialectName)) {
               query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
                 'createdAt',
@@ -578,7 +575,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
                 'createdAt',
               )}, ${qq('updatedAt')}) VALUES (123456789, ${ts}, ${ts}, ${ts})`;
             } else {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
+              query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
                 'createdAt',
               )}, ${qq(
                 'updatedAt',
