@@ -639,11 +639,16 @@ export class OracleQuery extends AbstractQuery {
     }
 
     // ORA-02291: integrity constraint (string.string) violated - parent key not found / ORA-02292: integrity constraint (string.string) violated - child record found
-    match = err.message.match(/ORA-02291/) || err.message.match(/ORA-02292/);
-    if (match && match.length > 0) {
+    match = err.message.match(/^ORA-(02291|02292):[^()]*\(([^()]+)\)/);
+    if (match && match.length > 2) {
+      const constraintFull = match[2];
+      const constraintName = constraintFull.includes('.')
+        ? constraintFull.split('.').pop() // Remove schema prefix
+        : constraintFull;
+
       return new ForeignKeyConstraintError({
         fields: null,
-        index: match[1],
+        index: constraintName,
         cause: err,
       });
     }
