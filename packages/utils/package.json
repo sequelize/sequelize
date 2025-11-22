@@ -53,7 +53,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@types/lodash": "^4.17.20",
+    "@types/lodash": "^4.17.21",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
