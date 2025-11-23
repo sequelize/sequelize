@@ -1034,9 +1034,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
               expect(sql).to.not.contain('special');
-            } else if (
-              ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)
-            ) {
+            } else if (dialectName !== 'postgres') {
               test++;
               expect(sql).to.not.contain('special');
             }
@@ -1055,9 +1053,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
                 expect(sql).to.contain('special');
-              } else if (
-                ['mysql', 'mssql', 'mariadb', 'db2', 'ibmi', 'oracle'].includes(dialectName)
-              ) {
+              } else if (dialectName !== 'postgres') {
                 test++;
                 expect(sql).to.contain('special');
               }

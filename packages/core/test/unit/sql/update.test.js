@@ -40,7 +40,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             ibmi: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
-            oracle: `UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2`,
             default: 'UPDATE [users] SET [user_name]=$sequelize_1 WHERE [id] = $sequelize_2',
           },
           bind: {

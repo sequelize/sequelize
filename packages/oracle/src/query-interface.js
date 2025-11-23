@@ -1,13 +1,12 @@
 // Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
-import { QueryTypes } from '@sequelize/core';
+import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 
 const intersection = require('lodash/intersection');
 const uniq = require('lodash/uniq');
-const { OracleQueryInterfaceTypescript } = require('./query-interface-typescript.internal');
 
-export class OracleQueryInterface extends OracleQueryInterfaceTypescript {
+export class OracleQueryInterface extends AbstractQueryInterface {
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
