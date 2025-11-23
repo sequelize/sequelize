@@ -3319,9 +3319,8 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/ibm_db": "npm:^3.2.0"
     dayjs: "npm:^1.11.19"
-    ibm_db: "npm:^3.3.1"
+    ibm_db: "npm:^3.3.4"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft
@@ -3413,7 +3412,7 @@ __metadata:
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.21"
     mocha: "npm:11.7.5"
-    mysql2: "npm:^3.14.3"
+    mysql2: "npm:^3.15.2"
     wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
@@ -4445,13 +4444,6 @@ __metadata:
   version: 4.0.4
   resolution: "@types/http-cache-semantics@npm:4.0.4"
   checksum: 10c0/51b72568b4b2863e0fe8d6ce8aad72a784b7510d72dc866215642da51d84945a9459fa89f49ec48f1e9a1752e6a78e85a4cda0ded06b1c73e727610c925f9ce6
-  languageName: node
-  linkType: hard
-
-"@types/ibm_db@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "@types/ibm_db@npm:3.2.0"
-  checksum: 10c0/ba89ff6260247964aafaafc62214dbff9d9d86b22e70e64a2d62bd106fec9fb2c4cd9b27d0c985f190f20f7564d33608cadf017b0d0f7f5b0449731092712efe
   languageName: node
   linkType: hard
 
@@ -5581,7 +5573,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.12.0, axios@npm:^1.7.4, axios@npm:^1.8.3":
+"axios@npm:^1.12.0, axios@npm:^1.8.3":
   version: 1.12.2
   resolution: "axios@npm:1.12.2"
   dependencies:
@@ -9463,20 +9455,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^3.3.1":
-  version: 3.3.1
-  resolution: "ibm_db@npm:3.3.1"
+"ibm_db@npm:^3.3.4":
+  version: 3.3.4
+  resolution: "ibm_db@npm:3.3.4"
   dependencies:
     adm-zip: "npm:^0.5.16"
-    axios: "npm:^1.7.4"
+    axios: "npm:^1.12.0"
     big-integer: "npm:^1.6.51"
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
     lodash: "npm:^4.17.21"
-    nan: "npm:^2.22.2"
+    nan: "npm:^2.23.0"
     q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/e040d4771b2df6ba8d4ddbb249e8cbf7b408c5970a9f64fff2ee98836e92d857046d955e86e5f289416482e89c41b3876cdaa6b646e2c05ba7ab9cf6606c5274
+  checksum: 10c0/b3317ae0914c3b4af6a710bd6a77d399fa0bb1f8b3fb1642434666233dd9f96ae63ce8e0d66130a731ff63f2743d517cf71cc1121a29d1b0b7117331541921d6
   languageName: node
   linkType: hard
 
@@ -12183,20 +12175,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.14.3":
-  version: 3.14.3
-  resolution: "mysql2@npm:3.14.3"
+"mysql2@npm:^3.15.2":
+  version: 3.15.2
+  resolution: "mysql2@npm:3.15.2"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.1"
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
-    iconv-lite: "npm:^0.6.3"
+    iconv-lite: "npm:^0.7.0"
     long: "npm:^5.2.1"
     lru.min: "npm:^1.0.0"
     named-placeholders: "npm:^1.1.3"
     seq-queue: "npm:^0.0.5"
     sqlstring: "npm:^2.3.2"
-  checksum: 10c0/6348bd089e98218e5c249f813028b86d59331ec6ea9db7adda301b9a607dd63fe5228b06210b8168fd4d72f46e0479c744e44db27df3bee741865adedf1bb761
+  checksum: 10c0/7b42d6e9d6bbc447ce3f2a9ac55979a4a240d66ca0a39bbd8422fdf25dbb938e7e9b419b616b8ad1519c53aec51577fad3fe8bd4e70997a91b469fce1ac30b83
   languageName: node
   linkType: hard
 
@@ -12209,12 +12201,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nan@npm:^2.22.2":
-  version: 2.22.2
-  resolution: "nan@npm:2.22.2"
+"nan@npm:^2.23.0":
+  version: 2.23.0
+  resolution: "nan@npm:2.23.0"
   dependencies:
     node-gyp: "npm:latest"
-  checksum: 10c0/971f963b8120631880fa47a389c71b00cadc1c1b00ef8f147782a3f4387d4fc8195d0695911272d57438c11562fb27b24c4ae5f8c05d5e4eeb4478ba51bb73c5
+  checksum: 10c0/b986dd257dca53ab43a3b6ca6d0eafde697b69e1d63b242fa4aece50ce97eb169f9c4a5d8eb0eb5f58d118a9595fee11f3198fa210f023440053bb6f54109e73
   languageName: node
   linkType: hard
 
