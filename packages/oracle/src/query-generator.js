@@ -373,35 +373,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   listTablesQuery(options) {
-    let query = `
-    SELECT
-      owner AS "schema",
-      table_name AS "tableName"
-    FROM
-      all_tables
-    WHERE
-      OWNER IN (
-        SELECT USERNAME
-        FROM ALL_USERS
-       WHERE ORACLE_MAINTAINED = 'N'
-  `;
-
+    let query = `SELECT owner as "schema", table_name as "tableName" FROM all_tables where OWNER IN`;
     if (options && options.schema) {
-      query += ` AND USERNAME = ${this.escape(options.schema)}`;
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = 'N' AND USERNAME=${this.escape(options.schema)})`;
+    } else {
+      query += `(SELECT USERNAME AS "schema_name" FROM ALL_USERS WHERE ORACLE_MAINTAINED = 'N')`;
     }
-
-    query += `
-      )
-      AND table_name NOT LIKE 'VECTOR$%'        -- vector index auxiliaries
-      AND table_name NOT LIKE 'DR$%'            -- Oracle Text
-      AND table_name NOT LIKE 'CTX_%'           -- Oracle Text metadata
-      AND table_name NOT LIKE 'MD$%'            -- Spatial metadata
-      AND table_name NOT LIKE 'MDRT_%'          -- R-tree auxiliaries
-      AND table_name NOT LIKE 'SYS_IOT_OVER_%'  -- IOT overflow
-      AND table_name NOT LIKE 'DM$%'            -- Data Mining / OML auxiliary tables
-    ORDER BY
-      owner, table_name
-  `;
 
     return query;
   }

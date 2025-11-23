@@ -87,7 +87,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   versionQuery() {
-    return `SELECT VERSION_FULL FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'`;
+    return `SELECT VERSION_FULL AS "version" FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'`;
   }
 
   /**
