@@ -362,7 +362,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      if (options && options.context) {
+      if (options?.context) {
         template += options.context === 'changeColumn' ? ' ADD' : '';
       }
 
@@ -372,12 +372,12 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      template = attributeTypeToSql(attribute.type);
     }
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
-    } else if (attribute.allowNull === true && options && options.context === 'changeColumn') {
+    } else if (attribute.allowNull === true && options?.context === 'changeColumn') {
       template += ' DROP NOT NULL';
     }
 
@@ -388,7 +388,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     // BLOB cannot have a default value
     if (
       !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       if (attribute.defaultValue === true) {
@@ -422,9 +422,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     if (attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+      if (options?.context === 'addColumn' && options.foreignKey) {
         const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.table).tableName}_${attrName}_foreign_idx`,
+        );
 
         template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
       }
