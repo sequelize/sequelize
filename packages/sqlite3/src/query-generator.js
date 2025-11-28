@@ -96,7 +96,13 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       attrStr += `, PRIMARY KEY (${pkString})`;
     }
 
-    const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
+    let sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr})`;
+
+    if (options.strict) {
+      sql += ' STRICT';
+    }
+
+    sql += ';';
 
     return this.replaceBooleanDefaults(sql);
   }
