@@ -1,4 +1,5 @@
 import type { SetRequired } from 'type-fest';
+import type { ParameterStyle } from '../enums.js';
 import type { Col } from '../expression-builders/col.js';
 import type { Fn } from '../expression-builders/fn.js';
 import type { Literal } from '../expression-builders/literal.js';
@@ -33,6 +34,10 @@ interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
+}
+
+export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
@@ -348,7 +353,7 @@ export class AbstractQueryInterface<
   bulkInsert(
     tableName: TableName,
     records: object[],
-    options?: QiOptionsWithReplacements,
+    options?: QiBulkInsertOptions,
     attributes?: Record<string, AttributeOptions>,
   ): Promise<object | number>;
 
