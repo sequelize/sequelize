@@ -163,8 +163,10 @@ export const CONFIG: DialectConfigs = {
     odbcConnectionString: env.SEQ_IBMI_CONN_STR,
   },
 
+  // To run tests against MotherDuck instead of local DuckDB, set SEQ_MOTHERDUCK_CONNECTION_STRING
+  // to a connection string like "md:my_db?motherduck_token=<your_token>"
   duckdb: {
     dialect: DuckDbDialect,
-    database: getDuckDbDatabasePath('default.duckdb'),
+    database: env.SEQ_MOTHERDUCK_CONNECTION_STRING || getDuckDbDatabasePath('default.duckdb'),
   },
 };
