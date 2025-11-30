@@ -1,4 +1,4 @@
-import type { AbstractDialect, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, BoundQuery, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString } from '@sequelize/utils';
@@ -355,7 +355,7 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(
 type MaybeLazy<T> = T | (() => T);
 
 export function expectsql(
-  query: MaybeLazy<{ query: string; bind?: unknown } | Error>,
+  query: MaybeLazy<BoundQuery | Error>,
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>;
     bind: PartialRecord<ExpectationKey, unknown>;
@@ -366,7 +366,7 @@ export function expectsql(
   assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
-  query: MaybeLazy<string | Error | { query: string; bind?: unknown }>,
+  query: MaybeLazy<string | Error | BoundQuery>,
   assertions:
     | {
         query: PartialRecord<ExpectationKey, string | Error>;

@@ -1,5 +1,5 @@
+import type { QueryTypes } from '../enums';
 import type { IncludeOptions, Model, ModelStatic } from '../model';
-import type { QueryTypes } from '../query-types';
 import type { Sequelize } from '../sequelize';
 import type { AbstractConnection } from './connection-manager';
 
