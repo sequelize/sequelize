@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "DuckDB Connector for Sequelize, based on the duckdb-async npm package",
+  "description": "DuckDB Connector for Sequelize, based on the @duckdb/node-api package",
   "exports": {
     ".": {
       "import": {
@@ -36,9 +36,9 @@
     "access": "public"
   },
   "dependencies": {
+    "@duckdb/node-api": "1.4.2-r.1",
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "duckdb-async": "1.4.2",
     "lodash": "^4.17.21"
   }
 }

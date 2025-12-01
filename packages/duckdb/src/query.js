@@ -3,12 +3,35 @@
 import { AbstractQuery, DatabaseError, UniqueConstraintError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isBigInt } from '@sequelize/utils';
+import { blobValue } from '@duckdb/node-api';
 
 const debug = logger.debugContext('sql:duckdb');
+
+/**
+ * Execute a query on the DuckDB connection and return row objects.
+ * @param {import('@duckdb/node-api').DuckDBConnection} duckdbConnection - The DuckDB connection
+ * @param {string} sql - SQL to execute
+ * @param {Array} [parameters] - Optional bind parameters (positional)
+ * @returns {Promise<Array<Object>>} Array of row objects
+ */
+async function executeQuery(duckdbConnection, sql, parameters) {
+  const reader = await duckdbConnection.runAndReadAll(sql, parameters);
+
+  return reader.getRowObjectsJS();
+}
 
 export class DuckDbQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
     super(connection, sequelize, { showWarnings: false, ...options });
+  }
+
+  /**
+   * Get the DuckDB connection (which is the connection itself with added Sequelize properties)
+   * @returns {import('@duckdb/node-api').DuckDBConnection}
+   */
+  get duckdbConnection() {
+    // The connection IS the DuckDBConnection with additional Sequelize properties (db_path, closed)
+    return this.connection;
   }
 
   async run(sql, parameters) {
@@ -21,28 +44,21 @@ export class DuckDbQuery extends AbstractQuery {
         .replaceAll('.', '_')
         .replaceAll('"', '');
 
-      const sequences = [];
       // clean up all the table's sequences
-      sequences.push(
-        this.connection
-          .all(
-            'SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, ?)',
-            sequence_prefix,
-          )
-          .then(seqResult => {
-            return seqResult;
-          }),
+      const seqResult = await executeQuery(
+        this.duckdbConnection,
+        'SELECT sequence_name FROM duckdb_sequences() WHERE starts_with(sequence_name, $1)',
+        [sequence_prefix],
       );
 
-      return Promise.all(
-        sequences.map(seqPromise =>
-          seqPromise.then(sequence => {
-            if (sequence && sequence.length > 0 && 'sequence_name' in sequence[0]) {
-              return this.connection.all(`DROP SEQUENCE ${sequence[0].sequence_name} CASCADE`);
-            }
-          }),
-        ),
-      ).then(() => this.runQueryInternal(sql, parameters, complete));
+      if (seqResult && seqResult.length > 0 && 'sequence_name' in seqResult[0]) {
+        await executeQuery(
+          this.duckdbConnection,
+          `DROP SEQUENCE ${seqResult[0].sequence_name} CASCADE`,
+        );
+      }
+
+      return this.runQueryInternal(sql, parameters, complete);
     }
 
     return this.runQueryInternal(sql, parameters, complete);
@@ -63,7 +79,7 @@ export class DuckDbQuery extends AbstractQuery {
   // Sequelize really wants untyped string values when used without a model
   postprocessData(data, model) {
     if (!model) {
-      // Sequelize really wants plan text data in the absence of a model
+      // Sequelize really wants plain text data in the absence of a model
       for (const i in data) {
         for (const key in data[i]) {
           if (data[i][key] instanceof Date) {
@@ -77,45 +93,36 @@ export class DuckDbQuery extends AbstractQuery {
   }
 
   async runQueryInternal(sql, parameters, loggingCompleteCallback) {
-    let dataPromise;
+    let convertedParameters;
     if (parameters) {
-      // for some reason implementing toBindableValue on BigInt does not work to do this conversion
-      const convertedParameters = parameters.map(p => {
+      // Convert parameters to DuckDB-compatible types
+      convertedParameters = parameters.map(p => {
         if (isBigInt(p)) {
-          // BigInt binds as null in duckdb-node
+          // BigInt binds as null in duckdb-node, convert to string
           return p.toString();
+        }
+
+        // Buffer/Uint8Array must be wrapped in blobValue for @duckdb/node-api
+        if (Buffer.isBuffer(p) || p instanceof Uint8Array) {
+          return blobValue(p);
         }
 
         return p;
       });
-      dataPromise = this.connection.all(sql, ...convertedParameters);
-    } else {
-      dataPromise = this.connection.all(sql);
     }
 
-    if (this.isSelectQuery()) {
-      return dataPromise.then(
-        data => {
-          loggingCompleteCallback();
+    try {
+      const data = await executeQuery(this.duckdbConnection, sql, convertedParameters);
+      loggingCompleteCallback();
 
-          return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
-        },
-        error => {
-          throw this.formatError(error);
-        },
-      );
+      if (this.isSelectQuery()) {
+        return this.handleSelectQuery(this.postprocessData(data, this.model?.modelDefinition));
+      }
+
+      return this.processResults(data);
+    } catch (error) {
+      throw this.formatError(error);
     }
-
-    return dataPromise.then(
-      data => {
-        loggingCompleteCallback();
-
-        return this.processResults(data);
-      },
-      error => {
-        throw this.formatError(error);
-      },
-    );
   }
 
   // Converts non-SELECT query results to a format expected by the framework.

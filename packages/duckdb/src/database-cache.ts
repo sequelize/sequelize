@@ -1,14 +1,19 @@
 import type { AbstractConnection } from '@sequelize/core';
-import type { Connection } from 'duckdb-async';
-import { Database } from 'duckdb-async';
+import type { DuckDBConnection } from '@duckdb/node-api';
+import { DuckDBInstance } from '@duckdb/node-api';
 
-export interface DuckDbConnection extends AbstractConnection, Connection {
+/**
+ * Extended DuckDBConnection with Sequelize-specific properties.
+ * This interface extends DuckDBConnection directly so that the same object reference
+ * is used for transaction connection identity comparisons.
+ */
+export interface SequelizeDuckDbConnection extends AbstractConnection, DuckDBConnection {
   db_path: string;
   closed: boolean;
 }
 
 export interface CachedDatabase {
-  database: Database;
+  instance: DuckDBInstance;
   count: number;
 }
 
@@ -28,34 +33,37 @@ export class DatabaseCache {
     return DatabaseCache._instance;
   }
 
-  async getConnection(db_path: string): Promise<DuckDbConnection> {
+  async getConnection(db_path: string): Promise<SequelizeDuckDbConnection> {
     const cachedDatabase = this.databaseCache.get(db_path);
 
     // Only one database object should be used; lightweight connections should be used when needed
     if (cachedDatabase) {
-      return cachedDatabase.database.connect().then(connection => {
-        cachedDatabase.count++;
-        const sequelizeConnection = connection as DuckDbConnection;
-        sequelizeConnection.closed = false;
-        sequelizeConnection.db_path = db_path;
+      const connection = await cachedDatabase.instance.connect();
+      cachedDatabase.count++;
 
-        return sequelizeConnection;
-      });
+      // Add Sequelize properties directly to the connection object
+      const sequelizeConnection = connection as SequelizeDuckDbConnection;
+      sequelizeConnection.closed = false;
+      sequelizeConnection.db_path = db_path;
+
+      return sequelizeConnection;
     }
 
-    const newDatabase = await Database.create(db_path, { custom_user_agent: 'sequelize' });
+    const newInstance = await DuckDBInstance.create(db_path, { custom_user_agent: 'sequelize' });
 
-    this.databaseCache.set(db_path, { database: newDatabase, count: 1 });
+    this.databaseCache.set(db_path, { instance: newInstance, count: 1 });
 
-    const connection = (await newDatabase.connect()) as DuckDbConnection;
+    const connection = await newInstance.connect();
 
-    connection.closed = false;
-    connection.db_path = db_path;
+    // Add Sequelize properties directly to the connection object
+    const sequelizeConnection = connection as SequelizeDuckDbConnection;
+    sequelizeConnection.closed = false;
+    sequelizeConnection.db_path = db_path;
 
-    return connection;
+    return sequelizeConnection;
   }
 
-  async closeConnection(connection: DuckDbConnection): Promise<void> {
+  async closeConnection(connection: SequelizeDuckDbConnection): Promise<void> {
     if (connection.closed) {
       return;
     }
@@ -64,13 +72,14 @@ export class DatabaseCache {
     if (cachedDatabase) {
       if (cachedDatabase.count === 1) {
         this.databaseCache.delete(connection.db_path);
+        cachedDatabase.instance.closeSync();
 
-        return cachedDatabase.database.close();
+        return;
       }
 
       cachedDatabase.count--;
     }
 
-    return connection.close();
+    connection.closeSync();
   }
 }
