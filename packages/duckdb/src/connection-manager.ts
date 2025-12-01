@@ -18,8 +18,6 @@ export class DuckDbConnectionManager extends AbstractConnectionManager<
   }
 
   async disconnect(connection: SequelizeDuckDbConnection) {
-    connection.closed = true;
-
     return DatabaseCache.getDatabaseCache().closeConnection(connection);
   }
 

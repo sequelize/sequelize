@@ -15,7 +15,11 @@ const debug = logger.debugContext('sql:duckdb');
  * @returns {Promise<Array<Object>>} Array of row objects
  */
 async function executeQuery(duckdbConnection, sql, parameters) {
-  const reader = await duckdbConnection.runAndReadAll(sql, parameters);
+  // Only pass parameters if they exist and are non-empty
+  // This ensures we use the direct query path (faster, better MVCC behavior)
+  // instead of the prepared statement path when no parameters are needed
+  const hasParameters = parameters && parameters.length > 0;
+  const reader = await duckdbConnection.runAndReadAll(sql, hasParameters ? parameters : undefined);
 
   return reader.getRowObjectsJS();
 }

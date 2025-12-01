@@ -1,6 +1,6 @@
 import type { AbstractConnection } from '@sequelize/core';
-import type { DuckDBConnection } from '@duckdb/node-api';
-import { DuckDBInstance } from '@duckdb/node-api';
+import type { DuckDBConnection, DuckDBInstance } from '@duckdb/node-api';
+import { DuckDBInstanceCache } from '@duckdb/node-api';
 
 /**
  * Extended DuckDBConnection with Sequelize-specific properties.
@@ -17,6 +17,11 @@ export interface CachedDatabase {
   count: number;
 }
 
+/**
+ * Database cache that tracks connection counts for proper cleanup.
+ * Uses the native DuckDBInstanceCache for instance reuse, but tracks
+ * when all connections are closed so we can properly close the instance.
+ */
 export class DatabaseCache {
   private static _instance: DatabaseCache;
   private readonly databaseCache: Map<string, CachedDatabase>;
@@ -36,12 +41,11 @@ export class DatabaseCache {
   async getConnection(db_path: string): Promise<SequelizeDuckDbConnection> {
     const cachedDatabase = this.databaseCache.get(db_path);
 
-    // Only one database object should be used; lightweight connections should be used when needed
+    // Reuse existing instance if we have one
     if (cachedDatabase) {
       const connection = await cachedDatabase.instance.connect();
       cachedDatabase.count++;
 
-      // Add Sequelize properties directly to the connection object
       const sequelizeConnection = connection as SequelizeDuckDbConnection;
       sequelizeConnection.closed = false;
       sequelizeConnection.db_path = db_path;
@@ -49,13 +53,14 @@ export class DatabaseCache {
       return sequelizeConnection;
     }
 
-    const newInstance = await DuckDBInstance.create(db_path, { custom_user_agent: 'sequelize' });
+    // Get or create instance from native cache
+    const newInstance = await DuckDBInstanceCache.singleton.getOrCreateInstance(db_path, {
+      custom_user_agent: 'sequelize',
+    });
 
     this.databaseCache.set(db_path, { instance: newInstance, count: 1 });
 
     const connection = await newInstance.connect();
-
-    // Add Sequelize properties directly to the connection object
     const sequelizeConnection = connection as SequelizeDuckDbConnection;
     sequelizeConnection.closed = false;
     sequelizeConnection.db_path = db_path;
@@ -68,9 +73,12 @@ export class DatabaseCache {
       return;
     }
 
+    connection.closed = true;
+
     const cachedDatabase = this.databaseCache.get(connection.db_path);
     if (cachedDatabase) {
       if (cachedDatabase.count === 1) {
+        // Last connection - close the instance
         this.databaseCache.delete(connection.db_path);
         cachedDatabase.instance.closeSync();
 
