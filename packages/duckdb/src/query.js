@@ -8,20 +8,59 @@ import { blobValue } from '@duckdb/node-api';
 const debug = logger.debugContext('sql:duckdb');
 
 /**
+ * Per-database query execution queue.
+ * Serializes query execution on each database (by path) to prevent MVCC conflicts
+ * from concurrent operations. DuckDB uses optimistic concurrency control
+ * and will throw "Conflict on update!" errors if multiple transactions
+ * try to modify the same rows concurrently.
+ *
+ * This is necessary because multiple connections can be created for the same
+ * database file, and they all share the same DuckDB instance. Serializing at
+ * the database level ensures that concurrent queries from different connections
+ * don't conflict.
+ *
+ * Users who need parallel execution should use separate database files.
+ */
+const databaseQueues = new Map();
+
+/**
+ * Get or create the execution queue for a database path.
+ * @param {string} dbPath - The database file path
+ * @returns {Promise<void>}
+ */
+function getDatabaseQueue(dbPath) {
+  if (!databaseQueues.has(dbPath)) {
+    databaseQueues.set(dbPath, Promise.resolve());
+  }
+
+  return databaseQueues.get(dbPath);
+}
+
+/**
  * Execute a query on the DuckDB connection and return row objects.
- * @param {import('@duckdb/node-api').DuckDBConnection} duckdbConnection - The DuckDB connection
+ * Queries are serialized per-database to prevent MVCC conflicts.
+ * @param {import('../database-cache').SequelizeDuckDbConnection} duckdbConnection - The DuckDB connection (with db_path)
  * @param {string} sql - SQL to execute
  * @param {Array} [parameters] - Optional bind parameters (positional)
  * @returns {Promise<Array<Object>>} Array of row objects
  */
-async function executeQuery(duckdbConnection, sql, parameters) {
-  // Only pass parameters if they exist and are non-empty
-  // This ensures we use the direct query path (faster, better MVCC behavior)
-  // instead of the prepared statement path when no parameters are needed
+function executeQuery(duckdbConnection, sql, parameters) {
   const hasParameters = parameters && parameters.length > 0;
-  const reader = await duckdbConnection.runAndReadAll(sql, hasParameters ? parameters : undefined);
+  const dbPath = duckdbConnection.db_path;
 
-  return reader.getRowObjectsJS();
+  // Chain this query to the database's execution queue
+  const currentQueue = getDatabaseQueue(dbPath);
+
+  const resultPromise = currentQueue.then(async () => {
+    const reader = await duckdbConnection.runAndReadAll(sql, hasParameters ? parameters : undefined);
+
+    return reader.getRowObjectsJS();
+  });
+
+  // Update the queue - use catch to prevent a failed query from blocking subsequent queries
+  databaseQueues.set(dbPath, resultPromise.catch(() => {}));
+
+  return resultPromise;
 }
 
 export class DuckDbQuery extends AbstractQuery {
