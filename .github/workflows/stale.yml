@@ -14,7 +14,7 @@ jobs:
       pull-requests: write # for actions/stale to close stale PRs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/stale@5f858e3efba33a5ca4407a664cc011ad407f2008 # v10.1.0
+      - uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
         id: stale-bug
         with:
           stale-issue-label: 'stale'
@@ -26,7 +26,7 @@ jobs:
           days-before-pr-close: -1
           only-issue-labels: 'type: bug'
           any-of-issue-labels: 'pending-approval'
-      - uses: actions/stale@5f858e3efba33a5ca4407a664cc011ad407f2008 # v10.1.0
+      - uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
         id: stale-feature
         with:
           stale-issue-label: 'stale'
@@ -40,7 +40,7 @@ jobs:
           only-issue-labels: 'type: feature'
           any-of-issue-labels: 'pending-approval'
           any-of-pr-labels: 'maybe-abandoned'
-      - uses: actions/stale@5f858e3efba33a5ca4407a664cc011ad407f2008 # v10.1.0
+      - uses: actions/stale@997185467fa4f803885201cee163a9f38240193d # v10.1.1
         id: invalid
         with:
           stale-issue-label: 'stale'
