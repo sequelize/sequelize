@@ -1,8 +1,6 @@
-'use strict';
-
-const { expect } = require('chai');
-const { DataTypes } = require('@sequelize/core');
-const { beforeAll2, sequelize } = require('../support');
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import { beforeAll2, sequelize } from '../support';
 
 describe('Model.increment', () => {
   const vars = beforeAll2(() => {
@@ -19,6 +17,7 @@ describe('Model.increment', () => {
   });
 
   it('should reject if options are missing', async () => {
+    // @ts-expect-error -- we're testing that this will be rejected
     await expect(vars.User.increment(['id', 'count'])).to.be.rejectedWith(
       'Missing where attribute in the options parameter',
     );
