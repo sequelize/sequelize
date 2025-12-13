@@ -150,6 +150,13 @@ export class DuckDbQuery extends AbstractQuery {
           return blobValue(p);
         }
 
+        // Numbers exceeding INT32_MAX are interpreted as signed INT32 by the DuckDB Node.js bindings,
+        // causing overflow (e.g., 4294967295 becomes -1). Convert to BigInt to preserve value.
+        // This is needed for UINTEGER columns that can hold values > 2147483647.
+        if (typeof p === 'number' && Number.isInteger(p) && p > 2147483647) {
+          return BigInt(p);
+        }
+
         return p;
       });
     }
