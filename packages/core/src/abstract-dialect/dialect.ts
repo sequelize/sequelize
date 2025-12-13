@@ -68,6 +68,12 @@ export type DialectSupports = {
   /* does the dialect support returning values for inserted/updated fields */
   returnValues: false | 'output' | 'returning';
 
+  /* does the dialect support returning values for inserted/updated fields in outBinds */
+  returnIntoValues: boolean;
+
+  /* does the dialect support topLevelOrderBy (ORDER BY clasue) to get desired results */
+  topLevelOrderByRequired: boolean;
+
   /* features specific to autoIncrement values */
   autoIncrement: {
     /* does the dialect require modification of insert queries when inserting auto increment fields */
@@ -107,7 +113,9 @@ export type DialectSupports = {
   migrations: boolean;
   upserts: boolean;
   inserts: {
-    ignoreDuplicates: string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
+    ignoreDuplicates:
+      | false /* Not supported */
+      | string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
     updateOnDuplicate: boolean | string /* whether dialect supports ON DUPLICATE KEY UPDATE */;
     onConflictDoNothing: string /* dialect specific words for ON CONFLICT DO NOTHING */;
     onConflictWhere: boolean /* whether dialect supports ON CONFLICT WHERE */;
@@ -235,6 +243,7 @@ export type DialectSupports = {
   uuidV4Generation: boolean;
   dropTable: {
     cascade: boolean;
+    concurrentDropConstraints: boolean; // If Constraints on same table can be dropped concurrently.
   };
   maxExecutionTimeHint: {
     select: boolean;
@@ -324,6 +333,8 @@ export abstract class AbstractDialect<
     skipLocked: false,
     finalTable: false,
     returnValues: false,
+    returnIntoValues: false,
+    topLevelOrderByRequired: false,
     autoIncrement: {
       identityInsert: false,
       defaultValue: true,
@@ -459,6 +470,7 @@ export abstract class AbstractDialect<
     uuidV4Generation: false,
     dropTable: {
       cascade: false,
+      concurrentDropConstraints: true,
     },
     maxExecutionTimeHint: {
       select: false,

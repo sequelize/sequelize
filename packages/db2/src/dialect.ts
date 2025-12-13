@@ -53,6 +53,9 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
       where: true,
       include: true,
     },
+    inserts: {
+      ignoreDuplicates: false,
+    },
     constraints: {
       onUpdate: false,
     },
