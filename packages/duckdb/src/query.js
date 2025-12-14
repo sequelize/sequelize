@@ -39,7 +39,7 @@ function getDatabaseQueue(dbPath) {
 /**
  * Execute a query on the DuckDB connection and return row objects.
  * Queries are serialized per-database to prevent MVCC conflicts.
- * @param {import('../database-cache').SequelizeDuckDbConnection} duckdbConnection - The DuckDB connection (with db_path)
+ * @param {import('./connection-manager').DuckDbConnection} duckdbConnection - The DuckDB connection (with db_path)
  * @param {string} sql - SQL to execute
  * @param {Array} [parameters] - Optional bind parameters (positional)
  * @returns {Promise<Array<Object>>} Array of row objects
