@@ -5,4 +5,4 @@ See [Conventional Commits](https://conventionalcommits.org) for commit guideline
 
 # Current
 
-- initial dialect commit
+- initial dialect based on DuckDB Node Neo

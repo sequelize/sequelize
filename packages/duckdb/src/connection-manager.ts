@@ -22,12 +22,8 @@ export interface DuckDbConnection extends AbstractConnection, DuckDBConnection {
 
 export class DuckDbConnectionManager extends AbstractConnectionManager<DuckDbDialect, DuckDbConnection> {
   /**
-   * Creates a connection using DuckDB's native instance cache.
-   *
-   * The native cache uses weak references and automatically evicts
-   * instances when all references are released. Each connection gets
-   * its own instance reference, so closing a connection releases that
-   * reference, and the instance is evicted when the last connection closes.
+   * Creates a connection using DuckDB's native instance cache; this prevents conflicts
+   * from multiple accesses to the same file.
    */
   async connect(config: ConnectionOptions<DuckDbDialect>): Promise<DuckDbConnection> {
     const instance = await DuckDBInstanceClass.fromCache(config.database, {

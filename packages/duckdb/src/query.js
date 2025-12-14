@@ -19,7 +19,6 @@ const debug = logger.debugContext('sql:duckdb');
  * the database level ensures that concurrent queries from different connections
  * don't conflict.
  *
- * Users who need parallel execution should use separate database files.
  */
 const databaseQueues = new Map();
 
@@ -39,9 +38,9 @@ function getDatabaseQueue(dbPath) {
 /**
  * Execute a query on the DuckDB connection and return row objects.
  * Queries are serialized per-database to prevent MVCC conflicts.
- * @param {import('./connection-manager').DuckDbConnection} duckdbConnection - The DuckDB connection (with db_path)
+ * @param {duckdbConnection} - The DuckDB connection (with db_path)
  * @param {string} sql - SQL to execute
- * @param {Array} [parameters] - Optional bind parameters (positional)
+ * @param {parameters} - Optional bind parameters (positional)
  * @returns {Promise<Array<Object>>} Array of row objects
  */
 function executeQuery(duckdbConnection, sql, parameters) {
@@ -73,7 +72,6 @@ export class DuckDbQuery extends AbstractQuery {
    * @returns {import('@duckdb/node-api').DuckDBConnection}
    */
   get duckdbConnection() {
-    // The connection IS the DuckDBConnection with additional Sequelize properties (db_path, closed)
     return this.connection;
   }
 
@@ -248,11 +246,9 @@ export class DuckDbQuery extends AbstractQuery {
     }
 
     if (this.isBulkUpdateQuery() || this.isDeleteQuery()) {
-      // TBD: check what format is expected to be returned - just the row count?
       return rowsUpdated;
     }
 
-    // TBD: is fallback needed?
     return [data, rowsUpdated];
   }
 }

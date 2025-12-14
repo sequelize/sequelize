@@ -82,7 +82,7 @@ export class DuckDbQueryGenerator extends DuckDbQueryGeneratorTypeScript {
           sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
         }
 
-        // primary and foregin keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
+        // primary and foreign keys are disabled due to https://duckdb.org/docs/sql/indexes#over-eager-unique-constraint-checking
         if (attribute.primaryKey) {
           // will be replaced with a PRIMARY KEY comment in createTableQuery
           sql += ' PRIMARY KEY';
