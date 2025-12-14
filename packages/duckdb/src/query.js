@@ -1,9 +1,9 @@
 'use strict';
 
+import { blobValue } from '@duckdb/node-api';
 import { AbstractQuery, DatabaseError, UniqueConstraintError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isBigInt } from '@sequelize/utils';
-import { blobValue } from '@duckdb/node-api';
 
 const debug = logger.debugContext('sql:duckdb');
 
@@ -24,6 +24,7 @@ const databaseQueues = new Map();
 
 /**
  * Get or create the execution queue for a database path.
+ *
  * @param {string} dbPath - The database file path
  * @returns {Promise<void>}
  */
@@ -38,10 +39,11 @@ function getDatabaseQueue(dbPath) {
 /**
  * Execute a query on the DuckDB connection and return row objects.
  * Queries are serialized per-database to prevent MVCC conflicts.
- * @param {duckdbConnection} - The DuckDB connection (with db_path)
+ *
+ * @param {object} duckdbConnection - The DuckDB connection (with db_path)
  * @param {string} sql - SQL to execute
- * @param {parameters} - Optional bind parameters (positional)
- * @returns {Promise<Array<Object>>} Array of row objects
+ * @param {Array} [parameters] - Optional bind parameters (positional)
+ * @returns {Promise<Array<object>>} Array of row objects
  */
 function executeQuery(duckdbConnection, sql, parameters) {
   const hasParameters = parameters && parameters.length > 0;
@@ -51,13 +53,19 @@ function executeQuery(duckdbConnection, sql, parameters) {
   const currentQueue = getDatabaseQueue(dbPath);
 
   const resultPromise = currentQueue.then(async () => {
-    const reader = await duckdbConnection.runAndReadAll(sql, hasParameters ? parameters : undefined);
+    const reader = await duckdbConnection.runAndReadAll(
+      sql,
+      hasParameters ? parameters : undefined,
+    );
 
     return reader.getRowObjectsJS();
   });
 
   // Update the queue - use catch to prevent a failed query from blocking subsequent queries
-  databaseQueues.set(dbPath, resultPromise.catch(() => {}));
+  databaseQueues.set(
+    dbPath,
+    resultPromise.catch(() => {}),
+  );
 
   return resultPromise;
 }
@@ -69,6 +77,7 @@ export class DuckDbQuery extends AbstractQuery {
 
   /**
    * Get the DuckDB connection (which is the connection itself with added Sequelize properties)
+   *
    * @returns {import('@duckdb/node-api').DuckDBConnection}
    */
   get duckdbConnection() {
@@ -151,7 +160,7 @@ export class DuckDbQuery extends AbstractQuery {
         // Numbers exceeding INT32_MAX are interpreted as signed INT32 by the DuckDB Node.js bindings,
         // causing overflow (e.g., 4294967295 becomes -1). Convert to BigInt to preserve value.
         // This is needed for UINTEGER columns that can hold values > 2147483647.
-        if (typeof p === 'number' && Number.isInteger(p) && p > 2147483647) {
+        if (typeof p === 'number' && Number.isInteger(p) && p > 2_147_483_647) {
           return BigInt(p);
         }
 

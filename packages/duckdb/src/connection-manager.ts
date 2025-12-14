@@ -1,7 +1,7 @@
-import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
-import { AbstractConnectionManager } from '@sequelize/core';
 import type { DuckDBConnection, DuckDBInstance } from '@duckdb/node-api';
 import { DuckDBInstance as DuckDBInstanceClass } from '@duckdb/node-api';
+import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
+import { AbstractConnectionManager } from '@sequelize/core';
 import type { DuckDbDialect } from './dialect';
 
 export interface DuckDbConnectionOptions {
@@ -20,10 +20,15 @@ export interface DuckDbConnection extends AbstractConnection, DuckDBConnection {
   instance: DuckDBInstance;
 }
 
-export class DuckDbConnectionManager extends AbstractConnectionManager<DuckDbDialect, DuckDbConnection> {
+export class DuckDbConnectionManager extends AbstractConnectionManager<
+  DuckDbDialect,
+  DuckDbConnection
+> {
   /**
    * Creates a connection using DuckDB's native instance cache; this prevents conflicts
    * from multiple accesses to the same file.
+   *
+   * @param config - Connection configuration
    */
   async connect(config: ConnectionOptions<DuckDbDialect>): Promise<DuckDbConnection> {
     const instance = await DuckDBInstanceClass.fromCache(config.database, {
@@ -42,6 +47,8 @@ export class DuckDbConnectionManager extends AbstractConnectionManager<DuckDbDia
   /**
    * Closes a connection and its instance reference.
    * The native cache will evict the instance when all references are released.
+   *
+   * @param connection - The connection to close
    */
   async disconnect(connection: DuckDbConnection) {
     if (connection.closed) {
