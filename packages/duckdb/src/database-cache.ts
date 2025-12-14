@@ -1,6 +1,6 @@
 import type { AbstractConnection } from '@sequelize/core';
 import type { DuckDBConnection, DuckDBInstance } from '@duckdb/node-api';
-import { DuckDBInstanceCache } from '@duckdb/node-api';
+import { DuckDBInstance as DuckDBInstanceClass } from '@duckdb/node-api';
 
 /**
  * Extended DuckDBConnection with Sequelize-specific properties.
@@ -10,84 +10,44 @@ import { DuckDBInstanceCache } from '@duckdb/node-api';
 export interface SequelizeDuckDbConnection extends AbstractConnection, DuckDBConnection {
   db_path: string;
   closed: boolean;
-}
-
-export interface CachedDatabase {
+  /** The instance wrapper - closed when the connection is closed */
   instance: DuckDBInstance;
-  count: number;
 }
 
 /**
- * Database cache that tracks connection counts for proper cleanup.
- * Uses the native DuckDBInstanceCache for instance reuse, but tracks
- * when all connections are closed so we can properly close the instance.
+ * Creates connections using DuckDB's native instance cache.
+ *
+ * The native cache reference-counts instance wrappers and automatically
+ * evicts instances when all wrappers are closed. Each connection gets
+ * its own instance wrapper, so closing a connection's wrapper decrements
+ * the reference count, and the instance is evicted when the last
+ * connection closes.
  */
-export class DatabaseCache {
-  private static _instance: DatabaseCache;
-  private readonly databaseCache: Map<string, CachedDatabase>;
+export async function getConnection(db_path: string): Promise<SequelizeDuckDbConnection> {
+  // Get instance wrapper from native cache (increments ref count)
+  const instance = await DuckDBInstanceClass.fromCache(db_path, {
+    custom_user_agent: 'sequelize',
+  });
 
-  private constructor() {
-    this.databaseCache = new Map<string, CachedDatabase>();
+  const connection = await instance.connect();
+  const sequelizeConnection = connection as SequelizeDuckDbConnection;
+  sequelizeConnection.closed = false;
+  sequelizeConnection.db_path = db_path;
+  sequelizeConnection.instance = instance;
+
+  return sequelizeConnection;
+}
+
+/**
+ * Closes a connection and its instance wrapper.
+ * The native cache will evict the instance when all wrappers are closed.
+ */
+export function closeConnection(connection: SequelizeDuckDbConnection): void {
+  if (connection.closed) {
+    return;
   }
 
-  static getDatabaseCache(): DatabaseCache {
-    if (!DatabaseCache._instance) {
-      DatabaseCache._instance = new DatabaseCache();
-    }
-
-    return DatabaseCache._instance;
-  }
-
-  async getConnection(db_path: string): Promise<SequelizeDuckDbConnection> {
-    const cachedDatabase = this.databaseCache.get(db_path);
-
-    // Reuse existing instance if we have one
-    if (cachedDatabase) {
-      const connection = await cachedDatabase.instance.connect();
-      cachedDatabase.count++;
-
-      const sequelizeConnection = connection as SequelizeDuckDbConnection;
-      sequelizeConnection.closed = false;
-      sequelizeConnection.db_path = db_path;
-
-      return sequelizeConnection;
-    }
-
-    // Get or create instance from native cache
-    const newInstance = await DuckDBInstanceCache.singleton.getOrCreateInstance(db_path, {
-      custom_user_agent: 'sequelize',
-    });
-
-    this.databaseCache.set(db_path, { instance: newInstance, count: 1 });
-
-    const connection = await newInstance.connect();
-    const sequelizeConnection = connection as SequelizeDuckDbConnection;
-    sequelizeConnection.closed = false;
-    sequelizeConnection.db_path = db_path;
-
-    return sequelizeConnection;
-  }
-
-  async closeConnection(connection: SequelizeDuckDbConnection): Promise<void> {
-    if (connection.closed) {
-      return;
-    }
-
-    connection.closed = true;
-
-    const cachedDatabase = this.databaseCache.get(connection.db_path);
-    if (cachedDatabase) {
-      if (cachedDatabase.count === 1) {
-        // Last connection - close the instance
-        this.databaseCache.delete(connection.db_path);
-        cachedDatabase.instance.closeSync();
-
-        return;
-      }
-
-      cachedDatabase.count--;
-    }
-
-    connection.closeSync();
-  }
+  connection.closed = true;
+  connection.closeSync();
+  connection.instance.closeSync();
 }

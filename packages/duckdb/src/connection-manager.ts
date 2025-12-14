@@ -1,7 +1,7 @@
 import type { ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager } from '@sequelize/core';
 import type { SequelizeDuckDbConnection } from './database-cache';
-import { DatabaseCache } from './database-cache';
+import { closeConnection, getConnection } from './database-cache';
 import type { DuckDbDialect } from './dialect';
 
 export interface DuckDbConnectionOptions {
@@ -14,11 +14,11 @@ export class DuckDbConnectionManager extends AbstractConnectionManager<
   SequelizeDuckDbConnection
 > {
   async connect(config: ConnectionOptions<DuckDbDialect>): Promise<SequelizeDuckDbConnection> {
-    return DatabaseCache.getDatabaseCache().getConnection(config.database);
+    return getConnection(config.database);
   }
 
   async disconnect(connection: SequelizeDuckDbConnection) {
-    return DatabaseCache.getDatabaseCache().closeConnection(connection);
+    closeConnection(connection);
   }
 
   validate(connection: SequelizeDuckDbConnection): boolean {
