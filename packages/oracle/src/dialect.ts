@@ -86,7 +86,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   constructor(sequelize: Sequelize, options: OracleDialectOptions) {
     super({
       dataTypesDocumentationUrl:
-        'https://docs.oracle.com/en/database/oracle/oracle-database/23/sqlrf/Data-Types.html',
+        'https://docs.oracle.com/en/database/oracle/oracle-database/18/sqlrf/Data-Types.html',
       minimumDatabaseVersion: '18.0.0',
       identifierDelimiter: '"',
       name: 'oracle',

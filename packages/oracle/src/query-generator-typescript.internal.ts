@@ -224,7 +224,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'BEGIN',
       ' BEGIN',
       '   EXECUTE IMMEDIATE ',
-      this.escape(`CREATE USER ${quotedSchema} IDENTIFIED BY 12345 DEFAULT TABLESPACE USERS`),
+      this.escape(`CREATE USER ${quotedSchema} IDENTIFIED EXTERNALLY DEFAULT TABLESPACE USERS`),
       ';',
       '   EXCEPTION WHEN OTHERS THEN',
       '     IF SQLCODE != -1920 THEN',
