@@ -17,7 +17,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 
@@ -28,7 +28,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       ibmi: `BEGIN DROP INDEX "my_table_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "my_table_foo_bar"`,
       postgres: `DROP INDEX "public"."my_table_foo_bar"`,
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 
@@ -40,7 +40,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
           'concurrently',
         ]),
         postgres: `DROP INDEX CONCURRENTLY "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
       },
     );
   });
@@ -53,7 +53,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         sqlite3: 'DROP INDEX IF EXISTS `user_foo_bar`',
         postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar"`,
         ibmi: `BEGIN IF EXISTS (SELECT * FROM QSYS2.SYSINDEXES WHERE INDEX_NAME = "user_foo_bar") THEN DROP INDEX "user_foo_bar"; COMMIT; END IF; END`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'ifExists',
         ]),
@@ -65,7 +65,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
     expectsql(() => queryGenerator.removeIndexQuery('myTable', 'user_foo_bar', { cascade: true }), {
       default: buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, ['cascade']),
       postgres: `DROP INDEX "public"."user_foo_bar" CASCADE`,
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 
@@ -79,7 +79,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       {
         default: `DROP INDEX IF EXISTS [user_foo_bar] ON [myTable] CASCADE`,
         postgres: `DROP INDEX IF EXISTS "public"."user_foo_bar" CASCADE`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'cascade',
           'ifExists',
@@ -103,7 +103,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       {
         default: `DROP INDEX CONCURRENTLY IF EXISTS [user_foo_bar] ON [myTable]`,
         postgres: `DROP INDEX CONCURRENTLY IF EXISTS "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
         'db2 mysql': buildInvalidOptionReceivedError('removeIndexQuery', dialect.name, [
           'concurrently',
           'ifExists',
@@ -132,7 +132,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         postgres: new Error(
           `Cannot specify both concurrently and cascade options in removeIndexQuery for ${dialect.name} dialect`,
         ),
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
       },
     );
   });
@@ -146,7 +146,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 
@@ -160,7 +160,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: `DROP INDEX "user_foo_bar"`,
       postgres: `DROP INDEX "public"."user_foo_bar"`,
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 
@@ -177,7 +177,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
         db2: `DROP INDEX "user_foo_bar"`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
       },
     );
   });
@@ -195,7 +195,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
         ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
         db2: `DROP INDEX "user_foo_bar"`,
         postgres: `DROP INDEX "public"."user_foo_bar"`,
-        snowflake: notImplementedError,
+        'snowflake duckdb': notImplementedError,
       },
     );
   });
@@ -210,7 +210,7 @@ describe('QueryGenerator#removeIndexQuery', () => {
       postgres: `DROP INDEX "mySchema"."user_foo_bar"`,
       ibmi: `BEGIN DROP INDEX "user_foo_bar"; COMMIT; END`,
       db2: 'DROP INDEX "user_foo_bar"',
-      snowflake: notImplementedError,
+      'snowflake duckdb': notImplementedError,
     });
   });
 });

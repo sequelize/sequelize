@@ -132,6 +132,9 @@ describe('sequelize.pool', () => {
         snowflake: {
           account: 'replica1',
         },
+        duckdb: {
+          database: 'replica1.db',
+        },
       };
 
       const replica2Overrides: DialectConnectionConfigs = {
@@ -158,6 +161,9 @@ describe('sequelize.pool', () => {
         },
         snowflake: {
           account: 'replica2',
+        },
+        duckdb: {
+          database: 'replica2.db',
         },
       };
 
@@ -229,6 +235,9 @@ describe('sequelize.pool', () => {
         },
         snowflake: {
           account: 'write',
+        },
+        duckdb: {
+          database: 'write.db',
         },
       };
 

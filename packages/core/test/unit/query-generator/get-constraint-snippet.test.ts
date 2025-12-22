@@ -58,7 +58,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: 'CONSTRAINT [check] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -75,7 +75,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: `CONSTRAINT [check] CHECK ([age] IN ('admin', 'user', 'guest'))`,
           mssql: `CONSTRAINT [check] CHECK ([age] IN (N'admin', N'user', N'guest'))`,
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -90,7 +90,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -107,7 +107,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: 'CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -125,7 +125,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: 'CONSTRAINT [MyModels_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -139,7 +139,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -153,7 +153,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -171,7 +171,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: 'CONSTRAINT [myTable_age_ck] CHECK ([age] >= 10)',
-          snowflake: checkNotSupportedError,
+          'snowflake duckdb': checkNotSupportedError,
         },
       );
     });
@@ -338,6 +338,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [unique] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -353,6 +354,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: deferrableNotSupportedError,
           'postgres snowflake': `CONSTRAINT [myTable_username_uk] UNIQUE ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -366,6 +368,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_first_name_last_name_uk] UNIQUE ([first_name], [last_name])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -375,6 +378,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         () => internals.getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -386,6 +390,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         () => internals.getConstraintSnippet(MyModel, { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -399,6 +404,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           internals.getConstraintSnippet(myDefinition, { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `CONSTRAINT [MyModels_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -412,6 +418,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -425,6 +432,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -438,6 +446,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           internalsSchema.getConstraintSnippet('myTable', { type: 'UNIQUE', fields: ['username'] }),
         {
           default: `CONSTRAINT [myTable_username_uk] UNIQUE ([username])`,
+          duckdb: new Error('Unique constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -456,6 +465,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           sqlite3: 'CONSTRAINT `myTable_username_uk` UNIQUE (`username`)',
+          duckdb: new Error('Unique key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -473,6 +483,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [foreign key] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -489,6 +500,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: deferrableNotSupportedError,
           'postgres snowflake': `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) DEFERRABLE INITIALLY IMMEDIATE`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -503,6 +515,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_otherId_someId_otherTable_fk] FOREIGN KEY ([otherId], [someId]) REFERENCES [otherTable] ([id], [someId])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -518,6 +531,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON DELETE CASCADE`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -534,6 +548,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id]) ON UPDATE CASCADE`,
           'db2 ibmi': onUpdateNotSupportedError,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -546,6 +561,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           default: new Error(
             'Invalid foreign key constraint options. `references` object with `table` and `field` must be specified',
           ),
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -560,6 +576,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -577,6 +594,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -596,6 +614,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [MyModels_otherId_OtherModels_fk] FOREIGN KEY ([otherId]) REFERENCES [OtherModels] ([id])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -615,6 +634,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
           sqlite3:
             'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchema.otherTable` (`id`)',
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -635,6 +655,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [otherTable] ([id])`,
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -654,6 +675,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           default: `CONSTRAINT [myTable_otherId_otherTable_fk] FOREIGN KEY ([otherId]) REFERENCES [mySchema].[otherTable] ([id])`,
           sqlite3:
             'CONSTRAINT `myTable_otherId_otherTable_fk` FOREIGN KEY (`otherId`) REFERENCES `mySchema.otherTable` (`id`)',
+          duckdb: new Error('Foreign key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -696,6 +718,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [primary key] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -711,6 +734,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: deferrableNotSupportedError,
           'postgres snowflake': `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username]) DEFERRABLE INITIALLY IMMEDIATE`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -724,6 +748,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_first_name_last_name_pk] PRIMARY KEY ([first_name], [last_name])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -734,6 +759,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           internals.getConstraintSnippet('myTable', { type: 'PRIMARY KEY', fields: ['username'] }),
         {
           default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -746,6 +772,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           internals.getConstraintSnippet(MyModel, { type: 'PRIMARY KEY', fields: ['username'] }),
         {
           default: `CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -762,6 +789,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [MyModels_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -775,6 +803,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -788,6 +817,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           ),
         {
           default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });
@@ -804,6 +834,7 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
           }),
         {
           default: `CONSTRAINT [myTable_username_pk] PRIMARY KEY ([username])`,
+          duckdb: new Error('Primary key constraints are not supported by duckdb dialect'),
         },
       );
     });

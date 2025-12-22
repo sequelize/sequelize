@@ -87,6 +87,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2 RETURNING "id", "user_name"',
             db2: 'SELECT * FROM FINAL TABLE (UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2);',
             snowflake: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
+            duckdb: 'UPDATE "users" SET "user_name"=$sequelize_1 WHERE "id" = $sequelize_2',
             default: 'UPDATE `users` SET `user_name`=$sequelize_1 WHERE `id` = $sequelize_2',
           },
           bind: {

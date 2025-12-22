@@ -44,7 +44,7 @@ describe('QueryInterface#insert', () => {
     expectsql(firstCall.args[0], {
       default: 'INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);',
       sqlite3: 'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) RETURNING `:data`;',
-      postgres: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING ":data";`,
+      'postgres duckdb': `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING ":data";`,
       mssql: `INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[:data] VALUES ($sequelize_1);`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,

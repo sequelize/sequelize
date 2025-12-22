@@ -345,7 +345,8 @@ describe('Model.update', () => {
       expect(account.email).to.equal('email 1');
     });
 
-    if (sequelize.dialect.supports.returnValues) {
+    // In DuckDB dialect, RETURNING is only supported on INSERT
+    if (sequelize.dialect.supports.returnValues && sequelize.dialect.name !== 'duckdb') {
       it('should return the updated record', async () => {
         const { User } = vars;
 
@@ -459,6 +460,7 @@ describe('Model.update', () => {
               mssql: `UPDATE [users1] SET [secretValue]=@sequelize_1,[updatedAt]=@sequelize_2 OUTPUT INSERTED.* WHERE [id] = @sequelize_3`,
               db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
               ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
+              duckdb: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?`,
             });
           },
           returning: [sql.col('*')],
