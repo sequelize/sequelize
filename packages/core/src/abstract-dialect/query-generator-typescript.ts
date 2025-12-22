@@ -658,7 +658,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     if (options?.indexHints) {
@@ -970,5 +970,36 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     return this.#internals;
+  }
+
+  /**
+   * Generates a dialect-aware COUNT(*) wrapper around a subquery.
+   *
+   * This utility is used to compute the total number of rows returned
+   * by an arbitrary SQL query by wrapping it in:
+   *
+   *   SELECT COUNT(*) AS count FROM (<query>) <alias>
+   *
+   * The alias token is generated through getAliasToken, so dialects
+   * that do not support the `AS` keyword (e.g. Oracle) are handled correctly.
+   *
+   * @param query The SQL query to wrap inside the COUNT(*) subquery.
+   *
+   * @example
+   * ```ts
+   * const subQuery = `SELECT * FROM "Users" WHERE "active" = true`;
+   * const countQuery = queryGenerator.generateCountAllQuery(subQuery);
+   * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) AS Z
+   * // (Oracle)
+   * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) Z
+   * ```
+   */
+
+  generateCountAllQuery(query: string): string {
+    // dialect-aware alias token
+    const aliasToken = this.#internals.getAliasToken();
+
+    // The "Z" alias is required for all dialects (Oracle does not support "AS")
+    return `SELECT COUNT(*) AS count FROM (${query}) ${aliasToken} Z`;
   }
 }
