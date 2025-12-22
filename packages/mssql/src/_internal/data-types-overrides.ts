@@ -103,11 +103,13 @@ export class NOW extends BaseTypes.NOW {
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
+    let result = this.options.plain ? 'DATETIME2' : 'DATETIMEOFFSET';
+
     if (this.options.precision != null) {
-      return `DATETIMEOFFSET(${this.options.precision})`;
+      result += `(${this.options.precision})`;
     }
 
-    return 'DATETIMEOFFSET';
+    return result;
   }
 }
 
