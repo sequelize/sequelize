@@ -2200,6 +2200,7 @@ ${associationOwner._getAssociationDebugList()}`);
       );
       updateValues = { ...updateValues, ...explicitUpdateValues };
     }
+
     const now = new Date();
 
     // Attach createdAt

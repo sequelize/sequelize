@@ -236,6 +236,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
                 replacements: options.replacements,
                 bindParam,
               });
+
               return `${this.quoteIdentifier(attr)}=${escapedValue}`;
             }
 
@@ -246,6 +247,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             attr => `${this.quoteIdentifier(attr)}=${values[attr]}`,
           );
         }
+
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
         // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
         // This will be the primary key in most cases, but it could be some other constraint.
