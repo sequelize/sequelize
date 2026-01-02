@@ -352,11 +352,12 @@ if (dialect === 'mysql') {
             {},
             {
               updateOnDuplicate: ['name', 'counter'],
-              upsertKeys: ['id']
-            }
+              upsertKeys: ['id'],
+            },
           ],
           expectation: {
-            query: "INSERT INTO `myTable` (`name`,`counter`) VALUES ($sequelize_1,counter + 1) ON DUPLICATE KEY UPDATE `name`=$sequelize_1,`counter`=counter + 1;",
+            query:
+              'INSERT INTO `myTable` (`name`,`counter`) VALUES ($sequelize_1,counter + 1) ON DUPLICATE KEY UPDATE `name`=$sequelize_1,`counter`=counter + 1;',
             bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
