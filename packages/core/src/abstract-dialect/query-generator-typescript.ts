@@ -1,10 +1,12 @@
 import type { RequiredBy } from '@sequelize/utils';
-import { EMPTY_OBJECT, isPlainObject, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, isString, join, map } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import type { Class } from 'type-fest';
 import { ConstraintChecking } from '../deferrable.js';
+import type { ParameterStyle } from '../enums.js';
+import { IndexHints, TableHints } from '../enums.js';
 import { AssociationPath } from '../expression-builders/association-path.js';
 import { Attribute } from '../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
@@ -18,14 +20,12 @@ import { List } from '../expression-builders/list.js';
 import { Literal } from '../expression-builders/literal.js';
 import { Value } from '../expression-builders/value.js';
 import { Where } from '../expression-builders/where.js';
-import { IndexHints } from '../index-hints.js';
 import type { ModelDefinition } from '../model-definition.js';
 import type { Attributes, Model, ModelStatic } from '../model.js';
 import { Op } from '../operators.js';
 import type { BindOrReplacements, Expression, Sequelize } from '../sequelize.js';
 import type { NormalizedOptions } from '../sequelize.types.js';
 import { bestGuessDataTypeOfVal } from '../sql-string.js';
-import { TableHints } from '../table-hints.js';
 import type { IsolationLevel } from '../transaction.js';
 import { rejectInvalidOptions } from '../utils/check.js';
 import { noOpCol } from '../utils/deprecations.js';
@@ -130,12 +130,7 @@ export interface EscapeOptions extends FormatWhereOptions {
   readonly type?: DataType | undefined;
 }
 
-export interface FormatWhereOptions extends Bindable {
-  /**
-   * These are used to inline replacements into the query, when one is found inside of a {@link Literal}.
-   */
-  readonly replacements?: BindOrReplacements | undefined;
-
+export interface FormatWhereOptions extends Partial<BindParamOptions>, ParameterOptions {
   /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
@@ -158,13 +153,15 @@ export interface FormatWhereOptions extends Bindable {
   readonly mainAlias?: string | undefined;
 }
 
-/**
- * Methods that support this option are functions that add values to the query.
- * If {@link Bindable.bindParam} is specified, the value will be added to the query as a bind parameter.
- * If it is not specified, the value will be added to the query as a literal.
- */
-export interface Bindable {
-  bindParam?: ((value: unknown) => string) | undefined;
+export interface ParameterOptions {
+  /**
+   * The style of parameter to use.
+   */
+  readonly parameterStyle?: ParameterStyle | `${ParameterStyle}` | undefined;
+  /**
+   * These are used to inline replacements into the query, when one is found inside of a {@link sql.literal}.
+   */
+  readonly replacements?: BindOrReplacements | undefined;
 }
 
 // DO NOT MAKE THIS CLASS PUBLIC!
@@ -752,7 +749,15 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (piece instanceof Identifier) {
-      return this.quoteIdentifier(piece.value);
+      return piece.values
+        .map(value => {
+          if (isString(value)) {
+            return this.quoteIdentifier(value);
+          }
+
+          return this.quoteTable(value);
+        })
+        .join('.');
     }
 
     if (piece instanceof Cast) {

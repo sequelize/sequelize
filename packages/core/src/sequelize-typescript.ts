@@ -805,7 +805,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Escape value to be used in raw SQL.
    *
-   * If you are using this to use the value in a {@link literal}, consider using {@link sql} instead, which automatically
+   * If you are using this to use the value in a {@link sql.literal}, consider using {@link sql} instead, which automatically
    * escapes interpolated values.
    *
    * @param value The value to escape

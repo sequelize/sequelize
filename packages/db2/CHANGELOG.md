@@ -3,6 +3,43 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.47](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.46...v7.0.0-alpha.47) (2025-10-25)
+
+### Bug Fixes
+
+- **db2:** update the `ibm_db` module to 3.3.0 ([#17737](https://github.com/sequelize/sequelize/issues/17737)) ([7d386bf](https://github.com/sequelize/sequelize/commit/7d386bf22d7d0e99ca7fac11305b6ee956b7535b))
+
+### Features
+
+- add parameter style ([#17560](https://github.com/sequelize/sequelize/issues/17560)) ([1f4bdee](https://github.com/sequelize/sequelize/commit/1f4bdee80bb7ab5a335d11681f0a9ea973277297))
+
+### BREAKING CHANGES
+
+- the `bindParam` option has been replaced with `parameterStyle` which defaults to `ParameterStyle.BIND`
+
+# [7.0.0-alpha.46](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.45...v7.0.0-alpha.46) (2025-03-22)
+
+**Note:** Version bump only for package @sequelize/db2
+
+# [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
+
+**Note:** Version bump only for package @sequelize/db2
+
+# [7.0.0-alpha.44](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.43...v7.0.0-alpha.44) (2025-01-27)
+
+**Note:** Version bump only for package @sequelize/db2
+
+# [7.0.0-alpha.43](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.42...v7.0.0-alpha.43) (2024-10-04)
+
+### Bug Fixes
+
+- **db2:** remove unnecessary override ([#17525](https://github.com/sequelize/sequelize/issues/17525)) ([9a51a05](https://github.com/sequelize/sequelize/commit/9a51a05569cf7b3ff9e532611f1bce07839d7ce2))
+- unify returning queries ([#17157](https://github.com/sequelize/sequelize/issues/17157)) ([0a350c0](https://github.com/sequelize/sequelize/commit/0a350c0f91d0eee9c56b92f47cc23c273c9eb206))
+
+# [7.0.0-alpha.42](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.41...v7.0.0-alpha.42) (2024-09-13)
+
+**Note:** Version bump only for package @sequelize/db2
+
 # [7.0.0-alpha.41](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.40...v7.0.0-alpha.41) (2024-05-17)
 
 ### Bug Fixes

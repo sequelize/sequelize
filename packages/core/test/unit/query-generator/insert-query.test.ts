@@ -1,4 +1,4 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -85,7 +85,25 @@ describe('QueryGenerator#insertQuery', () => {
     });
   });
 
-  it('parses bind parameters in literals even with bindParams: false', () => {
+  it('throws an error if the bindParam option is used', () => {
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.insertQuery(
+        User.table,
+        {
+          firstName: 'John',
+          lastName: literal('$1'),
+          username: 'jd',
+        },
+        {},
+        // @ts-expect-error -- intentionally testing deprecated option
+        { bindParam: false },
+      );
+    }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
+  });
+
+  it('parses bind parameters in literals even with parameterStyle: REPLACEMENT', () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.insertQuery(
@@ -97,7 +115,7 @@ describe('QueryGenerator#insertQuery', () => {
       },
       {},
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 
@@ -150,7 +168,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [id], [firstName];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
         mssql:
@@ -177,7 +195,7 @@ describe('QueryGenerator#insertQuery', () => {
       expectsql(query, {
         default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING [*], [myColumn];`,
         // TODO: insertQuery should throw if returning is not supported
-        'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+        'mysql mariadb': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
         // TODO: insertQuery should throw if returning is not supported
         snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
         mssql:
@@ -207,7 +225,7 @@ describe('QueryGenerator#insertQuery', () => {
         {
           default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1) RETURNING *;`,
           // TODO: insertQuery should throw if returning is not supported
-          'mysql mariadb sqlite3': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
+          'mysql mariadb': `INSERT INTO \`Users\` (\`firstName\`) VALUES ($sequelize_1);`,
           // TODO: insertQuery should throw if returning is not supported
           snowflake: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1);`,
           mssql: new Error(

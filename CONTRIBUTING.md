@@ -189,7 +189,7 @@ You will have to manually install and configure each of database engines you wan
 Before starting any work, try to run the tests locally in order to be sure your setup is fine. Start by running the SQLite tests:
 
 ```
-yarn lerna run test-sqlite
+yarn lerna run test-sqlite3
 ```
 
 Then, if you want to run tests for another dialect, assuming you've set it up as written on section 3, run the corresponding command:
@@ -211,21 +211,21 @@ While you're developing, you may want to execute only a single test (or a few), 
 Hint: if you're creating a new test, you can execute only that test locally against all dialects by adapting the `spec` and `grep` options on `.mocharc.jsonc` and running the following from your terminal (assuming you already set up the database instances via the corresponding `yarn setup-*` calls, as explained on [Section 3a](https://github.com/sequelize/sequelize/blob/main/CONTRIBUTING.md#3a-with-docker-recommended) and you are in the package's root directory):
 
 ```
-DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha
+DIALECT=mariadb yarn mocha && DIALECT=mysql yarn mocha && DIALECT=postgres yarn mocha && DIALECT=sqlite3 yarn mocha && DIALECT=mssql yarn mocha && DIALECT=db2 yarn mocha
 ```
 
 ### 5. Running an SSCCE
 
 What is SSCCE? [find out here](http://www.sscce.org/).
 
-You can modify the `sscce.js` file (at the root of the repository) to create an SSCCE.
+You can modify the `sscce.ts` file (at the root of the repository) to create an SSCCE.
 
 Run it for the dialect of your choice using one of the following commands:
 
 - `npm run sscce-mariadb` / `yarn sscce-mariadb`
 - `npm run sscce-mysql` / `yarn sscce-mysql`
 - `npm run sscce-postgres` / `yarn sscce-postgres`
-- `npm run sscce-sqlite` / `yarn sscce-sqlite`
+- `npm run sscce-sqlite3` / `yarn sscce-sqlite3`
 - `npm run sscce-mssql` / `yarn sscce-mssql`
 - `npm run sscce-db2` / `yarn sscce-db2`
 
@@ -233,7 +233,7 @@ _Note:_ First, you need to set up (once) the database instance for corresponding
 
 #### 5.1. Debugging an SSCCE with Visual Studio Code
 
-If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.js` or any other Sequelize source code).
+If you open the `package.json` file with Visual Studio Code, you will find a small `debug` button rendered right above the `"scripts": {` line. By clicking it, a popup will appear where you can choose which script you want to debug. Select one of the `sscce-*` scripts (listed above) and VSCode will immediately launch your SSCCE in debug mode (meaning that it will stop on any breakpoints that you place within `sscce.ts` or any other Sequelize source code).
 
 ### 6. Commit your modifications
 
@@ -254,7 +254,7 @@ We use a simple conventional commits convention:
   - `postgres`
   - `mysql`
   - `mariadb`
-  - `sqlite`
+  - `sqlite3`
   - `mssql`
   - `db2`
   - `ibmi`

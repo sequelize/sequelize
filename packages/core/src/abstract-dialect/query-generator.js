@@ -16,6 +16,7 @@ import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import { ParameterStyle } from '../enums.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
@@ -24,6 +25,7 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
+import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -48,6 +50,25 @@ export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'uniqueKeys',
 ]);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
+
+const VALID_ORDER_OPTIONS = [
+  'ASC',
+  'DESC',
+  'ASC NULLS LAST',
+  'DESC NULLS LAST',
+  'ASC NULLS FIRST',
+  'DESC NULLS FIRST',
+  'NULLS FIRST',
+  'NULLS LAST',
+];
+
+function isOrderDirection(value) {
+  return typeof value === 'string' && VALID_ORDER_OPTIONS.includes(value.toUpperCase());
+}
+
+function isModelAttribute(value) {
+  return value?._modelAttribute === true;
+}
 
 /**
  * Abstract Query Generator
@@ -75,14 +96,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     const modelAttributeMap = {};
-    const bind = Object.create(null);
     const fields = [];
     const returningModelAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
-    let bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -117,12 +142,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
     if (this.dialect.supports.EXCEPTION && options.exception) {
       // Not currently supported with bind parameters (requires output of multiple queries)
-      bindParam = undefined;
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -268,7 +298,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -412,22 +442,30 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     options ||= {};
     defaults(options, this.options);
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
-    const bind = Object.create(null);
     const modelAttributeMap = {};
+    let bind;
+    let bindParam;
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
 
     if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
       // Not currently supported with search path (requires output of multiple queries)
-      options.bindParam = false;
+      parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
-    const bindParam = options.bindParam === undefined ? this.bindParam(bind) : options.bindParam;
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
 
     if (
       this.dialect.supports['LIMIT ON UPDATE'] &&
@@ -495,7 +533,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
-    if (options.bindParam !== false) {
+    if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
     }
 
@@ -761,16 +799,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   */
   quote(collection, parent, connector = '.', options) {
     // init
-    const validOrderOptions = [
-      'ASC',
-      'DESC',
-      'ASC NULLS LAST',
-      'DESC NULLS LAST',
-      'ASC NULLS FIRST',
-      'DESC NULLS FIRST',
-      'NULLS FIRST',
-      'NULLS LAST',
-    ];
+    const validOrderOptions = VALID_ORDER_OPTIONS;
 
     // just quote as identifiers if string
     if (typeof collection === 'string') {
@@ -942,7 +971,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    *
    * ⚠️ You almost certainly want to use `quoteIdentifier` instead!
    * This method splits the identifier by "." into multiple identifiers, and has special meaning for "*".
-   * This behavior should never be the default and should be explicitly opted into by using {@link Col}.
+   * This behavior should never be the default and should be explicitly opted into by using {@link sql.col}.
    *
    * @param {string} identifiers
    *
@@ -963,18 +992,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     return this.quoteIdentifier(identifiers);
-  }
-
-  bindParam(bind) {
-    let i = 0;
-
-    return value => {
-      const bindName = `sequelize_${++i}`;
-
-      bind[bindName] = value;
-
-      return `$${bindName}`;
-    };
   }
 
   /*
@@ -1500,6 +1517,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.keysEscaped = true;
 
+    // Index hints should not be passed down to any include subqueries
+    if (topLevelInfo.options && topLevelInfo.options.indexHints) {
+      delete topLevelInfo.options.indexHints;
+    }
+
     if (
       topLevelInfo.names.name !== parentTableName.externalAs &&
       topLevelInfo.names.as !== parentTableName.externalAs
@@ -1605,6 +1627,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           continue;
         }
 
+        const childOriginalSubQuery = childInclude.subQuery;
+
+        if (childInclude.subQuery && (!include.subQuery || !topLevelInfo.subQuery)) {
+          childInclude.subQuery = false;
+        }
+
         const childJoinQueries = this.generateInclude(
           childInclude,
           includeAs,
@@ -1612,12 +1640,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           options,
         );
 
+        childInclude.subQuery = childOriginalSubQuery;
+
         if (include.required === false && childInclude.required === true) {
           requiredMismatch = true;
         }
 
         // if the child is a sub query we just give it to the
-        if (childInclude.subQuery && topLevelInfo.subQuery) {
+        if (childOriginalSubQuery && include.subQuery && topLevelInfo.subQuery) {
           subChildIncludes.push(childJoinQueries.subQuery);
         }
 
@@ -1662,7 +1692,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
 
-      joinQueries.subQuery.push(subChildIncludes.join(''));
+      if (subChildIncludes.length > 0) {
+        if (topLevelInfo.subQuery) {
+          const subFragments = [];
+
+          if (requiredMismatch) {
+            subFragments.push(
+              ` ${joinQuery.join} ( ${joinQuery.body}${subChildIncludes.join('')} ) ON ${joinQuery.condition}`,
+            );
+          } else {
+            subFragments.push(
+              ` ${joinQuery.join} ${joinQuery.body} ON ${joinQuery.condition}`,
+              subChildIncludes.join(''),
+            );
+          }
+
+          joinQueries.subQuery.push(...subFragments);
+        } else {
+          joinQueries.subQuery.push(subChildIncludes.join(''));
+        }
+      }
     }
 
     return {
@@ -1692,8 +1741,61 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   _getAliasForField(tableName, field, options) {
-    if (options.minifyAliases && options.aliasesByTable[`${tableName}${field}`]) {
-      return options.aliasesByTable[`${tableName}${field}`];
+    if (!options.minifyAliases || !options.aliasesByTable) {
+      return null;
+    }
+
+    const candidates = new Set();
+    const tableNameString = typeof tableName === 'string' ? tableName : undefined;
+    const tableVariants = [];
+
+    if (tableNameString) {
+      tableVariants.push(tableNameString);
+
+      const normalizedTable = tableNameString.replaceAll('->', '.');
+      if (normalizedTable !== tableNameString) {
+        tableVariants.push(normalizedTable);
+      }
+    }
+
+    const fieldVariants = new Set();
+
+    if (typeof field === 'string') {
+      fieldVariants.add(field);
+
+      const dotVariant = field.replaceAll('->', '.');
+      const arrowVariant = field.replaceAll('.', '->');
+
+      fieldVariants.add(dotVariant);
+      fieldVariants.add(arrowVariant);
+
+      if (field.includes('.')) {
+        fieldVariants.add(field.slice(field.lastIndexOf('.') + 1));
+      }
+    } else if (field != null) {
+      fieldVariants.add(field);
+    }
+
+    for (const variant of fieldVariants) {
+      candidates.add(variant);
+    }
+
+    if (tableVariants.length > 0) {
+      for (const tableVariant of tableVariants) {
+        for (const fieldVariant of fieldVariants) {
+          if (typeof fieldVariant === 'string' && fieldVariant.length > 0) {
+            candidates.add(`${tableVariant}.${fieldVariant}`);
+          }
+        }
+      }
+    }
+
+    for (const candidate of candidates) {
+      const alias = options.aliasesByTable[`${tableName}${candidate}`];
+
+      if (alias) {
+        return alias;
+      }
     }
 
     return null;
@@ -1703,6 +1805,198 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return (options.attributes || []).find(
       attr => Array.isArray(attr) && attr[1] && (attr[0] === field || attr[1] === field),
     );
+  }
+
+  /**
+   * Analyzes an ORDER BY clause to determine the attribute reference path.
+   *
+   * This handles order arrays like [Model, 'field', 'ASC'] or ['assoc1', 'assoc2', 'field', 'DESC']
+   * by traversing the association chain to find the correct table alias path and attribute.
+   *
+   * This does not handle raw SQL or literal orders, only structured association orders.
+   *
+   * The returned information is used to:
+   * - Resolve the correct table alias (internal path with '->' or external path with '.')
+   * - Find the corresponding include to access minified aliases
+   * - Replace the association parts to their table.column reference.
+   *
+   * @param {Array} order - The order clause array (e.g., [User, Task, 'name', 'DESC'])
+   * @param {Model} model - The root model for the query
+   * @param {object} options - Query options including include tree
+   * @returns {object|null} Info about the association path and attribute, or null if not an association order or malformed
+   */
+  _getAssociationOrderInfo(order, model, options) {
+    if (!Array.isArray(order) || order.length < 2 || !isModelStatic(model)) {
+      return null;
+    }
+
+    const isDirectional =
+      typeof order.at(-1) === 'string' && VALID_ORDER_OPTIONS.includes(order.at(-1).toUpperCase());
+    const attributeIndex = order.length - 1 - (isDirectional ? 1 : 0);
+
+    // If attributeIndex is 0, there are no associations in the order array
+    if (attributeIndex < 1) {
+      return null;
+    }
+
+    const attribute = order[attributeIndex];
+
+    // Sanity check that the attribute is a property name and not malformed.
+    if (typeof attribute !== 'string' || attribute.length === 0) {
+      return null;
+    }
+
+    // Everything before the attribute should be associations
+    const associationParts = order.slice(0, attributeIndex);
+    if (associationParts.length === 0) {
+      return null;
+    }
+
+    let currentModel = model;
+    const associations = [];
+    let previousAssociation = null;
+
+    // Start association walk through the order clause
+    for (const part of associationParts) {
+      let association;
+      const previousBelongsToMany =
+        previousAssociation instanceof BelongsToManyAssociation ? previousAssociation : null;
+      const matchesPreviousThroughModel =
+        previousBelongsToMany &&
+        (part === previousBelongsToMany.throughModel ||
+          (isPlainObject(part) &&
+            part.model === previousBelongsToMany.throughModel &&
+            (part.as == null || part.as === previousBelongsToMany.fromTargetToThrough.as)));
+
+      if (matchesPreviousThroughModel) {
+        association = previousBelongsToMany.fromTargetToThrough;
+      } else if (part instanceof Association) {
+        association = part;
+      } else if (typeof part === 'string' && currentModel?.associations?.[part]) {
+        association = currentModel.associations[part];
+      } else if (isModelStatic(part)) {
+        association = currentModel.getAssociationWithModel(part);
+      } else if (isPlainObject(part) && part.model && isModelStatic(part.model)) {
+        association = currentModel.getAssociationWithModel(part.model, part.as);
+      } else {
+        throw new Error(
+          `Invalid Order: association "${part}" is not found in ${currentModel.name}'s associations. Check your order definition.`,
+        );
+      }
+
+      associations.push(association);
+      currentModel = association.target;
+      previousAssociation = association;
+    }
+
+    if (associations.length === 0) {
+      return null;
+    }
+
+    const associationAliases = associations.map(association => association.as);
+    if (associationAliases.some(alias => !alias)) {
+      return null;
+    }
+
+    // Find the corresponding include in the query options to access its alias information
+    const include = this._findIncludeForAliasPath(options?.include, associationAliases);
+
+    return {
+      attribute,
+      replaceCount: associationParts.length + 1, // Number of elements to replace in the order array
+      associationAliases,
+      include,
+      externalPath: associationAliases.join('.'), // e.g., 'user.tasks' for nested associations
+      internalPath: associationAliases.join('->'), // e.g., 'user->tasks' used for internal aliasing
+    };
+  }
+
+  /**
+   * Finds the nested include object that matches a given alias path.
+   *
+   * Starting from the provided root `includes` array, this method walks the tree by
+   * following each segment in `aliasPath` and matching it against the `as` of each include.
+   * If any segment is not found at a given level, it returns `null`. When all segments are
+   * matched, it returns the deepest include corresponding to the full path.
+   *
+   * This is used (e.g. by association order resolution) to locate the include that corresponds
+   * to an ORDER BY association chain so that the correct table aliasing/minified alias can be applied.
+   *
+   * @param {Array<object>} includes - The root include array to traverse (e.g. `options.include`).
+   * @param {string[]} aliasPath - Ordered list of association alias names (e.g. ['user', 'tasks']).
+   * @returns {object|null} The include that matches the full alias path, or `null` if no match is found.
+   */
+  _findIncludeForAliasPath(includes, aliasPath) {
+    if (!Array.isArray(includes) || aliasPath.length === 0) {
+      return null;
+    }
+
+    let currentIncludes = includes;
+    let match;
+
+    for (const segment of aliasPath) {
+      match = currentIncludes.find(include => include.as === segment);
+      if (!match) {
+        return null;
+      }
+
+      currentIncludes = match.include || [];
+    }
+
+    return match;
+  }
+
+  /**
+   * Splits a raw ORDER clause entry into normalized sub-entries.
+   *
+   * This helper peels off any leading model/attribute reference segments and keeps
+   * an optional trailing direction (ASC/DESC). For example:
+   * - [User, 'tasks', 'name', 'DESC'] -> [[User], ['tasks', 'name', 'DESC']]
+   * - ['createdAt', 'ASC'] -> [['createdAt', 'ASC']]
+   * - ['DESC'] -> [['DESC']]
+   * - [] -> [[]]
+   *
+   * The output is consumed by later normalization steps that resolve association paths
+   * and build the final ORDER BY fragment.
+   *
+   * @param {Array<unknown>} rawOrder - The raw order entry array to split.
+   * @returns {Array<Array<unknown>>} A list of order sub-entries, where leading model/attribute
+   *   references are emitted as single-item arrays, and the remaining path plus optional
+   *   direction are grouped as the last entry. Returns `[[]]` for an empty input.
+   * @private
+   */
+  _splitOrderEntry(rawOrder) {
+    const orderParts = [...rawOrder];
+    const results = [];
+
+    let direction;
+    if (isOrderDirection(orderParts.at(-1))) {
+      direction = orderParts.pop();
+    }
+
+    while (orderParts.length > 1 && isModelAttribute(orderParts[0])) {
+      results.push([orderParts.shift()]);
+    }
+
+    if (orderParts.length > 0) {
+      const entry = [...orderParts];
+      if (direction !== undefined) {
+        entry.push(direction);
+        direction = undefined;
+      }
+
+      results.push(entry);
+    }
+
+    if (direction !== undefined) {
+      if (results.length === 0) {
+        results.push([direction]);
+      } else {
+        results.at(-1).push(direction);
+      }
+    }
+
+    return results.length > 0 ? results : [[]];
   }
 
   generateJoin(include, topLevelInfo, options) {
@@ -1904,6 +2198,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
+    const isRootParent =
+      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
+    const isMinified = topLevelInfo.options.minifyAliases;
+
     const through = include.through;
     const throughTable = through.model.table;
     const throughAs = `${includeAs.internalAs}->${through.as}`;
@@ -1922,9 +2220,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         this.quoteIdentifier(alias),
       ]);
     });
+
     const association = include.association;
-    const parentIsTop =
-      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
     const tableSource = parentTableName;
     const identSource = association.identifierField;
     const tableTarget = includeAs.internalAs;
@@ -1982,22 +2279,91 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       attrSource = association.sourceKeyField;
     }
 
-    // Filter statement for left side of through
-    // Used by both join and subquery where
-    // If parent include was in a subquery need to join on the aliased attribute
-    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && !parentIsTop) {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const joinSource =
-        this._getAliasForField(tableSource, `${tableSource}.${attrSource}`, topLevelInfo.options) ||
-        `${tableSource}.${attrSource}`;
+    // Build source side of the JOIN predicate for the through association.
+    // This condition is reused by the actual JOIN and any subquery WHERE filters.
 
-      sourceJoinOn = `${this.quoteIdentifier(joinSource)} = `;
+    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && isMinified) {
+      // When the parent include is also part of a subquery (especially with minified aliases),
+      // the source key may only be available under a projected alias. Thus, we resolve
+      // and reference the aliased attribute (or project it if missing) instead of the raw column
+      // name to avoid referencing a missing column.
+      const aliasCandidates = new Set();
+
+      const dottedTableSource = tableSource.replaceAll('->', '.');
+
+      if (attrSource) {
+        aliasCandidates.add(attrSource);
+        aliasCandidates.add(`${tableSource}.${attrSource}`);
+        aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
+      }
+
+      if (association.sourceKeyField && association.sourceKeyField !== attrSource) {
+        aliasCandidates.add(association.sourceKeyField);
+        aliasCandidates.add(`${tableSource}.${association.sourceKeyField}`);
+        aliasCandidates.add(`${dottedTableSource}.${association.sourceKeyField}`);
+      }
+
+      let aliasedSource = null;
+
+      for (const candidate of aliasCandidates) {
+        aliasedSource = this._getAliasForField(tableSource, candidate, topLevelInfo.options);
+
+        if (aliasedSource) {
+          break;
+        }
+      }
+
+      if (!aliasedSource) {
+        const joinColumn = association.sourceKeyField || attrSource || identSource;
+
+        if (isRootParent) {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+        } else {
+          const aliasBase = `${dottedTableSource}.${joinColumn}`;
+
+          aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
+
+          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+
+          if (!attributes.subQuery.includes(projection)) {
+            attributes.subQuery.push(projection);
+          }
+        }
+      }
+
+      if (!sourceJoinOn) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      }
+    } else if (
+      topLevelInfo.subQuery &&
+      !include.subQuery &&
+      include.parent.subQuery &&
+      !isRootParent
+    ) {
+      // Subquery + non-root parent: when alias minification is enabled,
+      // the parent path's source key may have been projected under a generated alias.
+      // Resolve and use the projected alias for the source side of the JOIN;
+      // If no alias is found, fall back to the table-qualified column, prefixed
+      // by the main subquery alias when available.
+      const aliasedSource = this._getAliasForField(
+        tableSource,
+        `${tableSource}.${attrSource}`,
+        topLevelInfo.options,
+      );
+
+      if (aliasedSource) {
+        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+      } else {
+        const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+
+        if (mainAlias) {
+          sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
+        } else {
+          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+        }
+      }
     } else {
-      // If we are minifying aliases and our JOIN target has been minified, we need to use the alias instead of the original column name
-      const aliasedSource =
-        this._getAliasForField(tableSource, attrSource, topLevelInfo.options) || attrSource;
-
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(aliasedSource)} = `;
+      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
@@ -2113,7 +2479,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               topInclude.through.where,
             ],
           },
-          limit: 1,
           includeIgnoreAttributes: false,
         },
         topInclude.through.model,
@@ -2141,7 +2506,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           where: {
             [Op.and]: [topInclude.where, new Literal(join)],
           },
-          limit: 1,
           tableAs: topInclude.as,
           includeIgnoreAttributes: false,
         },
@@ -2151,7 +2515,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     topLevelInfo.options.where = and(
       topLevelInfo.options.where,
-      new Literal(['(', query.replace(/;$/, ''), ')', 'IS NOT NULL'].join(' ')),
+      new Literal(['EXISTS (', query.replace(/;$/, ''), ')'].join(' ')),
     );
   }
 
@@ -2176,61 +2540,83 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const subQueryOrder = [];
 
     if (Array.isArray(options.order)) {
-      for (let order of options.order) {
-        // wrap if not array
-        if (!Array.isArray(order)) {
-          order = [order];
-        }
+      for (const rawOrder of options.order) {
+        const normalizedOrder = Array.isArray(rawOrder) ? rawOrder : [rawOrder];
+        const orderEntries = this._splitOrderEntry(normalizedOrder);
 
-        if (
-          subQuery &&
-          Array.isArray(order) &&
-          order[0] &&
-          !(order[0] instanceof Association) &&
-          !isModelStatic(order[0]) &&
-          !isModelStatic(order[0].model) &&
-          !(
-            typeof order[0] === 'string' &&
-            model &&
-            model.associations !== undefined &&
-            model.associations[order[0]]
-          )
-        ) {
-          // TODO - refactor this.quote() to not change the first argument
-          const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
-          const subQueryAlias = this._getAliasForField(model.name, columnName, options);
-
-          let parent = null;
-          let orderToQuote = [];
-
-          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
-          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
-          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
-          if (subQueryAlias === null) {
-            orderToQuote = order;
-            parent = model;
-          } else {
-            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
-            parent = null;
+        for (let order of orderEntries) {
+          if (!Array.isArray(order)) {
+            order = [order];
           }
 
-          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
-        }
+          const associationOrderInfo = this._getAssociationOrderInfo(order, model, options);
 
-        // Handle case where renamed attributes are used to order by,
-        // see https://github.com/sequelize/sequelize/issues/8739
-        // need to check if either of the attribute options match the order
-        if (options.attributes && model) {
-          const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
-
-          if (aliasedAttribute) {
-            const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
-
-            order[0] = new Col(alias || aliasedAttribute[1]);
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
+            const subOrder = [...order];
+            subQueryOrder.push(this.quote(subOrder, model, '->', options));
           }
-        }
 
-        mainQueryOrder.push(this.quote(order, model, '->', options));
+          if (
+            subQuery &&
+            Array.isArray(order) &&
+            order[0] &&
+            !Array.isArray(order[0]) &&
+            !(order[0] instanceof Association) &&
+            !isModelStatic(order[0]) &&
+            !isModelStatic(order[0].model) &&
+            !(
+              typeof order[0] === 'string' &&
+              model &&
+              model.associations !== undefined &&
+              model.associations[order[0]]
+            )
+          ) {
+            // TODO - refactor this.quote() to not change the first argument
+            const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
+            const subQueryAlias = this._getAliasForField(model.name, columnName, options);
+
+            let parent = null;
+            let orderToQuote = [];
+
+            // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+            // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+            // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+            if (subQueryAlias === null) {
+              orderToQuote = order;
+              parent = model;
+            } else {
+              orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+              parent = null;
+            }
+
+            subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
+          }
+
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
+            const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
+            const alias =
+              this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
+              aliasField;
+            const aliasLiteral = new Literal(this.quoteIdentifier(alias));
+
+            order.splice(0, associationOrderInfo.replaceCount, aliasLiteral);
+          }
+
+          // Handle case where renamed attributes are used to order by,
+          // see https://github.com/sequelize/sequelize/issues/8739
+          // need to check if either of the attribute options match the order
+          if (options.attributes && model) {
+            const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
+
+            if (aliasedAttribute) {
+              const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
+
+              order[0] = new Col(alias || aliasedAttribute[1]);
+            }
+          }
+
+          mainQueryOrder.push(this.quote(order, model, '->', options));
+        }
       }
     } else if (options.order instanceof BaseSqlExpression) {
       const sql = this.quote(options.order, model, '->', options);

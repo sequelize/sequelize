@@ -371,7 +371,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
               : dialect === 'db2'
                 ? '"age" > 10'
                 : dialect === 'postgres'
-                  ? '((age > 10))'
+                  ? '(age > 10)'
                   : ['mysql', 'sqlite3'].includes(dialect)
                     ? '(`age` > 10)'
                     : '`age` > 10',

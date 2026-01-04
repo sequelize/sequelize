@@ -51,6 +51,8 @@ describe('belongsToMany Mixins', () => {
       const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
+      expect(article.id).to.be.a('number');
+      expect(user.id).to.be.a('number');
 
       await article.setAuthors([user]);
 

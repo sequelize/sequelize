@@ -1,78 +1,76 @@
-import { expect, test } from '@oclif/test';
+import { runCommand } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import { expect } from 'chai';
+import { access, readdir } from 'node:fs/promises';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const __dirname = fileUrlToDirname(import.meta.url);
-const packageRoot = path.join(__dirname, '..', '..', '..');
-
-function oclifTest() {
-  return test.loadConfig({
-    root: packageRoot,
-  });
-}
+const packageRoot = join(__dirname, '..', '..', '..');
 
 describe('migration:generate', () => {
-  oclifTest()
-    .stdout()
-    .command(['migration:generate', '--format=sql', '--name=test-migration', '--json'])
-    .it('generates an SQL migration', async ctx => {
-      const asJson = JSON.parse(ctx.stdout);
+  it('generates an SQL migration', async () => {
+    const { stdout } = await runCommand(
+      ['migration:generate', '--format=sql', '--name=test-migration', '--json'],
+      { root: packageRoot },
+    );
+    const asJson = JSON.parse(stdout);
 
-      expect(Object.keys(asJson)).to.deep.eq(['path']);
-      expect(pathToFileURL(asJson.path).pathname).to.match(
-        /migrations\/[\d\-t]{19}-test-migration/,
-      );
-      expect(await fs.readdir(asJson.path)).to.have.members(['up.sql', 'down.sql']);
-    });
+    expect(Object.keys(asJson)).to.deep.eq(['path']);
+    expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d\-t]{19}-test-migration/);
+    expect(await readdir(asJson.path)).to.have.members(['up.sql', 'down.sql']);
+  });
 
-  oclifTest()
-    .stdout()
-    .command(['migration:generate', '--format=typescript', '--name=test-migration', '--json'])
-    .it('generates a TypeScript migration', async ctx => {
-      const asJson = JSON.parse(ctx.stdout);
+  it('generates an TypeScript migration', async () => {
+    const { stdout } = await runCommand(
+      ['migration:generate', '--format=typescript', '--name=test-migration', '--json'],
+      { root: packageRoot },
+    );
+    const asJson = JSON.parse(stdout);
 
-      expect(Object.keys(asJson)).to.deep.eq(['path']);
-      expect(pathToFileURL(asJson.path).pathname).to.match(
-        /migrations\/[\d\-t]{19}-test-migration\.ts/,
-      );
-      await fs.access(asJson.path);
-    });
+    expect(Object.keys(asJson)).to.deep.eq(['path']);
+    expect(pathToFileURL(asJson.path).pathname).to.match(
+      /migrations\/[\d\-t]{19}-test-migration\.ts/,
+    );
+    await access(asJson.path);
+  });
 
-  oclifTest()
-    .stdout()
-    .command(['migration:generate', '--format=cjs', '--name=test-migration', '--json'])
-    .it('generates a CJS migration', async ctx => {
-      const asJson = JSON.parse(ctx.stdout);
+  it('generates an CJS migration', async () => {
+    const { stdout } = await runCommand(
+      ['migration:generate', '--format=cjs', '--name=test-migration', '--json'],
+      { root: packageRoot },
+    );
+    const asJson = JSON.parse(stdout);
 
-      expect(Object.keys(asJson)).to.deep.eq(['path']);
-      expect(pathToFileURL(asJson.path).pathname).to.match(
-        /migrations\/[\d\-t]{19}-test-migration\.cjs/,
-      );
-      await fs.access(asJson.path);
-    });
+    expect(Object.keys(asJson)).to.deep.eq(['path']);
+    expect(pathToFileURL(asJson.path).pathname).to.match(
+      /migrations\/[\d\-t]{19}-test-migration\.cjs/,
+    );
+    await access(asJson.path);
+  });
 
-  oclifTest()
-    .stdout()
-    .command(['migration:generate', '--format=esm', '--name=test-migration', '--json'])
-    .it('generates an ESM migration', async ctx => {
-      const asJson = JSON.parse(ctx.stdout);
+  it('generates an ESM migration', async () => {
+    const { stdout } = await runCommand(
+      ['migration:generate', '--format=esm', '--name=test-migration', '--json'],
+      { root: packageRoot },
+    );
+    const asJson = JSON.parse(stdout);
 
-      expect(Object.keys(asJson)).to.deep.eq(['path']);
-      expect(pathToFileURL(asJson.path).pathname).to.match(
-        /migrations\/[\d\-t]{19}-test-migration\.mjs/,
-      );
-      await fs.access(asJson.path);
-    });
+    expect(Object.keys(asJson)).to.deep.eq(['path']);
+    expect(pathToFileURL(asJson.path).pathname).to.match(
+      /migrations\/[\d\-t]{19}-test-migration\.mjs/,
+    );
+    await access(asJson.path);
+  });
 
-  oclifTest()
-    .stdout()
-    .command(['migration:generate', '--format=sql', '--no-interactive', '--json'])
-    .it('supports not specifying a name', async ctx => {
-      const asJson = JSON.parse(ctx.stdout);
+  it('supports not specifying a name', async () => {
+    const { stdout } = await runCommand(
+      ['migration:generate', '--format=sql', '--no-interactive', '--json'],
+      { root: packageRoot },
+    );
+    const asJson = JSON.parse(stdout);
 
-      expect(Object.keys(asJson)).to.deep.eq(['path']);
-      expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d\-t]{19}-unnamed/);
-    });
+    expect(Object.keys(asJson)).to.deep.eq(['path']);
+    expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d\-t]{19}-unnamed/);
+  });
 });
