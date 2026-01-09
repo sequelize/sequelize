@@ -279,7 +279,7 @@ type StaticValues<Type> =
 /**
  * Operators that can be used in {@link WhereOptions}
  *
- * @typeParam AttributeType - The JS type of the attribute the operator is operating on.
+ * @template AttributeType - The JS type of the attribute the operator is operating on.
  *
  * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators
  */
