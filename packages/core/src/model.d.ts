@@ -28,7 +28,7 @@ import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
-import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
+import type { Lock, Op, ParameterStyle, TableHints, Transaction, WhereOptions } from './index';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
@@ -1208,6 +1208,13 @@ export interface BulkCreateOptions<TAttributes = any>
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
   conflictAttributes?: Array<keyof TAttributes>;
+
+  /**
+   * Optional parameter to specify whether the generated query uses bind parameters or
+   * replacement (values are added directly as literals in the SQL statement)
+   * Defaults to 'replacement' for backwards compatibility:
+   */
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 /**

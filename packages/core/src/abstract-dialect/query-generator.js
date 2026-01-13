@@ -211,7 +211,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          fragments.push(this.whereQuery(options.conflictWhere, options));
+          if (this.dialect.supports.inserts.onConflictWhereBind) {
+            fragments.push(this.whereQuery(options.conflictWhere, { ...options, bindParam }));
+          } else {
+            fragments.push(this.whereQuery(options.conflictWhere, options));
+          }
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -319,6 +323,30 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
+
+    let bind;
+    let bindParam;
+    // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
+    let parameterStyle = options?.parameterStyle ?? ParameterStyle.REPLACEMENT;
+
+    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
+      // Not currently supported with search path (requires output of multiple queries)
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (this.dialect.supports.EXCEPTION && options.exception) {
+      // Not currently supported with bind parameters (requires output of multiple queries)
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle === ParameterStyle.BIND) {
+      bind = Object.create(null);
+      bindParam = createBindParamGenerator(bind);
+    }
+
     const tuples = [];
     const serials = {};
     const allAttributes = [];
@@ -338,16 +366,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
           type: fieldMappedAttributes[key]?.type,
           replacements: options.replacements,
+          bindParam,
         });
       });
 
@@ -372,7 +403,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          whereClause = this.whereQuery(options.conflictWhere, options);
+          if (this.dialect.supports.inserts.onConflictWhereBind) {
+            whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
+          } else {
+            whereClause = this.whereQuery(options.conflictWhere, options);
+          }
         }
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.
@@ -413,7 +448,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return joinSQLFragments([
+    const query = joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
@@ -426,6 +461,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
+
+    const result = { query };
+    if (parameterStyle === ParameterStyle.BIND) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**

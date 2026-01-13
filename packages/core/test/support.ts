@@ -456,9 +456,16 @@ export function expectsql(
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
-  if ('bind' in assertions) {
-    const bind =
-      assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
+  if ('bind' in assertions && !(expectation instanceof Error)) {
+    let bind;
+    if (sequelize.dialect.name in assertions.bind) {
+      bind = assertions.bind[sequelize.dialect.name];
+    } else if ('default' in assertions.bind) {
+      bind = assertions.bind.default;
+    } else {
+      bind = assertions.bind;
+    }
+
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
