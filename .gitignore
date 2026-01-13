@@ -17,6 +17,7 @@ node_modules
 /packages/*/lib
 /packages/*/types
 /packages/core/test/sqlite-databases
+/packages/core/test/duckdb-databases
 /.nx
 
 lib

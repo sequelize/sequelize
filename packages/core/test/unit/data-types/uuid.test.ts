@@ -8,7 +8,7 @@ import { testDataTypeSql } from './_utils';
 describe('DataTypes.UUID', () => {
   describe('toSql', () => {
     testDataTypeSql('UUID', DataTypes.UUID, {
-      postgres: 'UUID',
+      'postgres duckdb': 'UUID',
       ibmi: 'CHAR(36)',
       db2: 'CHAR(36) FOR BIT DATA',
       mssql: 'UNIQUEIDENTIFIER',

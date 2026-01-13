@@ -26,6 +26,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.*`,
       sqlite3: 'UPDATE `myTable` SET `foo`=`foo`+ 3 RETURNING *',
       postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 RETURNING *`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ 3`,
     });
 
     expectsql(sqlMinus, {
@@ -33,6 +34,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [myTable] SET [foo]=[foo]- 3 OUTPUT INSERTED.*`,
       sqlite3: 'UPDATE `myTable` SET `foo`=`foo`- 3 RETURNING *',
       postgres: `UPDATE "myTable" SET "foo"="foo"- 3 RETURNING *`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"- 3`,
     });
   });
 
@@ -44,6 +46,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ bar OUTPUT INSERTED.*`,
       sqlite3: 'UPDATE `myTable` SET `foo`=`foo`+ bar RETURNING *',
       postgres: `UPDATE "myTable" SET "foo"="foo"+ bar RETURNING *`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ bar`,
     });
   });
 
@@ -55,6 +58,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
       sqlite3: "UPDATE `myTable` SET `foo`=`foo`+ 3 WHERE `bar` = 'biz' RETURNING *",
       postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz' RETURNING *`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz'`,
     });
   });
 
@@ -81,6 +85,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [myTable] SET [foo]=[foo]- -1 OUTPUT INSERTED.*`,
       sqlite3: 'UPDATE `myTable` SET `foo`=`foo`- -1 RETURNING *',
       postgres: `UPDATE "myTable" SET "foo"="foo"- -1 RETURNING *`,
+      duckdb: `UPDATE "myTable" SET "foo"="foo"- -1`,
     });
   });
 
@@ -115,6 +120,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
       mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]=N'John' OUTPUT INSERTED.* WHERE id = 47`,
       sqlite3: "UPDATE `Users` SET `age`=`age`+ 2,`name`='John' WHERE id = 47 RETURNING *",
       postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *`,
+      duckdb: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47`,
     });
   });
 });

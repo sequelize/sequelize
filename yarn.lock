@@ -1175,6 +1175,74 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@duckdb/node-api@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-api@npm:1.4.2-r.1"
+  dependencies:
+    "@duckdb/node-bindings": "npm:1.4.2-r.1"
+  checksum: 10c0/c708bb6f85bb26b48d7fc05ab1c68f1e13a52c74d56e51f225a88680e3dd968124fefb98d81036a03c50b2fa0b88cc40bb68bc9f0cbdaae1d510e14fa3a2cec8
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings-darwin-arm64@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings-darwin-arm64@npm:1.4.2-r.1"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings-darwin-x64@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings-darwin-x64@npm:1.4.2-r.1"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings-linux-arm64@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings-linux-arm64@npm:1.4.2-r.1"
+  conditions: os=linux & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings-linux-x64@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings-linux-x64@npm:1.4.2-r.1"
+  conditions: os=linux & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings-win32-x64@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings-win32-x64@npm:1.4.2-r.1"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@duckdb/node-bindings@npm:1.4.2-r.1":
+  version: 1.4.2-r.1
+  resolution: "@duckdb/node-bindings@npm:1.4.2-r.1"
+  dependencies:
+    "@duckdb/node-bindings-darwin-arm64": "npm:1.4.2-r.1"
+    "@duckdb/node-bindings-darwin-x64": "npm:1.4.2-r.1"
+    "@duckdb/node-bindings-linux-arm64": "npm:1.4.2-r.1"
+    "@duckdb/node-bindings-linux-x64": "npm:1.4.2-r.1"
+    "@duckdb/node-bindings-win32-x64": "npm:1.4.2-r.1"
+  dependenciesMeta:
+    "@duckdb/node-bindings-darwin-arm64":
+      optional: true
+    "@duckdb/node-bindings-darwin-x64":
+      optional: true
+    "@duckdb/node-bindings-linux-arm64":
+      optional: true
+    "@duckdb/node-bindings-linux-x64":
+      optional: true
+    "@duckdb/node-bindings-win32-x64":
+      optional: true
+  checksum: 10c0/d994aa77a153d08a8773121669ae2a4725f77a80d2676a87b35687fa73caabb79e50b4c52eb6bfa4bae6ffb99f57470a4e0c249a0fc035776fe40e0e26346614
+  languageName: node
+  linkType: hard
+
 "@emnapi/core@npm:^1.1.0, @emnapi/core@npm:^1.4.0":
   version: 1.4.3
   resolution: "@emnapi/core@npm:1.4.3"
@@ -2975,6 +3043,17 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     dayjs: "npm:^1.11.19"
     ibm_db: "npm:^3.3.4"
+    lodash: "npm:^4.17.21"
+  languageName: unknown
+  linkType: soft
+
+"@sequelize/duckdb@workspace:packages/duckdb":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/duckdb@workspace:packages/duckdb"
+  dependencies:
+    "@duckdb/node-api": "npm:1.4.2-r.1"
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.17.21"
   languageName: unknown
   linkType: soft

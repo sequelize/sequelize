@@ -190,7 +190,8 @@ describe('DataType Methods', () => {
     });
   }
 
-  if (dialect.supports.returnValues === 'returning') {
+  if (dialect.supports.returnValues === 'returning' && dialect.name !== 'duckdb') {
+    // DuckDB dialect disables RETURNING on update queries
     it(`updating a model calls 'parseDatabaseValue' on returned values`, async () => {
       const user = await models.User.create({ name: 'foo' });
       user.name = 'bob';

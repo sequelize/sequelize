@@ -424,6 +424,7 @@ Caused by: "undefined" cannot be escaped`),
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
           'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+          duckdb: `"dateAttr" = '2013-01-01 00:00:00.000+00:00'`,
         },
       );
 
@@ -437,6 +438,7 @@ Caused by: "undefined" cannot be escaped`),
             db2: `"binaryAttr" = BLOB('Sequelize')`,
             snowflake: `"binaryAttr" = X'53657175656c697a65'`,
             mssql: '[binaryAttr] = 0x53657175656c697a65',
+            duckdb: '"binaryAttr" = \'\\x53\\x65\\x71\\x75\\x65\\x6c\\x69\\x7a\\x65\'::BLOB',
           },
         );
 
@@ -451,6 +453,8 @@ Caused by: "undefined" cannot be escaped`),
             db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
             snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
             mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
+            duckdb:
+              "\"binaryAttr\" IN ('\\x53\\x65\\x71\\x75\\x65\\x27\\x6c\\x69\\x7a\\x65\\x31'::BLOB, '\\x53\\x65\\x71\\x75\\x65\\x6c\\x69\\x7a\\x65\\x32'::BLOB)",
           },
         );
       });
@@ -571,6 +575,7 @@ Caused by: "undefined" cannot be escaped`),
           mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
           'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+          duckdb: `"dateAttr" = '2021-01-01 00:00:00.000+00:00'`,
         },
       );
 

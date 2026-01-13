@@ -116,6 +116,16 @@ describe('ModelRepository#_UNSTABLE_bulkDestroy', () => {
           ],
           { genericQuotes: true },
         ),
+        duckdb: toMatchSql([
+          'BEGIN TRANSACTION',
+          'SELECT "id", "createdAt", "updatedAt" FROM "Users" AS "User" WHERE "User"."id" = 1;',
+          'SELECT "id", "ownerId", "createdAt", "updatedAt" FROM "Projects" AS "Project" WHERE "Project"."ownerId" IN (1);',
+          'SELECT "id", "projectId", "createdAt", "updatedAt" FROM "Tasks" AS "Task" WHERE "Task"."projectId" IN (1);',
+          'DELETE FROM "Tasks" WHERE "id" = 1',
+          'DELETE FROM "Projects" WHERE "id" = 1',
+          'DELETE FROM "Users" WHERE "id" = 1',
+          'COMMIT',
+        ]),
       });
     });
 

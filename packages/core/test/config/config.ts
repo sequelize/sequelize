@@ -1,6 +1,7 @@
 import type { ConnectionOptions, Options } from '@sequelize/core';
 import { Db2Dialect } from '@sequelize/db2';
 import { IBMiDialect } from '@sequelize/db2-ibmi';
+import { DuckDbDialect } from '@sequelize/duckdb';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { MsSqlDialect } from '@sequelize/mssql';
 import { MySqlDialect } from '@sequelize/mysql';
@@ -11,9 +12,14 @@ import { parseSafeInteger } from '@sequelize/utils';
 import path from 'node:path';
 
 export const SQLITE_DATABASES_DIR = path.join(__dirname, '..', 'sqlite-databases');
+export const DUCKDB_DATABASES_DIR = path.join(__dirname, '..', 'duckdb-databases');
 
 export function getSqliteDatabasePath(name: string): string {
   return path.join(SQLITE_DATABASES_DIR, name);
+}
+
+export function getDuckDbDatabasePath(name: string): string {
+  return path.join(DUCKDB_DATABASES_DIR, name);
 }
 
 const { env } = process;
@@ -27,6 +33,7 @@ export interface DialectConfigs {
   postgres: Options<PostgresDialect>;
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
+  duckdb: Options<DuckDbDialect>;
 }
 
 export interface DialectConnectionConfigs {
@@ -38,6 +45,7 @@ export interface DialectConnectionConfigs {
   postgres: ConnectionOptions<PostgresDialect>;
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
+  duckdb: ConnectionOptions<DuckDbDialect>;
 }
 
 const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
@@ -153,5 +161,12 @@ export const CONFIG: DialectConfigs = {
       idle: Number(env.SEQ_IBMI_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
     odbcConnectionString: env.SEQ_IBMI_CONN_STR,
+  },
+
+  // To run tests against MotherDuck instead of local DuckDB, set SEQ_MOTHERDUCK_CONNECTION_STRING
+  // to a connection string like "md:my_db?motherduck_token=<your_token>"
+  duckdb: {
+    dialect: DuckDbDialect,
+    database: env.SEQ_MOTHERDUCK_CONNECTION_STRING || getDuckDbDatabasePath('default.duckdb'),
   },
 };

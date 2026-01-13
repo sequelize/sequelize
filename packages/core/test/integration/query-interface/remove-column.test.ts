@@ -88,14 +88,17 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       expect(table).to.not.have.property('manager');
     });
 
-    it('should be able to remove a column with primaryKey', async () => {
-      await queryInterface.removeColumn('users', 'manager');
-      const table0 = await queryInterface.describeTable('users');
-      expect(table0).to.not.have.property('manager');
-      await queryInterface.removeColumn('users', 'id');
-      const table = await queryInterface.describeTable('users');
-      expect(table).to.not.have.property('id');
-    });
+    // DuckDB does not support altering constraints, therefore dropping a column under constraint
+    if (sequelize.dialect.name !== 'duckdb') {
+      it('should be able to remove a column with primaryKey', async () => {
+        await queryInterface.removeColumn('users', 'manager');
+        const table0 = await queryInterface.describeTable('users');
+        expect(table0).to.not.have.property('manager');
+        await queryInterface.removeColumn('users', 'id');
+        const table = await queryInterface.describeTable('users');
+        expect(table).to.not.have.property('id');
+      });
+    }
 
     // From MSSQL documentation on ALTER COLUMN:
     //    The modified column cannot be any one of the following:
@@ -162,73 +165,75 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       ]);
     });
 
-    it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async () => {
-      await queryInterface.createTable('level', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-      });
+    if (sequelize.dialect.supports.constraints.onUpdate) {
+      it('should retain ON UPDATE and ON DELETE constraints after a column is removed', async () => {
+        await queryInterface.createTable('level', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+          },
+        });
 
-      await queryInterface.createTable('actors', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-        name: {
-          type: DataTypes.STRING,
-          allowNull: true,
-        },
-        level_id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-        },
-      });
+        await queryInterface.createTable('actors', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          name: {
+            type: DataTypes.STRING,
+            allowNull: true,
+          },
+          level_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+        });
 
-      await queryInterface.addConstraint('actors', {
-        name: 'actors_level_id_fkey',
-        type: 'FOREIGN KEY',
-        fields: ['level_id'],
-        references: { field: 'id', table: 'level' },
-        onDelete: 'CASCADE',
-      });
+        await queryInterface.addConstraint('actors', {
+          name: 'actors_level_id_fkey',
+          type: 'FOREIGN KEY',
+          fields: ['level_id'],
+          references: { field: 'id', table: 'level' },
+          onDelete: 'CASCADE',
+        });
 
-      await queryInterface.removeColumn('actors', 'name');
+        await queryInterface.removeColumn('actors', 'name');
 
-      const defaultSchema = sequelize.dialect.getDefaultSchema();
-      const constraints = await queryInterface.showConstraints('actors', {
-        constraintType: 'FOREIGN KEY',
-      });
-      expect(constraints).to.deep.equal([
-        {
-          ...(['mssql', 'postgres'].includes(dialectName) && {
-            constraintCatalog: 'sequelize_test',
-          }),
-          constraintSchema: defaultSchema,
-          constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
+        const defaultSchema = sequelize.dialect.getDefaultSchema();
+        const constraints = await queryInterface.showConstraints('actors', {
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
-          tableSchema: defaultSchema,
-          tableName: 'actors',
-          columnNames: ['level_id'],
-          referencedTableName: 'level',
-          referencedTableSchema: defaultSchema,
-          referencedColumnNames: ['id'],
-          deleteAction: 'CASCADE',
-          updateAction:
-            dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite3' ? '' : 'NO ACTION',
-          ...(sequelize.dialect.supports.constraints.deferrable && {
-            deferrable: 'INITIALLY_IMMEDIATE',
-          }),
-        },
-      ]);
-    });
+        });
+        expect(constraints).to.deep.equal([
+          {
+            ...(['mssql', 'postgres'].includes(dialectName) && {
+              constraintCatalog: 'sequelize_test',
+            }),
+            constraintSchema: defaultSchema,
+            constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
+            constraintType: 'FOREIGN KEY',
+            ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
+            tableSchema: defaultSchema,
+            tableName: 'actors',
+            columnNames: ['level_id'],
+            referencedTableName: 'level',
+            referencedTableSchema: defaultSchema,
+            referencedColumnNames: ['id'],
+            deleteAction: 'CASCADE',
+            updateAction:
+              dialectName === 'mariadb' ? 'RESTRICT' : dialectName === 'sqlite3' ? '' : 'NO ACTION',
+            ...(sequelize.dialect.supports.constraints.deferrable && {
+              deferrable: 'INITIALLY_IMMEDIATE',
+            }),
+          },
+        ]);
+      });
+    }
   });
 
   if (sequelize.dialect.supports.schemas) {

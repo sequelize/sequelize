@@ -12,7 +12,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
   it('generates a query that drops a constraint', () => {
     expectsql(() => queryGenerator.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint]',
-      sqlite3: notSupportedError,
+      'duckdb sqlite3': notSupportedError,
     });
   });
 
@@ -21,7 +21,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
       () => queryGenerator.removeConstraintQuery('myTable', 'myConstraint', { ifExists: true }),
       {
         default: 'ALTER TABLE [myTable] DROP CONSTRAINT IF EXISTS [myConstraint]',
-        sqlite3: notSupportedError,
+        'duckdb sqlite3': notSupportedError,
         'db2 ibmi mysql snowflake': buildInvalidOptionReceivedError(
           'removeConstraintQuery',
           dialect.name,
@@ -38,7 +38,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         default: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'cascade',
         ]),
-        sqlite3: notSupportedError,
+        'duckdb sqlite3': notSupportedError,
         'postgres snowflake': 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint] CASCADE',
       },
     );
@@ -59,7 +59,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         snowflake: buildInvalidOptionReceivedError('removeConstraintQuery', dialect.name, [
           'ifExists',
         ]),
-        sqlite3: notSupportedError,
+        'duckdb sqlite3': notSupportedError,
       },
     );
   });
@@ -69,7 +69,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
     expectsql(() => queryGenerator.removeConstraintQuery(MyModel, 'myConstraint'), {
       default: 'ALTER TABLE [MyModels] DROP CONSTRAINT [myConstraint]',
-      sqlite3: notSupportedError,
+      'duckdb sqlite3': notSupportedError,
     });
   });
 
@@ -79,7 +79,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
     expectsql(() => queryGenerator.removeConstraintQuery(myDefinition, 'myConstraint'), {
       default: 'ALTER TABLE [MyModels] DROP CONSTRAINT [myConstraint]',
-      sqlite3: notSupportedError,
+      'duckdb sqlite3': notSupportedError,
     });
   });
 
@@ -92,7 +92,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         ),
       {
         default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
-        sqlite3: notSupportedError,
+        'duckdb sqlite3': notSupportedError,
       },
     );
   });
@@ -106,7 +106,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
         ),
       {
         default: 'ALTER TABLE [myTable] DROP CONSTRAINT [myConstraint]',
-        sqlite3: notSupportedError,
+        'duckdb sqlite3': notSupportedError,
       },
     );
   });
@@ -117,7 +117,7 @@ describe('QueryGenerator#removeConstraintQuery', () => {
 
     expectsql(() => queryGeneratorSchema.removeConstraintQuery('myTable', 'myConstraint'), {
       default: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint]',
-      sqlite3: notSupportedError,
+      'sqlite3 duckdb': notSupportedError,
     });
   });
 
