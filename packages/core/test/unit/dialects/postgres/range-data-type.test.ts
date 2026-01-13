@@ -97,7 +97,7 @@ describe('[POSTGRES Specific] RANGE DataType', () => {
     it('should handle date values', () => {
       expect(
         dateRangeType.escape([new Date(Date.UTC(2000, 1, 1)), new Date(Date.UTC(2000, 1, 2))]),
-      ).to.equal(`'[2000-02-01 02:00:00.000 +02:00,2000-02-02 02:00:00.000 +02:00)'::tstzrange`);
+      ).to.equal(`'[2000-02-01 02:00:00.000+02:00,2000-02-02 02:00:00.000+02:00)'::tstzrange`);
     });
   });
 

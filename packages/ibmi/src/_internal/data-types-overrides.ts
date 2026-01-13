@@ -120,14 +120,18 @@ export class DATE extends BaseTypes.DATE {
     }
   }
 
-  toSql() {
-    return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
-  }
+  toBindableValue(date: AcceptedDate): string {
+    // Default precision is 6
+    const precision = this.options.precision ?? 6;
+    let format = 'YYYY-MM-DD HH:mm:ss';
+    // TODO: We should normally use `S`, `SS` or `SSS` based on the precision, but
+    //  dayjs has a bug which causes `S` and `SS` to be ignored:
+    //  https://github.com/iamkun/dayjs/issues/1734
+    if (precision > 0) {
+      format += `.SSS`;
+    }
 
-  toBindableValue(date: AcceptedDate) {
-    date = dayjs(date).utc(false);
-
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS');
+    return this.options.plain ? dayjs(date).format(format) : dayjs.utc(date).format(format);
   }
 }
 

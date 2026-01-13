@@ -420,10 +420,10 @@ Caused by: "undefined" cannot be escaped`),
           dateAttr: 1_356_998_400_000,
         },
         {
-          default: `[dateAttr] = '2013-01-01 00:00:00.000 +00:00'`,
+          default: `[dateAttr] = '2013-01-01 00:00:00.000+00:00'`,
+          mssql: `[dateAttr] = N'2013-01-01 00:00:00.000+00:00'`,
+          'db2 ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
-          mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
-          'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
         },
       );
 
@@ -567,10 +567,10 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { dateAttr: new Date('2021-01-01T00:00:00Z') },
         {
-          default: `[dateAttr] = '2021-01-01 00:00:00.000 +00:00'`,
-          mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
+          default: `[dateAttr] = '2021-01-01 00:00:00.000+00:00'`,
+          mssql: `[dateAttr] = N'2021-01-01 00:00:00.000+00:00'`,
+          'db2 ibmi': `"dateAttr" = '2021-01-01 00:00:00.000'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
-          'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
         },
       );
 
@@ -1867,7 +1867,7 @@ Caused by: "undefined" cannot be escaped`),
           },
         },
         {
-          postgres: `"dateAttr" <@ '[2020-01-01 00:00:00.000 +00:00,2021-01-01 00:00:00.000 +00:00)'::tstzrange`,
+          postgres: `"dateAttr" <@ '[2020-01-01 00:00:00.000+00:00,2021-01-01 00:00:00.000+00:00)'::tstzrange`,
         },
       );
 

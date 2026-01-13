@@ -332,11 +332,17 @@ describe('Model', () => {
         // must use a new sequelize instance because warnings are only logged once per instance.
         const newSequelize = createSequelizeInstance();
 
-        newSequelize.define('A', {
-          age: {
-            type: DataTypes.FLOAT(10, 2),
+        newSequelize.define(
+          'A',
+          {
+            age: {
+              type: DataTypes.FLOAT(10, 2),
+            },
           },
-        });
+          {
+            timestamps: false,
+          },
+        );
 
         if (!['mysql', 'mariadb'].includes(dialectName)) {
           // @ts-expect-error -- only used in testing
