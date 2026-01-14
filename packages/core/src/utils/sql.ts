@@ -547,11 +547,14 @@ export async function withSqliteForeignKeysOff<T>(
  * Creates a function that can be used to collect bind parameters.
  *
  * @param bind A mutable object to which bind parameters will be added.
+ * @param preserveNumbering (optional) It retains the previous bind position value.
  */
 export function createBindParamGenerator(
   bind: Record<string, unknown>,
+  preserveNumbering = false,
 ): (value: unknown) => string {
-  let i = 0;
+  // For Oracle, continue numbering to handle upsert sql generation
+  let i = preserveNumbering ? Object.keys(bind).length : 0;
 
   return (value: unknown): string => {
     const bindName = `sequelize_${++i}`;

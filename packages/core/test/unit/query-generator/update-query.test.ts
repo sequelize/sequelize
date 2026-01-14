@@ -157,6 +157,10 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           sequelize_2: 2,
         },
+        oracle: {
+          sequelize_1: new Date('2011-03-27T10:01:55Z'),
+          sequelize_2: 2,
+        },
       },
     });
   });
@@ -216,6 +220,11 @@ describe('QueryGenerator#updateQuery', () => {
         snowflake: {
           sequelize_1: true,
           sequelize_2: false,
+          sequelize_3: 2,
+        },
+        oracle: {
+          sequelize_1: '1',
+          sequelize_2: '0',
           sequelize_3: 2,
         },
       },

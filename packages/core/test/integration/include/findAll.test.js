@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { title: 'Pen' },
             { title: 'Monitor' },
           ]);
-          const products = await Product.findAll();
+          const products = await Product.findAll({ order: [['id', 'ASC']] });
           const groupMembers = [
             { groupId: groups[0].id, rankId: ranks[0].id },
             { groupId: groups[1].id, rankId: ranks[2].id },
@@ -343,7 +343,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       for (const i of [0, 1, 2, 3, 4]) {
         const [user, products] = await Promise.all([
           User.create(),
-          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => Product.findAll()),
+          Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() =>
+            Product.findAll({ order: [['id', 'ASC']] }),
+          ),
         ]);
         await Promise.all([
           GroupMember.bulkCreate([
@@ -1174,7 +1176,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
         await Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]);
 
-        const products = await Product.findAll();
+        const products = await Product.findAll({ order: [['id', 'ASC']] });
         await Promise.all([
           GroupMember.bulkCreate([
             { userId: user.id, groupId: groups[0].id, rankId: ranks[0].id },

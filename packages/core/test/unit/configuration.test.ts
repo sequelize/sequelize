@@ -28,7 +28,7 @@ describe('Sequelize constructor', () => {
       new Sequelize({ dialect: 'some-fancy-dialect' });
     }).to.throw(
       Error,
-      'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2 and snowflake.',
+      'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2, oracle and snowflake.',
     );
   });
 

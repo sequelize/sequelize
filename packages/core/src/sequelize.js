@@ -266,36 +266,44 @@ Use Sequelize#query if you wish to use replacements.`);
         );
       }
 
-      const mappedResult = mapBindParameters(sql, this.dialect);
+      const isOracleBulkBind = this.dialect.name === 'oracle' && isBindArray && options.executeMany;
 
-      for (const parameterName of mappedResult.parameterSet) {
-        if (isBindArray) {
-          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+      if (isOracleBulkBind) {
+        // skip mapBindParameters and all bind name validation
+        // oracle driver executeMany() expects this format
+        bindParameters = options.bind;
+      } else {
+        const mappedResult = mapBindParameters(sql, this.dialect);
+
+        for (const parameterName of mappedResult.parameterSet) {
+          if (isBindArray) {
+            if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+              throw new Error(
+                `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
+              );
+            }
+          } else if (!(parameterName in options.bind)) {
             throw new Error(
               `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
             );
           }
-        } else if (!(parameterName in options.bind)) {
-          throw new Error(
-            `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
-          );
         }
-      }
 
-      sql = mappedResult.sql;
+        sql = mappedResult.sql;
 
-      // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
-      options.bindParameterOrder = mappedResult.bindOrder;
-      if (mappedResult.bindOrder == null) {
-        bindParameters = options.bind;
-      } else {
-        bindParameters = mappedResult.bindOrder.map(key => {
-          if (isBindArray) {
-            return options.bind[key - 1];
-          }
+        // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
+        options.bindParameterOrder = mappedResult.bindOrder;
+        if (mappedResult.bindOrder == null) {
+          bindParameters = options.bind;
+        } else {
+          bindParameters = mappedResult.bindOrder.map(key => {
+            if (isBindArray) {
+              return options.bind[key - 1];
+            }
 
-          return options.bind[key];
-        });
+            return options.bind[key];
+          });
+        }
       }
     }
 
@@ -592,7 +600,7 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
+      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : this.dialect.name === 'oracle' ? ' FROM DUAL' : ''}`,
       options,
     );
   }
