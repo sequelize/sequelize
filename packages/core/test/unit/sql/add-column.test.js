@@ -115,6 +115,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           db2: 'ALTER TABLE "custom"."Users" ADD "level_id" REAL NOT NULL;',
           snowflake: 'ALTER TABLE "custom"."Users" ADD "level_id" FLOAT NOT NULL;',
           ibmi: 'ALTER TABLE "custom"."Users" ADD "level_id" REAL NOT NULL',
+          oracle: 'ALTER TABLE "custom"."Users" ADD "level_id" BINARY_FLOAT NOT NULL;',
         },
       );
     });

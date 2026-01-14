@@ -103,6 +103,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const modelAttributeMap = {};
     const fields = [];
     const returningModelAttributes = [];
+    const returnTypes = [];
+    const returnAttributes = [];
     const values = Object.create(null);
     const quotedTable = this.quoteTable(table);
     let bind;
@@ -131,10 +133,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this.dialect.supports.returnValues && options.returning) {
+    if (
+      (this.dialect.supports.returnValues || this.dialect.supports.returnIntoValues) &&
+      options.returning
+    ) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this.dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
+
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -151,8 +161,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
-      bindParam = createBindParamGenerator(bind);
+      bind =
+        this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
+      bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -287,7 +298,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += returningFragment;
     }
 
-    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
+    if (this.dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
+      this.populateInsertQueryReturnIntoBinds(
+        returningModelAttributes,
+        returnTypes,
+        Object.keys(bind).length,
+        returnAttributes,
+        options,
+      );
+    }
+
+    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}${returnAttributes.join(',')}`.trim()};`;
     if (this.dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }
@@ -429,6 +451,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
+   * Helper method for populating the returning into bind information
+   * that is needed by some dialects (currently Oracle)
+   * This is called when `dialect.supports.returnIntoValues` is `true`
+   *
+   * @private
+   */
+  populateInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an update query
    *
    * @param {string} tableName
@@ -467,14 +500,20 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       bindParam = createBindParamGenerator(bind);
     }
 
-    if (
-      this.dialect.supports['LIMIT ON UPDATE'] &&
-      options.limit &&
-      this.dialect.name !== 'mssql' &&
-      this.dialect.name !== 'db2'
-    ) {
-      // TODO: use bind parameter
-      suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
+      if (!['mssql', 'db2', 'oracle'].includes(this.dialect.name)) {
+        // TODO: use bind parameter
+        suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+      } else if (this.dialect.name === 'oracle') {
+        // This cannot be set in where clause because rownum will be quoted
+        if (where && ((where.length && where.length > 0) || Object.keys(where).length > 0)) {
+          suffix += ' AND ';
+        } else {
+          suffix += ' WHERE ';
+        }
+
+        suffix += `rownum <= ${this.escape(options.limit)} `;
+      }
     }
 
     if (this.dialect.supports.returnValues && options.returning) {
@@ -1200,7 +1239,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          delete options.order;
+          // For dialects which don't allow for ordering in the subqueries, the result of a select
+          // is a set, not a sequence, and so is the result of UNION.
+          // So the top level ORDER BY is required
+          if (!this.dialect.supports.topLevelOrderByRequired) {
+            delete options.order;
+          }
+
           where = and(new Literal(placeholder), where);
         }
 
@@ -1221,7 +1266,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             model,
           },
           model,
-        ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.#internals.getAliasToken()} sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
         mainQueryItems.push(
@@ -1408,7 +1453,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         modelName: model && model.name,
         as: mainTable.quotedAs,
       });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.#internals.getAliasToken()} ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -1574,6 +1619,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           prefix = attr.replace(
             /json_extract\(/i,
             `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`,
+          );
+        } else if (/json_value\(/.test(attr)) {
+          prefix = attr.replace(
+            /json_value\(/i,
+            `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`,
           );
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
@@ -2179,6 +2229,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (returnValuesType === 'returning') {
       returningFragment = ` RETURNING ${returnFields.join(', ')}`;
+    } else if (this.dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(', ')} INTO `;
     } else if (returnValuesType === 'output') {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
 
@@ -2194,7 +2246,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
@@ -2666,7 +2718,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (options.groupedLimit) {
-      fragment += ` AS ${mainTableAs}`;
+      fragment += ` ${this.#internals.getAliasToken()} ${mainTableAs}`;
     }
 
     return fragment;

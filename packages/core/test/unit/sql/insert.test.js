@@ -45,6 +45,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name" INTO :2,:3;`,
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
           bind: { sequelize_1: 'triggertest' },
@@ -69,6 +70,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1))',
           postgres: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
           snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
+          oracle: `INSERT INTO "ms" ("id") VALUES ($sequelize_1);`,
           default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
         },
         bind: { sequelize_1: 0 },
@@ -170,6 +172,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             query: {
               default: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+              oracle: `INSERT INTO "users" ("date") VALUES (:1);`,
             },
             bind: {
               // these dialects change the DB-side timezone, and the input doesn't specify the timezone offset, so we have to offset the value ourselves
@@ -179,6 +182,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
               // These dialects do specify the offset, so they can use whichever offset they want.
               postgres: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
+              oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
             },
           },
         );
@@ -212,6 +216,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("date") VALUES ($sequelize_1);`,
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -223,6 +228,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
           },
         },
       );
@@ -255,6 +261,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("date") VALUES ($sequelize_1);`,
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -266,6 +273,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) },
           },
         },
       );
@@ -294,6 +302,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
           snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
           mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+          oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1);`,
           default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
         },
         bind: {
@@ -357,11 +366,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           sqlite3:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+          oracle: `INSERT INTO "users" ("user_name","pass_word") VALUES (:1,:2)`,
         },
       );
     });
 
-    it('allow bulk insert primary key with 0', () => {
+    (dialect.name !== 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
       const M = Support.sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,

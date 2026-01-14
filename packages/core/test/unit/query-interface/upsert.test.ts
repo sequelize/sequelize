@@ -28,6 +28,11 @@ describe('QueryInterface#upsert', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    // For oracle the datatype validation for id fails. Oracle uses Where clause which does the type validation.
+    if (dialectName === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -53,25 +58,25 @@ describe('QueryInterface#upsert', () => {
       'mariadb mysql':
         'INSERT INTO `Users` (`firstName`) VALUES ($sequelize_1) ON DUPLICATE KEY UPDATE `firstName`=$sequelize_1;',
       mssql: `
-        MERGE INTO [Users] WITH(HOLDLOCK)
-          AS [Users_target]
-        USING (VALUES(N':name')) AS [Users_source]([firstName])
-        ON [Users_target].[id] = [Users_source].[id]
-        WHEN MATCHED THEN
-          UPDATE SET [Users_target].[firstName] = N':name'
-        WHEN NOT MATCHED THEN
-          INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;
-      `,
+      MERGE INTO [Users] WITH(HOLDLOCK)
+        AS [Users_target]
+      USING (VALUES(N':name')) AS [Users_source]([firstName])
+      ON [Users_target].[id] = [Users_source].[id]
+      WHEN MATCHED THEN
+        UPDATE SET [Users_target].[firstName] = N':name'
+      WHEN NOT MATCHED THEN
+        INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;
+    `,
       db2: `
-        MERGE INTO "Users"
-          AS "Users_target"
-        USING (VALUES(':name')) AS "Users_source"("firstName")
-        ON "Users_target"."id" = "Users_source"."id"
-        WHEN MATCHED THEN
-          UPDATE SET "Users_target"."firstName" = ':name'
-        WHEN NOT MATCHED THEN
-          INSERT ("firstName") VALUES(':name');
-      `,
+      MERGE INTO "Users"
+        AS "Users_target"
+      USING (VALUES(':name')) AS "Users_source"("firstName")
+      ON "Users_target"."id" = "Users_source"."id"
+      WHEN MATCHED THEN
+        UPDATE SET "Users_target"."firstName" = ':name'
+      WHEN NOT MATCHED THEN
+        INSERT ("firstName") VALUES(':name');
+    `,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -106,6 +111,10 @@ describe('QueryInterface#upsert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    if (dialectName === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -134,20 +143,20 @@ describe('QueryInterface#upsert', () => {
       'mariadb mysql':
         'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
-        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-        USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
-        ON [Users_target].[id] = [Users_source].[id]
-        WHEN NOT MATCHED THEN
-          INSERT ([firstName], [lastName]) VALUES($firstName, N'Doe')
-        OUTPUT $action, INSERTED.*;
-      `,
+      MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+      USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
+      ON [Users_target].[id] = [Users_source].[id]
+      WHEN NOT MATCHED THEN
+        INSERT ([firstName], [lastName]) VALUES($firstName, N'Doe')
+      OUTPUT $action, INSERTED.*;
+    `,
       db2: `
-        MERGE INTO "Users" AS "Users_target"
-        USING (VALUES($firstName, 'Doe')) AS "Users_source"("firstName", "lastName")
-        ON "Users_target"."id" = "Users_source"."id"
-        WHEN NOT MATCHED THEN
-          INSERT ("firstName", "lastName") VALUES($firstName, 'Doe');
-      `,
+      MERGE INTO "Users" AS "Users_target"
+      USING (VALUES($firstName, 'Doe')) AS "Users_source"("firstName", "lastName")
+      ON "Users_target"."id" = "Users_source"."id"
+      WHEN NOT MATCHED THEN
+        INSERT ("firstName", "lastName") VALUES($firstName, 'Doe');
+    `,
     });
 
     if (dialectName === 'mssql' || dialectName === 'db2') {
@@ -163,6 +172,10 @@ describe('QueryInterface#upsert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    if (dialectName === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -189,20 +202,20 @@ describe('QueryInterface#upsert', () => {
       'mariadb mysql':
         'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
-        MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-        USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
-        ON [Users_target].[id] = [Users_source].[id]
-        WHEN NOT MATCHED THEN
-          INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
-        OUTPUT $action, INSERTED.*;
-      `,
+      MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
+      USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
+      ON [Users_target].[id] = [Users_source].[id]
+      WHEN NOT MATCHED THEN
+        INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
+      OUTPUT $action, INSERTED.*;
+    `,
       db2: `
-        MERGE INTO "Users" AS "Users_target"
-        USING (VALUES($1, 'Doe')) AS "Users_source"("firstName", "lastName")
-        ON "Users_target"."id" = "Users_source"."id"
-        WHEN NOT MATCHED THEN
-          INSERT ("firstName", "lastName") VALUES($1, 'Doe');
-      `,
+      MERGE INTO "Users" AS "Users_target"
+      USING (VALUES($1, 'Doe')) AS "Users_source"("firstName", "lastName")
+      ON "Users_target"."id" = "Users_source"."id"
+      WHEN NOT MATCHED THEN
+        INSERT ("firstName", "lastName") VALUES($1, 'Doe');
+    `,
     });
 
     // mssql does not generate any bind parameter
@@ -257,6 +270,7 @@ describe('QueryInterface#upsert', () => {
         ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
+      oracle: `DECLARE BEGIN UPDATE "Users" SET "counter"=\`counter\` + 1; IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,\`counter\` + 1); :isUpdate := 0; ELSE :isUpdate := 1; END IF; END;`,
     });
   });
 });

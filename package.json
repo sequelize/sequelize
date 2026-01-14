@@ -23,6 +23,7 @@
     "test-integration-db2": "yarn lerna run test-integration-db2",
     "test-integration-ibmi": "yarn lerna run test-integration-ibmi",
     "test-integration-snowflake": "yarn lerna run test-integration-snowflake",
+    "test-integration-oracle": "yarn lerna run test-integration-oracle",
     "sync-exports": "lerna run sync-exports",
     "build": "lerna run build",
     "docs": "typedoc",
@@ -34,6 +35,7 @@
     "reset-postgres": "bash dev/postgres/oldest/reset.sh; bash dev/postgres/latest/reset.sh",
     "reset-mssql": "bash dev/mssql/oldest/reset.sh; bash dev/mssql/latest/reset.sh",
     "reset-db2": "bash dev/db2/oldest/reset.sh; bash dev/db2/latest/reset.sh",
+    "reset-oracle": "bash dev/oracle/oldest/reset.sh; bash dev/oracle/latest/reset.sh",
     "reset-all": "concurrently \"npm:reset-*(!all)\"",
     "start-mariadb-oldest": "bash dev/mariadb/oldest/start.sh",
     "start-mariadb-latest": "bash dev/mariadb/latest/start.sh",
@@ -45,6 +47,8 @@
     "start-mssql-latest": "bash dev/mssql/latest/start.sh",
     "start-db2-oldest": "bash dev/db2/oldest/start.sh",
     "start-db2-latest": "bash dev/db2/latest/start.sh",
+    "start-oracle-oldest": "bash dev/oracle/oldest/start.sh",
+    "start-oracle-latest": "bash dev/oracle/latest/start.sh",
     "start-oldest": "concurrently \"npm:start-*-oldest\"",
     "start-latest": "concurrently \"npm:start-*-latest\"",
     "stop-mariadb": "bash dev/mariadb/oldest/stop.sh; bash dev/mariadb/latest/stop.sh",
@@ -52,6 +56,7 @@
     "stop-postgres": "bash dev/postgres/oldest/stop.sh; bash dev/postgres/latest/stop.sh",
     "stop-mssql": "bash dev/mssql/oldest/stop.sh; bash dev/mssql/latest/stop.sh",
     "stop-db2": "bash dev/db2/oldest/stop.sh; bash dev/db2/latest/stop.sh",
+    "stop-oracle": "bash dev/oracle/oldest/stop.sh; bash dev/oracle/latest/stop.sh",
     "stop-all": "concurrently \"npm:stop-*(!all)\"",
     "----------------------------------------- SSCCEs ------------------------------------------": "",
     "sscce": "ts-node sscce.ts",
@@ -61,7 +66,8 @@
     "sscce-postgres-native": "cross-env DIALECT=postgres-native yarn sscce",
     "sscce-sqlite3": "cross-env DIALECT=sqlite3 yarn sscce",
     "sscce-mssql": "cross-env DIALECT=mssql yarn sscce",
-    "sscce-db2": "cross-env DIALECT=db2 yarn sscce"
+    "sscce-db2": "cross-env DIALECT=db2 yarn sscce",
+    "sscce-oracle": "cross-env DIALECT=oracle yarn sscce"
   },
   "workspaces": [
     "packages/*"

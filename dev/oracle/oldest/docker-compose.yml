@@ -1,0 +1,19 @@
+# Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
+
+services:
+  oracle-oldest:
+    container_name: sequelize-oracle-oldest
+    image: gvenzl/oracle-xe:18-slim
+    environment:
+      ORACLE_PASSWORD: password
+    ports:
+      - 1521:1521
+    healthcheck:
+      test: ['CMD-SHELL', 'sqlplus system/password@XEPDB1']
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-oracle-oldest-network

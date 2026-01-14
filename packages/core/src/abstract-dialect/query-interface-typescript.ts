@@ -265,10 +265,18 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
         ...options,
         constraintType: 'FOREIGN KEY',
       });
-      // eslint-disable-next-line no-await-in-loop
-      await Promise.all(
-        foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)),
-      );
+
+      if (this.sequelize.dialect.supports.dropTable.concurrentDropConstraints) {
+        // eslint-disable-next-line no-await-in-loop
+        await Promise.all(
+          foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)),
+        );
+      } else {
+        for (const fk of foreignKeys) {
+          // eslint-disable-next-line no-await-in-loop
+          await this.removeConstraint(tableName, fk.constraintName, options);
+        }
+      }
     }
 
     // Drop all the tables loop to avoid deadlocks and timeouts
