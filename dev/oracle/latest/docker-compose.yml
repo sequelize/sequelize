@@ -1,0 +1,20 @@
+# Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
+
+services:
+  oracle-latest:
+    container_name: sequelize-oracle-latest
+    image: gvenzl/oracle-free:23.26.0-slim
+    environment:
+      ORACLE_PASSWORD: password
+      ORACLE_DATABASE: XEPDB1
+    ports:
+      - 1521:1521
+    healthcheck:
+      test: ['CMD-SHELL', 'sqlplus system/password@localhost:1521/XEPDB1']
+      interval: 3s
+      timeout: 1s
+      retries: 10
+
+networks:
+  default:
+    name: sequelize-oracle-latest-network

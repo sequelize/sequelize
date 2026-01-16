@@ -51,6 +51,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         if (['postgres', 'postgres-native', 'mssql', 'db2'].includes(dialect)) {
           expect(table.currency.type).to.equal('REAL');
+        } else if (dialect === 'oracle') {
+          expect(table.currency.type).to.equal('BINARY_FLOAT');
         } else {
           expect(table.currency.type).to.equal('FLOAT');
         }
@@ -89,6 +91,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['postgres', 'postgres-native', 'mssql', 'sqlite3', 'db2'].includes(dialect)) {
         expect(table.currency.type).to.equal('REAL');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -251,7 +255,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(describedTable.level_id.allowNull).to.equal(true);
       });
 
-      if (!['db2', 'ibmi', 'sqlite3'].includes(dialect)) {
+      if (!['db2', 'ibmi', 'sqlite3', 'oracle'].includes(dialect)) {
         it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
