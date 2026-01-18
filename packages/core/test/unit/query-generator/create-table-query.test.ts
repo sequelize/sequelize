@@ -1,3 +1,4 @@
+import { DataTypes } from '@sequelize/core';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '../../support';
 
@@ -333,6 +334,42 @@ describe('QueryGenerator#createTableQuery', () => {
         snowflake: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo) COMMENT 'Bar';`,
       },
     );
+  });
+
+  it('creates UUID array columns with the correct default in postgres', () => {
+    if (dialectName !== 'postgres') {
+      return;
+    }
+
+    const UuidArrayModel = sequelize.define(
+      'UuidArrayModel',
+      {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+        },
+        compatibleFuelIds: {
+          type: DataTypes.ARRAY(DataTypes.UUID),
+          defaultValue: [],
+        },
+      },
+      {
+        timestamps: false,
+      },
+    );
+
+    // getAttributes() returns NormalizedAttributeOptions, but attributesToSQL accepts both
+    // ColumnsDescription and NormalizedAttributeOptions in practice (JS implementation).
+    // The type declaration is too narrow, so we cast here to prevent TypeScript errors, this should really be fixed upstream.
+    const attributes = queryGenerator.attributesToSQL(UuidArrayModel.getAttributes() as any, {
+      table: UuidArrayModel.table.tableName,
+      context: 'createTable',
+    });
+
+    expectsql(queryGenerator.createTableQuery(UuidArrayModel.table.tableName, attributes, {}), {
+      postgres:
+        'CREATE TABLE IF NOT EXISTS "UuidArrayModels" ("id" UUID , "compatibleFuelIds" UUID[] DEFAULT ARRAY[]::UUID[], PRIMARY KEY ("id"));',
+    });
   });
 
   // quoting the enum values is done by attributesToSQL
