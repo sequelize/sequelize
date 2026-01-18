@@ -1,7 +1,7 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import util from 'node:util';
-import { v1 as generateV1, v4 as generateV4 } from 'uuid';
+import { v1 as generateV1, v4 as generateV4, v7 as generateV7 } from 'uuid';
 import { allowDeprecationsInSuite } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -23,6 +23,7 @@ describe('DataTypes.UUID', () => {
     const allVersions = DataTypes.UUID();
     const v1 = DataTypes.UUID.V1;
     const v4 = DataTypes.UUID.V4;
+    const v7 = DataTypes.UUID.V7;
 
     it('should throw an error if `value` is invalid', () => {
       expect(() => {
@@ -33,22 +34,30 @@ describe('DataTypes.UUID', () => {
         allVersions.validate(['foobar']);
       }).to.throw(ValidationErrorItem, `[ 'foobar' ] is not a valid uuid`);
 
+      const uuidV1 = generateV1();
       const uuidV4 = generateV4();
+      const uuidV7 = generateV7();
+
       expect(() => {
         v1.validate(uuidV4);
       }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuid (version: 1)', uuidV4));
 
-      const uuidV1 = generateV1();
       expect(() => {
-        v4.validate(uuidV1);
-      }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuid (version: 4)', uuidV1));
+        v4.validate(uuidV7);
+      }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuid (version: 4)', uuidV7));
+
+      expect(() => {
+        v7.validate(uuidV1);
+      }).to.throw(ValidationErrorItem, util.format('%O is not a valid uuid (version: 7)', uuidV1));
     });
 
     it('should not throw if `value` is an uuid', () => {
-      expect(() => allVersions.validate(generateV4())).not.to.throw();
       expect(() => allVersions.validate(generateV1())).not.to.throw();
+      expect(() => allVersions.validate(generateV4())).not.to.throw();
+      expect(() => allVersions.validate(generateV7())).not.to.throw();
       expect(() => v1.validate(generateV1())).not.to.throw();
       expect(() => v4.validate(generateV4())).not.to.throw();
+      expect(() => v7.validate(generateV7())).not.to.throw();
     });
   });
 });
