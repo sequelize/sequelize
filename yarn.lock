@@ -3030,7 +3030,7 @@ __metadata:
     source-map-support: "npm:0.5.21"
     ts-node: "npm:10.9.2"
     typedoc: "npm:0.27.9"
-    typedoc-plugin-mdn-links: "npm:5.0.10"
+    typedoc-plugin-mdn-links: "npm:5.1.0"
     typedoc-plugin-missing-exports: "npm:3.1.0"
     typescript: "npm:5.8.3"
   languageName: unknown
@@ -15938,12 +15938,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typedoc-plugin-mdn-links@npm:5.0.10":
-  version: 5.0.10
-  resolution: "typedoc-plugin-mdn-links@npm:5.0.10"
+"typedoc-plugin-mdn-links@npm:5.1.0":
+  version: 5.1.0
+  resolution: "typedoc-plugin-mdn-links@npm:5.1.0"
   peerDependencies:
     typedoc: 0.27.x || 0.28.x
-  checksum: 10c0/fea1e9cc23d96a39e9aa3c0b0a2154e024a1482387eafd822b77a6584171e4718b2ff0c64e295343aca34882876ee0ebbf27995ed77e29a86920de9cd6b442ff
+  checksum: 10c0/5a062bdacc0da0a785908a424ca958df65731743ed80feefd84a0ba613807250e98911b3c8f09260b459a3b6a80dc6920c8889d9ce61c9723e7493f3d3b03ca8
   languageName: node
   linkType: hard
 
