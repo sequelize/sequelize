@@ -3077,7 +3077,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/oracledb": "npm:^6.10.0"
+    "@types/oracledb": "npm:^6.10.1"
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.21"
     oracledb: "npm:^6.10.0"
@@ -4191,12 +4191,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/oracledb@npm:^6.10.0":
-  version: 6.10.0
-  resolution: "@types/oracledb@npm:6.10.0"
+"@types/oracledb@npm:^6.10.1":
+  version: 6.10.1
+  resolution: "@types/oracledb@npm:6.10.1"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/a4ac89e910d06baadefcbf316057fd9f72c8bb764c5f8a651b9dd9563f153efb65cb90d426e3eb90cd6117d7d35f4da9ad3c9120354e503184426206fcf1f7c3
+  checksum: 10c0/fcad6555784a69a8d7c1a98702a6ee23ef19af49c4810ee51eac65e3a71ca354d47c7b469bd197dd471714156c309ad6c3837daf64c45dddca5fcf7dd6f2253b
   languageName: node
   linkType: hard
 
