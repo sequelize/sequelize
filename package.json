@@ -73,7 +73,7 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@ephys/eslint-config-typescript": "20.1.4",
+    "@ephys/eslint-config-typescript": "21.0.1",
     "@rushstack/eslint-patch": "1.15.0",
     "@sequelize/utils": "workspace:*",
     "@types/chai": "4.3.20",
