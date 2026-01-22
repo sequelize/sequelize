@@ -1679,6 +1679,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'POINT',
           mysql: 'POINT'
         });
+
+        testsql('GEOMETRY(\'MULTIPOINT\')', DataTypes.GEOMETRY('MULTIPOINT'), {
+          postgres: 'GEOMETRY(MULTIPOINT)',
+          mariadb: 'MULTIPOINT',
+          mysql: 'MULTIPOINT'
+        });
+
+        testsql('GEOMETRY(\'MULTILINESTRING\')', DataTypes.GEOMETRY('MULTILINESTRING'), {
+          postgres: 'GEOMETRY(MULTILINESTRING)',
+          mariadb: 'MULTILINESTRING',
+          mysql: 'MULTILINESTRING'
+        });
+
+        testsql('GEOMETRY(\'MULTIPOLYGON\')', DataTypes.GEOMETRY('MULTIPOLYGON'), {
+          postgres: 'GEOMETRY(MULTIPOLYGON)',
+          mariadb: 'MULTIPOLYGON',
+          mysql: 'MULTIPOLYGON'
+        });
+
+        testsql('GEOMETRY(\'GEOMETRYCOLLECTION\')', DataTypes.GEOMETRY('GEOMETRYCOLLECTION'), {
+          postgres: 'GEOMETRY(GEOMETRYCOLLECTION)',
+          mariadb: 'GEOMETRYCOLLECTION',
+          mysql: 'GEOMETRYCOLLECTION'
+        });
       });
     }
   });

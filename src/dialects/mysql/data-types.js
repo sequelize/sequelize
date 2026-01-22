@@ -90,7 +90,7 @@ module.exports = BaseTypes => {
     }
   }
 
-  const SUPPORTED_GEOMETRY_TYPES = ['POINT', 'LINESTRING', 'POLYGON'];
+  const SUPPORTED_GEOMETRY_TYPES = ['POINT', 'LINESTRING', 'POLYGON', 'MULTIPOINT', 'MULTILINESTRING', 'MULTIPOLYGON', 'GEOMETRYCOLLECTION'];
 
   class GEOMETRY extends BaseTypes.GEOMETRY {
     constructor(type, srid) {
