@@ -112,7 +112,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
         context: 'addColumn',
-        tableName: table,
+        table,
         foreignKey: key,
       }),
       ';',
@@ -167,10 +167,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -184,7 +181,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
       !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
@@ -211,9 +208,9 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     }
 
     if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+      if (options?.context === 'addColumn' && options.foreignKey) {
         const fkName = this.quoteIdentifier(
-          `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+          `${this.extractTableDetails(options.table).tableName}_${options.foreignKey}_foreign_idx`,
         );
 
         template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
@@ -240,7 +237,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = {};
+    const result = Object.create(null);
 
     for (const key in attributes) {
       const attribute = attributes[key];

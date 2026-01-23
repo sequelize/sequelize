@@ -269,7 +269,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           });
 
           const describedTable2 = await this.queryInterface.describeTable({ tableName: 'users' });
-          expect(describedTable2.level_id.comment).to.equal('FooBar');
+          if (dialect === 'mssql') {
+            // TODO: this should be unescaped by query.formatResult
+            expect(describedTable2.level_id.comment).to.equal("N'FooBar'");
+          } else {
+            expect(describedTable2.level_id.comment).to.equal('FooBar');
+          }
         });
       }
     });

@@ -1,6 +1,7 @@
 import type { Nullish } from '@sequelize/utils';
 import type { Literal } from '../expression-builders/literal.js';
 import type { BindOrReplacements } from '../sequelize.js';
+import type { TableOrModel } from './query-generator.types.js';
 
 export interface AddLimitOffsetOptions {
   limit?: number | Literal | Nullish;
@@ -10,7 +11,7 @@ export interface AddLimitOffsetOptions {
 
 export interface AttributeToSqlOptions {
   context: 'addColumn' | 'changeColumn' | 'createTable';
-  schema?: string;
-  table: string;
+  table?: TableOrModel;
   withoutForeignKeyConstraints?: boolean;
+  foreignKey?: string;
 }
