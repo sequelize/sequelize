@@ -91,7 +91,7 @@
     "husky": "9.1.7",
     "lerna": "8.2.4",
     "lint-staged": "16.2.7",
-    "lodash": "4.17.21",
+    "lodash": "4.17.23",
     "markdownlint-cli": "0.47.0",
     "mocha": "11.7.5",
     "node-gyp": "11.5.0",
@@ -102,7 +102,7 @@
     "source-map-support": "0.5.21",
     "ts-node": "10.9.2",
     "typedoc": "0.27.9",
-    "typedoc-plugin-mdn-links": "5.0.10",
+    "typedoc-plugin-mdn-links": "5.1.0",
     "typedoc-plugin-missing-exports": "3.1.0",
     "typescript": "5.8.3"
   },

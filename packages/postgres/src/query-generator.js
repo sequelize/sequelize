@@ -221,11 +221,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     let type;
+    const arraySubtype =
+      attribute.type instanceof DataTypes.ARRAY ? attribute.type.options.type : null;
+
     if (
       attribute.type instanceof DataTypes.ENUM ||
-      (attribute.type instanceof DataTypes.ARRAY && attribute.type.type instanceof DataTypes.ENUM)
+      (attribute.type instanceof DataTypes.ARRAY && arraySubtype instanceof DataTypes.ENUM)
     ) {
-      const enumType = attribute.type.type || attribute.type;
+      const enumType = arraySubtype || attribute.type;
       const values = enumType.options.values;
 
       if (Array.isArray(values) && values.length > 0) {
