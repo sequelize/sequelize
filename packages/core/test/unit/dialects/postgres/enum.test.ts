@@ -1,10 +1,9 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import type { PostgresQueryGenerator } from '@sequelize/postgres';
+import { expect } from 'chai';
+import { beforeAll2, expectsql, sequelize } from '../../../support';
 
-const { beforeAll2, expectsql, sequelize } = require('../../../support');
-const { DataTypes } = require('@sequelize/core');
-const { expect } = require('chai');
-
-const sql = sequelize.dialect.queryGenerator;
+const sql = sequelize.dialect.queryGenerator as PostgresQueryGenerator;
 
 describe('PostgresQueryGenerator', () => {
   if (sequelize.dialect.name !== 'postgres') {
@@ -47,12 +46,19 @@ describe('PostgresQueryGenerator', () => {
     it('properly quotes both the schema and the enum name', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(
-        sql.pgEnumName(PublicUser.table, 'mood', PublicUser.getAttributes().mood.type),
-      ).to.equal('"public"."enum_users_mood"');
-      expect(
-        sql.pgEnumName(FooUser.table, 'theirMood', FooUser.getAttributes().mood.type),
-      ).to.equal('"foo"."enum_users_theirMood"');
+      expect(sql.pgEnumName(PublicUser.table, 'mood')).to.equal('"public"."enum_users_mood"');
+      expect(sql.pgEnumName(FooUser.table, 'theirMood')).to.equal('"foo"."enum_users_theirMood"');
+    });
+
+    it('does not quote the enum name when options: { noEscape: true }', () => {
+      const { FooUser, PublicUser } = vars;
+
+      expect(sql.pgEnumName(PublicUser.table, 'mood', { noEscape: true })).to.equal(
+        'enum_users_mood',
+      );
+      expect(sql.pgEnumName(FooUser.table, 'theirMood', { noEscape: true })).to.equal(
+        'enum_users_theirMood',
+      );
     });
   });
 
