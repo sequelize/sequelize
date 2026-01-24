@@ -58,7 +58,7 @@
     "dottie": "^2.0.6",
     "fast-glob": "^3.3.3",
     "inflection": "^3.0.2",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "retry-as-promised": "^7.1.1",
     "semver": "^7.7.3",
     "sequelize-pool": "^8.0.1",
