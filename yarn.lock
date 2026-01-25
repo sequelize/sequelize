@@ -2897,7 +2897,7 @@ __metadata:
     concurrently: "npm:9.2.1"
     cosmiconfig: "npm:^9.0.0"
     mocha: "npm:11.7.5"
-    oclif: "npm:4.22.67"
+    oclif: "npm:4.22.68"
     rimraf: "npm:5.0.10"
     zod: "npm:^4.3.5"
   bin:
@@ -2934,7 +2934,7 @@ __metadata:
     fs-jetpack: "npm:5.1.0"
     inflection: "npm:^3.0.2"
     lcov-result-merger: "npm:5.0.1"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
     moment: "npm:2.30.1"
     nyc: "npm:17.1.0"
@@ -2962,7 +2962,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     dayjs: "npm:^1.11.19"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     odbc: "npm:^2.4.9"
   languageName: unknown
   linkType: soft
@@ -2975,7 +2975,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     dayjs: "npm:^1.11.19"
     ibm_db: "npm:^3.3.4"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
   languageName: unknown
   linkType: soft
 
@@ -2989,7 +2989,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.19"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mariadb: "npm:^3.4.5"
     mocha: "npm:11.7.5"
     semver: "npm:^7.7.3"
@@ -3047,7 +3047,7 @@ __metadata:
     "@types/sinon": "npm:17.0.4"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.19"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
     sinon: "npm:18.0.1"
     tedious: "npm:^19.1.2"
@@ -3064,7 +3064,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.19"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
     mysql2: "npm:^3.16.1"
     wkx: "npm:^0.5.0"
@@ -3079,7 +3079,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/oracledb": "npm:^6.10.1"
     dayjs: "npm:^1.11.19"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     oracledb: "npm:^6.10.0"
     semver: "npm:^7.7.3"
   languageName: unknown
@@ -3095,7 +3095,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/pg": "npm:^8.11.14"
     chai: "npm:4.5.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
     pg: "npm:^8.15.6"
     pg-hstore: "npm:^2.3.4"
@@ -3112,7 +3112,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     snowflake-sdk: "npm:^2.1.0"
   languageName: unknown
   linkType: soft
@@ -3123,7 +3123,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     sqlite3: "npm:^5.1.7"
   languageName: unknown
   linkType: soft
@@ -3138,7 +3138,7 @@ __metadata:
     chai: "npm:4.5.0"
     concurrently: "npm:9.2.1"
     expect-type: "npm:0.19.0"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
   languageName: unknown
   linkType: soft
@@ -3153,7 +3153,7 @@ __metadata:
     "@types/chai-as-promised": "npm:7.1.8"
     chai: "npm:4.5.0"
     chai-as-promised: "npm:7.1.2"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
   languageName: unknown
   linkType: soft
@@ -10725,7 +10725,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lodash@npm:4.17.23, lodash@npm:^4.17.14, lodash@npm:^4.17.19, lodash@npm:^4.17.21":
+"lodash@npm:4.17.23, lodash@npm:^4.17.14, lodash@npm:^4.17.19, lodash@npm:^4.17.21, lodash@npm:^4.17.23":
   version: 4.17.23
   resolution: "lodash@npm:4.17.23"
   checksum: 10c0/1264a90469f5bb95d4739c43eb6277d15b6d9e186df4ac68c3620443160fc669e2f14c11e7d8b2ccf078b81d06147c01a8ccced9aab9f9f63d50dcf8cace6bf6
@@ -12630,9 +12630,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.22.67":
-  version: 4.22.67
-  resolution: "oclif@npm:4.22.67"
+"oclif@npm:4.22.68":
+  version: 4.22.68
+  resolution: "oclif@npm:4.22.68"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.971.0"
     "@aws-sdk/client-s3": "npm:^3.971.0"
@@ -12652,7 +12652,7 @@ __metadata:
     fs-extra: "npm:^8.1"
     github-slugger: "npm:^2"
     got: "npm:^13"
-    lodash: "npm:^4.17.21"
+    lodash: "npm:^4.17.23"
     normalize-package-data: "npm:^6"
     semver: "npm:^7.7.3"
     sort-package-json: "npm:^2.15.1"
@@ -12660,7 +12660,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/ddda5a96f65d45fac2cd208952c748efa7fd00eddd921a8fd58e33a1d972f9723e7c7d972b77443700a12c0c370adbc7989bdfac2e0afd3ddcf0e4ae940f3fef
+  checksum: 10c0/de3b493a3bc1034d81fa0511196ed35f2d21702445916c4be64cde6f226b7404af3d9104cac82a9e70b5a9ad5f1c9677ba1b05beedff7e47702bcc25fe235800
   languageName: node
   linkType: hard
 

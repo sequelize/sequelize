@@ -40,7 +40,7 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.19",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "mysql2": "^3.16.1",
     "wkx": "^0.5.0"
   },

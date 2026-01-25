@@ -40,7 +40,7 @@
     "@sequelize/utils": "workspace:*",
     "@types/oracledb": "^6.10.1",
     "dayjs": "^1.11.19",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "oracledb": "^6.10.0",
     "semver": "^7.7.3"
   }
