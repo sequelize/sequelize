@@ -244,6 +244,45 @@ export class Sequelize extends SequelizeTypeScript {
     return this.queryRaw(sql, options);
   }
 
+  async union(queries, options = {}) {
+    // Basic preparations similar to Model.findAll, ensuring options are normalized.
+    const rawSqls = await Promise.all(
+      queries.map(async q => {
+        const model = q.model;
+        let queryOptions = { ...q.options };
+        queryOptions.model = model;
+
+        model._injectScope(queryOptions);
+        model._conformIncludes(queryOptions, model);
+        model._expandAttributes(queryOptions);
+        model._expandIncludeAll(queryOptions, model);
+
+        const tableNames = {};
+        tableNames[model.table] = true;
+
+        // Inject primary key if needed for deduplication
+        if (
+          queryOptions.attributes &&
+          !queryOptions.raw &&
+          model.primaryKeyAttribute &&
+          !queryOptions.attributes.includes(model.primaryKeyAttribute) &&
+          (!queryOptions.group || !queryOptions.hasSingleAssociation || queryOptions.hasMultiAssociation)
+        ) {
+          queryOptions.attributes = [model.primaryKeyAttribute].concat(queryOptions.attributes);
+        }
+
+        if (!queryOptions.attributes) {
+          queryOptions.attributes = Array.from(model.modelDefinition.attributes.keys());
+          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(queryOptions.attributes);
+        }
+
+        return this.queryInterface.queryGenerator.selectQuery(model.table, queryOptions, model);
+      }),
+    );
+
+    return this.queryInterface.union(rawSqls, options);
+  }
+
   async queryRaw(sql, options) {
     if (typeof sql !== 'string') {
       throw new TypeError('Sequelize#rawQuery requires a string as the first parameter.');
@@ -369,9 +408,9 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-              useMaster: options.useMaster,
-              type: options.type === 'SELECT' ? 'read' : 'write',
-            });
+            useMaster: options.useMaster,
+            type: options.type === 'SELECT' ? 'read' : 'write',
+          });
 
       if (this.dialect.name === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
