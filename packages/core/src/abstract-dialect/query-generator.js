@@ -786,11 +786,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const escapedIndexName =
       tableName.schema && this.dialect.name === 'db2'
         ? // 'quoteTable' isn't the best name: it quotes any identifier.
-        // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
-        this.quoteTable({
-          schema: tableName.schema,
-          tableName: options.name,
-        })
+          // in this case, the goal is to produce '"schema_name"."index_name"' to scope the index in this schema
+          this.quoteTable({
+            schema: tableName.schema,
+            tableName: options.name,
+          })
         : this.quoteIdentifiers(options.name);
 
     ind = ind.concat(
@@ -1091,12 +1091,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     mainTable.quotedName = !Array.isArray(mainTable.name)
       ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
       : tableName
-        .map(t => {
-          return Array.isArray(t)
-            ? this.quoteTable(t[0], { ...options, alias: t[1] })
-            : this.quoteTable(t, { ...options, alias: true });
-        })
-        .join(', ');
+          .map(t => {
+            return Array.isArray(t)
+              ? this.quoteTable(t[0], { ...options, alias: t[1] })
+              : this.quoteTable(t, { ...options, alias: true });
+          })
+          .join(', ');
 
     const mainModelDefinition = mainTable.model?.modelDefinition;
     const mainModelAttributes = mainModelDefinition?.attributes;
@@ -1497,6 +1497,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const orderClauses = orders.map(t => {
         if (Array.isArray(t)) {
           const [col, dir] = t;
+
           return `${this.quoteIdentifier(col)} ${dir}`;
         }
 

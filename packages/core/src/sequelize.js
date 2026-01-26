@@ -249,7 +249,7 @@ export class Sequelize extends SequelizeTypeScript {
     const rawSqls = await Promise.all(
       queries.map(async q => {
         const model = q.model;
-        let queryOptions = { ...q.options };
+        const queryOptions = { ...q.options };
         queryOptions.model = model;
 
         model._injectScope(queryOptions);
@@ -266,14 +266,18 @@ export class Sequelize extends SequelizeTypeScript {
           !queryOptions.raw &&
           model.primaryKeyAttribute &&
           !queryOptions.attributes.includes(model.primaryKeyAttribute) &&
-          (!queryOptions.group || !queryOptions.hasSingleAssociation || queryOptions.hasMultiAssociation)
+          (!queryOptions.group ||
+            !queryOptions.hasSingleAssociation ||
+            queryOptions.hasMultiAssociation)
         ) {
           queryOptions.attributes = [model.primaryKeyAttribute].concat(queryOptions.attributes);
         }
 
         if (!queryOptions.attributes) {
           queryOptions.attributes = Array.from(model.modelDefinition.attributes.keys());
-          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(queryOptions.attributes);
+          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(
+            queryOptions.attributes,
+          );
         }
 
         return this.queryInterface.queryGenerator.selectQuery(model.table, queryOptions, model);
@@ -408,9 +412,9 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-            useMaster: options.useMaster,
-            type: options.type === 'SELECT' ? 'read' : 'write',
-          });
+              useMaster: options.useMaster,
+              type: options.type === 'SELECT' ? 'read' : 'write',
+            });
 
       if (this.dialect.name === 'db2' && options.alter && options.alter.drop === false) {
         connection.dropTable = false;
