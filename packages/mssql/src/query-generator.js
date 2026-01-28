@@ -11,6 +11,7 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { extractTableIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
@@ -18,6 +19,7 @@ import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
+import { randomBytes } from 'node:crypto';
 import { MsSqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 /* istanbul ignore next */
@@ -173,6 +175,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   changeColumnQuery(tableName, attributes) {
     const attrString = [];
     const constraintString = [];
+    const table = extractTableIdentifier(tableName);
     let commentString = '';
 
     for (const attributeName in attributes) {
@@ -186,21 +189,54 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         definition = commentMatch[1];
       }
 
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         constraintString.push(
-          `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`,
+          `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=\bREFERENCES\b)/, '')}`,
         );
+      } else if (/\bDEFAULT\b/.test(definition)) {
+        const randomString = randomBytes(4).toString('hex').toUpperCase();
+        const constraint = this.quoteIdentifier(
+          `DF__${table.tableName.slice(0, 9)}__${attributeName.slice(0, 14 - table.tableName.slice(0, 9).length)}__${randomString}`,
+        );
+        constraintString.push(
+          `CONSTRAINT ${constraint} ${definition.split(/(?=\bDEFAULT\b)/)[1]} FOR ${quotedAttrName}`,
+        );
+        attrString.push(`${quotedAttrName} ${definition.split(/(?=\bDEFAULT\b)/)[0]}`);
+      } else if (/\bUNIQUE\b/.test(definition)) {
+        const randomString = randomBytes(8).toString('hex').toUpperCase();
+        const constraint = this.quoteIdentifier(
+          `UQ__${table.tableName.slice(0, 8)}__${randomString}`,
+        );
+        constraintString.push(`CONSTRAINT ${constraint} UNIQUE (${quotedAttrName})`);
+        attrString.push(`${quotedAttrName} ${definition.split(/(?=\bUNIQUE\b)/)[0]}`);
+      } else if (/\bCHECK\b/.test(definition)) {
+        const randomString = randomBytes(4).toString('hex').toUpperCase();
+        const constraint = this.quoteIdentifier(
+          `CK__${table.tableName.slice(0, 9)}__${attributeName.slice(0, 14 - table.tableName.slice(0, 9).length)}__${randomString}`,
+        );
+        constraintString.push(`CONSTRAINT ${constraint} ${definition.split(/(?=\bCHECK\b)/)[1]}`);
+        attrString.push(`${quotedAttrName} ${definition.split(/(?=\bCHECK\b)/)[0]}`);
       } else {
         attrString.push(`${quotedAttrName} ${definition}`);
       }
     }
 
+    const constraintSql = [];
+    if (constraintString.length && !attrString.length) {
+      constraintSql.push(`ADD ${constraintString.join(', ')};`);
+    } else if (constraintString.length) {
+      constraintSql.push(
+        'ALTER TABLE',
+        this.quoteTable(tableName),
+        `ADD ${constraintString.join(', ')};`,
+      );
+    }
+
     return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
-      attrString.length && `ALTER COLUMN ${attrString.join(', ')}`,
-      constraintString.length && `ADD ${constraintString.join(', ')}`,
-      ';',
+      attrString.length && `ALTER COLUMN ${attrString.join(', ')};`,
+      ...constraintSql,
       commentString,
     ]);
   }
