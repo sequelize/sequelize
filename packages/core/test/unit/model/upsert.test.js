@@ -100,6 +100,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'updatedAt',
         ]);
       });
+
+      it('supports separate updateValues via options', async function () {
+        await this.User.upsert(
+          {
+            name: 'Old Cat',
+          },
+          {
+            updateValues: {
+              name: 'New Cat',
+            },
+          },
+        );
+
+        const args = this.stub.getCall(0).args;
+        const insertValues = args[1];
+        const updateValues = args[2];
+
+        expect(insertValues.name).to.equal('Old Cat');
+        expect(updateValues.name).to.equal('New Cat');
+      });
     });
   }
 });
