@@ -12,6 +12,11 @@ import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
 
+export interface UnionOptions extends AddLimitOffsetOptions {
+  unionAll?: boolean;
+  order?: string | [string, string] | Array<string | [string, string]>;
+}
+
 export interface BoundQuery {
   query: string;
   bind?: Record<string, unknown> | undefined;

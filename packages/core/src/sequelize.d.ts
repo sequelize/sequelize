@@ -2,6 +2,7 @@ import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { DataTypes, Op, Options, QueryTypes } from '.';
 import type { DataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
+import type { UnionOptions } from './abstract-dialect/query-generator.types';
 import type {
   ColumnsDescription,
   RawConstraintDescription,
@@ -606,6 +607,14 @@ export class Sequelize<
     sql: string,
     options?: QueryRawOptions | QueryRawOptionsWithType<QueryTypes.RAW>,
   ): Promise<[unknown[], unknown]>;
+
+  /**
+   * Run a union query
+   *
+   * @param queries The queries to union. Can be a set of options or model instances.
+   * @param options The options for the union query.
+   */
+  union(queries: object[], options?: UnionOptions): Promise<any>;
 
   log(...values: unknown[]): void;
 
