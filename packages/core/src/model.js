@@ -1773,7 +1773,8 @@ ${associationOwner._getAssociationDebugList()}`);
       );
     }
 
-    const countOptions = cloneDeep(options) ?? {};
+    const countOptions = cloneDeep(options);
+    this._injectScope(countOptions);
 
     if (countOptions.attributes && !options.countGroupedRows) {
       countOptions.attributes = undefined;
