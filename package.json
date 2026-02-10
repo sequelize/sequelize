@@ -83,7 +83,7 @@
     "chai": "4.5.0",
     "concurrently": "9.2.1",
     "cross-env": "10.1.0",
-    "esbuild": "0.27.2",
+    "esbuild": "0.27.3",
     "eslint": "8.57.1",
     "eslint-plugin-jsdoc": "61.4.2",
     "eslint-plugin-mocha": "10.5.0",
