@@ -3109,8 +3109,8 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@vscode/sqlite3": "patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch"
     lodash: "npm:^4.17.23"
-    sqlite3: "patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch"
   languageName: unknown
   linkType: soft
 
@@ -4622,6 +4622,17 @@ __metadata:
     node-gyp: "npm:latest"
     tar: "npm:^7.5.4"
   checksum: 10c0/64e556c2731af333ddbfa29abeb6d4b4fa48a5e65a6909f9093bfe68033d75593ce75fdce5edf717581964f59f78d5b7505e19aa473c5c43c2f3ca59b6fbe513
+  languageName: node
+  linkType: hard
+
+"@vscode/sqlite3@patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3":
+  version: 5.1.12-vscode
+  resolution: "@vscode/sqlite3@patch:@vscode/sqlite3@npm%3A5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::version=5.1.12-vscode&hash=931225&locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3"
+  dependencies:
+    node-addon-api: "npm:^8.2.0"
+    node-gyp: "npm:latest"
+    tar: "npm:^7.5.4"
+  checksum: 10c0/933032a84e00b624fbee369b8f50f1554cba1b9b339be9479d41ae4a2593d8eda680f036ae66412dffb5a60ea41680de87599ab147fd4e5b3fbe63476dd46808
   languageName: node
   linkType: hard
 
@@ -14711,17 +14722,6 @@ __metadata:
   version: 1.0.3
   resolution: "sprintf-js@npm:1.0.3"
   checksum: 10c0/ecadcfe4c771890140da5023d43e190b7566d9cf8b2d238600f31bec0fc653f328da4450eb04bd59a431771a8e9cc0e118f0aa3974b683a4981b4e07abc2a5bb
-  languageName: node
-  linkType: hard
-
-"sqlite3@patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3":
-  version: 5.1.12-vscode
-  resolution: "sqlite3@patch:@vscode/sqlite3@npm%3A5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::version=5.1.12-vscode&hash=931225&locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3"
-  dependencies:
-    node-addon-api: "npm:^8.2.0"
-    node-gyp: "npm:latest"
-    tar: "npm:^7.5.4"
-  checksum: 10c0/c28febef364c5542822ce43b9307816332ba451795a87ac39f26357f922d94c322de907c3eeca5f68dbfbc12a584d5262b27f3bed56e7dfa8e2e9ebc8ccba4a6
   languageName: node
   linkType: hard
 

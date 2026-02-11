@@ -4,7 +4,7 @@ import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/
 import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import * as Sqlite3 from 'sqlite3';
+import * as Sqlite3 from '@vscode/sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:sqlite3');
@@ -79,7 +79,7 @@ export {
   OPEN_READWRITE,
   OPEN_SHAREDCACHE,
   OPEN_URI,
-} from 'sqlite3';
+} from '@vscode/sqlite3';
 
 export class SqliteConnectionManager extends AbstractConnectionManager<
   SqliteDialect,
