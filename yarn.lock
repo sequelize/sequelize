@@ -3110,7 +3110,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.17.23"
-    sqlite3: "npm:@vscode/sqlite3@5.1.12-vscode"
+    sqlite3: "patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch"
   languageName: unknown
   linkType: soft
 
@@ -4611,6 +4611,17 @@ __metadata:
   version: 1.7.2
   resolution: "@unrs/resolver-binding-win32-x64-msvc@npm:1.7.2"
   conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@vscode/sqlite3@npm:5.1.12-vscode":
+  version: 5.1.12-vscode
+  resolution: "@vscode/sqlite3@npm:5.1.12-vscode"
+  dependencies:
+    node-addon-api: "npm:^8.2.0"
+    node-gyp: "npm:latest"
+    tar: "npm:^7.5.4"
+  checksum: 10c0/64e556c2731af333ddbfa29abeb6d4b4fa48a5e65a6909f9093bfe68033d75593ce75fdce5edf717581964f59f78d5b7505e19aa473c5c43c2f3ca59b6fbe513
   languageName: node
   linkType: hard
 
@@ -14703,14 +14714,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sqlite3@npm:@vscode/sqlite3@5.1.12-vscode":
+"sqlite3@patch:@vscode/sqlite3@npm:5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3":
   version: 5.1.12-vscode
-  resolution: "@vscode/sqlite3@npm:5.1.12-vscode"
+  resolution: "sqlite3@patch:@vscode/sqlite3@npm%3A5.1.12-vscode#./.yarn/patches/@vscode-sqlite3-npm-5.1.12-vscode-10c9b71dc9.patch::version=5.1.12-vscode&hash=931225&locator=%40sequelize%2Fsqlite3%40workspace%3Apackages%2Fsqlite3"
   dependencies:
     node-addon-api: "npm:^8.2.0"
     node-gyp: "npm:latest"
     tar: "npm:^7.5.4"
-  checksum: 10c0/64e556c2731af333ddbfa29abeb6d4b4fa48a5e65a6909f9093bfe68033d75593ce75fdce5edf717581964f59f78d5b7505e19aa473c5c43c2f3ca59b6fbe513
+  checksum: 10c0/c28febef364c5542822ce43b9307816332ba451795a87ac39f26357f922d94c322de907c3eeca5f68dbfbc12a584d5262b27f3bed56e7dfa8e2e9ebc8ccba4a6
   languageName: node
   linkType: hard
 
