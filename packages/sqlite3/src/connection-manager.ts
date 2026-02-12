@@ -2,9 +2,9 @@ import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { checkFileExists } from '@sequelize/utils/node';
+import * as Sqlite3 from '@vscode/sqlite3';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import * as Sqlite3 from '@vscode/sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:sqlite3');
