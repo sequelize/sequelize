@@ -597,7 +597,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'sqlite3':
             expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+              'SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: Users.username',
             );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
@@ -675,7 +675,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'sqlite3':
             expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+              'SQLITE_CONSTRAINT_UNIQUE: UNIQUE constraint failed: Users.username',
             );
             break;
 
@@ -756,7 +756,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+              'SQLITE_CONSTRAINT_FOREIGNKEY: FOREIGN KEY constraint failed',
             );
             break;
 
@@ -839,7 +839,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
             expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+              'SQLITE_CONSTRAINT_FOREIGNKEY: FOREIGN KEY constraint failed',
             );
             break;
 
