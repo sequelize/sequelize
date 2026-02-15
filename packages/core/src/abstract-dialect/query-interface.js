@@ -214,6 +214,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       {
         context: 'changeColumn',
         table: tableName,
+        uniqueKeys: options?.uniqueKeys,
       },
     );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
