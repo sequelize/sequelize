@@ -241,6 +241,8 @@ export type DialectSupports = {
   uuidV1Generation: boolean;
   /** Whether this dialect provides a native way to generate UUID v4 values */
   uuidV4Generation: boolean;
+  /** Whether this dialect provides a native way to generate UUID v7 values */
+  uuidV7Generation: boolean;
   dropTable: {
     cascade: boolean;
     concurrentDropConstraints: boolean; // If Constraints on same table can be dropped concurrently.
@@ -468,6 +470,7 @@ export abstract class AbstractDialect<
     globalTimeZoneConfig: false,
     uuidV1Generation: false,
     uuidV4Generation: false,
+    uuidV7Generation: false,
     dropTable: {
       cascade: false,
       concurrentDropConstraints: true,
