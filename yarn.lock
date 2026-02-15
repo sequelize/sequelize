@@ -3066,7 +3066,7 @@ __metadata:
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
-    mysql2: "npm:^3.16.3"
+    mysql2: "npm:^3.17.1"
     wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
@@ -11823,9 +11823,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.16.3":
-  version: 3.16.3
-  resolution: "mysql2@npm:3.16.3"
+"mysql2@npm:^3.17.1":
+  version: 3.17.1
+  resolution: "mysql2@npm:3.17.1"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.2"
     denque: "npm:^2.1.0"
@@ -11835,8 +11835,8 @@ __metadata:
     lru.min: "npm:^1.1.3"
     named-placeholders: "npm:^1.1.6"
     seq-queue: "npm:^0.0.5"
-    sqlstring: "npm:^2.3.3"
-  checksum: 10c0/11ff1e391f57fe84a59b29f1f274c5bae0754e01c8555133c140e72cf92775f01dec152abccc81312c2eb77de4069aa72c4ac7cc446a3d2896c17fabc930aaf2
+    sql-escaper: "npm:^1.3.2"
+  checksum: 10c0/0238e128789fc3971a48bbf8cdd6711ce3aac5d58c43ee717abf4eabadacf69e907166f0671a8cdd4b5d8868d04123a3ed331fa614d057fa927a15e563bc20ba
   languageName: node
   linkType: hard
 
@@ -14995,6 +14995,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"sql-escaper@npm:^1.3.2":
+  version: 1.3.2
+  resolution: "sql-escaper@npm:1.3.2"
+  checksum: 10c0/129914f3f2d03668f7b53b546f6eb88b337410278db6f0f07f11312ff63264759c57fc751f6167c065e625525447c1c707c70376e2d2d3f004477b66748bfb72
+  languageName: node
+  linkType: hard
+
 "sqlite3@npm:^5.1.7":
   version: 5.1.7
   resolution: "sqlite3@npm:5.1.7"
@@ -15013,13 +15020,6 @@ __metadata:
     node-gyp:
       optional: true
   checksum: 10c0/10daab5d7854bd0ec3c7690c00359cd3444eabc869b68c68dcb61374a8fa5e2f4be06cf0aba78f7a16336d49e83e4631e8af98f8bd33c772fe8d60b45fa60bc1
-  languageName: node
-  linkType: hard
-
-"sqlstring@npm:^2.3.3":
-  version: 2.3.3
-  resolution: "sqlstring@npm:2.3.3"
-  checksum: 10c0/3b5dd7badb3d6312f494cfa6c9a381ee630fbe3dbd571c4c9eb8ecdb99a7bf5a1f7a5043191d768797f6b3c04eed5958ac6a5f948b998f0a138294c6d3125fbd
   languageName: node
   linkType: hard
 
