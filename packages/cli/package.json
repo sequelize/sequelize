@@ -23,7 +23,7 @@
     "chai": "4.5.0",
     "concurrently": "9.2.1",
     "mocha": "11.7.5",
-    "oclif": "4.22.70",
+    "oclif": "4.22.79",
     "rimraf": "5.0.10"
   },
   "engines": {
@@ -72,7 +72,7 @@
   },
   "type": "module",
   "types": "lib/index.d.ts",
-  "version": "7.0.0-alpha.47",
+  "version": "7.0.0-alpha.48",
   "publishConfig": {
     "access": "public"
   }
