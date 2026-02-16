@@ -3050,7 +3050,7 @@ __metadata:
     lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
     sinon: "npm:18.0.1"
-    tedious: "npm:^19.1.2"
+    tedious: "npm:^19.2.1"
   languageName: unknown
   linkType: soft
 
@@ -15466,9 +15466,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:^19.1.2":
-  version: 19.1.2
-  resolution: "tedious@npm:19.1.2"
+"tedious@npm:^19.2.1":
+  version: 19.2.1
+  resolution: "tedious@npm:19.2.1"
   dependencies:
     "@azure/core-auth": "npm:^1.7.2"
     "@azure/identity": "npm:^4.2.1"
@@ -15480,7 +15480,7 @@ __metadata:
     js-md4: "npm:^0.3.2"
     native-duplexpair: "npm:^1.0.0"
     sprintf-js: "npm:^1.1.3"
-  checksum: 10c0/7d2f043386083c1550bc66dadbd54c0aaf9118c47d5692721b7beaa9ada04f8be0034fac76e4e7c2dc674839b748e31830afb2638c6854b7dca52d69ca0a07fc
+  checksum: 10c0/55b2421091dc2933cc91d681f64d35b1b2fba2cc6d32ce6eb15cd3444fad0399c640f2c9fb0b71cc075f08e56b63153de232fd6bc65b379ace55d4ff79f8a5f2
   languageName: node
   linkType: hard
 
