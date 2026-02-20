@@ -3066,7 +3066,7 @@ __metadata:
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
-    mysql2: "npm:^3.17.1"
+    mysql2: "npm:^3.17.4"
     wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
@@ -10858,10 +10858,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru.min@npm:^1.1.0, lru.min@npm:^1.1.3":
-  version: 1.1.3
-  resolution: "lru.min@npm:1.1.3"
-  checksum: 10c0/62567c9d9e6e3b1b3793853ac509007082d93dc838819998a9911a3058b7ca53045ba6a477ab8ccb983788591dd7ff90e05f3b073ba0d30d8b8245c9ef17a06d
+"lru.min@npm:^1.1.0, lru.min@npm:^1.1.4":
+  version: 1.1.4
+  resolution: "lru.min@npm:1.1.4"
+  checksum: 10c0/d9cce4d9988ced2b2dd199f47016adefda27e8405a7f63b86a54e574d254bb0099ff9e91846b0c20379348e7a03d6f4de8b8f8cdfd5265b36eb3ec07bcf72f96
   languageName: node
   linkType: hard
 
@@ -11823,20 +11823,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.17.1":
-  version: 3.17.1
-  resolution: "mysql2@npm:3.17.1"
+"mysql2@npm:^3.17.4":
+  version: 3.17.4
+  resolution: "mysql2@npm:3.17.4"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.2"
     denque: "npm:^2.1.0"
     generate-function: "npm:^2.3.1"
     iconv-lite: "npm:^0.7.2"
     long: "npm:^5.3.2"
-    lru.min: "npm:^1.1.3"
+    lru.min: "npm:^1.1.4"
     named-placeholders: "npm:^1.1.6"
-    seq-queue: "npm:^0.0.5"
-    sql-escaper: "npm:^1.3.2"
-  checksum: 10c0/0238e128789fc3971a48bbf8cdd6711ce3aac5d58c43ee717abf4eabadacf69e907166f0671a8cdd4b5d8868d04123a3ed331fa614d057fa927a15e563bc20ba
+    sql-escaper: "npm:^1.3.3"
+  checksum: 10c0/14f55f2f3c06007103f1fee1e6121e3be466cd66ab4d60e06796ec573b9454b27646c896fd288aee36bed5bf8016ed30d89641f1d1587aa81cb6947a60147a6a
   languageName: node
   linkType: hard
 
@@ -14472,13 +14471,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"seq-queue@npm:^0.0.5":
-  version: 0.0.5
-  resolution: "seq-queue@npm:0.0.5"
-  checksum: 10c0/ec870fc392f0e6e99ec0e551c3041c1a66144d1580efabae7358e572de127b0ad2f844c95a4861d2e6203f836adea4c8196345b37bed55331ead8f22d99ac84c
-  languageName: node
-  linkType: hard
-
 "sequelize-pool@npm:^8.0.1":
   version: 8.0.1
   resolution: "sequelize-pool@npm:8.0.1"
@@ -14995,10 +14987,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sql-escaper@npm:^1.3.2":
-  version: 1.3.2
-  resolution: "sql-escaper@npm:1.3.2"
-  checksum: 10c0/129914f3f2d03668f7b53b546f6eb88b337410278db6f0f07f11312ff63264759c57fc751f6167c065e625525447c1c707c70376e2d2d3f004477b66748bfb72
+"sql-escaper@npm:^1.3.3":
+  version: 1.3.3
+  resolution: "sql-escaper@npm:1.3.3"
+  checksum: 10c0/aa6545685745f4d457a6993cd7b442ac39d54aae6780d15e5ed1ff929f298f6c10562b9e09ddcbedcdf5c3601161e5ee39d3e8d435b1d168775f121946d1bf44
   languageName: node
   linkType: hard
 
