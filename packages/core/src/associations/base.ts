@@ -263,6 +263,7 @@ export type MultiAssociationAccessors = {
   addMultiple: string;
   add: string;
   create: string;
+  createMultiple: string;
   remove: string;
   removeMultiple: string;
   hasSingle: string;
