@@ -42,19 +42,6 @@ Ready to start using Sequelize? Head to [sequelize.org](https://sequelize.org) t
 - [Our Getting Started guide for Sequelize 6 (stable)](https://sequelize.org/docs/v6/getting-started)
 - [Our Getting Started guide for Sequelize 7 (alpha)](https://sequelize.org/docs/v7/getting-started)
 
-## :money_with_wings: Supporting the project
-
-Do you like Sequelize and would like to give back to the engineering team behind it?
-
-We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
-
-## :pencil: Major version changelog
-
-Please find upgrade information to major versions here:
-
-- [Upgrade from v5 to v6](https://sequelize.org/docs/v6/other-topics/upgrade-to-v6)
-- [Upgrade from v6 to v7](https://sequelize.org/docs/v7/other-topics/upgrade-to-v7)
-
 ## :book: Resources
 
 - [Documentation](https://sequelize.org)
@@ -72,12 +59,43 @@ Please find upgrade information to major versions here:
 - [Awesome Sequelize](https://sequelize.org/docs/v7/other-topics/resources/)
 - [For YugabyteDB](https://github.com/yugabyte/sequelize-yugabytedb)
 
-### :speech_balloon: Translations
+## Partition Support
 
-- [English](https://sequelize.org) (Official)
-- [中文文档](https://github.com/demopark/sequelize-docs-Zh-CN) (Unofficial)
+To enable partitioning in your Sequelize model, add a `partition` key to the model definition. In this example, we are using **range partitioning** based on the `created_at` column.
 
-## :warning: Responsible disclosure
+### Example
+Add the following code to your Sequelize model file:
 
-If you have security issues to report, please refer to our
-[Responsible Disclosure Policy](./SECURITY.md) for more details.
+```js
+const { Model, DataTypes } = require('sequelize');
+const sequelize = require('../config/database'); // Update this path to match your config
+
+class Event extends Model {}
+
+Event.init({
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  name: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  created_at: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    primaryKey: true,
+  }
+}, {
+  sequelize,
+  modelName: 'Event',
+  partition: {
+    type: 'range',        // Partition type: RANGE
+    column: 'created_at', // Partition based on 'created_at'
+  },
+  timestamps: false,      // Disable timestamps if not needed
+});
+
+module.exports = Event;
+```
