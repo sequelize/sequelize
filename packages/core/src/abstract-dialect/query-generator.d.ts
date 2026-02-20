@@ -58,6 +58,14 @@ export interface CreateTableQueryOptions {
   comment?: string;
   initialAutoIncrement?: number;
   /**
+   * If true, the table will be created as a STRICT table.
+   *
+   * SQLite only.
+   *
+   * @see https://www.sqlite.org/stricttables.html
+   */
+  strict?: boolean;
+  /**
    * Used for compound unique keys.
    */
   uniqueKeys?: Array<{ fields: string[] }> | { [indexName: string]: { fields: string[] } };

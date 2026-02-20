@@ -48,6 +48,7 @@ export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'comment',
   'initialAutoIncrement',
   'uniqueKeys',
+  'strict',
 ]);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
 
