@@ -677,9 +677,9 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'sqlite3':
             // https://github.com/sequelize/sequelize/pull/18117
-            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
-            expect(error.cause.message).match(
-              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and `@vscode/sqlite3`
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/
             );
             break;
 
