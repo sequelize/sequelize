@@ -2076,6 +2076,15 @@ export interface ModelOptions<M extends Model = Model> {
   initialAutoIncrement?: string | undefined;
 
   /**
+   * If true, the table will be created as a STRICT table.
+   *
+   * SQLite only.
+   *
+   * @see https://www.sqlite.org/stricttables.html
+   */
+  strict?: boolean | undefined;
+
+  /**
    * Add hooks to the model.
    * Hooks will be called before and after certain operations.
    *

@@ -649,6 +649,26 @@ describe('QueryGenerator#createTableQuery', () => {
     );
   });
 
+  it('supports the strict option', () => {
+    expectsql(
+      () => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { strict: true }),
+      {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['strict']),
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) STRICT;',
+      },
+    );
+  });
+
+  it('produces a query without STRICT when strict option is false', () => {
+    expectsql(
+      () => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { strict: false }),
+      {
+        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['strict']),
+        sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE);',
+      },
+    );
+  });
+
   describe('supports the uniqueKeys option', () => {
     // SQLITE does not respect the index name when the index is created through CREATE TABLE
     // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
