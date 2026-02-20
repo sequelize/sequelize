@@ -130,6 +130,10 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      - name: Install MSVC Spectre-mitigated libraries
+        shell: pwsh
+        run: |
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --add Microsoft.VisualStudio.Component.VC.SpectreMitigated --quiet --norestart --wait
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
