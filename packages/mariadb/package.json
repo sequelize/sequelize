@@ -42,7 +42,7 @@
     "dayjs": "^1.11.19",
     "lodash": "^4.17.23",
     "mariadb": "^3.4.5",
-    "semver": "^7.7.3",
+    "semver": "^7.7.4",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
