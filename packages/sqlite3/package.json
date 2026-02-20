@@ -39,6 +39,6 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "lodash": "^4.17.23",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "npm:@vscode/sqlite3@^5.1.12-vscode"
   }
 }
