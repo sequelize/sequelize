@@ -133,7 +133,14 @@ jobs:
       - name: Install MSVC Spectre-mitigated libraries
         shell: pwsh
         run: |
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath "C:\Program Files\Microsoft Visual Studio\2022\Enterprise" --add Microsoft.VisualStudio.Component.VC.SpectreMitigated --quiet --norestart --wait
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $installPath = & $vswhere -latest -property installationPath
+          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify `
+            --installPath "$installPath" `
+            --add Microsoft.VisualStudio.Component.VC.Runtimes.x86.x64.Spectre `
+            --quiet --norestart --wait
+          # 3010 = ERROR_SUCCESS_REBOOT_REQUIRED: treat as success in CI
+          if ($LASTEXITCODE -ne 0 -and $LASTEXITCODE -ne 3010) { exit $LASTEXITCODE }
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
