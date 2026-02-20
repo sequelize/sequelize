@@ -2120,6 +2120,15 @@ export interface ModelOptions<M extends Model = Model> {
    * @default false
    */
   version?: boolean | string | undefined;
+
+  /**
+   * Throws an error if the query would return 0 results.
+   * This option is used as the default for all find operations on this model.
+   * Can be overridden in individual find operations.
+   *
+   * @default false
+   */
+  rejectOnEmpty?: boolean | Error | undefined;
 }
 
 /**
@@ -3181,6 +3190,13 @@ export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new (): M };
+
+/**
+ * Helper type to create a model with rejectOnEmpty: true
+ */
+export type ModelWithRejectOnEmpty<M extends Model> = ModelStatic<M> & {
+  options: BuiltModelOptions & { rejectOnEmpty: true };
+};
 
 /**
  * Type will be true is T is branded with Brand, false otherwise
