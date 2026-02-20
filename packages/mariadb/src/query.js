@@ -122,7 +122,14 @@ export class MariaDbQuery extends AbstractQuery {
           return [result, data.affectedRows];
         }
 
-        return [data[this.getInsertIdField()], data.affectedRows];
+        // No model context, in queryinterface,bulkinsert for example
+        const startId = Number(data[this.getInsertIdField()]);
+        result = [];
+        for (let i = startId; i < startId + data.affectedRows; i++) {
+          result.push({ id: i });
+        }
+
+        return [result, data.affectedRows];
       }
     }
 
