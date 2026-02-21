@@ -1484,6 +1484,43 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return `${query};`;
   }
 
+  unionQuery(sqls, options) {
+    let query = '';
+    const joinChar = options.unionAll ? ' UNION ALL ' : ' UNION ';
+
+    const cleanedSqls = sqls.map(sql => (sql.endsWith(';') ? sql.slice(0, -1) : sql));
+
+    query += cleanedSqls.join(joinChar);
+
+    if (options.order) {
+      const orders = Array.isArray(options.order) ? options.order : [options.order];
+      const orderClauses = orders.map(t => {
+        if (Array.isArray(t)) {
+          const [col, dir] = t;
+
+          let normalizedDir = typeof dir === 'string' ? dir.toUpperCase() : 'ASC';
+          if (!VALID_ORDER_OPTIONS.includes(normalizedDir)) {
+            normalizedDir = 'ASC';
+          }
+
+          return `${this.quoteIdentifier(col)} ${normalizedDir}`;
+        }
+
+        return this.quoteIdentifier(t);
+      });
+      query += ` ORDER BY ${orderClauses.join(', ')}`;
+    }
+
+    if (options.limit != null || options.offset != null) {
+      const limitOrder = this.#internals.addLimitAndOffset(options);
+      if (limitOrder) {
+        query += ` ${limitOrder}`;
+      }
+    }
+
+    return `${query};`;
+  }
+
   aliasGrouping(field, model, tableName, options) {
     const src = Array.isArray(field) ? field[0] : field;
 

@@ -17,7 +17,7 @@ import type {
   ParameterOptions,
 } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
-import type { BoundQuery, TableOrModel } from './query-generator.types.js';
+import type { BoundQuery, TableOrModel, UnionOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -132,4 +132,6 @@ export class AbstractQueryGenerator<
     attributes: ColumnsDescription,
     options?: AttributeToSqlOptions,
   ): Record<string, string>;
+
+  unionQuery(sqls: string[], options?: UnionOptions): string;
 }
