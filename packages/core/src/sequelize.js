@@ -245,6 +245,18 @@ export class Sequelize extends SequelizeTypeScript {
   }
 
   async union(queries, options = {}) {
+    if (!Array.isArray(queries) || queries.length === 0) {
+      throw new TypeError('Sequelize#union requires an array of at least one query parameter.');
+    }
+
+    for (const q of queries) {
+      if (!q || !q.model) {
+        throw new TypeError(
+          'Each query passed to Sequelize#union must be an object with a valid "model" property.',
+        );
+      }
+    }
+
     // Basic preparations similar to Model.findAll, ensuring options are normalized.
     const rawSqls = await Promise.all(
       queries.map(async q => {

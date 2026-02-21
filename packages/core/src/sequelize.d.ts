@@ -614,7 +614,10 @@ export class Sequelize<
    * @param queries The queries to union. Can be a set of options or model instances.
    * @param options The options for the union query.
    */
-  union(queries: object[], options?: UnionOptions): Promise<any>;
+  union(
+    queries: Array<{ model: ModelStatic<any>; options?: object }>,
+    options?: UnionOptions,
+  ): Promise<any[]>;
 
   log(...values: unknown[]): void;
 

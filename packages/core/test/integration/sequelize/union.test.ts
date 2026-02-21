@@ -38,10 +38,10 @@ describe('Sequelize#union', () => {
     await vars.User.create({ name: 'Alice', age: 20 });
     await vars.Guest.create({ name: 'Bob', age: 30 });
 
-    const results = await (sequelize as any).union([{ model: vars.User }, { model: vars.Guest }]);
+    const results = await sequelize.union([{ model: vars.User }, { model: vars.Guest }]);
 
     expect(results).to.have.lengthOf(2);
-    const names = results.map((r: any) => r.name).sort();
+    const names = results.map((r: any) => r.name as string).sort((a, b) => a.localeCompare(b));
     expect(names).to.deep.equal(['Alice', 'Bob']);
   });
 
@@ -49,7 +49,7 @@ describe('Sequelize#union', () => {
     await vars.User.create({ name: 'Alice', age: 20 });
     await vars.Guest.create({ name: 'Alice', age: 20 });
 
-    const results = await (sequelize as any).union([{ model: vars.User }, { model: vars.Guest }], {
+    const results = await sequelize.union([{ model: vars.User }, { model: vars.Guest }], {
       unionAll: true,
     });
 
@@ -60,7 +60,7 @@ describe('Sequelize#union', () => {
     await vars.User.create({ name: 'Alice', age: 20 });
     await vars.Guest.create({ name: 'Alice', age: 20 });
 
-    const results = await (sequelize as any).union([{ model: vars.User }, { model: vars.Guest }]);
+    const results = await sequelize.union([{ model: vars.User }, { model: vars.Guest }]);
 
     expect(results).to.have.lengthOf(1);
     expect(results[0].name).to.equal('Alice');
@@ -82,7 +82,7 @@ describe('Sequelize#union', () => {
     // Offset 1: Bob -> Expect Bob and Charlie?
     // Limit 2 offset 1 applied to [Alice, Bob, Charlie, David] is [Bob, Charlie]
 
-    const results = await (sequelize as any).union([{ model: vars.User }, { model: vars.Guest }], {
+    const results = await sequelize.union([{ model: vars.User }, { model: vars.Guest }], {
       order: ['name'],
       limit: 2,
       offset: 1,
@@ -98,7 +98,7 @@ describe('Sequelize#union', () => {
     await vars.Guest.create({ name: 'Bob', age: 30 });
 
     // Only select name
-    const results = await (sequelize as any).union([
+    const results = await sequelize.union([
       { model: vars.User, options: { attributes: ['name'] } },
       { model: vars.Guest, options: { attributes: ['name'] } },
     ]);
@@ -106,5 +106,6 @@ describe('Sequelize#union', () => {
     expect(results).to.have.lengthOf(2);
     expect(results[0]).to.have.property('name');
     expect(results[0]).to.not.have.property('age');
+    expect(results[0]).to.have.property('id');
   });
 });

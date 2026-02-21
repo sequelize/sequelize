@@ -4,6 +4,7 @@ import type { BaseSqlExpression } from '../expression-builders/base-sql-expressi
 import type { Literal } from '../expression-builders/literal';
 import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '../model';
 import type { ModelDefinition } from '../model-definition.js';
+import type { QueryRawOptions } from '../sequelize';
 import type { TransactionType } from '../transaction';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';
@@ -12,7 +13,7 @@ import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
 
-export interface UnionOptions extends AddLimitOffsetOptions {
+export interface UnionOptions extends QueryRawOptions, AddLimitOffsetOptions {
   unionAll?: boolean;
   order?: string | [string, string] | Array<string | [string, string]>;
 }

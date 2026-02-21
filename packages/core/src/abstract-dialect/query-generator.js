@@ -1498,7 +1498,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (Array.isArray(t)) {
           const [col, dir] = t;
 
-          return `${this.quoteIdentifier(col)} ${dir}`;
+          let normalizedDir = typeof dir === 'string' ? dir.toUpperCase() : 'ASC';
+          if (!VALID_ORDER_OPTIONS.includes(normalizedDir)) {
+            normalizedDir = 'ASC';
+          }
+
+          return `${this.quoteIdentifier(col)} ${normalizedDir}`;
         }
 
         return this.quoteIdentifier(t);
@@ -1506,7 +1511,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       query += ` ORDER BY ${orderClauses.join(', ')}`;
     }
 
-    if (options.limit || options.offset) {
+    if (options.limit != null || options.offset != null) {
       const limitOrder = this.#internals.addLimitAndOffset(options);
       if (limitOrder) {
         query += ` ${limitOrder}`;
