@@ -925,16 +925,17 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          if (currentAttribute.primaryKey) {
+          const attributeForChange = cloneDeep(currentAttribute);
+          if (attributeForChange.primaryKey) {
             continue;
           }
 
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
-          const references = currentAttribute.references;
-          if (currentAttribute.references) {
+          const references = attributeForChange.references;
+          if (references) {
             const schema = tableName.schema;
             const database = this.sequelize.options.replication.write.database;
-            const foreignReferenceSchema = currentAttribute.references.table.schema;
+            const foreignReferenceSchema = references.table.schema;
             const foreignReferenceTableName =
               typeof references.table === 'object' ? references.table.tableName : references.table;
             // Find existed foreign keys
@@ -961,7 +962,7 @@ ${associationOwner._getAssociationDebugList()}`);
             }
           }
 
-          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+          await this.queryInterface.changeColumn(tableName, columnName, attributeForChange, options);
         }
       }
     }
