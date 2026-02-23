@@ -234,7 +234,7 @@ export class MySqlQuery extends AbstractQuery {
       case ER_NO_REFERENCED_ROW: {
         // e.g. CONSTRAINT `example_constraint_name` FOREIGN KEY (`example_id`) REFERENCES `examples` (`id`)
         const match = err.message.match(
-          /CONSTRAINT (["`])(.*)\1 FOREIGN KEY \(\1(.*)\1\)(?:\s*REFERENCES \1(.*)\1 \(\1(.*)\1\))?/,
+          /CONSTRAINT (["`])(.*?)\1 FOREIGN KEY \(\1(.*?)\1\)(?:\s*REFERENCES \1(.*?)\1 \(\1(.*?)\1\))?/,
         );
         const quoteChar = match ? match[1] : '`';
         const fields = match
