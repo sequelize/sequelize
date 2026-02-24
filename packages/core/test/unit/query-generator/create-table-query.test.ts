@@ -660,10 +660,16 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('produces a query without STRICT when strict option is false', () => {
+    // strict: false is treated the same as not passing the option at all,
+    // since rejectInvalidOptions filters out false values.
     expectsql(
       () => queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }, { strict: false }),
       {
-        default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['strict']),
+        default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] DATE);',
+        'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE) ENGINE=InnoDB;',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
+        ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE); END`,
+        oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
         sqlite3: 'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE);',
       },
     );
