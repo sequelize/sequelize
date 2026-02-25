@@ -198,6 +198,7 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {object|Array}    [options.replacements] Either an object of named parameter replacements in the format `:param` or an array of unnamed replacements to replace `?` in your SQL.
    * @param {object|Array}    [options.bind] Either an object of named bind parameter in the format `_param` or an array of unnamed bind parameter to replace `$1, $2, ...` in your SQL.
    * @param {boolean}         [options.usePrimary=false] Force the query to use the primary (write) pool, regardless of the query type.
+   * @param {boolean}         [options.useMaster=false] Deprecated: Use options.usePrimary instead.
    * @param {Function}        [options.logging=false] A function that gets executed while running the query to log the sql.
    * @param {Model}           [options.instance] A sequelize model instance whose Model is to be used to build the query result
    * @param {ModelStatic<Model>}    [options.model] A sequelize model used to build the returned model instances
@@ -370,6 +371,7 @@ Use Sequelize#query if you wish to use replacements.`);
           ? options.connection
           : await this.pool.acquire({
               usePrimary: options.usePrimary,
+              useMaster: options.useMaster,
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 

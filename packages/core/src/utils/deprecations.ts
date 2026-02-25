@@ -140,3 +140,9 @@ export const noGetDialect = deprecate(
   'Do not use sequelize.getDialect(). Use sequelize.dialect.name instead.',
   'SEQUELIZE0031',
 );
+
+export const useMasterToUsePrimary = deprecate(
+  noop,
+  'The "useMaster" option has been renamed to "usePrimary". "useMaster" is deprecated and will be removed in a future release.',
+  'SEQUELIZE0032',
+);
