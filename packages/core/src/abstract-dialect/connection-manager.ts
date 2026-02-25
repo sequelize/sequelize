@@ -7,9 +7,9 @@ export interface GetConnectionOptions {
   type: 'read' | 'write';
 
   /**
-   * Force master or write replica to get connection from
+   * Force the query to use the primary (write) pool, regardless of the query type.
    */
-  useMaster?: boolean;
+  usePrimary?: boolean;
 }
 
 export interface AbstractConnection {
