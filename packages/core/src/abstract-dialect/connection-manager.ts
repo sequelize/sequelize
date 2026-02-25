@@ -10,6 +10,11 @@ export interface GetConnectionOptions {
    * Force the query to use the primary (write) pool, regardless of the query type.
    */
   usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link usePrimary} instead.
+   */
+  useMaster?: boolean;
 }
 
 export interface AbstractConnection {

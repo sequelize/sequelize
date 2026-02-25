@@ -58,6 +58,11 @@ export interface Poolable {
    * @default false
    */
   usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link usePrimary} instead.
+   */
+  useMaster?: boolean;
 }
 
 export interface Transactionable {

@@ -2,6 +2,7 @@ import { pojo, shallowClonePojo } from '@sequelize/utils';
 import { Pool, TimeoutError } from 'sequelize-pool';
 import type { Class } from 'type-fest';
 import { logger } from '../utils/logger.js';
+import { useMasterToUsePrimary } from '../utils/deprecations.js';
 
 const debug = logger.debugContext('pool');
 
@@ -49,6 +50,11 @@ export interface AcquireConnectionOptions {
    * Force the query to use the primary (write) pool, regardless of the query type.
    */
   usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link usePrimary} instead.
+   */
+  useMaster?: boolean;
 }
 
 interface ReplicationPoolConfig<Connection extends object, ConnectionOptions extends object> {
@@ -157,6 +163,17 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
 
   async acquire(options?: AcquireConnectionOptions | undefined) {
     options = options ? shallowClonePojo(options) : pojo();
+
+    // Deprecation bridge: useMaster -> usePrimary
+    if ('useMaster' in options) {
+      useMasterToUsePrimary();
+      if (options.usePrimary === undefined) {
+        options.usePrimary = options.useMaster;
+      }
+
+      delete options.useMaster;
+    }
+
     await this.#beforeAcquire?.(options);
     Object.freeze(options);
 
