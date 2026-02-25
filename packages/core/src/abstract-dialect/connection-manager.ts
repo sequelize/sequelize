@@ -12,7 +12,7 @@ export interface GetConnectionOptions {
   usePrimary?: boolean;
 
   /**
-   * @deprecated Use {@link usePrimary} instead.
+   * @deprecated Use {@link GetConnectionOptions.usePrimary} instead.
    */
   useMaster?: boolean;
 }
