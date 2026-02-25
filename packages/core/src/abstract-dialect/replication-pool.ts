@@ -1,8 +1,8 @@
 import { pojo, shallowClonePojo } from '@sequelize/utils';
 import { Pool, TimeoutError } from 'sequelize-pool';
 import type { Class } from 'type-fest';
-import { logger } from '../utils/logger.js';
 import { useMasterToUsePrimary } from '../utils/deprecations.js';
+import { logger } from '../utils/logger.js';
 
 const debug = logger.debugContext('pool');
 
