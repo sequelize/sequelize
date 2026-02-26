@@ -66,6 +66,8 @@ describe(getTestDialectTeaser('Model'), () => {
       ]);
 
       expect(findAllSpy.calledOnce).to.equal(true);
+      const callArgs = findAllSpy.getCall(0).args[0];
+      expect(callArgs.where).to.have.property(Op.or);
     });
 
     it('should throw if non-array is passed', async () => {
@@ -108,9 +110,7 @@ describe(getTestDialectTeaser('Model'), () => {
 
       sinon.stub(Model, 'findAll').resolves([]);
 
-      await expect(
-        testModel.findByPks([{ pk1: 1 }]),
-      ).to.eventually.be.rejectedWith(TypeError);
+      await expect(testModel.findByPks([{ pk1: 1 }])).to.eventually.be.rejectedWith(TypeError);
     });
 
     it('should merge with existing where clause', async () => {
@@ -124,6 +124,8 @@ describe(getTestDialectTeaser('Model'), () => {
       await testModel.findByPks([1, 2], { where: { active: true } });
 
       expect(findAllSpy.calledOnce).to.equal(true);
+      const callArgs = findAllSpy.getCall(0).args[0];
+      expect(callArgs.where).to.have.property(Op.and);
     });
 
     it('should throw if model has no primary key', async () => {
