@@ -370,8 +370,9 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-              usePrimary: options.usePrimary,
-              useMaster: options.useMaster,
+              usePrimary:
+                options.usePrimary ??
+                (Object.hasOwn(options, 'useMaster') ? options.useMaster : undefined),
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
