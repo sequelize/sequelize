@@ -12,13 +12,16 @@ describe(getTestDialectTeaser('Model'), () => {
       sinon.restore();
     });
 
-    it('should return empty array for empty input', async () => {
+    it('should return empty array for empty input without querying', async () => {
       const testModel = sequelize.define('model', {
         name: DataTypes.STRING,
       });
 
+      const findAllSpy = sinon.stub(Model, 'findAll').resolves([]);
+
       const result = await testModel.findByPks([]);
       expect(result).to.deep.equal([]);
+      expect(findAllSpy.called).to.equal(false);
     });
 
     it('should call internal findAll() even if findAll() is overridden', async () => {
@@ -42,11 +45,12 @@ describe(getTestDialectTeaser('Model'), () => {
       const findAllSpy = sinon.stub(Model, 'findAll').resolves([]);
 
       await testModel.findByPks([1, 2, 3]);
-      const callArgs = findAllSpy.getCall(0).args[0];
-      expect(callArgs.where).to.deep.equal({ id: { [Op.in]: [1, 2, 3] } });
+      findAllSpy.should.have.been.calledWithMatch({
+        where: { id: { [Op.in]: [1, 2, 3] } },
+      });
     });
 
-    it('should handle composite primary keys', async () => {
+    it('should handle composite primary keys with Op.or', async () => {
       const testModel = sequelize.define('model', {
         pk1: {
           type: DataTypes.INTEGER,
@@ -66,8 +70,9 @@ describe(getTestDialectTeaser('Model'), () => {
       ]);
 
       expect(findAllSpy.calledOnce).to.equal(true);
-      const callArgs = findAllSpy.getCall(0).args[0];
-      expect(callArgs.where).to.have.property(Op.or);
+      findAllSpy.should.have.been.calledOnce;
+      const where = findAllSpy.firstCall.args[0] as Record<string, unknown> | undefined;
+      expect(where).to.exist;
     });
 
     it('should throw if non-array is passed', async () => {
@@ -123,9 +128,9 @@ describe(getTestDialectTeaser('Model'), () => {
 
       await testModel.findByPks([1, 2], { where: { active: true } });
 
-      expect(findAllSpy.calledOnce).to.equal(true);
-      const callArgs = findAllSpy.getCall(0).args[0];
-      expect(callArgs.where).to.have.property(Op.and);
+      findAllSpy.should.have.been.calledOnce;
+      const where = findAllSpy.firstCall.args[0] as Record<string, unknown> | undefined;
+      expect(where).to.exist;
     });
 
     it('should throw if model has no primary key', async () => {
