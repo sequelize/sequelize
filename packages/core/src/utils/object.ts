@@ -3,14 +3,9 @@ import { SetView, combinedIterator, map, pojo } from '@sequelize/utils';
 // @ts-expect-error -- lodash/_baseIsNative is not recognized as a separate module for @types/lodash
 import baseIsNative from 'lodash/_baseIsNative';
 import cloneDeepWith from 'lodash/cloneDeepWith';
-import forOwn from 'lodash/forOwn';
-import getValue from 'lodash/get';
 import isEqual from 'lodash/isEqual';
-import isFunction from 'lodash/isFunction';
 import isPlainObject from 'lodash/isPlainObject';
-import isUndefined from 'lodash/isUndefined.js';
 import mergeWith from 'lodash/mergeWith';
-import omitBy from 'lodash/omitBy.js';
 import { getComplexKeys } from './where.js';
 
 export const EMPTY_SET = new SetView<never>(new Set());
@@ -30,7 +25,7 @@ export function mergeDefaults<T>(a: T, b: Partial<T>): T {
     if (!isPlainObject(objectValue) && objectValue !== undefined) {
       // _.isNative includes a check for core-js and throws an error if present.
       // Depending on _baseIsNative bypasses the core-js check.
-      if (isFunction(objectValue) && baseIsNative(objectValue)) {
+      if (typeof objectValue === 'function' && baseIsNative(objectValue)) {
         return sourceValue || objectValue;
       }
 
@@ -56,9 +51,9 @@ export function merge(...args: object[]): object {
   const result: { [key: string]: any } = Object.create(null);
 
   for (const obj of args) {
-    forOwn(obj, (value, key) => {
+    for (const [key, value] of Object.entries(obj)) {
       if (value === undefined) {
-        return;
+        continue;
       }
 
       if (!result[key]) {
@@ -70,7 +65,7 @@ export function merge(...args: object[]): object {
       } else {
         result[key] = value;
       }
-    });
+    }
   }
 
   return result;
@@ -139,7 +134,7 @@ export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Fl
       if (typeof obj[key] === 'object' && obj[key] !== null) {
         flattenObject(obj[key], pathToProperty);
       } else {
-        flattenedObj[pathToProperty] = getValue(obj, key);
+        flattenedObj[pathToProperty] = obj[key];
       }
     }
 
@@ -217,11 +212,13 @@ type NoUndefinedField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 type NoNullishField<T> = { [P in keyof T]: Exclude<T[P], null | undefined> };
 
 export function removeUndefined<T extends {}>(val: T): NoUndefinedField<T> {
-  return omitBy(val, isUndefined) as NoUndefinedField<T>;
+  return Object.fromEntries(
+    Object.entries(val).filter(([, v]) => v !== undefined),
+  ) as NoUndefinedField<T>;
 }
 
 export function removeNullish<T extends {}>(val: T): NoNullishField<T> {
-  return omitBy(val, v => v == null) as NoNullishField<T>;
+  return Object.fromEntries(Object.entries(val).filter(([, v]) => v != null)) as NoNullishField<T>;
 }
 
 export function getObjectFromMap<K extends PropertyKey, V>(

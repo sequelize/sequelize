@@ -1,7 +1,7 @@
-import upperFirst from 'lodash/upperFirst.js';
 import type { ModelHooks } from '../../model-hooks.js';
 import { Model } from '../../model.js';
 import { isModelStatic } from '../../utils/model-utils.js';
+import { upperFirst } from '../../utils/string.js';
 import { registerModelOptions } from '../shared/model.js';
 import {
   createOptionallyParameterizedPropertyDecorator,

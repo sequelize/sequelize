@@ -1,4 +1,3 @@
-import uniq from 'lodash/uniq.js';
 import { EMPTY_ARRAY } from '../consts.js';
 import type { Entry, MapLike } from '../types.js';
 
@@ -95,7 +94,7 @@ export class MultiMap<K, V> implements MapLike<K, readonly V[]> {
       return this;
     }
 
-    const uniqueValues = Object.freeze(uniq(values));
+    const uniqueValues = Object.freeze([...new Set(values)]);
 
     this.#internalMap.set(key, uniqueValues);
 

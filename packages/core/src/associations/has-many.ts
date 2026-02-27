@@ -1,7 +1,6 @@
 import type { AllowIterable } from '@sequelize/utils';
 import { isPlainObject } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
-import upperFirst from 'lodash/upperFirst';
 import type { WhereOptions } from '../abstract-dialect/where-sql-builder-types.js';
 import { AssociationError } from '../errors/index.js';
 import { col } from '../expression-builders/col.js';
@@ -23,6 +22,7 @@ import type {
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
+import { upperFirst } from '../utils/string.js';
 import type {
   Association,
   AssociationOptions,

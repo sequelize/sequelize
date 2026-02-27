@@ -1,7 +1,6 @@
 import { pojo } from '@sequelize/utils';
 import type { SyntaxNode } from 'bnf-parser';
 import { BNF, Compile, ParseError } from 'bnf-parser';
-import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
 import { AssociationPath } from '../expression-builders/association-path.js';
 import { Attribute } from '../expression-builders/attribute.js';
@@ -24,14 +23,29 @@ import { JsonPath } from '../expression-builders/json-path.js';
  *
  * @param attribute The syntax to parse
  */
-export const parseAttributeSyntax = memoize(parseAttributeSyntaxInternal);
+export const parseAttributeSyntax = memoizeStringArg(parseAttributeSyntaxInternal);
 
 /**
  * Parses the syntax supported by nested JSON properties.
  * This is a subset of {@link parseAttributeSyntax}, which does not parse associations, and returns raw data
  * instead of a BaseExpression.
  */
-export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
+export const parseNestedJsonKeySyntax = memoizeStringArg(parseJsonPropertyKeyInternal);
+
+function memoizeStringArg<T>(fn: (key: string) => T): (key: string) => T {
+  const cache = new Map<string, T>();
+
+  return (key: string): T => {
+    if (cache.has(key)) {
+      return cache.get(key)!;
+    }
+
+    const result = fn(key);
+    cache.set(key, result);
+
+    return result;
+  };
+}
 
 /**
  * List of supported attribute modifiers.

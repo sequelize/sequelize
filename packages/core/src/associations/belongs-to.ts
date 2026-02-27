@@ -1,6 +1,5 @@
 import isEqual from 'lodash/isEqual';
 import isObject from 'lodash/isObject.js';
-import upperFirst from 'lodash/upperFirst';
 import assert from 'node:assert';
 import { cloneDataType } from '../abstract-dialect/data-types-utils.js';
 import { AssociationError } from '../errors/index.js';
@@ -20,7 +19,7 @@ import { Op } from '../operators';
 import { getColumnName } from '../utils/format.js';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
-import { camelize } from '../utils/string.js';
+import { camelize, upperFirst } from '../utils/string.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';

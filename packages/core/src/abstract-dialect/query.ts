@@ -15,7 +15,6 @@
  * All symbols are documented for Typedoc/JSDoc consumption. Unless marked otherwise,
  * everything in this file is considered internal to Sequelize's query pipeline.
  */
-import isEmpty from 'lodash/isEmpty';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
 import type { Association } from '../associations';
@@ -594,7 +593,7 @@ function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
   const uniqueKeys = (model as ModelWithLegacyUniqueKeys).uniqueKeys ?? {};
   const uniqueKeyAttributes: string[] = [];
 
-  if (!isEmpty(uniqueKeys)) {
+  if (Object.keys(uniqueKeys).length > 0) {
     const [firstUniqueKeyName] = Object.keys(uniqueKeys);
     const uniqueKey = firstUniqueKeyName ? uniqueKeys[firstUniqueKeyName] : undefined;
     const fields: readonly unknown[] = uniqueKey?.fields ?? [];
@@ -662,7 +661,7 @@ function getHash(model: ModelStatic, row: Record<string, unknown>): string {
     }
   }
 
-  if (isEmpty(strings) && !isEmpty(model.getIndexes())) {
+  if (strings.length === 0 && model.getIndexes().length > 0) {
     for (let i = 0; i < model.getIndexes().length; i++) {
       const index = model.getIndexes()[i];
       if (!index.unique || !index.fields) {
@@ -1394,7 +1393,9 @@ export class AbstractQuery {
               ? ''
               : prefixId.slice(0, Math.max(0, prefixId.lastIndexOf('.'))) || '';
           const primaryKeyAttributes = modelForKey?.primaryKeyAttributes ?? [];
-          const hasUniqueKeys = modelForKey ? !isEmpty(modelForKey.uniqueKeys) : false;
+          const hasUniqueKeys = modelForKey
+            ? Object.keys(modelForKey.uniqueKeys).length > 0
+            : false;
           const uniqueKeyAttributes =
             hasUniqueKeys && modelForKey ? getUniqueKeyAttributes(modelForKey) : [];
           const hashAttributeRowKeys = buildHashAttributeRowKeys(
