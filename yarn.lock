@@ -6786,9 +6786,9 @@ __metadata:
   linkType: hard
 
 "dottie@npm:^2.0.6":
-  version: 2.0.6
-  resolution: "dottie@npm:2.0.6"
-  checksum: 10c0/1d99f8b61ae7541b3b70e9cde57308e0044e7bd13e09945b61cf78b303f5c51e3747e5f99c0d519551c5347427c1c1f89aedafe4bf9d9db554c7113772d99b5d
+  version: 2.0.7
+  resolution: "dottie@npm:2.0.7"
+  checksum: 10c0/ba21bbc9b632aa33efa969bde514446a9ec0db4d43d79cac449c1ed17da10f0cb63da7e3d9fcd11935bf95882387ea9b3bf80c58479f2f8c97b318c2a8bcf54d
   languageName: node
   linkType: hard
 
@@ -11498,16 +11498,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minizlib@npm:^3.0.1":
-  version: 3.0.2
-  resolution: "minizlib@npm:3.0.2"
-  dependencies:
-    minipass: "npm:^7.1.2"
-  checksum: 10c0/9f3bd35e41d40d02469cb30470c55ccc21cae0db40e08d1d0b1dff01cc8cc89a6f78e9c5d2b7c844e485ec0a8abc2238111213fdc5b2038e6d1012eacf316f78
-  languageName: node
-  linkType: hard
-
-"minizlib@npm:^3.1.0":
+"minizlib@npm:^3.0.1, minizlib@npm:^3.1.0":
   version: 3.1.0
   resolution: "minizlib@npm:3.1.0"
   dependencies:
@@ -11533,15 +11524,6 @@ __metadata:
   bin:
     mkdirp: bin/cmd.js
   checksum: 10c0/46ea0f3ffa8bc6a5bc0c7081ffc3907777f0ed6516888d40a518c5111f8366d97d2678911ad1a6882bf592fa9de6c784fea32e1687bb94e1f4944170af48a5cf
-  languageName: node
-  linkType: hard
-
-"mkdirp@npm:^3.0.1":
-  version: 3.0.1
-  resolution: "mkdirp@npm:3.0.1"
-  bin:
-    mkdirp: dist/cjs/src/bin.js
-  checksum: 10c0/9f2b975e9246351f5e3a40dcfac99fcd0baa31fbfab615fe059fb11e51f10e4803c63de1f384c54d656e4db31d000e4767e9ef076a22e12a641357602e31d57d
   languageName: node
   linkType: hard
 
@@ -15092,21 +15074,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tar@npm:^7.4.3":
-  version: 7.4.3
-  resolution: "tar@npm:7.4.3"
-  dependencies:
-    "@isaacs/fs-minipass": "npm:^4.0.0"
-    chownr: "npm:^3.0.0"
-    minipass: "npm:^7.1.2"
-    minizlib: "npm:^3.0.1"
-    mkdirp: "npm:^3.0.1"
-    yallist: "npm:^5.0.0"
-  checksum: 10c0/d4679609bb2a9b48eeaf84632b6d844128d2412b95b6de07d53d8ee8baf4ca0857c9331dfa510390a0727b550fd543d4d1a10995ad86cdf078423fbb8d99831d
-  languageName: node
-  linkType: hard
-
-"tar@npm:^7.5.4":
+"tar@npm:^7.4.3, tar@npm:^7.5.4":
   version: 7.5.9
   resolution: "tar@npm:7.5.9"
   dependencies:
