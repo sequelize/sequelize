@@ -52,7 +52,7 @@ export interface AcquireConnectionOptions {
   usePrimary?: boolean;
 
   /**
-   * @deprecated Use {@link usePrimary} instead.
+   * @deprecated Use {@link AcquireConnectionOptions.usePrimary} instead.
    */
   useMaster?: boolean;
 }
