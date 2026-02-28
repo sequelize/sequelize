@@ -1394,7 +1394,7 @@ export class AbstractQuery {
               : prefixId.slice(0, Math.max(0, prefixId.lastIndexOf('.'))) || '';
           const primaryKeyAttributes = modelForKey?.primaryKeyAttributes ?? [];
           const hasUniqueKeys = modelForKey
-            ? Object.keys(modelForKey.uniqueKeys).length > 0
+            ? Object.keys((modelForKey as ModelWithLegacyUniqueKeys).uniqueKeys ?? {}).length > 0
             : false;
           const uniqueKeyAttributes =
             hasUniqueKeys && modelForKey ? getUniqueKeyAttributes(modelForKey) : [];
