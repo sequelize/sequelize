@@ -55,7 +55,7 @@ jobs:
       fail-fast: false
       matrix:
         oracle-version: [18, 23]
-        node-version: [10, 18]
+        node-version: [14, 18]
     name: Oracle DB ${{ matrix.oracle-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
     env:
@@ -88,7 +88,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 18]
+        node-version: [14, 18]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
     env:
@@ -117,7 +117,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 18]
+        node-version: [14, 18]
     name: SQLite (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
     env:
@@ -137,7 +137,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 18]
+        node-version: [14, 18]
         postgres-version: [9.5, 10] # Does not work with 12
         minify-aliases: [true, false]
         native: [true, false]
@@ -180,7 +180,7 @@ jobs:
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
-            node-version: 10
+            node-version: 14
           - name: MySQL 5.7
             image: mysql:5.7
             dialect: mysql
@@ -188,7 +188,7 @@ jobs:
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
-            node-version: 10
+            node-version: 14
           - name: MySQL 8.0
             image: mysql:8.0
             dialect: mysql
@@ -196,7 +196,7 @@ jobs:
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
-            node-version: 10
+            node-version: 14
           - name: MariaDB 10.3
             image: mariadb:10.3
             dialect: mariadb
@@ -204,7 +204,7 @@ jobs:
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
-            node-version: 10
+            node-version: 14
           - name: MariaDB 10.5
             image: mariadb:10.5
             dialect: mariadb
@@ -241,7 +241,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 18]
+        node-version: [14, 18]
         mssql-version: [2017, 2019]
     name: MSSQL ${{ matrix.mssql-version }} (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
@@ -281,7 +281,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [10, 18]
+        node-version: [14, 18]
     name: SNOWFLAKE (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
     env:
