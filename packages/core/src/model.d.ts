@@ -60,7 +60,7 @@ export interface Poolable {
   usePrimary?: boolean;
 
   /**
-   * @deprecated Use {@link usePrimary} instead.
+   * @deprecated Use {@link Poolable.usePrimary} instead.
    */
   useMaster?: boolean;
 }
