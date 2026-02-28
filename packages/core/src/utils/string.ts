@@ -16,11 +16,13 @@ export function useInflection(newInflection: Inflection) {
 
 export function upperFirst(str: string): string {
   const chars = [...str];
+
   return chars.length === 0 ? str : chars[0].toUpperCase() + chars.slice(1).join('');
 }
 
 export function lowerFirst(str: string): string {
   const chars = [...str];
+
   return chars.length === 0 ? str : chars[0].toLowerCase() + chars.slice(1).join('');
 }
 
