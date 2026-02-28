@@ -401,7 +401,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
-      if (Object.keys(data as object).length === 0) {
+      if (!data || Object.keys(data as object).length === 0) {
         throw new Error(
           `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
         );
