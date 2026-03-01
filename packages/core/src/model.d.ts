@@ -50,9 +50,14 @@ export interface Logging {
 
 export interface Poolable {
   /**
-   * Force the query to use the write pool, regardless of the query type.
+   * Force the query to use the primary (write) pool, regardless of the query type.
    *
    * @default false
+   */
+  usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link Poolable.usePrimary} instead.
    */
   useMaster?: boolean;
 }

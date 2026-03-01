@@ -195,7 +195,7 @@ describe('sequelize.pool', () => {
       const getConnection = async () => {
         return sequelize3.pool.acquire({
           type: 'read',
-          useMaster: false,
+          usePrimary: false,
         });
       };
 
@@ -258,7 +258,7 @@ describe('sequelize.pool', () => {
 
       await sequelize3.pool.acquire({
         type: 'read',
-        useMaster: true,
+        usePrimary: true,
       });
 
       expect(connectStub).to.have.been.calledOnce;

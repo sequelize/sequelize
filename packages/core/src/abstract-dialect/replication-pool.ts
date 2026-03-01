@@ -1,6 +1,7 @@
 import { pojo, shallowClonePojo } from '@sequelize/utils';
 import { Pool, TimeoutError } from 'sequelize-pool';
 import type { Class } from 'type-fest';
+import { useMasterToUsePrimary } from '../utils/deprecations.js';
 import { logger } from '../utils/logger.js';
 
 const debug = logger.debugContext('pool');
@@ -46,7 +47,12 @@ export interface AcquireConnectionOptions {
   type?: 'read' | 'write';
 
   /**
-   * Force master or write replica to get connection from
+   * Force the query to use the primary (write) pool, regardless of the query type.
+   */
+  usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link AcquireConnectionOptions.usePrimary} instead.
    */
   useMaster?: boolean;
 }
@@ -157,16 +163,27 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
 
   async acquire(options?: AcquireConnectionOptions | undefined) {
     options = options ? shallowClonePojo(options) : pojo();
+
+    // Deprecation bridge: useMaster -> usePrimary
+    if ('useMaster' in options) {
+      useMasterToUsePrimary();
+      if (options.usePrimary === undefined) {
+        options.usePrimary = options.useMaster;
+      }
+
+      delete options.useMaster;
+    }
+
     await this.#beforeAcquire?.(options);
     Object.freeze(options);
 
-    const { useMaster = false, type = 'write' } = options;
+    const { usePrimary = false, type = 'write' } = options;
 
     if (type !== 'read' && type !== 'write') {
       throw new Error(`Expected queryType to be either read or write. Received ${type}`);
     }
 
-    const pool = this.read != null && type === 'read' && !useMaster ? this.read : this.write;
+    const pool = this.read != null && type === 'read' && !usePrimary ? this.read : this.write;
 
     let connection;
     try {
