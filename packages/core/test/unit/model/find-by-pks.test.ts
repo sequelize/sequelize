@@ -69,10 +69,15 @@ describe(getTestDialectTeaser('Model'), () => {
         { pk1: 2, pk2: 20 },
       ]);
 
-      expect(findAllSpy.calledOnce).to.equal(true);
       findAllSpy.should.have.been.calledOnce;
-      const where = findAllSpy.firstCall.args[0] as Record<string, unknown> | undefined;
-      expect(where).to.exist;
+      findAllSpy.should.have.been.calledWithMatch({
+        where: {
+          [Op.or]: [
+            { pk1: 1, pk2: 10 },
+            { pk1: 2, pk2: 20 },
+          ],
+        },
+      });
     });
 
     it('should reject null or undefined values in identifiers', async () => {
@@ -147,8 +152,11 @@ describe(getTestDialectTeaser('Model'), () => {
       await testModel.findByPks([1, 2], { where: { active: true } });
 
       findAllSpy.should.have.been.calledOnce;
-      const where = findAllSpy.firstCall.args[0] as Record<string, unknown> | undefined;
-      expect(where).to.exist;
+      findAllSpy.should.have.been.calledWithMatch({
+        where: {
+          [Op.and]: [{ active: true }, { id: { [Op.in]: [1, 2] } }],
+        },
+      });
     });
 
     it('should throw if model has no primary key', async () => {

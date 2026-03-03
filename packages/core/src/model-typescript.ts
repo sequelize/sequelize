@@ -604,13 +604,14 @@ function buildPkWhereClause(
   }
 
   for (const attributeName of primaryKeyAttributeNames) {
-    if (identifier[attributeName] === undefined) {
+    const value = identifier[attributeName];
+    if (value == null) {
       throw new TypeError(
-        `Part of the composite primary key, ${attributeName}, is missing. Received: ${inspect(identifier)}`,
+        `Part of the composite primary key, ${attributeName}, is missing or null. Received: ${inspect(identifier)}`,
       );
     }
 
-    pkWhere[attributeName] = identifier[attributeName];
+    pkWhere[attributeName] = value;
   }
 
   return pkWhere;
