@@ -1,7 +1,6 @@
 'use strict';
 
 import { EMPTY_OBJECT, every, find } from '@sequelize/utils';
-import Dottie from 'dottie';
 import assignWith from 'lodash/assignWith';
 import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
@@ -72,6 +71,7 @@ import {
 } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { removeTrailingSemicolon } from './utils/string.js';
+import { getByPathArray, setByPathArray, tokenizePath } from './utils/undot.js';
 import { getComplexKeys } from './utils/where.js';
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -3674,9 +3674,10 @@ Instead of specifying a Model, either:
           const jsonAttributeNames = modelDefinition.jsonAttributeNames;
 
           if (key.includes('.') && jsonAttributeNames.has(key.split('.')[0])) {
-            const previousNestedValue = Dottie.get(this.dataValues, key);
+            const path = tokenizePath(key);
+            const previousNestedValue = getByPathArray(this.dataValues, path);
             if (!isEqual(previousNestedValue, value)) {
-              Dottie.set(this.dataValues, key, value);
+              setByPathArray(this.dataValues, path, value);
               this.changed(key.split('.')[0], true);
             }
           }
