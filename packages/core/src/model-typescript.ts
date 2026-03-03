@@ -1,4 +1,4 @@
-import type { PartialBy } from '@sequelize/utils';
+import type { PartialBy, SetView } from '@sequelize/utils';
 import { isPlainObject } from '@sequelize/utils';
 import { inspect } from 'node:util';
 import type {
@@ -506,26 +506,7 @@ export class ModelTypeScript {
       );
     }
 
-    const pkWhere = Object.create(null);
-    if (primaryKeyAttributeNames.size === 1) {
-      pkWhere[primaryKeyAttributeNames.firstValue()!] = identifier;
-    } else {
-      if (!isPlainObject(identifier)) {
-        throw new TypeError(
-          `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }. Received: ${inspect(identifier)}`,
-        );
-      }
-
-      for (const attributeName of primaryKeyAttributeNames) {
-        if (identifier[attributeName] === undefined) {
-          throw new TypeError(
-            `Part of the composite primary key, ${attributeName}, is missing. Please pass all primary key attributes. Received: ${inspect(identifier)}`,
-          );
-        }
-
-        pkWhere[attributeName] = identifier[attributeName];
-      }
-    }
+    const pkWhere = buildPkWhereClause(this.name, primaryKeyAttributeNames, identifier);
 
     // Bypass a possible overloaded findOne
     return Model.findOne.call(this, {
@@ -583,24 +564,7 @@ export class ModelTypeScript {
     } else {
       // composite primary key — build an OR of AND conditions
       const conditions = identifiers.map(identifier => {
-        if (!isPlainObject(identifier)) {
-          throw new TypeError(
-            `Model ${this.name} has a composite primary key. Each identifier must be an object like { pk1: value1, pk2: value2 }. Received: ${inspect(identifier)}`,
-          );
-        }
-
-        const condition = Object.create(null);
-        for (const attributeName of primaryKeyAttributeNames) {
-          if (identifier[attributeName] === undefined) {
-            throw new TypeError(
-              `Part of the composite primary key, ${attributeName}, is missing. Received: ${inspect(identifier)}`,
-            );
-          }
-
-          condition[attributeName] = identifier[attributeName];
-        }
-
-        return condition;
+        return buildPkWhereClause(this.name, primaryKeyAttributeNames, identifier);
       });
 
       pkWhere = or(...conditions);
@@ -612,6 +576,40 @@ export class ModelTypeScript {
       where: options?.where ? and(options.where, pkWhere) : pkWhere,
     }) as Promise<M[]>;
   }
+}
+
+// Validates a single identifier against the given PK attributes and
+// returns a where-clause object. Throws if the identifier is malformed.
+function buildPkWhereClause(
+  modelName: string,
+  primaryKeyAttributeNames: SetView<string>,
+  identifier: unknown,
+): Record<string, unknown> {
+  const pkWhere: Record<string, unknown> = Object.create(null);
+
+  if (primaryKeyAttributeNames.size === 1) {
+    pkWhere[primaryKeyAttributeNames.firstValue()!] = identifier;
+
+    return pkWhere;
+  }
+
+  if (!isPlainObject(identifier)) {
+    throw new TypeError(
+      `Model ${modelName} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }. Received: ${inspect(identifier)}`,
+    );
+  }
+
+  for (const attributeName of primaryKeyAttributeNames) {
+    if (identifier[attributeName] === undefined) {
+      throw new TypeError(
+        `Part of the composite primary key, ${attributeName}, is missing. Received: ${inspect(identifier)}`,
+      );
+    }
+
+    pkWhere[attributeName] = identifier[attributeName];
+  }
+
+  return pkWhere;
 }
 
 export function initModel<M extends Model>(
