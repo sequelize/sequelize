@@ -56,7 +56,7 @@ export class ModelDefinition<M extends Model = Model> {
 
   /**
    * The list of attributes that have *not* been normalized.
-   * This list can be mutated. Call {@link refreshAttributes} to update the normalized attributes ({@link attributes)}.
+   * This list can be mutated. Call {@link refreshAttributes} to update the normalized attributes ({@link attributes}).
    */
   readonly rawAttributes: { [attributeName: string]: AttributeOptions<M> };
 
