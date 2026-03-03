@@ -75,6 +75,24 @@ describe(getTestDialectTeaser('Model'), () => {
       expect(where).to.exist;
     });
 
+    it('should reject null or undefined values in identifiers', async () => {
+      const testModel = sequelize.define('model', {
+        name: DataTypes.STRING,
+      });
+
+      sinon.stub(Model, 'findAll').resolves([]);
+
+      await expect(testModel.findByPks([1, null, 3])).to.eventually.be.rejectedWith(
+        TypeError,
+        'does not accept null or undefined',
+      );
+
+      await expect(testModel.findByPks([undefined])).to.eventually.be.rejectedWith(
+        TypeError,
+        'does not accept null or undefined',
+      );
+    });
+
     it('should throw if non-array is passed', async () => {
       const testModel = sequelize.define('model', {
         name: DataTypes.STRING,

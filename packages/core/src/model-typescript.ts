@@ -549,6 +549,10 @@ export class ModelTypeScript {
       return [];
     }
 
+    if (identifiers.some(id => id == null)) {
+      throw new TypeError('findByPks does not accept null or undefined primary key values');
+    }
+
     const primaryKeyAttributeNames = this.modelDefinition.primaryKeysAttributeNames;
     if (primaryKeyAttributeNames.size === 0) {
       throw new Error(
