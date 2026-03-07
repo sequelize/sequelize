@@ -338,19 +338,35 @@ export class PostgresQuery extends AbstractQuery {
     const errDetail = err.detail || err.messageDetail;
 
     switch (code) {
-      case '23503':
+      case '23503': {
         index = errMessage.match(/violates foreign key constraint "(.+?)"/);
         index = index ? index[1] : undefined;
         table = errMessage.match(/on table "(.+?)"/);
         table = table ? table[1] : undefined;
 
+        // errDetail format: Key (field)=(value) is not present in table "x".
+        //                or: Key (field)=(value) is still referenced from table "x".
+        const fkMatch = errDetail
+          ? errDetail.replaceAll('"', '').match(/Key \((.+?)\)=\((.+?)\)/)
+          : null;
+        const fkFields = fkMatch ? fkMatch[1].split(', ') : undefined;
+        const fkValues = fkMatch ? fkMatch[2].split(', ') : undefined;
+
+        // "insert or update on table" = child referencing missing parent
+        // "update or delete on table" = parent still referenced by children
+        const reltype = errMessage.includes('insert or update') ? 'child' : 'parent';
+
         return new ForeignKeyConstraintError({
           message: errMessage,
-          fields: null,
+          fields: fkFields,
+          value: fkValues,
           index,
           table,
+          reltype,
           cause: err,
         });
+      }
+
       case '23505':
         // there are multiple different formats of error messages for this error code
         // this regex should check at least two
