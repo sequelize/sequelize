@@ -2540,6 +2540,16 @@ ${associationOwner._getAssociationDebugList()}`);
             }
           }
         }
+
+        // #10966 - without RETURNING, expression defaults (literal, fn, etc.)
+        // stay as raw objects on the instance. Replace them with undefined.
+        for (const instance of instances) {
+          for (const key of Object.keys(instance.dataValues)) {
+            if (instance.dataValues[key] instanceof BaseSqlExpression) {
+              instance.dataValues[key] = undefined;
+            }
+          }
+        }
       }
 
       if (options.include && options.include.length > 0) {
