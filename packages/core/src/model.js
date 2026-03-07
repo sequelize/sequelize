@@ -4515,7 +4515,7 @@ Instead of specifying a Model, either:
     }
 
     const modelDefinition = this.modelDefinition;
-    const otherModelDefinition = this.modelDefinition;
+    const otherModelDefinition = other.modelDefinition;
 
     if (modelDefinition !== otherModelDefinition) {
       return false;
