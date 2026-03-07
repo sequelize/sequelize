@@ -39,13 +39,13 @@ describe('Model#equals()', () => {
   it('returns false when comparing instances of different models, even with the same primary key', () => {
     const user = vars.User.build({ id: 1 });
     const project = vars.Project.build({ id: 1 });
-    expect(user.equals(project)).to.be.false;
+    expect((user as Model).equals(project)).to.be.false;
   });
 
   it('returns false when comparing to a non-Model value', () => {
     const user = vars.User.build({ id: 1 });
-    expect(user.equals(null)).to.be.false;
-    expect(user.equals(undefined)).to.be.false;
+    expect(user.equals(null as unknown as Model)).to.be.false;
+    expect(user.equals(undefined as unknown as Model)).to.be.false;
     expect(user.equals({ id: 1 } as unknown as Model)).to.be.false;
   });
 });
