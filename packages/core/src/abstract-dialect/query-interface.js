@@ -207,16 +207,18 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
+    const normalizedAttributes = {
+      [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
+    };
+
     const query = this.queryGenerator.attributesToSQL(
-      {
-        [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
-      },
+      normalizedAttributes,
       {
         context: 'changeColumn',
         table: tableName,
       },
     );
-    const sql = this.queryGenerator.changeColumnQuery(tableName, query);
+    const sql = this.queryGenerator.changeColumnQuery(tableName, query, normalizedAttributes);
 
     return this.sequelize.queryRaw(sql, options);
   }
