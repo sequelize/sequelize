@@ -1,5 +1,4 @@
 import isObject from 'lodash/isObject';
-import upperFirst from 'lodash/upperFirst';
 import { AssociationError } from '../errors/index.js';
 import type {
   AttributeNames,
@@ -15,6 +14,7 @@ import { Model } from '../model';
 import { Op } from '../operators';
 import { isSameInitialModel } from '../utils/model-utils.js';
 import { cloneDeep, removeUndefined } from '../utils/object.js';
+import { upperFirst } from '../utils/string.js';
 import type { AssociationOptions, SingleAssociationAccessors } from './base';
 import { Association } from './base';
 import { BelongsToAssociation } from './belongs-to.js';

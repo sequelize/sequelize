@@ -1,5 +1,4 @@
 import { isIterable } from '@sequelize/utils';
-import pickBy from 'lodash/pickBy';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 
 /**
@@ -37,11 +36,11 @@ export function rejectInvalidOptions<T extends string>(
   supportedOptions: Iterable<T> | Partial<Record<T, boolean>>,
   receivedOptions: object,
 ): void {
-  const receivedOptionNames = Object.keys(
+  const receivedOptionNames = Object.entries(receivedOptions ?? {})
     // This removes any undefined or false values from the object
     // It is therefore _essential_ that boolean options are false by default!
-    pickBy(receivedOptions, value => value !== undefined && value !== false),
-  );
+    .filter(([, value]) => value !== undefined && value !== false)
+    .map(([key]) => key);
   const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
 
   const unsupportedOptions = receivedOptionNames.filter(optionName => {

@@ -24,7 +24,6 @@ import {
   noSchemaParameter,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/deprecations.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import isEmpty from 'lodash/isEmpty';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
@@ -88,7 +87,7 @@ export class SqliteQueryInterface<
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
        * it will not throw an error like built-ins do (e.g. DESCRIBE on MySql).
        */
-      if (isEmpty(data)) {
+      if (Object.keys(data).length === 0) {
         throw new Error(
           `No description found for table ${table.tableName}${table.schema ? ` in schema ${table.schema}` : ''}. Check the table name and schema; remember, they _are_ case sensitive.`,
         );

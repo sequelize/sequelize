@@ -1,6 +1,5 @@
 import { isPlainObject } from '@sequelize/utils';
 import glob from 'fast-glob';
-import uniq from 'lodash/uniq';
 import { pathToFileURL } from 'node:url';
 import type { ModelStatic } from './model.js';
 import { isModelStatic } from './utils/model-utils.js';
@@ -25,7 +24,7 @@ export async function importModels(
       promises.push(importModels(globPath, modelMatch));
     }
 
-    return uniq((await Promise.all(promises)).flat(1));
+    return [...new Set((await Promise.all(promises)).flat(1))];
   }
 
   const promises: Array<Promise<ModelStatic[]>> = [];
@@ -34,7 +33,7 @@ export async function importModels(
     promises.push(importModelNoGlob(url, modelMatch));
   }
 
-  return uniq((await Promise.all(promises)).flat(1));
+  return [...new Set((await Promise.all(promises)).flat(1))];
 }
 
 async function importModelNoGlob(url: string, modelMatch?: ModelMatch): Promise<ModelStatic[]> {

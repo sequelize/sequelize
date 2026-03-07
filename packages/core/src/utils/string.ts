@@ -1,5 +1,4 @@
 import * as _inflection from 'inflection';
-import lowerFirst from 'lodash/lowerFirst';
 import NodeUtil from 'node:util';
 import type { IndexOptions, TableName } from '../abstract-dialect/query-interface.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
@@ -14,6 +13,18 @@ export function useInflection(newInflection: Inflection) {
 }
 
 /* String utils */
+
+export function upperFirst(str: string): string {
+  const chars = [...str];
+
+  return chars.length === 0 ? str : chars[0].toUpperCase() + chars.slice(1).join('');
+}
+
+export function lowerFirst(str: string): string {
+  const chars = [...str];
+
+  return chars.length === 0 ? str : chars[0].toLowerCase() + chars.slice(1).join('');
+}
 
 export function camelize(str: string): string {
   return lowerFirst(str.trim()).replaceAll(/[-_\s]+(.)?/g, (match, c) => c.toUpperCase());
