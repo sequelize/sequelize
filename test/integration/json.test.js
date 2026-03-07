@@ -282,6 +282,65 @@ describe('model', () => {
     });
   }
 
+  if (current.dialect.supports.JSON) {
+    describe('json cast type SQL injection', () => {
+      beforeEach(async function() {
+        this.User = this.sequelize.define('User', {
+          username: DataTypes.STRING,
+          metadata: DataTypes.JSON
+        });
+
+        this.Secret = this.sequelize.define('Secret', {
+          key: DataTypes.STRING,
+          value: DataTypes.STRING
+        });
+
+        await this.sequelize.sync({ force: true });
+
+        await this.User.bulkCreate([
+          { username: 'alice', metadata: { role: 'admin', level: 10 } },
+          { username: 'bob', metadata: { role: 'user', level: 5 } }
+        ]);
+
+        await this.Secret.bulkCreate([
+          { key: 'api_key', value: 'sk-secret-12345' }
+        ]);
+      });
+
+      it('should reject WHERE bypass via OR 1=1 injection in JSON cast type', async function() {
+        await expect(this.User.findAll({
+          where: { metadata: { 'role::text) OR 1=1--': 'anything' } }
+        })).to.be.rejectedWith(Error, /Invalid cast type/);
+      });
+
+      it('should reject UNION-based cross-table data exfiltration via JSON cast type', async function() {
+        await expect(this.User.findAll({
+          where: {
+            metadata: {
+              ['role::text) AND 0 UNION SELECT id,key,value,null,null FROM Secrets--']: 'x'
+            }
+          },
+          raw: true
+        })).to.be.rejectedWith(Error, /Invalid cast type/);
+      });
+
+      it('should still allow legitimate JSON queries with valid cast types', async function() {
+        const users = await this.User.findAll({
+          where: { metadata: { level: 10 } }
+        });
+        expect(users).to.have.length(1);
+        expect(users[0].username).to.equal('alice');
+      });
+
+      it('should still allow legitimate JSON queries with valid :: cast notation', async function() {
+        const users = await this.User.findAll({
+          where: { metadata: { 'level::integer': { [Sequelize.Op.gt]: 3 } } }
+        });
+        expect(users).to.have.length(2);
+      });
+    });
+  }
+
   if (current.dialect.supports.JSONB) {
     describe('jsonb', () => {
       beforeEach(async function() {

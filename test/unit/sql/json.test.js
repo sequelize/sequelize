@@ -189,6 +189,70 @@ if (current.dialect.supports.JSON) {
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json(); DELETE YOLO INJECTIONS; -- '))).to.throw();
         });
       });
+
+      describe('cast type injection', () => {
+        const jsonFieldOptions = { field: { type: new DataTypes.JSON() } };
+
+        it('should reject SQL injection via :: cast type notation in JSON keys', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::text) OR 1=1--': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should reject UNION-based injection via :: cast type notation', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::text) AND 0 UNION SELECT * FROM secrets--': 'x' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should allow valid cast types via :: notation', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'id::integer': 1 }, jsonFieldOptions);
+          }).to.not.throw();
+        });
+
+        it('should allow the text cast type via :: notation', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'name::text': 'value' }, jsonFieldOptions);
+          }).to.not.throw();
+        });
+
+        it('should reject cast types with parentheses', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::text)': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should reject cast types with semicolons', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::text; DROP TABLE users': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should reject cast types with comment markers', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::text--': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should allow double precision cast type', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'level::double precision': 1 }, jsonFieldOptions);
+          }).to.not.throw();
+        });
+
+        it('should reject empty cast type', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+
+        it('should reject unknown cast types', () => {
+          expect(() => {
+            sql.whereItemQuery('data', { 'role::foobar': 'anything' }, jsonFieldOptions);
+          }).to.throw(Error, /Invalid cast type/);
+        });
+      });
     });
   });
 }

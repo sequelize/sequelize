@@ -17,6 +17,35 @@ const Op = require('../../operators');
 const sequelizeError = require('../../errors');
 const IndexHints = require('../../index-hints');
 
+/**
+ * Whitelist of SQL data types allowed in JSON key cast notation (e.g. "key::integer").
+ * This prevents SQL injection via user-controlled cast types in _traverseJSON.
+ * Includes types produced by _getJsonCast() and types transformed by dialect overrides.
+ */
+const ALLOWED_CAST_TYPES = new Set([
+  'integer',
+  'int',
+  'smallint',
+  'bigint',
+  'float',
+  'real',
+  'double precision',
+  'decimal',
+  'numeric',
+  'boolean',
+  'text',
+  'char',
+  'varchar',
+  'nvarchar',
+  'date',
+  'timestamp',
+  'timestamptz',
+  'datetime',
+  'json',
+  'jsonb',
+  'signed',
+  'unsigned'
+]);
 
 /**
  * Abstract Query Generator
@@ -2639,6 +2668,8 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       const tmp = path[path.length - 1].split('::');
       cast = tmp[1];
       path[path.length - 1] = tmp[0];
+
+      this._validateCastType(cast);
     }
 
     let pathKey = this.jsonPathExtractionQuery(baseKey, path);
@@ -2693,6 +2724,12 @@ https://github.com/sequelize/sequelize/discussions/15694`);
       return 'boolean';
     }
     return;
+  }
+
+  _validateCastType(cast) {
+    if (!ALLOWED_CAST_TYPES.has(cast.toLowerCase())) {
+      throw new Error(`Invalid cast type: ${cast}`);
+    }
   }
 
   _joinKeyValue(key, value, comparator, prefix) {
