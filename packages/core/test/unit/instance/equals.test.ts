@@ -37,10 +37,6 @@ describe('Model#equals()', () => {
   });
 
   it('returns false when comparing instances of different models, even with the same primary key', () => {
-    // Regression: otherModelDefinition was incorrectly assigned from this.modelDefinition,
-    // making the model-type guard always pass.
-    // See: https://github.com/sequelize/sequelize/issues/494
-    //      https://github.com/sequelize/sequelize/pull/5605
     const user = vars.User.build({ id: 1 });
     const project = vars.Project.build({ id: 1 });
     expect(user.equals(project)).to.be.false;
