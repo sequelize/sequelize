@@ -1,4 +1,4 @@
-import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, sequelize } from '../../support';
@@ -6,10 +6,12 @@ import { beforeAll2, sequelize } from '../../support';
 describe('Model#equals()', () => {
   const vars = beforeAll2(() => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare id: CreationOptional<number>;
       declare username: string;
     }
 
     class Project extends Model<InferAttributes<Project>, InferCreationAttributes<Project>> {
+      declare id: CreationOptional<number>;
       declare title: string;
     }
 
@@ -37,15 +39,16 @@ describe('Model#equals()', () => {
   });
 
   it('returns false when comparing instances of different models, even with the same primary key', () => {
-    const user = vars.User.build({ id: 1 });
-    const project = vars.Project.build({ id: 1 });
+    const user = vars.User.build({ id: 1, username: 'alice' });
+    const project = vars.Project.build({ id: 1, title: 'sequelize' });
     expect((user as Model).equals(project)).to.be.false;
   });
 
   it('returns false when comparing to a non-Model value', () => {
-    const user = vars.User.build({ id: 1 });
-    expect(user.equals(null as unknown as Model)).to.be.false;
-    expect(user.equals(undefined as unknown as Model)).to.be.false;
-    expect(user.equals({ id: 1 } as unknown as Model)).to.be.false;
+    type User = InstanceType<typeof vars.User>;
+    const user = vars.User.build({ id: 1, username: 'alice' });
+    expect(user.equals(null as unknown as User)).to.be.false;
+    expect(user.equals(undefined as unknown as User)).to.be.false;
+    expect(user.equals({ id: 1 } as unknown as User)).to.be.false;
   });
 });
