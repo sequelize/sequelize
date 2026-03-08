@@ -3671,18 +3671,25 @@ class Model {
     ) {
       const values = {};
       let _key;
-
       if (this._hasCustomGetters) {
-        for (_key in this._customGetters) {
-          if (
-            this._options.attributes
-            && !this._options.attributes.includes(_key)
-          ) {
-            continue;
+        if (this._options.attributes !== undefined) {
+          for (_key in this._customGetters) {          
+            if (!this._options.attributes.includes(_key)) {
+              continue;
+            }
+            values[_key] = this.get(_key, options);          
           }
-
-          if (Object.prototype.hasOwnProperty.call(this._customGetters, _key)) {
-            values[_key] = this.get(_key, options);
+        }
+        //called by .get() in methods like toJSON, update etc. where this._options is not initialized
+        //so getters in custom getters can have missing datavalue[key](field + getter) or can be purely getter method
+        //above two cases cant be handled simultaneously by above logic
+        else {
+          const notPureGetter = Object.keys(this.constructor.rawAttributes);
+          for (_key in this._customGetters) {          
+            if (!Object.prototype.hasOwnProperty.call(this.dataValues, _key) && notPureGetter.includes(_key)) {
+              continue;
+            }          
+            values[_key] = this.get(_key, options);          
           }
         }
       }
