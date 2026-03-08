@@ -2667,6 +2667,38 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): void;
 
   /**
+   * A hook that is run before restoring a single instance
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static beforeRestore<M extends Model>(
+    this: ModelStatic<M>,
+    name: string,
+    fn: (instance: M, options: InstanceRestoreOptions) => HookReturn
+  ): void;
+  public static beforeRestore<M extends Model>(
+    this: ModelStatic<M>,
+    fn: (instance: M, options: InstanceRestoreOptions) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after restoring a single instance
+   *
+   * @param name
+   * @param fn A callback function that is called with instance, options
+   */
+  public static afterRestore<M extends Model>(
+    this: ModelStatic<M>,
+    name: string,
+    fn: (instance: M, options: InstanceRestoreOptions) => HookReturn
+  ): void;
+  public static afterRestore<M extends Model>(
+    this: ModelStatic<M>,
+    fn: (instance: M, options: InstanceRestoreOptions) => HookReturn
+  ): void;
+
+  /**
    * A hook that is run before updating a single instance
    *
    * @param name
@@ -2789,6 +2821,36 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   public static afterBulkDestroy<M extends Model>(
     this: ModelStatic<M>,
     fn: (options: DestroyOptions<Attributes<M>>) => HookReturn
+  ): void;
+  
+  /**
+   * A hook that is run before restoring instances in bulk
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static beforeBulkRestore<M extends Model>(
+    this: ModelStatic<M>,
+    name: string, fn: (options: RestoreOptions<Attributes<M>>) => HookReturn
+  ): void;
+  public static beforeBulkRestore<M extends Model>(
+    this: ModelStatic<M>,
+    fn: (options: RestoreOptions<Attributes<M>>) => HookReturn
+  ): void;
+
+  /**
+   * A hook that is run after restoring instances in bulk
+   *
+   * @param name
+   * @param fn   A callback function that is called with options
+   */
+  public static afterBulkRestore<M extends Model>(
+    this: ModelStatic<M>,
+    name: string, fn: (options: RestoreOptions<Attributes<M>>) => HookReturn
+  ): void;
+  public static afterBulkRestore<M extends Model>(
+    this: ModelStatic<M>,
+    fn: (options: RestoreOptions<Attributes<M>>) => HookReturn
   ): void;
 
   /**
