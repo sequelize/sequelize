@@ -886,8 +886,12 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
       'FROM information_schema.table_constraints AS tc ' +
       'JOIN information_schema.key_column_usage AS kcu ' +
       'ON tc.constraint_name = kcu.constraint_name ' +
+      'AND tc.table_schema = kcu.table_schema ' +
+      'AND tc.table_catalog = kcu.table_catalog ' +
       'JOIN information_schema.constraint_column_usage AS ccu ' +
-      'ON ccu.constraint_name = tc.constraint_name ';
+      'ON ccu.constraint_name = tc.constraint_name ' + 
+      'AND ccu.table_schema = tc.table_schema ' +
+      'AND ccu.table_catalog = tc.table_catalog ';
   }
 
   /**
@@ -900,18 +904,19 @@ class PostgresQueryGenerator extends AbstractQueryGenerator {
    * @param {string} schemaName
    */
   getForeignKeyReferencesQuery(tableName, catalogName, schemaName) {
+    const schema = schemaName || 'public';
+
     return `${this._getForeignKeyReferencesQueryPrefix()
     }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name = '${tableName}'${
       catalogName ? ` AND tc.table_catalog = '${catalogName}'` : ''
-    }${schemaName ? ` AND tc.table_schema = '${schemaName}'` : ''}`;
+    } AND tc.table_schema = '${schema}'`;
   }
 
   getForeignKeyReferenceQuery(table, columnName) {
     const tableName = table.tableName || table;
-    const schema = table.schema;
+    const schema = table.schema || 'public';
     return `${this._getForeignKeyReferencesQueryPrefix()
-    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}'${
-      schema ? ` AND tc.table_schema = '${schema}'` : ''}`;
+    }WHERE constraint_type = 'FOREIGN KEY' AND tc.table_name='${tableName}' AND  kcu.column_name = '${columnName}' AND tc.table_schema = '${schema}'`;
   }
 
   /**
