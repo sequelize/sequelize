@@ -4514,9 +4514,6 @@ Instead of specifying a Model, either:
       return false;
     }
 
-    // Use isSameInitialModel() to compare the base model, ignoring variants created by
-    // withScope, withoutScope, withSchema, etc. This ensures that instances of the
-    // same logical model are considered equal regardless of how they were queried.
     if (!isSameInitialModel(this.constructor, other.constructor)) {
       return false;
     }
