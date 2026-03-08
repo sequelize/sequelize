@@ -1,5 +1,6 @@
 import {
   acquirePooledObject,
+  getByPathArray,
   precompileKeys,
   releasePooledObject,
   setByPathArray,
@@ -474,6 +475,191 @@ describe('undot utilities', () => {
       expect(pool).to.have.length(1);
       const final = acquirePooledObject(pool);
       expect(final).to.deep.equal({});
+    });
+  });
+
+  describe('prototype pollution prevention', () => {
+    // Tests mirroring dottie.js PR #43 (CVE-2026-27837 bypass fix)
+
+    afterEach(() => {
+      // Ensure Object.prototype is never polluted after each test
+      // @ts-expect-error -- testing pollution
+      delete Object.prototype.polluted;
+      // @ts-expect-error -- testing pollution
+      delete Object.prototype.isAdmin;
+      // @ts-expect-error -- testing pollution
+      delete Object.prototype.role;
+    });
+
+    describe('setByPathArray', () => {
+      it('should block __proto__ at second position', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['a', '__proto__', 'polluted'], true);
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should block __proto__ at third position', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['a', 'b', '__proto__', 'polluted'], true);
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should block __proto__ at first position', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['__proto__', 'polluted'], true);
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should block constructor at any position', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['a', 'constructor', 'prototype', 'polluted'], true);
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should block prototype at any position', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['a', 'prototype', 'polluted'], true);
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should allow normal nested paths', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['a', 'b', 'c'], 'hello');
+        expect((obj as any).a.b.c).to.equal('hello');
+      });
+
+      it('should allow paths with similar-looking but safe key names', () => {
+        const obj: Record<string, unknown> = {};
+        setByPathArray(obj, ['user', 'proto', 'value'], 42);
+        expect((obj as any).user.proto.value).to.equal(42);
+      });
+    });
+
+    describe('getByPathArray', () => {
+      it('should block __proto__ at any position', () => {
+        const obj = { a: { b: 1 } };
+        expect(getByPathArray(obj, ['a', '__proto__', 'toString'])).to.equal(undefined);
+      });
+
+      it('should block constructor at any position', () => {
+        const obj = { a: { b: 1 } };
+        expect(getByPathArray(obj, ['a', 'constructor', 'prototype'])).to.equal(undefined);
+      });
+
+      it('should block prototype at any position', () => {
+        const obj = { a: { b: 1 } };
+        expect(getByPathArray(obj, ['a', 'prototype'])).to.equal(undefined);
+      });
+
+      it('should allow normal nested paths', () => {
+        const obj = { a: { b: { c: 'hello' } } };
+        expect(getByPathArray(obj, ['a', 'b', 'c'])).to.equal('hello');
+      });
+    });
+
+    describe('tokenizePath', () => {
+      it('should throw on __proto__ at first position', () => {
+        expect(() => tokenizePath('__proto__.polluted')).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on __proto__ at second position', () => {
+        expect(() => tokenizePath('a.__proto__.polluted')).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on __proto__ at third position', () => {
+        expect(() => tokenizePath('a.b.__proto__.polluted')).to.throw(
+          'Prototype pollution attempt',
+        );
+      });
+
+      it('should throw on constructor at any position', () => {
+        expect(() => tokenizePath('a.constructor.prototype.polluted')).to.throw(
+          'Prototype pollution attempt',
+        );
+      });
+
+      it('should throw on prototype at any position', () => {
+        expect(() => tokenizePath('a.prototype.polluted')).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on __proto__ as the only segment', () => {
+        expect(() => tokenizePath('__proto__')).to.throw('Prototype pollution attempt');
+      });
+
+      it('should allow safe keys that look similar', () => {
+        expect(tokenizePath('user.proto.value')).to.deep.equal(['user', 'proto', 'value']);
+        expect(tokenizePath('user.__proto.value')).to.deep.equal(['user', '__proto', 'value']);
+        expect(tokenizePath('user.proto__.value')).to.deep.equal(['user', 'proto__', 'value']);
+      });
+    });
+
+    describe('precompileKeys', () => {
+      it('should throw on __proto__ as a single-segment key', () => {
+        expect(() => precompileKeys(['__proto__'])).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on constructor as a single-segment key', () => {
+        expect(() => precompileKeys(['constructor'])).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on prototype as a single-segment key', () => {
+        expect(() => precompileKeys(['prototype'])).to.throw('Prototype pollution attempt');
+      });
+
+      it('should throw on __proto__ in dotted key', () => {
+        expect(() => precompileKeys(['a.__proto__.polluted'])).to.throw(
+          'Prototype pollution attempt',
+        );
+      });
+    });
+
+    describe('transformRowWithPrecompiled', () => {
+      it('should block __proto__ at second position via precompileKeys', () => {
+        expect(() => {
+          const pre = precompileKeys(['user.__proto__.isAdmin']);
+          transformRowWithPrecompiled({ 'user.__proto__.isAdmin': true }, pre);
+        }).to.throw('Prototype pollution attempt');
+        // @ts-expect-error -- testing pollution
+        expect({}.isAdmin).to.equal(undefined);
+      });
+
+      it('should block __proto__ at first position via precompileKeys', () => {
+        expect(() => {
+          const pre = precompileKeys(['__proto__.polluted']);
+          transformRowWithPrecompiled({ '__proto__.polluted': true }, pre);
+        }).to.throw('Prototype pollution attempt');
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should block constructor.prototype via precompileKeys', () => {
+        expect(() => {
+          const pre = precompileKeys(['a.constructor.prototype.polluted']);
+          transformRowWithPrecompiled({ 'a.constructor.prototype.polluted': true }, pre);
+        }).to.throw('Prototype pollution attempt');
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
+
+      it('should transform normal dotted keys without pollution', () => {
+        const pre = precompileKeys(['user.name', 'user.email', 'user.settings.theme']);
+        const row = {
+          'user.name': 'Alice',
+          'user.email': 'alice@example.com',
+          'user.settings.theme': 'dark',
+        };
+        const result = transformRowWithPrecompiled(row, pre);
+        expect((result as any).user.name).to.equal('Alice');
+        expect((result as any).user.email).to.equal('alice@example.com');
+        expect((result as any).user.settings.theme).to.equal('dark');
+        // @ts-expect-error -- testing pollution
+        expect({}.polluted).to.equal(undefined);
+      });
     });
   });
 
