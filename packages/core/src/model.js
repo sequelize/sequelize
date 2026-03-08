@@ -4514,12 +4514,11 @@ Instead of specifying a Model, either:
       return false;
     }
 
-    const modelDefinition = this.modelDefinition;
-    const otherModelDefinition = this.modelDefinition;
-
-    if (modelDefinition !== otherModelDefinition) {
+    if (!isSameInitialModel(this.constructor, other.constructor)) {
       return false;
     }
+
+    const modelDefinition = this.modelDefinition;
 
     return every(modelDefinition.primaryKeysAttributeNames, attribute => {
       return this.get(attribute, { raw: true }) === other.get(attribute, { raw: true });
