@@ -2919,6 +2919,13 @@ ${associationOwner._getAssociationDebugList()}`);
     this._injectScope(options);
     this._optionsMustContainWhere(options);
 
+    // Normalize and validate includes for JOIN-based filtering
+    if (options.include) {
+      this._conformIncludes(options, this);
+      this._expandIncludeAll(options, this);
+      _validateIncludedElements(options);
+    }
+
     const modelDefinition = this.modelDefinition;
 
     options = this._paranoidClause(

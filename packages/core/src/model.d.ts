@@ -1339,6 +1339,13 @@ export interface UpdateOptions<TAttributes = any>
    * If true, the updatedAt timestamp will not be updated.
    */
   silent?: boolean;
+
+  /**
+   * Include associated models to filter the update using JOINs.
+   * Only the WHERE conditions on included models are used for filtering —
+   * you cannot SET values on included models.
+   */
+  include?: AllowArray<Includeable>;
 }
 
 /**

@@ -1,4 +1,5 @@
-import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
+import { DataTypes, Model, ParameterStyle, literal } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -252,6 +253,116 @@ describe('QueryGenerator#updateQuery', () => {
       sequelize_1: null,
       sequelize_2: 'bar',
       sequelize_3: 2,
+    });
+  });
+
+  describe('with include', () => {
+    const includeVars = beforeAll2(() => {
+      const Post = sequelize.define(
+        'Post',
+        {
+          title: DataTypes.STRING,
+          authorId: DataTypes.INTEGER,
+        },
+        { timestamps: false },
+      );
+
+      const Author = sequelize.define(
+        'Author',
+        {
+          name: DataTypes.STRING,
+        },
+        { timestamps: false },
+      );
+
+      Post.belongsTo(Author, { foreignKey: 'authorId' });
+      Author.hasMany(Post, { foreignKey: 'authorId' });
+
+      return { Post, Author };
+    });
+
+    function normalizeIncludes(options: any, model: any) {
+      Model._conformIncludes(options, model);
+      Model._expandIncludeAll(options, model);
+      _validateIncludedElements(options);
+    }
+
+    it('generates UPDATE with subquery for single include', () => {
+      const { Post, Author } = includeVars;
+
+      const options: any = {
+        model: Post,
+        include: [{ model: Author, where: { name: 'John' } }],
+      };
+      normalizeIncludes(options, Post);
+
+      const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
+
+      expectsql(result.query, {
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John')`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John')`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John'));`,
+      });
+    });
+
+    it('generates UPDATE with subquery including main table WHERE', () => {
+      const { Post, Author } = includeVars;
+
+      const options: any = {
+        model: Post,
+        include: [{ model: Author, where: { name: 'John' } }],
+      };
+      normalizeIncludes(options, Post);
+
+      const result = queryGenerator.updateQuery(
+        Post.table,
+        { title: 'Updated' },
+        { authorId: 1 },
+        options,
+      );
+
+      expectsql(result.query, {
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John' WHERE [authorId] = $sequelize_2)`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John' WHERE [authorId] = $sequelize_2)`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "authorId" = $sequelize_2)`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "authorId" = $sequelize_2));`,
+      });
+    });
+
+    it('uses LEFT OUTER JOIN when required is false', () => {
+      const { Post, Author } = includeVars;
+
+      const options: any = {
+        model: Post,
+        include: [{ model: Author, required: false, where: { name: 'John' } }],
+      };
+      normalizeIncludes(options, Post);
+
+      const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
+
+      expectsql(result.query, {
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John')`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John')`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" LEFT OUTER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" LEFT OUTER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John'));`,
+      });
+    });
+
+    it('still generates normal UPDATE without include', () => {
+      const { Post } = includeVars;
+
+      const result = queryGenerator.updateQuery(
+        Post.table,
+        { title: 'Updated' },
+        { id: 1 },
+        { model: Post },
+      );
+
+      expectsql(result.query, {
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [id] = $sequelize_2`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "id" = $sequelize_2);`,
+      });
     });
   });
 });

@@ -567,8 +567,75 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return { query: '' };
     }
 
-    const query =
-      `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
+    let query;
+    if (options.include && options.include.length > 0) {
+      const quotedTableName = this.quoteTable(tableName);
+      const model = options.model;
+      const modelDefinition = model.modelDefinition;
+
+      const pkColumns = [];
+      for (const pkAttrName of modelDefinition.primaryKeysAttributeNames) {
+        const attribute = modelDefinition.attributes.get(pkAttrName);
+        pkColumns.push(attribute.columnName);
+      }
+
+      if (pkColumns.length === 0) {
+        throw new Error('Model.update with include requires the model to have a primary key.');
+      }
+
+      const mainTable = {
+        name: tableName,
+        quotedName: quotedTableName,
+        as: model.name,
+        quotedAs: this.quoteIdentifier(model.name),
+        model,
+      };
+
+      const topLevelInfo = {
+        names: mainTable,
+        options: { ...options, model, keysEscaped: true },
+        subQuery: false,
+      };
+
+      let joinStatements = [];
+      for (const include of options.include) {
+        if (include.separate) {
+          continue;
+        }
+
+        const joinQueries = this.generateInclude(
+          include,
+          { externalAs: mainTable.as, internalAs: mainTable.as },
+          topLevelInfo,
+          { replacements: options.replacements, minifyAliases: options.minifyAliases },
+        );
+
+        joinStatements = joinStatements.concat(joinQueries.mainQuery);
+      }
+
+      const pkSelect = pkColumns
+        .map(col => `${this.quoteIdentifier(mainTable.as)}.${this.quoteIdentifier(col)}`)
+        .join(', ');
+
+      const pkWhere = pkColumns
+        .map(col => `${quotedTableName}.${this.quoteIdentifier(col)}`)
+        .join(', ');
+
+      const whereClause = this.whereQuery(where, whereOptions);
+
+      let subqueryWhere;
+      if (pkColumns.length === 1) {
+        subqueryWhere = `${pkWhere} IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+      } else {
+        subqueryWhere = `(${pkWhere}) IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+      }
+
+      query =
+        `${tmpTable}UPDATE ${quotedTableName} SET ${values.join(',')}${outputFragment} WHERE ${subqueryWhere}${suffix}`.trim();
+    } else {
+      query =
+        `${tmpTable}UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')}${outputFragment} ${this.whereQuery(where, whereOptions)}${suffix}`.trim();
+    }
 
     // Used by Postgres upsertQuery and calls to here with options.exception set to true
     const result = { query };
