@@ -2536,7 +2536,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:4.8.3, @oclif/core@npm:^4, @oclif/core@npm:^4.8.0, @oclif/core@npm:^4.8.3":
+"@oclif/core@npm:4.8.3":
   version: 4.8.3
   resolution: "@oclif/core@npm:4.8.3"
   dependencies:
@@ -2559,6 +2559,32 @@ __metadata:
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
   checksum: 10c0/bfd96ae3eb544368d2f00306b0825b47876e9925d232bbf3c9098abd3291aef91c8ace08f0216b45343c35d10259bcbe154f7096045af45de8db40179431854b
+  languageName: node
+  linkType: hard
+
+"@oclif/core@npm:^4, @oclif/core@npm:^4.8.0, @oclif/core@npm:^4.8.4":
+  version: 4.8.4
+  resolution: "@oclif/core@npm:4.8.4"
+  dependencies:
+    ansi-escapes: "npm:^4.3.2"
+    ansis: "npm:^3.17.0"
+    clean-stack: "npm:^3.0.1"
+    cli-spinners: "npm:^2.9.2"
+    debug: "npm:^4.4.3"
+    ejs: "npm:^3.1.10"
+    get-package-type: "npm:^0.1.0"
+    indent-string: "npm:^4.0.0"
+    is-wsl: "npm:^2.2.0"
+    lilconfig: "npm:^3.1.3"
+    minimatch: "npm:^10.2.4"
+    semver: "npm:^7.7.3"
+    string-width: "npm:^4.2.3"
+    supports-color: "npm:^8"
+    tinyglobby: "npm:^0.2.14"
+    widest-line: "npm:^3.1.0"
+    wordwrap: "npm:^1.0.0"
+    wrap-ansi: "npm:^7.0.0"
+  checksum: 10c0/e0cb4216e9dd97fb4de871b3236d74bb95805db1400392986bb79deddc5c78a673a29509e41007e2a2e217692b7fc06ea187deffb3c35cad47055b70a0312903
   languageName: node
   linkType: hard
 
@@ -2797,7 +2823,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.21"
     "@inquirer/input": "npm:^4.3.1"
     "@inquirer/select": "npm:^4.4.2"
-    "@oclif/core": "npm:^4.8.3"
+    "@oclif/core": "npm:^4.8.4"
     "@oclif/plugin-help": "npm:^6.2.37"
     "@oclif/test": "npm:4.1.16"
     "@sequelize/utils": "workspace:*"
