@@ -103,15 +103,23 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(AB.options.validate).to.deep.equal({});
   });
 
-  it('auto-creates indexes on join table FK columns', () => {
+  it('auto-creates indexes on join table FK columns when they are not part of the PK', () => {
     const User = sequelize.define('User');
     const Project = sequelize.define('Project');
 
-    User.belongsToMany(Project, { through: 'UserProject' });
-    Project.belongsToMany(User, { through: 'UserProject' });
+    // Use a through model with its own PK so that the FK columns are NOT part of the composite PK
+    const UserProject = sequelize.define('UserProject', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+    });
 
-    const ThroughModel = sequelize.models.getOrThrow('UserProject');
-    const indexes = ThroughModel.modelDefinition.getIndexes();
+    User.belongsToMany(Project, { through: UserProject });
+    Project.belongsToMany(User, { through: UserProject });
+
+    const indexes = UserProject.modelDefinition.getIndexes();
 
     const userFkIndex = indexes.find(idx =>
       idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
@@ -124,6 +132,31 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     expect(userFkIndex).to.not.be.undefined;
     expect(projectFkIndex).to.not.be.undefined;
+  });
+
+  it('does not create duplicate indexes on join table FK columns that are already PKs', () => {
+    const User = sequelize.define('User');
+    const Project = sequelize.define('Project');
+
+    // Default: no custom PK, so both FK columns become the composite PK
+    User.belongsToMany(Project, { through: 'UserProject' });
+    Project.belongsToMany(User, { through: 'UserProject' });
+
+    const ThroughModel = sequelize.models.getOrThrow('UserProject');
+    const indexes = ThroughModel.modelDefinition.getIndexes();
+
+    // FK columns are already the composite PK, so no separate indexes should be created
+    const userFkIndex = indexes.find(idx =>
+      idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
+    );
+    const projectFkIndex = indexes.find(idx =>
+      idx.fields?.some(
+        f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'projectId',
+      ),
+    );
+
+    expect(userFkIndex).to.be.undefined;
+    expect(projectFkIndex).to.be.undefined;
   });
 
   it('should not override custom methods with association mixin', () => {
