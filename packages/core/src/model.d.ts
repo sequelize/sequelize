@@ -3003,8 +3003,8 @@ export abstract class Model<
     key: K,
     value: TModelAttributes[K],
     options?: SetOptions,
-  ): Model<TModelAttributes, TCreationAttribues>;
-  set(keys: Partial<TModelAttributes>, options?: SetOptions): Model<TModelAttributes, TCreationAttribues>;
+  ): Model<TModelAttributes, TCreationAttributes>;
+  set(keys: Partial<TModelAttributes>, options?: SetOptions): Model<TModelAttributes, TCreationAttributes>;
 
   /**
    * Alias for {@link Model.set}.
@@ -3013,8 +3013,8 @@ export abstract class Model<
     key: K,
     value: TModelAttributes[K],
     options?: SetOptions,
-  ): Model<TModelAttributes, TCreationAttribues>;
-  setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): Model<TModelAttributes, TCreationAttribues>;
+  ): Model<TModelAttributes, TCreationAttributes>;
+  setAttributes(keys: Partial<TModelAttributes>, options?: SetOptions): Model<TModelAttributes, TCreationAttributes>;
 
   /**
    * If changed is called with a string it will return a boolean indicating whether the value of that key in
