@@ -3003,7 +3003,7 @@ __metadata:
     dayjs: "npm:^1.11.19"
     lodash: "npm:^4.17.23"
     mocha: "npm:11.7.5"
-    mysql2: "npm:^3.18.2"
+    mysql2: "npm:^3.19.1"
     wkx: "npm:^0.5.0"
   languageName: unknown
   linkType: soft
@@ -11620,9 +11620,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mysql2@npm:^3.18.2":
-  version: 3.18.2
-  resolution: "mysql2@npm:3.18.2"
+"mysql2@npm:^3.19.1":
+  version: 3.19.1
+  resolution: "mysql2@npm:3.19.1"
   dependencies:
     aws-ssl-profiles: "npm:^1.1.2"
     denque: "npm:^2.1.0"
@@ -11634,7 +11634,7 @@ __metadata:
     sql-escaper: "npm:^1.3.3"
   peerDependencies:
     "@types/node": ">= 8"
-  checksum: 10c0/6c2487ffff991894182e33d06401767169fe619c188a1b7208bc59c4f4af25aad21f2e111d0bfbb1f9c012a824d221dfd8ee7ff5a6d3c59db7ebaa3424559860
+  checksum: 10c0/9bdc5d0a313816c450eb3bb43472821af26df7d33548816c603318ba3db928e556525e24384569469d583aeeb4c2e0a24848608581b9d66a429e05e9632efea3
   languageName: node
   linkType: hard
 
