@@ -42,8 +42,7 @@
     "@types/pg": "^8.11.14",
     "lodash": "^4.18.1",
     "pg": "^8.15.6",
-    "pg-hstore": "^2.3.4",
-    "pg-types": "^4.1.0",
+"pg-types": "^4.1.0",
     "postgres-array": "^3.0.4",
     "semver": "^7.7.4",
     "wkx": "^0.5.0"
