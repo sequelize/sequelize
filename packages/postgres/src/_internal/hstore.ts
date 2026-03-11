@@ -6,7 +6,7 @@ import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-r
 function sanitize(input: string): string {
   // hstore only escapes backslashes and double quotes (single quotes are not special in hstore format)
   // SQL-level quoting is handled separately by the dialect's escapeString / bind parameters
-  return input.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return input.replace(/[\\"]/g, '\\$&');
 }
 
 function valueToString(value: string | number | boolean | object | null): string {
@@ -29,13 +29,12 @@ export function stringifyHstore(data: HstoreRecord): string {
     .join();
 }
 
-const HSTORE_PAIR_REGEX = /(["])(?:\\\1|\\\\|[\s\S])*?\1|NULL/g;
+const HSTORE_PAIR_REGEX = /NULL|"(?:[^"\\]|\\.)*"/g;
 
 function unescape(value: string): string {
   return value
-    .replace(/^"|"$/g, '')  // strip surrounding quotes
-    .replace(/\\"/g, '"')   // unescape double quotes
-    .replace(/\\\\/g, '\\'); // unescape backslashes
+    .slice(1, -1)               // strip surrounding quotes
+    .replace(/\\(["\\])/g, '$1'); // unescape \" and \\ in one pass
 }
 
 export function parseHstore(value: string): HstoreRecord {
