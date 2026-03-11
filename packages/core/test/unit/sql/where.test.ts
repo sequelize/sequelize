@@ -1647,7 +1647,7 @@ Caused by: "undefined" cannot be escaped`),
             testSql(
               { intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } },
               {
-                default: new Error(`{ [Symbol(col)]: 'col' } is not a valid integer`),
+                default: new Error(`${util.inspect({ [Op.col]: 'col' })} is not a valid integer`),
               },
             );
           }
@@ -1999,7 +1999,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2009,7 +2009,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2121,7 +2121,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2131,7 +2131,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2250,7 +2250,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2260,7 +2260,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2372,7 +2372,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2382,7 +2382,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2494,7 +2494,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2504,7 +2504,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2616,7 +2616,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2626,7 +2626,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -3700,7 +3700,7 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } },
         {
-          default: new Error(`{ [Symbol(and)]: [ 1, 2 ] } is not a valid integer`),
+          default: new Error(`${util.inspect({ [Op.and]: [1, 2] })} is not a valid integer`),
         },
       );
     });
@@ -3747,7 +3747,7 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } },
         {
-          default: new Error(`{ [Symbol(or)]: [ 1, 2 ] } is not a valid integer`),
+          default: new Error(`${util.inspect({ [Op.or]: [1, 2] })} is not a valid integer`),
         },
       );
 
@@ -3977,7 +3977,7 @@ Caused by: "undefined" cannot be escaped`),
         });
 
         testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
-          default: new Error('Could not guess type of value { [Symbol(in)]: [ 1, 2 ] }'),
+          default: new Error(`Could not guess type of value ${util.inspect({ [Op.in]: [1, 2] })}`),
         });
       });
 
