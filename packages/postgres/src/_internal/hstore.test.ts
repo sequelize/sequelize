@@ -153,6 +153,7 @@ describe('parseHstore', () => {
     // eslint-disable-next-line no-proto -- intentionally checking the own property, not the getter
     expect(out.__proto__).to.equal('1');
     // Object.prototype must not be polluted
+    // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
     expect(({} as any).__proto__).to.equal(Object.prototype); // still the normal prototype chain
   });
 });

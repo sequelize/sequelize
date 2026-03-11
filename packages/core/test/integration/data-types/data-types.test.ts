@@ -1853,6 +1853,19 @@ describe('DataTypes', () => {
           });
         }
       }
+
+      it('is not vulnerable to prototype pollution when round-tripping through the database', async () => {
+        await testSimpleInOut(
+          vars.User,
+          'jsonObject',
+          { __proto__: 'polluted' } as any,
+          {
+            __proto__: 'polluted',
+          } as any,
+        );
+        // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
+        expect(({} as any).__proto__).to.equal(Object.prototype);
+      });
     });
   }
 
@@ -1897,6 +1910,19 @@ describe('DataTypes', () => {
 
     it(`is deserialized as a parsed record when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'attr', hash, hash);
+    });
+
+    it('is not vulnerable to prototype pollution when round-tripping through the database', async () => {
+      await testSimpleInOut(
+        vars.User,
+        'attr',
+        { __proto__: 'polluted' } as any,
+        {
+          __proto__: 'polluted',
+        } as any,
+      );
+      // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
+      expect(({} as any).__proto__).to.equal(Object.prototype);
     });
 
     it('rejects hstores that contain non-string values', async () => {
