@@ -28,6 +28,10 @@ describe('stringifyHstore', () => {
     expect(stringifyHstore({ foo: '' })).to.equal('"foo"=>""');
   });
 
+  it('handles empty string keys', () => {
+    expect(stringifyHstore({ '': 'value' })).to.equal('""=>"value"');
+  });
+
   it('escapes double quotes in values', () => {
     expect(stringifyHstore({ foo: '"bar"' })).to.equal('"foo"=>"\\"bar\\""');
   });
@@ -36,12 +40,10 @@ describe('stringifyHstore', () => {
     expect(stringifyHstore({ 'foo "quoted"': 'bar' })).to.equal('"foo \\"quoted\\""=>"bar"');
   });
 
-  it('escapes single quotes in values', () => {
-    expect(stringifyHstore({ foo: "it's" })).to.equal('"foo"=>"it\'\'s"');
-  });
-
-  it('escapes single quotes in keys', () => {
-    expect(stringifyHstore({ "it's": 'bar' })).to.equal('"it\'\'s"=>"bar"');
+  it('does not escape single quotes (they are not special in hstore format)', () => {
+    // Single-quote escaping is SQL-level concern handled by the dialect, not hstore
+    expect(stringifyHstore({ foo: "it's" })).to.equal('"foo"=>"it\'s"');
+    expect(stringifyHstore({ "it's": 'bar' })).to.equal('"it\'s"=>"bar"');
   });
 
   it('escapes backslashes in values', () => {
@@ -97,12 +99,16 @@ describe('parseHstore', () => {
     expect(parseHstore('"foo"=>""')).to.deep.equal({ foo: '' });
   });
 
+  it('handles empty string keys', () => {
+    expect(parseHstore('""=>"value"')).to.deep.equal({ '': 'value' });
+  });
+
   it('unescapes double quotes in values', () => {
     expect(parseHstore('"foo"=>"\\"bar\\""')).to.deep.equal({ foo: '"bar"' });
   });
 
-  it('unescapes single quotes in values', () => {
-    expect(parseHstore('"foo"=>"it\'\'s"')).to.deep.equal({ foo: "it's" });
+  it('preserves single quotes in values (they are not escaped in hstore format)', () => {
+    expect(parseHstore('"foo"=>"it\'s"')).to.deep.equal({ foo: "it's" });
   });
 
   it('unescapes backslashes in values', () => {
@@ -157,13 +163,14 @@ describe('stringify and parse roundtrip', () => {
       foo: 'bar',
       count: '1',
       emptyString: '',
+      '': 'value for empty key',
       quotyString: '""',
       extraQuotyString: '"""a"""""',
       backslashes: '\\f023',
       moreBackslashes: '\\f\\0\\2\\1',
       backslashesAndQuotes: '\\"\\"uhoh"\\"',
       nully: null,
-      singleQuotes: "it's a test",
+      singleQuotes: "it's a test, don't you think?",
       newlines: 'line1\nline2',
     };
 

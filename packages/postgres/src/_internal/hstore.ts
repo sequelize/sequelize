@@ -4,8 +4,9 @@ import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-r
 // Spec: https://www.postgresql.org/docs/current/hstore.html
 
 function sanitize(input: string): string {
-  // single quotes must be doubled, backslashes and double quotes must be escaped
-  return input.replace(/'/g, "''").replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  // hstore only escapes backslashes and double quotes (single quotes are not special in hstore format)
+  // SQL-level quoting is handled separately by the dialect's escapeString / bind parameters
+  return input.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
 function valueToString(value: string | number | boolean | object | null): string {
@@ -34,8 +35,7 @@ function unescape(value: string): string {
   return value
     .replace(/^"|"$/g, '')  // strip surrounding quotes
     .replace(/\\"/g, '"')   // unescape double quotes
-    .replace(/\\\\/g, '\\') // unescape backslashes
-    .replace(/''/g, "'");   // unescape single quotes
+    .replace(/\\\\/g, '\\'); // unescape backslashes
 }
 
 export function parseHstore(value: string): HstoreRecord {
