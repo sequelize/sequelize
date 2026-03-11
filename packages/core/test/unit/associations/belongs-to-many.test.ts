@@ -121,17 +121,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
     const indexes = UserProject.modelDefinition.getIndexes();
 
-    const userFkIndex = indexes.find(idx =>
-      idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
-    );
-    const projectFkIndex = indexes.find(idx =>
-      idx.fields?.some(
-        f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'projectId',
-      ),
-    );
+    const hasSingleColumnFkIndex = (fieldName: string) =>
+      indexes.some(idx => {
+        if (idx.fields?.length !== 1 || idx.unique === true) {
+          return false;
+        }
 
-    expect(userFkIndex).to.not.be.undefined;
-    expect(projectFkIndex).to.not.be.undefined;
+        const [field] = idx.fields;
+
+        return (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName;
+      });
+
+    expect(hasSingleColumnFkIndex('userId')).to.be.true;
+    expect(hasSingleColumnFkIndex('projectId')).to.be.true;
   });
 
   it('does not create duplicate indexes on join table FK columns that are already PKs', () => {
@@ -146,17 +148,19 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     const indexes = ThroughModel.modelDefinition.getIndexes();
 
     // FK columns are already the composite PK, so no separate indexes should be created
-    const userFkIndex = indexes.find(idx =>
-      idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
-    );
-    const projectFkIndex = indexes.find(idx =>
-      idx.fields?.some(
-        f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'projectId',
-      ),
-    );
+    const hasSingleColumnFkIndex = (fieldName: string) =>
+      indexes.some(idx => {
+        if (idx.fields?.length !== 1 || idx.unique === true) {
+          return false;
+        }
 
-    expect(userFkIndex).to.be.undefined;
-    expect(projectFkIndex).to.be.undefined;
+        const [field] = idx.fields;
+
+        return (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName;
+      });
+
+    expect(hasSingleColumnFkIndex('userId')).to.be.false;
+    expect(hasSingleColumnFkIndex('projectId')).to.be.false;
   });
 
   it('should not override custom methods with association mixin', () => {
