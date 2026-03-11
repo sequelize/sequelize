@@ -12,7 +12,7 @@ import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-o
 import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import * as MariaDb from 'mariadb';
+import type * as MariaDb from 'mariadb';
 import semver from 'semver';
 import type { MariaDbDialect } from './dialect.js';
 
@@ -65,11 +65,13 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbDialect,
   MariaDbConnection
 > {
-  readonly #lib: MariaDbModule;
+  #lib: MariaDbModule | undefined;
 
-  constructor(dialect: MariaDbDialect) {
-    super(dialect);
-    this.#lib = dialect.options.mariaDbModule ?? MariaDb;
+  async #getLib(): Promise<MariaDbModule> {
+    this.#lib ??=
+      this.dialect.options.mariaDbModule ?? ((await import('mariadb')) as unknown as MariaDbModule);
+
+    return this.#lib;
   }
 
   #typeCast(field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction): MariaDb.TypeCastResult {
@@ -90,6 +92,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
    * @param config
    */
   async connect(config: ConnectionOptions<MariaDbDialect>): Promise<MariaDbConnection> {
+    const lib = await this.#getLib();
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
     tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
@@ -116,7 +119,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     }
 
     try {
-      const connection = await this.#lib.createConnection(connectionConfig);
+      const connection = await lib.createConnection(connectionConfig);
       this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
 
       debug('connection acquired');

@@ -6,8 +6,7 @@ import {
 } from '@sequelize/core';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { inspect } from '@sequelize/utils';
-import type { ConnStr } from 'ibm_db';
-import * as IbmDb from 'ibm_db';
+import type * as IbmDb from 'ibm_db';
 import type { Db2Dialect } from './dialect.js';
 
 export interface Db2Connection extends AbstractConnection, IbmDb.Database {}
@@ -64,11 +63,13 @@ export type IbmDbModule = typeof IbmDb;
  * Use https://github.com/ibmdb/node-ibm_db to connect with DB2 server
  */
 export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, Db2Connection> {
-  readonly #lib: IbmDbModule;
+  #lib: IbmDbModule | undefined;
 
-  constructor(dialect: Db2Dialect) {
-    super(dialect);
-    this.#lib = this.dialect.options.ibmDbModule ?? IbmDb;
+  async #getLib(): Promise<IbmDbModule> {
+    this.#lib ??=
+      this.dialect.options.ibmDbModule ?? ((await import('ibm_db')) as unknown as IbmDbModule);
+
+    return this.#lib;
   }
 
   /**
@@ -77,6 +78,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
    * @param config
    */
   async connect(config: ConnectionOptions<Db2Dialect>): Promise<Db2Connection> {
+    const lib = await this.#getLib();
     const connectionConfig: Record<string, string> = removeUndefined({
       DATABASE: config.database,
       HOSTNAME: config.hostname,
@@ -103,11 +105,11 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
     }
 
     // TODO: add relevant Database options to the connection options of this dialect
-    const connection: Db2Connection = new this.#lib.Database();
+    const connection: Db2Connection = new lib.Database();
 
     return new Promise((resolve, reject) => {
       // ibm_db's typings for the OBDC connection string are missing many properties
-      connection.open(connectionConfig as unknown as ConnStr, error => {
+      connection.open(connectionConfig as unknown as IbmDb.ConnStr, error => {
         if (error) {
           if (error.message && error.message.includes('SQL30081N')) {
             return void reject(new ConnectionRefusedError(error));

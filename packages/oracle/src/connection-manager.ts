@@ -11,8 +11,8 @@ import {
   InvalidConnectionError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import type oracledb from 'oracledb';
 import type { Connection as oracledbConnection } from 'oracledb';
-import oracledb from 'oracledb';
 import type { OracleDialect } from './dialect.js';
 
 export type oracledbModule = typeof oracledb;
@@ -36,11 +36,15 @@ export class OracleConnectionManager extends AbstractConnectionManager<
   OracleDialect,
   OracleConnection
 > {
-  readonly #lib: typeof oracledb;
-  constructor(dialect: OracleDialect) {
-    super(dialect);
-    this.extendLib();
-    this.#lib = oracledb;
+  #lib: oracledbModule | undefined;
+
+  async #getLib(): Promise<oracledbModule> {
+    if (!this.#lib) {
+      this.#lib = this.dialect.options.oracledbModule ?? (await import('oracledb')).default;
+      this.extendLib();
+    }
+
+    return this.#lib;
   }
 
   buildConnectString(config: ConnectionOptions<OracleDialect>) {
@@ -80,20 +84,21 @@ export class OracleConnectionManager extends AbstractConnectionManager<
    * Method for initializing the lib
    */
   extendLib() {
-    oracledb.fetchAsString = [oracledb.CLOB];
+    this.#lib!.fetchAsString = [this.#lib!.CLOB];
 
     // Retrieve BLOB always as Buffer.
-    oracledb.fetchAsBuffer = [oracledb.BLOB];
+    this.#lib!.fetchAsBuffer = [this.#lib!.BLOB];
   }
 
   async connect(config: ConnectionOptions<OracleDialect>): Promise<OracleConnection> {
+    const lib = await this.#getLib();
     const connectionConfig: OracleConnectionOptions = {
       connectString: this.buildConnectString(config),
       ...config,
     };
 
     try {
-      const connection: OracleConnection = (await this.#lib.getConnection(
+      const connection: OracleConnection = (await lib.getConnection(
         connectionConfig,
       )) as OracleConnection;
 

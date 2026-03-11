@@ -1,20 +1,19 @@
 import type { AbstractConnection, ConnectionOptions } from '@sequelize/core';
 import { AbstractConnectionManager, ConnectionRefusedError } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import type { ConnectionParameters, NodeOdbcError, Connection as OdbcConnection } from 'odbc';
-import * as Odbc from 'odbc';
+import type * as Odbc from 'odbc';
 import type { IBMiDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:ibmi');
 
 export type OdbcModule = typeof Odbc;
 
-export interface IBMiConnection extends AbstractConnection, OdbcConnection {
+export interface IBMiConnection extends AbstractConnection, Odbc.Connection {
   // properties of ObdcConnection, but not declared in their typings
   connected: boolean;
 }
 
-export interface IBMiConnectionOptions extends Omit<ConnectionParameters, 'connectionString'> {
+export interface IBMiConnectionOptions extends Omit<Odbc.ConnectionParameters, 'connectionString'> {
   /**
    * Any extra ODBC connection string parts to use.
    *
@@ -44,14 +43,17 @@ export interface IBMiConnectionOptions extends Omit<ConnectionParameters, 'conne
 }
 
 export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect, IBMiConnection> {
-  readonly #lib: OdbcModule;
+  #lib: OdbcModule | undefined;
 
-  constructor(dialect: IBMiDialect) {
-    super(dialect);
-    this.#lib = this.dialect.options.odbcModule ?? Odbc;
+  async #getLib(): Promise<OdbcModule> {
+    this.#lib ??=
+      this.dialect.options.odbcModule ?? ((await import('odbc')) as unknown as OdbcModule);
+
+    return this.#lib;
   }
 
   async connect(config: ConnectionOptions<IBMiDialect>): Promise<IBMiConnection> {
+    const lib = await this.#getLib();
     const connectionKeywords = [];
     if (config.odbcConnectionString) {
       connectionKeywords.push(config.odbcConnectionString);
@@ -84,7 +86,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
 
     let connection;
     try {
-      connection = (await this.#lib.connect(connectionString)) as IBMiConnection;
+      connection = (await lib.connect(connectionString)) as IBMiConnection;
     } catch (error) {
       if (!(error instanceof Error)) {
         throw error;
@@ -108,7 +110,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
     }
 
     await new Promise<void>((resolve, reject) => {
-      connection.close((error: NodeOdbcError) => {
+      connection.close((error: Odbc.NodeOdbcError) => {
         if (error) {
           return void reject(error);
         }

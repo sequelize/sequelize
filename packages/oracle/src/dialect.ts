@@ -4,16 +4,30 @@ import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-import { EMPTY_ARRAY } from '@sequelize/utils';
+import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
 import { OracleConnectionManager } from './connection-manager';
-import type { OracleConnectionOptions } from './connection-manager.js';
+import type { OracleConnectionOptions, oracledbModule } from './connection-manager.js';
 import { OracleQueryGenerator } from './query-generator.js';
 import { OracleQueryInterface } from './query-interface.js';
 import { OracleQuery } from './query.js';
 
-export interface OracleDialectOptions {}
+export interface OracleDialectOptions {
+  /**
+   * The oracledb library to use.
+   * If not provided, the oracledb npm library will be used.
+   * Must be compatible with the oracledb npm library API.
+   *
+   * Using this option should only be considered as a last resort,
+   * as the Sequelize team cannot guarantee its compatibility.
+   */
+  oracledbModule?: oracledbModule;
+}
+
+const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<OracleDialectOptions>({
+  oracledbModule: undefined,
+});
 
 const numericOptions: SupportableNumericOptions = {
   zerofill: false,
@@ -182,7 +196,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
   }
 
   static getSupportedOptions() {
-    return EMPTY_ARRAY;
+    return DIALECT_OPTION_NAMES;
   }
 
   static getSupportedConnectionOptions() {

@@ -11,8 +11,7 @@ import {
 } from '@sequelize/core';
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import type { ClientConfig } from 'pg';
-import * as Pg from 'pg';
+import type * as Pg from 'pg';
 import type { TypeId, TypeParser } from 'pg-types';
 import { parse as parseArray } from 'postgres-array';
 import semver from 'semver';
@@ -46,7 +45,7 @@ export interface PostgresConnection extends AbstractConnection, Pg.Client {
 }
 
 export interface PostgresConnectionOptions
-  extends Omit<ClientConfig, 'types' | 'connectionString'> {
+  extends Omit<Pg.ClientConfig, 'types' | 'connectionString'> {
   /**
    * !! DO NOT SET THIS TO TRUE !!
    * (unless you know what you're doing)
@@ -81,32 +80,36 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
   PostgresDialect,
   PostgresConnection
 > {
-  readonly #lib: PgModule;
+  #lib: PgModule | undefined;
   readonly #oidMap = new Map<number, TypeOids>();
   readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
 
-  constructor(dialect: PostgresDialect) {
-    super(dialect);
+  async #getLib(): Promise<PgModule> {
+    if (!this.#lib) {
+      const pgModule =
+        this.dialect.options.pgModule ?? ((await import('pg')) as unknown as PgModule);
 
-    const pgModule = dialect.options.pgModule ?? Pg;
+      if (this.dialect.options.native && this.dialect.options.pgModule) {
+        throw new Error(
+          'You cannot specify both the "pgModule" option and the "native" option at the same time, as the "native" option is only used to use "pg-native" as the "pgModule" instead of "pg"',
+        );
+      }
 
-    if (dialect.options.native && dialect.options.pgModule) {
-      throw new Error(
-        'You cannot specify both the "pgModule" option and the "native" option at the same time, as the "native" option is only used to use "pg-native" as the "pgModule" instead of "pg"',
-      );
+      if (this.dialect.options.native && !pgModule.native) {
+        throw new Error(
+          'The "native" option was specified, but the "pg-native" module is not installed. You must install it to use the native bindings.',
+        );
+      }
+
+      this.#lib = this.dialect.options.native ? pgModule.native! : pgModule;
     }
 
-    if (dialect.options.native && !pgModule.native) {
-      throw new Error(
-        'The "native" option was specified, but the "pg-native" module is not installed. You must install it to use the native bindings.',
-      );
-    }
-
-    this.#lib = dialect.options.native ? pgModule.native! : pgModule;
+    return this.#lib;
   }
 
   async connect(config: ConnectionOptions<PostgresDialect>): Promise<PostgresConnection> {
-    const connectionConfig: ClientConfig = {
+    const lib = await this.#getLib();
+    const connectionConfig: Pg.ClientConfig = {
       port: 5432,
       ...config,
       types: {
@@ -114,7 +117,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       },
     };
 
-    const connection: PostgresConnection = new this.#lib.Client(connectionConfig);
+    const connection: PostgresConnection = new lib.Client(connectionConfig);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -358,11 +361,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     // infer the correct return type.
     switch (format) {
       case 'text':
-        return this.#lib.types.getTypeParser(oid, format);
+        return this.#lib!.types.getTypeParser(oid, format);
       case 'binary':
-        return this.#lib.types.getTypeParser(oid, format);
+        return this.#lib!.types.getTypeParser(oid, format);
       default:
-        return this.#lib.types.getTypeParser(oid);
+        return this.#lib!.types.getTypeParser(oid);
     }
   }
 

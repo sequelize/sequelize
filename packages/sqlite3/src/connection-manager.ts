@@ -4,7 +4,7 @@ import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/
 import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import * as Sqlite3 from 'sqlite3';
+import type * as Sqlite3 from 'sqlite3';
 import type { SqliteDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:sqlite3');
@@ -85,15 +85,17 @@ export class SqliteConnectionManager extends AbstractConnectionManager<
   SqliteDialect,
   SqliteConnection
 > {
-  readonly #lib: Sqlite3Module;
+  #lib: Sqlite3Module | undefined;
 
-  constructor(dialect: SqliteDialect) {
-    super(dialect);
+  async #getLib(): Promise<Sqlite3Module> {
+    this.#lib ??=
+      this.dialect.options.sqlite3Module ?? ((await import('sqlite3')) as unknown as Sqlite3Module);
 
-    this.#lib = this.dialect.options.sqlite3Module ?? Sqlite3;
+    return this.#lib;
   }
 
   async connect(options: ConnectionOptions<SqliteDialect>): Promise<SqliteConnection> {
+    const lib = await this.#getLib();
     // Using ?? instead of || is important because an empty string signals to SQLite to create a temporary disk-based database.
     const storage = options.storage ?? path.join(process.cwd(), 'sequelize.sqlite');
     const inMemory = storage === ':memory:';
@@ -127,14 +129,14 @@ To fix this, disable read replication, or use a non-temporary database.`);
       }
     }
 
-    const defaultReadWriteMode = this.#lib.OPEN_READWRITE | this.#lib.OPEN_CREATE;
+    const defaultReadWriteMode = lib.OPEN_READWRITE | lib.OPEN_CREATE;
     const readWriteMode = options.mode ?? defaultReadWriteMode;
 
     const storageDir = path.dirname(storage);
 
     if (
       !isTemporaryStorage &&
-      (readWriteMode & this.#lib.OPEN_CREATE) !== 0 &&
+      (readWriteMode & lib.OPEN_CREATE) !== 0 &&
       !(await checkFileExists(storageDir))
     ) {
       // automatic path provision for `options.storage`
@@ -142,19 +144,15 @@ To fix this, disable read replication, or use a non-temporary database.`);
     }
 
     const connection = await new Promise<SqliteConnection>((resolve, reject) => {
-      const connectionInstance = new this.#lib.Database(
-        storage,
-        readWriteMode,
-        (err: Error | null) => {
-          if (err) {
-            return void reject(new ConnectionError(err));
-          }
+      const connectionInstance = new lib.Database(storage, readWriteMode, (err: Error | null) => {
+        if (err) {
+          return void reject(new ConnectionError(err));
+        }
 
-          debug(`sqlite connection acquired`);
+        debug(`sqlite connection acquired`);
 
-          resolve(connectionInstance);
-        },
-      ) as SqliteConnection;
+        resolve(connectionInstance);
+      }) as SqliteConnection;
     });
 
     if (options.password) {

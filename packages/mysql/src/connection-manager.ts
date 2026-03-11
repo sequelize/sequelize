@@ -12,7 +12,7 @@ import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import * as MySql2 from 'mysql2';
+import type * as MySql2 from 'mysql2';
 import assert from 'node:assert';
 import { promisify } from 'node:util';
 import type { MySqlDialect } from './dialect.js';
@@ -61,11 +61,13 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlDialect,
   MySqlConnection
 > {
-  readonly #lib: MySql2Module;
+  #lib: MySql2Module | undefined;
 
-  constructor(dialect: MySqlDialect) {
-    super(dialect);
-    this.#lib = this.dialect.options.mysql2Module ?? MySql2;
+  async #getLib(): Promise<MySql2Module> {
+    this.#lib ??=
+      this.dialect.options.mysql2Module ?? ((await import('mysql2')) as unknown as MySql2Module);
+
+    return this.#lib;
   }
 
   #typecast(field: MySql2.TypeCastField, next: () => void): unknown {
@@ -89,6 +91,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
    * @param config
    */
   async connect(config: ConnectionOptions<MySqlDialect>): Promise<MySqlConnection> {
+    const lib = await this.#getLib();
     assert(typeof config.port === 'number', 'port has not been normalized');
 
     // TODO: enable dateStrings
@@ -103,7 +106,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
     };
 
     try {
-      const connection: MySqlConnection = await createConnection(this.#lib, connectionConfig);
+      const connection: MySqlConnection = await createConnection(lib, connectionConfig);
 
       debug('connection acquired');
 

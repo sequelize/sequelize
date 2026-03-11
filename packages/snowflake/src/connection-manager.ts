@@ -11,7 +11,7 @@ import {
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import * as SnowflakeSdk from 'snowflake-sdk';
+import type * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
 
 export type SnowflakeSdkModule = typeof SnowflakeSdk;
@@ -40,11 +40,14 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,
   SnowflakeConnection
 > {
-  readonly #lib: SnowflakeSdkModule;
+  #lib: SnowflakeSdkModule | undefined;
 
-  constructor(dialect: SnowflakeDialect) {
-    super(dialect);
-    this.#lib = this.dialect.options.snowflakeSdkModule ?? SnowflakeSdk;
+  async #getLib(): Promise<SnowflakeSdkModule> {
+    this.#lib ??=
+      this.dialect.options.snowflakeSdkModule ??
+      ((await import('snowflake-sdk')) as unknown as SnowflakeSdkModule);
+
+    return this.#lib;
   }
 
   /**
@@ -57,12 +60,13 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @private
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
+    const lib = await this.#getLib();
     try {
       const snowflakeConfig: SnowflakeSdk.ConnectionOptions = removeUndefined({
         schema: this.sequelize.options.schema,
         ...config,
       });
-      const connection: SnowflakeConnection = this.#lib.createConnection(snowflakeConfig);
+      const connection: SnowflakeConnection = lib.createConnection(snowflakeConfig);
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {

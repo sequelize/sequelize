@@ -12,7 +12,7 @@ import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-o
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { isError, splitObject } from '@sequelize/utils';
-import * as Tedious from 'tedious';
+import type * as Tedious from 'tedious';
 import { AsyncQueue } from './_internal/async-queue.js';
 import type { InlinedTediousOptions } from './_internal/connection-options.js';
 import { INLINED_OPTION_NAMES } from './_internal/connection-options.js';
@@ -37,14 +37,17 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
   MsSqlDialect,
   MsSqlConnection
 > {
-  readonly #lib: TediousModule;
+  #lib: TediousModule | undefined;
 
-  constructor(dialect: MsSqlDialect) {
-    super(dialect);
-    this.#lib = dialect.options.tediousModule ?? Tedious;
+  async #getLib(): Promise<TediousModule> {
+    this.#lib ??=
+      this.dialect.options.tediousModule ?? ((await import('tedious')) as unknown as TediousModule);
+
+    return this.#lib;
   }
 
   async connect(connectionOptions: ConnectionOptions<MsSqlDialect>): Promise<MsSqlConnection> {
+    const lib = await this.#getLib();
     const [inlinedOptions, regularOptions] = splitObject(connectionOptions, INLINED_OPTION_NAMES);
 
     const tediousConfig: Partial<Tedious.ConnectionConfiguration> = {
@@ -54,7 +57,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
 
     try {
       return await new Promise((resolve, reject) => {
-        const connection: MsSqlConnection = new this.#lib.Connection(
+        const connection: MsSqlConnection = new lib.Connection(
           tediousConfig as Tedious.ConnectionConfiguration,
         ) as MsSqlConnection;
         if (connection.state === connection.STATE.INITIALIZED) {
