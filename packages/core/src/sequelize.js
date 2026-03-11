@@ -599,8 +599,21 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
+    let from = ''
+    switch (this.dialect.name) {
+      case 'ibmi':
+        from = ' FROM SYSIBM.SYSDUMMY1';
+        break;
+      case 'oracle':
+        from = ' FROM DUAL';
+        break;
+      case 'firebird':
+        from = ' FROM RDB$DATABASE';
+        break;
+    }
+
     await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : this.dialect.name === 'oracle' ? ' FROM DUAL' : ''}`,
+      `SELECT 1+1 AS result${from}`,
       options,
     );
   }

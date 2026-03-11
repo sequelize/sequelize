@@ -208,6 +208,7 @@ export const SUPPORTED_DIALECTS = Object.freeze([
   'snowflake',
   'ibmi',
   'oracle',
+  'firebird',
 ] as const);
 
 // DO NOT MAKE THIS CLASS PUBLIC!
