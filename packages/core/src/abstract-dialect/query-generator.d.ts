@@ -62,6 +62,8 @@ export interface CreateTableQueryOptions {
    *
    * SQLite only.
    *
+   * Requires SQLite >= 3.37.0.
+   *
    * @see https://www.sqlite.org/stricttables.html
    */
   strict?: boolean;

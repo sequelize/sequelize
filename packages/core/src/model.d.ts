@@ -2080,6 +2080,8 @@ export interface ModelOptions<M extends Model = Model> {
    *
    * SQLite only.
    *
+   * Requires SQLite >= 3.37.0.
+   *
    * @see https://www.sqlite.org/stricttables.html
    */
   strict?: boolean | undefined;
