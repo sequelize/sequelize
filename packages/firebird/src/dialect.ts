@@ -107,7 +107,7 @@ export class FirebirdDialect extends AbstractDialect<
   readonly queryGenerator: FirebirdQueryGenerator;
   readonly queryInterface: FirebirdQueryInterface;
   /*
-  */
+   */
 
   constructor(sequelize: Sequelize, options: FirebirdDialectOptions) {
     super({

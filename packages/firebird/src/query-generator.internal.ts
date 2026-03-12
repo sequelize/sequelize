@@ -1,8 +1,10 @@
-import { AbstractQueryGeneratorInternal } from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-internal.js";
-import type { FirebirdDialect } from "./dialect";
-import type { AddLimitOffsetOptions } from "@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js";
+import { AbstractQueryGeneratorInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-internal.js';
+import type { AddLimitOffsetOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
+import type { FirebirdDialect } from './dialect';
 
-export class FirebirdQueryGeneratorInternal<Dialect extends FirebirdDialect = FirebirdDialect> extends AbstractQueryGeneratorInternal<Dialect> {
+export class FirebirdQueryGeneratorInternal<
+  Dialect extends FirebirdDialect = FirebirdDialect,
+> extends AbstractQueryGeneratorInternal<Dialect> {
   getTechnicalSchemaNames(): readonly string[] {
     return [];
   }

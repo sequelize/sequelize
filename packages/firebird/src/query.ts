@@ -102,12 +102,15 @@ export class FirebirdQuery extends AbstractQuery {
   // ── Show indexes ──────────────────────────────────────────────────────────────
 
   #handleShowIndexes(rows: Array<Record<string, unknown>>): unknown[] {
-    const indexes: Record<string, {
-      name: string;
-      unique: boolean;
-      primary: boolean;
-      fields: Array<{ attribute: string; order: string; length: undefined }>;
-    }> = {};
+    const indexes: Record<
+      string,
+      {
+        name: string;
+        unique: boolean;
+        primary: boolean;
+        fields: Array<{ attribute: string; order: string; length: undefined }>;
+      }
+    > = {};
 
     for (const row of rows) {
       const name = String(row.name);
@@ -158,14 +161,22 @@ export class FirebirdQuery extends AbstractQuery {
     if (gdscode === 335_544_665 || /violation of primary or unique key/i.test(msg)) {
       const { UniqueConstraintError } = require('@sequelize/core');
 
-      return new UniqueConstraintError({ parent: err, message: msg, sql: this.sql }) as unknown as T;
+      return new UniqueConstraintError({
+        parent: err,
+        message: msg,
+        sql: this.sql,
+      }) as unknown as T;
     }
 
     // Foreign key violation
     if (gdscode === 335_544_466 || /violation of foreign key constraint/i.test(msg)) {
       const { ForeignKeyConstraintError } = require('@sequelize/core');
 
-      return new ForeignKeyConstraintError({ parent: err, message: msg, sql: this.sql }) as unknown as T;
+      return new ForeignKeyConstraintError({
+        parent: err,
+        message: msg,
+        sql: this.sql,
+      }) as unknown as T;
     }
 
     // NULL constraint

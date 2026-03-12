@@ -130,7 +130,10 @@ export interface FirebirdConnection extends AbstractConnection, FirebirdDatabase
 
 // ── Connection Manager ────────────────────────────────────────────────────────
 
-export class FirebirdConnectionManager extends AbstractConnectionManager<FirebirdDialect, FirebirdConnection> {
+export class FirebirdConnectionManager extends AbstractConnectionManager<
+  FirebirdDialect,
+  FirebirdConnection
+> {
   readonly #lib: FirebirdModule;
 
   constructor(dialect: FirebirdDialect) {

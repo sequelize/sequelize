@@ -1,10 +1,11 @@
-import type { TableOrModel, TruncateTableQueryOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.types.js';
 import { AbstractQueryGenerator } from '@sequelize/core';
+import { TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type {
+  TableOrModel,
+  TruncateTableQueryOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.types.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
-import {
-  TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type { FirebirdDialect } from './dialect.js';
 import { FirebirdQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -78,9 +79,7 @@ export class FirebirdQueryGenerator extends AbstractQueryGenerator {
   }
 
   override renameTableQuery(): string {
-    throw new Error(
-      'Firebird does not support renaming tables. Recreate the table manually.',
-    );
+    throw new Error('Firebird does not support renaming tables. Recreate the table manually.');
   }
 
   // ── Indexes ─────────────────────────────────────────────────────────────────

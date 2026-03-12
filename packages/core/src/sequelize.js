@@ -599,7 +599,7 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    let from = ''
+    let from = '';
     switch (this.dialect.name) {
       case 'ibmi':
         from = ' FROM SYSIBM.SYSDUMMY1';
@@ -612,10 +612,7 @@ Use Sequelize#query if you wish to use replacements.`);
         break;
     }
 
-    await this.query(
-      `SELECT 1+1 AS result${from}`,
-      options,
-    );
+    await this.query(`SELECT 1+1 AS result${from}`, options);
   }
 
   /**
