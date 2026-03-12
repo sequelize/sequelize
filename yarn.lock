@@ -2915,6 +2915,23 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@sequelize/firebird@workspace:packages/firebird":
+  version: 0.0.0-use.local
+  resolution: "@sequelize/firebird@workspace:packages/firebird"
+  dependencies:
+    "@sequelize/core": "workspace:*"
+    "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.20"
+    "@types/mocha": "npm:10.0.10"
+    chai: "npm:4.5.0"
+    dayjs: "npm:^1.11.19"
+    lodash: "npm:^4.17.23"
+    mocha: "npm:11.7.5"
+    node-firebird: "npm:^2.0.2"
+    wkx: "npm:^0.5.0"
+  languageName: unknown
+  linkType: soft
+
 "@sequelize/mariadb@workspace:packages/mariadb":
   version: 0.0.0-use.local
   resolution: "@sequelize/mariadb@workspace:packages/mariadb"
@@ -2954,7 +2971,7 @@ __metadata:
     fast-glob: "npm:3.3.3"
     husky: "npm:9.1.7"
     lerna: "npm:8.2.4"
-    lint-staged: "npm:16.3.2"
+    lint-staged: "npm:16.3.3"
     lodash: "npm:4.17.23"
     markdownlint-cli: "npm:0.48.0"
     mocha: "npm:11.7.5"
@@ -10426,9 +10443,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:16.3.2":
-  version: 16.3.2
-  resolution: "lint-staged@npm:16.3.2"
+"lint-staged@npm:16.3.3":
+  version: 16.3.3
+  resolution: "lint-staged@npm:16.3.3"
   dependencies:
     commander: "npm:^14.0.3"
     listr2: "npm:^9.0.5"
@@ -10438,7 +10455,7 @@ __metadata:
     yaml: "npm:^2.8.2"
   bin:
     lint-staged: bin/lint-staged.js
-  checksum: 10c0/4cbaa85904a912215660ac3c69400b71beabe3fe7e82969cd32c726dbfb04b0f651d0660906215f955c1446ac6b520319e1c7a03c707353a5f038c3d0441a8c3
+  checksum: 10c0/e404007ca608f2adc8acb1f358a55bc2e613dce7c71dea5ee7a4d1c2da2eaa145f6cffb05eca0db2769586e7cddd58b22ec44934cc62147772d74154aa66f5bd
   languageName: node
   linkType: hard
 
@@ -10643,7 +10660,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"long@npm:^5.3.2":
+"long@npm:^5.2.3, long@npm:^5.3.2":
   version: 5.3.2
   resolution: "long@npm:5.3.2"
   checksum: 10c0/7130fe1cbce2dca06734b35b70d380ca3f70271c7f8852c922a7c62c86c4e35f0c39290565eca7133c625908d40e126ac57c02b1b1a4636b9457d77e1e60b981
@@ -11788,6 +11805,16 @@ __metadata:
     encoding:
       optional: true
   checksum: 10c0/b55786b6028208e6fbe594ccccc213cab67a72899c9234eb59dba51062a299ea853210fcf526998eaa2867b0963ad72338824450905679ff0fa304b8c5093ae8
+  languageName: node
+  linkType: hard
+
+"node-firebird@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "node-firebird@npm:2.0.2"
+  dependencies:
+    big-integer: "npm:^1.6.51"
+    long: "npm:^5.2.3"
+  checksum: 10c0/9770ff77caa39e3d04c7a4e65b5d95defd5a6672ad0ad08de4f028803634a1a69f130653baa1d86684be0ab738e0e633ee1ccda0d8b1c2afed93f104c383554a
   languageName: node
   linkType: hard
 

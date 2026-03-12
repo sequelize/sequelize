@@ -116,8 +116,7 @@ export class FirebirdDialect extends AbstractDialect<
       dataTypeOverrides: DataTypes,
       sequelize,
       minimumDatabaseVersion: '3.0.0',
-      dataTypesDocumentationUrl:
-        'https://firebirdsql.org/refdocs/langrefupd25-datatypes.html',
+      dataTypesDocumentationUrl: 'https://firebirdsql.org/refdocs/langrefupd25-datatypes.html',
       name: 'firebird' as any,
     });
 

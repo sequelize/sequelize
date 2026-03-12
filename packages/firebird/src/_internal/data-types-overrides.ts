@@ -9,6 +9,7 @@
  */
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import dayjs from 'dayjs';
 
 // ── String ────────────────────────────────────────────────────────────────────
 
@@ -117,8 +118,6 @@ export class BOOLEAN extends BaseTypes.BOOLEAN {
 
 // ── Date / Time ───────────────────────────────────────────────────────────────
 
-const pad = (n: number, len = 2) => String(n).padStart(len, '0');
-
 export class DATE extends BaseTypes.DATE {
   toSql(): string {
     // Firebird TIMESTAMP = date + time
@@ -126,13 +125,9 @@ export class DATE extends BaseTypes.DATE {
   }
 
   stringify(value: AcceptedDate): string {
-    const d = this.sanitize(value) as Date;
-    // Firebird accepts: 'YYYY-MM-DD HH:MM:SS.mmm'
+    const d = dayjs(this.sanitize(value) as Date | dayjs.Dayjs);
 
-    return (
-      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ` +
-      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}.${pad(d.getMilliseconds(), 3)}`
-    );
+    return d.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
 }
 

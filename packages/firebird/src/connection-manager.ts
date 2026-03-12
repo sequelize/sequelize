@@ -74,7 +74,7 @@ export interface FirebirdConnectionOptions {
   /**
    * Firebird password.
    *
-   * @default 'masterkey'
+   * @default ''
    */
   password?: string;
 

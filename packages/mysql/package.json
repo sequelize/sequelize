@@ -24,7 +24,7 @@
   "name": "@sequelize/mysql",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "../../build-packages.mjs mysql",
+    "build": "node ../../build-packages.mjs mysql",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha src/**/*.test.ts",

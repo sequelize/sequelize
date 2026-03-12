@@ -55,7 +55,7 @@ export class FirebirdQueryGenerator extends AbstractQueryGenerator {
       'FROM RDB$RELATIONS',
       'WHERE RDB$SYSTEM_FLAG = 0',
       'AND RDB$VIEW_BLR IS NULL',
-      `AND TRIM(RDB$RELATION_NAME) = ${this.escape(table.tableName.toUpperCase())}`,
+      `AND TRIM(RDB$RELATION_NAME) = ${this.escape(table.tableName)}`,
     ]);
   }
 
@@ -96,7 +96,7 @@ export class FirebirdQueryGenerator extends AbstractQueryGenerator {
       '  i.RDB$INDEX_TYPE         AS "descending"',
       'FROM RDB$INDICES i',
       'JOIN RDB$INDEX_SEGMENTS s ON s.RDB$INDEX_NAME = i.RDB$INDEX_NAME',
-      `WHERE TRIM(i.RDB$RELATION_NAME) = ${this.escape(table.tableName.toUpperCase())}`,
+      `WHERE TRIM(i.RDB$RELATION_NAME) = ${this.escape(table.tableName)}`,
       'ORDER BY s.RDB$FIELD_POSITION',
     ]);
   }
@@ -150,7 +150,7 @@ export class FirebirdQueryGenerator extends AbstractQueryGenerator {
       '  ON  rc.RDB$INDEX_NAME    = iseg.RDB$INDEX_NAME',
       '  AND rc.RDB$RELATION_NAME = rf.RDB$RELATION_NAME',
       "  AND rc.RDB$CONSTRAINT_TYPE = 'PRIMARY KEY'",
-      `WHERE TRIM(rf.RDB$RELATION_NAME) = ${this.escape(table.tableName.toUpperCase())}`,
+      `WHERE TRIM(rf.RDB$RELATION_NAME) = ${this.escape(table.tableName)}`,
       'ORDER BY rf.RDB$FIELD_POSITION',
     ]);
   }
