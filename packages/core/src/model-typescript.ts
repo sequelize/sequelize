@@ -1,5 +1,5 @@
 import type { PartialBy, SetView } from '@sequelize/utils';
-import { isPlainObject } from '@sequelize/utils';
+import { isPlainObject, pojo } from '@sequelize/utils';
 import { inspect } from 'node:util';
 import type {
   AbstractQueryGenerator,
@@ -589,7 +589,7 @@ function buildPkWhereClause(
   primaryKeyAttributeNames: SetView<string>,
   identifier: unknown,
 ): Record<string, unknown> {
-  const pkWhere: Record<string, unknown> = Object.create(null);
+  const pkWhere: Record<string, unknown> = pojo();
 
   if (primaryKeyAttributeNames.size === 1) {
     pkWhere[primaryKeyAttributeNames.firstValue()!] = identifier;

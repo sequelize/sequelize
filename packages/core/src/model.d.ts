@@ -2448,27 +2448,6 @@ export abstract class Model<
   ): Promise<M | null>;
 
   /**
-   * Search for multiple instances by their primary keys.
-   *
-   * Returns the models with matching primary keys. If a given primary key has no match,
-   * it is simply omitted from the result (no error is thrown).
-   *
-   * @param identifiers An array of primary key values. For composite keys, each element
-   *   should be an object containing all primary key attributes.
-   * @param options find options
-   */
-  static findByPks<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifiers: readonly unknown[],
-    options: Omit<FindOptions<Attributes<M>>, 'raw'> & { raw: true },
-  ): Promise<R[]>;
-  static findByPks<M extends Model>(
-    this: ModelStatic<M>,
-    identifiers: readonly unknown[],
-    options?: FindOptions<Attributes<M>>,
-  ): Promise<M[]>;
-
-  /**
    * Run an aggregation method on the specified field.
    *
    * Returns the aggregate result cast to {@link AggregateOptions.dataType},
