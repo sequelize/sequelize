@@ -1,5 +1,4 @@
-import crypto from 'node:crypto';
-import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import {
   Aes256CbcStrategy,
@@ -7,6 +6,7 @@ import {
   EncryptedAttribute,
 } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
+import crypto from 'node:crypto';
 import { sequelize } from '../../support';
 
 // Deterministic 32-byte key for testing (never use in production).
@@ -273,20 +273,12 @@ describe('@EncryptedAttribute legacy decorator', () => {
     // A trivial "cipher" that just XORs with 0xFF for testing purposes.
     const xorStrategy = {
       encrypt(plaintext: Buffer, _key: Buffer) {
-        const data = Buffer.alloc(plaintext.length);
-        for (let i = 0; i < plaintext.length; i++) {
-          data[i] = plaintext[i]! ^ 0xff;
-        }
+        const data = Buffer.from(plaintext.map(byte => byte ^ 0xff));
 
         return { data };
       },
       decrypt(packed: Buffer, _key: Buffer) {
-        const data = Buffer.alloc(packed.length);
-        for (let i = 0; i < packed.length; i++) {
-          data[i] = packed[i]! ^ 0xff;
-        }
-
-        return data;
+        return Buffer.from(packed.map(byte => byte ^ 0xff));
       },
       deterministic: true,
     };
@@ -332,7 +324,7 @@ describe('@EncryptedAttribute legacy decorator', () => {
     expect(() => {
       class User extends Model {
         @EncryptedAttribute({ type: DataTypes.STRING, key: TEST_KEY })
-        static declare ssn: string;
+        declare static ssn: string;
       }
 
       return User;

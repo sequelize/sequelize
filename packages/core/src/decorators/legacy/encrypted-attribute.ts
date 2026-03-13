@@ -1,10 +1,10 @@
 import crypto from 'node:crypto';
-import type { BlobLength, DataType } from '../../abstract-dialect/data-types.js';
 import { isDataType } from '../../abstract-dialect/data-types-utils.js';
+import type { BlobLength, DataType } from '../../abstract-dialect/data-types.js';
 import { AbstractDataType, DataTypeIdentifier } from '../../abstract-dialect/data-types.js';
 import * as DataTypes from '../../data-types.js';
-import { Model } from '../../model.js';
 import type { ModelStatic } from '../../model.js';
+import { Model } from '../../model.js';
 import { registerModelAttributeOptions } from '../shared/model.js';
 import type { PropertyOrGetterDescriptor } from './decorator-utils.js';
 import {
@@ -111,8 +111,8 @@ export const Aes256GcmStrategy: CipherStrategy = Object.freeze({
   decrypt(packed: Buffer, key: Buffer): Buffer {
     if (packed[0] !== CIPHERTEXT_FORMAT_VERSION) {
       throw new Error(
-        `@EncryptedAttribute: unsupported ciphertext format version ${packed[0]}. `
-        + `Expected ${CIPHERTEXT_FORMAT_VERSION}.`,
+        `@EncryptedAttribute: unsupported ciphertext format version ${packed[0]}. ` +
+          `Expected ${CIPHERTEXT_FORMAT_VERSION}.`,
       );
     }
 
@@ -158,8 +158,8 @@ export const Aes256CbcStrategy: CipherStrategy = Object.freeze({
   decrypt(packed: Buffer, key: Buffer): Buffer {
     if (packed[0] !== CIPHERTEXT_FORMAT_VERSION) {
       throw new Error(
-        `@EncryptedAttribute: unsupported ciphertext format version ${packed[0]}. `
-        + `Expected ${CIPHERTEXT_FORMAT_VERSION}.`,
+        `@EncryptedAttribute: unsupported ciphertext format version ${packed[0]}. ` +
+          `Expected ${CIPHERTEXT_FORMAT_VERSION}.`,
       );
     }
 
@@ -178,7 +178,11 @@ export const Aes256CbcStrategy: CipherStrategy = Object.freeze({
 // Serialisation helpers
 // ────────────────────────────────────────────────────────────────────────────
 
-/** Serialises an arbitrary JS value to a Buffer for encryption. */
+/**
+ * Serialises an arbitrary JS value to a Buffer for encryption.
+ *
+ * @param value The value to serialise.
+ */
 function serialise(value: unknown): Buffer {
   if (value instanceof Buffer) {
     return value;
@@ -210,13 +214,28 @@ function serialise(value: unknown): Buffer {
 type Deserialiser = (raw: Buffer) => unknown;
 
 const STRING_TYPES = new Set([
-  'STRING', 'TEXT', 'UUID', 'UUIDV1', 'UUIDV4',
-  'CHAR', 'INET', 'CIDR', 'MACADDR', 'MACADDR8', 'ENUM',
+  'STRING',
+  'TEXT',
+  'UUID',
+  'UUIDV1',
+  'UUIDV4',
+  'CHAR',
+  'INET',
+  'CIDR',
+  'MACADDR',
+  'MACADDR8',
+  'ENUM',
 ]);
 
 const NUMERIC_TYPES = new Set([
-  'INTEGER', 'SMALLINT', 'TINYINT', 'MEDIUMINT',
-  'FLOAT', 'DOUBLE', 'DECIMAL', 'REAL',
+  'INTEGER',
+  'SMALLINT',
+  'TINYINT',
+  'MEDIUMINT',
+  'FLOAT',
+  'DOUBLE',
+  'DECIMAL',
+  'REAL',
 ]);
 
 function resolveDeserialiser(logicalType: string): Deserialiser {
@@ -263,12 +282,14 @@ function resolveDeserialiser(logicalType: string): Deserialiser {
  * Works with:
  * - Invokable (Proxy-wrapped) class references, e.g. `DataTypes.STRING`
  * - Instances, e.g. `DataTypes.STRING(255)` / `new DataTypes.STRING()`
+ *
+ * @param type The DataType class or instance to identify.
  */
 function getDataTypeId(type: unknown): string {
   if (!isDataType(type)) {
     throw new TypeError(
-      `@EncryptedAttribute: "type" must be a Sequelize DataType class or instance. `
-      + `Received: ${String(type)}`,
+      `@EncryptedAttribute: "type" must be a Sequelize DataType class or instance. ` +
+        `Received: ${String(type)}`,
     );
   }
 
@@ -344,8 +365,8 @@ function normaliseKey(key: Buffer | string): Buffer {
   if (Buffer.isBuffer(key)) {
     if (key.length !== 32) {
       throw new Error(
-        `@EncryptedAttribute: key must be exactly 32 bytes (256 bits) for AES-256. `
-        + `Received ${key.length} bytes.`,
+        `@EncryptedAttribute: key must be exactly 32 bytes (256 bits) for AES-256. ` +
+          `Received ${key.length} bytes.`,
       );
     }
 
@@ -359,8 +380,8 @@ function normaliseKey(key: Buffer | string): Buffer {
     }
 
     throw new Error(
-      '@EncryptedAttribute: when key is a string, it must be a 64-character hex-encoded '
-      + `string (representing 32 bytes). Received ${key.length} characters.`,
+      '@EncryptedAttribute: when key is a string, it must be a 64-character hex-encoded ' +
+        `string (representing 32 bytes). Received ${key.length} characters.`,
     );
   }
 
@@ -404,9 +425,7 @@ function normaliseKey(key: Buffer | string): Buffer {
  *
  * @param options - Configuration for the encrypted attribute.
  */
-export function EncryptedAttribute(
-  options: EncryptedAttributeOptions,
-): PropertyOrGetterDescriptor {
+export function EncryptedAttribute(options: EncryptedAttributeOptions): PropertyOrGetterDescriptor {
   const strategy = options.strategy ?? Aes256GcmStrategy;
   const keyBuf = normaliseKey(options.key);
   const blobLength = options.blobLength ?? 'long';
