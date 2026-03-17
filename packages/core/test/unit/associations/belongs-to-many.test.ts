@@ -129,7 +129,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
         const [field] = idx.fields;
 
-        return (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName;
+        return (
+          (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName
+        );
       });
 
     expect(hasSingleColumnFkIndex('userId')).to.be.true;
@@ -156,7 +158,9 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
 
         const [field] = idx.fields;
 
-        return (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName;
+        return (
+          (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName
+        );
       });
 
     expect(hasSingleColumnFkIndex('userId')).to.be.false;
