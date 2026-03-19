@@ -41,5 +41,6 @@ jobs:
             sqlite3
             utils
             validator.js
+            firebird
           ignoreLabels: |
             ignore-semantic-pull-request

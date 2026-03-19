@@ -58,6 +58,10 @@ export function quoteIdentifier(identifier: string, leftTick: string, rightTick:
     );
   }
 
+  if (leftTick === '' && rightTick === '') {
+    return identifier;
+  }
+
   // TODO [engine:node@>14]: drop regexp, use replaceAll with a string instead.
   const leftTickRegExp = new RegExp(`\\${leftTick}`, 'g');
 

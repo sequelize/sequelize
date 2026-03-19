@@ -1,6 +1,6 @@
 {
   "bugs": "https://github.com/sequelize/sequelize/issues",
-  "description": "MySQL Connector for Sequelize",
+  "description": "Firebird Connector for Sequelize",
   "exports": {
     ".": {
       "import": {
@@ -21,10 +21,10 @@
   "sideEffects": false,
   "homepage": "https://sequelize.org",
   "license": "MIT",
-  "name": "@sequelize/mysql",
+  "name": "@sequelize/firebird",
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "node ../../build-packages.mjs mysql",
+    "build": "node ../../build-packages.mjs firebird",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
     "test-unit": "mocha src/**/*.test.ts",
@@ -39,9 +39,9 @@
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.20",
+    "dayjs": "^1.11.19",
     "lodash": "^4.17.23",
-    "mysql2": "^3.19.1",
+    "node-firebird": "^2.0.2",
     "wkx": "^0.5.0"
   },
   "devDependencies": {
