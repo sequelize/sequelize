@@ -6,15 +6,15 @@ const HasMany = require('./has-many');
 const BelongsToMany = require('./belongs-to-many');
 const BelongsTo = require('./belongs-to');
 
-function isModel(model, sequelize) {
+function isModel(model, source) {
   return model
     && model.prototype
-    && model.prototype instanceof sequelize.Sequelize.Model;
+    && model.prototype instanceof source.__proto__;
 }
 
 const Mixin = {
   hasMany(target, options = {}) {
-    if (!isModel(target, this.sequelize)) {
+    if (!isModel(target, this)) {
       throw new Error(`${this.name}.hasMany called with something that's not a subclass of Sequelize.Model`);
     }
 
@@ -45,7 +45,7 @@ const Mixin = {
   },
 
   belongsToMany(target, options = {}) {
-    if (!isModel(target, this.sequelize)) {
+    if (!isModel(target, this)) {
       throw new Error(`${this.name}.belongsToMany called with something that's not a subclass of Sequelize.Model`);
     }
 
@@ -89,7 +89,7 @@ function singleLinked(Type) {
   return function(target, options = {}) {
     // eslint-disable-next-line no-invalid-this
     const source = this;
-    if (!isModel(target, source.sequelize)) {
+    if (!isModel(target, source)) {
       throw new Error(`${source.name}.${_.lowerFirst(Type.name)} called with something that's not a subclass of Sequelize.Model`);
     }
 
