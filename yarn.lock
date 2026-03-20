@@ -2836,7 +2836,7 @@ __metadata:
     concurrently: "npm:9.2.1"
     cosmiconfig: "npm:^9.0.1"
     mocha: "npm:11.7.5"
-    oclif: "npm:4.22.92"
+    oclif: "npm:4.22.93"
     rimraf: "npm:5.0.10"
     zod: "npm:^4.3.6"
   bin:
@@ -12378,9 +12378,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.22.92":
-  version: 4.22.92
-  resolution: "oclif@npm:4.22.92"
+"oclif@npm:4.22.93":
+  version: 4.22.93
+  resolution: "oclif@npm:4.22.93"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:3.1009.0"
     "@aws-sdk/client-s3": "npm:3.1009.0"
@@ -12408,7 +12408,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/41451ffa5d19913b9db475dd8bdf5d0d4bbd50387365a456ec2bbf4fcca399a8b992d7bf40c516384c82c188654292dba85541afb30aede8142e1ff1878cb8cf
+  checksum: 10c0/042a0760eb27e712f2f8c5cf21f73ed45f1b1ed1413875711166d01127dae7d889f26742229c390b5be0f9daf371c8dd9c423068b98cca17a9b0ca3b2db169c3
   languageName: node
   linkType: hard
 
