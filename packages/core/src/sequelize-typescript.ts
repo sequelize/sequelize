@@ -37,7 +37,10 @@ import { normalizeDataType, validateDataType } from './abstract-dialect/data-typ
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
-import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
+import type {
+  DropSchemaOptions,
+  QiDropAllSchemasOptions,
+} from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
 import type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
 import { ReplicationPool } from './abstract-dialect/replication-pool.js';
@@ -1117,7 +1120,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
    * @param schema
    * @param options
    */
-  async dropSchema(schema: string, options?: QueryRawOptions) {
+  async dropSchema(schema: string, options?: DropSchemaOptions) {
     return this.queryInterface.dropSchema(schema, options);
   }
 
