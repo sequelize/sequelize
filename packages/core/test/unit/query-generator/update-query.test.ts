@@ -335,7 +335,9 @@ describe('QueryGenerator#updateQuery', () => {
         model: Post,
         include: _validateIncludedElements({
           model: Post,
-          include: [{ association: Post.associations.author, required: false, where: { name: 'John' } }],
+          include: [
+            { association: Post.associations.author, required: false, where: { name: 'John' } },
+          ],
         }).include,
       };
 
