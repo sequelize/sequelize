@@ -569,6 +569,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     let query;
     if (options.include && options.include.length > 0) {
+      if (options.limit) {
+        throw new Error('Model.update with include does not support limit.');
+      }
+
       const quotedTableName = this.quoteTable(tableName);
       const model = options.model;
       const modelDefinition = model.modelDefinition;
