@@ -1,4 +1,4 @@
-import { DataTypes, Model, ParameterStyle, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
@@ -281,20 +281,16 @@ describe('QueryGenerator#updateQuery', () => {
       return { Post, Author };
     });
 
-    function normalizeIncludes(options: any, model: any) {
-      Model._conformIncludes(options, model);
-      Model._expandIncludeAll(options, model);
-      _validateIncludedElements(options);
-    }
-
     it('generates UPDATE with subquery for single include', () => {
-      const { Post, Author } = includeVars;
+      const { Post } = includeVars;
 
       const options: any = {
         model: Post,
-        include: [{ model: Author, where: { name: 'John' } }],
+        include: _validateIncludedElements({
+          model: Post,
+          include: [{ association: Post.associations.author, where: { name: 'John' } }],
+        }).include,
       };
-      normalizeIncludes(options, Post);
 
       const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
 
@@ -307,13 +303,15 @@ describe('QueryGenerator#updateQuery', () => {
     });
 
     it('generates UPDATE with subquery including main table WHERE', () => {
-      const { Post, Author } = includeVars;
+      const { Post } = includeVars;
 
       const options: any = {
         model: Post,
-        include: [{ model: Author, where: { name: 'John' } }],
+        include: _validateIncludedElements({
+          model: Post,
+          include: [{ association: Post.associations.author, where: { name: 'John' } }],
+        }).include,
       };
-      normalizeIncludes(options, Post);
 
       const result = queryGenerator.updateQuery(
         Post.table,
@@ -331,13 +329,15 @@ describe('QueryGenerator#updateQuery', () => {
     });
 
     it('uses LEFT OUTER JOIN when required is false', () => {
-      const { Post, Author } = includeVars;
+      const { Post } = includeVars;
 
       const options: any = {
         model: Post,
-        include: [{ model: Author, required: false, where: { name: 'John' } }],
+        include: _validateIncludedElements({
+          model: Post,
+          include: [{ association: Post.associations.author, required: false, where: { name: 'John' } }],
+        }).include,
       };
-      normalizeIncludes(options, Post);
 
       const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
 
