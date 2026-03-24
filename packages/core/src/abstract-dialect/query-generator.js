@@ -643,11 +643,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const innerSelect = `SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''}`;
 
+      const aliasToken = this.#internals.getAliasToken();
+
       let subqueryWhere;
       if (pkColumns.length === 1) {
-        subqueryWhere = `${pkWhere} IN (SELECT * FROM (${innerSelect}) AS ${this.quoteIdentifier('_update_subquery_')})`;
+        subqueryWhere = `${pkWhere} IN (SELECT * FROM (${innerSelect}) ${aliasToken} ${this.quoteIdentifier('_update_subquery_')})`;
       } else {
-        subqueryWhere = `(${pkWhere}) IN (SELECT * FROM (${innerSelect}) AS ${this.quoteIdentifier('_update_subquery_')})`;
+        subqueryWhere = `(${pkWhere}) IN (SELECT * FROM (${innerSelect}) ${aliasToken} ${this.quoteIdentifier('_update_subquery_')})`;
       }
 
       query =
