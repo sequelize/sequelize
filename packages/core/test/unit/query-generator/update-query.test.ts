@@ -321,10 +321,10 @@ describe('QueryGenerator#updateQuery', () => {
       );
 
       expectsql(result.query, {
-        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John' WHERE [authorId] = $sequelize_2)`,
-        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John' WHERE [authorId] = $sequelize_2)`,
-        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "authorId" = $sequelize_2)`,
-        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "authorId" = $sequelize_2));`,
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John' WHERE [Post].[authorId] = $sequelize_2)`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John' WHERE [Post].[authorId] = $sequelize_2)`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2)`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2));`,
       });
     });
 

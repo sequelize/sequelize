@@ -600,7 +600,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       let joinStatements = [];
       for (const include of options.include) {
         if (include.separate) {
-          continue;
+          throw new Error('Model.update with include does not support separate includes.');
         }
 
         const joinQueries = this.generateInclude(
@@ -621,7 +621,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         .map(col => `${quotedTableName}.${this.quoteIdentifier(col)}`)
         .join(', ');
 
-      const whereClause = this.whereQuery(where, whereOptions);
+      const whereClause = this.whereQuery(where, {
+        ...whereOptions,
+        model,
+        mainAlias: mainTable.as,
+      });
 
       let subqueryWhere;
       if (pkColumns.length === 1) {

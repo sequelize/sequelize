@@ -178,6 +178,10 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const whereOptions = { ...options, bindParam };
 
     if (options.include && options.include.length > 0) {
+      if (options.limit) {
+        throw new Error('Model.update with include does not support limit.');
+      }
+
       const quotedTableName = this.quoteTable(tableName);
       const model = options.model;
       const modelDefinition = model.modelDefinition;
@@ -209,7 +213,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       let joinStatements = [];
       for (const include of options.include) {
         if (include.separate) {
-          continue;
+          throw new Error('Model.update with include does not support separate includes.');
         }
 
         const joinQueries = this.generateInclude(
@@ -230,7 +234,11 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         .map(col => `${quotedTableName}.${this.quoteIdentifier(col)}`)
         .join(', ');
 
-      const whereClause = this.whereQuery(where, whereOptions);
+      const whereClause = this.whereQuery(where, {
+        ...whereOptions,
+        model,
+        mainAlias: mainTable.as,
+      });
 
       let subqueryWhere;
       if (pkColumns.length === 1) {
