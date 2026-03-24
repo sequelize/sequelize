@@ -210,12 +210,22 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         subQuery: false,
       };
 
+      const assertNoSeparateIncludes = includes => {
+        for (const include of includes) {
+          if (include.separate) {
+            throw new Error('Model.update with include does not support separate includes.');
+          }
+
+          if (include.include) {
+            assertNoSeparateIncludes(include.include);
+          }
+        }
+      };
+
+      assertNoSeparateIncludes(options.include);
+
       let joinStatements = [];
       for (const include of options.include) {
-        if (include.separate) {
-          throw new Error('Model.update with include does not support separate includes.');
-        }
-
         const joinQueries = this.generateInclude(
           include,
           { externalAs: mainTable.as, internalAs: mainTable.as },

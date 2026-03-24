@@ -295,10 +295,11 @@ describe('QueryGenerator#updateQuery', () => {
       const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
 
       expectsql(result.query, {
-        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John')`,
-        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John')`,
-        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
-        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John'));`,
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John') AS [_update_subquery_])`,
+        sqlite3: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John') AS [_update_subquery_])`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John') "_update_subquery_")`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John') AS "_update_subquery_"));`,
       });
     });
 
@@ -321,10 +322,11 @@ describe('QueryGenerator#updateQuery', () => {
       );
 
       expectsql(result.query, {
-        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John' WHERE [Post].[authorId] = $sequelize_2)`,
-        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John' WHERE [Post].[authorId] = $sequelize_2)`,
-        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2)`,
-        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2));`,
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John' WHERE [Post].[authorId] = $sequelize_2) AS [_update_subquery_])`,
+        sqlite3: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2)`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] INNER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John' WHERE [Post].[authorId] = $sequelize_2) AS [_update_subquery_])`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" "Post" INNER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2) "_update_subquery_")`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" AS "Post" INNER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John' WHERE "Post"."authorId" = $sequelize_2) AS "_update_subquery_"));`,
       });
     });
 
@@ -344,10 +346,11 @@ describe('QueryGenerator#updateQuery', () => {
       const result = queryGenerator.updateQuery(Post.table, { title: 'Updated' }, {}, options);
 
       expectsql(result.query, {
-        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John')`,
-        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John')`,
-        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" "Post" LEFT OUTER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
-        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" LEFT OUTER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John'));`,
+        default: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = 'John') AS [_update_subquery_])`,
+        sqlite3: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT "Post"."id" FROM "Posts" AS "Post" LEFT OUTER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John')`,
+        mssql: `UPDATE [Posts] SET [title]=$sequelize_1 WHERE [Posts].[id] IN (SELECT * FROM (SELECT [Post].[id] FROM [Posts] AS [Post] LEFT OUTER JOIN [Authors] AS [author] ON [Post].[authorId] = [author].[id] AND [author].[name] = N'John') AS [_update_subquery_])`,
+        oracle: `UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" "Post" LEFT OUTER JOIN "Authors" "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John') "_update_subquery_")`,
+        db2: `SELECT * FROM FINAL TABLE (UPDATE "Posts" SET "title"=$sequelize_1 WHERE "Posts"."id" IN (SELECT * FROM (SELECT "Post"."id" FROM "Posts" AS "Post" LEFT OUTER JOIN "Authors" AS "author" ON "Post"."authorId" = "author"."id" AND "author"."name" = 'John') AS "_update_subquery_"));`,
       });
     });
 

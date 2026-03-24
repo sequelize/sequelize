@@ -601,12 +601,22 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         subQuery: false,
       };
 
+      const assertNoSeparateIncludes = includes => {
+        for (const include of includes) {
+          if (include.separate) {
+            throw new Error('Model.update with include does not support separate includes.');
+          }
+
+          if (include.include) {
+            assertNoSeparateIncludes(include.include);
+          }
+        }
+      };
+
+      assertNoSeparateIncludes(options.include);
+
       let joinStatements = [];
       for (const include of options.include) {
-        if (include.separate) {
-          throw new Error('Model.update with include does not support separate includes.');
-        }
-
         const joinQueries = this.generateInclude(
           include,
           { externalAs: mainTable.as, internalAs: mainTable.as },
@@ -631,11 +641,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         mainAlias: mainTable.as,
       });
 
+      const innerSelect = `SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''}`;
+
       let subqueryWhere;
       if (pkColumns.length === 1) {
-        subqueryWhere = `${pkWhere} IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+        subqueryWhere = `${pkWhere} IN (SELECT * FROM (${innerSelect}) AS ${this.quoteIdentifier('_update_subquery_')})`;
       } else {
-        subqueryWhere = `(${pkWhere}) IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+        subqueryWhere = `(${pkWhere}) IN (SELECT * FROM (${innerSelect}) AS ${this.quoteIdentifier('_update_subquery_')})`;
       }
 
       query =
