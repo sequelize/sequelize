@@ -83,14 +83,14 @@
     "chai": "4.5.0",
     "concurrently": "9.2.1",
     "cross-env": "10.1.0",
-    "esbuild": "0.27.3",
+    "esbuild": "0.27.4",
     "eslint": "8.57.1",
     "eslint-plugin-jsdoc": "61.4.2",
     "eslint-plugin-mocha": "10.5.0",
     "fast-glob": "3.3.3",
     "husky": "9.1.7",
     "lerna": "8.2.4",
-    "lint-staged": "16.3.3",
+    "lint-staged": "16.4.0",
     "lodash": "4.17.23",
     "markdownlint-cli": "0.48.0",
     "mocha": "11.7.5",
@@ -106,7 +106,7 @@
     "typedoc-plugin-missing-exports": "3.1.0",
     "typescript": "5.8.3"
   },
-  "packageManager": "yarn@4.12.0",
+  "packageManager": "yarn@4.13.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"
