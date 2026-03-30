@@ -8,6 +8,8 @@
  * some linting rules are skipped for performance optimizations.
  */
 
+import { pojo } from '@sequelize/utils';
+
 type PathSeg = string | number;
 
 export interface CompiledPath {
@@ -165,7 +167,7 @@ export function setByPathArray(
       // But because we always assign at parent step, we only need to ensure slot exists
 
       if (obj[seg] == null) {
-        obj[seg] = nextIsIndex ? [] : {};
+        obj[seg] = nextIsIndex ? [] : pojo();
       }
 
       obj = obj[seg];
@@ -173,7 +175,7 @@ export function setByPathArray(
       // object seg
       let next = obj[seg];
       if (next == null || (typeof next !== 'object' && !Array.isArray(next))) {
-        obj[seg] = nextIsIndex ? [] : {};
+        obj[seg] = nextIsIndex ? [] : pojo();
         next = obj[seg];
       }
 
@@ -198,7 +200,7 @@ export function transformRowWithPrecompiled(
   pre: PrecompiledTransform,
   out?: Record<string, unknown>,
 ): Record<string, unknown> {
-  const target = out ?? {};
+  const target = out ?? pojo();
   const { compiled } = pre;
   // eslint-disable-next-line unicorn/no-for-loop -- disabled for performance
   for (let i = 0; i < compiled.length; i++) {
@@ -222,7 +224,7 @@ export function transformRowWithPrecompiled(
 export function acquirePooledObject(pool: Array<Record<string, unknown>>): Record<string, unknown> {
   const obj = pool.pop();
   if (!obj) {
-    return {};
+    return pojo();
   }
   // Clear previous contents
 
