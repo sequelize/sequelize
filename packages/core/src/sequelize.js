@@ -56,6 +56,7 @@ import {
   noSequelizeIsDefined,
   noSequelizeModel,
   noSequelizeRandom,
+  useMasterToUsePrimary,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -364,6 +365,17 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     setTransactionFromCls(options, this);
+
+    // Deprecation bridge: useMaster -> usePrimary
+    if (Object.hasOwn(options, 'useMaster')) {
+      useMasterToUsePrimary();
+      if (options.usePrimary === undefined) {
+        options.usePrimary = options.useMaster;
+      }
+
+      delete options.useMaster;
+    }
+
     const retryOptions = { ...this.options.retry, ...options.retry };
 
     return await retry(async () => {
@@ -374,9 +386,7 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-              usePrimary:
-                options.usePrimary ??
-                (Object.hasOwn(options, 'useMaster') ? options.useMaster : undefined),
+              usePrimary: options.usePrimary,
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
