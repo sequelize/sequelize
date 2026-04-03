@@ -91,7 +91,7 @@
     "husky": "9.1.7",
     "lerna": "8.2.4",
     "lint-staged": "16.4.0",
-    "lodash": "4.17.23",
+    "lodash": "4.18.1",
     "markdownlint-cli": "0.48.0",
     "mocha": "11.7.5",
     "node-gyp": "11.5.0",
