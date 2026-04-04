@@ -1,4 +1,4 @@
-import type { AbstractDialect } from '@sequelize/core';
+import type { Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { isFunction, isNotNullish } from '@sequelize/utils';
 import { checkFileExists } from '@sequelize/utils/node';
@@ -7,7 +7,6 @@ import path from 'node:path';
 import { inspect } from 'node:util';
 import { SequelizeStorage, Umzug } from 'umzug';
 import type { RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
-import type { Config } from '../_internal/config.js';
 import { config } from '../_internal/config.js';
 
 const SUPPORTED_JS_FILE_EXTENSIONS = Object.freeze(['.js', '.ts', '.cjs', '.mjs', '.cts', '.mts']);
@@ -16,9 +15,17 @@ const SUPPORTED_SQL_FILE_EXTENSIONS = Object.freeze(['.sql']);
 export type UmzugContext = { sequelize: Sequelize };
 
 export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'logger'>) {
-  const sequelize = new Sequelize(config.database as Config<AbstractDialect>['database']);
+  if (!config.database) {
+    throw new Error(
+      'No database configuration found. Please add a "database" entry to your sequelize config file.',
+    );
+  }
 
-  return new Umzug({
+  const sequelize = new Sequelize(
+    config.database as Options<typeof config.database.dialect.prototype>,
+  );
+
+  const umzug = new Umzug({
     ...options,
     migrations: universalUmzugMigrations,
     context: {
@@ -26,6 +33,8 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
     },
     storage: new SequelizeStorage({ sequelize }),
   });
+
+  return { umzug, sequelize };
 }
 
 async function universalUmzugMigrations(): Promise<Array<RunnableMigration<UmzugContext>>> {

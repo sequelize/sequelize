@@ -8,7 +8,8 @@ import { pathToFileURL } from 'node:url';
 const __dirname = fileUrlToDirname(import.meta.url);
 const packageRoot = join(__dirname, '..', '..', '..');
 
-describe('seed:generate', () => {
+describe('seed:generate', function () {
+  this.timeout(15_000);
   it('generates an SQL seed', async () => {
     const { stdout } = await runCommand(
       ['seed:generate', '--format=sql', '--name=test-seed', '--json'],

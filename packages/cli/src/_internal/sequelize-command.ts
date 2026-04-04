@@ -11,6 +11,28 @@ export type CommandFlags<Flags extends FlagInput> = Interfaces.InferredFlags<
   (typeof SequelizeCommand)['baseFlags'] & Flags
 >;
 
+/**
+ * Creates an umzug-compatible logger that routes output through the oclif command's
+ * own log/warn/error methods instead of the global console.
+ *
+ * @param cmd
+ */
+export function makeUmzugLogger(
+  cmd: Command,
+): Record<'info' | 'warn' | 'error' | 'debug', (message: Record<string, unknown>) => void> {
+  const fmt = (msg: Record<string, unknown>) =>
+    Object.entries(msg)
+      .map(([k, v]) => `${k}=${String(v)}`)
+      .join(' ');
+
+  return {
+    info: msg => cmd.log(fmt(msg)),
+    warn: msg => cmd.warn(fmt(msg)),
+    error: msg => cmd.error(fmt(msg), { exit: false }),
+    debug: msg => cmd.log(fmt(msg)),
+  };
+}
+
 export abstract class SequelizeCommand<Flags extends FlagInput> extends Command {
   static strict = false;
 
@@ -81,6 +103,12 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       }
 
       const flag = strictFlagConfig[flagKey];
+
+      // Only prompt for required flags; optional flags use their default (or undefined)
+      if (!flag.required) {
+        continue;
+      }
+
       switch (flag.type) {
         case 'option': {
           if (flag.options) {
