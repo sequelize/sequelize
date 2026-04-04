@@ -3115,7 +3115,7 @@ Caused by: "undefined" cannot be escaped`),
               },
             },
             {
-              default: new Error(`Could not guess type of value { attribute: 'value' }`),
+              default: new TypeError(`Could not guess type of value { attribute: 'value' }`),
             },
           );
 
@@ -3977,7 +3977,9 @@ Caused by: "undefined" cannot be escaped`),
         });
 
         testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
-          default: new Error(`Could not guess type of value ${util.inspect({ [Op.in]: [1, 2] })}`),
+          default: new TypeError(
+            `Could not guess type of value ${util.inspect({ [Op.in]: [1, 2] }, { depth: 1 })}`,
+          ),
         });
       });
 
