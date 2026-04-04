@@ -48,11 +48,12 @@ describe('importModels', () => {
 
     expect(models.length).to.eq(0);
 
-    expect(calls[0].exportValue).to.eq(Bundler);
-    expect(calls[1].path.endsWith('test/unit/import-models/models/node.abstract.js'));
-    expect(calls[1].exportName).to.eq('default');
-    expect(calls[1].exportValue).to.eq(Node);
+    expect(calls.some(c => c.exportValue === Bundler)).to.be.true;
+    expect(calls.some(c => c.exportValue === User)).to.be.true;
 
-    expect(calls[2].exportValue).to.eq(User);
+    const nodeCall = calls.find(c => c.exportValue === Node);
+    expect(nodeCall).to.exist;
+    expect(nodeCall!.path.endsWith('test/unit/import-models/models/node.abstract.js')).to.be.true;
+    expect(nodeCall!.exportName).to.eq('default');
   });
 });
