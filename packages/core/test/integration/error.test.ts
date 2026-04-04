@@ -492,7 +492,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         await expect(User.create({ name: 'jan' })).to.be.rejectedWith(UniqueConstraintError);
 
         // And when the model is not passed at all
-        if (['db2', 'ibmi'].includes(dialect)) {
+        if (['db2', 'ibmi', 'oracle'].includes(dialect)) {
           await expect(
             sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
           ).to.be.rejectedWith(UniqueConstraintError);
@@ -550,7 +550,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ValidationError);
         assert(error instanceof ValidationError);
-        if (dialect === 'db2') {
+        if (dialect === 'db2' || dialect === 'oracle') {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
@@ -596,11 +596,17 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'sqlite3':
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
             );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
+            break;
+
+          case 'oracle':
+            expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*\) violated/);
             break;
 
           default:
@@ -626,7 +632,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       } catch (error) {
         expect(error).to.be.instanceOf(ValidationError);
         assert(error instanceof ValidationError);
-        if (dialect === 'db2') {
+        if (dialect === 'db2' || dialect === 'oracle') {
           expect(error.errors).to.have.length(0);
         } else {
           expect(error.errors).to.have.length(1);
@@ -670,8 +676,16 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'sqlite3':
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and `@vscode/sqlite3`
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
+            );
+            break;
+
+          case 'oracle':
+            expect(error.cause.message).to.match(
+              /ORA-00001: unique constraint \(.*.users_username_unique\) violated/,
             );
             break;
 
@@ -745,8 +759,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
+            );
+            break;
+
+          case 'oracle':
+            expect(error.table).to.be.undefined;
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.match(
+              /ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/,
             );
             break;
 
@@ -820,8 +844,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
+            );
+            break;
+
+          case 'oracle':
+            expect(error.table).to.be.undefined;
+            expect(error.fields).to.be.null;
+            expect(error.cause.message).to.match(
+              /ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/,
             );
             break;
 
@@ -867,6 +901,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           assert(error.errors[2] instanceof UnknownConstraintError);
           expect(error.errors[2].constraint).to.equal('unique_constraint');
           expect(error.errors[2].table).to.equal('Users');
+        } else if (dialect === 'oracle') {
+          expect(error).to.be.instanceOf(DatabaseError);
+          assert(error instanceof DatabaseError);
+          expect(error.message).to.match(/^ORA-02264: name already used by an existing constraint/);
         } else {
           expect(error).to.be.instanceOf(DatabaseError);
           assert(error instanceof DatabaseError);

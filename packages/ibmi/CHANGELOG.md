@@ -3,6 +3,26 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.48](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.47...v7.0.0-alpha.48) (2026-02-04)
+
+### Features
+
+- **oracle:** Add support for oracle dialect in v7 ([#18050](https://github.com/sequelize/sequelize/issues/18050)) ([3a92f26](https://github.com/sequelize/sequelize/commit/3a92f263a6707469839160849b87229985f5f280))
+
+# [7.0.0-alpha.47](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.46...v7.0.0-alpha.47) (2025-10-25)
+
+### Features
+
+- add parameter style ([#17560](https://github.com/sequelize/sequelize/issues/17560)) ([1f4bdee](https://github.com/sequelize/sequelize/commit/1f4bdee80bb7ab5a335d11681f0a9ea973277297))
+
+### BREAKING CHANGES
+
+- the `bindParam` option has been replaced with `parameterStyle` which defaults to `ParameterStyle.BIND`
+
+# [7.0.0-alpha.46](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.45...v7.0.0-alpha.46) (2025-03-22)
+
+**Note:** Version bump only for package @sequelize/db2-ibmi
+
 # [7.0.0-alpha.45](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.44...v7.0.0-alpha.45) (2025-02-17)
 
 **Note:** Version bump only for package @sequelize/db2-ibmi

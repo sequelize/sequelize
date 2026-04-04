@@ -14,7 +14,7 @@ import { Value } from './value.js';
 import { where } from './where.js';
 
 /**
- * The template tag function used to easily create {@link literal}.
+ * The template tag function used to easily create {@link sql.literal}.
  *
  * @param rawSql
  * @param values

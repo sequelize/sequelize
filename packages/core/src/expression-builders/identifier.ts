@@ -2,7 +2,7 @@ import type { TableOrModel } from '../abstract-dialect/query-generator.types';
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Use {@link identifier} instead.
+ * Use {@link sql.identifier} instead.
  */
 export class Identifier extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'identifier';
@@ -14,7 +14,7 @@ export class Identifier extends BaseSqlExpression {
 
 /**
  * Used to represent a value that will either be escaped to a literal, or a bind parameter.
- * Unlike {@link attribute} and {@link col}, this identifier will be escaped as-is,
+ * Unlike {@link sql.attribute} and {@link sql.col}, this identifier will be escaped as-is,
  * without mapping to a column name or any other transformation.
  *
  * This method supports strings, table structures, model classes (in which case the identifiers will be the model schema & table name), and model definitions (same behavior as model classes)

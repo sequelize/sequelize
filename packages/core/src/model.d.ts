@@ -21,6 +21,7 @@ import type {
   HasOneOptions,
 } from './associations/index';
 import type { Deferrable } from './deferrable';
+import type { IndexHints } from './enums.js';
 import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
@@ -28,7 +29,6 @@ import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
 import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
-import type { IndexHints } from './index-hints';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
@@ -84,6 +84,7 @@ export interface Transactionable {
    * Internal only
    *
    * @private
+   * @hidden
    */
   [COMPLETES_TRANSACTION]?: boolean | undefined;
 }
@@ -782,14 +783,14 @@ export type ProjectionAlias = readonly [
 ];
 
 export type FindAttributeOptions<TAttributes = any> =
-  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
+  | ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
   | {
-      exclude: Array<Extract<keyof TAttributes, string>>;
-      include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include?: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     }
   | {
-      exclude?: Array<Extract<keyof TAttributes, string>>;
-      include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude?: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     };
 
 export interface IndexHint {
@@ -984,6 +985,12 @@ export interface CountOptions<TAttributes = any>
    * Column on which COUNT() should be applied
    */
   col?: string;
+
+  /**
+   * Count number of records returned by group by
+   * Used in conjunction with `group`.
+   */
+  countGroupedRows?: boolean;
 }
 
 /**
@@ -1757,7 +1764,7 @@ export interface AttributeOptions<M extends Model = Model> {
   columnName?: string | undefined;
 
   /**
-   * A literal default value, a JavaScript function, or an SQL function (using {@link fn})
+   * A literal default value, a JavaScript function, or an SQL function (using {@link sql.fn})
    */
   defaultValue?: unknown | undefined;
 
@@ -2418,35 +2425,6 @@ export abstract class Model<
   ): Promise<M[]>;
 
   /**
-   * Search for a single instance by its primary key.
-   *
-   * This applies LIMIT 1, only a single instance will be returned.
-   *
-   * Returns the model with the matching primary key.
-   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
-   */
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
-  ): Promise<R | null>;
-  static findByPk<M extends Model, R = Attributes<M>>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M> & { raw: true },
-  ): Promise<R>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options: NonNullFindByPkOptions<M>,
-  ): Promise<M>;
-  static findByPk<M extends Model>(
-    this: ModelStatic<M>,
-    identifier: unknown,
-    options?: FindByPkOptions<M>,
-  ): Promise<M | null>;
-
-  /**
    * Search for a single instance.
    *
    * Returns the first instance corresponding matching the query.
@@ -2549,7 +2527,7 @@ export abstract class Model<
    */
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,
-    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group'>,
+    options?: Omit<FindAndCountOptions<Attributes<M>>, 'group' | 'countGroupedRows'>,
   ): Promise<{ rows: M[]; count: number }>;
   static findAndCountAll<M extends Model>(
     this: ModelStatic<M>,

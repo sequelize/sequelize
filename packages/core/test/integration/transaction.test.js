@@ -20,6 +20,14 @@ const current = Support.sequelize;
 const delay = require('delay');
 const pSettle = require('p-settle');
 
+const fromQuery = () => {
+  if (dialect === 'oracle') {
+    return ' FROM DUAL';
+  }
+
+  return '';
+};
+
 describe(Support.getTestDialectTeaser('Transaction'), () => {
   if (!current.dialect.supports.transactions) {
     return;
@@ -80,7 +88,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         }),
       ).to.eventually.be.rejected;
 
-      expect(t.getFinished()).to.equal('rollback');
+      expect(t.finished).to.equal('rollback');
     });
 
     it('supports automatically rolling back with a rejection', async function () {
@@ -93,7 +101,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         }),
       ).to.eventually.be.rejected;
 
-      expect(t.getFinished()).to.equal('rollback');
+      expect(t.finished).to.equal('rollback');
     });
 
     it('runs afterCommit & afterTransaction hooks when a transaction is committed', async function () {
@@ -108,7 +116,10 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         transaction.afterRollback(afterRollback);
         transaction.afterTransaction(afterTransaction);
 
-        return this.sequelize.query('SELECT 1+1', { transaction, type: QueryTypes.SELECT });
+        return this.sequelize.query(`SELECT 1+1${fromQuery()}`, {
+          transaction,
+          type: QueryTypes.SELECT,
+        });
       });
 
       expect(afterCommit).to.have.been.calledOnce;
@@ -260,31 +271,31 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
   it('does not allow queries after commit', async function () {
     const t = await this.sequelize.startUnmanagedTransaction();
-    await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+    await this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true });
     await t.commit();
-    await expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
+    await expect(this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true }))
       .to.be.eventually.rejectedWith(
         Error,
         /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
       )
       .and.have.deep.property('sql')
-      .that.equal('SELECT 1+1');
+      .that.equal(`SELECT 1+1${fromQuery()}`);
   });
 
   it('does not allow queries immediately after commit call', async function () {
     await expect(
       (async () => {
         const t = await this.sequelize.startUnmanagedTransaction();
-        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true });
         await Promise.all([
           expect(t.commit()).to.eventually.be.fulfilled,
-          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
+          expect(this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true }))
             .to.be.eventually.rejectedWith(
               Error,
               /commit has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
             )
             .and.have.deep.property('sql')
-            .that.equal('SELECT 1+1'),
+            .that.equal(`SELECT 1+1${fromQuery()}`),
         ]);
       })(),
     ).to.be.eventually.fulfilled;
@@ -294,10 +305,13 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
     await expect(
       (async () => {
         const t = await this.sequelize.startUnmanagedTransaction();
-        await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        await this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true });
         await t.rollback();
 
-        return await this.sequelize.query('SELECT 1+1', { transaction: t, raw: true });
+        return await this.sequelize.query(`SELECT 1+1${fromQuery()}`, {
+          transaction: t,
+          raw: true,
+        });
       })(),
     ).to.eventually.be.rejected;
   });
@@ -319,13 +333,13 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
       this.sequelize.startUnmanagedTransaction().then(async t => {
         await Promise.all([
           expect(t.rollback()).to.eventually.be.fulfilled,
-          expect(this.sequelize.query('SELECT 1+1', { transaction: t, raw: true }))
+          expect(this.sequelize.query(`SELECT 1+1${fromQuery()}`, { transaction: t, raw: true }))
             .to.be.eventually.rejectedWith(
               Error,
               /rollback has been called on this transaction\([^)]+\), you can no longer use it\. \(The rejected query is attached as the 'sql' property of this error\)/,
             )
             .and.have.deep.property('sql')
-            .that.equal('SELECT 1+1'),
+            .that.equal(`SELECT 1+1${fromQuery()}`),
         ]);
       }),
     ).to.eventually.be.fulfilled;
@@ -360,7 +374,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.getFinished()) {
+          if (!transaction.finished) {
             await transaction.rollback();
             throw error;
           }
@@ -417,7 +431,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.getFinished()) {
+          if (!transaction.finished) {
             await transaction.rollback();
             throw error;
           }
@@ -443,7 +457,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.getFinished()) {
+          if (!transaction.finished) {
             await transaction.rollback();
             throw error;
           }
@@ -469,7 +483,7 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         } catch (error) {
           // Cleanup this transaction so other tests don't
           // fail due to an open transaction
-          if (!transaction.getFinished()) {
+          if (!transaction.finished) {
             await transaction.rollback();
             throw error;
           }
@@ -751,8 +765,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
           expect(t2AttemptData.reason.message).to.include(
             'Deadlock found when trying to get lock; try restarting transaction',
           );
-          expect(t1.getFinished()).to.equal('commit');
-          expect(t2.getFinished()).to.equal('rollback');
+          expect(t1.finished).to.equal('commit');
+          expect(t2.finished).to.equal('rollback');
 
           const expectedExecutionOrder = [
             'Begin attempt to update via T2',
@@ -1217,8 +1231,8 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
 
           expect(t1AttemptData.isFulfilled).to.be.true;
           expect(t2AttemptData.isFulfilled).to.be.true;
-          expect(t1.getFinished()).to.equal('commit');
-          expect(t2.getFinished()).to.equal('commit');
+          expect(t1.finished).to.equal('commit');
+          expect(t2.finished).to.equal('commit');
 
           const expectedExecutionOrder = [
             'Begin attempt to update via T2',

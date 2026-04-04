@@ -24,6 +24,17 @@ describe('DataType Methods', () => {
     parseDatabaseValue(_value: unknown): any {
       return customValueSymbol;
     }
+
+    _getBindDef(oracledb: any) {
+      if (dialect.name !== 'oracle') {
+        return undefined;
+      }
+
+      return {
+        type: oracledb.DB_TYPE_VARCHAR, // CustomDataType extends STRING so VARCHAR is used.
+        maxSize: 255, // Adjust the value based on the input/output value of this type.
+      };
+    }
   }
 
   const models = beforeAll2(async () => {
@@ -174,6 +185,10 @@ describe('DataType Methods', () => {
     });
 
     it(`upserting a model calls 'parseDatabaseValue' on returned values`, async () => {
+      if (!dialect.supports.upserts) {
+        return;
+      }
+
       // 'name' attr has a different name in the database
       const [out] = await models.User.upsert({ name: 'foo', id: 1234 }, { returning: true });
 

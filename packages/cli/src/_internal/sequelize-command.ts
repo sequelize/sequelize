@@ -4,7 +4,7 @@ import input from '@inquirer/input';
 import select from '@inquirer/select';
 import type { Interfaces } from '@oclif/core';
 import { Command, Flags } from '@oclif/core';
-import type { FlagInput } from '@oclif/core/lib/interfaces/parser.js';
+import type { FlagInput } from '@oclif/core/parser';
 import { pojo } from '@sequelize/utils';
 
 export type CommandFlags<Flags extends FlagInput> = Interfaces.InferredFlags<
@@ -35,7 +35,6 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       looseParseFlagConfig[key] = {
         ...strictFlagConfig[key],
         required: false,
-        default: undefined,
       };
     }
 
@@ -102,7 +101,7 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
             // eslint-disable-next-line no-await-in-loop
             flags[flagKey] = await input({
               message: `${flag.summary}`,
-              required: flag.required,
+              required: flag.required ?? false,
               default: flag.default,
             });
           }

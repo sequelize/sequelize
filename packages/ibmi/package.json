@@ -31,15 +31,15 @@
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
   "type": "commonjs",
-  "version": "7.0.0-alpha.45",
+  "version": "7.0.0-alpha.48",
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.10",
-    "lodash": "^4.17.21",
-    "odbc": "^2.4.8"
+    "dayjs": "^1.11.20",
+    "lodash": "^4.18.1",
+    "odbc": "^2.4.9"
   }
 }

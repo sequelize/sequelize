@@ -7,6 +7,7 @@ import sinon from 'sinon';
 import {
   beforeAll2,
   createMultiTransactionalTestSequelizeInstance,
+  getTestDialect,
   sequelize,
   setResetMode,
 } from './support';
@@ -173,7 +174,10 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
   it('promises returned by sequelize.query are correctly patched', async () => {
     await vars.clsSequelize.transaction(async t => {
-      await vars.clsSequelize.query('select 1', { type: QueryTypes.SELECT });
+      await vars.clsSequelize.query(
+        `select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : ''}`,
+        { type: QueryTypes.SELECT },
+      );
 
       return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
     });
@@ -279,20 +283,22 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
       },
     });
 
-    testHooks({
-      method: 'Model.upsert',
-      hooks: ['beforeUpsert', 'afterUpsert'],
-      optionPos: 1,
-      async execute(User) {
-        await User.upsert({
-          id: 1,
-          name: 'bob',
-        });
-      },
-      getModel() {
-        return vars.User;
-      },
-    });
+    if (sequelize.dialect.supports.upserts) {
+      testHooks({
+        method: 'Model.upsert',
+        hooks: ['beforeUpsert', 'afterUpsert'],
+        optionPos: 1,
+        async execute(User) {
+          await User.upsert({
+            id: 1,
+            name: 'bob',
+          });
+        },
+        getModel() {
+          return vars.User;
+        },
+      });
+    }
 
     testHooks({
       method: 'Model.destroy',

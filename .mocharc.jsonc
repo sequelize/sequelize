@@ -41,6 +41,7 @@
     "__classPrivateFieldSet",
     "__classPrivateFieldIn",
     "__addDisposableResource",
-    "__disposeResources"
+    "__disposeResources",
+    "__rewriteRelativeImportExtension"
   ]
 }
