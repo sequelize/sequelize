@@ -2889,7 +2889,7 @@ __metadata:
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.41.0"
     uuid: "npm:^11.1.0"
-    validator: "npm:^13.15.26"
+    validator: "npm:^13.15.35"
   languageName: unknown
   linkType: soft
 
@@ -15914,10 +15914,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"validator@npm:^13.15.26":
-  version: 13.15.26
-  resolution: "validator@npm:13.15.26"
-  checksum: 10c0/d66041685c531423f6b514d0481228503b96682fe30ed7925ad77ff3cd08c3983dc94f45e18457e44f62f89027b94a3342009d65421800ce65f6e0d2c6eaf7fc
+"validator@npm:^13.15.35":
+  version: 13.15.35
+  resolution: "validator@npm:13.15.35"
+  checksum: 10c0/1958ebcad578128d154853a2b9bf5b95e7738dcc7d1d065e50a969812272312ec379dcaf375b9d7545e04a71de6755f60f5a4b49c1405737a9c80e11da297eef
   languageName: node
   linkType: hard
 
