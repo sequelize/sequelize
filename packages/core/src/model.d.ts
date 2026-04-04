@@ -783,14 +783,14 @@ export type ProjectionAlias = readonly [
 ];
 
 export type FindAttributeOptions<TAttributes = any> =
-  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
+  | ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
   | {
-      exclude: Array<Extract<keyof TAttributes, string>>;
-      include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include?: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     }
   | {
-      exclude?: Array<Extract<keyof TAttributes, string>>;
-      include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude?: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     };
 
 export interface IndexHint {
