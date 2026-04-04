@@ -110,5 +110,8 @@
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"
+  },
+  "resolutions": {
+    "@mapbox/node-pre-gyp@npm:^2.0.0": "patch:@mapbox/node-pre-gyp@npm%3A2.0.3#~/.yarn/patches/@mapbox-node-pre-gyp-npm-2.0.3-4606feb049.patch"
   }
 }

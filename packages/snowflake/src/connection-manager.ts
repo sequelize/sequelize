@@ -11,12 +11,19 @@ import {
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import * as SnowflakeSdk from 'snowflake-sdk';
+import type * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
 
 export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
+
+function loadSnowflakeSdk(): SnowflakeSdkModule {
+  // snowflake-sdk pulls in AWS helpers that install a global "awslambda" object at import time.
+  process.env.AWS_LAMBDA_NODEJS_NO_GLOBAL_AWSLAMBDA ??= '1';
+
+  return require('snowflake-sdk') as SnowflakeSdkModule;
+}
 
 export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
@@ -34,6 +41,8 @@ export interface SnowflakeConnectionOptions
     | 'schema'
     // sequelize does not support result streaming https://github.com/sequelize/sequelize/issues/10347
     | 'streamResult'
+    // "oauthHttpAllowed" is not supported by the Snowflake SDK anymore (deprecated option)
+    | 'oauthHttpAllowed'
   > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
@@ -44,7 +53,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
 
   constructor(dialect: SnowflakeDialect) {
     super(dialect);
-    this.#lib = this.dialect.options.snowflakeSdkModule ?? SnowflakeSdk;
+    this.#lib = this.dialect.options.snowflakeSdkModule ?? loadSnowflakeSdk();
   }
 
   /**

@@ -628,8 +628,6 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0019',
   'SEQUELIZE0021',
   'SEQUELIZE0022',
-  'DEP0040', // Added for Node 22 support
-  'DEP0169', // Added for Node 24 support
 ];
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
