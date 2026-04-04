@@ -17,3 +17,15 @@ node_modules
 /lib
 /types
 .oracle/
+
+yarn-debug.log*
+yarn-error.log*
+
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+!.gitkeep

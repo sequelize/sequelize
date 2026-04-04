@@ -128,31 +128,31 @@
     "typescript": "^4.5.4"
   },
   "peerDependenciesMeta": {
+    "ibm_db": {
+      "optional": true
+    },
+    "mariadb": {
+      "optional": true
+    },
+    "mysql2": {
+      "optional": true
+    },
+    "oracledb": {
+      "optional": true
+    },
     "pg": {
       "optional": true
     },
     "pg-hstore": {
       "optional": true
     },
-    "mysql2": {
-      "optional": true
-    },
-    "ibm_db": {
-      "optional": true
-    },
     "snowflake-sdk": {
-      "optional": true
-    },
-    "mariadb": {
       "optional": true
     },
     "sqlite3": {
       "optional": true
     },
     "tedious": {
-      "optional": true
-    },
-    "oracledb": {
       "optional": true
     }
   },
@@ -306,5 +306,6 @@
     "build": "node ./build.js",
     "---------------------------------------------------------------------------------------------------": ""
   },
-  "support": true
+  "support": true,
+  "packageManager": "yarn@4.13.0"
 }

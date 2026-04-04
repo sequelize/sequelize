@@ -19,8 +19,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - run: yarn lint
       - run: yarn lint-docs
   docs:
@@ -31,8 +31,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - run: yarn docs
   test-typings:
     strategy:
@@ -46,9 +46,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add --dev typescript@~${{ matrix.ts-version }} --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
+      - run: yarn add --dev typescript@~${{ matrix.ts-version }}
       - run: yarn test-typings
   test-oracle:
     strategy:
@@ -72,8 +72,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - if: matrix.oracle-version == '18'
         name: Install Local Oracle DB 18
         run: yarn start-oracle-oldest
@@ -103,8 +103,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - name: Install Local DB2 Copy
         run: yarn start-db2
       - name: Unit Tests
@@ -127,8 +127,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -163,9 +163,9 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add pg-native --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
+      - run: yarn add pg-native
         if: matrix.native
       - name: Unit Tests
         run: yarn test-unit
@@ -231,8 +231,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -271,8 +271,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - name: Unit Tests
         run: yarn test-unit
       - name: Integration Tests
@@ -291,8 +291,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - name: Unit Tests
         run: yarn test-unit
       # - name: Integration Tests
@@ -318,8 +318,8 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 18.x
-      - run: yarn global add node-gyp --ignore-engines
-      - run: yarn install --frozen-lockfile --ignore-engines
+      - run: yarn global add node-gyp
+      - run: yarn install --immutable
       - run: npx semantic-release
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
