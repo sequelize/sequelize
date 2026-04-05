@@ -843,7 +843,7 @@ The number of ${this.target.name} to associate (${newTargets.length}), and the n
 
     for (const changedTarget of changedTargets) {
       // @ts-expect-error -- gets the content of the "through" table for this association that is set on the model
-      let throughAttributes = changedTarget[this.through.model.name];
+      let throughAttributes = changedTarget.newInstance[this.through.model.name];
       const attributes = {
         ...defaultAttributesArray[multipleAttributes ? changedTarget.index : 0],
         ...throughAttributes,

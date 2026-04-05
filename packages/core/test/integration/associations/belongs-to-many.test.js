@@ -3498,8 +3498,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         expect(projects.length).to.equal(3);
         projects.forEach(project => {
-          expect(project.UserProject.status).to.equal('great');
-          expect(project.UserProject.data).to.equal(123);
+          expect(project.userProject.status).to.equal('great');
+          expect(project.userProject.data).to.equal(123);
         });
       });
 
@@ -3512,7 +3512,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ],
         });
 
-        expect(promise).to.be.rejectedWith(AssociationError);
+        await expect(promise).to.be.rejectedWith(AssociationError);
       });
 
       it('should accept an array to be used for each association accordingly with "add" mixin', async function () {
@@ -3527,13 +3527,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         expect(projects.length).to.equal(3);
         expect(
-          projects.find(project => project.id === this.projects[0].id)?.UserProject,
+          projects.find(project => project.id === this.projects[0].id)?.userProject,
         ).to.exist.and.to.include({ status: 'great', data: 123 });
         expect(
-          projects.find(project => project.id === this.projects[1].id)?.UserProject,
+          projects.find(project => project.id === this.projects[1].id)?.userProject,
         ).to.exist.and.to.include({ status: 'fine', data: 456 });
         expect(
-          projects.find(project => project.id === this.projects[2].id)?.UserProject,
+          projects.find(project => project.id === this.projects[2].id)?.userProject,
         ).to.exist.and.to.include({ status: 'wrong', data: 789 });
       });
 
@@ -3556,13 +3556,13 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         expect(projects.length).to.equal(3);
         expect(
-          projects.find(project => project.id === this.projects[0].id)?.UserProject,
+          projects.find(project => project.id === this.projects[0].id)?.userProject,
         ).to.exist.and.to.include({ status: 'great', data: 123 });
         expect(
-          projects.find(project => project.id === this.projects[1].id)?.UserProject,
+          projects.find(project => project.id === this.projects[1].id)?.userProject,
         ).to.exist.and.to.include({ status: 'fine', data: 456 });
         expect(
-          projects.find(project => project.id === this.projects[2].id)?.UserProject,
+          projects.find(project => project.id === this.projects[2].id)?.userProject,
         ).to.exist.and.to.include({ status: 'wrong', data: 789 });
       });
     });
