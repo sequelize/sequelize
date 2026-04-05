@@ -24,7 +24,7 @@ export class RunMigrations extends SequelizeCommand<(typeof RunMigrations)['flag
     `<%= config.bin %> <%= command.id %> --step=1`,
   ];
 
-  async run(): Promise<{ count: number; migrations: string[] }> {
+  async run(): Promise<{ migrated: string[] }> {
     const { to, step } = this.flags;
 
     const opts: RunMigrationsOptions = { logger: makeUmzugLogger(this) };
@@ -47,6 +47,6 @@ export class RunMigrations extends SequelizeCommand<(typeof RunMigrations)['flag
       }
     }
 
-    return { count: executed.length, migrations: executed.map(m => m.name) };
+    return { migrated: executed.map(m => m.name) };
   }
 }

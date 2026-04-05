@@ -63,7 +63,7 @@
   },
   "repository": "https://github.com/sequelize/sequelize",
   "scripts": {
-    "build": "rimraf lib && tsc --project tsconfig.build.json",
+    "build": "rimraf lib && tsc --project tsconfig.build.json && oclif manifest",
     "postpack": "rimraf oclif.manifest.json",
     "prepack": "yarn build && oclif manifest && oclif readme",
     "prepare": "yarn build",

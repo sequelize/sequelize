@@ -33,8 +33,7 @@ describe('migration:undo', function () {
     await runCommand(['migration:run'], { root: packageRoot });
     const { stdout } = await runCommand(['migration:undo', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(1);
-    expect(result.migrations).to.deep.equal(['2024-01-03-create-comments']);
+    expect(result.reverted).to.deep.equal(['2024-01-03-create-comments']);
   });
 
   it('respects --step', async () => {
@@ -43,8 +42,7 @@ describe('migration:undo', function () {
       root: packageRoot,
     });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(2);
-    expect(result.migrations).to.deep.equal([
+    expect(result.reverted).to.deep.equal([
       '2024-01-03-create-comments',
       '2024-01-02-create-posts',
     ]);
@@ -56,8 +54,7 @@ describe('migration:undo', function () {
       root: packageRoot,
     });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(3);
-    expect(result.migrations).to.deep.equal([
+    expect(result.reverted).to.deep.equal([
       '2024-01-03-create-comments',
       '2024-01-02-create-posts',
       '2024-01-01-create-users',
@@ -71,8 +68,7 @@ describe('migration:undo', function () {
       { root: packageRoot },
     );
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(2);
-    expect(result.migrations).to.deep.equal([
+    expect(result.reverted).to.deep.equal([
       '2024-01-03-create-comments',
       '2024-01-02-create-posts',
     ]);
@@ -81,7 +77,6 @@ describe('migration:undo', function () {
   it('returns zero count when there are no executed migrations', async () => {
     const { stdout } = await runCommand(['migration:undo', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(0);
-    expect(result.migrations).to.deep.equal([]);
+    expect(result.reverted).to.deep.equal([]);
   });
 });

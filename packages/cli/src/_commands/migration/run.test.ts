@@ -33,16 +33,14 @@ describe('migration:run', function () {
   it('runs all pending migrations and returns JSON', async () => {
     const { stdout } = await runCommand(['migration:run', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(3);
-    expect(result.migrations).to.deep.equal(NAMES);
+    expect(result.migrated).to.deep.equal(NAMES);
   });
 
   it('returns zero count when there are no pending migrations', async () => {
     await runCommand(['migration:run'], { root: packageRoot });
     const { stdout } = await runCommand(['migration:run', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(0);
-    expect(result.migrations).to.deep.equal([]);
+    expect(result.migrated).to.deep.equal([]);
   });
 
   it('respects --step', async () => {
@@ -50,8 +48,7 @@ describe('migration:run', function () {
       root: packageRoot,
     });
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(2);
-    expect(result.migrations).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
+    expect(result.migrated).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
   });
 
   it('respects --to', async () => {
@@ -59,8 +56,8 @@ describe('migration:run', function () {
       ['migration:run', '--to=2024-01-02-create-posts', '--json'],
       { root: packageRoot },
     );
+
     const result = JSON.parse(stdout);
-    expect(result.count).to.equal(2);
-    expect(result.migrations).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
+    expect(result.migrated).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
   });
 });

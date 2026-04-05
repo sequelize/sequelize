@@ -33,7 +33,7 @@ export class UndoMigration extends SequelizeCommand<(typeof UndoMigration)['flag
     `<%= config.bin %> <%= command.id %> --to=20240101000000-create-users`,
   ];
 
-  async run(): Promise<{ count: number; migrations: string[] }> {
+  async run(): Promise<{ reverted: string[] }> {
     const { all, to, step } = this.flags;
 
     const opts: UndoMigrationsOptions = { logger: makeUmzugLogger(this) };
@@ -56,6 +56,6 @@ export class UndoMigration extends SequelizeCommand<(typeof UndoMigration)['flag
       }
     }
 
-    return { count: reverted.length, migrations: reverted.map(m => m.name) };
+    return { reverted: reverted.map(m => m.name) };
   }
 }
