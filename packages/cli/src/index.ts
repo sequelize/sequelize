@@ -12,4 +12,3 @@ export * from './commands/migration/status.js';
 export * from './commands/migration/undo.js';
 export * from './commands/seed/generate.js';
 export * from './config.js';
-export * from './oclif.js';
